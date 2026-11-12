@@ -5,13 +5,12 @@ import type { SlotPosition } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
-import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "./footballRows.harness";
 import { BY_NAME, playersListed } from "./playersList.harness";
 import { EXAMPLE_SET } from "./scoring.example";
-import { holdSiteScoring } from "./siteScoring.harness";
+import { holdExampleScoring } from "./siteScoring.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
 // Season points' league (#525, seasonPoints.ts): Ann's team holds Saka; Rice and Palmer are free
@@ -56,7 +55,7 @@ export async function seasonPointsLeague(): Promise<PointsLeague> {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, RICE, PALMER]);
     for (const each of [GW1, GW2, GW3, LAST_SEASON]) await ctx.db.insert("fixtures", each);
-    await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
+    await holdExampleScoring(ctx);
     await ctx.db.insert("squadPlayers", { leagueId, teamId: annTeam, playerCode: SAKA.code });
     for (const each of [
       record(SAKA.code, GW1.code, SAKA_GW1),

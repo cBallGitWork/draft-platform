@@ -23,7 +23,7 @@ import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
 import { matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
-import { insertClubs, insertSeasonGameweeks } from "./footballRows.harness";
+import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
@@ -129,8 +129,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
       ]);
       for (const [code, position] of positionOf) {
         const name = elements.get(code)!.web_name;
-        await ctx.db.insert("players", { code, name, fullName: name, clubCode });
-        await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [position], removed: [] });
+        await insertPlayers(ctx, [{ code, name, fullName: name, clubCode, positions: [position] }]);
         await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode: code });
       }
       const saves = teamId === annsTeam || bobSaves;

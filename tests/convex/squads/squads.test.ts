@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer, insertSetPositions } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -215,9 +215,7 @@ describe("squad limits warn, never block", () => {
 
   test("short of an area's minimum, with a wing back filling only one of defence and midfield (#317)", async () => {
     await setSquadRules({ size: null, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 1, midfield: 1 }, maxPerClub: null });
-    await t.run(async (ctx) => {
-      await ctx.db.insert("playerPositions", { code: SAKA, starts: [], approved: [], set: ["WB"], removed: [] });
-    });
+    await t.run((ctx) => insertSetPositions(ctx, SAKA, ["WB"]));
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
 
     expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([{ kind: "underAreaMinimum", area: "midfield", players: 0, minimum: 1 }]);

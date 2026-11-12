@@ -7,6 +7,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -87,7 +88,7 @@ describe("a commissioner's change", () => {
     expect(await change(leagueId)).toBe(9);
     expect(await rulesIn(t, leagueId, 8)).toEqual(HELD_FIRST_RULES);
     expect(await rulesIn(t, leagueId, 9)).toEqual(TOTAL_POINTS);
-    expect(await rulesIn(t, leagueId, 38)).toEqual(TOTAL_POINTS);
+    expect(await rulesIn(t, leagueId, PL_GAMEWEEKS)).toEqual(TOTAL_POINTS);
   });
 
   test("is filed for Mail with what changed and from when", async () => {

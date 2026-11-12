@@ -115,7 +115,7 @@ describe("announcing a patch", () => {
     expect(await patch(EDITED, deadline)).toEqual({ name: "26_27.1", fromGameweek: 10 });
     expect(await inGameweek(9)).toEqual(FIRST_SCORING);
     expect(await inGameweek(10)).toEqual(EDITED);
-    expect(await inGameweek(38)).toEqual(EDITED);
+    expect(await inGameweek(PL_GAMEWEEKS)).toEqual(EDITED);
     expect(await draftSavedAt()).toBeNull();
     expect(await viewAs(COMMISSIONER)).toMatchObject({
       part: FIRST_SCORING,
