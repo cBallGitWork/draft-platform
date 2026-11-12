@@ -2,11 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { clubResultOf, goalsOf } from "../../convex/football/clubFixtures";
-import { FormChips, ResultChip } from "../myTeam/header/FormChips";
 import { useMinute } from "../shared/useMinute";
-import { gameweekShort } from "../shared/words";
+import { formHead, gameweekShort, tableHead } from "../shared/words";
 import { ClubMark } from "../ui/ClubName";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
+import { FormChips, ResultChip } from "../ui/FormChips";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { ClubLink } from "./ClubLink";
@@ -20,7 +20,6 @@ import {
   clubTabsLabel,
   clubTabWords,
   daysAwayWords,
-  formHead,
   goalsWords,
   kickoffDayWords,
   kickoffHead,
@@ -34,7 +33,6 @@ import {
   notInTableWords,
   placeWords,
   scoreWords,
-  tableHead,
   venueWords,
   type ClubTab,
 } from "./words";

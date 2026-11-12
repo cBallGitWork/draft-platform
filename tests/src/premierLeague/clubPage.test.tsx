@@ -28,7 +28,7 @@ import { manager, openApp } from "../../support/src/shell.harness";
 const fullTimeScore = (homeGoals: number, awayGoals: number) => ({ state: "fullTime" as const, homeGoals, awayGoals, minutes: 90, clockLabel: null });
 
 /** A match of Arsenal's from their side. */
-const fixture = (fixtureCode: number, gameweek: number, atHome: boolean, opponent: ClubPageFixture["opponent"], kickoff: number, score: ClubPageFixture["score"] = null): ClubPageFixture => ({
+const arsenalMatch = (fixtureCode: number, gameweek: number, atHome: boolean, opponent: ClubPageFixture["opponent"], kickoff: number, score: ClubPageFixture["score"] = null): ClubPageFixture => ({
   fixtureCode,
   gameweek,
   kickoff,
@@ -45,11 +45,11 @@ const arsenal: ClubPageData = {
   club: ARSENAL,
   position: 1,
   form: ["won", "drawn"],
-  next: { ...fixture(30, 3, false, SPURS, inThreeDays), kickoff: inThreeDays, opponentPosition: 4, opponentForm: ["lost"] },
+  next: { ...arsenalMatch(30, 3, false, SPURS, inThreeDays), kickoff: inThreeDays, opponentPosition: 4, opponentForm: ["lost"] },
   fixtures: [
-    fixture(10, 1, true, CHELSEA, lastWeek, fullTimeScore(2, 1)),
-    fixture(20, 2, false, FOREST, lastWeek + HOUR_MS, fullTimeScore(1, 1)),
-    fixture(30, 3, false, SPURS, inThreeDays),
+    arsenalMatch(10, 1, true, CHELSEA, lastWeek, fullTimeScore(2, 1)),
+    arsenalMatch(20, 2, false, FOREST, lastWeek + HOUR_MS, fullTimeScore(1, 1)),
+    arsenalMatch(30, 3, false, SPURS, inThreeDays),
   ],
 };
 
@@ -130,7 +130,7 @@ describe("the Fixtures tab", () => {
   });
 
   it("gives an away win the club's goals first, and its link names the match home side first", async () => {
-    openClub({ club: { ...arsenal, fixtures: [fixture(40, 4, false, CHELSEA, lastWeek, fullTimeScore(0, 3))] } });
+    openClub({ club: { ...arsenal, fixtures: [arsenalMatch(40, 4, false, CHELSEA, lastWeek, fullTimeScore(0, 3))] } });
     const fixtures = await screen.findByRole("region", { name: clubTabWords.fixtures });
     const link = within(fixtures).getByRole("link", { name: `${CHELSEA.name} ${scoreWords(0, 3)} ${ARSENAL.name}: the match` });
     expect(link.textContent).toBe(`W${scoreWords(3, 0)}`);

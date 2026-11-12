@@ -109,7 +109,6 @@ export const possessionWords = (share: number) => `${Math.round(share)}%`;
 
 // A club's page (#1936; spec/18, Club pages).
 
-export { formHead, tableHead } from "../myTeam/header/words";
 export { placeWords } from "../shared/words";
 export const loadingClubWords = "Loading the club…";
 export const noClubWords = "No club with this code is held.";

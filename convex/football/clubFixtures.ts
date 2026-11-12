@@ -1,13 +1,15 @@
 import type { Result } from "../table/standings";
 import { FORM_RESULTS } from "../table/standings";
 import { byKickoff } from "../shared/fixtures";
+import type { Club } from "../shared/players";
+import type { ScoreRead } from "./scoreReads";
 
 // A real club's matches as its page shows them (#1936; spec/18, Club pages, `S18.7`, `S18.9`): each
 // from the club's side, its form and its next match, pure so the query (clubPage.ts) and the
 // preview read them alike.
 
-type Club = { code: number; name: string; shortName: string };
-type Score = { state: "upcoming" | "live" | "halfTime" | "fullTime"; homeGoals: number | null; awayGoals: number | null; minutes: number | null; clockLabel: string | null };
+/** A match's newest score as held, without its match's code (matchScores.ts, `scoreOnly`). */
+type Score = Omit<ScoreRead, "fixtureCode">;
 
 /** A match as the Football page holds it, with its gameweek: null while a postponed one waits. */
 export type HeldMatch = { fixtureCode: number; gameweek: number | null; kickoff: number | null; home: Club; away: Club; score: Score | null };

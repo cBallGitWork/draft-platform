@@ -182,6 +182,9 @@ export const formLabel = (results: readonly Result[]) =>
 export const liveFormLabel = (results: readonly Result[]) => `${formLabel(results)}${listSeparator}${provisionalWords}`;
 /** A live result's chip, on hover: "won, Provisional". */
 export const liveResultWords = (result: Result) => `${resultWords[result].long}${listSeparator}${provisionalWords}`;
+/** The heads over a team's form and table place: My team's header and a club's page. */
+export const formHead = "Form";
+export const tableHead = "Table";
 
 /** The bench's title, on Tactics and under a matchup's lineup alike. */
 export const BENCH_TITLE = "Bench";

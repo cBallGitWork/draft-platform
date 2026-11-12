@@ -9,12 +9,10 @@ import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
-export { gameweekShort, placeWords } from "../../shared/words";
+export { formHead, gameweekShort, placeWords, tableHead } from "../../shared/words";
 
 /** The band's heads over each reading. */
 export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
-export const formHead = "Form";
-export const tableHead = "Table";
 /** The band's readings, for screen readers, as a list. */
 export const meterListLabel = "Your team at a glance";
 
@@ -31,8 +29,6 @@ export function countdownWords(left: number): string {
 /** On the hover of the no-deadline dash: why there is none. */
 export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
 
-/** Form's chips and label, as League home says them. */
-export { formLabel, liveFormLabel, liveResultWords, resultWords } from "../../shared/words";
 /** The last game's result, as a line says it. */
 const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", lost: "Lost" };
 
