@@ -3,6 +3,7 @@
 // its form. Pure, so the tests can pin it. Form and a result are League home's own (convex/table/
 // standings.ts), so the two screens never tell a team's form apart.
 
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { BYE, gamesOf, type Against } from "../../../convex/table/teamGames";
 import { formOf, type Result } from "../../../convex/table/standings";
@@ -86,6 +87,7 @@ export function standingOf(table: LeagueTable, teamName: string): Standing | nul
     last: scored.at(-1) ?? null,
     lastPoints: latest === undefined || own === undefined ? null : { gameweek: latest.gameweek, points: own.points, provisional: own.provisional },
     form: formOf(
+      gameModeOf(table),
       table.table.map(({ teamName: name }) => name),
       scheduleOf(table),
       new Map(table.results.map(({ gameweek, teams }) => [gameweek, new Map(teams.map((side) => [side.teamName, side.points]))])),

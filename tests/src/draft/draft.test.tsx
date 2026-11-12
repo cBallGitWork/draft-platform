@@ -5,10 +5,9 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, menuWords } from "../../../src/frame/words";
-import type { BoardPick, DraftState } from "../../../src/draft/seam";
+import type { BoardPick } from "../../../src/draft/seam";
 import {
   aPickWords,
   BOARD_TITLE,
@@ -26,7 +25,7 @@ import {
   yourNextHead,
 } from "../../../src/draft/words";
 import { silenceConsoleError } from "../../support/console.setup";
-import { draftOrder, emptyBoard, type DraftData } from "../../support/src/draft.harness";
+import { draftOrder, emptyBoard, liveDraft, type DraftData } from "../../support/src/draft.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
 const openDraft = (draft: DraftData = {}) => openApp(DRAFT_PATH, manager, { draft });
@@ -42,25 +41,6 @@ const pickOf = (pick: number, teamIndex: number, name: string): BoardPick => ({
   player: { code: pick, name, clubShortName: "ARS", position: "W" },
 });
 
-/** A live draft of the three teams over `rounds`, `picksMade` made, the next on the clock with 48
- *  seconds left of 90, or paused then. */
-function liveDraft(picksMade: number, rounds = 2, paused = false): DraftState {
-  const now = Date.now();
-  const pick = picksMade + 1;
-  const round = Math.floor(picksMade / 3) + 1;
-  const inRound = picksMade % 3;
-  const team = draftOrder[round % 2 === 1 ? inRound : 2 - inRound];
-  return {
-    status: "live",
-    startedAt: now - MINUTE_MS,
-    rounds,
-    order: draftOrder,
-    picksMade,
-    ownPickBy: null,
-    onTheClock: { pick, round, teamId: team.teamId, name: team.name },
-    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
-  };
-}
 
 describe("reaching it", () => {
   it("is in the menu after My team while the league says so, and opens the room for the league the app is in", async () => {
@@ -110,7 +90,7 @@ describe("before the start", () => {
 
 describe("while it runs", () => {
   it("shows the pick, whose turn it is, the clock counting down, who is next and the reader's next pick", async () => {
-    openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 0, "Saka")] } });
+    openDraft({ draft: liveDraft(), board: { ...emptyBoard, picks: [pickOf(1, 0, "Saka")] } });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(stateWords.live);
     expect(fact("Pick 2 of 6")).toBe("Round 1, pick 2");
     expect(fact(onTheClockHead)).toBe("Team 2, you");
@@ -120,7 +100,7 @@ describe("while it runs", () => {
   });
 
   it("puts each pick made on the board, and outlines the pick on the clock with its time left", async () => {
-    openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 0, "Saka")] } });
+    openDraft({ draft: liveDraft(), board: { ...emptyBoard, picks: [pickOf(1, 0, "Saka")] } });
     const [first] = await boardRows();
     const [made, onClock] = within(first).getAllByRole("cell");
     expect(made.textContent).toBe("WSakaARS, 1.01");
@@ -135,7 +115,7 @@ describe("while it runs", () => {
       { round: 1, teamId: one, ownerId: three },
       { round: 2, teamId: three, ownerId: one },
     ];
-    openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 2, "Saka")], tradedPicks } });
+    openDraft({ draft: liveDraft(), board: { ...emptyBoard, picks: [pickOf(1, 2, "Saka")], tradedPicks } });
     const [first, second] = await boardRows();
     expect(within(first).getAllByRole("cell")[0].textContent).toBe("WSakaARS, 1.01Team 3 via Team 1");
     expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "Team 1via Team 3"]);
@@ -147,21 +127,21 @@ describe("while it runs", () => {
     const [one] = draftOrder.map((team) => team.teamId);
     const gone = "gone" as typeof one;
     const logged = silenceConsoleError();
-    openDraft({ draft: liveDraft(0), board: { ...emptyBoard, tradedPicks: [{ round: 2, teamId: one, ownerId: gone }] } });
+    openDraft({ draft: liveDraft({ picksMade: 0 }), board: { ...emptyBoard, tradedPicks: [{ round: 2, teamId: one, ownerId: gone }] } });
     const [, second] = await boardRows();
     expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "2.01"]);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining("not in the draft order"), gone);
   });
 
   it("says the draft is paused, and its clock stands still", async () => {
-    openDraft({ draft: liveDraft(0, 2, true), board: emptyBoard });
+    openDraft({ draft: liveDraft({ picksMade: 0, paused: true }), board: emptyBoard });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(stateWords.paused);
     expect(fact(clockAPickHead(90))).toBe("0:48");
     expect(fact(yourNextHead(false))).toBe("Round 1, pick 2 in 1 pick");
   });
 
   it("shows six rounds, and every round on the whole board", async () => {
-    openDraft({ draft: liveDraft(9, 8), board: emptyBoard });
+    openDraft({ draft: liveDraft({ picksMade: 9, rounds: 8 }), board: emptyBoard });
     expect(await boardRows()).toHaveLength(6);
     expect(within(await board()).getByText(roundsShownWords(1, 6, 8))).toBeTruthy();
 
