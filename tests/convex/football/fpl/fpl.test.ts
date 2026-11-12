@@ -26,6 +26,7 @@ test("a player is his season-stable code, his names, his club's code and FPL's n
     news: "Unspecified injury - 75% chance of playing",
     chanceOfPlaying: 75,
     availability: "doubtful",
+    birthDate: "2000-07-21",
   });
 });
 

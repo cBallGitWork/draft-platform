@@ -845,6 +845,12 @@
             },
             "optional": true
           },
+          "birthDate": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
           "droppedAt": {
             "fieldType": {
               "type": "number"
@@ -27815,6 +27821,12 @@
             },
             "optional": true
           },
+          "birthDate": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
           "droppedAt": {
             "fieldType": {
               "type": "number"
@@ -29023,6 +29035,137 @@
                   }
                 }
               ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksFplLinks",
+      "indexes": [
+        {
+          "indexDescriptor": "by_kind_and_code",
+          "fields": [
+            "kind",
+            "code"
+          ]
+        },
+        {
+          "indexDescriptor": "by_kind_and_fplCode",
+          "fields": [
+            "kind",
+            "fplCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "kind": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "club"
+                },
+                {
+                  "type": "literal",
+                  "value": "player"
+                },
+                {
+                  "type": "literal",
+                  "value": "match"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fplCode": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "candidates": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "byHand": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
+            },
+            "optional": true
+          },
+          "since": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksFirstMinutes",
+      "indexes": [
+        {
+          "indexDescriptor": "by_playerCode_and_competition",
+          "fields": [
+            "playerCode",
+            "competition"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "at": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": false
           }

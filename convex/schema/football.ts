@@ -38,6 +38,9 @@ export const playerRecord = v.object({
   chanceOfPlaying: v.optional(v.union(v.number(), v.null())),
   /** Whether the feed says he can play (spec/06, Availability); absent on rows from before it. */
   availability: v.optional(availability),
+  /** His date of birth, "2001-09-05", where the feed sends one (#1421): what tells two men of one
+   *  name at a club apart when Sportmonks' players are linked to FPL's. */
+  birthDate: v.optional(v.string()),
 });
 
 export const fixtureRecord = v.object({

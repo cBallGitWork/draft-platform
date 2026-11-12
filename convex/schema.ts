@@ -48,7 +48,7 @@ export { platformSettingName } from "./schema/platform";
 export { recapTeamPoints } from "./schema/recaps";
 export { scoutState } from "./schema/scouting";
 export { tradePick, closedWhy } from "./schema/trades";
-export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields, sportmonksTickFields, sportmonksStart, sportmonksPositionsSyncFields, sportmonksReader } from "./schema/sportmonks";
+export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields, sportmonksTickFields, sportmonksStart, sportmonksPositionsSyncFields, sportmonksReader, sportmonksLinkKind } from "./schema/sportmonks";
 
 export default defineSchema({
   ...authTables,
