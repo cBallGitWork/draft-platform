@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { OWN_STAT_PREFIX } from "../../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../../convex/scoring/statKeys";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";

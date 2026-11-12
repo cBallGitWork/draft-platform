@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { namedLiteralHits } from "../../scripts/named-literals.mjs";
+import { namedLiteralHits, trackedSources } from "../../scripts/named-literals.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 const HOME = ["convex/scoring/statKeys.ts", 'export const BLOCKS = "outfielder_block";\nexport const OWN_STAT_PREFIX = "league:";\n'];
 const FIX = "; import it, or end the line with // literal-ok: <reason>";
@@ -40,6 +41,10 @@ test("plain words, class lists, lower-case names, preview data and files outside
       ["tests/a.test.ts", 'const a = "own_goals";\n'],
     ]),
   ).toEqual([]);
+});
+
+test("this repository's convex/ and src/ retype no value with a named home", () => {
+  expect(namedLiteralHits(trackedSources(REPO_ROOT))).toEqual([]);
 });
 
 test("the file that holds the constant may use its own value", () => {

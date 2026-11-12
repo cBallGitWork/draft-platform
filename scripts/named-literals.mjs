@@ -10,12 +10,12 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
+import { basename, join } from "node:path";
 import ts from "typescript";
 import { PREVIEW_FILE } from "./previewFile.mjs";
-import { ranDirectly } from "./thisScript.mjs";
+import { CHECKOUT, ranDirectly } from "./thisScript.mjs";
 
-export const FOLDERS = ["convex/", "src/"];
+const FOLDERS = ["convex/", "src/"];
 /** Written by `npx convex dev`, not by us. */
 const GENERATED = "convex/_generated/";
 const SCREAMING_CASE = /^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$/;
@@ -23,10 +23,10 @@ const SCREAMING_CASE = /^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$/;
 const WIRE_VALUE = /^[^\s]*[_:-][^\s]*$/;
 const PREFIX_NAME = /_PREFIX$/;
 /** The escape, at the end of the string's line, with a reason. */
-export const ESCAPE = /\/\/\s*literal-ok:\s*\S/;
+const ESCAPE = /\/\/\s*literal-ok:\s*\S/;
 
 /** Whether `path` is one this check reads: a source file under FOLDERS, not generated, not preview data. */
-export const checked = (path) =>
+const checked = (path) =>
   FOLDERS.some((folder) => path.startsWith(folder)) &&
   !path.startsWith(GENERATED) &&
   /\.tsx?$/.test(path) &&
@@ -94,9 +94,14 @@ export function namedLiteralHits(files) {
   });
 }
 
+/** The checked() files git tracks in the checkout at `root`, as [path, text] pairs. */
+export function trackedSources(root) {
+  const tracked = execFileSync("git", ["ls-files", "-z", ...FOLDERS], { cwd: root, encoding: "utf8" }).split("\0").filter(checked);
+  return tracked.map((path) => [path, readFileSync(join(root, path), "utf8")]);
+}
+
 if (ranDirectly(import.meta.url)) {
-  const tracked = execFileSync("git", ["ls-files", "-z", ...FOLDERS], { encoding: "utf8" }).split("\0").filter(checked);
-  const hits = namedLiteralHits(tracked.map((path) => [path, readFileSync(path, "utf8")]));
+  const hits = namedLiteralHits(trackedSources(CHECKOUT));
   for (const hit of hits) console.error(`named literals: ${hit}`);
   if (hits.length > 0) process.exit(1);
   console.log("named literals: no value with a named home is typed out again");
