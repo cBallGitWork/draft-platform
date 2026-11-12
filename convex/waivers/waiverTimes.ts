@@ -1,7 +1,7 @@
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { RulesRow } from "../rules/rulesHistory";
 import { londonOffset } from "../shared/moments";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../shared/time";
 
 // When a league's waivers run (#1198; spec/03, spec/08): on each of its runs' weekdays at the hour
 // and minute in UK time, whatever the clocks, Wednesday and Thursday at 18:00 by default
@@ -23,7 +23,7 @@ function ukMoment(day: number, hour: number, minute: number): number {
  *  (`way` -1) or on (`way` 1): every weekday's latest before it, or first after, is among them. */
 function* runsAround(runs: readonly WaiverRun[], moment: number, way: -1 | 1): Generator<number> {
   const today = Math.floor((moment + londonOffset(moment)) / DAY_MS) * DAY_MS;
-  for (let step = 0; step <= 7; step += 1) {
+  for (let step = 0; step <= WEEK_MS / DAY_MS; step += 1) {
     const day = today + way * step * DAY_MS;
     const weekday = DATE_DAYS[new Date(day).getUTCDay()];
     for (const run of runs) if (run.day === weekday) yield ukMoment(day, run.hour, run.minute);

@@ -2,7 +2,7 @@
 // error or uncaught page error it didn't expect, so a boot crash can't pass (errorsTest.ts).
 
 import { expect, type Page } from "@playwright/test";
-import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/shared/preview";
 import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
@@ -13,7 +13,7 @@ import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
 import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
 import { allFormationsWords, pitchLabel, runsWords } from "../../src/myTeam/tactics/words";
-import { applyWords, cancelWords, WINDOW_TITLE } from "../../src/myTeam/tactics/formationWindow/words";
+import { applyWords, backGroupPattern, cancelWords, WINDOW_TITLE } from "../../src/myTeam/tactics/formationWindow/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
 import { squadsPath } from "../../src/squads/paths";
@@ -70,7 +70,7 @@ async function expectPlayersApart(page: Page, onPhone: boolean, shape: string) {
  *  back-line groups. */
 async function pickFormation(page: Page, name: string) {
   await page.getByRole("button", { name: allFormationsWords }).click();
-  for (const group of await page.getByRole("button", { name: /^Back \d/ }).all()) {
+  for (const group of await page.getByRole("button", { name: backGroupPattern() }).all()) {
     await group.click();
     const tile = page.getByRole("radio", { name, exact: true }).and(page.locator("button"));
     if ((await tile.count()) === 0) continue;
@@ -141,7 +141,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
       test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {
         await page.goto(`${MY_TEAM_PATH}?preview=manager`);
-        for (const { name } of DEFAULT_PRESETS) {
+        for (const { name } of FIRST_PRESETS) {
           await pickFormation(page, name);
           await expectPlayersApart(page, viewport === PHONE, name);
         }
@@ -230,12 +230,12 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       });
     }
 
-    // The formation window, opened, is on screen whole in a 1440 by 900 window, Cancel and Use this
+    // The formation window, opened, is on screen whole in the desk's window, Cancel and Use this
     // inside it, in its longest group too (the approved formation window; #1159).
     test("the formation window, on its longest group, fits the window with Cancel and Use this inside it", async ({ page }) => {
       await page.goto(`${MY_TEAM_PATH}?preview=manager`);
       await page.getByRole("button", { name: allFormationsWords }).click();
-      await page.getByRole("button", { name: /^Back 4/ }).click();
+      await page.getByRole("button", { name: backGroupPattern(4) }).click();
       const window = page.getByRole("region", { name: WINDOW_TITLE });
       const box = (await window.boundingBox())!;
       expect(box.y, "the window's top, on screen").toBeGreaterThanOrEqual(0);

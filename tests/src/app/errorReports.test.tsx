@@ -3,7 +3,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
-import { silenceConsoleError } from "../../support/console.setup";
+import { silenceConsoleError, silenceConsoleWarn } from "../../support/console.setup";
 import {
   COMMIT_SHA_ENV,
   LOCAL_ENVIRONMENT,
@@ -57,7 +57,7 @@ test("a report loses its user, every email address and a sign-in link's code", (
 });
 
 test("a report that can't be read as text is dropped, and the console says so", () => {
-  const warned = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const warned = silenceConsoleWarn();
   const looped: { self?: unknown } = {};
   looped.self = looped;
   expect(scrubbed(looped)).toBeNull();

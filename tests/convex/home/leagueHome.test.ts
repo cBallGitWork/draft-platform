@@ -11,6 +11,7 @@ import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness"
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's first slice (#387; spec/12, League home): this gameweek's head-to-heads, the table
 // (whole up to WHOLE_TABLE_MOST teams, else the top TOP_ROWS and the reader's row) with each team's
@@ -128,9 +129,9 @@ describe("the latest claims, drops and trades", () => {
     await commish.release(SAKA);
 
     expect((await read())?.squadMoves).toMatchObject([
-      { kind: "playerReleased", playerName: "Saka", teamName: "Team 2", fromTeamName: null },
-      { kind: "playerMoved", playerName: "Saka", teamName: "Team 2", fromTeamName: "Team 1" },
-      { kind: "playerAssigned", playerName: "Saka", teamName: "Team 1", fromTeamName: null },
+      { kind: "playerReleased", playerName: "Saka", teamName: teamNumbered(2), fromTeamName: null },
+      { kind: "playerMoved", playerName: "Saka", teamName: teamNumbered(2), fromTeamName: teamNumbered(1) },
+      { kind: "playerAssigned", playerName: "Saka", teamName: teamNumbered(1), fromTeamName: null },
     ]);
   });
 
@@ -164,12 +165,12 @@ describe("the latest claims, drops and trades", () => {
     const gets = { players: [{ playerCode: RICE, playerName: "Rice" }], picks: [] };
     await t.run(async (ctx) => {
       const filed = (event: Doc<"leagueEvents">["event"]) => ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by: BOB, event });
-      await filed({ kind: "tradeMade", fromTeamId: teams[0], fromTeamName: "Team 1", toTeamId: teams[1], toTeamName: "Team 2", gives, gets });
-      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: teams[1], teamName: "Team 2", fromTeamId: teams[0], fromTeamName: "Team 1" });
-      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: teams[0], teamName: "Team 1", fromTeamId: teams[1], fromTeamName: "Team 2" });
+      await filed({ kind: "tradeMade", fromTeamId: teams[0], fromTeamName: teamNumbered(1), toTeamId: teams[1], toTeamName: teamNumbered(2), gives, gets });
+      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: teams[1], teamName: teamNumbered(2), fromTeamId: teams[0], fromTeamName: teamNumbered(1) });
+      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: teams[0], teamName: teamNumbered(1), fromTeamId: teams[1], fromTeamName: teamNumbered(2) });
     });
 
-    expect((await read())!.squadMoves).toEqual([{ at: Date.now(), kind: "tradeMade", fromTeamName: "Team 1", toTeamName: "Team 2", gives, gets }]);
+    expect((await read())!.squadMoves).toEqual([{ at: Date.now(), kind: "tradeMade", fromTeamName: teamNumbered(1), toTeamName: teamNumbered(2), gives, gets }]);
   });
 });
 

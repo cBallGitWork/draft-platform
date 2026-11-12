@@ -2,22 +2,20 @@
 // folder.
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 const CHECK = join(REPO_ROOT, "scripts/bundle-has-no-preview.mjs");
 /** squads' preview string, from the check's NEEDLES. */
 const SQUADS_NEEDLE = "preview-team-1";
 
-let built;
-afterEach(() => built && rmSync(built, { recursive: true, force: true }));
-
 /** A built folder holding `files` (path in it to text). */
 function builtFolder(files) {
-  built = mkdtempSync(join(tmpdir(), "bundle-check-"));
+  const built = scratchDir("bundle-check-");
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(built, path)), { recursive: true });
     writeFileSync(join(built, path), text);

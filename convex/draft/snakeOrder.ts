@@ -8,9 +8,15 @@
 /** A pick that has changed hands: `teamId`'s pick in `round`, which `ownerId` holds now. */
 export type TradedPick<Team> = { round: number; teamId: Team; ownerId: Team };
 
+/** A team's pick in a round. */
+type Pick<Team> = { round: number; teamId: Team };
+
+/** Whether two picks are one: the same round of the same team's. */
+export const samePick = <Team>(one: Pick<Team>, other: Pick<Team>) => one.round === other.round && one.teamId === other.teamId;
+
 /** Who holds `team`'s pick in `round` now: the team itself unless it was traded. */
 export function pickOwner<Team>(traded: readonly TradedPick<Team>[], round: number, team: Team): Team {
-  return traded.find((each) => each.round === round && each.teamId === team)?.ownerId ?? team;
+  return traded.find((each) => samePick(each, { round, teamId: team }))?.ownerId ?? team;
 }
 
 /** Whose turn each pick is, first to last: `teams` in the draft order, over `rounds` rounds. */

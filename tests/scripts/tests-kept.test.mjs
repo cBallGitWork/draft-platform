@@ -5,7 +5,7 @@
 
 import { rmSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { TRAILER_PLACE } from "../../scripts/branchCheck.mjs";
 import { NAME_JOIN, removedTests, testNames, unexcused } from "../../scripts/tests-kept.mjs";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
@@ -134,8 +134,6 @@ describe("the check in a repo", () => {
     repo.commitAll("base");
     repo.branchOffOriginMain();
   });
-
-  afterEach(() => repo.remove());
 
   test("nothing changed, or a test added, passes", () => {
     passes();

@@ -4,17 +4,17 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
 import { everyRoleOf, roleIn, rolesFor, takesRole } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
-import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
+import { nextGlyph, playerCardWords } from "../../../shared/words";
+import { CloseButton } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
 import { starsIn } from "../../../../convex/stars/bestRole";
-import { figureWords, noFigureWords, statusNotSettledLabel } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupEdits";
 import type { Moving } from "../pitch/Pitch";
 import type { SeasonOf } from "../SelectionTable";
-import { NextMatches } from "../../SquadCells";
+import { Figure, inDoubt, NextMatches, StatusMark } from "../../SquadCells";
 import {
   benchWhereWords,
   closeSelectedLabel,
@@ -92,14 +92,12 @@ export function PlayerPanel({
           {player.name}
         </h2>
         <span className="grow text-soft">{where}</span>
-        <button type="button" aria-label={closeSelectedLabel(player.name)} onClick={onClose} className="flex min-h-tap min-w-tap items-center justify-center text-lead font-bold lg:min-h-0">
-          <span aria-hidden="true">{closeGlyph}</span>
-        </button>
+        <CloseButton label={closeSelectedLabel(player.name)} close={onClose} className="flex items-center justify-center text-lead font-bold lg:min-h-0" />
       </div>
       {/* As on the Squad tab: only a player FPL holds news on has a status, until its data is settled. */}
-      {row?.chanceOfPlaying != null && (
+      {inDoubt(row) && (
         <p className="px-3 py-2">
-          <Placeholder label={statusNotSettledLabel} className="h-5 w-full" />
+          <StatusMark player={row} className="h-5 w-full" />
         </p>
       )}
       {label !== null && slot !== null && (
@@ -197,7 +195,3 @@ export function PlayerPanel({
   );
 }
 
-function Figure({ points }: { points: number | null | undefined }) {
-  if (points === undefined) return null;
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
-}

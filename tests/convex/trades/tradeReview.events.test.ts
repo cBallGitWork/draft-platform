@@ -2,6 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, PALMER, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // What a trade that goes through files (#1491): the trade as one `tradeMade`, which the screens
 // list (My team's Transactions holds the team's trades, `S12.5`), and each of its players as a
@@ -24,9 +25,9 @@ test("files the trade as one event, both sides as named then, by whoever accepte
     expect.objectContaining({
       by: BOB,
       fromTeamId: w.annsTeam,
-      fromTeamName: "Team 1",
+      fromTeamName: teamNumbered(1),
       toTeamId: w.bobsTeam,
-      toTeamName: "Team 2",
+      toTeamName: teamNumbered(2),
       gives: { players: [{ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }], picks: [] },
       gets: {
         players: [

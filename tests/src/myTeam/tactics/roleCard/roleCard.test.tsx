@@ -5,13 +5,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { rolesOfSlot } from "../../../../convex/lineup/roles";
-import { FIRST_SCORING_WITH_ROLES } from "../../../../convex/scoring/draftedRoleAdjustments";
-import { categoryName } from "../../../../convex/scoring/categories";
-import { scoreMatch } from "../../../../convex/scoring/scoring";
-import { ROLE_CHIP_MARK } from "../../../../src/myTeam/tactics/pitch/Pitch";
-import { cancelWords, lastSeasonWords, noMatchesWords, notTestedWords, playAsWords, showMatchLabel } from "../../../../src/myTeam/tactics/roleCard/words";
-import { CHELSEA } from "../../../support/convex/footballRows.harness";
+import { rolesOfSlot } from "../../../../../convex/lineup/roles";
+import { FIRST_SCORING_WITH_ROLES } from "../../../../../convex/scoring/draftedRoleAdjustments";
+import { categoryName } from "../../../../../convex/scoring/categories";
+import { scoreMatch } from "../../../../../convex/scoring/scoring";
+import { ROLE_CHIP_MARK } from "../../../../../src/myTeam/tactics/pitch/Pitch";
+import { cancelWords, lastSeasonWords, noMatchesWords, notTestedWords, playAsWords, showMatchLabel } from "../../../../../src/myTeam/tactics/roleCard/words";
+import { CHELSEA } from "../../../../support/convex/footballRows.harness";
 import {
   HAVERTZ,
   RAYA,
@@ -24,7 +24,7 @@ import {
   roleCard,
   rolesOnCard,
   roleShown,
-} from "../../../support/src/tacticsScreen.harness";
+} from "../../../../support/src/tacticsScreen.harness";
 
 const SET = FIRST_SCORING_WITH_ROLES;
 const SALIBAS_CELL = STARTERS[1];

@@ -5,6 +5,7 @@ import { Loading, Notice, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { ClosedOffers } from "./ClosedOffers";
 import { OfferPanel } from "./OfferPanel";
 import { OFFER_GROUPS, sidesOf } from "./offerSides";
+import { myTeamOf } from "./offerStart";
 import { OffersTable } from "./OffersTable";
 import { ReviewPanel } from "./ReviewPanel";
 import type {
@@ -175,6 +176,3 @@ function OffersBody({
     </PageSection>
   );
 }
-
-/** The manager's own team: the read puts it first. */
-const myTeamOf = (view: TradesView) => view.teams[0];
