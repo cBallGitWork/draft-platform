@@ -7,9 +7,10 @@ import { positionInputs } from "./positions";
 // player, one row, kept for good so its report stays readable with its date. Private to the team:
 // only its manager reads them (scouting/scouts.ts).
 
-/** Where a scout's trip stands: out watching him, back with his report, or back with none because
- *  the player left the Premier League while he was out (Craig, 6 Nov 2026, on #375). */
-export const scoutState = v.union(v.literal("out"), v.literal("reported"), v.literal("playerLeft"));
+/** Where a scout's trip stands: out watching him, back with his report, back with none because
+ *  the player left the Premier League while he was out (Craig, 6 Nov 2026, on #375), or back with
+ *  none because a day of tries couldn't write it (Craig, 12 Nov 2026, on #1437). */
+export const scoutState = v.union(v.literal("out"), v.literal("reported"), v.literal("playerLeft"), v.literal("notFiled"));
 
 export const scoutTables = {
   scouts: defineTable({
