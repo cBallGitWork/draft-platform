@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { byKickoff } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
 import { GAMEWEEKS_MOST } from "./usedGameweeks";
@@ -83,5 +84,5 @@ export async function placeInWindows<Match extends ScheduledMatch>(
 /** `matches` earliest kickoff first, those with no kickoff time last, so each round's first
  *  kickoff reaches `recordRoundStarts` in the first batch that names the round. Pure. */
 export function inKickoffOrder<Match extends ScheduledMatch>(matches: readonly Match[]): Match[] {
-  return matches.toSorted((one, other) => (one.kickoff ?? Infinity) - (other.kickoff ?? Infinity));
+  return byKickoff(matches);
 }
