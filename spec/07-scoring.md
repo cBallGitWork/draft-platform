@@ -42,6 +42,11 @@ approved its rows (6 Nov 2026, #454).
 - At the switch to Sportmonks (`spec/20`), the two answers above that name both feeds (`S07.1`'s
   "both feeds" and `S07.5`'s split) are withdrawn: one feed sends every stat, so a match stops
   being provisional once it has sent every player who played (Craig, 9 Nov 2026, on #1196). `S07.10`
+- The winning goal is the one that put the club in front for good: in a 3-1 win going 1-0, 2-0,
+  2-1, 3-1, it is the 1-0. Nobody gets it for a draw, a loss or an own goal, and the admin can
+  change it by hand (Craig, 12 Nov 2026, on #1415: "Ahead for good"). `S07.11`
+- Only men who played get a win, draw or loss: a man on the bench all match gets none, the same
+  as every other stat of his (Craig, 12 Nov 2026, on #1415: "Only men who played"). `S07.12`
 
 ### Examples
 

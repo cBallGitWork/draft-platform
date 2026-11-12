@@ -1,4 +1,4 @@
-// Each man's match stats from a Sportmonks match (#1415, spec/07 `S07.4`, `S07.10`, spec/05
+// Each man's match stats from a Sportmonks match (#1415, spec/07 `S07.4`, `S07.10`, `S07.11`, `S07.12`, spec/05
 // `S05.16`): the recorded Celtic v Rangers (2-1: Kyogo 12' and 45+1', Tavernier's penalty 55',
 // McCowan on for Kyogo 68') mapped to one record per man, and the stats no type sends worked out.
 
@@ -183,6 +183,16 @@ test("the live tick stores each man's stats, and a match whose stats can't be wo
     [SM.kyogo, true, "provisional"],
     [SM.mcCowan, true, "provisional"],
     [SM.tavernier, true, "provisional"],
+  ]);
+
+  // A newer read replaces the match's records whole: a man it no longer names loses his row.
+  const records = held.filter((row) => row.playerCode !== SM.tavernier).map(({ _id, _creationTime, ...record }) => ({ ...record, played: false }));
+  await t.mutation(internal.football.sportmonks.sportmonksLive.writePlayerStats, { fixtureCode: SM.oldFirm, records });
+  const rewritten = await t.run((ctx) => ctx.db.query("sportmonksPlayerMatchStats").collect());
+  expect(rewritten.map(({ playerCode, played }) => [playerCode, played])).toEqual([
+    [SM.schmeichel, false],
+    [SM.kyogo, false],
+    [SM.mcCowan, false],
   ]);
 
   const bad = sportmonksLiveRead();

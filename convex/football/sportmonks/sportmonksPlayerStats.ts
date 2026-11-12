@@ -111,7 +111,7 @@ export function goalsOf(match: Pick<SportmonksMatchRead, "score" | "events">): G
 }
 
 /** The winning goal: the one that put the winners in front for good, so in a 3-1 that went 1-0,
- *  2-0, 2-1, 3-1 it is the 1-0. Null for a draw, and for an own goal (Craig, 12 Nov 2026, on #1415). */
+ *  2-0, 2-1, 3-1 it is the 1-0. Null for a draw, and for an own goal (spec/07 `S07.11`). */
 export function winningGoal(goals: readonly Goal[], winner: "home" | "away"): Goal | null {
   let ahead: Goal | null = null;
   let [home, away] = [0, 0];
@@ -127,7 +127,7 @@ export function winningGoal(goals: readonly Goal[], winner: "home" | "away"): Go
 
 /** One record per man in either team sheet. A man who started, or came on, played; an unused
  *  substitute did not, and has no stats (`S07.4`). Results and the winning goal are given at full
- *  time, to men who played only (Craig, 12 Nov 2026, on #1415); the half-time stats from half-time,
+ *  time, to men who played only (`S07.12`); the half-time stats from half-time,
  *  to starters only (`S05.16`). The match stays provisional until full time and until every man who
  *  played has sent his `lineups.details` (`S07.10`). A man on neither side, or a stat type sent twice
  *  for one man, throws. */
