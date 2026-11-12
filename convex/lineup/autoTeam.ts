@@ -15,7 +15,8 @@ import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
 import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
-import { heldPositionsOf, lineupsInGameweek, saveGameweekOf, storeAutoTeamLineup, type HeldLineup } from "./lineups";
+import { heldPositionsOf, lineupsInGameweek, storeAutoTeamLineup, type HeldLineup } from "./lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import type { Area, Lane } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 

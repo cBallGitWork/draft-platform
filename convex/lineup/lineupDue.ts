@@ -5,13 +5,13 @@ import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { managerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
-import { saveGameweekOf } from "./lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
 
 // Continue's lineup step (spec/12, The frame; #526): "From 24 hours before each gameweek's deadline
 // until the deadline, Continue takes the manager to his Tactics tab", until "he has opened the
 // Tactics tab that gameweek" (Craig, 1 Nov 2026). The gameweek is the one a save now is from
-// (lineups.ts's `saveGameweekOf`), as the Tactics tab's is. Opening it is kept on the team's row
+// (saveGameweek.ts's `saveGameweekOf`), as the Tactics tab's is. Opening it is kept on the team's row
 // (`tacticsOpenedInGameweek`), so his other devices know too.
 
 /** Whether Continue leads the caller to his Tactics tab in the league at `now` (the screen's minute:

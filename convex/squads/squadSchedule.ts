@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
-import { saveGameweekOf } from "../lineup/lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { clubRecord } from "../schema";
 import { byKickoffOrder, gameweekFixtures } from "../shared/fixtures";
 import type { Clubs } from "../shared/players";
