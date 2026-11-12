@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { gameModeOf } from "../../../convex/rules/gameMode";
+import { gameModeOf, type GameMode } from "../../../convex/rules/gameMode";
 import { BYE } from "../../../convex/table/teamGames";
 import { matchupLink } from "../../matchup/paths";
 import { useMinute } from "../../shared/useMinute";
@@ -81,7 +81,8 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
   const open = tactics?.kind === "open" ? tactics : null;
   const standing = table ? standingOf(table, teamName) : null;
   const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
-  const headToHead = table ? gameModeOf(table).hasMatchups : false;
+  const mode = table ? gameModeOf(table) : null;
+  const headToHead = mode?.hasMatchups ?? false;
   return (
     <dl className="flex flex-wrap items-stretch">
       {open !== null && (
@@ -102,7 +103,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
           <Opponents games={next} teamId={standing.teamId} />
         </Meter>
       )}
-      {standing !== null && <LastMeter standing={standing} headToHead={headToHead} />}
+      {standing !== null && mode !== null && <LastMeter standing={standing} mode={mode} />}
       {standing !== null && headToHead && (
         <Meter head={formHead}>
           <FormChips form={standing.form} />
@@ -146,12 +147,12 @@ export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standin
 }
 
 /** The last gameweek: the head-to-head result, live or final, or the points in total points. */
-function LastMeter({ standing: { last, lastPoints }, headToHead }: { standing: Standing; headToHead: boolean }) {
-  if (headToHead) {
+function LastMeter({ standing: { last, lastPoints }, mode }: { standing: Standing; mode: GameMode }) {
+  if (mode.hasMatchups) {
     if (last?.score == null) return null;
     return (
       <Meter head={gameweekShort(last.gameweek)}>
-        {lastGameWords({ ...last, score: last.score })}
+        {lastGameWords({ ...last, score: last.score }, mode)}
         {last.score.provisional && <span className="ml-1 text-derived">{liveWords}</span>}
       </Meter>
     );

@@ -198,12 +198,13 @@ function placeOf(table: LeagueTable | undefined, against: Game["against"]) {
 
 /** A game's chip and score, as a link to the matchup; "v" for one begun with no score yet, and
  *  nothing on a bye. */
-function Result({ fixtures: { teamId, teamName }, game: { gameweek, game, against, score } }: { fixtures: TeamFixtures; game: Game }) {
+function Result({ fixtures, game: { gameweek, game, against, score } }: { fixtures: TeamFixtures; game: Game }) {
+  const { teamId, teamName } = fixtures;
   if (against.kind === BYE) return null;
   const opponent = against.kind === "team" ? against.teamName : null;
   return (
     <span className="inline-flex items-center gap-2">
-      {score !== null && <ResultChip result={resultOf(score.team, score.opponent)} live={score.provisional} />}
+      {score !== null && <ResultChip result={resultOf(gameModeOf(fixtures), score.team, score.opponent)} live={score.provisional} />}
       <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek} game={game} points={score} live={score?.provisional ?? false} />
     </span>
   );
