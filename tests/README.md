@@ -10,6 +10,10 @@ time.
 Convex deploys, or lists one it doesn't: after adding, moving or deleting a file in `convex/`, run
 `npx convex codegen` with a deployment selected.
 
+**Contents:** [The five roots](#the-five-roots) ·
+[What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
+[The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
+
 ## The five roots
 
 | Root | What it tests | Runs with | An example |
