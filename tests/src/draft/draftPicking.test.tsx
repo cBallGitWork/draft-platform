@@ -12,9 +12,8 @@ import { POSITIONS } from "../../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
-import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH } from "../../../src/frame/menu";
-import type { DraftState, RoomFigures } from "../../../src/draft/seam";
+import type { RoomFigures } from "../../../src/draft/seam";
 import {
   addToQueueWords,
   DO_NOT_DRAFT_TITLE,
@@ -41,7 +40,7 @@ import {
 } from "../../../src/draft/words";
 import { columns } from "../../../src/scouting/words";
 import { columnHeadName, sortByLabel } from "../../../src/shared/words";
-import { draftOrder, emptyBoard, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
+import { draftOrder, emptyBoard, liveDraft, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
 const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -79,20 +78,7 @@ const FIGURES: RoomFigures = {
 };
 
 /** A live draft's first pick, Team 1's, or the reader's Team 2's second, paused or not. */
-function liveDraft(yours: boolean, paused = false): DraftState {
-  const now = Date.now();
-  const team = draftOrder[yours ? 1 : 0];
-  return {
-    status: "live",
-    startedAt: now - MINUTE_MS,
-    rounds: 2,
-    order: draftOrder,
-    picksMade: yours ? 1 : 0,
-    ownPickBy: null,
-    onTheClock: { pick: yours ? 2 : 1, round: 1, teamId: team.teamId, name: team.name },
-    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
-  };
-}
+const draftAt = (yours: boolean, paused = false) => liveDraft({ picksMade: yours ? 1 : 0, paused });
 
 const openDraft = (data: DraftData) => openApp(DRAFT_PATH, manager, { draft: { players, ...data } });
 const list = () => screen.findByRole("region", { name: PLAYERS_TITLE });
@@ -107,13 +93,13 @@ const head = (words: { short: string; long: string }) => within(within(screen.ge
 
 describe("the players list", () => {
   it("lists only the players nobody has drafted", async () => {
-    openDraft({ draft: liveDraft(true) });
+    openDraft({ draft: draftAt(true) });
     expect(await rowNames()).not.toContain(ODEGAARD.name);
     expect(await rowNames()).toEqual(expect.arrayContaining([SAKA.name, RICE.name, PALMER.name]));
   });
 
   it("keeps a player the team can't take in his place, saying why, his position chip greyed too", async () => {
-    openDraft({ draft: liveDraft(true), greyed: [{ code: RICE.code, reason: "clubFull" }] });
+    openDraft({ draft: draftAt(true), greyed: [{ code: RICE.code, reason: "clubFull" }] });
     const rows = within(await list()).getAllByRole("row").slice(1);
     expect(rows.map((row) => row.textContent)).toEqual([expect.stringContaining("Palmer"), expect.stringContaining("Rice"), expect.stringContaining("Saka")]);
     expect(rows[1].textContent).toContain(notLegalWords.clubFull);
@@ -123,7 +109,7 @@ describe("the players list", () => {
   });
 
   it("heads its columns Pos, Player, Rank, last season's points by its season, MP, G, A and CS", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     await list();
     const heads = within(within(screen.getByRole("region", { name: PLAYERS_TITLE })).getByRole("table")).getAllByRole("columnheader").map((each) => each.getAttribute("aria-label"));
     expect(heads).toEqual(
@@ -135,7 +121,7 @@ describe("the players list", () => {
   });
 
   it("opens on the site's ranking, best first, and a head sorts by its column", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     expect(await rowNames()).toEqual([PALMER.name, SAKA.name, RICE.name]);
     await userEvent.click(within(head(columns.name)).getByRole("button", { name: sortByLabel(columnHeadName(columns.name)) }));
     expect(await rowNames()).toEqual([PALMER.name, RICE.name, SAKA.name]);
@@ -146,7 +132,7 @@ describe("the players list", () => {
   });
 
   it("keeps only the position tab's players, every position a tab in its fixed order, All again showing everyone", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     const tabs = within(await list()).getByRole("group", { name: positionTabsLabel });
     expect(within(tabs).getAllByRole("button").map((each) => each.textContent)).toEqual([everyPositionTabWords, ...POSITIONS]);
     await userEvent.click(within(tabs).getByRole("button", { name: "CAM" }));
@@ -156,7 +142,7 @@ describe("the players list", () => {
   });
 
   it("finds players by name or club, accents aside", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     const find = within(await list()).getByLabelText(findLabel);
     await userEvent.type(find, "che");
     expect(await rowNames()).toEqual([PALMER.name]);
@@ -166,7 +152,7 @@ describe("the players list", () => {
   });
 
   it("marks each player in the reader's queue with his place in it", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES, queue: [SAKA.code, PALMER.code] });
+    openDraft({ draft: draftAt(true), figures: FIGURES, queue: [SAKA.code, PALMER.code] });
     const rows = within(await list()).getAllByRole("row").slice(1);
     expect(rows[0].textContent).toContain(queueMarkWords(2));
     expect(rows[1].textContent).toContain(queueMarkWords(1));
@@ -174,7 +160,7 @@ describe("the players list", () => {
   });
 
   it("swaps the overview for the stat picked in Scouting's stat box", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     const goals = STAT_CATALOGUE.find((each) => each.stat === "goals_scored")!;
     await userEvent.selectOptions(within(await list()).getByLabelText(statsLabel), goals.stat);
     expect(head({ short: goals.shortCode, long: goals.name })).toBeTruthy();
@@ -185,7 +171,7 @@ describe("the players list", () => {
 describe("the selected player's panel", () => {
   it("gives his place on the ranking, last season's points in his games, and what the reader's squad holds", async () => {
     const board = { ...emptyBoard, maxPerClub: 2, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
-    openDraft({ draft: liveDraft(true), board, figures: FIGURES });
+    openDraft({ draft: draftAt(true), board, figures: FIGURES });
     await open(SAKA.name);
     const panel = screen.getByRole("region", { name: `${SAKA.name}${ARSENAL.shortName}` });
     const fact = (dt: string) => within(panel).getByText(dt).nextElementSibling?.textContent;
@@ -195,7 +181,7 @@ describe("the selected player's panel", () => {
   });
 
   it("calls a player not in last season's data a newcomer", async () => {
-    openDraft({ draft: liveDraft(true), figures: FIGURES });
+    openDraft({ draft: draftAt(true), figures: FIGURES });
     await open(RICE.name);
     expect(screen.getByText(newcomerWords)).toBeTruthy();
   });
@@ -205,7 +191,7 @@ describe("the panel's Add to queue and Do not draft (#1474)", () => {
   const listButton = (words: string) => screen.queryByRole("button", { name: words });
 
   it("puts him on the reader's queue, or his do-not-draft list, out of turn too", async () => {
-    const app = openDraft({ draft: liveDraft(false) });
+    const app = openDraft({ draft: draftAt(false) });
     await open(SAKA.name);
     await userEvent.click(listButton(addToQueueWords)!);
     expect(app.draft.listChanges.add).toHaveBeenCalledWith(expect.anything(), SAKA.code, "queue");
@@ -214,21 +200,21 @@ describe("the panel's Add to queue and Do not draft (#1474)", () => {
   });
 
   it("can't be pressed for the list he is already on", async () => {
-    openDraft({ draft: liveDraft(true), queue: [SAKA.code] });
+    openDraft({ draft: draftAt(true), queue: [SAKA.code] });
     await open(SAKA.name);
     expect(listButton(addToQueueWords)).toHaveProperty("disabled", true);
     expect(listButton(DO_NOT_DRAFT_TITLE)).toHaveProperty("disabled", false);
   });
 
   it("says why the server refused", async () => {
-    openDraft({ draft: liveDraft(true), refusal: "A do-not-draft list holds at most 50 players. Take one off first." });
+    openDraft({ draft: draftAt(true), refusal: "A do-not-draft list holds at most 50 players. Take one off first." });
     await open(SAKA.name);
     await userEvent.click(listButton(DO_NOT_DRAFT_TITLE)!);
     expect((await screen.findByRole("alert")).textContent).toBe("A do-not-draft list holds at most 50 players. Take one off first.");
   });
 
   it("shows neither to a reader who runs no team, nor once the draft is over", async () => {
-    openDraft({ draft: liveDraft(true), lists: null });
+    openDraft({ draft: draftAt(true), lists: null });
     await open(SAKA.name);
     expect(listButton(addToQueueWords)).toBeNull();
 
@@ -240,7 +226,7 @@ describe("the panel's Add to queue and Do not draft (#1474)", () => {
 
 describe("the Draft button", () => {
   it("makes the pick while the reader is on the clock", async () => {
-    const app = openDraft({ draft: liveDraft(true) });
+    const app = openDraft({ draft: draftAt(true) });
     await open(SAKA.name);
     const button = draftButton(SAKA.name);
     expect(button).toHaveProperty("disabled", false);
@@ -250,14 +236,14 @@ describe("the Draft button", () => {
   });
 
   it("can't be pressed for a greyed-out player", async () => {
-    openDraft({ draft: liveDraft(true), greyed: [{ code: RICE.code, reason: "areasShort" }] });
+    openDraft({ draft: draftAt(true), greyed: [{ code: RICE.code, reason: "areasShort" }] });
     await open(RICE.name);
     expect(draftButton(RICE.name)).toHaveProperty("disabled", true);
     expect(screen.getAllByText(notLegalWords.areasShort).length).toBeGreaterThan(0);
   });
 
   it("holds the pick and the time left under his name, as its description", async () => {
-    openDraft({ draft: liveDraft(true) });
+    openDraft({ draft: draftAt(true) });
     await open(SAKA.name);
     const button = draftButton(SAKA.name);
     expect(button.textContent).toMatch(/Pick 1\.02, 0:4\d left$/);
@@ -265,14 +251,14 @@ describe("the Draft button", () => {
   });
 
   it("can't be pressed out of turn", async () => {
-    openDraft({ draft: liveDraft(false) });
+    openDraft({ draft: draftAt(false) });
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
     expect(within(draftButton(SAKA.name)).getByText(notYourPickWords)).toBeTruthy();
   });
 
   it("can't be pressed while the draft is paused", async () => {
-    openDraft({ draft: liveDraft(true, true) });
+    openDraft({ draft: draftAt(true, true) });
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
     expect(screen.getByText(pausedPickWords)).toBeTruthy();
@@ -281,14 +267,14 @@ describe("the Draft button", () => {
   it("can't be pressed for a selected player another team has since drafted, saying which (#1560)", async () => {
     // The list still holds the row Saka was selected from; the board has Team 1 taking him since.
     const board = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: SAKA.code, name: SAKA.name, clubShortName: "ARS", position: "W" as const } }] };
-    openDraft({ draft: liveDraft(true), board });
+    openDraft({ draft: draftAt(true), board });
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
     expect(within(draftButton(SAKA.name)).getByText(takenWords(draftOrder[0].name))).toBeTruthy();
   });
 
   it("says why the server refused the pick", async () => {
-    openDraft({ draft: liveDraft(true), pickAnswer: "Saka is already on Team 1." });
+    openDraft({ draft: draftAt(true), pickAnswer: "Saka is already on Team 1." });
     await open(SAKA.name);
     await userEvent.click(draftButton(SAKA.name));
     expect((await screen.findByRole("alert")).textContent).toBe("Saka is already on Team 1.");

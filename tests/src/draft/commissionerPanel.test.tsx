@@ -32,7 +32,7 @@ import {
 } from "../../../src/draft/words";
 import { DRAFT_PATH } from "../../../src/frame/menu";
 import { SETTINGS_DRAFT_HASH, settingsPath } from "../../../src/leagueSettings/paths";
-import { commissionerView, draftOrder, emptyBoard, type DraftData } from "../../support/src/draft.harness";
+import { commissionerView, draftOrder, emptyBoard, liveDraft, type DraftData } from "../../support/src/draft.harness";
 import { RICE } from "../../support/src/scoutingScreen.harness";
 import { coCommissioned, commissioner, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 
@@ -41,20 +41,7 @@ const panel = () => screen.findByRole("region", { name: COMMISSIONER_TITLE });
 const button = async (name: string) => within(await panel()).getByRole("button", { name });
 const pickTimeBox = async () => within(await panel()).getByLabelText(pickTimeLabel) as HTMLInputElement;
 
-/** Team 1's Saka made pick 1; Team 2 is on the clock, or paused there. */
-function liveDraft(paused = false): Extract<DraftState, { status: "live" }> {
-  const now = Date.now();
-  return {
-    status: "live",
-    startedAt: now - MINUTE_MS,
-    rounds: 2,
-    order: draftOrder,
-    ownPickBy: null,
-    picksMade: 1,
-    onTheClock: { pick: 2, round: 1, teamId: draftOrder[1].teamId, name: draftOrder[1].name },
-    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
-  };
-}
+/** Team 1's Saka made pick 1 (`liveDraft`'s default); Team 2 is on the clock. */
 const oneTaken = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: 1, name: "Saka", clubShortName: "ARS", position: "W" as const } }] };
 
 describe("who sees it", () => {
@@ -166,7 +153,7 @@ describe("while it runs", () => {
   });
 
   it("while paused, resumes it and changes the pick time", async () => {
-    const app = openAs(commissioner, { draft: liveDraft(true), board: oneTaken });
+    const app = openAs(commissioner, { draft: liveDraft({ paused: true }), board: oneTaken });
     const box = await pickTimeBox();
     expect(box.disabled).toBe(false);
     await userEvent.clear(box);
@@ -195,7 +182,7 @@ describe("while it runs", () => {
     });
 
     it("works while paused too", async () => {
-      const app = openAs(commissioner, { draft: liveDraft(true), board: oneTaken, players: [RICE] });
+      const app = openAs(commissioner, { draft: liveDraft({ paused: true }), board: oneTaken, players: [RICE] });
       await select("Rice");
       await userEvent.click(await pickFor());
       expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, draftOrder[1].teamId, RICE.code);
@@ -234,7 +221,7 @@ describe("while it runs", () => {
   // args, the page blanked to Loading and the selected player and a half-typed pick time were lost.
   it("keeps the selected player and a half-typed pick time as the minute turns", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    const app = openAs(commissioner, { draft: liveDraft(true), board: oneTaken, players: [RICE] });
+    const app = openAs(commissioner, { draft: liveDraft({ paused: true }), board: oneTaken, players: [RICE] });
     // Like Convex's useQuery: nothing yet for a minute it hasn't answered.
     let answered: number | undefined;
     app.draft.useCommissioner.mockImplementation((_, now) => {
