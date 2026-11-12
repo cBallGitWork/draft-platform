@@ -452,39 +452,6 @@
       }
     },
     {
-      "tableName": "emailSends",
-      "indexes": [
-        {
-          "indexDescriptor": "by_day",
-          "fields": [
-            "day"
-          ]
-        }
-      ],
-      "stagedDbIndexes": [],
-      "searchIndexes": [],
-      "stagedSearchIndexes": [],
-      "vectorIndexes": [],
-      "stagedVectorIndexes": [],
-      "documentType": {
-        "type": "object",
-        "value": {
-          "day": {
-            "fieldType": {
-              "type": "string"
-            },
-            "optional": false
-          },
-          "count": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
-          }
-        }
-      }
-    },
-    {
       "tableName": "timeZones",
       "indexes": [
         {
@@ -511,6 +478,39 @@
           "zone": {
             "fieldType": {
               "type": "string"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "emailSends",
+      "indexes": [
+        {
+          "indexDescriptor": "by_day",
+          "fields": [
+            "day"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "day": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "count": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": false
           }
@@ -24204,6 +24204,12 @@
           "indexDescriptor": "by_email_and_versionId",
           "fields": [
             "email",
+            "versionId"
+          ]
+        },
+        {
+          "indexDescriptor": "by_versionId",
+          "fields": [
             "versionId"
           ]
         }

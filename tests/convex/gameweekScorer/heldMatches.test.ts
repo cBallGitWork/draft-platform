@@ -1,15 +1,13 @@
 import { expect, test } from "vitest";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { isPostponed, MATCH_RECORDS_MOST, matchRecordsOf } from "../../../convex/gameweekScorer/heldMatches";
-import { freshConvex, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { freshConvex, MADE_UP_CODES, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // matchRecordsOf: a match's records read whole up to MATCH_RECORDS_MOST, and past it a throw that
 // says what would be cut short. The scorer's message ("its points") is pinned in scoringCaps.test.ts;
 // this pins the match page's ("its men").
 
 const FIXTURE = 700_001;
-/** Where this file's made-up player codes start. */
-const MADE_UP_CODES = 900_000;
 const WHY = "its men";
 
 test(`a match's records: ${MATCH_RECORDS_MOST} are read, one more throws saying what would be cut short`, ROWS_TO_THE_CAP, async () => {

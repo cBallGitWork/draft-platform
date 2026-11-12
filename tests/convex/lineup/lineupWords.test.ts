@@ -16,6 +16,10 @@ test.each<[LineupProblem, string]>([
     { kind: "outsideHisAreas", playerCode: 7, area: "attack", lane: "centre", positions: ["CB", "FB"] },
     "Player 7 plays CB, FB, so he can't stand in the centre cell in Attack.",
   ],
+  [
+    { kind: "outsideHisAreas", playerCode: 7, area: "midfield", lane: "centre", positions: [] },
+    "Player 7 has no positions, so he can't stand in the centre cell in Midfield.",
+  ],
   [{ kind: "aboveMaximum", area: "defence", starterCount: 6, maximum: 5 }, "The league starts at most 5 in Defence; this lineup starts 6 there."],
   [{ kind: "belowMinimum", area: "goalkeeper", starterCount: 0, minimum: 1 }, "The league starts at least 1 in Goalkeeper; this lineup starts 0 there."],
 ])("%o reads %s", (problem, words) => {

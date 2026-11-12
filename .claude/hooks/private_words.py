@@ -1,7 +1,7 @@
-"""The private-word check, for guard_bash.py: denies a commit, pull request or issue that names
-a word on Craig's private list, in the command (message, body, heredoc), a body, notes or message
-file it reads (where.text_files), or a commit's staged lines and the unstaged lines of any path it
-names; guard_github.py asks it about the GitHub tools' text too.
+"""The private-word check, for guard_bash.py: denies a commit, a tag or a gh write (any gh call but a
+read) that names a word on Craig's private list, in the command (message, body, heredoc), a body, notes
+or message file it reads (where.text_files), or a commit's staged lines and the unstaged lines of any
+path it names; guard_github.py asks it about the GitHub tools' text too.
 The list lives outside the repo (PRIVATE_WORDS, one per line), so this file never names them; a
 cloud environment, with no home folder of Craig's, holds the words themselves in
 DRAFT_PRIVATE_WORDS_LIST instead (one per line or comma-separated). With neither (a fresh clone),
@@ -23,9 +23,10 @@ PRIVATE_WORDS = os.environ.get(LIST_OVERRIDE_ENV) or os.path.expanduser(DEFAULT_
 NO_LIST = (f"No private-word list at {DEFAULT_LIST} on this machine, "
            "so this wasn't checked for private words. "
            f"In a cloud environment, set {LIST_ENV} in its settings.")
-GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
-                 ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
-                 ("release", "create"), ("release", "edit")}
+# gh publishes unless it is a known read, as guard_github.py treats its tools, so a write gh adds
+# or a flag like `close --comment` is checked too; a read is left alone, so a search term isn't denied
+GH_READ_COMMANDS = {"search", "status", "browse", "help", "version", "--version", "--help"}  # gh <command>
+GH_READ_VERBS = {"view", "list", "status", "checks", "diff", "watch"}  # gh <noun> <verb>
 GIT_PUBLISHING = {"commit", "tag"}
 # the options that take a value, besides where.TEXT_FILE_OPTS, so a value is never read as an option
 GIT_VALUE_OPTS = {"-m", "--message", "-c", "-C", "--reuse-message", "--reedit-message", "-t", "--template",
@@ -51,14 +52,16 @@ def private_words():
 
 
 def publishes(words):
-    """True if this simple command writes text Craig shares: a commit, a PR or an issue."""
+    """True if this simple command may write text Craig shares: a commit, a tag, or any gh call
+    but a known read (gh api always counts)."""
     call = git_call(words)
     if call:
         return call[0] in GIT_PUBLISHING
     i = runs_at(words, "gh")
     if i is None:
         return False
-    return words[i + 1 : i + 2] == ["api"] or tuple(words[i + 1 : i + 3]) in GH_PUBLISHING
+    command, verb = (words[i + 1 : i + 3] + [None, None])[:2]
+    return command not in GH_READ_COMMANDS and verb not in GH_READ_VERBS
 
 
 def publishing_args(words):

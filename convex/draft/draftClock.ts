@@ -2,9 +2,8 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { SECOND_MS } from "../shared/time";
-import { draftOf, picksMadeIn } from "./draftRow";
+import { draftOf, turnAfter, turnNow } from "./draftRow";
 import { picksAtOnce } from "./draftTimeouts";
-import { pickOnTheClock } from "./snakeOrder";
 
 // The pick clock (spec/04, The picks; #1091). Each pick runs on the league's pick time. The first
 // clock starts with the draft; each after waits 10 seconds from the pick before it, whoever made it
@@ -50,7 +49,7 @@ export async function startClock(
   const draft = await draftOf(ctx, leagueId);
   if (draft?.started === undefined) throw new Error(`League ${leagueId}'s draft hasn't started, so no pick can be put on the clock`);
   const paused = pausedAt === undefined ? undefined : { at: pausedAt, pickSeconds };
-  const turn = pickOnTheClock(draft.started.teamIds, draft.started.rounds, picksMade, draft.tradedPicks);
+  const turn = turnAfter(draft, picksMade);
   if (turn === null) {
     const closing = { pick: picksMade + 1, startsAt, endsAt: startsAt, closing: true as const };
     const job = paused === undefined ? await ctx.scheduler.runAt(startsAt, internal.draft.pickWindow.endDraft, { leagueId }) : undefined;
@@ -74,9 +73,8 @@ type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
 /** The pick `clock` holds, in the started `draft`, as `startClock` returned it. */
 export async function clockedOf(ctx: MutationCtx, draft: Doc<"drafts">, clock: Clock): Promise<Clocked> {
-  const started = draft.started;
-  const turn = started && pickOnTheClock(started.teamIds, started.rounds, clock.pick - 1, draft.tradedPicks);
-  if (!turn) throw new Error(`League ${draft.leagueId}'s clock holds pick ${clock.pick}, which its draft doesn't have`);
+  const turn = turnAfter(draft, clock.pick - 1);
+  if (turn === null) throw new Error(`League ${draft.leagueId}'s clock holds pick ${clock.pick}, which its draft doesn't have`);
   const team = await ctx.db.get("teams", turn.team);
   if (team === null) throw new Error(`League ${draft.leagueId}'s draft names team ${turn.team}, which doesn't exist`);
   const { startsAt, endsAt } = clock;
@@ -117,9 +115,9 @@ export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, c
  *  lost its manager, when nobody can pick for it and the draft picks at once (Craig, 8 Nov 2026:
  *  "Auto-pick at once"; #1334). `draft` is the row as it is now, timeouts included. */
 export async function rescheduleIfOnTheClock(ctx: MutationCtx, draft: Doc<"drafts">, team: Doc<"teams">): Promise<void> {
-  const { clock, started } = draft;
-  if (clock === undefined || started === undefined) return;
-  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+  const clock = draft.clock;
+  if (clock === undefined) return;
+  const turn = await turnNow(ctx, draft);
   if (turn?.pick !== clock.pick || turn.team !== team._id) return;
   await scheduleAutoPick(ctx, draft, clock, team);
 }

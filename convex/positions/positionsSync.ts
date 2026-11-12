@@ -9,10 +9,10 @@ import { heldRow, patchRow } from "./playerPositions";
 import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
-import { labelPositions, placePosition } from "./positionTables";
+import { formationPosition, isDrawn, labelPositions } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
-import { BATCH_SIZE, latestRuns } from "../shared/syncRuns";
+import { inBatches, latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
@@ -35,6 +35,9 @@ export const DAILY_RUN_UK_HOUR = 6;
 
 /** The UTC hours crons.ts fires `daily` at: 06:00 UK is one of them in winter and the other in summer. */
 export const DAILY_RUN_UTC_HOURS = [DAILY_RUN_UK_HOUR - 1, DAILY_RUN_UK_HOUR] as const;
+
+/** Those hours as crons.ts's cron string, for the positions sync and Sportmonks' (#1419). */
+export const DAILY_RUN_CRON = `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`;
 
 /** The cron's: starts a run when it is `DAILY_RUN_UK_HOUR` in the UK, and does nothing the hour the
  *  clocks put it at the other. */
@@ -198,13 +201,12 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   }
   const rows = [...found.labels].map(([code, plLabel]) => ({ code, plLabel }));
   let labelsChanged = 0;
-  for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    labelsChanged += await ctx.runMutation(internal.positions.positionsSync.recordLabels, { labels: rows.slice(start, start + BATCH_SIZE) });
+  for (const labels of inBatches(rows)) {
+    labelsChanged += await ctx.runMutation(internal.positions.positionsSync.recordLabels, { labels });
   }
-  const numbers = [...clubNumbers].map(([code, number]) => ({ code, number }));
   let clubNumbersChanged = 0;
-  for (let start = 0; start < numbers.length; start += BATCH_SIZE) {
-    clubNumbersChanged += await ctx.runMutation(internal.positions.positionsSync.recordClubNumbers, { numbers: numbers.slice(start, start + BATCH_SIZE) });
+  for (const numbers of inBatches([...clubNumbers].map(([code, number]) => ({ code, number })))) {
+    clubNumbersChanged += await ctx.runMutation(internal.positions.positionsSync.recordClubNumbers, { numbers });
   }
   return {
     matchesRead: Math.min(toRead.length, MATCHES_PER_RUN),
@@ -244,9 +246,10 @@ function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, numb
   }
   noteLabels(namedMen(sheet), codeByOpta, found);
   const kickoff = kickoffOf(sheet);
-  return slots.flatMap(({ started, playerCode, fixtureCode, formation, line, place }) => {
-    if (!started) return [];
-    if (formation !== null && placePosition(formation, line!, place!) === null) found.unknownFormations.add(formation);
+  return slots.flatMap((slot) => {
+    if (!slot.started) return [];
+    if (isDrawn(slot) && formationPosition(slot) === null) found.unknownFormations.add(slot.formation);
+    const { playerCode, fixtureCode, formation, line, place } = slot;
     return [{ playerCode, start: { fixtureCode, kickoff, formation, line, place } }];
   });
 }

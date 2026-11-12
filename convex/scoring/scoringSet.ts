@@ -123,9 +123,22 @@ export interface RoleScoring {
   cost: RoleSide;
 }
 
+/** Sets already checked, by the object read: a page of players scores every match under one set,
+ *  and a season's table every gameweek under one, and checking it was nine tenths of the time
+ *  (#1574, #1756). A set read is never changed after. Only a sound set is remembered, so a bad one
+ *  throws every time. A write checks with `validateScoringSet` itself, every time. */
+const CHECKED_SETS = new WeakSet<object>();
+
+/** `validateScoringSet`, once per set object read: for scoring with a set, never saving one. */
+export function checkedOnce(set: unknown): asserts set is ScoringSet {
+  if (isObject(set) && CHECKED_SETS.has(set)) return;
+  validateScoringSet(set);
+  CHECKED_SETS.add(set);
+}
+
 /**
  * Refuses, with the reason, a scoring set that would score wrong: #25 calls it before saving a
- * set, and `scoreMatch` before scoring with one. Every rule is checked in every area or position
+ * set, and the scorers before scoring with one, through `checkedOnce`. Every rule is checked in every area or position
  * it is priced by, not only the one being scored, so a set missing a value can't save and then
  * fail mid-gameweek. Every number must be a number, never text JavaScript would quietly coerce.
  */

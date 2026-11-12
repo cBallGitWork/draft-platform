@@ -5,10 +5,9 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { scoutsPerTeam } from "../admin/platformSettings";
 import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, refuse, refusals } from "../shared/leagueAccess";
+import { memberOf, ownTeam, playerOrRefuse, refuse } from "../shared/leagueAccess";
 import { hasLeft, playerByCode, unheldPlayerWords } from "../shared/players";
 import { DAY_MS, seasonStartAt } from "../shared/time";
-import { ownTeam } from "./shortlist";
 import { scoutRefusals } from "./scoutWords";
 
 // Scouts (spec/19, Scouts; #375): each team has the site's number of them (3). A manager sends one
@@ -27,6 +26,18 @@ const SCOUTS_OUT_READ_MOST = 50;
 
 /** The most reports the team's list shows: its newest. */
 const REPORTS_SHOWN = 50;
+
+/** The most of the team's trips to one player his card shows, out or back: its newest. */
+const PLAYER_TRIPS_SHOWN = 50;
+
+/** A trip whose report is written. */
+type ReportedTrip = Doc<"scouts"> & { report: NonNullable<Doc<"scouts">["report"]> };
+
+/** Whether the trip's report is written: the report and the "reported" state are set together
+ *  (scoutReports.ts). */
+function isReported(row: Doc<"scouts">): row is ReportedTrip {
+  return row.report !== undefined;
+}
 
 /** The most scouts' trips one team makes in a season that the stars read takes: about one a day
  *  for every scout. Past it the read throws rather than hide stars wrongly. */
@@ -48,7 +59,7 @@ export async function scoutedThisSeason(ctx: QueryCtx, teamId: Id<"teams">, now:
     SEASON_SCOUTS_READ_MOST,
     `Team ${teamId} has sent more than ${SEASON_SCOUTS_READ_MOST} scouts this season`,
   );
-  return new Set(rows.filter((row) => row.state === "reported").map((row) => row.playerCode));
+  return new Set(rows.filter(isReported).map((row) => row.playerCode));
 }
 
 const nameOf = async (ctx: QueryCtx, playerCode: number) => (await playerByCode(ctx, playerCode))?.name ?? unheldPlayerWords(playerCode);
@@ -60,7 +71,7 @@ export const send = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (hasLeft(player)) refuse(scoutRefusals.playerGone(player.name));
     const out = await scoutsOut(ctx, team._id);
     if (out.some((scout) => scout.playerCode === playerCode)) refuse(scoutRefusals.alreadyOut(player.name));
@@ -100,10 +111,10 @@ export const mine = query({
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
     const out = (await scoutsOut(ctx, team._id)).toSorted((one, other) => one.dueAt - other.dueAt);
-    const reported = [];
+    const reported: ReportedTrip[] = [];
     const newest = ctx.db.query("scouts").withIndex("by_teamId_and_sentAt", (q) => q.eq("teamId", team._id)).order("desc");
     for await (const row of newest) {
-      if (row.report === undefined) continue;
+      if (!isReported(row)) continue;
       reported.push(row);
       if (reported.length === REPORTS_SHOWN) break;
     }
@@ -114,7 +125,7 @@ export const mine = query({
       ),
       reports: (
         await Promise.all(
-          reported.map(async ({ playerCode, sentAt, report }) => ({ playerCode, name: await nameOf(ctx, playerCode), sentAt, ...report! })),
+          reported.map(async ({ playerCode, sentAt, report }) => ({ playerCode, name: await nameOf(ctx, playerCode), sentAt, ...report })),
         )
       ).toSorted((one, other) => other.writtenAt - one.writtenAt),
     };
@@ -133,7 +144,7 @@ export const onPlayer = query({
       .query("scouts")
       .withIndex("by_teamId_and_playerCode_and_sentAt", (q) => q.eq("teamId", team._id).eq("playerCode", playerCode))
       .order("desc")
-      .take(REPORTS_SHOWN);
+      .take(PLAYER_TRIPS_SHOWN);
     return rows.map(({ playerCode, sentAt, dueAt, state, report }) => ({ playerCode, sentAt, dueAt, state, report: report ?? null }));
   },
 });

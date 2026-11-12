@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The commissioner's draft order (spec/04, Starting it; #1087): it starts as the order the teams
 // joined in, he reorders it, and a team that joins later goes to the bottom (Craig, 4 Nov 2026).
@@ -29,9 +30,9 @@ const set = async (teamIds: Id<"teams">[], email = COMMISSIONER) =>
 describe("the commissioner's draft order", () => {
   test("starts as the order the teams joined in, with their names", async () => {
     expect(await read()).toEqual([
-      { teamId: teams[0], name: "Team 1" },
-      { teamId: teams[1], name: "Team 2" },
-      { teamId: teams[2], name: "Team 3" },
+      { teamId: teams[0], name: teamNumbered(1) },
+      { teamId: teams[1], name: teamNumbered(2) },
+      { teamId: teams[2], name: teamNumbered(3) },
     ]);
   });
 

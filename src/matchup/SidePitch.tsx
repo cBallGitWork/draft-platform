@@ -31,8 +31,8 @@ export function onPitch({ lineup: { starters, bench } }: TeamSide): OnPitch[] {
 function offPitch({ lineup: { starters, bench } }: TeamSide): TileMan[] {
   return bench.map((slot) => {
     if (slot.autoSub?.kind !== "on") return slot;
-    const { playerName } = slot.autoSub;
-    return starters.find((starter) => starter.autoSub?.kind === "off" && starter.name === playerName) ?? slot;
+    const { playerCode } = slot.autoSub;
+    return starters.find((starter) => starter.playerCode === playerCode && starter.autoSub?.kind === "off") ?? slot;
   });
 }
 

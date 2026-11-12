@@ -1,12 +1,13 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { draftStarted } from "../../support/convex/draft.harness";
 import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks, holdMatchState, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, teamsIn } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
-import { draftOver, NEXT } from "../../support/convex/waivers.harness";
+import { NEXT } from "../../support/convex/waivers.harness";
 
 // A busy waiver run held to Convex's own limits (#1538): the first after a draft, every team with
 // a full ranked list, the squad, club and area limits all on. Each team's squad and each player's
@@ -58,7 +59,7 @@ test(`a run of ${TEAMS} teams with ${CLAIMS} claims each tries every claim and l
     }
     for (const playerCode of poolCodes) await ctx.db.insert("waiverPlayers", { leagueId, playerCode, claimableFrom: Date.now() });
   });
-  await draftOver(t, leagueId, teams);
+  await draftStarted(t, leagueId, teams);
 
   vi.setSystemTime(Date.now() + MINUTE_MS);
   await t.mutation(internal.waivers.waiverRun.run, { leagueId, at: Date.now() });

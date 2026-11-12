@@ -7,6 +7,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { draftStarted } from "./draft.harness";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, lettersTo, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
@@ -17,13 +18,6 @@ export const [ANN, BOB, CAT] = MANAGERS;
 export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
-
-/** The league's draft over: started with no rounds, so no pick is left on the clock. Free agency
- *  and waivers wait for it (#1326). */
-export const draftOver = (t: TestConvex, leagueId: Id<"leagues">, teamIds: Id<"teams">[]) =>
-  t.run(async (ctx) => {
-    await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds, rounds: 0 } });
-  });
 
 /** The league's draft row gone, as before its commissioner set a start. */
 export const noDraft = (t: TestConvex, leagueId: Id<"leagues">) =>
@@ -61,7 +55,7 @@ export async function waiverLeague() {
   await holdPlayers(t, [SAKA, PALMER, RICE]);
   // Pending claims name each player's club.
   await t.run((ctx) => ctx.db.insert("clubs", SQUAD_CLUB));
-  await draftOver(t, leagueId, teams);
+  await draftStarted(t, leagueId, teams);
 
   return {
     t,

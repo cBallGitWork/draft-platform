@@ -15,7 +15,7 @@ import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
 import { clubRecord, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
-import { BATCH_SIZE, latestRuns } from "../shared/syncRuns";
+import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
@@ -234,8 +234,8 @@ async function syncTable<Row extends Keyed>(
   ranAt: number,
 ): Promise<TableWrites> {
   const writes: TableWrites = { received: rows.length, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
-  for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    const batch: Upserted = await ctx.runMutation(upsertBatch, { rows: rows.slice(start, start + BATCH_SIZE) });
+  for (const sent of inBatches(rows)) {
+    const batch: Upserted = await ctx.runMutation(upsertBatch, { rows: sent });
     writes.inserted += batch.inserted;
     writes.updated += batch.updated;
     writes.unmarked += batch.unmarked;

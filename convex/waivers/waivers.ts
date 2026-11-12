@@ -4,7 +4,7 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
-import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { managerOf, memberOf, playerOrRefuse, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
@@ -41,7 +41,7 @@ export const drop = mutation({
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
     if (await inWaiverLock(ctx, deadlines, now)) refuse(dropRefusals.locked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     const place = await placeToDrop(ctx, leagueId, team._id, player);
     await dropAndTell(ctx, league, team, place, player, email, { deadlines, now, letter: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);

@@ -4,8 +4,7 @@ import { internalAction, internalMutation } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail as takeOne, waitForTomorrow } from "../outbound/emailLimit";
 import { errorMessage } from "../shared/errors";
-import { BATCH_SIZE } from "../shared/syncRuns";
-import { DAY_MS } from "../shared/time";
+import { BATCH_SIZE, SUCCESS_KEPT_MS } from "../shared/syncRuns";
 
 // The email each person with a part in a league gets once leagueDeletion.deleteForGood has removed
 // it (#320, spec/13, Deleting): "just delay the deletion email until its actually gone". Each
@@ -82,7 +81,7 @@ export const recordUnemailed = internalMutation({
 });
 
 /** How long a row of unemailedDeletions is kept: as long as a run log that succeeded. */
-export const UNEMAILED_KEPT_MS = 30 * DAY_MS;
+export const UNEMAILED_KEPT_MS = SUCCESS_KEPT_MS;
 
 /** Deletes the rows older than `UNEMAILED_KEPT_MS`, a batch a run, handing on to the next while any
  *  are left. The daily run-log prune starts it once it has finished (admin/runLogs.ts). */

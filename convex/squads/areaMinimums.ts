@@ -5,7 +5,7 @@ import { AREAS, type Area } from "../lineup/pitch";
 // defence and midfield. Which help most is a matching: each player to at most one place in an
 // area's minimum, as many places filled as can be. Pure: no I/O.
 
-export interface AreaShort {
+interface AreaShort {
   area: Area;
   /** How many of the squad fill the area's minimum, with each player counted once. */
   players: number;
