@@ -10,6 +10,7 @@ import { offerClosedLetter, type OfferClosed } from "../mail/tradeLetterWords";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
+import { leagueOpens } from "../leagues/leagueOpens";
 import { teamIn } from "../shared/leagueAccess";
 import { OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { deadlinePassedSince } from "../waivers/waiverLock";
@@ -122,9 +123,6 @@ async function closingReason(
   return null;
 }
 
-/** A league frozen for deletion closes nothing: its offers due wait for an undo (#1493). */
-const closesOffers = (league: Doc<"leagues">) => league.deletion === undefined;
-
 /** The cron's: asks each league holding an offer to close those whose time is up, each league in
  *  its own transaction (#1558), so the offers cap is each league's, never the platform's (#1539),
  *  and an offer one league can't close never holds up another's. */
@@ -136,8 +134,9 @@ export const closeDue = internalMutation({
       ctx,
       internal.trades.tradeClose.closeLeagueDue,
       "so their trade offers due can't all be closed",
+      // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
       async (league) =>
-        closesOffers(league) && (await ctx.db.query("tradeOffers").withIndex("by_leagueId", (q) => q.eq("leagueId", league._id)).first()) !== null,
+        leagueOpens(league) && (await ctx.db.query("tradeOffers").withIndex("by_leagueId", (q) => q.eq("leagueId", league._id)).first()) !== null,
     );
     await scheduleHeartbeat(ctx, "tradeOffers");
     return null;
@@ -151,7 +150,7 @@ export const closeLeagueDue = internalMutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const league = await ctx.db.get("leagues", leagueId);
-    if (league === null || !closesOffers(league)) return null;
+    if (league === null || !leagueOpens(league)) return null;
     const open = (await leagueOffers(ctx, leagueId)).filter((offer) => offer.review === undefined);
     if (open.length === 0) return null;
     const now = Date.now();

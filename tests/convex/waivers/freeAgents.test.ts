@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { dropRefusals } from "../../../convex/waivers/waivers";
 import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
@@ -95,7 +96,7 @@ describe("in the window", () => {
     await w.onWaivers([PALMER]);
     await expectRefused(pickUp(BOB, PALMER), pickUpRefusals.notFreeAgent(nameOf(PALMER)), "on waivers");
     await expectRefused(pickUp(BOB, ANNS_FIRST_DROP), pickUpRefusals.notFreeAgent(nameOf(ANNS_FIRST_DROP)), "on a team");
-    await expectRefused(pickUp(BOB, SAKA, ANNS_FIRST_DROP), pickUpRefusals.dropNotYours(nameOf(ANNS_FIRST_DROP)), "another's drop");
+    await expectRefused(pickUp(BOB, SAKA, ANNS_FIRST_DROP), dropRefusals.notYours(nameOf(ANNS_FIRST_DROP)), "another's drop");
   });
 });
 
