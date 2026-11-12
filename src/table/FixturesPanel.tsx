@@ -129,7 +129,7 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
             ) : null;
           return (
             <li
-              key={`${team} v ${opponent ?? leagueAverageWords}`}
+              key={game}
               aria-current={ours || undefined}
               className="grid grid-cols-fixture-row items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead aria-current:shadow-current-edge"
             >
