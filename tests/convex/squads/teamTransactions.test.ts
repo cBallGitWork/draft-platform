@@ -92,8 +92,26 @@ describe("the transactions", () => {
 
     const saka = { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] };
     const riceAndPick = { players: [{ playerCode: RICE, playerName: "Rice" }], picks };
-    expect((await read()).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: riceAndPick, out: saka, otherTeamName: teamNumbered(2), by: BOB }]);
-    expect((await read(BOB)).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: saka, out: riceAndPick, otherTeamName: teamNumbered(1), by: BOB }]);
+    expect((await read()).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: riceAndPick, out: saka, otherTeamName: teamNumbered(2), by: BOB, yours: false }]);
+    expect((await read(BOB)).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: saka, out: riceAndPick, otherTeamName: teamNumbered(1), by: BOB, yours: true }]);
+  });
+
+  test.each(["playerClaimed", "playerPickedUp"] as const)("list a %s as one with the drop it made, which has no row of its own (#1031)", async (kind) => {
+    // As a waiver run or a pickup files them: the drop, then the player joining, at the same
+    // instant; then a drop of his own a minute on.
+    await t.run(async (ctx) => {
+      const at = Date.now();
+      const onTeam = { teamId: annTeam, teamName: teamNumbered(1) };
+      const filed = (when: number, event: Doc<"leagueEvents">["event"]) => ctx.db.insert("leagueEvents", { leagueId, at: when, by: ANN, event });
+      await filed(at, { kind: "playerDropped", playerCode: RICE, playerName: "Rice", ...onTeam, toWaivers: true });
+      await filed(at, { kind, playerCode: SAKA, playerName: "Saka", ...onTeam, dropped: { playerCode: RICE, playerName: "Rice", toWaivers: true } });
+      await filed(at + MINUTE_MS, { kind: "playerDropped", playerCode: SAKA, playerName: "Saka", ...onTeam, toWaivers: true });
+    });
+
+    expect((await read()).transactions).toEqual([
+      expect.objectContaining({ kind: "dropped", playerName: "Saka", dropped: null, yours: true }),
+      expect.objectContaining({ kind: kind === "playerClaimed" ? "claimed" : "pickedUp", playerName: "Saka", dropped: { playerCode: RICE, playerName: "Rice" }, yours: true }),
+    ]);
   });
 
   test("say when and by whom, the admin by his byline as Mail's letter names him", async () => {
@@ -101,6 +119,7 @@ describe("the transactions", () => {
     await (await squadsAs(ADMIN)).assign(RICE, annTeam);
     const [byAdmin, byCommissioner] = (await read()).transactions;
     expect([byAdmin.by, byCommissioner.by]).toEqual([adminByline, COMMISSIONER]);
+    expect([byAdmin.yours, byCommissioner.yours]).toEqual([false, false]);
     expect(byAdmin.at).toBeGreaterThan(byCommissioner.at);
   });
 });

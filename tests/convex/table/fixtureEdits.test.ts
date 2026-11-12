@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { leagueAverageWords } from "../../../convex/mail/letterWords";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
+import { HOUR_MS } from "../../../convex/shared/time";
 import { fixtureEditRefusals, swapSides } from "../../../convex/table/fixtureEdits";
 import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { LEAGUE_AVERAGE, type Fixture } from "../../../convex/table/roundRobin";
-import { changeRules, rulesWith, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { changeRules, rulesWith, holdGameweeks, playUpTo } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -30,14 +30,14 @@ type Picked = { moves: Side; against: Side };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
-let seasonStart: number;
+let firstKickoff: number;
 
 async function leagueOf(emails: string[]): Promise<void> {
   t = await signInDeployment();
   fakeResend();
   leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, emails);
-  seasonStart = Date.now();
+  firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
 }
 
@@ -52,8 +52,6 @@ const gamesIn = async (gameweek: number) => (await schedule()).find((each) => ea
 const swaps = async (by: string, one: Picked, other: Picked, gameweek = EDITED) =>
   (await actingAs(t, by)).mutation(api.table.fixtureEdits.swap, { leagueId, gameweek, one, other });
 
-/** Moves the clock on to just after `gameweek` kicks off: its deadline and every one before have passed. */
-const playUpTo = (gameweek: number) => vi.setSystemTime(seasonStart + (gameweek - 1) * WEEK_MS + KICKS_OFF_IN);
 
 /** How many games each side plays in `games`. */
 function gamesEach(games: readonly Game[]): Map<Side, number> {
@@ -116,13 +114,13 @@ describe("four teams", () => {
   test("the gameweek begins as edited, and stays so", async () => {
     await swaps(COMMISSIONER, ...firstTwo(await gamesIn(EDITED)));
     const edited = await gamesIn(EDITED);
-    playUpTo(EDITED);
+    playUpTo(firstKickoff,EDITED);
     await t.run((ctx) => recordPassedDeadlines(ctx));
     expect(await gamesIn(EDITED)).toEqual(edited);
   });
 
   test("is refused once its deadline has passed", async () => {
-    playUpTo(EDITED);
+    playUpTo(firstKickoff,EDITED);
     const swap = firstTwo(await gamesIn(EDITED));
     await expectRefused(swaps(COMMISSIONER, ...swap), fixtureEditRefusals.begun(EDITED));
     await t.run((ctx) => recordPassedDeadlines(ctx));

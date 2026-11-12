@@ -5,7 +5,8 @@
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
-import { afterLastMatchWords, firstUpper, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
+import { capitalised } from "../../../convex/shared/moments";
+import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
 
 export { placeWords, pointsShort };
 
@@ -31,6 +32,10 @@ export const claimColumns = {
   points: { short: "Pts", long: "Points this season" },
   run: { short: "Run", long: "The run that can first take him" },
   drop: { short: "Drop", long: "Who goes if it succeeds" },
+  /** The manager's own claims say Claim and Drop as In and Out (the team-transactions picture,
+   *  #1031); the commissioner's Every team view keeps the waivers picture's words. */
+  in: { short: "In", long: "The player claimed" },
+  out: { short: "Out", long: "Who goes if it succeeds" },
 };
 export const claimsTableLabel = "Your pending claims";
 export const everyTeamTableLabel = "Every team's pending claims";
@@ -47,7 +52,7 @@ const noRunWords = "No run";
 export type FirstRun = RunAhead | null;
 /** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
 export const firstRunWords = (run: FirstRun) =>
-  run === null ? noRunWords : run.skippedIf !== null ? firstUpper(afterLastMatchWords(run.skippedIf)) : runWords(run.at);
+  run === null ? noRunWords : run.skippedIf !== null ? capitalised(afterLastMatchWords(run.skippedIf)) : runWords(run.at);
 /** A run, short: "Wed 18:00", or "After GW12's last match". */
 export const firstRunShort = (run: FirstRun) => (run === null || run.skippedIf !== null ? firstRunWords(run) : runShort(run.at));
 /** A run by its day: "Wed run", or "Run after GW12's last match". */
@@ -60,11 +65,11 @@ export const claimsInWords = (claims: number) => `${claims} ${claims === 1 ? "cl
 export const freePlaceWords = "Free place";
 /** A claim whose drop an earlier claim in its run names too. */
 export const failsIfWords = (rank: number) => `Fails if claim ${rank} wins`;
-/** The selected claim's panel title: "Wed run, claim 2: Eze". */
-export const claimPanelTitle = (run: FirstRun, rank: number, playerName: string) => `${runNameWords(run)}, claim ${rank}: ${playerName}`;
-export const runLabel = "Run";
-export const clashWords = (rank: number, dropName: string) => `Claim ${rank} also drops ${dropName}.`;
-export const dropLabel = "Drop";
+/** The selected claim's panel title, "Claim 2", its run on the plate (the team-transactions
+ *  picture, #1031). */
+export const claimPanelTitle = (rank: number) => `Claim ${rank}`;
+export const claimInLabel = "In";
+export const dropLabel = "Out";
 export const dropNobodyWords = "Nobody";
 export const moveUpWords = "Move up";
 export const moveDownWords = "Move down";
@@ -87,14 +92,15 @@ export const teamsWithoutClaimsWords = (teams: number) => `${teams} ${teams === 
 
 export const WAIVER_ORDER_TITLE = "Waiver order";
 export const waiverOrderWords: Record<WaiverOrderType, string> = { reverseStandings: "Reverse table order", rotating: "Rotating" };
-/** A team's line in the waiver order: "8th in the table," then its points. */
-export const tablePlaceWords = (place: number) => `${placeWords(place)} in the table, `;
+/** A team's line in the waiver order: "8th," then its points (Craig, 10 Nov 2026: "dont need to say
+ *  x in the table"). */
+export const tablePlaceWords = (place: number) => `${placeWords(place)}, `;
 /** Under the waiver order: how it works now, naming the gameweek whose end resets it (the one under
  *  way in the lock, else the next deadline's). */
 export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | null) =>
   type === "rotating"
     ? "Whoever last won a claim drops to the bottom, and it never resets."
-    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : `GW${resetsAfter}`} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
+    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : gameweekShort(resetsAfter)} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
 export const waiverOrderLoadingWords = "Loading the waiver order…";
 
 export const RUNS_TITLE = "Runs";
@@ -104,14 +110,21 @@ export const freeAgentsWords = "Free agents";
 export const freeAgentsNotOpenWords = "Open once the league's draft is over";
 /** A run that falls after a gameweek's deadline: it is skipped if that gameweek's last match isn't
  *  over by then, which isn't known ahead (Craig, 11 Nov 2026, on #1488). */
-export const skippedIfWords = (gameweek: number) => `Skipped if GW${gameweek} is still on`;
+export const skippedIfWords = (gameweek: number) => `Skipped if ${gameweekShort(gameweek)} is still on`;
+/** A run's note: the manager's claims in it, then Next or when it is skipped, "2 claims, next";
+ *  null where there is none. */
+export const runNoteWords = ({ claims, next, skippedIf }: { claims: number; next: boolean; skippedIf: number | null }) => {
+  const state = skippedIf !== null ? skippedIfWords(skippedIf) : next ? nextRunWords : null;
+  if (claims === 0) return state;
+  return state === null ? claimsInWords(claims) : `${claimsInWords(claims)}, ${state[0].toLowerCase()}${state.slice(1)}`;
+};
 /** When free agents can be picked up: never before the league's draft is over (S08.1). In the lock,
  *  or shut with its first run after the next deadline, it waits on `waitsOn`'s last match, whose
  *  time isn't known ahead, so it says so in words (Craig, 11 Nov 2026: "after GW12's last match"). */
 export const windowWords = ({ drafted, open, locked, firstRun, waitsOn, gameweek }: { drafted: boolean; open: boolean; locked: boolean; firstRun: number | null; waitsOn: number | null; gameweek: number | null }) => {
   if (!drafted) return freeAgentsNotOpenWords;
-  const to = gameweek === null ? "" : ` to the GW${gameweek} deadline`;
+  const to = gameweek === null ? "" : ` to the ${gameweekShort(gameweek)} deadline`;
   if (open && !locked) return `Open${to}`;
-  if (locked || waitsOn !== null) return `From the first run after ${waitsOn === null ? "the gameweek" : `GW${waitsOn}`}'s last match${to}`;
+  if (locked || waitsOn !== null) return `From the first run after ${waitsOn === null ? "the gameweek" : gameweekShort(waitsOn)}'s last match${to}`;
   return firstRun === null ? "Closed" : `From ${runShort(firstRun)}${to}`;
 };

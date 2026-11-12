@@ -5,6 +5,7 @@ import type { QueryCtx } from "../_generated/server";
 import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
+import { playerByCode } from "./players";
 
 // Who may do what in a league (spec/13, Who runs it), checked on the server for every change.
 // The admin may do anything anywhere; the commissioner runs one league; the co-commissioner has
@@ -46,6 +47,13 @@ export const refusals = {
 
 export function refuse(reason: string): never {
   throw new ConvexError(reason);
+}
+
+/** The player with `code` a manager or commissioner asked for, or the refusal that there is no such
+ *  player: here a missing one is a request gone wrong, not data. It lives here, not in players.ts,
+ *  because the browser reads players.ts's words and must not load this file's server code. */
+export async function playerOrRefuse(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
+  return (await playerByCode(ctx, code)) ?? refuse(refusals.noPlayer);
 }
 
 /** A typed email, as every email is stored (`normaliseEmail`), or a refusal when it is no address

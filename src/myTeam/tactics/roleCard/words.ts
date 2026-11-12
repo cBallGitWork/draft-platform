@@ -1,6 +1,7 @@
 // What the role card says (the approved role card, Role card B1; spec/05 Roles; #848), in one place
 // for Craig to change in the pull request.
 
+import { ROLE_BARS_MOST } from "../../../../convex/scoring/scoringSet";
 import { listSeparator, seasonShortWords, signedWords } from "../../../shared/words";
 import { gameweekShort } from "../../header/words";
 import { ROLE_FIT_SUBJECT } from "../words";
@@ -22,7 +23,7 @@ export const ROLE_COLUMNS = { role: "Role", fit: ROLE_FIT_SUBJECT, rewards: "Rew
 /** A role no real Sportmonks read has shown the stats of yet (spec/05 `S05.30`). */
 export const notTestedWords = "Not tested";
 /** spec/05 Roles: a role moves a match by at most 3 either way (Craig, 5 Nov 2026). */
-export const roleLimitWords = "±3 a match at most";
+export const roleLimitWords = `±${ROLE_BARS_MOST} a match at most`;
 export const rewardsWords = (stats: readonly string[]) => stats.join(listSeparator);
 
 /** What a role's stars mean in a word (the approved role card: "a word beside the stars"; Craig,

@@ -4,16 +4,16 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { playerCardPath } from "../../playerCard/paths";
 import type { Changing } from "../../shared/useChange";
 import { Panel, Problem } from "../../ui/Panel";
-import { Chip, PlayerName } from "./ClaimCells";
+import { Chip, FailsChip, PlayerName } from "./ClaimCells";
 import type { PendingClaim } from "./seam";
-import { claimPanelTitle, clashWords, dropLabel, dropNobodyWords, firstRunWords, moveDownWords, moveUpWords, playerCardWords, runLabel, withdrawWords } from "./words";
+import { claimInLabel, claimPanelTitle, dropLabel, dropNobodyWords, moveDownWords, moveUpWords, playerCardWords, runGroupWords, withdrawWords } from "./words";
 
-// The selected claim's panel (#1200; the waivers picture: "Wed run, claim 2: Eze"), at the top of
-// the Transactions tab's right-hand column: the run; a clash in orange, where an earlier claim in
-// the run drops the same player; the Drop picker, a change keeping the claim's rank (Craig, 6 Nov
-// 2026); Move up, Move down and Withdraw; and his player card. While claims are closed the Drop
-// picker is shut; Move and Withdraw stay in the lock, going only before the draft is over (Craig,
-// 11 Nov 2026, on #1590).
+// The selected claim's panel (#1200; the team-transactions picture, #1031: "Claim 2", its run on
+// the plate), at the top of the Transactions tab's right-hand column: In, the claimed player, with
+// his player card; Out, the drop picker, a change keeping the claim's rank (Craig, 6 Nov 2026); the
+// "Fails if claim 1 wins" chip, where an earlier claim in the run drops the same player; Move up,
+// Move down and Withdraw. While claims are closed the Out picker is shut; Move and Withdraw stay in
+// the lock, going only before the draft is over (Craig, 11 Nov 2026, on #1590).
 
 /** A player the Drop picker offers: one of the manager's squad. */
 type SquadPlayer = { code: number; name: string };
@@ -53,20 +53,19 @@ export function ClaimPanel({
   // The drop he names is offered even if he has left the squad since, so the picker shows it.
   const offered = claim.drop === null || squad.some(({ code }) => code === claim.drop?.playerCode) ? squad : [...squad, { code: claim.drop.playerCode, name: claim.drop.playerName }];
   return (
-    <Panel title={claimPanelTitle(claim.run, rank, claim.claim.playerName)}>
+    <Panel title={claimPanelTitle(rank)} aside={<span className="text-soft">{runGroupWords(claim.run)}</span>}>
       <div className="flex flex-col gap-2 p-3">
-        <p className="flex items-center gap-2">
-          <Chip player={claim.claim} />
-          <PlayerName player={claim.claim} />
+        <p className="flex items-center gap-3">
+          <span className="w-12 text-soft">{claimInLabel}</span>
+          <span className="flex grow items-center gap-2">
+            <Chip player={claim.claim} />
+            <PlayerName player={claim.claim} />
+          </span>
+          <Link to={playerCardPath(leagueId, claim.claim.playerCode)}>{playerCardWords}</Link>
         </p>
-        <p className="flex gap-3">
-          <span className="w-24 text-soft">{runLabel}</span>
-          <span>{firstRunWords(claim.run)}</span>
-        </p>
-        {clash !== null && claim.drop !== null && <p className="text-event">{clashWords(clash, claim.drop.playerName)}</p>}
         <Problem problem={change.problem} />
         <p className="flex items-center gap-3">
-          <label htmlFor={dropId} className="w-24 text-soft">
+          <label htmlFor={dropId} className="w-12 text-soft">
             {dropLabel}
           </label>
           <select
@@ -84,8 +83,13 @@ export function ClaimPanel({
             ))}
           </select>
         </p>
+        {clash !== null && claim.drop !== null && (
+          <p className="pl-15">
+            <FailsChip clash={clash} />
+          </p>
+        )}
         {canRank && (
-          <p className="flex flex-wrap gap-2">
+          <p className="flex flex-wrap gap-2 pl-15">
             <button type="button" className="secondary-action" disabled={change.busy || !canMove.up} onClick={() => onMove(-1)}>
               {moveUpWords}
             </button>
@@ -97,9 +101,6 @@ export function ClaimPanel({
             </button>
           </p>
         )}
-        <p className="text-right">
-          <Link to={playerCardPath(leagueId, claim.claim.playerCode)}>{playerCardWords}</Link>
-        </p>
       </div>
     </Panel>
   );

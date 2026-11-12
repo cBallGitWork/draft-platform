@@ -23,9 +23,9 @@ export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">, player
 }
 
 /** The players nobody drafted go on the league's waivers, a run taking them from `claimableFrom`:
- *  the draft's last pick schedules it (#1197), in a transaction of its own so the last pick stays
- *  clear of Convex's read limit (#1532). The last pick can't be undone (draftCommissioner.ts), so
- *  the draft is still over when it runs. */
+ *  the draft's end schedules it (pickWindow.ts `endDraft`; #1197) once the last pick's 10 seconds
+ *  are up, after which no undo is possible, in a transaction of its own so the last pick stays clear
+ *  of Convex's read limit (#1532). The draft is still over when it runs. */
 export const putUndraftedOnWaivers = internalMutation({
   args: { leagueId: v.id("leagues"), claimableFrom: v.number() },
   returns: v.null(),

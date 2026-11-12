@@ -219,15 +219,10 @@ describe("while it runs", () => {
 
   // #1531: the room's reads took the minute, so as it turned Convex answered undefined for the new
   // args, the page blanked to Loading and the selected player and a half-typed pick time were lost.
+  // None takes it now, the commissioner panel's included (#1697).
   it("keeps the selected player and a half-typed pick time as the minute turns", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const app = openAs(commissioner, { draft: liveDraft({ paused: true }), board: oneTaken, players: [RICE] });
-    // Like Convex's useQuery: nothing yet for a minute it hasn't answered.
-    let answered: number | undefined;
-    app.draft.useCommissioner.mockImplementation((_, now) => {
-      answered ??= now;
-      return now === answered ? commissionerView : undefined;
-    });
     await userEvent.click(await screen.findByRole("button", { name: selectLabel("Rice") }));
     const box = await pickTimeBox();
     await userEvent.clear(box);
@@ -236,7 +231,7 @@ describe("while it runs", () => {
     act(() => vi.advanceTimersByTime(MINUTE_MS));
 
     expect(app.draft.useDraft).toHaveBeenLastCalledWith(league.leagueId);
-    expect(app.draft.useCommissioner.mock.lastCall![1]).not.toBe(answered);
+    expect(app.draft.useCommissioner).toHaveBeenLastCalledWith(league.leagueId);
     expect((await button(pickForWords("Team 2"))).hasAttribute("disabled")).toBe(false);
     expect((await pickTimeBox()).value).toBe("3m");
   });

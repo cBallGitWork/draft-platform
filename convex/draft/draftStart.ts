@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { nextOpenGameweek } from "../lineup/lineups";
+import { nextOpenGameweek } from "../gameweeks/saveGameweek";
 import { draftRulesOf } from "../rules/firstRules";
 import { historyOf, inForce, latestRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
@@ -41,7 +41,7 @@ export const draftStartRefusals = {
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
- *  What the draft's pick clock runs by. */
+ *  The squad rules of a draft started before #1090 kept none, so oldDraftsBackfill.ts saves these. */
 export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
   const history = await historyOf(ctx, leagueId);
   const underWay = (await nextOpenGameweek(ctx, leagueId, now)) - 1;

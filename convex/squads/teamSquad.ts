@@ -16,7 +16,7 @@ import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
-import { NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
+import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
@@ -29,8 +29,6 @@ import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 // matches, his points in the league's last five gameweeks, and FPL's news on him (Squad's approved
 // picture, docs/design/approved/team-squad).
 
-/** How many of the league's latest begun gameweeks his form holds. */
-export const FORM_GAMEWEEKS = 5;
 
 /** The season stats a row holds, each by the catalogue key it is kept under (statCatalogue.ts). */
 export const SQUAD_STATS = {
@@ -117,7 +115,7 @@ export const teamSquad = v.object({
   /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
   squadMaximum: v.union(v.number(), v.null()),
   /** The Schedule view's gameweeks, from the one a lineup is being set for, at most
-   *  SCHEDULE_GAMEWEEKS (squadSchedule.ts): none once the season is over or with no rules. */
+   *  SCHEDULE_GAMEWEEKS (squadLimits.ts): none once the season is over or with no rules. */
   scheduleGameweeks: v.array(v.number()),
   /** The Rules view's rows: the squad against each of the league's squad limits (squadLimits.ts). */
   limits: v.array(squadLimit),
