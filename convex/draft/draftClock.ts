@@ -2,7 +2,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { SECOND_MS } from "../shared/time";
-import { draftOf, turnAfter, turnNow } from "./draftRow";
+import { draftOf, turnAfter, turnNow, type Clock } from "./draftRow";
 import { picksAtOnce } from "./draftTimeouts";
 
 // The pick clock (spec/04, The picks; #1091). Each pick runs on the league's pick time. The first
@@ -67,9 +67,6 @@ export async function startClock(
   }
   return { pick: turn.pick, round: turn.round, team, startsAt, endsAt, atOnce: picksAtClockStart(draft, clock, team), paused: paused !== undefined };
 }
-
-/** A draft's pick clock, as its row holds it. */
-type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
 /** Cancels the job waiting on `clock`, if there is a clock and it has one. Never pass the clock of
  *  the job running now: cancelling it would cancel what it schedules too. */

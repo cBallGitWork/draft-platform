@@ -10,6 +10,7 @@ import { autoPickOrder } from "./autoPickOrder";
 import { whyNotLegalFor } from "./draftPicks";
 import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
+import { notLegal } from "./legalPlayers";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 
@@ -22,8 +23,6 @@ import { lastPricedSeason, lastSeasonPoints } from "../pastSeasons/lastSeasonPoi
 //   for the team on the clock, which his "Pick for <team>" is greyed by (#1475);
 // - each player's place on the site's ranking, last season's points and the overview's stats, as
 //   the approved draft room picture's columns have them.
-
-const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.literal("areasShort"), v.literal("noFinish"));
 
 const greyedPlayer = v.object({ code: v.number(), reason: notLegal });
 export type GreyedPlayer = Infer<typeof greyedPlayer>;

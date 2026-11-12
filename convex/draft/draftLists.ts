@@ -22,7 +22,7 @@ import { DRAFT_LIST_MOST } from "./draftLimits";
 // empty and never sees the old ones (S04.15; Craig, 11 Nov 2026, on #1606).
 
 const draftList = v.union(v.literal("queue"), v.literal("doNotDraft"));
-type DraftList = "queue" | "doNotDraft";
+type DraftList = Infer<typeof draftList>;
 
 export const draftListRefusals = {
   playerGone: (name: string) => `${name} has left the Premier League, so he can't be listed for the draft.`,

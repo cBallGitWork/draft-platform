@@ -42,7 +42,7 @@ export { namedPlayer, tradedSide } from "./schema/squads";
 export type { TradedSide } from "./schema/squads";
 export { siteScoringKind } from "./schema/scoring";
 export { placementShape, planSlotShape } from "./schema/lineup";
-export { rankedPlayer } from "./schema/draft";
+export { rankedPlayer, tradedPick } from "./schema/draft";
 export { pastSeasonRow } from "./schema/pastSeasons";
 export { platformSettingName } from "./schema/platform";
 export { recapTeamPoints } from "./schema/recaps";

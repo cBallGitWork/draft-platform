@@ -19,6 +19,9 @@ export function pickOwner<Team>(traded: readonly TradedPick<Team>[], round: numb
   return traded.find((each) => samePick(each, { round, teamId: team }))?.ownerId ?? team;
 }
 
+/** The round pick number `pick`, from 1, falls in, with `teams` teams picking. */
+export const roundOf = (pick: number, teams: number) => Math.floor((pick - 1) / teams) + 1;
+
 /** Whose turn each pick is, first to last: `teams` in the draft order, over `rounds` rounds. */
 export function snakeOrder<Team>(teams: readonly Team[], rounds: number): Team[] {
   const reversed = [...teams].reverse();
@@ -36,7 +39,7 @@ export function pickOnTheClock<Team>(
 ): { pick: number; round: number; team: Team; via: Team | null } | null {
   const picks = snakeOrder(teams, rounds);
   if (picksMade < 0 || picksMade >= picks.length) return null;
-  const round = Math.floor(picksMade / teams.length) + 1;
+  const round = roundOf(picksMade + 1, teams.length);
   const turn = picks[picksMade];
   const team = pickOwner(traded, round, turn);
   return { pick: picksMade + 1, round, team, via: team === turn ? null : turn };
@@ -46,5 +49,5 @@ export function pickOnTheClock<Team>(
  *  the picks left that it holds after any trade. A team that traded for another's pick in a round
  *  picks twice in it, so its picks left are never read off the round. */
 export function picksLeftFor<Team>(teams: readonly Team[], rounds: number, picksMade: number, traded: readonly TradedPick<Team>[], team: Team): number {
-  return snakeOrder(teams, rounds).filter((turn, index) => index >= picksMade && pickOwner(traded, Math.floor(index / teams.length) + 1, turn) === team).length;
+  return snakeOrder(teams, rounds).filter((turn, index) => index >= picksMade && pickOwner(traded, roundOf(index + 1, teams.length), turn) === team).length;
 }
