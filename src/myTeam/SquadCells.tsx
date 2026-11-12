@@ -1,3 +1,4 @@
+import { Placeholder } from "../ui/Placeholder";
 import type { TeamSquad } from "./seam";
 import {
   difficultyNotRatedWords,
@@ -9,12 +10,25 @@ import {
   noNextFixtureWords,
   noPointsWords,
   shortThenLongName,
+  statusNotSettledLabel,
   whenWords,
 } from "./words";
 
 // The cells the Squad and Tactics tabs' tables and panels both draw, written once (#1042).
 
 type Row = TeamSquad["players"][number];
+
+/** Whether FPL holds a doubt about him, as his row has it: only then does he get a status chip. */
+export const inDoubt = (player: Doubted) => player?.chanceOfPlaying != null;
+
+/** His row, where one is held, for whether FPL doubts him. */
+type Doubted = Pick<Row, "chanceOfPlaying"> | null | undefined;
+
+/** His status chip's placeholder while FPL holds a doubt about him, until it is settled which
+ *  statuses each chip reads (to-grill: Status chips' data); `className` sizes and places it. */
+export function StatusMark({ player, className }: { player: Doubted; className: string }) {
+  return inDoubt(player) ? <Placeholder label={statusNotSettledLabel} className={className} /> : null;
+}
 
 /** A points figure in bold; none yet is a muted dash, saying why on hover. */
 export function PointsCell({ className, points }: { className: string; points: number | null }) {

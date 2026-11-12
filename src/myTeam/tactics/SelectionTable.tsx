@@ -3,13 +3,11 @@ import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { roleIn, type Formation } from "../../../convex/lineup/roles";
 import { menuGlyph } from "../../shared/words";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
-import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
-import { NextMatches } from "../SquadCells";
-import { statusNotSettledLabel } from "../words";
+import { NextMatches, StatusMark } from "../SquadCells";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
 import { benchBestRole, landingOf, positionsIn, starts, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
@@ -198,7 +196,7 @@ function SelectionRow({
         {/* A phone leaves out the club and the status, for the role's room (plate.md, The phone). */}
         {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
         {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}
-        {season?.chanceOfPlaying != null && <Placeholder label={statusNotSettledLabel} className="ml-1 size-3 align-middle max-sm:hidden" />}
+        <StatusMark player={season} className="ml-1 size-3 align-middle max-sm:hidden" />
         <PositionMarks marks={positionMarksOf(player, "starter" in place ? place.starter : null)} />
       </th>
       <td className={cellClasses("roleFit")}>

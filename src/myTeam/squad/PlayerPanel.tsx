@@ -15,7 +15,7 @@ import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { PositionCodes } from "../../ui/PositionCodes";
-import { NextMatches } from "../SquadCells";
+import { inDoubt, NextMatches, StatusMark } from "../SquadCells";
 import type { Row } from "./SquadTable";
 import {
   benchedInWords,
@@ -36,7 +36,6 @@ import {
   setRoleWords,
   signedWords,
   startingInWords,
-  statusNotSettledLabel,
   THIS_SEASON,
 } from "./words";
 
@@ -72,9 +71,9 @@ export function PlayerPanel({
       }
     >
       {/* His doubt line: the chip where FPL holds a doubt, as his row has it, and FPL's news. */}
-      {(player.chanceOfPlaying !== null || player.news !== null) && (
+      {(inDoubt(player) || player.news !== null) && (
         <p className="flex items-center gap-2 px-3 py-1">
-          {player.chanceOfPlaying !== null && <Placeholder label={statusNotSettledLabel} className="h-5 w-10 shrink-0" />}
+          <StatusMark player={player} className="h-5 w-10 shrink-0" />
           {player.news !== null && <span>{player.news}</span>}
         </p>
       )}
