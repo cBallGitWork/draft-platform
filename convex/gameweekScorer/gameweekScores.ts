@@ -5,7 +5,7 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { isGameweekScored, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
 import type { MovesSinceOf } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal } from "./heldMatches";
@@ -109,7 +109,7 @@ export async function leagueScores(
       result.scores.set(gameweek, scores);
       if (toStore !== null) result.finalUnstored.push({ gameweek, ...toStore });
     } catch (error) {
-      const reason = logFailure(`League ${league._id} (${league.name}) can't score gameweek ${gameweek}`, error);
+      const reason = logFailure(`${leagueLabel(league)} can't score gameweek ${gameweek}`, error);
       result.unscored.push({ gameweek, reason });
     }
   }

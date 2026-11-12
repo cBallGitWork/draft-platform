@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { isPlaying } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import type { SeasonRules } from "../rules/rulesHistory";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
@@ -12,7 +12,7 @@ import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMa
 import { leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
-import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
+import { averageScore, BYE, FIRST_GAME, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { instructionLinesOf, namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
 import { siteVersionByGameweek } from "../scoring/siteVersions";
@@ -111,17 +111,14 @@ async function gameOf(
       kind: "scored",
       team: await scorer.team(team),
       opponent: await scorer.opponent(against),
-      commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`),
+      commentary: await scorer.commentary(sides, `${leagueLabel(league)} can't read ${team.name}'s commentary in gameweek ${gameweek}`),
       version: versionIn(gameweek).name,
     };
   } catch (error) {
-    const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
+    const reason = logFailure(`${leagueLabel(league)} can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
     return { kind: "unscored", opponent, reason };
   }
 }
-
-/** The first of a team's games in a gameweek, as the address and the switch number them. */
-const FIRST_GAME = 1;
 
 /** A team `gameweek`'s fixtures name; one not in the league is a bug, so it throws. */
 const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
