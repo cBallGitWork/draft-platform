@@ -15,7 +15,7 @@ import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, stillKept, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsLookup } from "../stars/playerStars";
-import type { Area, Lane } from "./pitch";
+import { heldCell } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicFormationShape } from "./classics";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
@@ -183,7 +183,7 @@ async function checkedPositions(
 function checkInstructions(lineup: SentLineup, rules: LeagueRules): void {
   if (lineup.instructions === undefined) return;
   // lineupProblems refused any cell not on the pitch, so every starter's is one.
-  const cells = lineup.starters.map(({ area, lane }) => ({ area: area as Area, lane: lane as Lane }));
+  const cells = lineup.starters.map(heldCell);
   const set = instructionsOf(rules);
   const refusal = pairRefusal(lineup.instructions, cells, set);
   if (refusal !== null) refuse(pairRefusalWords(refusal, set));
@@ -193,7 +193,7 @@ function checkInstructions(lineup: SentLineup, rules: LeagueRules): void {
  *  from the set is saved as the one he plays (#841). */
 function withRolesFixed(starters: SentLineup["starters"]) {
   return starters.map(({ role, ...starter }) => {
-    const cell = { area: starter.area as Area, lane: starter.lane as Lane };
+    const cell = heldCell(starter);
     return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
   });
 }
