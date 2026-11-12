@@ -70,7 +70,11 @@ fixture), a search of the whole codebase for an older one, since a copy older th
 outside its diff; whether each thing lives in the right place; whether ui-verifier's
 colour-role bullet still matches plate.md; and SPEC.md's status rows and ARCHITECTURE.md brought up
 to what merged in the range (builds no longer edit them per slice). (`tests/src/designNever.test.ts` holds
-`.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.)
+`.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.) And it shrinks
+`scripts/one-home-words.baseline.json` a folder at a time: each phrase written twice there is
+imported from the home `node scripts/one-home-words.mjs` names, or kept with a
+`// one-home-ok: <why>` comment, and `node scripts/one-home-words.mjs --write-baseline` drops
+the fixed ones (#1812).
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
 tidying stays inside the files a task touches.
