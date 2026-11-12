@@ -20,12 +20,12 @@ export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
 
 const SPORTMONKS_API_BASE = "https://api.sportmonks.com/v3/football";
 export type SportmonksCompetition = Infer<typeof sportmonksCompetition>;
-/** The competitions the beta plays on (SPEC, *What it is*; Craig, #1196), the list's first rows:
- *  the Scottish Premiership, on the free plan (checked 9 Nov 2026, on #1391), and the Premier
- *  League, off until the paid plan covers it. A deployment holding none starts from these. */
 /** Sportmonks' id for the Premier League: the one competition FPL also covers, so the one whose
  *  clubs, players and matches are linked to FPL's codes (#1421). */
 export const PREMIER_LEAGUE = 8;
+/** The competitions the beta plays on (SPEC, *What it is*; Craig, #1196), the list's first rows:
+ *  the Scottish Premiership, on the free plan (checked 9 Nov 2026, on #1391), and the Premier
+ *  League, off until the paid plan covers it. A deployment holding none starts from these. */
 export const SEEDED_COMPETITIONS: readonly SportmonksCompetition[] = [
   { name: "Scottish Premiership", competition: 501, on: true },
   { name: "Premier League", competition: PREMIER_LEAGUE, on: false },

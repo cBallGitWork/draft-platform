@@ -57,34 +57,34 @@ test("a match kicking off at another time than FPL's, or between clubs not linke
   expect(found.match.find(({ code }) => code === SM_PL.arsenalCoventry)).toEqual({ code: SM_PL.arsenalCoventry, fplCode: null, candidates: [] });
 });
 
-const ARSENAL = new Map([[SM_PL.arsenal, CLUB_CODE.arsenal]]);
-const man = (code: number, fullName: string, birthDate?: string) => ({ code, name: fullName, fullName, clubCode: SM_PL.arsenal, ...(birthDate && { birthDate }) });
+const ARSENAL_LINK = new Map([[SM_PL.arsenal, CLUB_CODE.arsenal]]);
+const smMan = (code: number, fullName: string, birthDate?: string) => ({ code, name: fullName, fullName, clubCode: SM_PL.arsenal, ...(birthDate && { birthDate }) });
 const fplMan = (code: number, fullName: string, birthDate?: string) => ({ code, name: fullName, fullName, clubCode: CLUB_CODE.arsenal, ...(birthDate && { birthDate }) });
 
 test("two FPL men of one name at his club leave him unlinked with both, unless a date of birth tells them apart", () => {
   const twins = [fplMan(1, "Ben White", "1997-10-08"), fplMan(2, "Ben White", "2006-01-01")];
 
-  expect(linkPlayers([man(10, "Ben White")], twins, ARSENAL, new Map())).toEqual([{ code: 10, fplCode: null, candidates: [1, 2] }]);
-  expect(linkPlayers([man(10, "Ben White", "2006-01-01")], twins, ARSENAL, new Map())).toEqual([{ code: 10, fplCode: 2, candidates: [] }]);
+  expect(linkPlayers([smMan(10, "Ben White")], twins, ARSENAL_LINK, new Map())).toEqual([{ code: 10, fplCode: null, candidates: [1, 2] }]);
+  expect(linkPlayers([smMan(10, "Ben White", "2006-01-01")], twins, ARSENAL_LINK, new Map())).toEqual([{ code: 10, fplCode: 2, candidates: [] }]);
 });
 
 test("a man born on another day than FPL's man of his name is never him", () => {
-  expect(linkPlayers([man(10, "Ben White", "1990-01-01")], [fplMan(1, "Ben White", "1997-10-08")], ARSENAL, new Map())).toEqual([{ code: 10, fplCode: null, candidates: [] }]);
+  expect(linkPlayers([smMan(10, "Ben White", "1990-01-01")], [fplMan(1, "Ben White", "1997-10-08")], ARSENAL_LINK, new Map())).toEqual([{ code: 10, fplCode: null, candidates: [] }]);
 });
 
 test("born the same day, one shared word links him: Sportmonks' 'Gabriel Magalhães' is FPL's 'Gabriel dos Santos'", () => {
-  const found = linkPlayers([man(10, "Gabriel Magalhães", "1997-12-19")], [fplMan(1, "Gabriel dos Santos", "1997-12-19"), fplMan(2, "Gabriel Martinelli", "2001-06-18")], ARSENAL, new Map());
+  const found = linkPlayers([smMan(10, "Gabriel Magalhães", "1997-12-19")], [fplMan(1, "Gabriel dos Santos", "1997-12-19"), fplMan(2, "Gabriel Martinelli", "2001-06-18")], ARSENAL_LINK, new Map());
   expect(found).toEqual([{ code: 10, fplCode: 1, candidates: [] }]);
 });
 
 test("an FPL man two Sportmonks men both find links neither, and one already held is taken", () => {
   const fplMen = [fplMan(1, "Ben White")];
-  expect(linkPlayers([man(10, "Ben White"), man(11, "Ben White")], fplMen, ARSENAL, new Map())).toEqual([
+  expect(linkPlayers([smMan(10, "Ben White"), smMan(11, "Ben White")], fplMen, ARSENAL_LINK, new Map())).toEqual([
     { code: 10, fplCode: null, candidates: [1] },
     { code: 11, fplCode: null, candidates: [1] },
   ]);
   // Man 10 holds FPL's 1 already: he isn't worked out again, and man 11 can't have it.
-  expect(linkPlayers([man(10, "Ben White"), man(11, "Ben White")], fplMen, ARSENAL, new Map([[10, 1]]))).toEqual([{ code: 11, fplCode: null, candidates: [1] }]);
+  expect(linkPlayers([smMan(10, "Ben White"), smMan(11, "Ben White")], fplMen, ARSENAL_LINK, new Map([[10, 1]]))).toEqual([{ code: 11, fplCode: null, candidates: [1] }]);
 });
 
 test("a name's words are lower case and unaccented, Ø and all", () => {

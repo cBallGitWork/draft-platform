@@ -50,7 +50,7 @@ test("the link run links every club and match and every man but the two stranger
   expect(saka).toMatchObject({ fplCode: PLAYER_CODE.saka, candidates: [], since: RAN_AT });
 });
 
-test("an unlinked man is listed for the admin only from his first Premier League minute; a man on the bench is not", async () => {
+test("an unlinked man is listed for the admin only from his first Premier League minute; a man who sits the match out is not", async () => {
   const t = freshConvex();
   await bothFeedsHeld(t);
   await t.mutation(links.link, { ranAt: RAN_AT });
