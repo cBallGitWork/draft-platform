@@ -3,12 +3,12 @@
 
 import { useSyncExternalStore } from "react";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
-import type { OwnListPlayer, ShortlistSeam } from "./seam";
+import type { ShortlistedPlayer, ShortlistSeam } from "./seam";
 
 /** A shortlist seam over `players`, holding those with `openingCodes` to begin with. */
 export function previewShortlistOf(players: readonly ListedPlayer[], openingCodes: readonly number[]): ShortlistSeam {
   const listeners = new Set<() => void>();
-  const shortlisted = (code: number): OwnListPlayer => {
+  const shortlisted = (code: number): ShortlistedPlayer => {
     const player = players.find((each) => each.code === code)!;
     return { code, name: player.name, fullName: player.fullName, club: player.club, ownerTeamName: player.ownerTeamName, gone: false };
   };

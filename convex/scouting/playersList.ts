@@ -50,8 +50,8 @@ export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
 /** Which players by who holds them in this league: all, the unowned (free agents), those on
  *  waivers, or those on a team. */
-export const heldBy = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
-export type HeldByFilter = Infer<typeof heldBy>;
+export const availability = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
+export type Availability = Infer<typeof availability>;
 
 /** The season totals every row shows (playersOrder.ts's LIST_FIGURES). */
 const listFigure = v.union(v.literal("minutes"), v.literal("goals"), v.literal("assists"), v.literal("shotsOnTarget"));
@@ -63,7 +63,7 @@ const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("poin
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({
-  availability: heldBy,
+  availability,
   /** Only players with this position among theirs; null for every position. */
   position: v.union(position, v.null()),
   /** Only this club's players, by its code; null for every club. */

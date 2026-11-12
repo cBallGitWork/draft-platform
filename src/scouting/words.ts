@@ -20,7 +20,7 @@ import {
 import { lastSeasonPointsColumn } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
 import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
-import type { HeldByFilter, Period } from "./seam";
+import type { Availability, Period } from "./seam";
 
 export { figureWords, noFigureWords } from "../shared/words";
 
@@ -60,7 +60,7 @@ export const namePlaceholder = "Find a player";
 
 /** The filters over the list (spec/19, The players list). */
 export const availabilityLabel = "Show";
-export const availabilityWords: Record<HeldByFilter, string> = {
+export const availabilityWords: Record<Availability, string> = {
   all: "All",
   freeAgents: "Free agents",
   onWaivers: "On waivers",

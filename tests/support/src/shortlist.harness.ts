@@ -3,11 +3,11 @@
 
 import { vi } from "vitest";
 import { ARSENAL } from "../convex/footballRows.harness";
-import type { ShortlistChanges, OwnListPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/seam";
+import type { ShortlistChanges, ShortlistedPlayer, ShortlistSeam } from "../../../src/scouting/shortlist/seam";
 
 /** What the fake server holds: the manager's shortlist (null for someone running no team), or
  *  nothing yet while it loads; and the server's refusal of any change, if it refuses. */
-export type ShortlistData = { players?: readonly OwnListPlayer[] | null; loading?: boolean; refusal?: string };
+export type ShortlistData = { players?: readonly ShortlistedPlayer[] | null; loading?: boolean; refusal?: string };
 
 export function fakeShortlist({ players = [], loading = false, refusal }: ShortlistData = {}) {
   const changes = {
@@ -22,7 +22,7 @@ export function fakeShortlist({ players = [], loading = false, refusal }: Shortl
 }
 
 /** A shortlisted player, as the server sends him. */
-export const shortlisted = (code: number, name: string, ownerTeamName: string | null = null): OwnListPlayer => ({
+export const shortlisted = (code: number, name: string, ownerTeamName: string | null = null): ShortlistedPlayer => ({
   code,
   name,
   fullName: name,
