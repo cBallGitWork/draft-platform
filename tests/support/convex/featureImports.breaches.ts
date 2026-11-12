@@ -5,14 +5,7 @@
 /** Cross-feature imports past rule 4, as "importer -> target" without the extension. Each goes
  *  when its target moves to src/ui/ or src/shared/, or becomes something its owner offers. */
 export const STILL_REACHING_IN: string[] = [
-  // The pitch's drawing, used by a third feature: for src/ui/ (#1581).
-  "src/matchup/PlayerTile -> src/myTeam/tactics/pitch/Pitch",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/Pitch",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/PitchLines",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/RoleRuns",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/rowLayout",
-  "src/playerCard/CardHead -> src/myTeam/tactics/pitch/Pitch",
-  // Other parts one feature draws and another shows.
+  // Parts one feature draws and another shows.
   "src/draft/CommissionerPanel -> src/leagueSettings/pickClock",
   "src/draft/playersView -> src/scouting/findPlayers",
   "src/frame/AppFrame -> src/feedback/FeedbackPage",

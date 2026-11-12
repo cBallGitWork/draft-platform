@@ -9,9 +9,9 @@ import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/men
 import { everyTeamWords, gotWords, newsKindWords, newsTableLabel, teamFilterLabel } from "../../src/home/words";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
-import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
-import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
+import { PITCH_ASPECT } from "../../src/ui/pitch/pitchMarkings";
+import { RUN_MARK } from "../../src/ui/pitch/runs";
 import { allFormationsWords, pitchLabel, runsWords } from "../../src/myTeam/tactics/words";
 import { applyWords, backGroupPattern, cancelWords, WINDOW_TITLE } from "../../src/myTeam/tactics/formationWindow/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";

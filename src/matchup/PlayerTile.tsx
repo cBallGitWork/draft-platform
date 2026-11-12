@@ -1,5 +1,5 @@
 import type { MatchupBenchSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
-import { Shirt } from "../myTeam/tactics/pitch/Pitch";
+import { Shirt } from "../ui/pitch/Shirt";
 import { chipColoursOf } from "../ui/PositionChip";
 import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, offWords, openBreakdownLabel, pitchPlayerLabel, statusLabels, statusText } from "./words";
 

@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { RUN_MARK } from "../../../src/myTeam/tactics/pitch/runs";
+import { RUN_MARK } from "../../../src/ui/pitch/runs";
 import { runsWords } from "../../../src/myTeam/tactics/words";
 import {
   autoSubWords,

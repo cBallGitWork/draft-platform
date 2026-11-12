@@ -74,4 +74,4 @@ he goes) and target man. Each has no run, as before.
 Runs draw under the players' blocks, so each one ends clear of where a block usually stands: a
 run straight up or down the pitch ends where two rows meet (9 m or 26.5 m from his place), and a
 short one goes at least 10 m across, past his own shirt. A run that would leave the pitch is
-cut 3 m inside it (`src/myTeam/tactics/pitch/runs.ts`).
+cut 3 m inside it (`src/ui/pitch/runs.ts`).

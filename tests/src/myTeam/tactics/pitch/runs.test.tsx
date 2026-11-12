@@ -9,8 +9,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ALL_CELLS } from "../../../../../convex/lineup/pitch";
 import { everyRoleOf, roleIn } from "../../../../../convex/lineup/roles";
-import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows } from "../../../../../src/myTeam/tactics/pitch/runs";
-import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
+import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows } from "../../../../../src/ui/pitch/runs";
+import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../../src/ui/pitch/pitchMarkings";
 import { runsWords } from "../../../../../src/myTeam/tactics/words";
 import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../../support/src/tacticsScreen.harness";
 

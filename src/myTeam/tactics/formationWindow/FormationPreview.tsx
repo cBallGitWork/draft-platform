@@ -4,7 +4,7 @@ import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { standingIn, type EditedLineup, type MoveRules, type PresetShape as Shape, type RatingsOf } from "../lineupEdits";
 import { reshaped } from "../reshape";
-import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
+import { cellGridOf, rowLayoutOf } from "../../../ui/pitch/rowLayout";
 import { cellsDrawn } from "./FormationTile";
 import {
   appliesHead,

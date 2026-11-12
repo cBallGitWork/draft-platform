@@ -4,7 +4,7 @@ import { Placeholder } from "../../../ui/Placeholder";
 import { chipFillOf } from "../../../ui/PositionChip";
 import type { PresetShape as Shape } from "../lineupEdits";
 import { CELL_GRID } from "../pitch/Pitch";
-import { ROWS_DRAWN } from "../pitch/rowLayout";
+import { ROWS_DRAWN } from "../../../ui/pitch/rowLayout";
 import { descriptionPlaceholder, inUseWords, subtitlePlaceholder } from "./words";
 
 // A formation's tile in the formation window (the approved formation window): its thumbnail, its

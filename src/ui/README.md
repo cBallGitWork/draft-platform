@@ -33,6 +33,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `AutoTeamChip.tsx`: a team on the auto team, the event chip after its name, its hover saying what it does (Colour roles: event), on the table and the matchup.
 - `MoreLink.tsx`: a panel's way on, "All mail ›", "Player card ›", its words then the hidden glyph at one spacing; `NextGlyph` gives a button or other link the same glyph.
 - `OverrideFields.tsx`: an override form's points box, to a tenth, and its reason (Controls), on the player card's override and the matchup's team override.
+- `pitch/`: the pitch (Marks: the pitch), on Tactics, the Squad tab's eleven, a role card and the matchup: its measurements and room (`pitchMarkings.ts`, `pitch.css`), how its rows share its length (`rowLayout.ts`), its grass and markings (`PitchLines.tsx`), the roles' runs (`runs.ts`, `RoleRuns.tsx`), and a player's shirt in his club's colours (`Shirt.tsx`), also on the player card.
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css

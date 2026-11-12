@@ -5,9 +5,9 @@
 import { describe, expect, it } from "vitest";
 import { ALL_CELLS, type Area } from "../../../../../convex/lineup/pitch";
 import { everyRoleOf } from "../../../../../convex/lineup/roles";
-import { PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
-import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "../../../../../src/myTeam/tactics/pitch/rowLayout";
-import { placeOf, runPath } from "../../../../../src/myTeam/tactics/pitch/runs";
+import { PITCH_SIZE, ROW_LENGTH } from "../../../../../src/ui/pitch/pitchMarkings";
+import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "../../../../../src/ui/pitch/rowLayout";
+import { placeOf, runPath } from "../../../../../src/ui/pitch/runs";
 
 /** A 4-2-3-1's rows: nobody in midfield, the gap Craig saw. */
 const FOUR_TWO_THREE_ONE: { area: Area }[] = [

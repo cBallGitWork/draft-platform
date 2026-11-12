@@ -6,7 +6,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CLUB_COLOURS, contrast, INKS, UNSET_COLOURS } from "../../../../../convex/football/clubColours";
 import { ClubColoursProvider } from "../../../../../src/shared/clubColours";
-import { Shirt } from "../../../../../src/myTeam/tactics/pitch/Pitch";
+import { Shirt } from "../../../../../src/ui/pitch/Shirt";
 import { ARSENAL } from "../../../../support/convex/footballRows.harness";
 import { colorToken } from "../../../../support/src/colorTokens";
 import { blockOf, openedPitch, RAYA, SALIBA } from "../../../../support/src/tacticsScreen.harness";
