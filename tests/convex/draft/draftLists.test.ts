@@ -4,10 +4,12 @@ import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { api } from "../../../convex/_generated/api";
 import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
-import { ARSENAL, CHELSEA, GONE } from "../../support/convex/footballRows.harness";
+import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
+import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's draft queue and do-not-draft list (#1092, spec/04 The queue and the ranking): the
 // team's, private to it, no player on both, 250 each, and changeable between picks once the draft
@@ -35,7 +37,7 @@ describe("a manager's own queue", () => {
     await ann.queue(PALMER.code);
     expect((await ann.mine())?.queue).toEqual([
       { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false, position: null },
-      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false, position: null },
+      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: teamNumbered(2), gone: false, position: null },
     ]);
   });
 
@@ -68,7 +70,7 @@ describe("a manager's own queue", () => {
     await expectRefused(ann.move(SAKA.code, 1), draftListRefusals.notQueued("Saka"));
     await ann.queue(PALMER.code);
     await expectRefused(ann.move(SAKA.code, 1), draftListRefusals.notQueued("Saka"));
-    await expectRefused(ann.move(NO_SUCH_PLAYER, 1), refusals.noPlayer);
+    await expectRefused(ann.move(UNHELD, 1), refusals.noPlayer);
   });
 
   test("a player removed is off it, the rest keeping their order; removing one not on it changes nothing", async () => {
@@ -104,17 +106,15 @@ describe("both lists", () => {
   test("can be changed between picks once the draft has started, and a drafted player stays listed", async () => {
     const ann = await as(ANN);
     await ann.queue(SAKA.code);
-    await t.run(async (ctx) => {
-      await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds: teams, rounds: 15 } });
-      await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code });
-    });
+    await draftStarted(t, leagueId, teams, LIVE_DRAFT_ROUNDS);
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
     await ann.queue(PALMER.code);
     await ann.queue(ODEGAARD.code);
     await ann.move(ODEGAARD.code, 1);
     await ann.unqueue(PALMER.code);
     await ann.rule(PALMER.code);
     expect(await namesOn(ANN)).toEqual({ queue: ["Ødegaard", "Saka"], doNotDraft: ["Palmer"] });
-    expect((await ann.mine())?.queue[1]).toMatchObject({ name: "Saka", ownerTeamName: "Team 2" });
+    expect((await ann.mine())?.queue[1]).toMatchObject({ name: "Saka", ownerTeamName: teamNumbered(2) });
   });
 
   test("a player who leaves the Premier League after he was added stays, marked gone", async () => {
@@ -135,7 +135,7 @@ describe("both lists", () => {
   });
 
   test.each([
-    ["no such player", NO_SUCH_PLAYER, refusals.noPlayer],
+    ["no such player", UNHELD, refusals.noPlayer],
     ["a player who has left the Premier League", GONE.code, draftListRefusals.playerGone("Gone")],
   ])("refuse %s", async (_what, code, refusal) => {
     await expectRefused((await as(ANN)).queue(code), refusal);

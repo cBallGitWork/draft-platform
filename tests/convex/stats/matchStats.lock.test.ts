@@ -12,6 +12,7 @@ import {
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
+import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { elapse, freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
@@ -52,7 +53,7 @@ const OTHER_MATCH = 999_002;
 async function withOtherMatch(t: TestConvex, locked: boolean) {
   await t.run(async (ctx) => {
     await ctx.db.insert("fixtures", { code: OTHER_MATCH, gameweek: GAMEWEEK, homeClubCode: 901, awayClubCode: 902, kickoff: KICKOFF });
-    if (locked) await ctx.db.insert("matchStatsStatus", { fixtureCode: OTHER_MATCH, state: "locked", fullTimeAt: KICKOFF, lockedAt: KICKOFF, lastReadAt: KICKOFF });
+    if (locked) await insertLockedStatus(ctx, OTHER_MATCH, KICKOFF);
   });
 }
 

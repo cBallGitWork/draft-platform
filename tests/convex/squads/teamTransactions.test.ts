@@ -10,6 +10,7 @@ import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGER
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
 // first, from the league's events, which Mail files letters from.
@@ -54,8 +55,8 @@ describe("the transactions", () => {
 
     expect(await kindsOf()).toEqual([
       ["released", "Saka", null],
-      ["movedIn", "Saka", "Team 2"],
-      ["movedOut", "Saka", "Team 2"],
+      ["movedIn", "Saka", teamNumbered(2)],
+      ["movedOut", "Saka", teamNumbered(2)],
       ["assigned", "Saka", null],
     ]);
   });
@@ -73,26 +74,26 @@ describe("the transactions", () => {
 
   test("list a trade that went through as one, for each side: what it brought in, what it sent, and the other team (#1491)", async () => {
     // As a trade files them: the trade, then each of its players.
-    const picks = [{ round: 3, teamId: bobTeam, teamName: "Team 2" }];
+    const picks = [{ round: 3, teamId: bobTeam, teamName: teamNumbered(2) }];
     await t.run(async (ctx) => {
       const filed = (event: Doc<"leagueEvents">["event"]) => ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by: BOB, event });
       await filed({
         kind: "tradeMade",
         fromTeamId: annTeam,
-        fromTeamName: "Team 1",
+        fromTeamName: teamNumbered(1),
         toTeamId: bobTeam,
-        toTeamName: "Team 2",
+        toTeamName: teamNumbered(2),
         gives: { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] },
         gets: { players: [{ playerCode: RICE, playerName: "Rice" }], picks },
       });
-      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: "Team 2", fromTeamId: annTeam, fromTeamName: "Team 1" });
-      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: "Team 1", fromTeamId: bobTeam, fromTeamName: "Team 2" });
+      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: teamNumbered(2), fromTeamId: annTeam, fromTeamName: teamNumbered(1) });
+      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: teamNumbered(1), fromTeamId: bobTeam, fromTeamName: teamNumbered(2) });
     });
 
     const saka = { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] };
     const riceAndPick = { players: [{ playerCode: RICE, playerName: "Rice" }], picks };
-    expect((await read()).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: riceAndPick, out: saka, otherTeamName: "Team 2", by: BOB }]);
-    expect((await read(BOB)).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: saka, out: riceAndPick, otherTeamName: "Team 1", by: BOB }]);
+    expect((await read()).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: riceAndPick, out: saka, otherTeamName: teamNumbered(2), by: BOB }]);
+    expect((await read(BOB)).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: saka, out: riceAndPick, otherTeamName: teamNumbered(1), by: BOB }]);
   });
 
   test("say when and by whom, the admin by his byline as Mail's letter names him", async () => {
@@ -121,15 +122,15 @@ describe("what is read", () => {
   });
 
   test(`only the team's own (#1544): another team's ${TRANSACTIONS_READ_OF_EACH_KIND}+ newer moves of a kind neither hide the team's nor cut them`, async () => {
-    const bobsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: bobTeam, teamName: "Team 2" } as const;
-    const annsRelease = { ...bobsRelease, teamId: annTeam, teamName: "Team 1" } as const;
+    const bobsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: bobTeam, teamName: teamNumbered(2) } as const;
+    const annsRelease = { ...bobsRelease, teamId: annTeam, teamName: teamNumbered(1) } as const;
     await file(1, annsRelease);
     await file(TRANSACTIONS_READ_OF_EACH_KIND + 1, bobsRelease);
     expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "released", playerName: "Rice" })], cut: false });
   });
 
   test(`the team's latest ${TRANSACTIONS_READ_OF_EACH_KIND} of each kind, and says when a kind has older ones left out`, async () => {
-    const annsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: "Team 1" } as const;
+    const annsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: teamNumbered(1) } as const;
     await file(TRANSACTIONS_READ_OF_EACH_KIND, annsRelease);
     expect((await read()).cut).toBe(false);
     await file(1, annsRelease);
@@ -138,9 +139,9 @@ describe("what is read", () => {
   });
 
   test("a move is read by both its sides: the team it came from and the one it went to", async () => {
-    const moved = { kind: "playerMoved", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: "Team 2", fromTeamId: annTeam, fromTeamName: "Team 1" } as const;
+    const moved = { kind: "playerMoved", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: teamNumbered(2), fromTeamId: annTeam, fromTeamName: teamNumbered(1) } as const;
     await file(1, moved);
-    expect(await kindsOf()).toEqual([["movedOut", "Saka", "Team 2"]]);
-    expect(await kindsOf(BOB)).toEqual([["movedIn", "Saka", "Team 1"]]);
+    expect(await kindsOf()).toEqual([["movedOut", "Saka", teamNumbered(2)]]);
+    expect(await kindsOf(BOB)).toEqual([["movedIn", "Saka", teamNumbered(1)]]);
   });
 });

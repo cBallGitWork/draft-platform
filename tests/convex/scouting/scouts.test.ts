@@ -6,7 +6,7 @@ import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { playerLeftLetter, REPORT_SYSTEM, reportInLetter, scoutRefusals } from "../../../convex/scouting/scoutWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { GONE, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { GONE, UNHELD, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport, type FakeClaude } from "../../support/convex/scouts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -77,7 +77,7 @@ describe("sending a scout", () => {
     await t.run((ctx) => insertDroppedPlayer(ctx, GONE, Date.now()));
     const ann = await as(ANN);
     await expectRefused(ann.send(GONE.code), scoutRefusals.playerGone(GONE.name));
-    await expectRefused(ann.send(9999), refusals.noPlayer);
+    await expectRefused(ann.send(UNHELD), refusals.noPlayer);
   });
 
   test("another team's player can be scouted", async () => {

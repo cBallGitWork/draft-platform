@@ -19,6 +19,7 @@ import { actingAs } from "../../support/convex/leagues.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { holdLines, notYetBegun, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's matchday mode (#387; spec/12, League home): the head-to-heads scored once the
 // gameweek has begun, and while a matchday is open, the Vidiprinter of the lines that move one of
@@ -47,7 +48,7 @@ test("once the gameweek has begun, each head-to-head carries both sides' points,
   const { team, opponent } = await annsScoredGame(league, GAMEWEEK);
   const home = (await homeAt(league, LEAGUE_FULL_TIME_READ))!;
   expect(home.thisGameweek?.fixtures).toEqual([
-    { teamId: league.annsTeam, game: 1, team: "Team 1", opponent: "Team 2", points: { team: team.points, opponent: opponent.points } },
+    { teamId: league.annsTeam, game: 1, team: teamNumbered(1), opponent: teamNumbered(2), points: { team: team.points, opponent: opponent.points } },
   ]);
 });
 

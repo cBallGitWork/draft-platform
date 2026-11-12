@@ -9,6 +9,7 @@ import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A free agent pickup (#1199, spec/08 Waivers and free agency): first come first served, from the
 // first waiver run after a gameweek until the next deadline; with a full squad the manager names
@@ -46,7 +47,7 @@ describe("in the window", () => {
   test("a manager picks up a free agent, and the league gets a letter", async () => {
     await pickUp(BOB, SAKA);
 
-    expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: "Team 2" });
+    expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: teamNumbered(2) });
     expect((await eventsIn(w.t, w.leagueId)).at(-1)).toMatchObject({ kind: "playerPickedUp", playerCode: SAKA, teamId: w.bobsTeam, dropped: null, by: BOB });
     expect(await w.lettersTo(CAT)).toContainEqual({
       subject: `Team 2 picked up ${nameOf(SAKA)}`,

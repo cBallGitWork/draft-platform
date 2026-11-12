@@ -7,11 +7,12 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { mostAgainst, reviewRefusals } from "../../../convex/trades/tradeReview";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { DAY_MS } from "../../../convex/shared/time";
+import { draftStarted } from "../../support/convex/draft.harness";
 import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
-import { draftOver, noDraft } from "../../support/convex/waivers.harness";
+import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no
 // review; under a commissioner veto he has 24 hours to block it, and a trade he is in goes to the
@@ -28,7 +29,7 @@ let fourthTeam: Id<"teams">;
 const fourthTeamTo = async (email: string) => {
   await noDraft(w.t, w.leagueId);
   fourthTeam = await addManager(w.t, w.leagueId, email);
-  await draftOver(w.t, w.leagueId, w.teams);
+  await draftStarted(w.t, w.leagueId, w.teams);
 };
 beforeEach(async () => {
   w = await tradeLeague();

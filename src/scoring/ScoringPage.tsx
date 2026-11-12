@@ -7,7 +7,7 @@ import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
-import { sectionTabClasses } from "../frame/AppFrame";
+import { sectionTabClasses } from "../ui/SectionTabs";
 import { useRulesEdits, type RulesView } from "../rules/rulesEdits";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";

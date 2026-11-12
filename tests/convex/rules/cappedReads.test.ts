@@ -8,7 +8,7 @@ import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { gameweekStartsOf } from "../../../convex/gameweeks/gameweekStarts";
 import { fixedDeadlinesOf, passedDeadlinesOf } from "../../../convex/gameweeks/passedDeadlines";
-import { ROUNDS_READ_MOST, roundStartsOf } from "../../../convex/gameweeks/roundStarts";
+import { roundStartsOf } from "../../../convex/gameweeks/roundStarts";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { seasonStartYear } from "../../../convex/shared/time";
 import { scheduleOf } from "../../../convex/table/playedFixtures";
@@ -168,12 +168,12 @@ describe("a read of one row a gameweek throws past its cap rather than drop the 
     );
   });
 
-  test(`the round starts: past ${ROUNDS_READ_MOST} rounds`, async () => {
+  test(`the round starts: past ${GAMEWEEKS_MOST} rounds`, async () => {
     await t.run(async (ctx) => {
-      for (const round of numbersTo(ROUNDS_READ_MOST + 1)) await ctx.db.insert("roundStarts", { season: SEASON, round, firstKickoff: KICKOFF, recordedAt: 0 });
+      for (const round of numbersTo(GAMEWEEKS_MOST + 1)) await ctx.db.insert("roundStarts", { season: SEASON, round, firstKickoff: KICKOFF, recordedAt: 0 });
     });
     await expect(t.run((ctx) => roundStartsOf(ctx, SEASON).then(() => undefined))).rejects.toThrow(
-      `More than ${ROUNDS_READ_MOST} round starts are held for one season`,
+      `More than ${GAMEWEEKS_MOST} round starts are held for one season`,
     );
   });
 });

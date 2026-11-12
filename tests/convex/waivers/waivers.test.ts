@@ -9,6 +9,7 @@ import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS
 import { holdPlayers, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, BOB, NEXT, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -106,7 +107,7 @@ describe("players no team holds", () => {
   test("a player who never joined a team is a free agent; one on a team says which", async () => {
     await holdPlayers(t, [FREE_AGENT]);
     expect(await w.stateOf(FREE_AGENT)).toEqual({ kind: "freeAgent" });
-    expect(await w.stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: "Team 1" });
+    expect(await w.stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: teamNumbered(1) });
   });
 
   test("a player new to the Premier League once the draft is over goes on waivers for the next run", async () => {
@@ -142,7 +143,7 @@ describe("players no team holds", () => {
     test("stays with a team still holding him", async () => {
       await leavesAndComesBack(DROPPED);
 
-      expect(await w.stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: "Team 1" });
+      expect(await w.stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: teamNumbered(1) });
     });
 
     test("keeps a later waiver time he already has", async () => {
