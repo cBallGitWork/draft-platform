@@ -6,12 +6,12 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { DAY_MS } from "../../../convex/shared/time";
-import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
-import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../src/frame/words";
-import { TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
-import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { DAY_MS } from "../../../../convex/shared/time";
+import { MY_TEAM_TRANSACTIONS_PATH } from "../../../../src/frame/menu";
+import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../../src/frame/words";
+import { TRANSACTIONS_TITLE } from "../../../../src/myTeam/words";
+import type { PendingClaim, WaiversView } from "../../../../src/myTeam/claims/seam";
 import {
   claimPanelTitle,
   claimsClosedWords,
@@ -35,11 +35,11 @@ import {
   WAIVER_ORDER_TITLE,
   skippedIfWords,
   withdrawWords,
-} from "../../../src/myTeam/claims/words";
-import type { TeamSquad } from "../../../src/myTeam/seam";
-import { idOf } from "../../../src/table/drawnTable";
-import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../support/src/myTeam.harness";
-import { league, manager, managerIn, openApp } from "../../support/src/shell.harness";
+} from "../../../../src/myTeam/claims/words";
+import type { TeamSquad } from "../../../../src/myTeam/seam";
+import { idOf } from "../../../../src/table/drawnTable";
+import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../../support/src/myTeam.harness";
+import { league, manager, managerIn, openApp } from "../../../support/src/shell.harness";
 
 const WED = Date.parse("2026-11-11T18:00:00Z");
 const THU = WED + DAY_MS;

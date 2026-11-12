@@ -8,7 +8,7 @@ import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { CURRENT_FIXTURES_MOST, heldFixturesSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
-import { JULY } from "../shared/time";
+import { seasonStartOf } from "../shared/time";
 import { statusOf } from "../stats/matchStats";
 import { matchPointsAt, type SeasonPointsOf } from "../stats/seasonPoints";
 import { countedStats, newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
@@ -81,8 +81,8 @@ async function everyMatchRead(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[
 /** The season's matches with a kickoff and a gameweek: for the season the feed still sends, only
  *  the matches it sends; for an earlier one, every match held, as the feed sends none of them. */
 async function seasonFixtures(ctx: QueryCtx, season: number): Promise<Doc<"fixtures">[]> {
-  const from = Date.UTC(season, JULY, 1);
-  const to = Date.UTC(season + 1, JULY, 1);
+  const from = seasonStartOf(season);
+  const to = seasonStartOf(season + 1);
   const held = await takeAllOrThrow(
     ctx.db.query("fixtures").withIndex("by_kickoff", (q) => q.gte("kickoff", from).lt("kickoff", to)),
     CURRENT_FIXTURES_MOST,
