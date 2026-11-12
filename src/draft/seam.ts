@@ -6,11 +6,12 @@ import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { BoardPick, DraftBoard } from "../../convex/draft/draftBoard";
 import type { CommissionerView } from "../../convex/draft/draftCommissioner";
+import type { DraftList } from "../../convex/draft/draftLists";
 import type { GreyedPlayer, RoomFigure, RoomFigures } from "../../convex/draft/draftPlayers";
 import type { ScoutingSeam } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 
-export type { BoardPick, CommissionerView, DraftBoard, GreyedPlayer, RoomFigure, RoomFigures };
+export type { BoardPick, CommissionerView, DraftBoard, DraftList, GreyedPlayer, RoomFigure, RoomFigures };
 
 /** The league's draft: waiting, live or over (draft/draftStart:ofLeague). */
 export type DraftState = FunctionReturnType<typeof api.draft.draftStart.ofLeague>;
@@ -57,7 +58,6 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
 
 /** The reader's queue, first choice first, and do-not-draft list (draft/draftLists:mine). */
 export type DraftLists = NonNullable<FunctionReturnType<typeof api.draft.draftLists.mine>>;
-export type DraftList = "queue" | "doNotDraft";
 
 /** What adding the whole shortlist did (draft/draftLists:addShortlist). */
 type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;

@@ -7,7 +7,7 @@ import { cancelClockJob, startClock } from "./draftClock";
 import { tellPaused } from "./draftLetters";
 import { pickSecondsNow } from "./draftPickTime";
 import { pickRefusals } from "./draftPicks";
-import { draftOf, draftIsLive } from "./draftRow";
+import { draftOf, draftIsLive, type Clock } from "./draftRow";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135). The commissioner pauses and
 // resumes it by hand, as often and for as long as he likes (Craig, 2 Nov 2026). A pause keeps the
@@ -27,8 +27,6 @@ export const pauseRefusals = {
   alreadyPaused: "The draft is already paused.",
   notPaused: "The draft isn't paused.",
 };
-
-type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
 /** The league's live draft and its clock, or the refusal: it hasn't started, or it is over. Undo
  *  refuses the same way (draftCommissioner.ts). */

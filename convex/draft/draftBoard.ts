@@ -4,7 +4,7 @@ import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
-import { position } from "../schema";
+import { position, tradedPick } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";
@@ -43,7 +43,7 @@ const draftBoard = v.object({
   /** Each pick traded before the draft (#1096): `teamId`'s pick in `round`, which `ownerId` holds
    *  and makes now, so the board shows it under its owner, marked "via" `teamId` (spec/04, The
    *  picks). Empty until a pick is traded. */
-  tradedPicks: v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") })),
+  tradedPicks: v.array(tradedPick),
   /** The most players of one club a squad may hold under the rules the draft picks by: those it
    *  started under, or before it starts the league's latest, which it would start under; null for
    *  no limit. The selected player's panel counts the reader's squad against it. It is here, not in

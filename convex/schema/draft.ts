@@ -4,6 +4,10 @@ import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { position } from "./positions";
 import { tradePick } from "./trades";
 
+/** A pick that has changed hands before the draft (#1096): `teamId`'s pick in `round`, which
+ *  `ownerId` holds now and makes. The draft's row keeps them, and the board reads them as kept. */
+export const tradedPick = v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") });
+
 /** A player in the admin's ranking: his FPL code, and his rank, 1 the best. */
 export const rankedPlayer = v.object({ code: v.number(), rank: v.number() });
 
@@ -43,7 +47,7 @@ export const draftTables = {
      *  in `round`, which `ownerId` holds now and makes. A pick back with its own team has no entry.
      *  Absent until a pick is traded, which makes this row if the league has none yet.
      *  ../trades/tradePicks.ts writes it, and it can't change once the draft starts. */
-    tradedPicks: v.optional(v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") }))),
+    tradedPicks: v.optional(v.array(tradedPick)),
     /** Each pick trade that went through before the draft started (#1457), first made first: the
      *  team that offered it, the team it was to, and the pick each gave. When the draft starts, a
      *  trade with a pick in a round a squad-size cut removed is undone, as is a later one trading on

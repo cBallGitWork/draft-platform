@@ -1,4 +1,7 @@
-import { pickOwner, snakeOrder, type TradedPick } from "../../convex/draft/snakeOrder";
+import { pickOwner, roundOf, snakeOrder, type TradedPick } from "../../convex/draft/snakeOrder";
+
+/** The round a pick number falls in, as the draft's own order counts it. */
+export { roundOf };
 
 // Where each pick sits on the board (spec/04, The picks and The draft room): a column a team in
 // the draft order, a row a round, each round running the other way from the one before (snake
@@ -27,9 +30,6 @@ export const pickAt = (round: number, column: number, teams: number) => (round -
 
 /** Which pick of its round pick number `pick` is. */
 export const pickInRoundOf = (pick: number, teams: number) => ((pick - 1) % teams) + 1;
-
-/** The round pick number `pick` falls in. */
-export const roundOf = (pick: number, teams: number) => Math.floor((pick - 1) / teams) + 1;
 
 /** Who makes each pick, first to last, over `rounds` rounds of `order`: the team whose turn it is,
  *  or the team holding its pick in that round after a trade (#1096). */

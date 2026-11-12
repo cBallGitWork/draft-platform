@@ -14,6 +14,9 @@ import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
  *  oldDraftsBackfill.ts, which imports this file. */
 export const OLD_DRAFTS_BACKFILL_HINT = "run draft/oldDraftsBackfill once (#1610)";
 
+/** A draft's pick clock, as its row holds it. */
+export type Clock = NonNullable<Doc<"drafts">["clock"]>;
+
 /** The league's draft row, or null while it has none: its commissioner has set no start yet. */
 export function draftOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"drafts"> | null> {
   return ctx.db

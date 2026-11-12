@@ -4,6 +4,7 @@
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
 import { failedWords, placeWords, playersCount, statColumns, viaWords } from "../shared/words";
+import type { DraftList } from "./seam";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export { DRAFT_TITLE } from "../shared/words";
@@ -104,7 +105,7 @@ export const doNotDraftAside = (count: number) => `${count}, auto-pick skips the
 export const queueListLabel = "Your queue, first choice first";
 export const doNotDraftListLabel = "Your do-not-draft list";
 /** On a row's cross, for screen readers: whom it takes off which list. */
-export const takeOffLabel = (name: string, list: "queue" | "doNotDraft") =>
+export const takeOffLabel = (name: string, list: DraftList) =>
   list === "queue" ? `Take ${name} off your queue` : `Take ${name} off your do-not-draft list`;
 /** On a queued row's handle, for screen readers: it drags, or moves a place with the arrow keys. */
 export const moveLabel = (name: string, place: number) => `Move ${name}, ${placeWords(place)} in your queue: drag, or press the up or down arrow`;
