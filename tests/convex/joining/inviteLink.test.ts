@@ -27,8 +27,13 @@ beforeEach(async () => {
 const joinPageFor = (email: string, linkToken = token) => joinPageAs(t, email, linkToken);
 
 describe("the invite link", () => {
-  test("opened signed in, names the league and lets them ask to join", async () => {
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "mayAsk" });
+  test("opened signed in, names the league, its commissioner and how full it is, and lets them ask to join", async () => {
+    await addManagers(t, leagueId, [MANAGERS[1]]);
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 1, maxTeams: 4, standing: "mayAsk" });
+  });
+
+  test("opened signed out, names the league and how full it is, but not the commissioner's email", async () => {
+    expect(await t.query(api.joining.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: null, teams: 0, maxTeams: 4, standing: "mayAsk" });
   });
 
   test("lets anyone who opens it sign in, on the list or not, with a link back to it", async () => {

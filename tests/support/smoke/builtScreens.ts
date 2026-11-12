@@ -103,8 +103,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["commissioner", settingsPath(miniBeta.leagueId), SETTINGS_TITLE],
   // The admin's alone: a commissioner is sent back to Your leagues.
   ["admin", NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE],
-  ["newcomer", joinPath("preview"), miniBeta.name],
-  ["newcomer", joinPath("waiting"), miniBeta.name],
+  ["newcomer", joinPath("preview"), joinPageWords.title],
+  ["newcomer", joinPath("waiting"), joinPageWords.title],
   ["newcomer", joinPath("gone"), joinPageWords.title],
   // The dashboard's tabs keep its title.
   ["admin", ADMIN_PATH, ADMIN_TITLE],

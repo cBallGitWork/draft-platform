@@ -41,7 +41,7 @@ describe("a join request", () => {
   test("waits for the commissioner, and the person sees it waiting", async () => {
     await askToJoin(t, leagueId, token, ANN);
     expect(await waitingRequests()).toEqual([ANN]);
-    expect((await joinPageFor(ANN))?.standing).toBe("waiting");
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 0, maxTeams: 4, standing: "waiting" });
   });
 
   test("is one at a time: asking again while one waits makes no second", async () => {
@@ -67,7 +67,7 @@ describe("a join request", () => {
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: teamNumbered(1) });
     expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: teamNumbered(1) });
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 1, maxTeams: 4, standing: "inLeague", teamName: teamNumbered(1) });
     expect(await waitingRequests()).toEqual([]);
   });
 
@@ -206,7 +206,7 @@ describe("the join page of a league being deleted (spec/13 Deleting)", () => {
 
   test("offers asking to join again once the deletion is undone", async () => {
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
-    expect(await t.query(api.joining.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, standing: "mayAsk" });
+    expect(await t.query(api.joining.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: null, teams: 1, maxTeams: 4, standing: "mayAsk" });
     expect((await joinPageFor(ANN))?.standing).toBe("mayAsk");
     expect((await joinPageFor(BOB))?.standing).toBe("inLeague");
   });
