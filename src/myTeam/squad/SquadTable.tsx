@@ -7,9 +7,9 @@ import { Placeholder } from "../../ui/Placeholder";
 import { PositionCodes } from "../../ui/PositionCodes";
 import { unheldPlayerWords } from "../../shared/words";
 import type { TeamSquad } from "../seam";
-import { NextMatches, PointsCell } from "../SquadCells";
+import { inDoubt, NextMatches, PointsCell, StatusMark } from "../SquadCells";
 import { PositionMarks, type PositionMark } from "../tactics/positionMarks";
-import { benchWords, figureWords, lastGameweekLong, noStatsWords, openPanelLabel, squadColumns, squadTableLabel, statusNotSettledLabel, goneWords } from "./words";
+import { benchWords, figureWords, lastGameweekLong, noStatsWords, openPanelLabel, squadColumns, squadTableLabel, goneWords } from "./words";
 
 export type Row = TeamSquad["players"][number];
 type Column = keyof typeof squadColumns;
@@ -149,12 +149,8 @@ export function PlayerCell({ className, player, starts, marks, isSelected, onSel
         <ClubMark code={player.club.code} />
         <ClubShort club={player.club} />
       </span>
-      {player.chanceOfPlaying !== null && (
-        <>
-          {" "}
-          <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
-        </>
-      )}
+      {inDoubt(player) && " "}
+      <StatusMark player={player} className="size-3 align-middle" />
       <PositionMarks marks={marks} />
       {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
     </th>

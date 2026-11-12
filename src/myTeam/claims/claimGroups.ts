@@ -7,7 +7,7 @@ import type { PendingClaim } from "./seam";
 // isn't known to be the one: the run after its last match is, so every claim whose first run may
 // fall in that lock is in one group, the claims one run will try together (#1467). Pure.
 
-export type RunGroup = { run: PendingClaim["run"]; claims: PendingClaim[] };
+type RunGroup = { run: PendingClaim["run"]; claims: PendingClaim[] };
 
 /** Which group a claim, or a group, is: the run it waits on, by the gameweek whose last match it
  *  waits for when it may be skipped, else by its time. */

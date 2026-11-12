@@ -42,7 +42,7 @@ export const runShort = weekdayTimeWords;
 /** A run's day alone: "Wed". */
 export const runDayWords = weekdayWords;
 /** A claim whose player is no longer on waivers, or a league with no run times: no run takes it. */
-export const noRunWords = "No run";
+const noRunWords = "No run";
 /** The run that can first take a player, as a claim, the player card or Scouting has it. */
 export type FirstRun = RunAhead | null;
 /** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
