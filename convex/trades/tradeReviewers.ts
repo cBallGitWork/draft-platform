@@ -1,14 +1,13 @@
 import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { latestBegun, type LeagueDeadlines } from "../gameweeks/deadline";
 import { fileLetter } from "../mail/letters";
 import { reviewLetter, type ReviewWords } from "../mail/tradeLetterWords";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import type { tradeReviewer } from "../schema/trades";
 import { teamsOf } from "../shared/leagueAccess";
-import { latestBegun } from "../waivers/waiverLock";
 import { leagueOffers } from "./tradeClose";
 import { leagueOf, managersOf, tradeWordsOf } from "./tradeWords";
 import { onAutoTeam } from "../lineup/autoTeam";

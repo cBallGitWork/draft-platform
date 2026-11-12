@@ -1,10 +1,10 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
-import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { latestBegun, nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { gameweekUnderWay, inUnplayedGameweek } from "../gameweeks/gameweekEnd";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
-import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
 import type { TradesShut } from "./tradeShutWords";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
