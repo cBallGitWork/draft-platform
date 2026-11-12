@@ -3,6 +3,7 @@
 // gives them.
 
 import { SLOT_POSITIONS, type Cell, type SlotPosition } from "../../../convex/lineup/pitch";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ByArea, ByPosition } from "../../../convex/scoring/priced";
 import { AREAS, type Area, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
@@ -85,6 +86,19 @@ export function pricedRole(role: string, stat: string, points: number): NonNulla
   const unmoved = { parts: [{ stat: "hand_ball", weight: 1 }], bars: [1] };
   return points > 0 ? { role, bonus: priced, cost: unmoved } : { role, bonus: unmoved, cost: priced };
 }
+
+/** A shot-stopper (spec/05 Roles) on saves alone, up to `bars`, costing for goals conceded at 3, 4
+ *  and 5: both stats the past seasons were copied with, so the balance lab tests him. */
+export function shotStopper(bars: number[]): NonNullable<StoredScoringSet["roles"]>[number] {
+  return {
+    role: "shotStopper",
+    bonus: { bars, parts: [{ stat: "saves", weight: 1 }] },
+    cost: { bars: [3, 4, 5], parts: [{ stat: "goals_conceded", weight: 1 }] },
+  };
+}
+
+/** The first real scoring set with the shot-stopper as its one role. */
+export const withShotStopper = (bars: number[]): StoredScoringSet => ({ ...structuredClone(FIRST_SCORING), roles: [shotStopper(bars)] });
 
 /** One of the site's own stats (spec/14, Own stats): tackles won + 0.5 × clearances. */
 export const TACKLES_AND_CLEARANCES: OwnStat = {

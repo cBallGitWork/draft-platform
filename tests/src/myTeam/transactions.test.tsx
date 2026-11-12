@@ -1,6 +1,7 @@
-// My team's Transactions tab (#366; spec/12, My team's tabs): reached from My team's tabs; the
-// team's transactions newest first, as the server sends them, each saying what it did to the team
-// and who did it; and why there are none, or why some are left out.
+// My team's Transactions tab (#366; spec/12, My team's tabs; the team-transactions picture, #1031):
+// reached from My team's tabs; the team's transactions newest first, as the server sends them, each
+// with its kind, who came in and who went out, and who made it; the Show keys; and why there are
+// none, or why some are left out.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -10,6 +11,10 @@ import { sectionTabsLabel } from "../../../src/frame/words";
 import type { TeamTransactions } from "../../../src/myTeam/seam";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import {
+  dateWords,
+  historyShows,
+  historyShowWords,
+  noneShownWords,
   noTeamWords,
   noTransactionsWords,
   transactionColumns,
@@ -17,9 +22,6 @@ import {
   transactionsLoadingWords,
   transactionsTableLabel,
   TRANSACTIONS_TITLE,
-  tradedInWords,
-  tradedOutWords,
-  whenWords,
   withTeamWords,
 } from "../../../src/myTeam/words";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -39,13 +41,16 @@ const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell
 
 const AT = Date.parse("2026-10-20T18:00:00Z");
 const SAKA = 1001;
-const transaction = (kind: Exclude<Transaction["kind"], "traded">, otherTeamName: string | null = null): Transaction => ({
+type PlayerTransaction = Exclude<Transaction, { kind: "traded" }>;
+const transaction = (kind: PlayerTransaction["kind"], otherTeamName: string | null = null): PlayerTransaction => ({
   at: AT,
   kind,
   playerCode: SAKA,
   playerName: "Saka",
   otherTeamName,
+  dropped: null,
   by: "commish@example.com",
+  yours: false,
 });
 
 describe("reaching it", () => {
@@ -72,20 +77,24 @@ describe("reaching it", () => {
 });
 
 describe("the transactions", () => {
-  it("lists each kind in the server's order: when, the player, what it did to the team, and who did it", async () => {
-    const kinds = [transaction("released"), transaction("movedIn", "Team 2"), transaction("movedOut", "Team 3"), transaction("assigned")];
+  it("lists each kind in the server's order: the date, its kind, who came in, who went out, and who made it (#1031)", async () => {
+    const claimed: Transaction = { ...transaction("claimed"), dropped: { playerCode: 1002, playerName: "Rice" }, yours: true };
+    const kinds = [transaction("released"), transaction("movedIn", "Team 2"), transaction("movedOut", "Team 3"), transaction("assigned"), claimed, transaction("pickedUp"), transaction("dropped")];
     openTransactions({ transactions: { transactions: kinds, cut: false } });
     await screen.findByRole("table");
 
     expect(rows().map(cells)).toEqual([
-      [whenWords(AT), "Saka", "Released to free agency", "commish@example.com"],
-      [whenWords(AT), "Saka", "Moved in from Team 2", "commish@example.com"],
-      [whenWords(AT), "Saka", "Moved out to Team 3", "commish@example.com"],
-      [whenWords(AT), "Saka", "Assigned to the team", "commish@example.com"],
+      [dateWords(AT), "Assigned", "", "Saka", "commish@example.com, to free agency"],
+      [dateWords(AT), "Assigned", "Saka", "", "commish@example.com, from Team 2"],
+      [dateWords(AT), "Assigned", "", "Saka", "commish@example.com, to Team 3"],
+      [dateWords(AT), "Assigned", "Saka", "", "commish@example.com"],
+      [dateWords(AT), "Claim", "Saka", "Rice", "You"],
+      [dateWords(AT), "Free agent", "Saka", "", "commish@example.com"],
+      [dateWords(AT), "Drop", "", "Saka", "commish@example.com"],
     ]);
   });
 
-  it("shows a trade as one row: each player or pick in, then each out, one line each, and the other team in By (#1491)", async () => {
+  it("shows a trade as one row: each player or pick in under In, each out under Out, one line each, and the other team in By (#1491)", async () => {
     const trade: Transaction = {
       at: AT,
       kind: "traded",
@@ -93,16 +102,30 @@ describe("the transactions", () => {
       out: { players: [{ playerCode: 1002, playerName: "Rice" }], picks: [{ round: 4, teamId: "team-1" as Id<"teams">, teamName: "Pickford Pirates" }] },
       otherTeamName: "Hull Hearts",
       by: "bob@example.com",
+      yours: false,
     };
     const app = openTransactions({ transactions: { transactions: [trade], cut: false } });
     await screen.findByRole("table");
 
     const [row] = rows();
-    expect(cells(row)).toEqual([whenWords(AT), "SakaRicePickford Pirates' round 4 pick", `${tradedInWords}${tradedOutWords}${tradedOutWords}`, withTeamWords("Hull Hearts")]);
-    expect(Array.from(row.cells[1].children, (line) => line.textContent)).toEqual(["Saka", "Rice", "Pickford Pirates' round 4 pick"]);
+    expect(cells(row)).toEqual([dateWords(AT), "Trade", "Saka", "RicePickford Pirates' round 4 pick", withTeamWords("Hull Hearts")]);
+    expect(Array.from(row.cells[3].children, (line) => line.textContent)).toEqual(["Rice", "Pickford Pirates' round 4 pick"]);
     expect(screen.queryByRole("link", { name: "Pickford Pirates' round 4 pick" })).toBeNull();
     await userEvent.click(screen.getByRole("link", { name: "Rice" }));
     expect(app.path()).toBe(playerCardPath(league.leagueId, 1002));
+  });
+
+  it("shows one kind at a time from the Show keys, saying when it holds none of it (#1031)", async () => {
+    openTransactions({ transactions: { transactions: [transaction("dropped"), transaction("released"), transaction("assigned")], cut: false } });
+    await screen.findByRole("table");
+    expect(screen.getAllByRole("radio").map((key) => key.closest("label")?.textContent)).toEqual(historyShows.map((show) => historyShowWords[show]));
+
+    await userEvent.click(screen.getByRole("radio", { name: historyShowWords.assigned }));
+    expect(rows().map((row) => row.cells[1].textContent)).toEqual(["Assigned", "Assigned"]);
+    await userEvent.click(screen.getByRole("radio", { name: historyShowWords.trades }));
+    expect(screen.getByText(noneShownWords)).toBeTruthy();
+    await userEvent.click(screen.getByRole("radio", { name: historyShowWords.all }));
+    expect(rows()).toHaveLength(3);
   });
 
   it("heads each column with its short word, named by its long one", async () => {

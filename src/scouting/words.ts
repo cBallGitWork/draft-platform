@@ -81,7 +81,7 @@ export const periodWords: Record<Period, string> = { season: "Season", last4: "L
 const overWords = (period: Period) => (period === "season" ? "this season" : `over the ${periodWords[period].toLowerCase()}`);
 
 /** How many players the filters keep. */
-export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);
+export { playersCount as countWords } from "../shared/words";
 export const noneMatchWords = "No player matches these filters.";
 
 /** In the owner column, a player on waivers and the run that can first take him, in the viewer's
