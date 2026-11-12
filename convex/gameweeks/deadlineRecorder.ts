@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { everyLeague } from "../shared/cappedRead";
 import { isLocked, type ScheduledMatch } from "./deadline";
 import { recordGameweekStarts } from "./gameweekStarts";
@@ -138,7 +138,7 @@ async function recordLeague(
 
 /** A league whose step threw: named in the log, and emailed to the admin as the comment above says. */
 async function skipBrokenLeague(ctx: MutationCtx, league: Doc<"leagues">, error: unknown, now: number): Promise<void> {
-  const skipped = `League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}`;
+  const skipped = `${leagueLabel(league)} ${LEAGUE_SKIPPED}`;
   const reason = logFailure(skipped, error);
   await emailIfFailed(ctx, "skippedLeague", { ranAt: now, outcome: { ok: false, error: `${skipped}: ${reason}` } });
 }

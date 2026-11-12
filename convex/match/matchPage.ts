@@ -13,7 +13,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
@@ -161,9 +161,12 @@ async function pricedOrProblem(
   try {
     return await priced(ctx, league, fixture, deadlineLineups, named);
   } catch (error) {
-    return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
+    return unpriced(logFailure(cantPrice(league, fixture), error));
   }
 }
+
+/** What the log says when the match can't be priced, before or after the gameweek begins. */
+const cantPrice = (league: Doc<"leagues">, fixture: Doc<"fixtures">) => `${leagueLabel(league)} can't price match ${fixture.code}`;
 
 /** The match before the league has begun its gameweek (#1533; spec/10, The match page: "Every
  *  player shows his live points ... His points are the ones his player card opens on"): no lineup
@@ -173,7 +176,7 @@ async function cardPricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixtur
   try {
     return { ...unpriced(null), set: await siteScoringInGameweek(ctx, fixture.gameweek) };
   } catch (error) {
-    return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
+    return unpriced(logFailure(cantPrice(league, fixture), error));
   }
 }
 
