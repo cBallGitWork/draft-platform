@@ -84,7 +84,7 @@ export async function latestSiteScoring(ctx: QueryCtx): Promise<StoredScoringSet
   return setOf((await siteVersions(ctx)).at(-1));
 }
 
-/** The site's scoring set in force at `at`:the newest version to take effect by then, the first
+/** The site's scoring set in force at `at`: the newest version to take effect by then, the first
  *  set before any. What stars price every match under, whichever gameweek it was (Craig, 1 Nov
  *  2026: today's scoring, so a patch re-rates everyone). */
 export async function siteScoringAt(ctx: QueryCtx, at: number): Promise<StoredScoringSet> {
