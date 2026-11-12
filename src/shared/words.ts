@@ -51,10 +51,8 @@ export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
 /** When a waiver run or an offer's close falls in `gameweek`'s lock: after its last match, whose
  *  time isn't known ahead (Craig, 11 Nov 2026, on #1467 and #1492): "after GW12's last match". A
- *  line starting with it takes `firstUpper`. */
+ *  line starting with it takes `capitalised` (convex/shared/moments.ts). */
 export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
-/** Words that start a line, their first letter a capital. */
-export const firstUpper = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 /** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
  *  decoration, as each button carries its label. */
 export const previousGameweekLabel = "Previous gameweek";

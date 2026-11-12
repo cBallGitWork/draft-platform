@@ -2,6 +2,7 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { LOCALE } from "../../convex/shared/moments";
+import { seasonName } from "../../convex/shared/time";
 import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
@@ -123,7 +124,7 @@ export const scoredUnderWords = (version: string | null) => `Scored under ${vers
  *  has it: "2025/26: 36 matches, 3,012 min," then his points, picked out, then "pts". */
 export const LAST_SEASON_TITLE = "Last season, under today's scoring";
 export const lastSeasonWords = (season: number, { appearances, minutes }: { appearances: number; minutes: number }) =>
-  `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
+  `${seasonName(season)}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
 export const pointsShortWords = "pts";
 /** A count with its thousands marked: "3,012". */
 const countWords = (count: number) => count.toLocaleString(LOCALE);

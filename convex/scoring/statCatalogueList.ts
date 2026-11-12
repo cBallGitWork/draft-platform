@@ -10,12 +10,12 @@
 // scores it throw when scored (#135).
 
 import {
-  ACCURATE_CROSSES, ACCURATE_LAUNCHES, ACCURATE_LONG_BALLS, ACCURATE_PASSES, AERIALS_LOST, AERIALS_WON,
+  ACCURATE_CROSSES, ACCURATE_LAUNCHES, ACCURATE_LONG_BALLS, ACCURATE_PASSES, AERIALS_LOST, AERIALS_WON, ASSISTS,
   BIG_CHANCES_CREATED, BIG_CHANCES_MISSED, BLOCKS, CLEAN_SHEETS, CLEARANCES, CROSSES, DISPOSSESSED,
   DRIBBLED_PAST, DRIBBLES_WON, DUELS_WON, ERRORS_TO_A_GOAL, ERRORS_TO_A_SHOT, FOULS, FOULS_DRAWN, GOALS,
   GOALS_CONCEDED, HIGH_CLAIMS, INTERCEPTIONS, KEY_PASSES, LAST_MAN_TACKLES, LAUNCHES, LONG_BALLS, OFFSIDES,
-  PASSES, PENALTIES_SAVED, POSSESSION_LOST, PUNCHES, RECOVERIES, RED_CARDS, SAVES_INSIDE_THE_BOX, SHOTS,
-  SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
+  OWN_GOALS, PASSES, PENALTIES_MISSED, PENALTIES_SAVED, POSSESSION_LOST, PUNCHES, RECOVERIES, RED_CARDS, SAVES,
+  SAVES_INSIDE_THE_BOX, SHOTS, SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
 } from "./statKeys";
 
 export interface CatalogueStat {
@@ -55,7 +55,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "assist_pass_lost", name: "Assist pass lost", shortCode: "APL" },
   { stat: "assist_penalty_won", name: "Assist penalty won", shortCode: "APW" },
   { stat: "assist_post", name: "Assist post", shortCode: "APO" },
-  { stat: "assists", name: "Assists", shortCode: "AS" },
+  { stat: ASSISTS, name: "Assists", shortCode: "AS" },
   { stat: "att_assist_openplay", name: "Att assist openplay", shortCode: "AAO" },
   { stat: "att_assist_setplay", name: "Att assist setplay", shortCode: "AASE" },
   { stat: "att_bx_centre", name: "Att bx centre", shortCode: "ABC" },
@@ -220,14 +220,14 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "open_play_pass", name: "Open play pass", shortCode: "OPP" },
   { stat: BLOCKS, name: "Outfielder block", shortCode: "OB" },
   { stat: "overrun", name: "Overrun", shortCode: "O" },
-  { stat: "own_goals", name: "Own goals", shortCode: "OG" },
+  { stat: OWN_GOALS, name: "Own goals", shortCode: "OG" },
   { stat: "own_goals_conceded", name: "Own goals conceded", shortCode: "OGC" },
   { stat: "passes_left", name: "Passes left", shortCode: "PL" },
   { stat: "passes_right", name: "Passes right", shortCode: "PR" },
   { stat: "pen_area_entries", name: "Pen area entries", shortCode: "PAE" },
   { stat: "pen_area_entries_open_play", name: "Pen area entries open play", shortCode: "PAEOP" },
   { stat: "pen_goals_conceded", name: "Pen goals conceded", shortCode: "PGC" },
-  { stat: "penalties_missed", name: "Penalties missed", shortCode: "PM" },
+  { stat: PENALTIES_MISSED, name: "Penalties missed", shortCode: "PM" },
   { stat: PENALTIES_SAVED, name: "Penalties saved", shortCode: "PS" },
   { stat: "penalty_conceded", name: "Penalty conceded", shortCode: "PCO" },
   { stat: "penalty_faced", name: "Penalty faced", shortCode: "PF" },
@@ -246,7 +246,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "rightside_pass", name: "Rightside pass", shortCode: "RP" },
   { stat: SAVES_INSIDE_THE_BOX, name: "Saved ibox", shortCode: "SI" },
   { stat: "saved_obox", name: "Saved obox", shortCode: "SO" },
-  { stat: "saves", name: "Saves", shortCode: "S" },
+  { stat: SAVES, name: "Saves", shortCode: "S" },
   { stat: "second_goal_assist", name: "Second goal assist", shortCode: "SGA" },
   { stat: "second_yellow", name: "Second yellow", shortCode: "SY" },
   { stat: "shield_ball_oop", name: "Shield ball oop", shortCode: "SBO" },

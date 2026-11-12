@@ -2,11 +2,11 @@
 // Scouting's preview ranks its teams by the server's own rule. It imports only the record's stat
 // names, so the screens can read it too.
 
-import { GOALS_CONCEDED, RED_CARDS, YELLOW_CARDS } from "../stats/matchRecords";
+import { GOALS_CONCEDED, OWN_GOALS, PENALTIES_MISSED, RED_CARDS, YELLOW_CARDS } from "../stats/matchRecords";
 
 /** The stats where fewer is better, so the team with fewest is 1st (Craig, 11 Nov 2026, on #1608);
  *  every other stat ranks the team with most 1st. */
-export const FEWEST_FIRST: ReadonlySet<string> = new Set([RED_CARDS, YELLOW_CARDS, "own_goals", GOALS_CONCEDED, "penalties_missed"]);
+export const FEWEST_FIRST: ReadonlySet<string> = new Set([RED_CARDS, YELLOW_CARDS, OWN_GOALS, GOALS_CONCEDED, PENALTIES_MISSED]);
 
 /** Whether the race in `stat` puts the team with most of it 1st. */
 export const mostFirst = (stat: string) => !FEWEST_FIRST.has(stat);

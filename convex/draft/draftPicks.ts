@@ -19,7 +19,7 @@ import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
-import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
+import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, OLD_DRAFTS_BACKFILL_HINT, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
@@ -66,7 +66,7 @@ export const pickRefusals = {
 /** The squad rules the draft picks under: those it started under, never a change made since (Craig,
  *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). */
 export function squadRulesOf(leagueId: Id<"leagues">, started: StartedDraft): LeagueRules["squad"] {
-  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: run draft/oldDraftsBackfill once (#1610)`);
+  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: ${OLD_DRAFTS_BACKFILL_HINT}`);
   return started.squad;
 }
 
