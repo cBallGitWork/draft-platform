@@ -1,6 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { matchRecordsOf, overridesIn } from "../gameweekScorer/heldMatches";
+import { overridesIn } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "../stats/matchRecordReads";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { latestSiteScoring, siteScoringByGameweek } from "../scoring/siteVersions";

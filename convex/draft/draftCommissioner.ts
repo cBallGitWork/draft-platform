@@ -4,13 +4,12 @@ import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
 import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
-import { draftIsPaused, pickSecondsNow, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
+import { draftIsPaused, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
 import { draftHasStarted, draftIsLive, draftIsOver, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
-import { takeBackPick } from "./pickWindow";
+import { putBackOnClock, takeBackPick } from "./pickWindow";
 
 // The commissioner running the draft (spec/04, The commissioner and Auto-pick; #1095), besides
 // pausing it (draftPause.ts) and picking for a team (draftPicks.ts `pickFor`):
@@ -50,11 +49,7 @@ export const undoPick = mutation({
     if (last.timeout !== undefined) {
       await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout) });
     }
-    if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const now = Date.now();
-    const pausedAt = clock.paused === undefined ? undefined : now;
-    const clocked = await startClock(ctx, leagueId, last.pick - 1, now, await pickSecondsNow(ctx, leagueId), { fullClock: true, pausedAt });
-    if (clocked === null) throw new Error(`League ${leagueId}'s pick ${last.pick} was undone, but it can't be put back on the clock`);
+    const clocked = await putBackOnClock(ctx, leagueId, clock, last, Date.now(), { fullClock: true });
     await tellUpNext(ctx, league, clocked);
     await tellUndone(ctx, league, email, { pick: last.pick, playerName: player.name, teamName: team.name });
     return null;
