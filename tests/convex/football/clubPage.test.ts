@@ -8,8 +8,9 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { expectRefused, SLOW_TEST } from "../../support/convex/test.harness";
 import { recordedResults } from "../../support/recorded/standings.payloads";
 
-// A real club's page (#1936; spec/18, Club pages): its table place, its last five results, its
-// next match as an opponent card, and its matches this season, one read per club and league.
+// A real club's page (#1936; spec/18, Club pages), the same read for any club the league's
+// competitions hold (`S18.11`): its table place, its last five results, its next match as an
+// opponent card (`S18.7`), and its matches this season (`S18.9`), one read per club and league.
 
 /** Coventry, 19th after gameweek 8 in the recording, at home to Sunderland, bottom, in gameweek 9. */
 const COVENTRY = 9;

@@ -4,7 +4,7 @@ import { clubRecord, scoreRead } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubOf, findClubByCode, type Club } from "../shared/players";
 import { RESULTS } from "../table/standings";
-import { clubFormOf, fixturesOf, nextFixtureOf, type HeldMatch } from "./clubFixtures";
+import { clubPageOf, type HeldMatch } from "./clubFixtures";
 import { scoreOnly } from "./matchScores";
 import { scoredFixtures, standingsOf } from "./plStandings";
 
@@ -62,21 +62,6 @@ export const ofClub = query({
       away: clubIn(fixture.awayClubCode),
       score: score === null ? null : scoreOnly(score),
     }));
-    const fixtures = fixturesOf(matches, clubCode);
-    const next = nextFixtureOf(fixtures);
-    return {
-      club: clubOf(held),
-      position: tableClubs.get(clubCode)?.position ?? null,
-      form: clubFormOf(fixtures),
-      next:
-        next === null
-          ? null
-          : {
-              ...next,
-              opponentPosition: tableClubs.get(next.opponent.code)?.position ?? null,
-              opponentForm: clubFormOf(fixturesOf(matches, next.opponent.code)),
-            },
-      fixtures,
-    };
+    return clubPageOf(clubOf(held), matches, (code) => tableClubs.get(code)?.position ?? null);
   },
 });

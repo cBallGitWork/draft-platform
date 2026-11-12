@@ -49,6 +49,23 @@ export function clubFormOf(fixtures: readonly ClubFixture[]): Result[] {
   }).slice(-FORM_RESULTS);
 }
 
+/** A club's page from `matches`, `positionOf` giving a club's table place, null for one not in it:
+ *  its place, form, next match with the opponent's place and form, and its matches. */
+export function clubPageOf(club: Club, matches: readonly HeldMatch[], positionOf: (code: number) => number | null) {
+  const fixtures = fixturesOf(matches, club.code);
+  const next = nextFixtureOf(fixtures);
+  return {
+    club,
+    position: positionOf(club.code),
+    form: clubFormOf(fixtures),
+    next:
+      next === null
+        ? null
+        : { ...next, opponentPosition: positionOf(next.opponent.code), opponentForm: clubFormOf(fixturesOf(matches, next.opponent.code)) },
+    fixtures,
+  };
+}
+
 /** The club's next match: its first with a kickoff time that hasn't kicked off; null when none is
  *  left. A match being played is under way, not next. */
 export function nextFixtureOf(fixtures: readonly ClubFixture[]): (ClubFixture & { kickoff: number }) | null {
