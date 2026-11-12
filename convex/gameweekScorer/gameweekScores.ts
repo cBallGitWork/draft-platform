@@ -92,6 +92,11 @@ export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Pro
     .sort((one, other) => one - other);
 }
 
+/** Whether `gameweek` is one of the league's `begunGameweeks`: begun, and one it scores. */
+export async function hasBegun(ctx: QueryCtx, league: Doc<"leagues">, gameweek: number): Promise<boolean> {
+  return (await begunGameweeks(ctx, league)).includes(gameweek);
+}
+
 /** Every team's points in each gameweek the league has begun, each from the league's scorer. */
 export async function leagueScores(
   ctx: QueryCtx,

@@ -5,7 +5,7 @@ import type { Doc } from "../_generated/dataModel";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { leagueLabel, logFailure } from "../shared/errors";
 import { everyLeague } from "../shared/cappedRead";
-import { isLocked, type ScheduledMatch } from "./deadline";
+import { isLocked, nextDeadline, type ScheduledMatch } from "./deadline";
 import { recordGameweekStarts } from "./gameweekStarts";
 import { fixedDeadlinesOf, passedDeadlinesOf } from "./passedDeadlines";
 import { seasonRules } from "../rules/rulesHistory";
@@ -115,14 +115,8 @@ async function recordLeague(
   const deadlines = await leagueDeadlinesIn(ctx, league._id, matches);
   const rules = await seasonRules(ctx, league._id);
   let recorded = 0;
-  let soonestToCome: number | null = null;
   for (const [gameweek, deadline] of deadlines) {
-    if (deadline === null) continue;
-    if (!isLocked(deadline, now)) {
-      soonestToCome = Math.min(soonestToCome ?? deadline, deadline);
-      continue;
-    }
-    if (passed.has(gameweek)) continue;
+    if (deadline === null || !isLocked(deadline, now) || passed.has(gameweek)) continue;
     await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
     // Its teams on the auto team have their lineups set (spec/09; #1207), then its teams' benches
     // kept with their stars, which pick an auto-sub's role (#11): each in a transaction of its
@@ -133,7 +127,7 @@ async function recordLeague(
   }
   // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).
   await storeBegunFixtures(ctx, league, rules, deadlines, now);
-  return { recorded, soonestToCome };
+  return { recorded, soonestToCome: nextDeadline(deadlines, now)?.at ?? null };
 }
 
 /** A league whose step threw: named in the log, and emailed to the admin as the comment above says. */

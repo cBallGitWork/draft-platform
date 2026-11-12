@@ -49,6 +49,12 @@ export function deadlineOf(deadlines: LeagueDeadlines): DeadlineOf {
   return (gameweek) => deadlines.get(gameweek) ?? null;
 }
 
+/** `leagueDeadlines` read and wrapped in `deadlineOf`, for a caller that wants only each
+ *  gameweek's deadline, never the map. */
+export async function leagueDeadlineOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<DeadlineOf> {
+  return deadlineOf(await leagueDeadlines(ctx, leagueId));
+}
+
 /** `leagueDeadlines` against matches already read (`scheduledMatches`), so one read serves every
  *  league. */
 export async function leagueDeadlinesIn(

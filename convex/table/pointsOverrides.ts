@@ -11,7 +11,7 @@ import { clubByCode, lostPlayerName, playerByCode } from "../shared/players";
 import { figureWords } from "../shared/numberWords";
 import { typedText } from "../shared/typedText";
 import { rescoreGameweek } from "./finalScores";
-import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
+import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
 import { overrideOf, playsIn } from "../gameweekScorer/heldMatches";
 import { leagueReads, pointsInMatch, type LeagueReads } from "../gameweekScorer/teamGameweek";
@@ -123,7 +123,7 @@ async function overridable(ctx: MutationCtx, leagueId: Id<"leagues">, fixtureCod
   const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) refuse(overrideRefusals.noMatch);
   const { gameweek } = fixture;
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
+  if (!(await hasBegun(ctx, league, gameweek))) refuse(overrideRefusals.notBegun(gameweek));
   const playerName = await nameInMatch(ctx, fixture, playerCode);
   const [home, away] = await Promise.all([clubByCode(ctx, fixture.homeClubCode), clubByCode(ctx, fixture.awayClubCode)]);
   const match: OverriddenMatch = {

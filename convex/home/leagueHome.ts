@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { begunGameweeks, tableGameweek } from "../gameweekScorer/gameweekScores";
+import { hasBegun, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matchupShape";
@@ -186,7 +186,7 @@ async function vidiprinterOf(
   fixtureCodes: ReadonlySet<number>,
 ): Promise<HeldCommentary> {
   // Before the deadline no lineup is locked, so no line moves a head-to-head yet.
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "read", lines: [], delayedFrom: null };
+  if (!(await hasBegun(ctx, league, gameweek))) return { kind: "read", lines: [], delayedFrom: null };
   try {
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
     const { lines, delayedFrom } = await readCommentary(ctx, inGameweek, teamIds, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
