@@ -41,6 +41,13 @@ export function PointsCell({ className, points }: { className: string; points: n
   );
 }
 
+/** A figure in bold, a muted "—" while there is none, and nothing while it loads; `words` writes
+ *  it, signed for an adjustment. The Squad and Tactics player panels'. */
+export function Figure({ points, words = figureWords }: { points: number | null | undefined; words?: (value: number) => string }) {
+  if (points === undefined) return null;
+  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
+}
+
 /** His club's next matches, each a cell whose fill waits for fixture difficulty (the README's
  *  placeholders), so it is the placeholder's outline round the match. */
 export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {

@@ -1,5 +1,5 @@
 import { aNewTeamWords } from "../joining/joiningShared";
-import { andListWords } from "../shared/moments";
+import { andListWords, capitalised } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { LeagueEvent } from "../schema";
@@ -185,5 +185,3 @@ function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>,
   ];
   return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
 }
-
-const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);

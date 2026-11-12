@@ -111,6 +111,8 @@ export { figureWords, signedWords } from "../../convex/shared/numberWords";
 
 /** A figure not there yet, such as points before a match's record has arrived. */
 export const noFigureWords = "—";
+/** A figure, or the dash while there is none. */
+export const figureOrNone = (points: number | null) => (points === null ? noFigureWords : figureWords(points));
 /** A player no team in the league owns. */
 export const freeAgentWords = "Free agent";
 /** Between the items of a short list in a line: a player's positions, "CDM, CM". */
