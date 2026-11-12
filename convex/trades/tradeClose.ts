@@ -13,7 +13,7 @@ import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { teamIn } from "../shared/leagueAccess";
 import { OFFERS_PER_TEAM_MOST } from "./tradeLimits";
-import { onAutoTeam } from "../lineup/autoTeam";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 import { tradesShut } from "./tradeShut";
 import type { TradesShut } from "./tradeShutWords";
 import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";

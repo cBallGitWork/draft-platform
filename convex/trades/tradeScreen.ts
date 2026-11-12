@@ -26,7 +26,7 @@ import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { managersAmong, reviewUnder, tradeRulesAt } from "./tradeReviewers";
-import { onAutoTeam } from "../lineup/autoTeam";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema";
 

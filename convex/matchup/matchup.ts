@@ -23,7 +23,7 @@ import { namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
 import { byKickoff, byKickoffOrder } from "../shared/fixtures";
 import { findClubByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { onAutoTeam } from "../lineup/autoTeam";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,

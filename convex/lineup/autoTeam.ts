@@ -17,6 +17,7 @@ import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
 import { heldPositionsOf, lineupsInGameweek, saveGameweekOf, storeAutoTeamLineup, type HeldLineup } from "./lineups";
 import type { Area, Lane } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
+import { onAutoTeam } from "./autoTeamSwitch";
 
 // The auto team (spec/09, The auto team; #1207), for a manager who stops playing: it sets the
 // lineup only, never dropping or adding a player. At each league deadline (deadlineRecorder.ts
@@ -159,9 +160,6 @@ export const set = mutation({
  *  manager named one. */
 const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
-
-/** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */
-export const onAutoTeam = (team: Doc<"teams">) => team.autoTeam !== undefined || team.managerEmail === undefined;
 
 /** A team's switch: on while a person switched it on or it has no manager (`onAutoTeam`). */
 export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });

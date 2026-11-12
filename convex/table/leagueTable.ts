@@ -10,7 +10,7 @@ import { scheduleOf } from "./playedFixtures";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { onAutoTeam } from "../lineup/autoTeam";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 import { heldFixturesSeason } from "../shared/fixtures";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
