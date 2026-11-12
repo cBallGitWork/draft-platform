@@ -112,10 +112,11 @@ describe("the auto team's lineup", () => {
   const AUTO = { starters: ROW_STARTERS, bench: [...FOUR_FOUR_TWO.bench] };
   const store = () => t.run((ctx) => storeAutoTeamLineup(ctx, leagueId, annsTeam, NEXT, AUTO));
 
-  test("adds a row carrying on only the instructions", async () => {
+  // Who the row in force kept out of position and still stands where he was stays kept (#1789).
+  test("adds a row carrying on the instructions and who stays kept out of position", async () => {
     await seedRow(BEFORE, { firstLineup: true });
     await store();
-    expect(await nextRow()).toEqual({ ...rowKeys(), ...AUTO, instructions: EXTRAS.instructions });
+    expect(await nextRow()).toEqual({ ...rowKeys(), ...AUTO, instructions: EXTRAS.instructions, keptOutOfPosition: EXTRAS.keptOutOfPosition });
   });
 
   test("replaces the gameweek's row, keeping its instructions and out-of-position list", async () => {
