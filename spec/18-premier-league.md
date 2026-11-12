@@ -36,11 +36,13 @@ fixtures are a different screen (`spec/12`, "table and fixtures").
 
 ## Club pages
 
-A page for each real club in a competition the league plays, the same in every competition (Craig,
-12 Nov 2026: "nah we can make a club page, no reason not to, its important"). It holds the squad,
-who owns whom in the draft league, and doubts. No set-piece takers: "we didthced set piece taker
-(unless its a role)" (Craig, 9 Nov 2026, on #1196). `S18.3`
-
+- A page for each real club in a competition the league plays, the same in every competition
+  (Craig, 12 Nov 2026: "nah we can make a club page, no reason not to, its important"). It holds
+  the squad, who owns whom in the draft league, and doubts. `S18.11`
+- Club pages (the squad, who owns whom in the draft league, doubts) come after the mini beta. No
+  set-piece takers: "we didthced set piece taker (unless its a role)" (Craig, 9 Nov 2026, on
+  #1196). Brought forward 12 Nov 2026 (`S18.11`); set-piece takers stay out (SPEC.md, Out of
+  scope). `S18.3 withdrawn`
 - A club's name opens its page wherever it shows, as a link; its mark doesn't: "click the name
   anywhere, not the crest, like a hyperlink" (Craig, 12 Nov 2026). It sits under Football. `S18.6`
 - The header: the club's mark and name, its table place, its last five results, and its next match
