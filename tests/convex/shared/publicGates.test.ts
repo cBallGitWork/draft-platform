@@ -134,6 +134,7 @@ beforeEach(async () => {
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
       "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
+      "scouting/clubSquad:ofClub": () => caller.query(api.scouting.clubSquad.ofClub, { leagueId, clubCode: SOME_CODE }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE], stat: null }),
       "scouting/per90:figures": () => caller.query(api.scouting.per90.figures, { leagueId, playerCode: SOME_CODE, stat: null }),
       "scouting/playersList:firstRuns": () => caller.query(api.scouting.playersList.firstRuns, { leagueId, now }),

@@ -221,14 +221,14 @@ export async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Do
 }
 
 /** Each owned player's team name in the league, by his code. */
-async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, string>> {
+export async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, string>> {
   const teamName = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
   const owned = await squadRowsIn(ctx, leagueId);
   return new Map(owned.map((row) => [row.playerCode, teamName.get(row.teamId)!]));
 }
 
 /** Each player on the league's waivers, by his code, with from when a run may take him. */
-async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { claimableFrom: number }>> {
+export async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { claimableFrom: number }>> {
   const onWaivers = await waiverRowsIn(ctx, leagueId);
   return new Map(onWaivers.map((row) => [row.playerCode, { claimableFrom: row.claimableFrom }]));
 }
