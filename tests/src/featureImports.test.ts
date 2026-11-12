@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
+import { FROM_CLAUSE, SOURCE_PREFIX, typeOnly } from "../support/importLines";
 
-// ARCHITECTURE.md "Where code lives", rule 4, beside importCycles.test.ts, which catches only a
-// loop (#1330, #1581). A feature imports another only through what that one offers others: its
+// ARCHITECTURE.md "Where code lives", rule 4, with tests/convex/importCycles.test.ts, which catches
+// only a loop (#1330, #1581). A feature imports another only through what that one offers others: its
 // Link component, its seam's types, its paths.ts, its live<Feature>.ts (into a live file) and its
 // preview.ts (into a preview). And a feature's words.ts never re-exports another feature's words;
 // words two features say live in src/shared/words.ts. The breaches the 11 Nov review found sit in
@@ -12,11 +13,6 @@ const SOURCES = import.meta.glob("../../src/**/*.{ts,tsx}", {
   import: "default",
   eager: true,
 }) as Record<string, string>;
-const SOURCE_PREFIX = "../../";
-
-/** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
-const FROM_CLAUSE =
-  /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
 
 /** Folders that join every feature (the app's start and the routes), so they import any of them,
  *  as does src/'s top level (main.tsx). */
@@ -119,18 +115,6 @@ function resolve(from: string, specifier: string): string {
     else if (part !== ".") parts.push(part);
   }
   return parts.join("/");
-}
-
-/** True when the clause brings in only types. */
-function typeOnly(clause: string): boolean {
-  if (/^type\s/.test(clause)) return true;
-  const braces = clause.match(/^\{([\s\S]*)\}$/);
-  if (!braces) return false;
-  const names = braces[1]
-    .split(",")
-    .map((name) => name.trim())
-    .filter(Boolean);
-  return names.length > 0 && names.every((name) => /^type\s/.test(name));
 }
 
 /** True when `target` is something its feature offers the importer, by rule 4. */

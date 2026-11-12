@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { FROM_CLAUSE, SOURCE_PREFIX, typeOnly } from "../support/importLines";
 
 // No value-import cycle in convex/. A cycle works only while every use sits inside a function:
 // a module-level constant built from a file in the loop is undefined at load (#198). #637 added
@@ -21,7 +22,6 @@ const SCORER_FILES = [
   "convex/scoring/ruleChecks.ts",
   "convex/scoring/ownStats.ts",
 ];
-const SOURCE_PREFIX = "../../";
 const GENERATED = "convex/_generated/";
 const TS = ".ts";
 const TSX = ".tsx";
@@ -29,8 +29,6 @@ const INDEX = "/index.ts";
 /** A specifier naming a file that isn't code, such as a stylesheet, which no cycle runs through. */
 const NOT_CODE = /\.(css|svg|png|json)$/;
 
-/** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
-const FROM_CLAUSE = /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
 /** `import "x"`, run for its effects. */
 const BARE_IMPORT = /^\s*import\s*["']([^"']+)["']/gm;
 
@@ -41,15 +39,6 @@ function files(sources: Record<string, string> = SOURCES): Map<string, string> {
     if (!path.startsWith(GENERATED)) out.set(path, source);
   }
   return out;
-}
-
-/** True when the clause brings in only types. */
-function typeOnly(clause: string): boolean {
-  if (/^type\s/.test(clause)) return true;
-  const braces = clause.match(/^\{([\s\S]*)\}$/);
-  if (!braces) return false;
-  const names = braces[1].split(",").map((name) => name.trim()).filter(Boolean);
-  return names.length > 0 && names.every((name) => /^type\s/.test(name));
 }
 
 /** The folder of a path, without the trailing slash. */

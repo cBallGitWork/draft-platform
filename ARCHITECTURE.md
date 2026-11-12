@@ -395,8 +395,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (`src/`): `admin` (the admin's dashboard), `draft` (the draft room), `feedback`, `gameweeks` (the
   commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`, `mail`,
   `matchup`, `myTeam` (squad, tactics and waiver claims in `claims/`), `patches` (patch notes, the
-  banner, the lab's report), `playerCard`, `premierLeague`, `scouting` (with `shortlist/` and
-  `scouts/`), `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and
+  banner, the lab's report), `playerCard`, `premierLeague`, `scouting` (with `shortlist/`,
+  `scouts/` and `statRace/`), `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and
   `trades` (offers, #383).
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Where a screen's feature and its server split their jobs differently, they have different names
@@ -412,7 +412,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   | `src/premierLeague` | `convex/football` and `convex/match` |
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
   (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
-  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
+  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/scouting/statRace/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
   in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 
@@ -435,15 +435,14 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    Link component, its seam's types, its `paths.ts`, its `live<Feature>.ts` (into another's
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
-   features say move to `src/shared/words.ts` (#1330). `tests/convex/featureImports.test.ts`
+   features say move to `src/shared/words.ts` (#1330). `tests/src/featureImports.test.ts`
    holds both, with the imports still to move on a list that only shrinks (#1581). No import
    cycles (`tests/convex/importCycles.test.ts`).
 5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
-6. A file stops at 300 lines and is split along a seam; a folder past about 12 files gets a
-   sub-folder (above). `convex/lineup` (21 files), `convex/scoring` (21) and `convex/stats` (17)
-   stay flat (8 Nov 2026): each is one job (a team's lineup, the site's scoring set, the match
-   records and their totals), the browser and the scheduler call their functions, so a move
-   leaves re-exports behind (rule 8).
+6. A file stops at 300 lines and is split along a seam; a folder in `src/` past about 12 files
+   gets a sub-folder (above). `convex/` stays flat, one folder per feature however many files
+   it holds (`convex/scouting` keeps the jobs `src/scouting` splits into sub-folders): the browser
+   and the scheduler call its functions by path, so a move leaves re-exports behind (rule 8).
 7. A test mirrors its source's path; setup two test files share lives in `tests/support/convex/`
    or `tests/support/src/`, by feature.
 8. Moving a Convex file whose functions the browser or the scheduler call keeps a thin re-export at

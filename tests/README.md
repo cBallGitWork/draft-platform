@@ -45,6 +45,8 @@ Nothing in it is a test. Each kind of file:
   checks that compare with it). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
   files, laid out as that repository lays them out, for the past-season copy
   (`scripts/past-season.mjs`; `convex/pastSeason.harness.ts` reads it for the Convex tests).
+- **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
+  `tests/src/featureImports.test.ts`) read an import line.
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
