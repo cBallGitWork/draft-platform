@@ -6,7 +6,6 @@ import { TEAM_OVERRIDE_POINTS_MOST } from "../../../convex/table/overrideLimits"
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import { teamOverrideRefusals } from "../../../convex/table/teamOverrides";
 import {
-  ANN,
   annsScoredGame,
   EVERTON_POINTS,
   GAMEWEEK,
@@ -18,7 +17,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, ADMIN, COMMISSIONER, teamName } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, COMMISSIONER, teamName, ANN } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 

@@ -4,9 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { sumStats, type Stats } from "../../../convex/stats/statTotals";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
-import { addManagers } from "../../support/convex/leagues.harness";
+import { addManagers, CAT } from "../../support/convex/leagues.harness";
 import {
-  CAT,
   EVERTON_STARTERS,
   GAMEWEEK,
   HULL_AFTER_SUB,

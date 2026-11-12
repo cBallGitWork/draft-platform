@@ -12,11 +12,10 @@ import {
 import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { averageScore } from "../../../convex/table/teamGames";
-import { addManagers } from "../../support/convex/leagues.harness";
+import { addManagers, CAT } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   annsSquadAndEvery,
-  CAT,
   EVERTON_POINTS,
   GAMEWEEK,
   HULL_POINTS,

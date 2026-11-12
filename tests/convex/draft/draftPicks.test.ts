@@ -9,7 +9,7 @@ import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers
 import { changeEveryRules, holdGameweeks, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
-import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -43,7 +43,6 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
 const { as, read, start, pickAndWait: pick } = draftSteps(() => ({ t, leagueId }));
 const squadsNow = async () =>
   (await (await as(COMMISSIONER)).query(api.squads.squads.squads, { leagueId })).map(({ teamId, players }) => ({ teamId, players: players.map(({ code, gone }) => ({ code, gone })) }));
-const [ANN, BOB, CAT] = MANAGERS;
 
 beforeEach(async () => {
   t = await signInDeployment();

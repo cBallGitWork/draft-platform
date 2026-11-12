@@ -11,8 +11,6 @@ import { FULL_TIME_READ, GAMEWEEK, heldMatch, HULL_EVERTON } from "../../support
 import { elapse, everyJobRuns } from "../../support/convex/test.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
 import {
-  ANN,
-  BOB,
   DEADLINE,
   ELEVENS,
   footballSyncAt,
@@ -22,6 +20,7 @@ import {
   tableOf,
   type MiniBeta,
 } from "../../support/convex/miniBeta.harness";
+import { ANN, BOB } from "../../support/convex/leagues.harness";
 
 // The mini beta closes "when the four-team league plays a real gameweek end to end" (#36): "a quick
 // league of about four, with players assigned to teams rather than drafted" (SPEC.md). Here it does,

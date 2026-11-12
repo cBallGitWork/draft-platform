@@ -6,14 +6,12 @@ import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, EVE } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): "Your invite
 // to <league> expired / was cancelled / couldn't be used: <reason>" (Craig, 22 Oct 2026).
-
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];

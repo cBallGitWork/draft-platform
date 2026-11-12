@@ -2,7 +2,7 @@
 # guard_mode.py's checks, with last_prompt.py's: after a message that only talks, filing, starting or
 # shipping work and editing the spec are denied; after one that says to build, go or file, or a slash
 # command, they go through; with no message on record (a cloud build) nothing is gated; reads, git and
-# edits outside the spec are never gated; an unreadable payload is reported, never a denial.
+# edits outside the spec are never gated; an unreadable payload is denied (last_prompt.py reports it).
 . "$(dirname "$0")/helpers.sh"
 
 session=test-session-$$
@@ -85,8 +85,8 @@ said "hmm, what about a libero though"
 other=$("$jq" -nc --arg s "other-$$" --arg t Bash '{session_id:$s,tool_name:$t,tool_input:{command:"gh issue create --title t"}}')
 check allow guard_mode.py "$other"  # no record for it
 
+denies_unreadable guard_mode.py
 for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" guard_mode.py "${bad_payloads[i]}"
   fails_loudly "${bad_payloads[i + 1]}" last_prompt.py "${bad_payloads[i]}"
 done
 rm -f "$tmp/draft-last-prompt/$session"

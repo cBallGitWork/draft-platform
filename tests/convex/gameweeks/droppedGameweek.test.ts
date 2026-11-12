@@ -6,7 +6,7 @@ import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // match out to no gameweek and no kickoff: the league's gameweek 9 keeps the deadline it had, and
 // a lineup saved now still goes to it.
 
-const [ANN] = MANAGERS;
 /** holdGameweeks' next gameweek: every one before it has begun. */
 const DROPPED = 9;
 

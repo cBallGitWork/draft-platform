@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { draftSteps, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -16,7 +16,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
-const [ANN, BOB] = MANAGERS;
 
 const { as, read, start, pause } = draftSteps(() => ({ t, leagueId }));
 const panel = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftCommissioner.panel, { leagueId });

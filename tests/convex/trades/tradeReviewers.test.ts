@@ -3,9 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { reviewRefusals } from "../../../convex/trades/tradeReview";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, BOB, CAT, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade in review under a commissioner veto follows the role, not the person (#1472; Craig,
@@ -28,7 +28,6 @@ const nameCoCommissioner = async (email: string | null, by = COMMISSIONER) =>
   (await actingAs(w.t, by)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId: w.leagueId, email });
 const offersTab = async (email: string) =>
   (await (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, now: Date.now() })).offers;
-
 
 describe("when the league is handed to a new commissioner during a review", () => {
   test("the new commissioner gets the review letter, sees it in To review, and may Block it; the 24 hours don't restart", async () => {

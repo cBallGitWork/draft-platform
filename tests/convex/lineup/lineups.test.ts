@@ -11,7 +11,7 @@ import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { holdGameweeks, holdGameweeksPastTheSeason, holdMatchState, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, EVE } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
 import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, REVERSED_BENCH, saved, sent, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
@@ -22,8 +22,6 @@ import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEd
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that
 // gameweek or before, and the squad decides who is still in it: as it is now for a gameweek not
 // begun, as it stood at the deadline for one begun (#415).
-
-const [ANN, BOB, , , EVE] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

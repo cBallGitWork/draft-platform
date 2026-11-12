@@ -3,7 +3,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { playersListed } from "../../support/convex/playersList.harness";
@@ -12,7 +12,6 @@ import { playersListed } from "../../support/convex/playersList.harness";
 // approved picture, #1028), with no stat chosen, and each sorts the list. A stat chosen is
 // tests/convex/scouting/playersList.test.ts's.
 
-const [ANN] = MANAGERS;
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 

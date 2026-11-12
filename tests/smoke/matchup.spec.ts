@@ -9,6 +9,7 @@ import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDI
 import { DESK } from "../../scripts/viewports.mjs";
 import { previewGameweek } from "../../src/shared/preview";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A starter of the preview opponent's. */
 const OPPONENTS_STRIKER = "Haaland";
@@ -18,7 +19,7 @@ test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () =>
   test.use({ viewport: DESK });
 
   test("shows both pitches, opens a man's breakdown from his tile, and steps the gameweek", async ({ page }) => {
-    await page.goto(`${MATCHUP_PATH}?preview=manager&minute=60`);
+    await page.goto(previewUrl(`${MATCHUP_PATH}?minute=60`, "manager"));
 
     const pitches = page.getByRole("list", { name: /'s pitch$/ });
     await expect(pitches).toHaveCount(2);

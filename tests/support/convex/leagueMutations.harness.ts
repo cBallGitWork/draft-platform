@@ -11,9 +11,9 @@ import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { DAY_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "./footballRows.harness";
 import { askToJoin, invite, makeLink } from "./joining.harness";
-import { ANN, CAT, DAN } from "./leagueDeletion.harness";
+
 import { rulesRevision } from "./leagueRules.harness";
-import { teamsIn } from "./leagues.harness";
+import { teamsIn, ANN, CAT, DAN } from "./leagues.harness";
 import { publicFunctions, type TestConvex } from "./test.harness";
 
 /** Someone in no league, whom `changesTo` adds as a manager and invites. */

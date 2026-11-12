@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import { useChange } from "../../shared/useChange";
 import { menuGlyph } from "../../shared/words";
 import { Panel, PANEL_BODY, Problem } from "../../ui/Panel";
 import type { MyAutoTeam, MyTeamSeam } from "../seam";
@@ -52,16 +53,11 @@ function AutoTeamPanel({ league, seam, autoTeam, close }: { league: LeagueSummar
   const firstGameweek = endGameweeks[0];
   const [until, setUntil] = useState<Until>(firstGameweek === undefined ? "off" : "gameweek");
   const [endsAfter, setEndsAfter] = useState(firstGameweek);
-  const [problem, setProblem] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const change = useChange();
   const name = useId();
 
   const commit = async () => {
-    setBusy(true);
-    const refused = await changes.set(league.leagueId, autoTeam.teamId, !autoTeam.on, !autoTeam.on && until === "gameweek" ? endsAfter : undefined);
-    setBusy(false);
-    if (refused === null) close();
-    else setProblem(refused);
+    if (await change.run(() => changes.set(league.leagueId, autoTeam.teamId, !autoTeam.on, !autoTeam.on && until === "gameweek" ? endsAfter : undefined))) close();
   };
 
   return (
@@ -99,12 +95,12 @@ function AutoTeamPanel({ league, seam, autoTeam, close }: { league: LeagueSummar
             </label>
           </div>
         )}
-        <Problem problem={problem} />
+        <Problem problem={change.problem} />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={close} className="secondary-action">
             {cancelWords}
           </button>
-          <button type="button" disabled={busy} onClick={() => void commit()} className="action">
+          <button type="button" disabled={change.busy} onClick={() => void commit()} className="action">
             {autoTeam.on ? switchOffWords : switchOnWords}
           </button>
         </div>

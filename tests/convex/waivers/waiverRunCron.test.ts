@@ -6,9 +6,9 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { DATE_DAYS, latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
-import { adminCreatesLeague, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
+import { adminCreatesLeague, TEST_LEAGUE_TEAMS, BOB } from "../../support/convex/leagues.harness";
 import { pendingJobs } from "../../support/convex/test.harness";
-import { BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 
 // The waiver cron (#1198, spec/08): it runs each league's waivers at its run times, once, and only

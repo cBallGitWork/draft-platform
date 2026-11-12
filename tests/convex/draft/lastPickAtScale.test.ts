@@ -4,7 +4,7 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { clockRunsTo, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
@@ -14,7 +14,6 @@ import { clockRunsTo, ROWS_TO_THE_CAP } from "../../support/convex/test.harness"
 // #1532 this pool took the last pick past the limit, and the draft sat with its clock run out.
 
 const POOL = 900;
-const [ANN, BOB] = MANAGERS;
 /** Ten clubs of 90, a Premier League club holding at most 100 (shared/players.ts). */
 const CLUBS: Club[] = Array.from({ length: 10 }, (_, index) => ({ code: 500 + index, name: `Club ${index}`, shortName: `C${index}` }));
 const player = (index: number): HeldPlayer => ({

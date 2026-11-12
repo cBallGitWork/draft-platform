@@ -8,7 +8,7 @@ import {
   actingAs,
   COMMISSIONER,
   CO_COMMISSIONER,
-  MANAGERS,
+  ANN,
   addManagers,
   adminCreatesLeague,
   eventsIn,
@@ -118,10 +118,9 @@ describe("a league's gameweeks", () => {
 
   test("a manager can neither change nor read them", async () => {
     await holdGameweeks();
-    const [ann] = MANAGERS;
-    await addManagers(t, leagueId, [ann]);
-    await expectRefused(setUsedBy(ann, 17, false), refusals.notRunner);
-    await expectRefused((await actingAs(t, ann)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
+    await addManagers(t, leagueId, [ANN]);
+    await expectRefused(setUsedBy(ANN, 17, false), refusals.notRunner);
+    await expectRefused((await actingAs(t, ANN)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
   });
 });
 

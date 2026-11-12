@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
-import type { ScheduledMatch } from "../gameweeks/deadline";
+import { latestOf, type ScheduledMatch } from "../gameweeks/deadline";
 import { everyLeague } from "../shared/cappedRead";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
@@ -107,7 +107,7 @@ async function judgedBefore(ctx: QueryCtx, positionsFor: PositionsFor, heldMatch
       if (deadline !== null && deadline <= newestSync.ranAt) passed.push(deadline);
     }
   }
-  return passed.length === 0 ? null : Math.max(...passed);
+  return latestOf(passed);
 }
 
 async function everyLeagueId(ctx: QueryCtx): Promise<Id<"leagues">[]> {

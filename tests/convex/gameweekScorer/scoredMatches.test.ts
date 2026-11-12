@@ -8,10 +8,9 @@ import { inTenths, type DoubleGameweekRule } from "../../../convex/scoring/value
 import { HOUR_MS } from "../../../convex/shared/time";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
-  ANN,
   EVERTON_STARTERS,
   LEAGUE_FULL_TIME_READ,
   LEAGUE_KICKOFF,

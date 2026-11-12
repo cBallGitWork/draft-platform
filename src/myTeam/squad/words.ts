@@ -6,7 +6,7 @@ import type { Lane } from "../../../convex/lineup/pitch";
 import { failedWords, gameweekShort, gameweekWords, menuWords, statColumns } from "../../shared/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
-export { figureOrNone, figureWords, signedWords, gameweekShort, gameweekWords, noFigureWords, whenWords, nextGlyph, playerCardWords } from "../../shared/words";
+export { figureOrNone, figureWords, signedWords, gameweekShort, gameweekWords, noFigureWords, whenWords, playerCardWords } from "../../shared/words";
 export { leftLeagueWords as goneWords } from "../../shared/words";
 export {
   awayWords,

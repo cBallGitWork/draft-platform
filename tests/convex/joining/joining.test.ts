@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
-import { COMMISSIONER, MANAGERS, actingAs, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, adminCreatesLeague, teamsIn, type TestConvex, ANN, BOB, CAT, DAN, EVE } from "../../support/convex/leagues.harness";
 import { UNLISTED, ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -11,7 +11,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // #73's Done line, end to end: "A league of four fills from two emailed invites and two approved
 // link requests; a refused request, an expired invite and a replaced link let no one in."
 
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 const LATE = "late@example.com";
 
 let t: TestConvex;

@@ -10,7 +10,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
+import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, TEST_LEAGUE_TEAMS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import {
   announceAs,
   as,
@@ -31,8 +31,6 @@ import {
 // out from the stored versions.
 
 useSiteScoringDeployment();
-
-const [ANN, BOB, CAT] = MANAGERS;
 
 /** Every letter filed, as [to, subject], in the order filed. */
 const everyLetter = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map((row) => [row.to, row.subject] as const));

@@ -7,10 +7,10 @@ import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A trade's offer (#383, spec/08 Trades): any mix of players on either side with a one-line note;

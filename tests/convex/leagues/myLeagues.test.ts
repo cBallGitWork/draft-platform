@@ -9,13 +9,16 @@ import {
   COMMISSIONER,
   CO_COMMISSIONER,
   LEAGUE_NAME,
-  MANAGERS,
   addManagers,
   adminCreatesLeague,
   leagueRow,
   teamsIn,
   TEST_LEAGUE_TEAMS,
   type TestConvex,
+  ANN,
+  BOB,
+  CAT,
+  DAN,
 } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, linkCode, linkNotSentLine, openLink, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
@@ -23,8 +26,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 
 // "Your leagues" (spec/12): what signIn/account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
-
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 
 let t: TestConvex;
 beforeEach(async () => {

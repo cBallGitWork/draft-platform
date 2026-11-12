@@ -8,6 +8,7 @@
 
 import type { Infer } from "convex/values";
 import { TIMEOUT_MS, type Football } from "../football";
+import { firstKickoffs } from "../../gameweeks/gameweekStarts";
 import { readEach } from "../scoreReads";
 import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
@@ -148,22 +149,19 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
       players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id, ...availabilityOf(out.get(id)) });
     }
   }
-  // By round number: after the Scottish split two stages each hold a round 34, one gameweek here.
-  const firstKickoffs = new Map<number, number>();
   const fixtures: Football["fixtures"] = [];
   const matches: RawFixture[] = [];
   for (const round of schedule.flatMap((stage) => stage.rounds ?? [])) {
     const number = roundNumber(round);
     for (const match of round.fixtures ?? []) {
-      const kickoff = kickoffOf(match);
-      if (kickoff !== null) firstKickoffs.set(number, Math.min(kickoff, firstKickoffs.get(number) ?? kickoff));
       const { home, away } = sides(match);
-      fixtures.push({ code: match.id, gameweek: number, homeClubCode: home, awayClubCode: away, kickoff });
+      fixtures.push({ code: match.id, gameweek: number, homeClubCode: home, awayClubCode: away, kickoff: kickoffOf(match) });
       matches.push(match);
     }
   }
-  // Sportmonks has no deadline: a round's is its first kickoff, as a league works its own out.
-  const gameweeks: Infer<typeof gameweekRecord>[] = [...firstKickoffs].map(([number, deadline]) => ({ season, number, deadline }));
+  // Sportmonks has no deadline: a round's is its first kickoff, as a league works its own out. By
+  // round number: after the Scottish split two stages each hold a round 34, one gameweek here.
+  const gameweeks: Infer<typeof gameweekRecord>[] = [...firstKickoffs(fixtures)].map(([number, deadline]) => ({ season, number, deadline }));
   return {
     clubs,
     players: [...players.values()],

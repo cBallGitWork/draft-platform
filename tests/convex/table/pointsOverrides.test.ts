@@ -10,9 +10,7 @@ import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import { lostPlayerName } from "../../../convex/shared/players";
 import { MINUTES_STAT } from "../../../convex/stats/matchRecords";
 import {
-  ANN,
   annsScoredGame,
-  BOB,
   EVERTON_POINTS,
   GAMEWEEK,
   holdHullAndEverton,
@@ -28,7 +26,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, COMMISSIONER, ANN, BOB } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { EMOJI, expectRefused } from "../../support/convex/test.harness";
 
