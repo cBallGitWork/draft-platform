@@ -4,8 +4,8 @@ import { Placeholder } from "../../../ui/Placeholder";
 import type { ClassicFormation } from "../../../../convex/lineup/classics";
 import { presetNameOf } from "../../../../convex/lineup/presets";
 import { classicFormationInUse, onClassicFormation } from "../classicLineup";
-import type { EditedLineup, MoveRules, RatingsOf } from "../lineupEdits";
-import { backGroups, type Shape } from "./formationGroups";
+import type { EditedLineup, MoveRules, PresetShape as Shape, RatingsOf } from "../lineupEdits";
+import { backGroups } from "./formationGroups";
 import { FormationPreview } from "./FormationPreview";
 import { FormationTile } from "./FormationTile";
 import {

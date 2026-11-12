@@ -4,10 +4,10 @@
 // that slot, and a doubtful one is picked on his stars; "?" and "—" rank below any starred player;
 // a tie keeps whoever is already starting, then goes by bench order.
 
-import { byPitchOrder, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { byPitchOrder, playsCell, type Cell } from "../../../convex/lineup/pitch";
 import { rolesFor } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
-import type { EditedLineup, SquadMember, Starter } from "./lineupEdits";
+import { standingIn, startersInOrder, type EditedLineup, type SquadMember, type Starter } from "./lineupEdits";
 import { matched } from "./matching";
 
 /** What Quick Pick reads of each squad player. */
@@ -34,11 +34,10 @@ const mostFilled = (cells: readonly Cell[], players: readonly PickedFrom[]): num
  *  as the shape does. */
 export function quickPick(draft: EditedLineup, shape: readonly Cell[], squad: readonly PickedFrom[]): EditedLineup {
   const benchIndex = (playerCode: number) => draft.bench.indexOf(playerCode);
-  const startingIn = (cell: Cell) => draft.starters.find((starter) => sameCell(starter, cell));
   const starting = new Set(draft.starters.map(({ playerCode }) => playerCode));
   // A tie keeps whoever is already starting, his own cell first, then goes by bench order.
   const keeps = (member: PickedFrom, cell: Cell) =>
-    startingIn(cell)?.playerCode === member.playerCode ? -1 : starting.has(member.playerCode) ? 0 : 1 + benchIndex(member.playerCode);
+    standingIn(draft, cell)?.playerCode === member.playerCode ? -1 : starting.has(member.playerCode) ? 0 : 1 + benchIndex(member.playerCode);
   const named = squad.filter(({ playerCode }) => starting.has(playerCode) || benchIndex(playerCode) !== -1);
 
   let cells = shape.toSorted(byPitchOrder);
@@ -58,13 +57,13 @@ export function quickPick(draft: EditedLineup, shape: readonly Cell[], squad: re
     const { cell, member } = pairs.find(({ cell, member }) =>
       mostFilled(cells.filter((each) => each !== cell), players.filter((each) => each !== member)) === toFill - 1,
     )!;
-    const held = startingIn(cell);
+    const held = standingIn(draft, cell);
     picked.push(held?.playerCode === member.playerCode ? held : droppedStarter(member.playerCode, cell, shape, member.stars, member.positions));
     cells = cells.filter((each) => each !== cell);
     players = players.filter((each) => each !== member);
     toFill -= 1;
   }
   const inEleven = new Set(picked.map(({ playerCode }) => playerCode));
-  const leftOut = draft.starters.toSorted(byPitchOrder).map(({ playerCode }) => playerCode).filter((code) => !inEleven.has(code));
+  const leftOut = startersInOrder(draft).map(({ playerCode }) => playerCode).filter((code) => !inEleven.has(code));
   return { ...draft, starters: picked, bench: [...leftOut, ...draft.bench.filter((code) => !inEleven.has(code))] };
 }

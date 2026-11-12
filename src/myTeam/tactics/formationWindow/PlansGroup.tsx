@@ -22,7 +22,7 @@ import {
 
 /** A plan as the window lists it: the formation it stands in, or undefined once the league no longer
  *  has it. */
-export type ListedPlan = { plan: Plan; formation: string | undefined };
+type ListedPlan = { plan: Plan; formation: string | undefined };
 
 export function PlansGroup({
   plans,

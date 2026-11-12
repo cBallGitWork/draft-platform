@@ -140,7 +140,6 @@ export const upLabel = (name: string) => `Move ${name} up the bench`;
 export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const playerCardLabel = (name: string) => `${name}'s player card`;
 
-/** The left column's widget under the pitch, and the right column's. */
 /** The mark after a player's name while one of his positions is at stake (#23; Craig, 6 Nov 2026),
  *  read on hover and by screen readers. */
 export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;

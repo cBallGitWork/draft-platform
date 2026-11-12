@@ -16,7 +16,7 @@ import { claimPanelTitle, clashWords, dropLabel, dropNobodyWords, firstRunWords,
 // 11 Nov 2026, on #1590).
 
 /** A player the Drop picker offers: one of the manager's squad. */
-export type SquadPlayer = { code: number; name: string };
+type SquadPlayer = { code: number; name: string };
 
 export function ClaimPanel({
   leagueId,

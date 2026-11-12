@@ -8,7 +8,7 @@ import { Shirt } from "../tactics/pitch/Pitch";
 import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../tactics/pitch/rowLayout";
 import { PITCH_ASPECT } from "../tactics/pitch/pitchMarkings";
 import type { OpenTactics, Tactics } from "../tactics/seam";
-import { Placeholder } from "../../ui/Placeholder";
+import { StatusMark } from "../SquadCells";
 import type { Row } from "./SquadTable";
 import {
   benchShort,
@@ -21,7 +21,6 @@ import {
   noFigureWords,
   noLineupWords,
   setLineupWords,
-  statusNotSettledLabel,
   YOUR_ELEVEN_TITLE,
 } from "./words";
 
@@ -31,9 +30,12 @@ import {
 
 /** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):
  *  the starters' cells and any slot left empty by a man gone from the squad. */
-export function formationOf({ lineup: { starters, vacated }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
+function formationOf({ lineup: { starters, vacated }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
   return presetNameOf([...starters, ...vacated], presets);
 }
+
+/** A status mark's size on a tile, on the name plate's ground. */
+const ELEVEN_MARK = "size-3 bg-name-plate";
 
 /** `players` are the squad's rows by code, for each one's season points; `selected` is the player
  *  whose panel is open, his tile outlined in white. */
@@ -89,7 +91,7 @@ function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; pla
                   <span className="max-w-full truncate font-semibold">{member.name}</span>
                   <span className="font-bold text-figure">{points}</span>
                 </span>
-                <StatusMark player={players.get(starter.playerCode)} className="absolute top-0 right-0" />
+                <StatusMark player={players.get(starter.playerCode)} className={`${ELEVEN_MARK} absolute top-0 right-0`} />
               </span>
             </li>
           );
@@ -113,7 +115,7 @@ function ElevenBench({ tactics, players }: { tactics: OpenTactics; players: Read
               <span aria-hidden="true" className="text-muted">
                 {benchShort(index + 1)}
               </span>
-              <StatusMark player={players.get(code)} />
+              <StatusMark player={players.get(code)} className={ELEVEN_MARK} />
             </span>
             <span aria-hidden="true" className="block truncate font-semibold">
               {name}
@@ -126,12 +128,6 @@ function ElevenBench({ tactics, players }: { tactics: OpenTactics; players: Read
       })}
     </ol>
   );
-}
-
-/** The status chip's placeholder for a player FPL holds a doubt about, as his row has it. */
-function StatusMark({ player, className = "" }: { player: Row | undefined; className?: string }) {
-  if (player === undefined || player.chanceOfPlaying === null) return null;
-  return <Placeholder label={statusNotSettledLabel} className={`size-3 bg-name-plate ${className}`} />;
 }
 
 /** His season points as the table shows them, "—" while none is priced. */
