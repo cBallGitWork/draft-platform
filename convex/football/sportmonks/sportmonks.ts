@@ -13,7 +13,7 @@ import { readEach } from "../scoreReads";
 import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
 import { smScoreRead } from "./sportmonksMatch";
-import { AWAY, HOME, SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
+import { AWAY, HOME, SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type RawTeamCoach, type SportmonksPayloads } from "./sportmonksRaw";
 
 /** The deployment's setting holding Sportmonks' API token. Unset, nothing reads Sportmonks. */
 export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
@@ -34,9 +34,9 @@ export const MULTI_FIXTURES_MAX = 50;
 /** What a live read asks for with each match: its score, clock, lineups, each man's stats and the
  *  events timeline, all in one call. */
 const LIVE_INCLUDES = "participants;scores;periods;lineups.details;events";
-/** What a squad read asks for: each man himself, and the club's men out injured or suspended,
- *  each named by its type (#1420). */
-const SQUAD_INCLUDES = "players.player;sidelined.type";
+/** What a squad read asks for: each man himself, the club's men out injured or suspended, each
+ *  named by its type (#1420), and the club's ground and coaches for its page's header (#1938). */
+const SQUAD_INCLUDES = "players.player;sidelined.type;venue;coaches.coach";
 /** What the positions read asks for with each squad man: himself, with Sportmonks' positions for him. */
 export const POSITIONS_SQUAD_INCLUDES = "players.player.position;players.player.detailedPosition";
 /** What the positions read asks for with each played match: each side's formation and where each
@@ -139,7 +139,7 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
   if (!league.currentseason) throw new Error(`${SPORTMONKS} sent no current season`);
   const season = seasonStart(league.currentseason);
   if (teams.length === 0) throw new Error(`${SPORTMONKS} sent no clubs`);
-  const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: shortNameOf(team) }));
+  const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: shortNameOf(team), ...detailsOf(team) }));
   const players = new Map<number, Football["players"][number]>();
   const out = openSidelines(teams);
   for (const team of teams) {
@@ -169,6 +169,24 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
     gameweeks,
     betweenSeasons: fixtures.length === 0,
     scores: readEach(matches, (match) => match.id, smScoreRead),
+  };
+}
+
+/** A club's stadium, capacity and manager, each only where Sportmonks sends it, so the page greys
+ *  the one missing (#1938). The manager is the coach whose spell is active, of two the one who
+ *  started last; his name as a man's is read. */
+function detailsOf(team: RawTeam): Pick<Football["clubs"][number], "stadium" | "capacity" | "manager"> {
+  const { venue } = team;
+  let latest: RawTeamCoach | undefined;
+  for (const spell of team.coaches ?? []) {
+    if (spell.active !== true || !spell.coach) continue;
+    if (latest === undefined || (spell.start ?? "") > (latest.start ?? "")) latest = spell;
+  }
+  const coach = latest?.coach;
+  return {
+    ...(venue?.name && { stadium: venue.name }),
+    ...(typeof venue?.capacity === "number" && { capacity: venue.capacity }),
+    ...(coach && { manager: coach.display_name ?? coach.common_name ?? coach.name }),
   };
 }
 

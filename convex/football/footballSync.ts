@@ -14,7 +14,7 @@ import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
-import { clubRecord, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
+import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
 import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -88,7 +88,7 @@ export const run = internalAction({
 });
 
 export const upsertClubs = internalMutation({
-  args: { rows: v.array(clubRecord) },
+  args: { rows: v.array(clubRow) },
   returns: upserted,
   handler: async (ctx, { rows }): Promise<Upserted> => {
     const upserted = await upsertEach(ctx, "clubs", rows, (row) => findClubByCode(ctx, row.code));

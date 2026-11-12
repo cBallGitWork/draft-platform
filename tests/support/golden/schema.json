@@ -733,6 +733,24 @@
             },
             "optional": false
           },
+          "stadium": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "capacity": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "manager": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
           "droppedAt": {
             "fieldType": {
               "type": "number"
@@ -27711,6 +27729,24 @@
               "type": "string"
             },
             "optional": false
+          },
+          "stadium": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "capacity": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "manager": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           },
           "droppedAt": {
             "fieldType": {

@@ -3,13 +3,13 @@
 // User-Agent are copied from epl-draft's packages/core (17 Oct 2026), not shared.
 
 import type { Infer } from "convex/values";
-import type { clubRecord, fixtureRecord, gameweekRecord, playerRecord } from "../schema";
+import type { clubRow, fixtureRecord, gameweekRecord, playerRecord } from "../schema";
 import type { ScoreReads } from "./scoreReads";
 
 /** The football layer's one seam: the real Premier League as any feed hands it to the platform.
  *  FPL's feed fills it today (`fpl.ts`); a paid feed replaces it by returning the same. */
 export interface Football {
-  clubs: Infer<typeof clubRecord>[];
+  clubs: Infer<typeof clubRow>[];
   players: Infer<typeof playerRecord>[];
   fixtures: Infer<typeof fixtureRecord>[];
   gameweeks: Infer<typeof gameweekRecord>[];

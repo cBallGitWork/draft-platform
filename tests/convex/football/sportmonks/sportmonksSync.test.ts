@@ -24,11 +24,18 @@ test("a run fills the Scottish clubs, players, fixtures and rounds by Sportmonks
     outcome: { ok: true, clubs: WRITES(3), players: WRITES(3), fixtures: WRITES(3), rounds: WRITES(2), scores: { received: 3, written: 3, problems: [] } },
   });
   const held = await t.run(async (ctx) => ({
+    clubs: (await ctx.db.query("sportmonksClubs").collect()).map(({ code, stadium, capacity, manager }) => [code, stadium ?? null, capacity ?? null, manager ?? null]),
     players: (await ctx.db.query("sportmonksPlayers").collect()).map(({ code, clubCode }) => [code, clubCode]),
     fixtures: (await ctx.db.query("sportmonksFixtures").collect()).map(({ code, gameweek }) => [code, gameweek]),
     scores: (await ctx.db.query("sportmonksScores").collect()).map(({ fixtureCode, state }) => [fixtureCode, state]),
   }));
   expect(held).toEqual({
+    // Each club's ground, capacity and manager where sent (#1938).
+    clubs: [
+      [SM.celtic, "Celtic Park", 60411, "Martin O'Neill"],
+      [SM.rangers, "Ibrox Stadium", null, null],
+      [SM.hearts, null, null, null],
+    ],
     players: [[SM.schmeichel, SM.celtic], [SM.kyogo, SM.celtic], [SM.tavernier, SM.rangers]],
     fixtures: [[SM.rangersHearts, 11], [SM.oldFirm, 12], [SM.heartsCeltic, 12]],
     scores: [[SM.rangersHearts, "fullTime"], [SM.oldFirm, "live"], [SM.heartsCeltic, "upcoming"]],
@@ -46,6 +53,21 @@ test("a run again changes nothing held, and marks a man no squad sends any more 
   expect(second.outcome).toMatchObject({ ok: true, clubs: { ...WRITES(3), inserted: 0 }, players: { received: 2, inserted: 0, updated: 0, marked: 1, unmarked: 0 } });
   const tavernier = await t.run((ctx) => ctx.db.query("sportmonksPlayers").withIndex("by_code", (q) => q.eq("code", SM.tavernier)).unique());
   expect(tavernier?.droppedAt).toBe(LIVE_NOW);
+});
+
+test("a run that no longer sends a club's ground, capacity or manager clears the held ones (#1938)", async () => {
+  const t = freshConvex();
+  await sync(t);
+  const season = sportmonksSeason();
+  const celtic = season.teams.find((team) => team.id === SM.celtic)!;
+  celtic.venue = null;
+  celtic.coaches = [];
+  await sync(t, { season });
+
+  const [, second] = await syncs(t);
+  expect(second.outcome).toMatchObject({ ok: true, clubs: { received: 3, inserted: 0, updated: 1 } });
+  const held = await t.run((ctx) => ctx.db.query("sportmonksClubs").withIndex("by_code", (q) => q.eq("code", SM.celtic)).unique());
+  expect([held?.stadium, held?.capacity, held?.manager]).toEqual([undefined, undefined, undefined]);
 });
 
 test("a refused read is a failed run's row with Sportmonks' own words, and no table is touched", async () => {
