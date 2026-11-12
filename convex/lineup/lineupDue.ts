@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { leagueOpens } from "../leagues/leagueOpens";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { managerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
@@ -30,7 +30,7 @@ export const isDue = query({
     const next = await saveGameweekOf(ctx, leagueId, now);
     if (next.kind !== "open" || team.tacticsOpenedInGameweek === next.gameweek) return false;
     const { gameweek } = next;
-    const deadline = deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek);
+    const deadline = (await leagueDeadlineOf(ctx, leagueId))(gameweek);
     return deadline !== null && now >= deadline - LINEUP_DUE_BEFORE_DEADLINE_MS && now < deadline;
   },
 });

@@ -2,11 +2,11 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { isPlaying } from "../football/matchScores";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
-import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
+import { hasBegun, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMatches";
 import { leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
@@ -63,7 +63,7 @@ export const ofTeam = query({
 
     const schedule = await scheduleOf(ctx, league, season);
     const games = gamesOf(schedule, team._id);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, gameNumber: FIRST_GAME, games: [], game: { kind: "none" as const } };
     // The team's games in the gameweek, shown one at a time with a switch between them: the
@@ -100,7 +100,7 @@ async function gameOf(
   if (against.kind === BYE) return { kind: BYE };
   const nameOf = nameIn(teams, gameweek);
   const opponent = opponentOf(against, nameOf);
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
+  if (!(await hasBegun(ctx, league, gameweek))) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
     const versionIn = await siteVersionByGameweek(ctx);

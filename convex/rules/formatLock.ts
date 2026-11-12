@@ -1,6 +1,6 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { seasonGameweeks } from "../gameweeks/usedGameweeks";
 import { scoredSinceMade } from "../gameweekScorer/gameweekScores";
@@ -25,7 +25,7 @@ export const formatLocked = (format: LeagueRules["format"]) =>
  *  own first gameweek, not FPL's. It reads every deadline, not only the recorded passed ones
  *  scoring reads, so no format change slips through between a deadline passing and its record. */
 async function seasonBegun(ctx: QueryCtx, league: Doc<"leagues">, fromGameweek: number): Promise<boolean> {
-  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
+  const deadlineIn = await leagueDeadlineOf(ctx, league._id);
   const count = await seasonGameweekCount(ctx);
   return seasonGameweeks(count).some((gameweek) => {
     const deadline = deadlineIn(gameweek);

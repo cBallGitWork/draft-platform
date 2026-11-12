@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { scheduleOf } from "./playedFixtures";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
@@ -121,7 +121,7 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },
 });
