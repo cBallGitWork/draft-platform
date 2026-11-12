@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
+import { changeRulesTo, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
@@ -28,7 +28,6 @@ beforeEach(async () => {
 });
 
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.table.leagueTable.ofLeague, { leagueId });
-const changeRulesTo = (change: Parameters<typeof rulesWith>[0]) => changeRules(t, leagueId, rulesWith(change));
 
 describe("who may read it", () => {
   beforeEach(() => addManagers(t, leagueId, [ANN, BOB]));
@@ -60,7 +59,7 @@ describe("the fixtures", () => {
   test("with byes, the team left over plays nobody", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    await changeRulesTo({ oddTeamOut: "bye" });
+    await changeRulesTo(t, leagueId, { oddTeamOut: "bye" });
     const [first] = (await read())!.gameweeks;
     expect(first.fixtures).toHaveLength(1);
     expect(first.byes).toHaveLength(1);
@@ -70,7 +69,7 @@ describe("the fixtures", () => {
   test("with two games a gameweek, each team plays two every gameweek", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
-    await changeRulesTo({ gamesPerGameweek: 2 });
+    await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });
     const { gameweeks } = (await read())!;
     expect(gameweeks).toHaveLength(PL_GAMEWEEKS);
     for (const { fixtures } of gameweeks) {
@@ -104,7 +103,7 @@ describe("the fixtures", () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await holdGameweeks(t, { next: CHANGE_FROM });
     const before = (await read())!.gameweeks;
-    expect(await changeRulesTo({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
+    expect(await changeRulesTo(t, leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
     const after = (await read())!.gameweeks;
 
     const played = ({ gameweek }: { gameweek: number }) => gameweek < CHANGE_FROM;
@@ -124,7 +123,7 @@ describe("the fixtures", () => {
 
   test("a total-points league has none", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
-    await changeRulesTo({ format: "totalPoints" });
+    await changeRulesTo(t, leagueId, { format: "totalPoints" });
     expect(await read()).toMatchObject({ format: "totalPoints", gameweeks: [] });
   });
 });

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
-import { MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, managersOf, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -20,8 +20,6 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
-
 describe("a manager who is removed or leaves (#133)", () => {
   const inviteOf = (inviteId: Id<"invites">) => t.run((ctx) => ctx.db.get("invites", inviteId));
   const commissionerRemoves = async (teamId: Id<"teams">) =>
@@ -34,7 +32,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
     expect((await inviteOf(inviteId))?.cancelledAt).toBe(Date.now());
   });
 
@@ -45,7 +43,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
     expect((await inviteOf(inviteId))?.cancelledAt).toBe(Date.now());
   });
 
@@ -57,7 +55,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await invite(t, leagueId, ANN, annsTeam);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("their live invite to another league is left alone", async () => {
