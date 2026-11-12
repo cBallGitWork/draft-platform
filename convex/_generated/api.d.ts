@@ -89,6 +89,7 @@ import type * as gameweekScorer_storedScores from "../gameweekScorer/storedScore
 import type * as gameweekScorer_teamGameweek from "../gameweekScorer/teamGameweek.js";
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
+import type * as gameweeks_gameweekEnd from "../gameweeks/gameweekEnd.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
@@ -128,6 +129,7 @@ import type * as leagues_myLeagues from "../leagues/myLeagues.js";
 import type * as leagues_teams from "../leagues/teams.js";
 import type * as lineup_autoSubs from "../lineup/autoSubs.js";
 import type * as lineup_autoTeam from "../lineup/autoTeam.js";
+import type * as lineup_autoTeamSwitch from "../lineup/autoTeamSwitch.js";
 import type * as lineup_autoTeamWords from "../lineup/autoTeamWords.js";
 import type * as lineup_classics from "../lineup/classics.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
@@ -305,6 +307,7 @@ import type * as signIn_signInReplies from "../signIn/signInReplies.js";
 import type * as signIn_testAccount from "../signIn/testAccount.js";
 import type * as signIn_timeZone from "../signIn/timeZone.js";
 import type * as squads_areaMinimums from "../squads/areaMinimums.js";
+import type * as squads_limitsCompare from "../squads/limitsCompare.js";
 import type * as squads_otherSquad from "../squads/otherSquad.js";
 import type * as squads_squadLimits from "../squads/squadLimits.js";
 import type * as squads_squadNumberRange from "../squads/squadNumberRange.js";
@@ -463,6 +466,7 @@ declare const fullApi: ApiFromModules<{
   "gameweekScorer/teamGameweek": typeof gameweekScorer_teamGameweek;
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
+  "gameweeks/gameweekEnd": typeof gameweeks_gameweekEnd;
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueDeadlines": typeof gameweeks_leagueDeadlines;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
@@ -502,6 +506,7 @@ declare const fullApi: ApiFromModules<{
   "leagues/teams": typeof leagues_teams;
   "lineup/autoSubs": typeof lineup_autoSubs;
   "lineup/autoTeam": typeof lineup_autoTeam;
+  "lineup/autoTeamSwitch": typeof lineup_autoTeamSwitch;
   "lineup/autoTeamWords": typeof lineup_autoTeamWords;
   "lineup/classics": typeof lineup_classics;
   "lineup/firstLineup": typeof lineup_firstLineup;
@@ -679,6 +684,7 @@ declare const fullApi: ApiFromModules<{
   "signIn/testAccount": typeof signIn_testAccount;
   "signIn/timeZone": typeof signIn_timeZone;
   "squads/areaMinimums": typeof squads_areaMinimums;
+  "squads/limitsCompare": typeof squads_limitsCompare;
   "squads/otherSquad": typeof squads_otherSquad;
   "squads/squadLimits": typeof squads_squadLimits;
   "squads/squadNumberRange": typeof squads_squadNumberRange;

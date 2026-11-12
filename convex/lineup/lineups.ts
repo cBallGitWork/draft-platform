@@ -9,7 +9,7 @@ import { nextByDeadlines } from "../gameweeks/nextGameweek";
 import { passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { GAMEWEEKS_MOST, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
-import { inUnplayedGameweek } from "../waivers/waiverLock";
+import { inUnplayedGameweek } from "../gameweeks/gameweekEnd";
 import { squadAt, squadCodes, squadMovesSince, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { lostPlayerName, playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
