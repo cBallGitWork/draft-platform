@@ -34,7 +34,8 @@ export function tableOf(
   scores: GameweekScores<TeamId>,
   tieBreaks: readonly TieBreak[],
 ): TableRow<TeamId>[] {
-  return gameModeOf({ format }).hasMatchups ? headToHeadTable(teamIds, schedule, scores, tieBreaks) : totalPointsTable(teamIds, scores);
+  const mode = gameModeOf({ format });
+  return mode.hasMatchups ? headToHeadTable(mode, teamIds, schedule, scores, tieBreaks) : totalPointsTable(mode, teamIds, scores);
 }
 
 /** The league's fixtures by gameweek, each scored once its gameweek is, and its table, as
