@@ -12,12 +12,13 @@ import { DESK } from "../../scripts/viewports.mjs";
 import { previewSaid } from "../../src/shared/preview";
 import { previewAutoTeam, previewUnswapped } from "../../src/table/preview";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () => {
   test.use({ viewport: DESK });
 
   test("My team's switch opens its panel, and Switch on closes it", async ({ page }) => {
-    await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+    await page.goto(previewUrl(MY_TEAM_PATH, "manager"));
     await page.getByRole("button", { expanded: false, name: /^Off/ }).click();
     const panel = page.getByRole("region", { name: autoTeamHead, exact: true });
     await expect(panel).toBeVisible();
@@ -27,13 +28,13 @@ test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () 
   });
 
   test("the table marks a team on the auto team", async ({ page }) => {
-    await page.goto(`${TABLE_PATH}?preview=manager`);
+    await page.goto(previewUrl(TABLE_PATH, "manager"));
     const row = page.getByRole("region", { name: TABLE_TITLE, exact: true }).getByRole("row").filter({ hasText: previewAutoTeam });
     await expect(row.getByText(autoTeamWords, { exact: true })).toBeVisible();
   });
 
   test("the commissioner picks a side in two games, and Save swap sends the swap", async ({ page }) => {
-    await page.goto(`${TABLE_PATH}?preview=commissioner`);
+    await page.goto(previewUrl(TABLE_PATH, "commissioner"));
     const fixtures = page.getByRole("region", { name: new RegExp(`^${FIXTURES_TITLE}`) });
     const games = fixtures.getByRole("listitem");
     await games.nth(0).getByRole("button", { name: /^Swap / }).first().click();
