@@ -23,6 +23,7 @@ import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";
+import { rowInForce, writeRowFor } from "./lineupRows";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
 // whose league deadline hasn't passed, and the lineup in a gameweek is the newest row from it or
@@ -75,18 +76,6 @@ export type HeldLineup = Infer<typeof heldLineupShape>;
 
 /** A lineup no squad change has touched. */
 const NO_CHANGES = { leftSquad: [], joinedBench: [], vacated: [] };
-
-/** The row in force in the gameweek: the latest from it or before. One row a gameweek at most
- *  (`save` replaces a second), so the index's last match is it. */
-function rowInForce(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number) {
-  return ctx.db
-    .query("lineups")
-    .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) =>
-      q.eq("leagueId", leagueId).eq("teamId", teamId).lte("fromGameweek", gameweek),
-    )
-    .order("desc")
-    .first();
-}
 
 /** Each team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
  *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts), as it passes; until it is
@@ -237,9 +226,14 @@ export const save = mutation({
     const { classic, instructions } = lineup;
     checkClassic(classic, starters, rules);
     // The manager's own from here: no squad change picks it again.
-    const kept = { starters, bench: lineup.bench, classic, instructions, keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined };
-    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, ...kept });
-    else await ctx.db.patch("lineups", existing._id, { ...kept, firstLineup: undefined });
+    await writeRowFor(ctx, leagueId, team._id, fromGameweek, existing, () => ({
+      starters,
+      bench: lineup.bench,
+      classic,
+      instructions,
+      keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined,
+      firstLineup: undefined,
+    }));
     return fromGameweek;
   },
 });
@@ -261,8 +255,12 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
   const starsOf = await starsLookup(ctx, squad);
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), starsOf, positions, row?.starters);
-  if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
-  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
+  // Replacing its own row, it picks only the players: the rest of that row is left as it was.
+  await writeRowFor(ctx, leagueId, teamId, fromGameweek, row, (replacing) =>
+    replacing === null
+      ? { ...picked, classic: undefined, instructions: undefined, keptOutOfPosition: undefined, firstLineup: true }
+      : { ...picked, classic: replacing.classic, instructions: replacing.instructions, keptOutOfPosition: replacing.keptOutOfPosition, firstLineup: replacing.firstLineup },
+  );
 }
 
 /** The auto team's lineup for a gameweek begun (autoTeam.ts; spec/09): a saved row from it, which
@@ -275,14 +273,14 @@ export async function storeAutoTeamLineup(
   lineup: Pick<Doc<"lineups">, "starters" | "bench">,
 ): Promise<void> {
   const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
-  if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined, classic: undefined });
-  else {
+  await writeRowFor(ctx, leagueId, teamId, fromGameweek, existing, (replacing) => {
+    if (replacing !== null) return { ...lineup, classic: undefined, instructions: replacing.instructions, keptOutOfPosition: replacing.keptOutOfPosition, firstLineup: undefined };
     // A new row carries the team's instructions on: the auto team only ever touches the lineup
     // (spec/09). Who the row in force kept out of position stays kept while he stands where he
     // was: his one gameweek's grace is used (`S06.7`; #1789).
     const kept = existing === null ? [] : stillKept(existing, lineup.starters);
-    await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions, keptOutOfPosition: kept.length > 0 ? kept : undefined });
-  }
+    return { ...lineup, classic: undefined, instructions: existing?.instructions, keptOutOfPosition: kept.length > 0 ? kept : undefined, firstLineup: undefined };
+  });
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved
