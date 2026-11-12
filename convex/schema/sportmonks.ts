@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { clubRecord, droppedAt, failure, fixtureRecord, gameweekRecord, playerRecord, scoreRead, scoreWrites, syncTrigger, tableWrites } from "./football";
+import { clubRow, droppedAt, failure, fixtureRecord, gameweekRecord, playerRecord, scoreRead, scoreWrites, syncTrigger, tableWrites } from "./football";
 import { sideRunFields } from "./live";
 import { startRecord } from "./positions";
 
@@ -109,7 +109,7 @@ export const sportmonksReader = v.union(v.literal("sync"), v.literal("live"));
 
 export const sportmonksTables = {
   sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_competition", ["competition"]),
-  sportmonksClubs: defineTable(clubRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
+  sportmonksClubs: defineTable(clubRow.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
   sportmonksPlayers: defineTable(playerRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
   sportmonksFixtures: defineTable(fixtureRecord.extend({ droppedAt, competition }))
     .index("by_code", ["code"])

@@ -6,7 +6,7 @@ import { internalAction, internalMutation, type ActionCtx, type MutationCtx, typ
 import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
+import { clubRow, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { isPlaying, wins } from "../matchScores";
 import { keyOf, sameFields } from "../footballSync";
 import { readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
@@ -96,10 +96,18 @@ export const competitionsOn = internalMutation({
 const syncArgs = { competition: v.number(), ranAt: v.number() };
 
 export const syncClubs = internalMutation({
-  args: { ...syncArgs, rows: v.array(clubRecord) },
+  args: { ...syncArgs, rows: v.array(clubRow) },
   returns: tableWrites,
-  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksClubs", rows, run),
+  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksClubs", rows.map(withDetailsSent), run),
 });
+
+/** A club with its ground, capacity and manager each set, to undefined where Sportmonks sent none,
+ *  so a sync that no longer sends one clears the held one rather than keeping it (#1938): the
+ *  compare sees the change and the patch removes the field (Convex drops a field patched to
+ *  undefined). The read's own undefined never reaches a mutation, as Convex drops it in transit. */
+function withDetailsSent(row: Infer<typeof clubRow>): Infer<typeof clubRow> {
+  return { stadium: undefined, capacity: undefined, manager: undefined, ...row };
+}
 
 export const syncPlayers = internalMutation({
   args: { ...syncArgs, rows: v.array(playerRecord) },

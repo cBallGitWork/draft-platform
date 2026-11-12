@@ -13,6 +13,13 @@
   "teams": [
     {
       "id": 53, "sport_id": 1, "country_id": 1161, "venue_id": 8909, "gender": "male", "name": "Celtic", "short_code": "CEL", "founded": 1888, "type": "domestic",
+      "venue": { "id": 8909, "country_id": 1161, "city_id": 3374, "name": "Celtic Park", "address": "Kerrydale Street", "capacity": 60411, "city_name": "Glasgow", "surface": "grass", "national_team": false },
+      "coaches": [
+        { "id": 501, "team_id": 53, "coach_id": 455361, "position_id": 221, "active": false, "start": "2023-06-19", "end": "2025-10-27", "temporary": false,
+          "coach": { "id": 455361, "name": "Brendan Rodgers", "common_name": "B. Rodgers", "display_name": "Brendan Rodgers", "firstname": "Brendan", "lastname": "Rodgers" } },
+        { "id": 502, "team_id": 53, "coach_id": 37290040, "position_id": 221, "active": true, "start": "2025-10-28", "end": null, "temporary": true,
+          "coach": { "id": 37290040, "name": "Martin O'Neill", "common_name": "M. O'Neill", "display_name": "Martin O'Neill", "firstname": "Martin", "lastname": "O'Neill" } }
+      ],
       "players": [
         { "id": 1, "transfer_id": null, "player_id": 37292381, "team_id": 53, "position_id": 24, "jersey_number": 1, "captain": false,
           "player": { "id": 37292381, "name": "Kasper Schmeichel", "common_name": "K. Schmeichel", "display_name": "Kasper Schmeichel", "firstname": "Kasper", "lastname": "Schmeichel" } },
@@ -28,6 +35,8 @@
     },
     {
       "id": 62, "sport_id": 1, "country_id": 1161, "venue_id": 8914, "gender": "male", "name": "Rangers", "short_code": "RAN", "founded": 1872, "type": "domestic",
+      "venue": { "id": 8914, "country_id": 1161, "city_id": 3374, "name": "Ibrox Stadium", "address": "150 Edmiston Drive", "capacity": null, "city_name": "Glasgow", "surface": "grass", "national_team": false },
+      "coaches": [],
       "players": [
         { "id": 3, "transfer_id": null, "player_id": 31739, "team_id": 62, "position_id": 25, "jersey_number": 2, "captain": true,
           "player": { "id": 31739, "name": "James Tavernier", "common_name": "J. Tavernier", "display_name": "James Tavernier", "firstname": "James", "lastname": "Tavernier" } }

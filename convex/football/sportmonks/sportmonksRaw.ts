@@ -28,7 +28,20 @@ export interface RawSideline {
   completed?: boolean | null;
   type?: { id: number; name: string } | null;
 }
-export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[]; sidelined?: RawSideline[] }
+/** A club's home ground (`venue`). */
+export interface RawVenue { id: number; name: string; capacity?: number | null }
+export interface RawCoach { id: number; name: string; display_name?: string | null; common_name?: string | null }
+/** A spell of a coach at a club (`coaches.coach`): `active` while he is there, `start` "2026-06-01". */
+export interface RawTeamCoach { id: number; coach_id: number; active?: boolean | null; start?: string | null; coach?: RawCoach | null }
+export interface RawTeam {
+  id: number;
+  name: string;
+  short_code: string | null;
+  players?: RawSquadMan[];
+  sidelined?: RawSideline[];
+  venue?: RawVenue | null;
+  coaches?: RawTeamCoach[];
+}
 export interface RawParticipant { id: number; meta?: { location?: string } }
 export interface RawScore { description: string; score: { goals: number; participant: string } }
 export interface RawPeriod { ticking?: boolean; minutes?: number | null }
