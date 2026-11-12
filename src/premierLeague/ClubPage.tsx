@@ -101,7 +101,7 @@ function NextMatch({ next }: { next: ClubPageData["next"] }) {
             </dd>
             <dt className="text-muted">{kickoffHead}</dt>
             <dd>
-              <Link to={matchPath(next.fixtureCode)}>{kickoffDayWords(next.kickoff)}</Link> <span className="text-derived">{daysAwayWords(next.kickoff, now)}</span>
+              <Link to={matchPath(next.fixtureCode)} className="inline-flex min-h-tap items-center lg:min-h-0">{kickoffDayWords(next.kickoff)}</Link> <span className="text-derived">{daysAwayWords(next.kickoff, now)}</span>
             </dd>
           </dl>
         </div>
