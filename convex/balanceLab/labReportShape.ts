@@ -22,10 +22,16 @@ const notTestedRole = v.object({ role: v.string(), slot: v.string(), target: v.n
 const labRoleShape = v.union(testedRole, notTestedRole);
 export type LabRole = Infer<typeof labRoleShape>;
 
-/** A team instruction the set scores, "not tested" (#1541): the past seasons' rows don't hold his
- *  club, so no club's XI is formed to take its average on (spec/14 S14.9). `missing` names the
- *  stats of its lines they weren't copied with (S14.13), empty where every one was. */
-const labInstructionShape = v.object({ instruction: v.string(), missing: v.array(v.string()) });
+/** A team instruction the set scores (spec/14 S14.9): its average for a whole XI over the clubs'
+ *  real XIs in a shape that allows it, null with none, and how many XIs that was. */
+const testedInstruction = v.object({ instruction: v.string(), xis: v.number(), average: v.union(v.number(), v.null()) });
+
+/** A team instruction scoring a stat the past seasons weren't copied with: "not tested", naming
+ *  those stats (S14.13). On a report kept before #1541's averages every instruction is one, its
+ *  `missing` empty where every stat was copied. */
+const notTestedInstruction = v.object({ instruction: v.string(), missing: v.array(v.string()) });
+
+const labInstructionShape = v.union(testedInstruction, notTestedInstruction);
 export type LabInstruction = Infer<typeof labInstructionShape>;
 
 export const labReportShape = v.object({
@@ -39,5 +45,10 @@ export const labReportShape = v.object({
   roles: v.array(labRoleShape),
   /** Each team instruction the set scores, in its order; absent on a report kept before #1541. */
   instructions: v.optional(v.array(labInstructionShape)),
+  /** The clubs' real XIs in the past matches; absent on a report kept before #1541's averages. */
+  xis: v.optional(v.number()),
+  /** Of those, the XIs short of a starter whose position maps to a cell, scored on the starters
+   *  they have; absent on a report kept before #1541's averages. */
+  xisShort: v.optional(v.number()),
 });
 export type LabReport = Infer<typeof labReportShape>;

@@ -1,8 +1,13 @@
-import type { SlotPosition } from "../lineup/pitch";
+import { FIRST_INSTRUCTIONS, shapeAllows } from "../lineup/instructions";
+import { STARTER_COUNT } from "../lineup/lineup";
+import { positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { DEFAULT_ROLES } from "../lineup/roles";
 import { PAST_STAT_COLUMNS } from "../pastSeasons/pastStatColumns";
 import { roleTotal } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
+import { MINUTES_STAT } from "../scoring/statKeys";
+import { instructionPoints } from "../scoring/teamScoring";
+import { statIn } from "../scoring/values";
 import { ROLE_TARGET_MARGIN } from "./balanceLabLimits";
 import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
@@ -18,9 +23,11 @@ import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 // - a copied stat blank in one match leaves that match out of the role's average only (Craig,
 //   6 Nov 2026, on #842), and the starts it was tested on are shown;
 // - no biggest movers and no what-ifs on this season's results ("Drop what ifs").
-// Each team instruction the set scores is listed "not tested" for now (#1541): S14.9 takes its
-// average on each club's real XI in each past match, and the past seasons' rows don't hold his
-// club, so no XI can be formed yet. One scoring a stat that wasn't copied names it (S14.13).
+// Each team instruction's average is for a whole XI (S14.9; Craig's answers on #1541, 12 Nov 2026):
+// a club's eleven starters in one past match, each scored on his full match even after he came off,
+// no sub counted, the shape read from where the starters lined up, and only XIs in a shape that
+// allows the instruction. A stat blank for one starter counts as 0 ("zero is a number"). One
+// scoring a stat that wasn't copied is "not tested", naming it (S14.13).
 
 /** Each slot's target role bonus a start (spec/05 Roles: half its gap in base points to strikers,
  *  plus 0.5 for every slot; Craig, 4 Nov 2026). */
@@ -37,45 +44,57 @@ const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
   CB: 1.2,
 };
 
+const cell = (area: Cell["area"], lane: Cell["lane"]): Cell => ({ area, lane });
+
 /** Where the past seasons' log says he started (ai-carling's codes, as Football Manager writes
- *  them), and the slot each stands for (spec/14, How a rule scores: left and right alike). A code
- *  not here maps to no slot, and the start is skipped. */
-const SLOT_OF_STARTING_POSITION: Readonly<Record<string, SlotPosition>> = {
-  GK: "GK",
-  DL: "FB",
-  DR: "FB",
-  DC: "CB",
-  DCL: "CB",
-  DCR: "CB",
-  WBL: "WB",
-  WBR: "WB",
-  DML: "WB",
-  DMR: "WB",
-  DM: "CDM",
-  DMC: "CDM",
-  ML: "WM",
-  MR: "WM",
-  MC: "CM",
-  MCL: "CM",
-  MCR: "CM",
-  AML: "W",
-  AMR: "W",
-  AMC: "CAM",
-  AMCL: "CAM",
-  AMCR: "CAM",
-  ST: "ST",
-  STC: "ST",
-  STL: "ST",
-  STR: "ST",
-  FC: "ST",
+ *  them), and the pitch's cell it stands for: so the slot it maps to (spec/14, How a rule scores:
+ *  left and right alike), and the shape his club's XI stood in (S14.9). A code not here maps to no
+ *  cell, and the start is skipped. */
+const CELL_OF_STARTING_POSITION: Readonly<Record<string, Cell>> = {
+  GK: cell("goalkeeper", "centre"),
+  DL: cell("defence", "left"),
+  DCL: cell("defence", "leftCentre"),
+  DC: cell("defence", "centre"),
+  DCR: cell("defence", "rightCentre"),
+  DR: cell("defence", "right"),
+  WBL: cell("defensiveMidfield", "left"),
+  DML: cell("defensiveMidfield", "left"),
+  DM: cell("defensiveMidfield", "centre"),
+  DMC: cell("defensiveMidfield", "centre"),
+  WBR: cell("defensiveMidfield", "right"),
+  DMR: cell("defensiveMidfield", "right"),
+  ML: cell("midfield", "left"),
+  MCL: cell("midfield", "leftCentre"),
+  MC: cell("midfield", "centre"),
+  MCR: cell("midfield", "rightCentre"),
+  MR: cell("midfield", "right"),
+  AML: cell("attackingMidfield", "left"),
+  AMCL: cell("attackingMidfield", "leftCentre"),
+  AMC: cell("attackingMidfield", "centre"),
+  AMCR: cell("attackingMidfield", "rightCentre"),
+  AMR: cell("attackingMidfield", "right"),
+  STL: cell("attack", "leftCentre"),
+  ST: cell("attack", "centre"),
+  STC: cell("attack", "centre"),
+  FC: cell("attack", "centre"),
+  STR: cell("attack", "rightCentre"),
 };
 
-/** The slot a starting position stands for, or null for one that maps to none. */
-export const slotOfStart = (startingPosition: string): SlotPosition | null => SLOT_OF_STARTING_POSITION[startingPosition.trim().toUpperCase()] ?? null;
+/** The cell a starting position stands for, or null for one that maps to none. */
+const cellOfStart = (startingPosition: string): Cell | null => CELL_OF_STARTING_POSITION[startingPosition.trim().toUpperCase()] ?? null;
 
-/** One real start in a past season: the year the season starts, where he started, and his stats. */
+/** The slot a starting position stands for, or null for one that maps to none. */
+export function slotOfStart(startingPosition: string): SlotPosition | null {
+  const at = cellOfStart(startingPosition);
+  return at === null ? null : positionOfSlot(at);
+}
+
+/** One real start in a past season: the year the season starts, the match's kickoff, the club he
+ *  started for (absent on a row copied before #1541), where he started, and his stats. */
 export interface PastStart {
   season: number;
+  kickoff: number;
+  club?: string;
   startingPosition: string;
   stats: Readonly<Record<string, number>>;
 }
@@ -99,17 +118,52 @@ export function roleStats(set: ScoringSet, role: string): string[] {
 /** Those of `stats` the past seasons weren't copied with. */
 const notCopied = (stats: readonly string[]): string[] => stats.filter((stat) => !(stat in PAST_STAT_COLUMNS));
 
-/** Each team instruction the set scores, in its order, not tested: the stats of its lines the past
- *  seasons lack, A to Z, none where every one was copied. */
-function labInstructions(set: ScoringSet): LabInstruction[] {
-  return (set.instructions ?? []).map(({ instruction, lines }) => ({
-    instruction,
-    missing: notCopied(catalogueStats(set, lines.flatMap((line) => line.stats))),
-  }));
-}
-
 /** In hundredths, so a flag is never one floating point's noise. */
 const hundredths = (points: number): number => Math.round(points * 100);
+
+/** The average of `total` over `count`, to the hundredth; null over none. */
+const averageOf = (total: number, count: number): number | null => (count === 0 ? null : hundredths(total / count) / 100);
+
+/** One starter of a club's XI: where he stood, and his stats for the whole match. */
+interface XiStarter {
+  at: Cell;
+  stats: Readonly<Record<string, number>>;
+}
+
+/** Each club's real XI in each past match: its starters whose position maps to a cell, by the
+ *  season, the kickoff and the club. A start copied with no club (before #1541) is in none. */
+function clubXis(starts: readonly PastStart[]): XiStarter[][] {
+  const xis = new Map<string, XiStarter[]>();
+  for (const { season, kickoff, club, startingPosition, stats } of starts) {
+    if (club === undefined) continue;
+    const at = cellOfStart(startingPosition);
+    if (at === null) continue;
+    const key = JSON.stringify([season, kickoff, club]);
+    const xi = xis.get(key);
+    if (xi === undefined) xis.set(key, [{ at, stats }]);
+    else xi.push({ at, stats });
+  }
+  return [...xis.values()];
+}
+
+/** A whole XI's points from an instruction: each starter's, at his slot, on his full match. */
+const xiPoints = (xi: readonly XiStarter[], set: ScoringSet, key: string): number =>
+  xi.reduce((total, { at, stats }) => total + (instructionPoints(stats, set, key, positionOfSlot(at), statIn(stats, MINUTES_STAT))?.points ?? 0), 0);
+
+/** Each team instruction the set scores, in its order: its average for a whole XI over the clubs'
+ *  real XIs in a shape that allows it, or, where it scores a stat the past seasons lack, not tested,
+ *  naming those stats A to Z. An instruction outside the first set (FIRST_INSTRUCTIONS) needs no
+ *  shape. */
+function labInstructions(set: ScoringSet, xis: readonly XiStarter[][]): LabInstruction[] {
+  return (set.instructions ?? []).map(({ instruction, lines }) => {
+    const missing = notCopied(catalogueStats(set, lines.flatMap((line) => line.stats)));
+    if (missing.length > 0) return { instruction, missing };
+    const needs = FIRST_INSTRUCTIONS.find((each) => each.key === instruction)?.needs ?? "anyShape";
+    const allowed = xis.filter((xi) => shapeAllows(needs, xi.map(({ at }) => at)));
+    const total = allowed.reduce((sum, xi) => sum + xiPoints(xi, set, instruction), 0);
+    return { instruction, xis: allowed.length, average: averageOf(total, allowed.length) };
+  });
+}
 
 /** The lab's report on `set` from the past seasons' real starts: each role the set scores, slot by
  *  slot in SLOT_POSITIONS' order (DEFAULT_ROLES'), tested or not, and each team instruction it
@@ -140,16 +194,19 @@ export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabRe
       }
       const tested = (bySlot.get(slot) ?? []).filter((start) => stats.every((stat) => stat in start.stats));
       const total = tested.reduce((sum, start) => sum + roleTotal(start.stats, set, role), 0);
-      const average = tested.length === 0 ? null : hundredths(total / tested.length) / 100;
+      const average = averageOf(total, tested.length);
       const offTarget = average !== null && Math.abs(hundredths(average) - hundredths(target)) > hundredths(ROLE_TARGET_MARGIN);
       roles.push({ role, slot, target, starts: tested.length, average, offTarget });
     }
   }
+  const xis = clubXis(starts);
   return {
     seasons: [...new Set(starts.map((start) => start.season))].sort((a, b) => a - b),
     starts: starts.length - skipped,
     startsSkipped: skipped,
     roles,
-    instructions: labInstructions(set),
+    instructions: labInstructions(set, xis),
+    xis: xis.length,
+    xisShort: xis.filter((xi) => xi.length < STARTER_COUNT).length,
   };
 }

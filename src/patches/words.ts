@@ -46,14 +46,22 @@ export const noStartsWords = "No starts";
 export const noRolesWords = "The set scores no roles.";
 /** The set scores no team instructions (spec/05 Team instructions), so none are checked. */
 export const noTeamInstructionsWords = "The set scores no team instructions.";
-/** Why no team instruction has an average yet (spec/14 S14.9; #1541). */
-export const instructionsHint = "Team instructions: each is averaged on a club's real XI, and the past seasons don't hold each player's club yet, so none is tested.";
+/** How a team instruction is tested (spec/14 S14.9; Craig, 12 Nov 2026, on #1541): over the clubs'
+ *  real XIs, "XIs short of a starter" where one starter's position maps to no slot or his row
+ *  wasn't copied. */
+export const instructionsHint = (xis: number, short: number) =>
+  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a shape that allows it. XIs: ${xis.toLocaleString(LOCALE)}. Short of a starter, scored on the ones they have: ${short.toLocaleString(LOCALE)}.`;
+/** A report kept before the averages (#1541): its instructions are each "not tested". */
+export const instructionsUntestedHint = "Team instructions: none was tested when this report was kept.";
 export const instructionColumns = {
   instruction: { short: "Instruction", long: "Team instruction" },
   average: { short: "Avg", long: "Average for a whole XI" },
+  xis: { short: "XIs", long: "XIs tested on" },
 } as const;
-/** A team instruction whose stats were all copied, still untested as no club's XI is held. */
+/** A team instruction with its stats all copied, on a report kept before the averages (#1541). */
 export const notTestedYetWords = "Not tested";
+/** A team instruction no past XI was tested on: none in a shape it allows, or no club copied yet. */
+export const noXisWords = "No XIs";
 
 /** The banner, from a patch's announcement until it takes effect. */
 export const bannerWords = (name: string, takesEffectAt: number) => `Scoring patch ${name} takes effect on ${screenMoment(takesEffectAt)}.`;

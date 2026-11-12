@@ -100,8 +100,9 @@ const ABOVE_DEFENCE: readonly Area[] = AREAS.slice(AREAS.indexOf("defensiveMidfi
 const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack"];
 const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
 
-/** Whether a formation, the cells its eleven stand in, has what an instruction needs. */
-function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
+/** Whether a formation, the cells its eleven stand in, has what an instruction needs: what a team is
+ *  offered, and the rule balance lab's test of a club's real XI (spec/14 S14.9). */
+export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
   const back = backOf(cells);
   switch (needs) {
     case "anyShape":

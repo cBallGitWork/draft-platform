@@ -9,12 +9,14 @@ import { PanelNote } from "../ui/Panel";
 import {
   instructionColumns,
   instructionsHint,
+  instructionsUntestedHint,
   labColumns,
   labHint,
   labSummaryWords,
   noRolesWords,
   noStartsWords,
   noTeamInstructionsWords,
+  noXisWords,
   notTestedWords,
   notTestedYetWords,
   offTargetWords,
@@ -23,8 +25,8 @@ import {
 // The rule balance lab's report (spec/14, The rule balance lab; #843): on the draft patch once the
 // admin runs it, and in an announced patch's notes. Each role the set scores, slot by slot, its
 // average a start against its slot's target, flagged off it, or "not tested", naming the stats the
-// past seasons lack. Then each team instruction the set scores, each "not tested" until the past
-// seasons hold each player's club (#1541), naming any stat they lack.
+// past seasons lack. Then each team instruction the set scores, its average for a whole XI over the
+// clubs' real XIs (S14.9; #1541), or "not tested", naming any stat they lack.
 
 type LabColumn = keyof typeof labColumns;
 const LEFT_COLUMNS: readonly LabColumn[] = ["role", "slot"];
@@ -53,7 +55,7 @@ export function LabReportView({ report }: { report: LabReport }) {
           </table>
         </>
       )}
-      {report.instructions !== undefined && <LabInstructions instructions={report.instructions} />}
+      {report.instructions !== undefined && <LabInstructions instructions={report.instructions} xis={report.xis} xisShort={report.xisShort} />}
     </div>
   );
 }
@@ -83,22 +85,33 @@ function LabRow({ role }: { role: LabRole }) {
   );
 }
 
-/** Each team instruction the set scores, not tested yet (#1541). A report kept before #1541 holds
- *  no list, and LabReportView shows none for it. */
-function LabInstructions({ instructions }: { instructions: readonly LabInstruction[] }) {
+/** Each team instruction the set scores: its average for a whole XI over the clubs' real XIs it was
+ *  tested on (S14.9), or "not tested", naming any stat the past seasons lack (S14.13). A report kept
+ *  before #1541 holds no list, and LabReportView shows none for it; one kept before its averages
+ *  holds no XI count, and each of its instructions is "not tested". */
+function LabInstructions({ instructions, xis, xisShort }: { instructions: readonly LabInstruction[]; xis?: number; xisShort?: number }) {
   if (instructions.length === 0) return <PanelNote>{noTeamInstructionsWords}</PanelNote>;
   return (
     <>
-      <PanelNote>{instructionsHint}</PanelNote>
+      <PanelNote>{xis === undefined ? instructionsUntestedHint : instructionsHint(xis, xisShort ?? 0)}</PanelNote>
       <table className="w-full border-collapse">
         <ColumnHeads columns={instructionColumns} classOf={instructionCellClasses} />
         <tbody>
-          {instructions.map(({ instruction, missing }) => (
-            <tr key={instruction} className="border-t border-panel-rule">
+          {instructions.map((each) => (
+            <tr key={each.instruction} className="border-t border-panel-rule">
               <th scope="row" className={`${instructionCellClasses("instruction")} font-semibold`}>
-                {instructionName(instruction)}
+                {instructionName(each.instruction)}
               </th>
-              <td className={`${instructionCellClasses("average")} text-muted`}>{missing.length > 0 ? notTestedOn(missing) : notTestedYetWords}</td>
+              {"missing" in each ? (
+                <td colSpan={2} className={`${instructionCellClasses("average")} text-muted`}>
+                  {each.missing.length > 0 ? notTestedOn(each.missing) : notTestedYetWords}
+                </td>
+              ) : (
+                <>
+                  <td className={`${instructionCellClasses("average")} text-figure`}>{each.average === null ? noXisWords : signedWords(each.average)}</td>
+                  <td className={`${instructionCellClasses("xis")} text-figure`}>{each.xis.toLocaleString(LOCALE)}</td>
+                </>
+              )}
             </tr>
           ))}
         </tbody>
