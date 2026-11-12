@@ -82,6 +82,7 @@ export const SAKA: PlayerCard = {
   name: "Saka",
   fullName: "Bukayo Saka",
   club: ARSENAL,
+  clubNumber: 7,
   gone: false,
   positions: ["W", "CAM"],
   pricedAt: ["CAM", "W"],

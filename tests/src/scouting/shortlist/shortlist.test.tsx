@@ -108,6 +108,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   name,
   fullName: name,
   club: ARSENAL,
+  clubNumber: null,
   gone,
   positions: ["W"],
   pricedAt: ["W"],

@@ -56,6 +56,7 @@ const SAKA: PlayerCard = {
   name: "Saka",
   fullName: "Bukayo Saka",
   club: ARSENAL,
+  clubNumber: null,
   gone: false,
   positions: ["W"],
   pricedAt: ["W"],

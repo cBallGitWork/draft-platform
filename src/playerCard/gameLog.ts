@@ -28,8 +28,14 @@ export function logRowsOf(card: Pick<PlayerCard, "matches" | "postponed">): LogR
 /** The match from his club's side: "LIV (A)"; null when neither side is his club now, as for a
  *  match from before he moved, which then names both. */
 export function opponentWords(match: Pick<Fixture, "home" | "away">, clubCode: number): string | null {
-  if (match.home.code === clubCode) return nextFixtureShort(match.away.shortName, true);
-  if (match.away.code === clubCode) return nextFixtureShort(match.home.shortName, false);
+  const opponent = opponentOf(match, clubCode);
+  return opponent === null ? null : nextFixtureShort(opponent.shortName, opponent === match.away);
+}
+
+/** The side his club meets in the match, or null when neither side is his club now. */
+export function opponentOf(match: Pick<Fixture, "home" | "away">, clubCode: number): Fixture["home"] | null {
+  if (match.home.code === clubCode) return match.away;
+  if (match.away.code === clubCode) return match.home;
   return null;
 }
 

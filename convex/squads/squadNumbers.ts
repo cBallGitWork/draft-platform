@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
+import { clubNumberOf } from "../shared/players";
 import { placeOf } from "./squadPlace";
 import { HIGHEST_NUMBER, LOWEST_NUMBER } from "./squadNumberRange";
 
@@ -14,12 +15,6 @@ import { HIGHEST_NUMBER, LOWEST_NUMBER } from "./squadNumberRange";
 /** The number on his shirt: his manager's, else his club's, else none. */
 export async function shirtNumber(ctx: QueryCtx, { playerCode, number }: Pick<Doc<"squadPlayers">, "playerCode" | "number">): Promise<number | null> {
   return number ?? (await clubNumberOf(ctx, playerCode));
-}
-
-/** His number at his club, as the Premier League's squad list last gave it, or null. */
-async function clubNumberOf(ctx: QueryCtx, playerCode: number): Promise<number | null> {
-  const held = await ctx.db.query("clubNumbers").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
-  return held?.number ?? null;
 }
 
 export const squadNumberRefusals = {
