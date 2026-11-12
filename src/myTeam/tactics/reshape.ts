@@ -5,7 +5,7 @@
 import { AREAS, byPitchOrder, LANES, playsCell, type Cell } from "../../../convex/lineup/pitch";
 import { offersRole, roleIn, rolesOfSlot, takesRole } from "../../../convex/lineup/roles";
 import { droppedInto, starts, startersInOrder, type EditedLineup, type MoveRules, type PositionsOf, type RatingsOf, type Starter } from "./lineupEdits";
-import { matched } from "./matching";
+import { matchedCells } from "./matching";
 
 /** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,
  *  back to front, moves to a free cell of the shape he plays in his own area, the nearest lane to
@@ -53,7 +53,7 @@ function bestFit(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: P
     ...startersInOrder(draft).map((starter) => ({ playerCode: starter.playerCode, starter })),
     ...draft.bench.map((playerCode) => ({ playerCode })),
   ];
-  const cellOf = matched(players, ({ playerCode, starter }) => plays(playerCode).toSorted(starter === undefined ? byPitchOrder : byNearness(starter)));
+  const cellOf = matchedCells(players, ({ playerCode, starter }) => plays(playerCode).toSorted(starter === undefined ? byPitchOrder : byNearness(starter)));
   const starters = players.flatMap((player) => {
     const cell = cellOf.get(player);
     if (cell === undefined) return [];

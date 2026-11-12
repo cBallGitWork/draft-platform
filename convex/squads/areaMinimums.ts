@@ -1,4 +1,5 @@
 import { AREAS, type Area } from "../lineup/pitch";
+import { matched } from "../shared/matching";
 
 // A squad against the league's minimum per area (spec/03, Squad make-up; #317). A player who can
 // play two areas fills one minimum, whichever helps the squad, so one wing back can't fill both
@@ -26,27 +27,12 @@ export function areasShort(playersAreas: readonly (readonly Area[])[], minimums:
 export function minimumsFilled(playersAreas: readonly (readonly Area[])[], minimums: Readonly<Record<Area, number>>): (Area | null)[] {
   /** One entry for each place in a minimum: its area. */
   const places = AREAS.flatMap((area) => Array.from({ length: minimums[area] }, () => area));
-  /** Who fills each place, by index into `playersAreas`; null while no one does. */
-  const filledBy: (number | null)[] = places.map(() => null);
-
-  /** Finds the player a place, moving whoever holds a place he could take to another (Kuhn's
-   *  augmenting path); true if he now fills one. */
-  const placeFor = (player: number, tried: Set<number>): boolean => {
-    for (const [index, area] of places.entries()) {
-      if (tried.has(index) || !playersAreas[player].includes(area)) continue;
-      tried.add(index);
-      const holder = filledBy[index];
-      if (holder === null || placeFor(holder, tried)) {
-        filledBy[index] = player;
-        return true;
-      }
-    }
-    return false;
-  };
-  playersAreas.forEach((_, player) => placeFor(player, new Set()));
-
-  return playersAreas.map((_, player) => {
-    const index = filledBy.indexOf(player);
-    return index === -1 ? null : places[index];
+  const players = playersAreas.map((_, player) => player);
+  /** The places a player could fill, by index into `places`, back to front. */
+  const placesFor = (player: number) => places.flatMap((area, index) => (playersAreas[player].includes(area) ? [index] : []));
+  const placeOf = matched(players, placesFor, (index) => index);
+  return players.map((player) => {
+    const index = placeOf.get(player);
+    return index === undefined ? null : places[index];
   });
 }

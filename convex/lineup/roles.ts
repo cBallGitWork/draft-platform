@@ -82,6 +82,10 @@ const BACK_THREE_ROLES: readonly Role[] = [
 /** How many centre-backs a formation needs before its centre-backs are offered sweeper and libero. */
 export const BACK_THREE = 3;
 
+/** The two roles `takesRole` holds to their own positions (spec/05 `S05.29`). */
+const PRESSING_WINGER = "pressingWinger";
+const FALSE_NINE = "falseNine";
+
 /** spec/05's default set, by the position each slot stands for: each slot's first is the one a
  *  player starts on until stars are built (spec/05 Roles). */
 export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
@@ -137,7 +141,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("dribbler", "Dribbler", "DRB", "Runs at his full-back and takes him on, again and again, heading for the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"], runOf([10, 4], [16, 12])),
     role("insideForward", "Inside forward", "IF", "Cuts in from the flank on the diagonal into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Big chances missed"], runOf([8, 6], [14, 18])),
     role("widePlaymaker", "Wide playmaker", "WP", "Drifts inside from the flank into the pocket between their midfield and defence to create.", ["Key passes", "Through balls", "Big chances created"], ["Possession lost"], runOf([-2, 14])),
-    role("pressingWinger", "Pressing winger", "PW", "Curves in on their centre-back to press him, cutting off the pass out to their full-back.", ["Tackles won", "Recoveries"], ["Fouls"], runOf([8, 4], [12, 12])),
+    role(PRESSING_WINGER, "Pressing winger", "PW", "Curves in on their centre-back to press him, cutting off the pass out to their full-back.", ["Tackles won", "Recoveries"], ["Fouls"], runOf([8, 4], [12, 12])),
     role("trackingWinger", "Tracking winger", "TRW", "Tracks their full-back all the way back into his own third.", ["Tackles won", "Interceptions", "Blocks", "Clearances"], ["Dribbled past"], runOf([-44, -1])),
   ],
   CAM: [
@@ -151,7 +155,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("targetMan", "Target man", "TM", "Wins it in the air and holds it up for others.", ["Aerials won"], ["Aerials lost"]),
     role("inBehindStriker", "In-behind striker", "IBS", "Runs across and in behind their back line, then carries it at goal.", ["Dribbles won", "Fouls drawn"], ["Offsides"], runOf([3, -8], [6, 8])),
     role("pressingForward", "Pressing forward", "PF", "Harries their back line, pressing from one centre-back across to the other.", ["Tackles won", "Interceptions", "Recoveries"], ["Fouls"], runOf([5, -10], [5, 10])),
-    role("falseNine", "False 9", "F9", "Drops deep from up front into the number 10's space to make the chances.", ["Key passes", "Through balls", "Dribbles won", "Accurate passes"], ["Dispossessed"], runOf([-16, 2])),
+    role(FALSE_NINE, "False 9", "F9", "Drops deep from up front into the number 10's space to make the chances.", ["Key passes", "Through balls", "Dribbles won", "Accurate passes"], ["Dispossessed"], runOf([-16, 2])),
   ],
 };
 
@@ -180,9 +184,9 @@ export const rolesOfSlot = (cell: Cell, formation: Formation): readonly Role[] =
  *  standing outside his areas (lineup.ts's outsideHisAreas). */
 export function takesRole(positions: readonly Position[], key: string): boolean {
   if (positions.length === 0) return true;
-  if (key === "pressingWinger") return positions.includes("W");
+  if (key === PRESSING_WINGER) return positions.includes("W");
   if (!DEFAULT_ROLES.ST.some((each) => each.key === key)) return true;
-  return positions.includes("ST") || positions.includes("SS") || (key === "falseNine" && positions.includes("CAM"));
+  return positions.includes("ST") || positions.includes("SS") || (key === FALSE_NINE &&positions.includes("CAM"));
 }
 
 /** The roles this slot offers in this formation that a player with these positions may take, in the
