@@ -42,7 +42,7 @@ function stringValue(expression) {
   return node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) ? node : undefined;
 }
 
-/** Each registered constant a parsed file exports: { name, value, path, node }. */
+/** Each registered constant a parsed file exports: { name, value, path }. */
 function exportedConstants(path, source) {
   return source.statements.flatMap((statement) => {
     if (!ts.isVariableStatement(statement)) return [];
@@ -52,7 +52,7 @@ function exportedConstants(path, source) {
       const literal = stringValue(declaration.initializer);
       if (!ts.isIdentifier(declaration.name) || !SCREAMING_CASE.test(declaration.name.text) || !literal) return [];
       if (!WIRE_VALUE.test(literal.text)) return [];
-      return [{ name: declaration.name.text, value: literal.text, path, node: literal }];
+      return [{ name: declaration.name.text, value: literal.text, path }];
     });
   });
 }
