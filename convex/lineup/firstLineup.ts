@@ -140,5 +140,5 @@ function placedInPickOrder(
 function canFill(cells: readonly Cell[], players: readonly number[], positions: PlayerPositions): boolean {
   if (cells.length > players.length) return false;
   const playersFor = (cellIndex: number) => players.filter((playerCode) => playsCell(positions.get(playerCode) ?? [], cells[cellIndex]));
-  return matched(cells.map((_, cellIndex) => cellIndex),playersFor, (playerCode) => playerCode).size === cells.length;
+  return matched(cells.map((_, cellIndex) => cellIndex), playersFor, (playerCode) => playerCode).size === cells.length;
 }
