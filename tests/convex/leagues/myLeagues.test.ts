@@ -19,6 +19,7 @@ import {
 } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, linkCode, linkNotSentLine, openLink, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // "Your leagues" (spec/12): what signIn/account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -40,9 +41,9 @@ describe("a person's leagues", () => {
 
     expect(await accountOf(ANN)).toMatchObject({
       inLeague: true,
-      leagues: [{ leagueId, name: LEAGUE_NAME, roles: ["manager"], teamName: "Team 1", teams: 2, maxTeams: 4 }],
+      leagues: [{ leagueId, name: LEAGUE_NAME, roles: ["manager"], teamName: teamNumbered(1), teams: 2, maxTeams: 4 }],
     });
-    expect((await accountOf(COMMISSIONER)).leagues).toMatchObject([{ roles: ["commissioner", "manager"], teamName: "Team 2" }]);
+    expect((await accountOf(COMMISSIONER)).leagues).toMatchObject([{ roles: ["commissioner", "manager"], teamName: teamNumbered(2) }]);
   });
 
   test("a commissioner with no team, and a co-commissioner, are in the league", async () => {
@@ -169,8 +170,8 @@ test("#24 Done: a league of four fills, renames, refuses a duplicate, keeps a le
 
   expect((await teamsIn(t, leagueId)).map(({ name, managerEmail }) => [name, managerEmail])).toEqual([
     ["Red Army", ANN],
-    ["Team 2", undefined],
-    ["Team 3", CAT],
-    ["Team 4", DAN],
+    [teamNumbered(2), undefined],
+    [teamNumbered(3), CAT],
+    [teamNumbered(4), DAN],
   ]);
 });

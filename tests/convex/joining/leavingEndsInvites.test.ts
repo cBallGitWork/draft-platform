@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
 import { MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager who is removed or leaves loses the league at once (spec/13, Leaving), so an older
 // invite they never used mustn't bring them back at their next sign-in (#133).
@@ -33,7 +34,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: undefined }]);
+    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
     expect((await inviteOf(inviteId))?.cancelledAt).toBe(Date.now());
   });
 
@@ -44,7 +45,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: undefined }]);
+    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
     expect((await inviteOf(inviteId))?.cancelledAt).toBe(Date.now());
   });
 
@@ -56,7 +57,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await invite(t, leagueId, ANN, annsTeam);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: ANN }]);
+    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("their live invite to another league is left alone", async () => {
@@ -66,7 +67,7 @@ describe("a manager who is removed or leaves (#133)", () => {
     await commissionerRemoves(annsTeam);
     await openLastLinkTo(t, sent, ANN);
 
-    expect((await inviteOf(otherInvite))?.joined?.teamName).toBe("Team 1");
+    expect((await inviteOf(otherInvite))?.joined?.teamName).toBe(teamNumbered(1));
     expect((await teamsIn(t, otherLeague)).map((team) => team.managerEmail)).toEqual([ANN]);
   });
 });

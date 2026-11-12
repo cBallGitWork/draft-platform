@@ -53,6 +53,10 @@ export type PlayerRow = Omit<WithoutSystemFields<Doc<"players">>, "droppedAt">;
 /** A code the football sync holds no player for (#323). */
 export const UNHELD = 9999;
 
+/** A match the match-stats sync read at full time and locked, all at `at`. */
+export const insertLockedStatus = (ctx: MutationCtx, fixtureCode: number, at: number) =>
+  ctx.db.insert("matchStatsStatus", { fixtureCode, state: "locked", fullTimeAt: at, lockedAt: at, lastReadAt: at });
+
 /** A player who has left the Premier League: a players row only, no positions. */
 export const GONE: PlayerRow = { code: 2001, name: "Gone", fullName: "Long Gone", clubCode: ARSENAL.code };
 

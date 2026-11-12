@@ -12,6 +12,7 @@ import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 import { expectRefused } from "../../support/convex/test.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Assigning players (#31, spec/15 Assigning players): the commissioners and the admin put any
 // player on any team, move him, or release him; one team per player in a league; each files a
@@ -99,7 +100,7 @@ describe("a player is on one team in a league at most", () => {
   test("assigning one already on a team is refused, saying where he is", async () => {
     const commissioner = await as(COMMISSIONER);
     await commissioner.assign(SAKA, teams[0]);
-    await expectRefused(commissioner.assign(SAKA, teams[1]), squadRefusals.alreadyOwned("Saka", "Team 1"));
+    await expectRefused(commissioner.assign(SAKA, teams[1]), squadRefusals.alreadyOwned("Saka", teamNumbered(1)));
     expect(await squadCodes()).toEqual([[SAKA], [], [], []]);
   });
 
@@ -130,9 +131,9 @@ describe("a player is on one team in a league at most", () => {
 
 describe("each change files one letter to the league", () => {
   test.each([
-    ["assigning", async () => {}, (c: Commissioner) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: "Team 1" }],
-    ["moving", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.move(SAKA, teams[1]), { kind: "playerMoved", fromTeamName: "Team 1", teamName: "Team 2" }],
-    ["releasing", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.release(SAKA), { kind: "playerReleased", teamName: "Team 1" }],
+    ["assigning", async () => {}, (c: Commissioner) => c.assign(SAKA, teams[0]), { kind: "playerAssigned", teamName: teamNumbered(1) }],
+    ["moving", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.move(SAKA, teams[1]), { kind: "playerMoved", fromTeamName: teamNumbered(1), teamName: teamNumbered(2) }],
+    ["releasing", (c: Commissioner) => c.assign(SAKA, teams[0]), (c: Commissioner) => c.release(SAKA), { kind: "playerReleased", teamName: teamNumbered(1) }],
   ])("%s", async (_what, setUp, change, event) => {
     const commissioner = await as(COMMISSIONER);
     await setUp(commissioner);
@@ -182,7 +183,7 @@ describe("refused, saying why, and nothing changes", () => {
   test("moving him to the team he's on", async () => {
     const commissioner = await as(COMMISSIONER);
     await commissioner.assign(SAKA, teams[0]);
-    await expectRefused(commissioner.move(SAKA, teams[0]), squadRefusals.alreadyThere("Saka", "Team 1"));
+    await expectRefused(commissioner.move(SAKA, teams[0]), squadRefusals.alreadyThere("Saka", teamNumbered(1)));
   });
 
   test("a team from another league", async () => {
@@ -232,7 +233,7 @@ describe("finding a player", () => {
   test("by name, with his team in this league, never one who has left", async () => {
     const commissioner = await as(COMMISSIONER);
     await commissioner.assign(SAKA, teams[0]);
-    expect(await commissioner.find("Saka")).toEqual([{ code: SAKA, name: "Saka", fullName: "Bukayo Saka", teamName: "Team 1" }]);
+    expect(await commissioner.find("Saka")).toEqual([{ code: SAKA, name: "Saka", fullName: "Bukayo Saka", teamName: teamNumbered(1) }]);
     expect(await commissioner.find("Gone")).toEqual([]);
     expect(await commissioner.find("  ")).toEqual([]);
   });

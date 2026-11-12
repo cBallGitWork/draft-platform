@@ -27,12 +27,13 @@ import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRow
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 export { GAMEWEEK };
 export const [ANN, BOB, CAT] = MANAGERS;
 /** Ann's and Bob's teams, as the league names a new team (convex/leagues/teams.ts). */
-export const ANNS_TEAM = "Team 1";
-export const BOBS_TEAM = "Team 2";
+export const ANNS_TEAM = teamNumbered(1);
+export const BOBS_TEAM = teamNumbered(2);
 
 /** Hull v Everton's kickoff as this league replays it, not FPL's recorded KICKOFF in
  *  matchStats.harness: a week after signInDeployment's clock, so the league is made before

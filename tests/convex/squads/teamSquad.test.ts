@@ -16,6 +16,7 @@ import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.examp
 import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, UNHELD, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Squad tab (#364): every player in the manager's squad with his positions, club, his
 // club's next match, and his season's and last gameweek's points: what his team got from him, the
@@ -90,13 +91,13 @@ test("someone running no team in the league is refused", async () => {
 });
 
 test("another manager reads his own team's squad, not Ann's", async () => {
-  expect(await read(BOB)).toMatchObject({ teamName: "Team 2", players: [] });
+  expect(await read(BOB)).toMatchObject({ teamName: teamNumbered(2), players: [] });
 });
 
 describe("the rows", () => {
   test("hold every player in the squad, back to front by position, with his club and positions", async () => {
     const { teamName, players } = await read();
-    expect(teamName).toBe("Team 1");
+    expect(teamName).toBe(teamNumbered(1));
     expect(players.map(({ name, positions, club }) => [name, positions, club.shortName])).toEqual([
       ["Raya", ["GK"], "ARS"],
       ["Palmer", ["CAM"], "CHE"],

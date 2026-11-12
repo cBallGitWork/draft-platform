@@ -10,6 +10,7 @@ import { actingAs, lettersTo } from "../../support/convex/leagues.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's weekly recap (#387; spec/12, League home): once every match of the gameweek is
 // final, Claude writes one recap for the league from facts only, Mail says it is up, and League
@@ -141,7 +142,7 @@ test("past the most tries it stops trying", async () => {
 });
 
 test("the top performers are the three starters who scored most for their team; the letdowns the three who scored least of the rest", () => {
-  const man = (player: string, points: number) => ({ player, team: "Team 1", points });
+  const man = (player: string, points: number) => ({ player, team: teamNumbered(1), points });
   const starters = [man("A", 2), man("B", 12), man("C", 9), man("D", -1), man("E", 9), man("F", 6), man("G", 1)];
   expect(performersOf(starters)).toEqual({
     topPerformers: [man("B", 12), man("C", 9), man("E", 9)],
