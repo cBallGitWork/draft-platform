@@ -49,6 +49,8 @@ Nothing in it is a test. Each kind of file:
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
   beside them loads and types each set, and says when it was recorded and how it was cut.
+- **`convex/featureImports.breaches.ts`**, the imports past ARCHITECTURE.md's rules 4 and 5 that
+  `tests/convex/featureImports.test.ts` found on main, on lists that only shrink.
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the
   first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):

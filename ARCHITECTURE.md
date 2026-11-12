@@ -456,10 +456,13 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    Link component, its seam's types, its `paths.ts`, its `live<Feature>.ts` (into another's
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
-   features say move to `src/shared/words.ts` (#1330). `tests/convex/featureImports.test.ts`
-   holds both, with the imports still to move on a list that only shrinks (#1581). No import
-   cycles (`tests/convex/importCycles.test.ts`).
+   features say move to `src/shared/words.ts` (#1330). Only `convex/schema.ts` imports a
+   `convex/schema/` file. `tests/convex/featureImports.test.ts` holds all three, with the imports
+   still to move on lists that only shrink (#1581, #1815). No import cycles
+   (`tests/convex/importCycles.test.ts`).
 5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
+   `tests/convex/featureImports.test.ts` counts the features importing each file, in `src/` and
+   in `convex/`, with the files still to move on a list that only shrinks (#1815).
 6. A file stops at 300 lines and is split along a seam; a folder past about 12 files gets a
    sub-folder (above). `convex/lineup` (21 files), `convex/scoring` (21) and `convex/stats` (17)
    stay flat (8 Nov 2026): each is one job (a team's lineup, the site's scoring set, the match
