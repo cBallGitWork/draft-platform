@@ -4,6 +4,7 @@
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { ADMIN_TITLE } from "../../../src/admin/words";
+import type { PreviewName } from "../../../src/app/preview";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { FEEDBACK_TITLE } from "../../../src/feedback/words";
 import { DRAFT_TITLE, stateWords } from "../../../src/draft/words";
@@ -57,7 +58,7 @@ import { TRADES_TITLE } from "../../../src/trades/words";
 
 /** One built screen: the preview session that reaches it (src/app/preview.ts), its address, and its
  *  page's title. */
-export type BuiltScreen = readonly [session: string, path: string, title: string];
+export type BuiltScreen = readonly [session: PreviewName, path: string, title: string];
 
 /** The player whose card the run opens: Scouting's first preview player, in the manager's league. */
 const [cardPlayer] = previewPlayers;

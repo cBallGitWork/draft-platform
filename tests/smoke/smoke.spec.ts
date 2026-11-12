@@ -4,6 +4,7 @@
 import { expect, type Page } from "@playwright/test";
 import { FIRST_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
+import { previewAddress } from "../../src/app/preview";
 import { miniBeta } from "../../src/shared/preview";
 import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { everyTeamWords, gotWords, newsKindWords, newsTableLabel, teamFilterLabel } from "../../src/home/words";
@@ -82,7 +83,7 @@ async function pickFormation(page: Page, name: string) {
 
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("?preview=manager mounts the manager's landing page", async ({ page }) => {
-    await page.goto("/?preview=manager");
+    await page.goto(previewAddress("/", "manager"));
     await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation", { name: mainMenuLabel })).toBeVisible();
     await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
@@ -96,7 +97,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
   // League home's News tab (#1356), on the preview's made-up moves (src/home/preview.ts).
   test("the News tab shows the newest move, narrows by Team, and opens a row's detail", async ({ page }) => {
-    await page.goto(`${HOME_NEWS_PATH}?preview=manager`);
+    await page.goto(previewAddress(HOME_NEWS_PATH, "manager"));
     const moves = page.getByRole("table", { name: newsTableLabel });
     await expect(moves.getByRole("row").nth(1)).toContainText("Kroos Control");
     await expect(moves.getByRole("row").nth(1)).toContainText("Kudus");
@@ -115,7 +116,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   });
 
   test("?preview=visitor shows the sign-in page", async ({ page }) => {
-    await page.goto("/?preview=visitor");
+    await page.goto(previewAddress("/", "visitor"));
     await expect(page).toHaveURL((url) => url.pathname === SIGN_IN_PATH);
     await expect(page.getByRole("heading", { name: signInWords.title })).toBeVisible();
     await expect(page.getByRole("button", { name: signInWords.send })).toBeVisible();
@@ -127,7 +128,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       test.use({ viewport });
 
       test("is a real pitch's shape, and its whole length fits the window", async ({ page }) => {
-        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        await page.goto(previewAddress(MY_TEAM_PATH, "manager"));
         const box = (await page.getByRole("group", { name: pitchLabel }).boundingBox())!;
         expect(box.width / box.height, "width over length").toBeCloseTo(PITCH_ASPECT, 2);
         expect(box.height, "its length, against the window's height").toBeLessThanOrEqual(viewport.height);
@@ -140,7 +141,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       });
 
       test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {
-        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        await page.goto(previewAddress(MY_TEAM_PATH, "manager"));
         for (const { name } of FIRST_PRESETS) {
           await pickFormation(page, name);
           await expectPlayersApart(page, viewport === PHONE, name);
@@ -155,7 +156,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       // The roles' runs (spec/05 Runs; #846): every one on the desk, with a switch to hide them;
       // on a phone only the tapped player's.
       test("shows the roles' runs as the desk or the phone should", async ({ page }) => {
-        await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+        await page.goto(previewAddress(MY_TEAM_PATH, "manager"));
         const thePitch = page.getByRole("group", { name: pitchLabel });
         const runs = thePitch.locator(`[${RUN_MARK}]`);
         const shownRuns = async () => (await runs.evaluateAll((all) => all.filter((run) => getComputedStyle(run).display !== "none"))).length;
@@ -216,16 +217,13 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         .evaluate((title) => title.parentElement!.getBoundingClientRect().width);
     };
     const SHARING_THE_WIDTH = [
-      `${squadsPath(miniBeta.leagueId)}?preview=commissioner`,
-      `${invitesPath(miniBeta.leagueId)}?preview=commissioner`,
-      `${ADMIN_PATH}?preview=admin`,
-      `${ADMIN_FEEDS_PATH}?preview=admin`,
-      `${ADMIN_FEEDBACK_PATH}?preview=admin`,
-      `${ADMIN_AVAILABILITY_PATH}?preview=admin`,
+      previewAddress(squadsPath(miniBeta.leagueId), "commissioner"),
+      previewAddress(invitesPath(miniBeta.leagueId), "commissioner"),
+      ...[ADMIN_PATH, ADMIN_FEEDS_PATH, ADMIN_FEEDBACK_PATH, ADMIN_AVAILABILITY_PATH].map((path) => previewAddress(path, "admin")),
     ];
     for (const path of SHARING_THE_WIDTH) {
       test(`${path} is as wide as Scouting`, async ({ page }) => {
-        const scouting = await titleWidth(page, `${SCOUTING_PATH}?preview=manager`);
+        const scouting = await titleWidth(page, previewAddress(SCOUTING_PATH, "manager"));
         expect(await titleWidth(page, path)).toBeCloseTo(scouting, 0);
       });
     }
@@ -233,7 +231,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     // The formation window, opened, is on screen whole in the desk's window, Cancel and Use this
     // inside it, in its longest group too (the approved formation window; #1159).
     test("the formation window, on its longest group, fits the window with Cancel and Use this inside it", async ({ page }) => {
-      await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+      await page.goto(previewAddress(MY_TEAM_PATH, "manager"));
       await page.getByRole("button", { name: allFormationsWords }).click();
       await page.getByRole("button", { name: backGroupPattern(4) }).click();
       const window = page.getByRole("region", { name: WINDOW_TITLE });
@@ -252,7 +250,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
     for (const [session, path, title] of BUILT_SCREENS) {
       test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
-        await page.goto(`${path}${path.includes("?") ? "&" : "?"}preview=${session}`);
+        await page.goto(previewAddress(path, session));
         await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
         const { scrollWidth, innerWidth } = await page.evaluate(() => ({
@@ -275,7 +273,7 @@ test.describe("production bundle, no VITE_CONVEX_URL", { tag: "@bundle" }, () =>
 
   // src/app/preview.ts's import.meta.env.DEV guard: the bundle must never hand out a preview session.
   test("?preview=manager does not open the preview frame", async ({ page }) => {
-    await page.goto("/?preview=manager");
+    await page.goto(previewAddress("/", "manager"));
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
     await expect(page.getByRole("navigation", { name: mainMenuLabel })).toHaveCount(0);
     await expect(page.getByRole("banner")).toHaveCount(0);

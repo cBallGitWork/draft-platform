@@ -7,6 +7,7 @@
 // Usage: node scripts/shoot.mjs <route> [name] [--phone]
 //   node scripts/shoot.mjs / sign-in
 //   node scripts/shoot.mjs "/team/squad?preview=manager" squad --phone
+// A preview session's address is src/app/preview.ts's previewAddress, as the smoke specs build it.
 // The app must be running on this checkout's port (scripts/port.mjs); APP_URL overrides it.
 
 import { mkdirSync } from "node:fs";

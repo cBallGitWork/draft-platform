@@ -6,6 +6,7 @@
 
 import { expect } from "@playwright/test";
 import { MY_TEAM_PATH } from "../../src/frame/menu";
+import { previewAddress } from "../../src/app/preview";
 import { moveLabel, pitchLabel, playerOnPitchLabel, savedWords, selectionTableLabel, swapLabel } from "../../src/myTeam/tactics/words";
 import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
@@ -23,7 +24,7 @@ test.describe("the lineup, on the dev server's preview", { tag: "@dev" }, () => 
 
   test("swaps a starter with a bench player, saves, and the pitch shows it", async ({ page }) => {
     await page.clock.setFixedTime(NOW);
-    await page.goto(`${MY_TEAM_PATH}?preview=manager`);
+    await page.goto(previewAddress(MY_TEAM_PATH, "manager"));
     const pitch = page.getByRole("group", { name: pitchLabel });
     const onPitch = (name: string) => pitch.getByRole("button", { name: playerOnPitchLabel(name, ["ST"], UP_FRONT.area, UP_FRONT.lane) });
     await expect(onPitch(HAALAND)).toBeVisible();

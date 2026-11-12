@@ -7,6 +7,7 @@
 
 import { expect } from "@playwright/test";
 import { DRAFT_PATH } from "../../src/frame/menu";
+import { previewAddress } from "../../src/app/preview";
 import { BOARD_TITLE, draftPlayerWords, notLegalWords, PLAYERS_TITLE, selectLabel } from "../../src/draft/words";
 import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
@@ -20,7 +21,7 @@ test.describe("the draft room, on the dev server's preview", { tag: "@dev" }, ()
   test.use({ viewport: DESK });
 
   test("refuses a player the squad can't hold, and drafts one it can", async ({ page }) => {
-    await page.goto(`${DRAFT_PATH}?preview=manager`);
+    await page.goto(previewAddress(DRAFT_PATH, "manager"));
     await expect(page.getByRole("region", { name: BOARD_TITLE, exact: true })).toBeVisible();
     const players = page.getByRole("region", { name: new RegExp(`^${PLAYERS_TITLE}`) });
 

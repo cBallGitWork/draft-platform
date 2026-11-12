@@ -4,6 +4,7 @@
 
 import { expect } from "@playwright/test";
 import { MATCHUP_PATH, TABLE_PATH } from "../../src/frame/menu";
+import { previewAddress } from "../../src/app/preview";
 import { previousGameweekLabel } from "../../src/shared/words";
 import { competitionsLabel, competitionWords, CUP_TITLE, cupRounds, FIXTURES_TITLE, TABLE_PAGE_TITLE, TABLE_TITLE, type Competition } from "../../src/table/words";
 import { test } from "../support/smoke/errorsTest";
@@ -16,7 +17,7 @@ test.describe("the table and fixtures, on the dev server's preview", { tag: "@de
     const tab = (competition: Competition) =>
       page.getByRole("group", { name: competitionsLabel }).getByRole("button", { name: competitionWords[competition], exact: true });
 
-    await page.goto(`${TABLE_PATH}?preview=manager`);
+    await page.goto(previewAddress(TABLE_PATH, "manager"));
     await expect(page.getByRole("heading", { level: 1, name: TABLE_PAGE_TITLE })).toBeVisible();
     await expect(tab("league")).toHaveAttribute("aria-pressed", "true");
     const region = (name: string) => page.getByRole("region", { name, exact: true });
