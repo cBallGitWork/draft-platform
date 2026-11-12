@@ -3,10 +3,10 @@ import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { AREAS } from "../lineup/pitch";
 import { positionsNow } from "../positions/playerPositions";
-import { setOf, siteVersions } from "../scoring/siteVersions";
+import { latestSiteScoring } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { periodTotals } from "./period";
-import { period, type Period } from "./periods";
+import { DEFAULT_PERIOD, period, type Period } from "./periods";
 import { isRanked, mainArea, per90PanelOf, type Weighed } from "./per90Figures";
 import { checkShownStat, withOwnTotals } from "./playersList";
 
@@ -43,7 +43,7 @@ export type Per90Panel = Infer<typeof per90Panel>;
 export const figures = query({
   args: { leagueId: v.id("leagues"), playerCode: v.number(), stat: v.union(v.string(), v.null()), period: v.optional(period) },
   returns: per90Panel,
-  handler: async (ctx, { leagueId, playerCode, stat, period = "season" }): Promise<Per90Panel> => {
+  handler: async (ctx, { leagueId, playerCode, stat, period = DEFAULT_PERIOD }): Promise<Per90Panel> => {
     await memberOf(ctx, leagueId);
     const { weighed, ranked } = await weigher(ctx, leagueId, stat, period);
     return per90PanelOf(await weighed(playerCode), ranked, stat);
@@ -55,7 +55,7 @@ export const figures = query({
  *  player with enough minutes to be ranked, weighed. A stat neither the catalogue nor the site's set holds is
  *  refused. */
 export async function weigher(ctx: QueryCtx, leagueId: Id<"leagues">, stat: string | null, over: Period) {
-  const set = setOf((await siteVersions(ctx)).at(-1));
+  const set = await latestSiteScoring(ctx);
   if (stat !== null) checkShownStat(stat, set.ownStats ?? []);
   const positionsOf = await positionsNow(ctx, leagueId);
   const { totals } = await periodTotals(ctx, over);

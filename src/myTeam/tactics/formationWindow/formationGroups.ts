@@ -2,10 +2,8 @@
 // presets by how many stand in defence, back three, four and five. Pure, so the window and its tests
 // read them alike.
 
-import { backOf, type Cell } from "../../../../convex/lineup/pitch";
-
-/** A league's preset, as its rules hold it. */
-export type Shape = { name: string; cells: readonly Cell[] };
+import { backOf } from "../../../../convex/lineup/pitch";
+import type { PresetShape as Shape } from "../lineupEdits";
 
 /** One group of formations: how many it puts in defence, and its formations in the league's order. */
 export type BackGroup = { back: number; shapes: Shape[] };

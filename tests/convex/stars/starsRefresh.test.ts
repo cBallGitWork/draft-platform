@@ -3,13 +3,13 @@ import { internal } from "../../../convex/_generated/api";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
+import { MATCH_RECORDS_MOST } from "../../../convex/stats/matchRecordReads";
 import { REFRESH_COMMAND } from "../../../convex/stars/starsRefresh";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { UNSURE } from "../../../convex/stars/starsShape";
 import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
-import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { everyJobRuns, freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
 import {
   BLANK,
@@ -19,7 +19,6 @@ import {
   lockedRecord,
   MATCHES,
   NEWCOMER,
-  refreshesRun,
   refreshEveryone,
   SCORER,
   STEADY,
@@ -78,7 +77,7 @@ test("a match locking with no stars held yet refreshes every player", async () =
   const t = freshConvex();
   await holdStarsPlayers(t);
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: MATCHES[0] });
-  await refreshesRun(t);
+  await everyJobRuns(t);
   expect(await asOne(t, SCORER.code)).toBe(5);
   expect(await asOne(t, CAMEO.code)).toBe(1);
 });
@@ -92,7 +91,7 @@ test("a later lock works out its own players again and ranks everyone: Blank's f
   });
 
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: LATE });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 
   // Blank: (2 + 2 + 2 + 22) / 4 = 7 a match, now above Steady's 6.
   expect((await starsRows(t)).get(BLANK.code)).toMatchObject({ matches: 4 });
@@ -145,7 +144,7 @@ test(`a refresh of everyone goes a page of ${PLAYERS_PAGE} players at a time`, a
 
   expect(await pendingJobs(t, internal.stars.starsRefresh.refreshAll)).toHaveLength(1);
   expect(await pendingJobs(t, internal.stars.starsRefresh.rank)).toHaveLength(0);
-  await refreshesRun(t);
+  await everyJobRuns(t);
   expect(await pendingJobs(t)).toHaveLength(0);
 });
 
@@ -191,7 +190,7 @@ test("a player whose record can't be priced keeps the stars he had, said, and th
   });
 
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: LATE });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 
   expect((await starsRows(t)).get(STEADY.code)?.matches).toBe(before?.matches);
   expect((await starsRows(t)).get(BLANK.code)).toMatchObject({ matches: 4 });

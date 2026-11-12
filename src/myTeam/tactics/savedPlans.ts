@@ -8,15 +8,12 @@
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import { sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { offersRole, roleIn } from "../../../convex/lineup/roles";
-import { onSetRole, presetOfCells, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { onSetRole, presetOfCells, type EditedLineup, type MoveRules, type PresetShape as Preset, type RatingsOf } from "./lineupEdits";
 import { reshaped } from "./reshape";
 
 /** A saved plan: a formation, each slot's role and both team instructions (#990), by name, never
  *  players. A plan saved before the instructions holds none. */
 export type Plan = { name: string; slots: readonly (Cell & { role: string })[]; instructions?: InstructionPair };
-
-/** A league preset, as its rules hold it. */
-type Preset = { name: string; cells: readonly Cell[] };
 
 /** What Save preset… keeps of the pitch: each starter's cell and the role he plays there. */
 export const planSlotsOf = ({ starters }: EditedLineup): Plan["slots"] =>

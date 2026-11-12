@@ -21,15 +21,11 @@ const signInAskFields = {
   sendError: v.optional(v.string()),
 };
 
-/** The emails the app sent on one UTC day, against Resend's daily limit (ARCHITECTURE.md). */
-const emailSendFields = { day: v.string(), count: v.number() };
-
 export const signInTables = {
   allowedEmails: defineTable(allowedEmailFields).index("by_email", ["email"]),
   signInAsks: defineTable(signInAskFields)
     .index("by_email_and_askedAt", ["email", "askedAt"])
     .index("by_askedAt", ["askedAt"]),
-  emailSends: defineTable(emailSendFields).index("by_day", ["day"]),
   /** Each person's own time zone, as their browser last named it, so what they read tells time
    *  in it (#442). One row per email. */
   timeZones: defineTable({ email: v.string(), zone: v.string() }).index("by_email", ["email"]),

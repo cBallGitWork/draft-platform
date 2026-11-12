@@ -120,5 +120,7 @@ otherwise) in `convex/positions/positionSettings.ts`. The dashboard's screen is 
 FPL's players (the join), both seasons' fixture lists, the sheets of up to 150 played matches not
 yet read, oldest first and one at a time, and this season's twenty squads. Every run is a row in
 `positionsSyncs`; a failed read fails the run, keeping the matches filed before it. The first run
-after deploy leaves 300 matches for two more. Nothing schedules it yet: once a day would do, since positions change only between
-gameweeks (spec/06), and a matchday's sheets are final by the next morning.
+after deploy leaves 300 matches for two more when run by hand, as one run by hand stays one run.
+A cron runs it daily at 06:00 UK time (#1194, `convex/crons.ts`), since positions change only
+between gameweeks (spec/06) and a matchday's sheets are final by the next morning; a cron's run
+with matches left carries on at once, while it still files some (`convex/positions/positionsSync.ts`).

@@ -80,4 +80,5 @@ How invites, the invite link and join requests work in detail is in
 - Needed by then: creating a league and naming its commissioner, inviting managers, assigning
   players, editing the scoring set, overriding a score, approving and correcting positions, and the feeds page.
   The rest (draft controls, trade veto, fixture editing, handing a team on, the auto team) by
-  August.
+  August. Since built: draft controls (#1101), the trade veto (#383) and the auto team (#1207).
+  `S15.4`

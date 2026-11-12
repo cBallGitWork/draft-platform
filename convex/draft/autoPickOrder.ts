@@ -47,7 +47,7 @@ export function autoPickOrder(
 }
 
 /** The ranking auto-pick falls back on, by FPL code: `players` by last season's points
- *  (lastSeasonPoints.ts), high to low, level players A to Z by name, then newcomers, missing from
+ *  (pastSeasons/lastSeasonPoints.ts), high to low, level players A to Z by name, then newcomers, missing from
  *  `points`, A to Z. */
 export function fallbackRanking(players: readonly AutoPickPlayer[], points: ReadonlyMap<number, number>): number[] {
   return [...players].sort((one, other) => byPoints(one, other, points)).map(({ code }) => code);

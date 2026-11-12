@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
+import { MATCH_RECORDS_MOST } from "../../../convex/stats/matchRecordReads";
 import { inTenths } from "../../../convex/scoring/values";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { POINTS_REBUILD_COMMAND } from "../../../convex/stats/seasonRebuilds";
 import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
-import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import {
   GW1,
   GW2,
@@ -34,7 +34,7 @@ beforeEach(async () => {
 });
 
 const sakaPoints = async () => (await pointsListed(league)).get(SAKA.code);
-const runQueued = () => league.t.finishAllScheduledFunctions(vi.runAllTimers);
+const runQueued = () => everyJobRuns(league.t);
 const rowsKept = () => league.t.run(async (ctx) => (await ctx.db.query("playerSeasonPoints").collect()).length);
 
 const { state: _state, ...sakaGw3 } = record(SAKA.code, GW3.code, { minutes: 90, goals_scored: 4 });

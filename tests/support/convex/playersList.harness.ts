@@ -28,11 +28,15 @@ export async function playersListed(
   return { ...list, players: withFirstRuns(listOf(list.players, filters, sort), runs), kept: undefined };
 }
 
-/** The list as the server sends it to `as`, once every player's Scouting row is copied from what
- *  the test holds: tests write players, positions and season totals straight to their tables,
- *  past the writers that keep those rows (scoutingPlayers.ts, #1559; scoutingPlayers.test.ts
- *  checks the writers). */
-export async function serverList(as: Reader, args: FunctionArgs<typeof api.scouting.playersList.list>): Promise<ListedRows> {
+/** Copies every player's Scouting row from what the test holds: tests write players, positions and
+ *  season totals straight to their tables, past the writers that keep those rows
+ *  (scoutingPlayers.ts, #1559; scoutingPlayers.test.ts checks the writers). */
+export async function keepEveryScoutingPlayer(as: Pick<Reader, "run">): Promise<void> {
   await as.run(async (ctx) => keepScoutingPlayers(ctx, (await ctx.db.query("players").collect()).map(({ code }) => code)));
+}
+
+/** The list as the server sends it to `as`, once every player's Scouting row is copied. */
+export async function serverList(as: Reader, args: FunctionArgs<typeof api.scouting.playersList.list>): Promise<ListedRows> {
+  await keepEveryScoutingPlayer(as);
   return as.query(api.scouting.playersList.list, args);
 }

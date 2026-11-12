@@ -9,6 +9,7 @@ import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/l
 import { adminCreatesLeague, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import { pendingJobs } from "../../support/convex/test.harness";
 import { BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // The waiver cron (#1198, spec/08): it runs each league's waivers at its run times, once, and only
 // at a time that was a run time when it came (#1468).
@@ -26,7 +27,7 @@ beforeEach(async () => {
 const ranAt = () => w.t.run(async (ctx) => (await ctx.db.query("waiverOrders").unique())?.ranAt);
 const runDue = async () => {
   await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-  await w.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(w.t);
 };
 
 describe("the cron", () => {

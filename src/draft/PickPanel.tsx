@@ -5,9 +5,8 @@ import { playerCardPath } from "../playerCard/paths";
 import { ClubShort } from "../ui/ClubName";
 import type { ListedPlayer } from "../scouting/seam";
 import { figureWords } from "../scouting/words";
-import { closeGlyph } from "../shared/words";
 import { useChange } from "../shared/useChange";
-import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
+import { CloseButton, PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { ClockLeft, type OnTheClock, type UndoWindow, useUndoLeft } from "./ClockLeft";
 import { whyNotWords } from "./DraftPlayers";
@@ -108,11 +107,7 @@ export function PickPanel({
   return (
     <Panel
       title={title}
-      aside={
-        <button type="button" aria-label={closePanelLabel} onClick={close} className="min-h-tap min-w-tap text-title leading-none">
-          {closeGlyph}
-        </button>
-      }
+      aside={<CloseButton label={closePanelLabel} close={close} className="text-title leading-none" />}
     >
       <div className={PANEL_BODY}>
         {/* The pick's line sits inside the button, under his name, as drawn; the button is named

@@ -8,12 +8,11 @@
 import type { Lineup } from "../lineup/lineup";
 import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
+import type { PlayerCode } from "../shared/players";
 import type { ScoringSet } from "./scoringSet";
 import { inTenths, type DoubleGameweekRule, type MatchStats } from "./values";
 import { countedMatches, scoreGameweek, scoreMatch, type MatchPoints, type TeamScoring } from "./scoring";
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
 
 /** One of a player's matches in the gameweek: his record, null until it has arrived, and whether
  *  the match is final, which is the match's own state (spec/07, Match stats), not his record's. */

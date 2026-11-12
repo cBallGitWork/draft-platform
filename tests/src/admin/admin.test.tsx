@@ -13,6 +13,7 @@ import { EMPTY_QUEUE } from "../../support/src/admin.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import { ADMIN_PATH } from "../../../src/admin/paths";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
+import { STARTS_FOR_A_POSITION } from "../../../convex/positions/positions";
 import {
   ADMIN_TITLE,
   approveClubWords,
@@ -44,6 +45,7 @@ import {
   setLabel,
   setWords,
   switchModeWords,
+  waitingHint,
   waitingTitle,
 } from "../../../src/admin/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -114,6 +116,11 @@ describe("the queue", () => {
     expect(within(waiting).getByText(proposalsWords(BARNES.proposals))).toBeTruthy();
     await userEvent.click(within(waiting).getByRole("button", { name: approveLabel("Barnes") }));
     expect(app.admin.approvePlayer).toHaveBeenCalledExactlyOnceWith(BARNES.code);
+  });
+
+  it("the starts-waiting hint names the server's starts at a place, in words", () => {
+    expect(STARTS_FOR_A_POSITION).toBe(3);
+    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them.");
   });
 
   it("says so when nothing waits", async () => {

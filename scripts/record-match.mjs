@@ -16,13 +16,13 @@
 // battery, and a closed lid still sleeps it): a sleeping Mac leaves gaps that look like a stalled feed.
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { join } from "node:path";
 import { getJson, plCommentaryUrl, plFixtureUrl, plTeamStatsUrl, TIMEOUT_MS, USER_AGENT } from "../convex/football/football.ts";
 import { errorMessage } from "../convex/shared/errors.ts";
 import { LOCALE } from "../convex/shared/moments.ts";
 import { HOUR_MS, MINUTE_MS, SECOND_MS } from "../convex/shared/time.ts";
 import { fixtureStatus, lastCommentary, summaryLine } from "./record-match-summary.mjs";
+import { CHECKOUT, ranDirectly } from "./thisScript.mjs";
 
 const POLL_MS = 30 * SECOND_MS;
 /** spec/10 wants the lineups "about an hour before kickoff"; when they first appear is one of #37's
@@ -40,7 +40,7 @@ const PAUSE_MS = SECOND_MS;
  *  PL_FULL_TIME in convex/football/premierLeague/premierLeague.ts, which plain node can't import: it imports "../football"
  *  with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const FULL_TIME = "C";
-const RECORDINGS_DIR = join(dirname(dirname(fileURLToPath(import.meta.url))), ".recordings");
+const RECORDINGS_DIR = join(CHECKOUT, ".recordings");
 /** The most of a failed answer's text a poll keeps: enough for an error page, not a whole feed. */
 export const SAVED_TEXT_LIMIT = 20_000;
 const POLL_FILE_SUFFIX = ".json";
@@ -187,7 +187,7 @@ export function summarise(dir) {
   }
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   const [id, flag] = process.argv.slice(2);
   if (!/^\d+$/.test(id ?? "") || (flag !== undefined && flag !== "--summary")) {
     console.error("Usage: node scripts/record-match.mjs <fixtureId> [--summary]");

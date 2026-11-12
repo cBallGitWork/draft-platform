@@ -1,7 +1,7 @@
 # The draft room
 
-Route: none yet. The draft room is in the menu, as "Draft", from the moment the league is set up
-(`spec/04`, Starting it). Its route and preview are named by the first slice that builds it.
+Route: `/draft`, checked on `/draft?preview=manager`. The draft room is in the menu, as "Draft",
+from the moment the league is set up (`spec/04`, Starting it).
 
 ## The pictures
 

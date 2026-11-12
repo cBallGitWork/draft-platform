@@ -5,7 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
 import { sameCell } from "../../../../convex/lineup/pitch";
 import { applyWords, CLASSIC_FORMATIONS, classicFormationTitleWords, inUseWords, WINDOW_TITLE } from "../../../../src/myTeam/tactics/formationWindow/words";
 import { allFormationsWords, customWords, instructionLabel, pitchTitle } from "../../../../src/myTeam/tactics/words";
@@ -31,8 +31,8 @@ describe("a classic (spec/05; #991)", () => {
   it("lists the league's eight, each with its formation's tag, its season and what it did", async () => {
     await openedPitch(IN_A_442);
     const window = await openClassicFormations();
-    expect(window.getByRole("button", { name: new RegExp(`^${CLASSIC_FORMATIONS}`) }).textContent).toBe(`${CLASSIC_FORMATIONS}${DEFAULT_CLASSIC_FORMATIONS.length}`);
-    expect(window.getAllByRole("radio").map((tile) => tile.getAttribute("aria-label"))).toEqual(DEFAULT_CLASSIC_FORMATIONS.map(({ name }) => name));
+    expect(window.getByRole("button", { name: new RegExp(`^${CLASSIC_FORMATIONS}`) }).textContent).toBe(`${CLASSIC_FORMATIONS}${FIRST_CLASSIC_FORMATIONS.length}`);
+    expect(window.getAllByRole("radio").map((tile) => tile.getAttribute("aria-label"))).toEqual(FIRST_CLASSIC_FORMATIONS.map(({ name }) => name));
     const tile = within(window.getByRole("radio", { name: KEEGANS.name }));
     expect(tile.getByText("4-4-2")).toBeTruthy();
     expect(tile.getByText(KEEGANS.subtitle)).toBeTruthy();
