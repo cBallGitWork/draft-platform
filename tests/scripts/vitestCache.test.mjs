@@ -1,10 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import config from "../../vitest.config.ts";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 // A typed import.meta.glob must see a file added since the last run; why it didn't is beside
 // `fsModuleCache` in vitest.config.ts (#766). This runs the real Vitest twice in a scratch folder,
@@ -35,10 +35,9 @@ test("the glob lists every piece on disk", () => {
 `;
 
 let scratch;
-afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
 
 function scratchProject(fsModuleCache) {
-  scratch = mkdtempSync(join(tmpdir(), "vitest-cache-"));
+  scratch = scratchDir("vitest-cache-");
   mkdirSync(join(scratch, PIECES));
   const scratchConfig = {
     test: { globals: true, include: [PROBE], fsModuleCache, fsModuleCachePath: join(scratch, "cache") },

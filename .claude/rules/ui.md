@@ -17,6 +17,11 @@ palette, radii, shadows and type scale are switched off there, so a stock utilit
 
 After any change a manager can see, run the `ui-verifier` agent: it shoots 1440 (390 only when Craig asks for the phone) and looks.
 
+A read that takes the minute (`useMinute()`) has new arguments each minute, and Convex answers
+`undefined` until the next answer lands: hold the last one with `useLastLoaded`
+(`src/shared/useLastLoaded.ts`, as `MatchupPage.tsx` does), or the screen blanks to Loading and
+loses what was typed. A query that no longer reads `now` drops the argument.
+
 ## Approved pictures
 
 A screen's approved picture binds its layout (`CLAUDE.md`, Decided; the index is

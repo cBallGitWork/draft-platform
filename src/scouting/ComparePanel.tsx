@@ -7,9 +7,9 @@ import { statFigure } from "../shared/figures";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { OwnerName } from "../ui/OwnerName";
-import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { CloseButton, Loading, Panel, PanelNote } from "../ui/Panel";
 import { PercentileBar, per90StatName } from "./Per90Figures";
-import { CloseButton, PointsFigure } from "./PointsFigure";
+import { PointsFigure } from "./PointsFigure";
 import type { ComparedPlayer, Comparison, Period, ScoutingSeam } from "./seam";
 import {
   clearComparisonWords,
@@ -61,7 +61,7 @@ export function ComparePanel({
   clear: () => void;
 }) {
   return (
-    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={<CloseButton label={clearComparisonWords} close={clear} />}>
+    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={<CloseButton label={clearComparisonWords} close={clear} className="font-bold lg:min-h-0" />}>
       {comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (

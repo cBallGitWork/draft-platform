@@ -24,6 +24,15 @@ export function fixtureByCode(ctx: QueryCtx, code: number): Promise<Doc<"fixture
     .unique();
 }
 
+type KicksOff = { kickoff: number | null };
+
+/** Two matches in kickoff order, any with no time yet last. */
+export const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
+  (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);
+
+/** Matches by kickoff, any with no time yet last. Pure. */
+export const byKickoff = <Match extends KicksOff>(matches: readonly Match[]): Match[] => matches.toSorted(byKickoffOrder);
+
 /** The season these matches are for: the one their latest kickoff falls in. Null while none has a
  *  kickoff time. */
 export function seasonOfMatches(matches: readonly { kickoff: number | null }[]): number | null {

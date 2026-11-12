@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
-import { SECOND_MS } from "../../../convex/shared/time";
-import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { draftSteps, midfielder, SHORT_PICK_MS, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
@@ -20,8 +19,6 @@ let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
 const PLAYERS = [101, 102, 103, 104].map((code) => midfielder(code)).concat([201, 202, 203, 204].map((code) => midfielder(code, CHELSEA)));
-const PICK_SECONDS = 30;
-const PICK_MS = PICK_SECONDS * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 const ROUNDS = 4;
 
@@ -30,7 +27,7 @@ const setRules = (timeouts: number | null) =>
   changeEveryRules(t, leagueId, (rules) => ({
     ...rules,
     squad: { size: { minimum: 1, maximum: ROUNDS }, minimumByArea: null, maxPerClub: null },
-    draft: { ...HELD_FIRST_RULES.draft!, pickSeconds: PICK_SECONDS, timeoutsBeforeAutoPick: timeouts },
+    draft: { ...HELD_FIRST_RULES.draft!, pickSeconds: SHORT_PICK_SECONDS, timeoutsBeforeAutoPick: timeouts },
   }));
 
 const { as, pick, start, pass } = draftSteps(() => ({ t, leagueId }));
@@ -45,7 +42,7 @@ async function bobPicks() {
   await pick(BOB, code);
 }
 /** The next clock starts after the gap and runs out. */
-const timeOut = () => pass(PICK_GAP_MS + PICK_MS);
+const timeOut = () => pass(PICK_GAP_MS + SHORT_PICK_MS);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -63,7 +60,7 @@ describe("each timeout", () => {
   test("counts for the team whose clock ran out, not for a manager who picks himself", async () => {
     await setRules(2);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 1 }]);
 
     await bobPicks();
@@ -74,7 +71,7 @@ describe("each timeout", () => {
   test("counts across the whole draft, not only in a row", async () => {
     await setRules(3);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     await bobPicks();
     await bobPicks();
     await timeOut();
@@ -97,13 +94,13 @@ describe("the league's limit", () => {
   test("puts the team on auto-pick: its first pick there waits the full clock, each after is made at once", async () => {
     await setRules(2);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     await bobPicks();
     await bobPicks();
     await timeOut();
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "fullClock" }]);
 
-    await pass(PICK_GAP_MS + PICK_MS - 1);
+    await pass(PICK_GAP_MS + SHORT_PICK_MS - 1);
     expect(await picked()).toHaveLength(4);
     await pass(1);
     expect(await picked()).toHaveLength(5);
@@ -121,7 +118,7 @@ describe("the league's limit", () => {
   test("of 1 puts the team on auto-pick at its first timeout", async () => {
     await setRules(1);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
 
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 1, autoPick: "fullClock" }]);
   });
@@ -131,11 +128,11 @@ describe("never", () => {
   test("keeps the clock for every pick, however many run out", async () => {
     await setRules(null);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     await bobPicks();
     await bobPicks();
     await timeOut();
-    await pass(PICK_GAP_MS + PICK_MS - 1);
+    await pass(PICK_GAP_MS + SHORT_PICK_MS - 1);
     expect(await picked()).toHaveLength(4);
 
     await pass(1);
@@ -152,16 +149,16 @@ describe("the commissioner's undo", () => {
   test("of the timeout that moved him to picks made at once gives him back his full-clock pick", async () => {
     await setRules(2);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     await bobPicks();
     await bobPicks();
     await timeOut();
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + SHORT_PICK_MS);
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3, autoPick: "atOnce" }]);
 
     await undo();
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "fullClock" }]);
-    await pass(PICK_MS - 1);
+    await pass(SHORT_PICK_MS - 1);
     expect(await picked()).toHaveLength(4);
     await pass(1);
     expect(await picked()).toHaveLength(5);
@@ -171,13 +168,13 @@ describe("the commissioner's undo", () => {
   test("keeps the auto-pick he has since turned on himself, and the put-back pick is no timeout", async () => {
     await setRules(1);
     await start();
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     await (await as(ANN)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
     await (await as(ANN)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
 
     await undo();
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0, autoPick: "chosen" }]);
-    await pass(PICK_MS);
+    await pass(SHORT_PICK_MS);
     expect(await picked()).toHaveLength(1);
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0, autoPick: "chosen" }]);
   });

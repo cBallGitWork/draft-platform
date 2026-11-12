@@ -4,10 +4,11 @@
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
-import { resultOf, type Result } from "../../../convex/table/standings";
+import { resultOf, type Result, type Winner } from "../../../convex/table/standings";
+import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
-export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
+export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
 export { gameweekShort, placeWords } from "../../shared/words";
 
 /** The band's heads over each reading. */
@@ -37,12 +38,12 @@ const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", l
 
 /** Who a game is against, as the band names it. */
 export const againstWords = (against: TeamGame["against"]) =>
-  against.kind === "team" ? against.team : against.kind === "bye" ? byeWords : leagueAverageWords;
+  against.kind === "team" ? against.team : against.kind === BYE ? byeWords : leagueAverageWords;
 
 /** The last game: "Won 54–41 v Rovers XI", or its score alone while live. */
-export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullable<TeamGame["score"]> }) => {
+export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullable<TeamGame["score"]> }, mode: Winner) => {
   const line = `${scoreWords(score.team, score.opponent)} v ${againstWords(against)}`;
-  return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(score.team, score.opponent)]} ${line}`;
+  return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(mode, score.team, score.opponent)]} ${line}`;
 };
 
 /** The band's Auto team reading and its panel (spec/09, The auto team; docs/design/approved/auto-team/). */
@@ -54,8 +55,7 @@ export const endGameweekLabel = "The gameweek it ends after";
 export const untilSwitchedOffWords = "Until I switch it off";
 export const switchOnWords = "Switch on";
 export const switchOffWords = "Switch off";
-/** When a switch failed before the server could say why. */
-export { cancelWords, changeFailedWords as switchFailedWords } from "../../shared/words";
+export { cancelWords } from "../../shared/words";
 
 /** Points, short as the band says them: "18 pts". */
 export const pointsShort = (points: number) => `${figureWords(points)} pts`;

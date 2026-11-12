@@ -183,7 +183,7 @@ describe("the squad changing under an edit", () => {
     await whiteForSaliba();
 
     const SAKA = member(7, "Saka", ["W"]);
-    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] })));
+    app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] }));
 
     expect(await screen.findByText(startingWords(STARTERS.length - 1))).toBeTruthy();
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
@@ -196,7 +196,7 @@ describe("the squad changing under an edit", () => {
     await swap(ARRIZABALAGA, RAYA);
 
     const SAKA = member(7, "Saka", ["W"]);
-    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] })));
+    app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] }));
     await userEvent.click(undo());
 
     const sent = app.myTeam.lineupChanges.save.mock.lastCall?.[1];

@@ -42,9 +42,13 @@ private_deny=(
   'git tag -a v1 -m "acmecorp"' 'gh release create v1 --notes acmecorp' 'gh api repos/x/y/issues -f body=acmecorp'
   'env gh pr create --title x --body "acmecorp"' 'command gh issue comment 3 --body acmecorp'
   '(true);gh pr create --title x --body acmecorp'
+  'gh pr close 5 --comment "acmecorp"' 'gh issue close 5 -c acmecorp' 'gh label create x --description acmecorp'
+  'gh repo edit --description "acmecorp"' 'gh gist create body.md --desc acmecorp'
 )
 private_allow=(
   'git commit -m "clean"' 'echo acmecorp' 'cat body.md' 'gh pr view 3' 'gh issue create --title x --body "clean"'
+  'gh issue list --search acmecorp' 'gh run view 9 --log | grep acmecorp' 'gh search issues acmecorp'
+  'gh pr close 5 --comment "clean"'
 )
 for c in "${private_deny[@]}"; do check deny guard_bash.py "$(bash_in "$tmp" "$c")"; done
 for c in "${private_allow[@]}"; do check allow guard_bash.py "$(bash_in "$tmp" "$c")"; done

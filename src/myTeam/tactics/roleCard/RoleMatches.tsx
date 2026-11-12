@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { RoleCard } from "../../../../convex/lineup/roleCardShape";
 import { RoleWords } from "../../../playerCard/Breakdown";
 import { ClubMark } from "../../../ui/ClubName";
-import { baseOf, signedOrNothing, sumsOf } from "./cardSums";
+import { baseOf, sumsOf } from "./cardSums";
 import {
   figureWords,
   gameweekShort,
@@ -15,6 +15,7 @@ import {
   roleMovedNothingWords,
   seasonShortWords,
   showMatchLabel,
+  signedWords,
 } from "./words";
 
 // His matches under the role the card previews (#848; the approved role card): newest first, a
@@ -74,7 +75,7 @@ export function RoleMatches({ card, role }: { card: RoleCard; role: RoleCard["ro
                 </td>
                 <td className="px-2 text-right">{figureWords(match.minutes)}</td>
                 <td className={FIGURE}>{figureWords(match.base)}</td>
-                <td className={FIGURE}>{signedOrNothing(under.points)}</td>
+                <td className={FIGURE}>{signedWords(under.points)}</td>
                 <td className={FIGURE}>{figureWords(under.total)}</td>
               </tr>
             );
@@ -96,7 +97,7 @@ export function RoleMatches({ card, role }: { card: RoleCard; role: RoleCard["ro
               {lastNWords(played)}
             </th>
             <td className={FIGURE}>{figureWords(baseOf(card.matches))}</td>
-            <td className={FIGURE}>{signedOrNothing(sums.points)}</td>
+            <td className={FIGURE}>{signedWords(sums.points)}</td>
             <td className={FIGURE}>{figureWords(sums.total)}</td>
           </tr>
         </tfoot>

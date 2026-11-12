@@ -19,7 +19,7 @@ import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
-const PREVIEW_GAMEWEEK = 9;
+export const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 
 /** A club's FPL code by its short name, for its shirt's colours. */
@@ -122,10 +122,11 @@ const changes = {
 /** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
 let plans: readonly Plan[] = [];
 const planChanges: PlanChanges = {
-  save: async (_leagueId, name, slots) => {
+  save: async (_leagueId, name, slots, instructions) => {
     const kept = plans.some((plan) => plan.name === name);
     if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
-    plans = kept ? plans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...plans, { name, slots }];
+    const saved = { name, slots, instructions };
+    plans = kept ? plans.map((plan) => (plan.name === name ? saved : plan)) : [...plans, saved];
     for (const listener of listeners) listener();
     return null;
   },

@@ -10,13 +10,13 @@ import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
-import { versionLetter, withdrawnLetter } from "../mail/letterWords";
+import { versionLetter, withdrawnLetter } from "../mail/scoringLetterWords";
 import { carryFix } from "./carryFix";
 import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
-import { firstGameweekFrom, firstGameweekFromAny, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
+import { firstGameweekFrom, firstGameweekFromAny, inForceAt, isWaiting, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
 import { UnsoundScoring } from "./values";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
@@ -145,7 +145,7 @@ export const view = query({
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     const reachedFrom = await firstGameweekFromAny(ctx);
     return {
-      part: setOf(canEdit ? latest : history.findLast((row) => row.takesEffectAt <= now)),
+      part: setOf(canEdit ? latest : inForceAt(history, now)),
       revision: latest?._id ?? null,
       changesFrom: reachedFrom(now),
       canEdit,
@@ -234,7 +234,7 @@ export const fix = mutation({
     checkScoringSet(scoring);
     const now = Date.now();
     if (sortedJson(setOf(latest)) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
-    if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
+    if (latest !== undefined && isWaiting(latest, now)) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
     // A draft made from an older version is refused when announced anyway (`draftOvertaken`).
     const draft = await ctx.db.query("siteScoringDraft").unique();
     const carrying = draft !== null && draft.madeFrom === (latest?._id ?? null) ? draft : null;
@@ -251,7 +251,8 @@ export const fix = mutation({
  *  so"; announced again, it has a fresh 7 days). Its set becomes the draft patch, made from the
  *  version before it; a draft already made from the patch holds it, so is kept, made from that
  *  version too; one made before the patch could never be announced (`draftOvertaken`), so the patch
- *  replaces it. The banner goes with the version (patchNotes.ts reads the versions); the stars and
+ *  replaces it. The banner goes with the version (patchNotes.ts reads the versions), and who
+ *  dismissed it goes too (#1574): announced again it is a new version, its banner shown afresh. The stars and
  *  last season's prices it scheduled are worked out again under the set then in force, which is no
  *  harm. Returns when the draft was saved. Refused, with the reason, for anyone but the admin, or
  *  for a version that isn't a patch still waiting. */
@@ -262,7 +263,7 @@ export const withdraw = mutation({
     const admin = await adminOf(ctx);
     const history = await siteVersions(ctx);
     const patch = history.at(-1);
-    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || patch.takesEffectAt <= Date.now()) refuse(siteScoringRefusals.notWaiting);
+    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || !isWaiting(patch, Date.now())) refuse(siteScoringRefusals.notWaiting);
     const madeFrom = history.at(-2)?._id ?? null;
     const held = await ctx.db.query("siteScoringDraft").unique();
     const savedAt = Date.now();
@@ -270,6 +271,10 @@ export const withdraw = mutation({
     if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
     else await ctx.db.insert("siteScoringDraft", draft);
     await ctx.db.delete("siteScoring", patch._id);
+    // One row a person at most, the same reach as the letter filed below.
+    for await (const row of ctx.db.query("patchBannerDismissals").withIndex("by_versionId", (q) => q.eq("versionId", patch._id))) {
+      await ctx.db.delete("patchBannerDismissals", row._id);
+    }
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
     await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;
