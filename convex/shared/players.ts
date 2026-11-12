@@ -26,6 +26,13 @@ export type PlayerCode = number;
 /** Whether the player has left the Premier League: the feed no longer sends him. */
 export const hasLeft = (player: Pick<Doc<"players">, "droppedAt">) => player.droppedAt !== undefined;
 
+/** His number at his club, as the Premier League's squad list last gave it, or null: the number
+ *  his shirt wears until his manager gives him one (squadNumbers.ts), and the one on his card. */
+export async function clubNumberOf(ctx: QueryCtx, playerCode: PlayerCode): Promise<number | null> {
+  const held = await ctx.db.query("clubNumbers").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
+  return held?.number ?? null;
+}
+
 /** The clubs in the Premier League now, the ones the feed has dropped left out. */
 export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
   return takeAllOrThrow(

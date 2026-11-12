@@ -6,7 +6,7 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -28,7 +28,7 @@ const joinPageFor = (email: string, linkToken = token) => joinPageAs(t, email, l
 
 describe("the invite link", () => {
   test("opened signed in, names the league, its commissioner and how full it is, and lets them ask to join", async () => {
-    await addManagers(t, leagueId, [MANAGERS[1]]);
+    await addManagers(t, leagueId, [BOB]);
     expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 1, maxTeams: 4, standing: "mayAsk" });
   });
 

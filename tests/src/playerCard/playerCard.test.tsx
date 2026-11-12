@@ -20,6 +20,7 @@ import {
   CAPTAIN_TITLE,
   captainLabel,
   chanceWords,
+  clubNumberLabel,
   dropWords,
   figureLabels,
   goneWords,
@@ -125,6 +126,16 @@ describe("the card", () => {
     const news = within(screen.getByRole("region", { name: NEWS_TITLE }));
     expect(news.getByText(SAKA.news!)).toBeTruthy();
     expect(news.queryByText(chanceWords(75))).toBeNull();
+  });
+
+  it("his shirt carries his club number, named as his club's (#1496)", async () => {
+    openCard();
+    expect((await headOf()).getByRole("img", { name: clubNumberLabel(7) }).textContent).toBe("7");
+  });
+
+  it("his shirt is blank, and unnamed, while no club number is held", async () => {
+    openCard(RICE, { cards: [{ ...RICE, clubNumber: null }] });
+    expect((await headOf(RICE)).queryByRole("img", { name: clubNumberLabel(7) })).toBeNull();
   });
 
   it("keeps its title plate the plate's colour, never his club's (spec/12, Club colours)", async () => {

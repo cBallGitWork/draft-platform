@@ -22,10 +22,10 @@ it("shows its words then the glyph, hidden from screen readers, with one gap and
       All mail
     </MoreLink>,
   );
-  const link = await screen.findByRole("link", { name: "All mail" });
+  const link = await screen.findByRole("link", { name: "All mail" }); // one-home-ok: any words; MoreLink owns none
   expect(link.getAttribute("href")).toBe("/mail");
   expect(link.className).toBe("flex min-h-tap items-center gap-1 font-semibold px-3");
-  expect(link.textContent).toBe(`All mail${nextGlyph}`);
+  expect(link.textContent).toBe(`All mail${nextGlyph}`); // one-home-ok: any words; MoreLink owns none
   const glyph = link.lastElementChild;
   expect(glyph?.getAttribute("aria-hidden")).toBe("true");
   expect(glyph?.textContent).toBe(nextGlyph);
@@ -49,7 +49,7 @@ it("gives a control that isn't a link the same hidden glyph", () => {
       <NextGlyph />
     </button>,
   );
-  const button = screen.getByRole("button", { name: "All formations" });
+  const button = screen.getByRole("button", { name: "All formations" }); // one-home-ok: any words; NextGlyph owns none
   expect(button.lastElementChild?.getAttribute("aria-hidden")).toBe("true");
-  expect(button.textContent).toBe(`All formations${nextGlyph}`);
+  expect(button.textContent).toBe(`All formations${nextGlyph}`); // one-home-ok: any words; NextGlyph owns none
 });

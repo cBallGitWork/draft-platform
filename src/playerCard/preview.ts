@@ -99,6 +99,8 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     name: player.name,
     fullName: player.fullName,
     club: player.club,
+    // A made-up club number, a different one each.
+    clubNumber: player.code + 6,
     gone: false,
     positions: player.positions,
     pricedAt: cardPositions(player.positions),
