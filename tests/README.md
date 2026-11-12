@@ -33,7 +33,8 @@ Nothing in it is a test. Each kind of file:
   back after every test. `console.setup.ts` (convex and app) fails a test that logs with
   `console.error` without calling `silenceConsoleError()`. `app.setup.ts` (app) unmounts whatever a
   test rendered, then puts the address back to `/` (unmount first, so the app never sees the reset),
-  and stubs `window.scrollTo`, which jsdom lacks and the router calls.
+  and stubs `window.scrollTo` and `Element.prototype.scrollIntoView`, which jsdom lacks and the
+  app calls.
   Every project also puts back stubbed globals, stubbed envs and spies before each test, and the
   app project resets every `vi.fn()` fake too (`mockReset`), so no test file resets them by hand.
 - **`*.harness.ts`** (and `.tsx`), one feature's shared setup: `convex/` for the Convex tests
@@ -45,6 +46,14 @@ Nothing in it is a test. Each kind of file:
   checks that compare with it, built on `scratchDir.mjs`, a temp folder removed when its test ends). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
   files, laid out as that repository lays them out, for the past-season copy
   (`scripts/past-season.mjs`; `convex/pastSeason.harness.ts` reads it for the Convex tests).
+- **Plain helpers**, shared by more than one feature's tests, so with no feature's harness name:
+  in `src/`, `columnHeads.ts` (a data table's column heads, read by name and by eye),
+  `describedBy.ts` (what a screen reader hears after a box's name), `colorTokens.ts` (styles.css's
+  colour tokens as written), `styledColour.ts` (a colour as jsdom hands it back) and
+  `serverStore.ts` (a fake server's value a test changes under an open screen);
+  `specExamples.ts`, a spec file's example table read as rows; `smoke/errorsTest.ts`, the smoke
+  suite's own `test`, failing on any console or page error it didn't expect; and
+  `scripts/repoRoot.mjs`, the repository's root for the script tests.
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
