@@ -30,13 +30,13 @@ import { expectRefused } from "../../support/convex/test.harness";
 // the club's top three scorers. Season points' league (seasonPoints.harness.ts): Ann holds Saka;
 // Rice (CM, CB) goes on waivers here, and Raya, a keeper with no match, is a free agent.
 
-const RAYA = { code: 1005, name: "Raya", fullName: "David Raya", clubCode: ARSENAL.code, positions: ["GK" as const] };
+const ARSENAL_KEEPER = { code: 1005, name: "Raya", fullName: "David Raya", clubCode: ARSENAL.code, positions: ["GK" as const] };
 
 let league: PointsLeague;
 beforeEach(async () => {
   league = await seasonPointsLeague();
   await league.t.run(async (ctx) => {
-    await insertPlayers(ctx, [RAYA]);
+    await insertPlayers(ctx, [ARSENAL_KEEPER]);
     await ctx.db.insert("waiverPlayers", { leagueId: league.leagueId, playerCode: RICE.code, claimableFrom: KICKOFF });
     // Gameweeks 1 and 2 are read at full time; Saka started both.
     for (const { code } of [GW1, GW2]) await insertLockedStatus(ctx, code, KICKOFF);
@@ -46,11 +46,11 @@ beforeEach(async () => {
   await keepEveryScoutingPlayer(league.t);
 });
 
-const squadOf = async (clubCode = ARSENAL.code) => (await actingAs(league.t, ANN)).query(api.scouting.clubSquad.ofClub, { leagueId: league.leagueId, clubCode });
-const rowOf = async (code: number) => (await squadOf())!.players.find((player) => player.code === code)!;
+const clubSquadOf = async (clubCode = ARSENAL.code) => (await actingAs(league.t, ANN)).query(api.scouting.clubSquad.ofClub, { leagueId: league.leagueId, clubCode });
+const squadRowOf = async (code: number) => (await clubSquadOf())!.players.find((player) => player.code === code)!;
 
 test("every current player at the club, by group: GK, then DEF (Rice goes by CB, his first back to front), then AM", async () => {
-  const { players } = (await squadOf())!;
+  const { players } = (await clubSquadOf())!;
   expect(players.map(({ name, group }) => [name, group])).toEqual([
     ["Raya", "GK"],
     ["Rice", "DEF"],
@@ -60,32 +60,32 @@ test("every current player at the club, by group: GK, then DEF (Rice goes by CB,
 
 test("each row says who holds him: an owner's team, Waivers, or a free agent", async () => {
   const ownerTeam = await league.t.run(async (ctx) => (await ctx.db.query("squadPlayers").first())!.teamId);
-  expect(await rowOf(SAKA.code)).toMatchObject({ ownerTeamName: await teamName(league.t, ownerTeam), onWaivers: false });
-  expect(await rowOf(RICE.code)).toMatchObject({ ownerTeamName: null, onWaivers: true });
-  expect(await rowOf(RAYA.code)).toMatchObject({ ownerTeamName: null, onWaivers: false });
+  expect(await squadRowOf(SAKA.code)).toMatchObject({ ownerTeamName: await teamName(league.t, ownerTeam), onWaivers: false });
+  expect(await squadRowOf(RICE.code)).toMatchObject({ ownerTeamName: null, onWaivers: true });
+  expect(await squadRowOf(ARSENAL_KEEPER.code)).toMatchObject({ ownerTeamName: null, onWaivers: false });
 });
 
 test("his season points are his card's in the league, and '—' (null) with none priced", async () => {
-  for (const code of [SAKA.code, RICE.code]) expect((await rowOf(code)).seasonPoints).toBe(await cardTotalOf(league, code));
-  expect((await rowOf(RAYA.code)).seasonPoints).toBeNull();
+  for (const code of [SAKA.code, RICE.code]) expect((await squadRowOf(code)).seasonPoints).toBe(await cardTotalOf(league, code));
+  expect((await squadRowOf(ARSENAL_KEEPER.code)).seasonPoints).toBeNull();
 });
 
 test("the last finished gameweeks are the same for every row, each his card's points there, '—' where he didn't play", async () => {
-  const squad = (await squadOf())!;
+  const squad = (await clubSquadOf())!;
   expect(squad.gameweeks).toEqual([1, 2]);
-  expect((await rowOf(SAKA.code)).lastGameweeks).toEqual([at(SAKA_GW1, "W"), at(SAKA_GW2, "W")]);
-  expect((await rowOf(RICE.code)).lastGameweeks).toEqual([(await cardTotalOf(league, RICE.code)), null]);
-  expect((await rowOf(RAYA.code)).lastGameweeks).toEqual([null, null]);
+  expect((await squadRowOf(SAKA.code)).lastGameweeks).toEqual([at(SAKA_GW1, "W"), at(SAKA_GW2, "W")]);
+  expect((await squadRowOf(RICE.code)).lastGameweeks).toEqual([(await cardTotalOf(league, RICE.code)), null]);
+  expect((await squadRowOf(ARSENAL_KEEPER.code)).lastGameweeks).toEqual([null, null]);
 });
 
 test("his season's starts and minutes, 0 for a player with none", async () => {
-  expect(await rowOf(SAKA.code)).toMatchObject({ starts: 2, minutes: 154 });
-  expect(await rowOf(RAYA.code)).toMatchObject({ starts: 0, minutes: 0 });
+  expect(await squadRowOf(SAKA.code)).toMatchObject({ starts: 2, minutes: 154 });
+  expect(await squadRowOf(ARSENAL_KEEPER.code)).toMatchObject({ starts: 0, minutes: 0 });
 });
 
 test("the top scorers are the club's most season points, a player with none left out", async () => {
   const saka = await cardTotalOf(league, SAKA.code);
-  expect((await squadOf())!.topScorers).toEqual(
+  expect((await clubSquadOf())!.topScorers).toEqual(
     [
       { code: SAKA.code, name: "Saka", seasonPoints: saka },
       { code: RICE.code, name: "Rice", seasonPoints: await cardTotalOf(league, RICE.code) },
@@ -99,8 +99,8 @@ test("a club not in the Premier League now has no squad", async () => {
     const chelsea = (await ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", CHELSEA.code)).unique())!;
     await ctx.db.patch("clubs", chelsea._id, { droppedAt: KICKOFF });
   });
-  expect(await squadOf(CHELSEA.code)).toBeNull();
-  expect(await squadOf(999)).toBeNull();
+  expect(await clubSquadOf(CHELSEA.code)).toBeNull();
+  expect(await clubSquadOf(999)).toBeNull();
 });
 
 test("someone not in the league is refused", async () => {
