@@ -97,8 +97,9 @@ export function shortlistAddedWords(added: number, leftOut: number): string {
   return leftOut === 0 ? put : `${put} ${leftOut} left out: a queue holds at most ${DRAFT_LIST_MOST}.`;
 }
 export const DO_NOT_DRAFT_TITLE = "Do not draft";
-/** In the selected player's panel, beside "Do not draft" (the approved draft room picture). */
-export const addToQueueWords = "Add to queue";
+/** In the selected player's panel, beside "Do not draft" (the approved draft room picture), as
+ *  Scouting's shortlist says it. */
+export { addToQueueWords } from "../scouting/shortlist/words";
 export const doNotDraftAside = (count: number) => `${count}, auto-pick skips them`;
 /** The lists, for screen readers. */
 export const queueListLabel = "Your queue, first choice first";
@@ -127,8 +128,7 @@ export const takeControlBackWords = "Take control back";
 
 /** The players list (spec/04, The draft room; #1099): Scouting's, each player the reader's team
  *  can't take greyed out in his place, with why. */
-export const PLAYERS_TITLE = "Players";
-export const loadingPlayersWords = "Loading the players…";
+export { PLAYERS_TITLE, loadingWords as loadingPlayersWords } from "../scouting/words";
 export const leftWords =(count: number) => `${count} left`;
 export const notLegalWords = {
   squadFull: "Squad full",

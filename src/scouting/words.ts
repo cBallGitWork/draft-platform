@@ -18,8 +18,8 @@ import {
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
 import { lastSeasonPointsColumn } from "../draft/words";
-import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
+import { runNameWords, type FirstRun } from "../myTeam/claims/words";
+import { afterLastMatchWords, gameweekShort, seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
 export { figureWords, noFigureWords } from "../shared/words";
@@ -38,7 +38,7 @@ export const STAT_RACE_TITLE = scoutingTabWords.statRace;
 export const rankByLabel = "Rank by";
 export const countsWhatCountedWords = "Counts what counted: each team's starters, and bench players only in matches they came on.";
 /** Where a league drafted mid-season's totals start (Craig, 6 Nov 2026, on #800). */
-export const sinceWords = (gameweek: number) => `Since GW${gameweek}`;
+export const sinceWords = (gameweek: number) => `Since ${gameweekShort(gameweek)}`;
 export const raceLoadingWords = "Loading the stat race…";
 export const raceColumns = {
   rank: { short: "#", long: "Rank" },
@@ -76,9 +76,15 @@ export const noStatWords = "None";
 /** What the list's figures, his panel's per 90 and Compare are over (the approved picture's
  *  Period; #1028, story 3). Shown as "Over": SPEC.md's Glossary avoids "period" for a gameweek. */
 export const periodLabel = "Over";
-export const periodWords: Record<Period, string> = { season: "Season", last4: "Last 4 gameweeks", last6: "Last 6 gameweeks" };
+export const periodWords: Record<Period, string> = {
+  season: "Season",
+  last4: `Last ${PERIOD_GAMEWEEKS.last4} gameweeks`,
+  last6: `Last ${PERIOD_GAMEWEEKS.last6} gameweeks`,
+};
+/** The period inside a line: "season", "last 4 gameweeks". */
+const periodInLine = (period: Period) => periodWords[period].toLowerCase();
 /** A figure's period as a hover says it: "this season", "over the last 4 gameweeks". */
-const overWords = (period: Period) => (period === "season" ? "this season" : `over the ${periodWords[period].toLowerCase()}`);
+const overWords = (period: Period) => (period === "season" ? "this season" : `over the ${periodInLine(period)}`);
 
 /** How many players the filters keep. */
 export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);
@@ -131,7 +137,7 @@ export const panelMinutesWords = (period: Period, lastSeason: number | null) =>
 export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
  *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
-export const per90Words = (period: Period) => `Per 90, ${periodWords[period].toLowerCase()}`;
+export const per90Words = (period: Period) => `Per 90, ${periodInLine(period)}`;
 const AREA_PLAYERS: Record<Area, string> = {
   goalkeeper: "goalkeepers",
   defence: "defenders",
@@ -210,7 +216,7 @@ export const totalWords = "Total";
 export const perNinetyWords = "Per 90";
 /** Under Compare's figures: what they are over, and whom the bars rank them against. */
 export const compareNoteWords = (area: Area, period: Period) =>
-  `Totals and per 90 over the ${period === "season" ? "season" : periodWords[period].toLowerCase()}; bars rank each against ${AREA_PLAYERS[area]} with ${RANKED_MINUTES}+ minutes.`;
+  `Totals and per 90 over the ${periodInLine(period)}; bars rank each against ${AREA_PLAYERS[area]} with ${RANKED_MINUTES}+ minutes.`;
 /** Compare's pickup or claim of the first player, naming the second when he goes (Craig, 9 Nov
  *  2026, on #1028, answer 4: only with the squad full). */
 export const compareTakeWords = (kind: "pickUp" | "claim", name: string, dropName: string | null) =>
