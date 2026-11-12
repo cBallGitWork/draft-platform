@@ -16,7 +16,6 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   COMMISSIONER,
   LEAGUE_NAME,
-  MANAGERS,
   actingAs,
   addManager,
   addManagers,
@@ -26,6 +25,11 @@ import {
   managersOf,
   teamsIn,
   type TestConvex,
+  ANN,
+  BOB,
+  CAT,
+  DAN,
+  EVE,
 } from "../../support/convex/leagues.harness";
 import {
   SITE_URL,
@@ -40,8 +44,6 @@ import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
-
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];

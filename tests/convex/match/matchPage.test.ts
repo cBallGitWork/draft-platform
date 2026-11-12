@@ -4,10 +4,8 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
-  ANN,
   ANNS_TEAM,
   annsScoredGame,
-  BOB,
   BOBS_TEAM,
   EVERTON_BENCH,
   EVERTON_STARTERS,
@@ -21,7 +19,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole, MIDFIELD_GOAL, holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
-import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
+import { ADMIN, OUTSIDER, actingAs, ANN, BOB } from "../../support/convex/leagues.harness";
 import { holdLines, manOf, matchAs, matchLeague, notYetBegun, pointsOnCard, scorerFreeLeague, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";

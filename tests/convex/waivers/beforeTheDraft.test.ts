@@ -4,11 +4,11 @@ import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, ANN, BOB } from "../../support/convex/leagues.harness";
 import { holdPlayers } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, noDraft, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, noDraft, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // Free agency and waivers wait for the draft (#1326, spec/08 Waivers and free agency, S08.1; Craig, 8 Nov
 // 2026: "refused until drafted"): before the league's draft has run, and while it is live, no

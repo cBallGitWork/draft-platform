@@ -8,10 +8,10 @@ import { mostAgainst, reviewRefusals } from "../../../convex/trades/tradeReview"
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { DAY_MS } from "../../../convex/shared/time";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no

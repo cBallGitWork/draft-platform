@@ -8,15 +8,13 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { NEXT } from "../../support/convex/lineupSquad.harness";
 
 // Continue's lineup step (#526; spec/12, The frame): "from 24 hours before each gameweek's deadline
 // until the deadline, Continue takes him to his Tactics tab, ... until he opens Tactics that
 // gameweek. A manager with no team in the league has no lineup step" (Craig, 1 Nov 2026).
-
-const [ANN, BOB] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

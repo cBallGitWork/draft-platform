@@ -6,7 +6,7 @@ import { roleIn } from "../../../convex/lineup/roles";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, NEXT, SQUAD_CLUB, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // is still part of it (spec/05: the bench fills it), and once the season is over it is the
 // lineup of the league's last gameweek.
 
-const [ANN] = MANAGERS;
 /** The free agent the scout is sent to watch. */
 const SCOUTED = 999;
 /** The other club in holdGameweeks' matches. */

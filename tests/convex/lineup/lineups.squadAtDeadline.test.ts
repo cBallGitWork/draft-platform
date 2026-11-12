@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, saved, sent, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
@@ -15,8 +15,6 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 // A begun gameweek keeps the squad as it stood at its deadline (#415): a lineup read for it undoes
 // the squad moves made since, while the gameweek after takes the squad as it is now.
 // The rest of storing a lineup is in lineups.test.ts.
-
-const [ANN, BOB] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

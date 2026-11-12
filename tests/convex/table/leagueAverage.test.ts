@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
-import { actingAs } from "../../support/convex/leagues.harness";
-import { CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { actingAs, CAT } from "../../support/convex/leagues.harness";
+import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 

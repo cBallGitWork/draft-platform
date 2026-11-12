@@ -4,14 +4,13 @@ import { feedbackRefusals } from "../../../convex/feedback/feedback";
 import { FEEDBACK_MAX, FEEDBACK_SHOWN } from "../../../convex/feedback/feedbackLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, actingAs, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { EMOJI, expectRefused } from "../../support/convex/test.harness";
 
 // Feedback to the admin (#357; spec/12 The frame, spec/15 The admin): anyone signed in sends a
 // message, stored with who sent it and when; the admin alone reads the list, newest first.
 
-const [ANN, BOB] = MANAGERS;
 const SENT_AT = Date.parse("2026-10-24T20:00:00Z");
 
 let t: TestConvex;

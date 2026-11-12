@@ -5,13 +5,12 @@ import { positionsNow } from "../../../convex/positions/playerPositions";
 import { DAY_MS } from "../../../convex/shared/time";
 import { positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, ANN } from "../../support/convex/leagues.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
-  ANN,
   EVERTON_POINTS,
   EVERTON_STARTERS,
   GAMEWEEK,

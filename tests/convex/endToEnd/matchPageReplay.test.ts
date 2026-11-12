@@ -8,8 +8,8 @@ import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { BOTH_ELEVENS, FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
-import { actingAs, teamName as teamNameOf } from "../../support/convex/leagues.harness";
-import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
+import { actingAs, teamName as teamNameOf, ANN } from "../../support/convex/leagues.harness";
+import { DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
 
 // #45's done: "A replayed match plays out on the page from its lineups to full time, the owned
 // players carrying their teams and points." The four-team league's Hull v Everton, gameweek 6 as

@@ -7,7 +7,7 @@ import { DRAFT_OVER_SUBJECT as OVER, UP_NEXT_SUBJECT as UP_NEXT } from "../../..
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -22,7 +22,6 @@ let teams: Id<"teams">[];
 
 const MIDS = [101, 102, 103, 104, 105].map((code) => midfielder(code));
 const [A1, A2, A3, A4, A5] = MIDS.map(({ code }) => code);
-const [ANN, BOB] = MANAGERS;
 
 const { as, read, start, pick, pause, resume, pass, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const undo = async (email: string) => (await as(email)).mutation(api.draft.pickWindow.undoMyPick, { leagueId });

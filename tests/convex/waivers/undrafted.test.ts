@@ -4,7 +4,7 @@ import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
 import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { waiverStateOf } from "../../support/convex/waivers.harness";
 
@@ -12,7 +12,6 @@ import { waiverStateOf } from "../../support/convex/waivers.harness";
 // once the draft is over when the league's draft setting says waivers, its default, or straight
 // to the free agents when it says so.
 
-const [ANN, BOB] = MANAGERS;
 const [A1, A2, LEFT] = [101, 102, 103];
 
 let t: TestConvex;

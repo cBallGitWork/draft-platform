@@ -4,9 +4,9 @@ import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { mostFirst } from "../../../convex/scouting/raceOrder";
 import { rankAmong } from "../../../convex/shared/ranks";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
+import { actingAs, OUTSIDER, ANN, CAT } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_TEAM, BOBS_TEAM, CAT, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANNS_TEAM, BOBS_TEAM, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Scouting's stat race (#800, spec/19 The stat race): every team in the league with its season

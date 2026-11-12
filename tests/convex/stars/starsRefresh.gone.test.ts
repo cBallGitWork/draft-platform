@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -10,8 +10,6 @@ import { everyJobRuns, pendingJobs, ROWS_TO_THE_CAP } from "../../support/convex
 
 // A player gone from the Premier League keeps his stars while a squad in any league holds him, so
 // his manager still sees them, and loses them once none does (#11, starsRefresh.ts).
-
-const [ANN] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

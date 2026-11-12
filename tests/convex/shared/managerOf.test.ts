@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { managerOf, refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManager, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, OUTSIDER, actingAs, addManager, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // managerOf: the caller's own team in a league, which My team's pages, the lineup and leaving
 // read, and the refusals in the order they come.
-
-const [ANN] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

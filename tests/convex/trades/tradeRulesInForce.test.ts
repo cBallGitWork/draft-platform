@@ -1,8 +1,9 @@
 import { beforeEach, expect, test } from "vitest";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
+import { ANN, CAT } from "../../support/convex/leagues.harness";
 
 // Trades follow the rules in force in the gameweek, never a change waiting for the next: trade
 // review and the trade deadline are league rules, and a rule change applies from the next gameweek

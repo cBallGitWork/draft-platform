@@ -8,7 +8,7 @@ import { playerLeftLetter, REPORT_SYSTEM, reportInLetter, reportPrompt, scoutRef
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { GONE, UNHELD, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport, type FakeClaude } from "../../support/convex/scouts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { BLANK, CAMEO, SCORER, STEADY, holdStarsPlayers } from "../../support/convex/stars.harness";
@@ -16,8 +16,6 @@ import { elapse, expectRefused, silenceConsoleError } from "../../support/convex
 
 // Scouts (#375; spec/19, Scouts and The report): each team's 3, sent to any player, each report
 // written by AI 24 hours on, dated; Mail says it is in; no other team can tell.
-
-const [ANN, BOB] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

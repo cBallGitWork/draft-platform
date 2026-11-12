@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
-import { eventsIn } from "../../support/convex/leagues.harness";
+import { eventsIn, ANN, BOB } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, PALMER, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // What a trade that goes through files (#1491): the trade as one `tradeMade`, which the screens

@@ -3,11 +3,10 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "./leagues.harness";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "./footballRows.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
-export const [ANN, BOB] = MANAGERS;
 export const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
 export const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
 export const ODEGAARD = { code: 1003, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code };

@@ -5,9 +5,9 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import { CLEARED_READ_ONE_BY_ONE_MOST, SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist's waiver letters (#374, spec/19 The shortlist, spec/16): Mail tells each manager
