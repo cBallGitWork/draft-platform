@@ -1,9 +1,9 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
-import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
+import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, gameweekColumn, gameweekShort, gameweekWords, signedWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
+import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekColumn, gameweekShort, gameweekWords, signedWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, noFigureWords } from "../shared/words";
 

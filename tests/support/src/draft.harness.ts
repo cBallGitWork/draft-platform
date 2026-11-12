@@ -3,6 +3,7 @@
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import type { CommissionerChanges, CommissionerView, DraftBoard, DraftChanges, DraftListChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "../../../src/draft/seam";
 import { ARSENAL } from "../convex/footballRows.harness";
 import { fakeScouting } from "./scouting.harness";
@@ -13,6 +14,26 @@ export const YOUR_TEAM = draftOrder[1].teamId;
 
 /** A draft of three teams over two rounds, waiting for the commissioner to press start. */
 export const waitingDraft: DraftState = { status: "waiting", startsAt: null, rounds: 2, order: draftOrder };
+
+/** A live draft of the three teams over `rounds`, `picksMade` made (by default Team 1's first, so
+ *  the reader's Team 2 is on the clock), the next on the clock with 48 seconds left of 90, or
+ *  paused then. */
+export function liveDraft({ picksMade = 1, rounds = 2, paused = false } = {}): Extract<DraftState, { status: "live" }> {
+  const now = Date.now();
+  const round = Math.floor(picksMade / 3) + 1;
+  const inRound = picksMade % 3;
+  const team = draftOrder[round % 2 === 1 ? inRound : 2 - inRound];
+  return {
+    status: "live",
+    startedAt: now - MINUTE_MS,
+    rounds,
+    order: draftOrder,
+    picksMade,
+    ownPickBy: null,
+    onTheClock: { pick: picksMade + 1, round, teamId: team.teamId, name: team.name },
+    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
+  };
+}
 
 /** No picks yet or traded, the reader's team Team 2, 90 seconds a pick, off auto-pick with no
  *  timeouts of 2. */

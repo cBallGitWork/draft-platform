@@ -52,6 +52,7 @@ export function CommissionerPanel({
   leagueId,
   seam,
   draft,
+  paused,
   board,
   selected,
   unselect,
@@ -59,6 +60,8 @@ export function CommissionerPanel({
   leagueId: Id<"leagues">;
   seam: DraftSeam;
   draft: Waiting | Live;
+  /** The commissioner has paused the draft (`pausedAtOf`, ClockLeft.tsx). */
+  paused: boolean;
   board: DraftBoard;
   /** The player selected in the room's players list, whom Pick for takes. */
   selected: ListedPlayer | null;
@@ -77,7 +80,6 @@ export function CommissionerPanel({
     );
   }
   const run = (change: () => Change) => void changing.run(change);
-  const paused = (draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined) !== undefined;
   return (
     <Panel title={COMMISSIONER_TITLE} aside={aside}>
       <div className={PANEL_BODY}>

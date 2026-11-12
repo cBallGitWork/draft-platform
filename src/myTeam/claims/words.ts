@@ -6,7 +6,7 @@ import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
 import { capitalised } from "../../../convex/shared/moments";
-import { gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
+import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
 
 export { placeWords, pointsShort };
 
@@ -50,10 +50,6 @@ export const runDayWords = weekdayWords;
 const noRunWords = "No run";
 /** The run that can first take a player, as a claim, the player card or Scouting has it. */
 export type FirstRun = RunAhead | null;
-/** When the run that takes him comes, where his first run may fall in `gameweek`'s lock: after its
- *  last match, whose time isn't known ahead (Craig, 11 Nov 2026, on #1467: "after GW12's last
- *  match"). */
-export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
 /** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
 export const firstRunWords = (run: FirstRun) =>
   run === null ? noRunWords : run.skippedIf !== null ? capitalised(afterLastMatchWords(run.skippedIf)) : runWords(run.at);

@@ -103,7 +103,6 @@ const STILL_REACHING_IN: string[] = [
   "src/scoring/Patches -> src/patches/words",
   "src/scouting/liveScouting -> src/draft/words",
   "src/scouting/scouts/words -> src/draft/words",
-  "src/scouting/words -> src/draft/words",
   "src/scouting/words -> src/myTeam/claims/words",
 ];
 

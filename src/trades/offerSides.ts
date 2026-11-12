@@ -1,6 +1,6 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ScreenOffer, TradedPlayer } from "./seam";
-import { afterLastMatchWords, closesAtWords, whenWords } from "./words";
+import { closesAfterLastMatchWords, closesAtWords, whenWords } from "./words";
 
 // An offer as the manager reads it (#383): what he gets and gives, which team it is with, and which
 // of the Offers tab's groups it sits in. Pure: no I/O.
@@ -85,7 +85,7 @@ export function closesOf(
   }
   if (offer.closes === null) return null;
   if (offer.closes.at === null) {
-    const words = afterLastMatchWords(offer.closes.gameweek);
+    const words = closesAfterLastMatchWords(offer.closes.gameweek);
     return { row: words, panel: words };
   }
   const when = whenWords(offer.closes.at);
