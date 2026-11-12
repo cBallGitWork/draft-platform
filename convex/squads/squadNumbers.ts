@@ -17,7 +17,7 @@ export async function shirtNumber(ctx: QueryCtx, { playerCode, number }: Pick<Do
 }
 
 /** His number at his club, as the Premier League's squad list last gave it, or null. */
-async function clubNumberOf(ctx: QueryCtx, playerCode: number): Promise<number | null> {
+export async function clubNumberOf(ctx: QueryCtx, playerCode: number): Promise<number | null> {
   const held = await ctx.db.query("clubNumbers").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
   return held?.number ?? null;
 }

@@ -18,6 +18,9 @@ export { noLongerInLeagueWords as goneWords } from "../shared/words";
 export const PLAYER_TITLE = "Player";
 export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
+/** On his shirt in the head, so it is plain the number is his club's, never his owner's squad
+ *  number (Craig, 12 Nov 2026, on #1496). */
+export const clubNumberLabel = (number: number) => `Club number ${figureWords(number)}`;
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
 export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: `Last ${LAST_MATCHES_SHOWN}` } as const;
@@ -62,8 +65,10 @@ export const columns = {
   points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
 export { notArrivedWords } from "../shared/words";
-/** A match his club's postponement took out, kept as its row. */
+/** A match his club's postponement took out, kept as its row, naming the side he'd have met:
+ *  "Postponed: Newcastle". No reason, as no feed gives one (Craig, 12 Nov 2026, on #1496). */
 export const postponedWords = "Postponed";
+export const postponedRowWords = (opponent: string | null) => (opponent === null ? postponedWords : `${postponedWords}: ${opponent}`);
 /** Before a match's points, the league's override, its reason on hover. */
 export const overriddenWasWords = (was: number | null) => (was === null ? "Overridden" : `Overridden, was ${figureWords(was)}`);
 /** The selected match's breakdown, at the top of the right column: "GW8, LIV (A) 2–1". */

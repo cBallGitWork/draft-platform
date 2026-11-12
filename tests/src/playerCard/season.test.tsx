@@ -218,14 +218,14 @@ describe("the game log (#1027)", () => {
     expect(cellsOf(season)).toEqual(["2", "2–1", "90", "1", "1", "54", "11"]);
   });
 
-  it("a postponed match keeps its row by its gameweek, saying so", async () => {
+  it("a postponed match keeps its row by its gameweek, saying so and naming the side he'd have met (#1496)", async () => {
     const postponed = { fixtureCode: 70, gameweek: 3, kickoff: null, home: CHELSEA, away: ARSENAL };
     const later = { ...PRICED, fixtureCode: 8, gameweek: 4 };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [later, AT_W], postponed: [postponed] }] });
     const { season } = await seasonOf();
 
     const rows = season.getAllByRole("rowheader").map((head) => head.closest("tr")!.textContent);
-    expect(rows[1]).toBe(`3${CHELSEA.shortName} (A)${postponedWords}`);
+    expect(rows[1]).toBe(`3${CHELSEA.shortName} (A)${postponedWords}: ${CHELSEA.name}`);
     expect(rows).toHaveLength(3);
   });
 
