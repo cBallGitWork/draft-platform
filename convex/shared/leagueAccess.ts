@@ -168,6 +168,13 @@ export async function managerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return { email, league, team };
 }
 
+/** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
+ *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
+ *  commissioner, say) is told they run none: the refusals a manager's own lists have always given. */
+export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
+  return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
+}
+
 /** The caller and the league, if the caller may delete it (spec/13, Deleting). */
 export function deleterOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return callerWith(ctx, leagueId, "names", refusals.notDeleter);

@@ -17,7 +17,7 @@ import { eachPlayerPage, seasonRowOf } from "../stats/seasonRebuilds";
 // effect (siteScoring.ts).
 
 /** The most rows one player has in a season: 38 matches, with room. More throws, never a cut. */
-export const PAST_PLAYER_ROWS_MOST = 100;
+const PAST_PLAYER_ROWS_MOST =100;
 
 /** The newest past season copied, or null with none. */
 export async function lastSeasonCopied(ctx: QueryCtx): Promise<number | null> {

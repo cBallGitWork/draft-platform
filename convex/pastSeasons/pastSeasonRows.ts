@@ -10,7 +10,7 @@ import type { Area } from "../lineup/pitch";
 import { PAST_STAT_COLUMNS, ZERO_LEFT_OUT_BY, type PastFeed } from "./pastStatColumns.ts";
 
 /** The competition a row must name to be a Premier League match: the log holds cups and Europe too. */
-export const PREMIER_LEAGUE = "premier_league";
+const PREMIER_LEAGUE ="premier_league";
 
 /** Each stat the copy keeps, by our name (matchRecords.ts, FPL's), from its column in the log
  *  (pastStatColumns.ts, which also names its feed). */
@@ -20,7 +20,7 @@ export const STAT_COLUMNS: Readonly<Record<string, string>> = Object.fromEntries
 
 /** When the match kicked off. The column's name is read from the log's own FPL columns, not yet
  *  checked against the file: a missing one stops the read, naming it. */
-export const KICKOFF_COLUMN = "kickoff_utc";
+const KICKOFF_COLUMN ="kickoff_utc";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
  *  never kept; FPL's own points are read only by the re-score test; a feed's minutes only say
@@ -41,11 +41,11 @@ export const SOURCE_COLUMNS = [
 export type LogRow = Readonly<Record<string, unknown>>;
 
 /** FPL's four positions, by its `element_type`. */
-export const FPL_POSITIONS = [1, 2, 3, 4] as const;
+const FPL_POSITIONS =[1, 2, 3, 4] as const;
 export type FplPosition = (typeof FPL_POSITIONS)[number];
 
 /** FPL's `element_type` for a manager, 2024/25's assistant manager chip: in the list, never a player. */
-export const FPL_MANAGER = 5;
+const FPL_MANAGER =5;
 
 /** The area each FPL position is priced in: FPL prices by position and the site by area, and every
  *  midfield area takes FPL's midfielder values (firstScoring.ts). */
