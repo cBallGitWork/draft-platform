@@ -8,7 +8,7 @@ import { followKickoffs } from "../scoring/patchKickoffs";
 import { recordPassedDeadlines } from "./deadlineRecorder";
 import type { ScheduledMatch } from "./deadline";
 import { leagueDeadlinesIn, scheduledMatches } from "./leagueDeadlines";
-import { windowGameweekOf } from "./roundStarts";
+import { moveOf, windowGameweekOf } from "./roundStarts";
 import { seasonGameweekCount } from "./seasonGameweeks";
 import { isGameweek, noSuchGameweek } from "./usedGameweeks";
 
@@ -86,10 +86,7 @@ export const log = query({
 
 /** Writes, replaces or (with `gameweek` null) deletes the match's move. */
 async function keepMove(ctx: MutationCtx, fixtureCode: number, gameweek: number | null, now: number): Promise<void> {
-  const held = await ctx.db
-    .query("matchMoves")
-    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
-    .unique();
+  const held = await moveOf(ctx, fixtureCode);
   if (held !== null) await ctx.db.delete("matchMoves", held._id);
   if (gameweek !== null) await ctx.db.insert("matchMoves", { fixtureCode, gameweek, movedAt: now });
 }

@@ -1,3 +1,4 @@
+import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { byKickoff } from "../shared/fixtures";
@@ -69,13 +70,13 @@ export async function windowGameweekOf(ctx: QueryCtx, kickoff: number | null): P
   return kickoff === null ? null : windowGameweek(kickoff, await roundStartsOf(ctx, seasonStartYear(kickoff)));
 }
 
-/** The gameweek the admin has moved the match to (matchMoves.ts, #1417), or null while he hasn't. */
-export async function movedGameweek(ctx: QueryCtx, fixtureCode: number): Promise<number | null> {
-  const move = await ctx.db
+/** The admin's move of the match to another gameweek (matchMoves.ts, #1417), or null while he
+ *  hasn't moved it. */
+export function moveOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchMoves"> | null> {
+  return ctx.db
     .query("matchMoves")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
-  return move?.gameweek ?? null;
 }
 
 /** `matches` with each one's `gameweek` the window its kickoff falls in, in place of the feed's
@@ -95,7 +96,7 @@ export async function placeInWindows<Match extends ScheduledMatch & { code: numb
     matches.map(async (match) => ({
       ...match,
       gameweek:
-        (await movedGameweek(ctx, match.code)) ??
+        (await moveOf(ctx, match.code))?.gameweek ??
         (match.kickoff === null || match.gameweek === null ? null : windowGameweek(match.kickoff, starts.get(seasonStartYear(match.kickoff))!)),
     })),
   );
