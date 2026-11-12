@@ -16,6 +16,40 @@ export const adminPowers = commissionerPowers;
  *  these nine, so one plays the league's average each gameweek. */
 export const previewTeamNames: readonly string[] = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 
+/** The preview's twenty Premier League clubs, each by its real FPL `code`, so its crest and colours
+ *  are its own (#840): the Premier League section plays them, and every other preview's men are
+ *  theirs. */
+const CLUB_ROWS = [
+  [3, "Arsenal", "ARS"],
+  [7, "Aston Villa", "AVL"],
+  [91, "Bournemouth", "BOU"],
+  [94, "Brentford", "BRE"],
+  [36, "Brighton", "BHA"],
+  [8, "Chelsea", "CHE"],
+  [9, "Coventry City", "COV"],
+  [31, "Crystal Palace", "CRY"],
+  [11, "Everton", "EVE"],
+  [54, "Fulham", "FUL"],
+  [40, "Ipswich Town", "IPS"],
+  [2, "Leeds United", "LEE"],
+  [14, "Liverpool", "LIV"],
+  [43, "Man City", "MCI"],
+  [1, "Man Utd", "MUN"],
+  [4, "Newcastle", "NEW"],
+  [17, "Nottingham Forest", "NFO"],
+  [6, "Spurs", "TOT"],
+  [21, "West Ham", "WHU"],
+  [39, "Wolves", "WOL"],
+] as const;
+type PreviewClubShortName = (typeof CLUB_ROWS)[number][2];
+export const previewClubs = CLUB_ROWS.map(([code, name, shortName]) => ({ code, name, shortName }));
+/** A preview club by its three letters: `previewClub("ARS")`. */
+export const previewClub = (shortName: PreviewClubShortName) => {
+  const club = previewClubs.find((each) => each.shortName === shortName);
+  if (club === undefined) throw new Error(`No preview club ${shortName}`);
+  return club;
+};
+
 /** The Pro League's gameweek in every preview screen: begun, its matches under way. */
 export const previewGameweek = 9;
 

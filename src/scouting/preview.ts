@@ -6,7 +6,7 @@ import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { previewTeamNames, proLeague } from "../shared/preview";
+import { previewClub, previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
@@ -20,9 +20,9 @@ import { previewShortlistOf } from "./shortlist/preview";
 import { previewIdOf } from "../table/preview";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
-export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-export const LIVERPOOL = { code: 14, name: "Liverpool", shortName: "LIV" };
+export const ARSENAL = previewClub("ARS");
+export const CHELSEA = previewClub("CHE");
+export const LIVERPOOL = previewClub("LIV");
 
 const player = (code: number, name: string, fullName: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null = null): ListedPlayer => ({
   code,
