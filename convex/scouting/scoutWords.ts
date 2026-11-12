@@ -1,4 +1,5 @@
 import type { Words } from "../mail/letterShape";
+import type { GameMode } from "../rules/gameMode";
 import { NO_DATA, UNSURE, type Stars } from "../stars/starsShape";
 
 // What scouts say (spec/19, Scouts and The report; #375), in one place for Craig to change: the
@@ -58,15 +59,16 @@ export const REPORT_SYSTEM = [
 const starsWords = (stars: Stars) => (stars === NO_DATA ? "no matches yet" : stars === UNSURE ? "too few matches to rate" : `${stars} stars`);
 const venue = (home: boolean) => (home ? "home" : "away");
 
-/** The facts a report is written from, as plain lines for Claude. */
-export function reportPrompt(brief: ScoutBrief): string {
+/** The facts a report is written from, as plain lines for Claude, in a league that plays `mode`:
+ *  its role stars only where the league shows stars, and its slots' roles only where it scores them
+ *  (gameMode.ts, #1582; every league does both today). */
+export function reportPrompt(brief: ScoutBrief, mode: Pick<GameMode, "showsStars" | "scoresRoles">): string {
+  const slotWords = (slot: ScoutBrief["shape"][number]) => (mode.scoresRoles ? `${slot.position} as ${slot.role}` : slot.position);
   const lines = [
     `Player: ${brief.playerName}, ${brief.clubName}. Positions: ${brief.positions.join(", ") || "none yet"}.`,
     `News: ${brief.news ?? "none"}.${brief.chanceOfPlaying === null ? "" : ` Chance of playing next round: ${brief.chanceOfPlaying}%.`}`,
-    "Role stars: " + (brief.stars.map((each) => `${each.role} (${each.area}) ${starsWords(each.stars)}`).join("; ") || "none") + ".",
-    "Manager's formation: " +
-      (brief.shape.length === 0 ? "no lineup set yet" : brief.shape.map((slot) => `${slot.position} as ${slot.role}`).join(", ")) +
-      ".",
+    ...(mode.showsStars ? ["Role stars: " + (brief.stars.map((each) => `${each.role} (${each.area}) ${starsWords(each.stars)}`).join("; ") || "none") + "."] : []),
+    "Manager's formation: " + (brief.shape.length === 0 ? "no lineup set yet" : brief.shape.map(slotWords).join(", ")) + ".",
     "This season's matches, newest first:",
     ...(brief.matches.length === 0
       ? ["none"]
