@@ -1,13 +1,12 @@
-import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import { BYE } from "../../convex/table/teamGames";
 import { TABLE_PATH } from "../frame/menu";
 import { matchupLink } from "../matchup/paths";
-import { nextGlyph } from "../shared/words";
 import type { LeagueTable } from "../table/seam";
 import { columns as tableColumns } from "../table/words";
 import { Fact } from "../trades/OfferParts";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
+import { MoreLink } from "../ui/MoreLink";
 import { Panel } from "../ui/Panel";
 import { FormChips } from "./header/FormChips";
 import { placeIn, standingOf } from "./header/teamStanding";
@@ -30,14 +29,8 @@ import {
 // The right-hand column of My team's Fixtures tab (docs/design/approved/team-fixtures): the next
 // game, and the season so far.
 
-/** A panel's way on to the screen holding the whole of what it shows: "Matchup ›", "Table ›". */
-function MoreLink({ to, search, children }: { to: string; search?: Record<string, unknown>; children: string }) {
-  return (
-    <Link to={to} search={search} className="flex min-h-tap items-center justify-end px-3 font-semibold lg:min-h-0 lg:py-1">
-      {children} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
-    </Link>
-  );
-}
+/** The Fixtures tab's ways on, "Matchup ›" and "Table ›", at a panel's foot on the right. */
+const FOOT_MORE = "justify-end px-3 lg:min-h-0 lg:py-1";
 
 /** The next game: the opponent's place and points, the deadline and its countdown, their last five
  *  results, and the way to the matchup. A bye has none. */
@@ -71,7 +64,7 @@ export function NextGamePanel({ teamId, game, table, now }: { teamId: Id<"teams"
           </Fact>
         )}
       </dl>
-      <MoreLink {...matchupLink(teamId, game.gameweek, game.game)}>{matchupMoreWords}</MoreLink>
+      <MoreLink className={FOOT_MORE} {...matchupLink(teamId, game.gameweek, game.game)}>{matchupMoreWords}</MoreLink>
     </Panel>
   );
 }
@@ -99,7 +92,7 @@ export function SeasonPanel({ table, teamName }: { table: LeagueTable; teamName:
           </tr>
         </tbody>
       </table>
-      <MoreLink to={TABLE_PATH}>{tableMoreWords}</MoreLink>
+      <MoreLink className={FOOT_MORE} to={TABLE_PATH}>{tableMoreWords}</MoreLink>
     </Panel>
   );
 }

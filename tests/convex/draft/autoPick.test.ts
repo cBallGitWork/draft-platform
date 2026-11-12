@@ -8,7 +8,7 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { draftSteps, FIRST_PICK_MS } from "../../support/convex/draft.harness";
-import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -40,7 +40,6 @@ const PLAYERS = [
   player(103, "Carr", CHELSEA),
   player(104, "Dunne", CHELSEA),
 ];
-const [ANN, BOB] = MANAGERS;
 
 const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
   changeEveryRules(t, leagueId, (rules) => ({

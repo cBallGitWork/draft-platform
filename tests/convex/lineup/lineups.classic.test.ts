@@ -7,7 +7,7 @@ import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { sameCell } from "../../../convex/lineup/pitch";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT } from "../../support/convex/lineupSquad.harness";
 import { KEEGANS } from "../../support/convex/lineup.harness";
@@ -16,7 +16,6 @@ import { KEEGANS } from "../../support/convex/lineup.harness";
 // formation's name, saved as `classic`, until its manager picks another formation, and a classic
 // formation's shape never changes.
 
-const [ANN] = MANAGERS;
 /** The 4-4-2's eleven on Keegan's Newcastle's roles. */
 const ON_KEEGANS: Lineup = {
   ...FOUR_FOUR_TWO,

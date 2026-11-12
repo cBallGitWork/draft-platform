@@ -2,8 +2,9 @@
 // player's panel lists for his area, and how he ranks against the players of it. Pure, apart from
 // per90.ts, so the preview and the tests share it without the server's imports.
 
-import { AREAS, areasOf, cellsOf, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
+import { AREAS, areasOf, cellsOf, GOALKEEPER_AREA, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
+import { mostFirst } from "./raceOrder";
 import type { Position } from "../positions/positionTables";
 import {
   ASSISTS,
@@ -39,7 +40,7 @@ const MIDFIELD_AND_ATTACK_STATS = [GOALS, ASSISTS, KEY_PASSES, SHOTS_ON_TARGET, 
 /** The stats a player of `area` is shown per 90, then `picked` (the list's stat) as a seventh when
  *  it isn't among them already. */
 export function per90Stats(area: Area, picked: string | null): string[] {
-  const set: readonly string[] = area === "goalkeeper" ? GOALKEEPER_STATS : area === "defence" ? DEFENCE_STATS : MIDFIELD_AND_ATTACK_STATS;
+  const set: readonly string[] = area === GOALKEEPER_AREA ? GOALKEEPER_STATS : area === "defence" ? DEFENCE_STATS : MIDFIELD_AND_ATTACK_STATS;
   return picked === null || set.includes(picked) ? [...set] : [...set, picked];
 }
 
@@ -96,7 +97,7 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
   return per90Stats(area, stat).map((each) => {
     const value = perNinety(totals, each);
     const others = peers.map((peer) => perNinety(peer, each)!);
-    return { stat: each, total: totalOf(totals, each), perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
+    return { stat: each, total: totalOf(totals, each), perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others, mostFirst(each)) : null };
   });
 }
 
@@ -104,8 +105,11 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
 const PERCENTILE_TOP = 100;
 
 /** Where `value` stands among `peers`' figures, as a percentile from 0 to 100: the share of them at
- *  or below it, rounded, so the best of them is 100. Null with no peers. */
-export function percentileOf(value: number, peers: readonly number[]): number | null {
+ *  or below it, rounded, so the best of them is 100. With `mostIsBest` false (a stat where fewer is
+ *  better, raceOrder.ts's FEWEST_FIRST: Craig, 11 Nov 2026, on #1787), the share at or above it, so
+ *  the fewest stands at 100. Null with no peers. */
+export function percentileOf(value: number, peers: readonly number[], mostIsBest = true): number | null {
   if (peers.length === 0) return null;
-  return Math.round((PERCENTILE_TOP * peers.filter((peer) => peer <= value).length) / peers.length);
+  const atOrWorse = peers.filter((peer) => (mostIsBest ? peer <= value : peer >= value));
+  return Math.round((PERCENTILE_TOP * atOrWorse.length) / peers.length);
 }

@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeRulesTo, holdGameweeks, playUpTo, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -12,7 +12,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // Gameweeks: "a change reshuffles only fixtures not yet played"; Craig, 22 Oct 2026: "A played
 // gameweek's fixtures are therefore frozen and never re-drawn because a team joined").
 
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 /** The gameweeks the tests play before changing anything: 1 to PLAYED. */
 const PLAYED = 5;
 /** A gameweek not yet begun, which the commissioner can still tick or untick. */

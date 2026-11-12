@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLOSED_READ_MOST } from "../../../convex/trades/closedOffers";
 import { MINUTE_MS, seasonStartAt } from "../../../convex/shared/time";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 

@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { insertPlayers } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, REVERSED_BENCH, saved, sent, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
@@ -13,7 +13,6 @@ import { lineupInGameweek } from "../../../convex/lineup/lineups";
 // again from the squad until the manager saves one. The rest of storing a lineup is in
 // lineups.test.ts.
 
-const [ANN, BOB] = MANAGERS;
 /** A keeper in the Premier League, held only by the test that adds him. */
 const SECOND_KEEPER = 997;
 

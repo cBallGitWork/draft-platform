@@ -43,7 +43,8 @@ export const SAVES = "saves";
 export const CLEAN_SHEETS = "clean_sheets";
 export const GOALS_CONCEDED = "goals_conceded";
 export const PENALTIES_SAVED = "penalties_saved";
-const OWN_GOALS = "own_goals";
+export const OWN_GOALS = "own_goals";
+export const PENALTIES_MISSED = "penalties_missed";
 
 /** The stats a goal, an assist, a card or an own goal moves, under the names they are kept by:
  *  what the matchup's commentary prices them by (#44, #835). */
@@ -63,7 +64,7 @@ const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
   { fpl: CLEAN_SHEETS, pl: "clean_sheet", kept: "fpl" },
   { fpl: GOALS_CONCEDED, pl: "goals_conceded", kept: "fpl" },
   { fpl: PENALTIES_SAVED, pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
-  { fpl: "penalties_missed", pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
+  { fpl: PENALTIES_MISSED, pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: OWN_GOALS, pl: OWN_GOALS, kept: "pl" },
   { fpl: "starts", pl: "game_started", kept: "pl" },
 ];

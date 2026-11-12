@@ -8,7 +8,6 @@ import {
   actingAs,
   COMMISSIONER,
   CO_COMMISSIONER,
-  MANAGERS,
   addManager,
   addManagers,
   adminCreatesLeague,
@@ -16,13 +15,16 @@ import {
   onTheList,
   teamsIn,
   type TestConvex,
+  ANN,
+  BOB,
+  CAT,
+  DAN,
+  EVE,
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
-
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { namedPlayers } from "./findPlayers";
 import { Loading, PAGE_STACK, PageSection, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
@@ -20,8 +21,6 @@ const OPENING_FILTERS: PlayersFilters = { availability: "freeAgents", position: 
 /** The list opens by name: no player has season points to rank by until matches are scored (#29).
  *  A head pressed first sorts names A to Z and figures most first. */
 const OPENING_SORT: ListSort = { by: "name", descending: false };
-/** The figures open over the season, the period every player has played in. */
-const OPENING_PERIOD: Period = "season";
 const FIRST_DESCENDING: Record<ListSortColumn, boolean> = {
   name: false,
   points: true,
@@ -69,7 +68,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const { sort, sortBy, stat, show } = useListSort<ListSortColumn>(OPENING_SORT, FIRST_DESCENDING);
   const [name, find] = useState("");
   // While a changed club, stat or period loads, the last list stays up, so the club filter keeps its clubs.
-  const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
+  const [period, choosePeriod] = useState<Period>(DEFAULT_PERIOD);
   // The player clicked, as his row read then; his panel draws him live (`shownSelected`).
   const [selected, setSelected] = useState<ListedPlayer | null>(null);
   const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period, selected?.code));

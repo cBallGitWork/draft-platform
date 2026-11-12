@@ -4,7 +4,7 @@ import { draftRulesOf } from "../rules/firstRules";
 import type { DraftRules } from "../rules/leagueRulesShape";
 import { latestRules } from "../rules/rulesHistory";
 import { refuse } from "../shared/leagueAccess";
-import { draftIsLive, draftOf } from "./draftRow";
+import { draftIsLive, draftOf, OLD_DRAFTS_BACKFILL_HINT } from "./draftRow";
 
 // The draft's pick time while it is live (spec/04, The commissioner; #1095). A change to the
 // league's pick time waits for the next gameweek like any rules change, so the draft keeps its own:
@@ -30,7 +30,7 @@ export const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => d
  *  and the commissioner's box all read it (#1572). */
 export function pickSecondsOf(draft: Doc<"drafts"> | null, draftRules: DraftRules): number {
   if (draft?.started === undefined) return draftRules.pickSeconds;
-  if (draft.pickSeconds === undefined) throw new Error(`League ${draft.leagueId}'s draft kept no pick time: run draft/oldDraftsBackfill once (#1610)`);
+  if (draft.pickSeconds === undefined) throw new Error(`League ${draft.leagueId}'s draft kept no pick time: ${OLD_DRAFTS_BACKFILL_HINT}`);
   return draft.pickSeconds;
 }
 

@@ -47,8 +47,8 @@ export const PAST_STAT_COLUMNS: Readonly<Record<string, PastColumn>> = {
   penalties_saved: { feed: "FPL", column: "fpl_penalties_saved" },
   penalties_missed: { feed: "FPL", column: "fpl_penalties_missed" },
   defensive_contribution: { feed: "FPL", column: "fpl_defensive_contribution" },
-  yellow_cards: { feed: "ai-carling", column: "yellow_cards" },
-  red_cards: { feed: "ai-carling", column: "red_cards" },
+  yellow_cards: { feed: "ai-carling", column: "yellow_cards" }, // literal-ok: the log's own column name, not our key
+  red_cards: { feed: "ai-carling", column: "red_cards" }, // literal-ok: the log's own column name, not our key
   own_goals: { feed: "FPL", column: "fpl_own_goals" },
   // The roles' stats (#10).
   accurate_cross: { feed: "SofaScore", column: "sofascore_accurate_crosses" },
@@ -91,7 +91,7 @@ export const NOT_TESTED: readonly string[] = [
   "clean_sheet_half_time", "goals_conceded_half_time",
   "accurate_back_zone_pass", "accurate_chipped_pass", "accurate_corners_intobox", "accurate_cross_nocorner",
   "accurate_flick_on", "accurate_freekick_cross", "accurate_fwd_zone_pass", "accurate_goal_kicks", "accurate_keeper_throws",
-  "accurate_launches", "accurate_layoffs", "accurate_pull_back", "accurate_through_ball", "accurate_throws", "appearances",
+  "accurate_launches", "accurate_layoffs", "accurate_pull_back", "accurate_through_ball", "accurate_throws", "appearances", // literal-ok: pure, so plain Node reads it (above)
   "assist_attempt_saved", "assist_blocked_shot", "assist_free_kick_won", "assist_handball_won", "assist_own_goal",
   "assist_pass_lost", "assist_penalty_won", "assist_post", "att_assist_openplay", "att_assist_setplay", "att_bx_centre",
   "att_bx_left", "att_bx_right", "att_cmiss_high", "att_cmiss_high_left", "att_cmiss_high_right", "att_cmiss_left",
@@ -109,25 +109,25 @@ export const NOT_TESTED: readonly string[] = [
   "backward_pass", "big_chance_saves", "big_chance_scored", "blocked_cross", "blocked_pass", "blocked_scoring_att",
   "carries", "clearances_blocks_interceptions", "corner_taken", "creativity", "cross_not_claimed",
   "crosses_18yard", "crosses_18yardplus", "dangerous_play", "dive_catch", "dive_save", "diving_save", "draws", "duel_lost",
-  "effective_blocked_cross", "effective_head_clearance", "error_lead_to_goal", "expected_assists",
+  "effective_blocked_cross", "effective_head_clearance", "error_lead_to_goal", "expected_assists", // literal-ok: pure, so plain Node reads it (above)
   "expected_goal_involvements", "expected_goals", "expected_goals_conceded", "final_third_entries",
   "final_third_entries_open_play", "foul_throw_in", "fouled_final_third", "freekick_cross", "fwd_pass", "game_started",
   "gk_smother", "goal_assist_deadball", "goal_assist_intentional", "goal_assist_openplay", "goal_assist_setplay",
   "goal_fastbreak", "goal_kicks", "goals_conceded_ibox", "goals_conceded_obox", "goals_openplay", "hand_ball",
   "head_clearance", "head_pass", "hit_woodwork", "ict_index", "influence", "interception_won", "interceptions_in_box",
-  "keeper_pick_up", "keeper_throws", "last_man_tackle", "leftside_pass", "long_pass_own_to_opp",
+  "keeper_pick_up", "keeper_throws", "last_man_tackle", "leftside_pass", "long_pass_own_to_opp", // literal-ok: pure, so plain Node reads it (above)
   "long_pass_own_to_opp_success", "losses", "lost_corners", "offside_provoked", "offtarget_att_assist",
   "ontarget_att_assist", "open_play_pass", "overrun", "own_goals_conceded", "passes_left", "passes_right",
   "pen_area_entries", "pen_area_entries_open_play", "pen_goals_conceded", "penalty_conceded", "penalty_faced",
-  "penalty_won", "poss_lost_all", "poss_lost_ctrl", "poss_won_att_3rd", "poss_won_def_3rd", "poss_won_mid_3rd",
-  "post_scoring_att", "progressive_carries", "put_through", "recoveries", "rightside_pass", "saved_ibox", "saved_obox",
-  "second_goal_assist", "second_yellow", "shield_ball_oop", "shot_created", "shot_fastbreak", "shot_off_target",
+  "penalty_won", "poss_lost_all", "poss_lost_ctrl", "poss_won_att_3rd", "poss_won_def_3rd", "poss_won_mid_3rd", // literal-ok: pure, so plain Node reads it (above)
+  "post_scoring_att", "progressive_carries", "put_through", "recoveries", "rightside_pass", "saved_ibox", "saved_obox", // literal-ok: pure, so plain Node reads it (above)
+  "second_goal_assist", "second_yellow", "shield_ball_oop", "shot_created", "shot_fastbreak", "shot_off_target", // literal-ok: pure, so plain Node reads it (above)
   "six_yard_block", "stand_catch", "stand_save", "successful_final_third_entries",
   "successful_final_third_entries_open_play", "successful_open_play_pass", "successful_pen_area_entries",
   "successful_pen_area_entries_open_play", "successful_put_through", "tackles", "threat", "times_tackled",
-  "total_back_zone_pass", "total_chipped_pass", "total_clearance", "total_contest", "total_corners_intobox",
+  "total_back_zone_pass", "total_chipped_pass", "total_clearance", "total_contest", "total_corners_intobox", // literal-ok: pure, so plain Node reads it (above)
   "total_cross_nocorner", "total_fastbreak", "total_final_third_passes", "total_flick_on", "total_fwd_zone_pass",
-  "total_high_claim", "total_keeper_sweeper", "total_launches", "total_layoffs", "total_offside", "total_pull_back",
-  "total_scoring_att", "total_sub_off", "total_sub_on", "total_through_ball", "total_throws", "touches",
+  "total_high_claim", "total_keeper_sweeper", "total_launches", "total_layoffs", "total_offside", "total_pull_back", // literal-ok: pure, so plain Node reads it (above)
+  "total_scoring_att", "total_sub_off", "total_sub_on", "total_through_ball", "total_throws", "touches", // literal-ok: pure, so plain Node reads it (above)
   "touches_in_final_third", "turnover", "unsuccessful_touch", "winning_goal", "wins", "won_corners",
 ];

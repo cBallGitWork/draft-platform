@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { MAIL_PATH } from "../frame/menu";
+import { idOf } from "../shared/search";
 
 /** The address's search: the letter to open, or none. */
 export type MailSearch = { letter?: Id<"letters"> };
@@ -12,6 +13,5 @@ export const letterLink = (letter: Id<"letters">) => ({ to: MAIL_PATH, search: {
 
 /** The search as the address holds it, anything else dropped. */
 export function mailSearchOf(search: Record<string, unknown>): MailSearch {
-  const { letter } = search;
-  return { letter: typeof letter === "string" && letter !== "" ? (letter as Id<"letters">) : undefined };
+  return { letter: idOf<"letters">(search.letter) };
 }

@@ -12,6 +12,7 @@ import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLa
 import { applyWords, backGroupPattern } from "../../../src/myTeam/tactics/formationWindow/words";
 import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { problemWords } from "../../../convex/lineup/lineupWords";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
@@ -137,6 +138,9 @@ export async function pickRole(name: string, role: string) {
   await userEvent.click(within(roleCard(name)).getByRole("button", { name: role, pressed: false }));
   await userEvent.click(within(roleCard(name)).getByRole("button", { name: playAsWords(role) }));
 }
+/** The server's refusal of a lineup starting five, in its own words: what a save answers in a
+ *  refused-save test. */
+export const REFUSAL = problemWords({ kind: "wrongStarterCount", starterCount: 5 }, String);
 /** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
 export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */

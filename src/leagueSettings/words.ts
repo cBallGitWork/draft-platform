@@ -71,8 +71,6 @@ export const neverAutoPickWords = "Never: the clock runs for every pick.";
 export const blankTimeoutsWords = noNumberWords(timeoutsLabel, "turn auto-pick after timeouts off");
 export const undraftedLabel = "Players nobody drafts go to";
 export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Waivers", freeAgents: "Free agents" };
-/** Craig, 4 Nov 2026, on #1087. */
-export const undraftedHint = "Until waivers are built, they go to free agents.";
 
 export const tradesTitle = "Trades";
 export const tradeReviewLabel = "An accepted trade is reviewed by";

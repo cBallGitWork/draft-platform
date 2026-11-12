@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks, playUpTo, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -16,7 +16,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // gameweeks before it score nothing and have no head-to-head, and the round robin starts at it
 // (Craig, 5 Nov 2026).
 
-const [ANN, BOB, CAT] = MANAGERS;
 /** How long after the league is made gameweek 1 kicks off: its deadline falls after the league is
  *  made. Each next gameweek kicks off a week on. */
 const KICKS_OFF_IN = 2 * HOUR_MS;

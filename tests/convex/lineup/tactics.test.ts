@@ -9,7 +9,7 @@ import { unheldPlayerWords } from "../../../convex/shared/players";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, NEXT, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
@@ -22,7 +22,6 @@ import { movedToFullBack } from "../../support/convex/positionStarts.harness";
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
 // and the lineup held for it.
 
-const [ANN] = MANAGERS;
 /** A player with no counted match yet: "—" for every role his positions play (#11). */
 const noStarsYet = (positions: readonly Position[]) => ratedRoles(positions).map(({ area, role }) => ({ area, role, stars: NO_DATA }));
 const CLUB = { code: 1, name: "Arsenal", shortName: "ARS" };
