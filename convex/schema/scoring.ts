@@ -34,9 +34,9 @@ export const siteScoringTables = {
    *  and the version it was made from (null for the first set). */
   siteScoringDraft: defineTable({ scoring: scoringSetShape, madeFrom: v.union(v.null(), v.id("siteScoring")), savedAt: v.number() }),
   /** Who dismissed a waiting patch's banner (spec/14, Changes and corrections; #356): one row a
-   *  person and version, so it stays dismissed on every device. */
-  patchBannerDismissals: defineTable({ email: v.string(), versionId: v.id("siteScoring") }).index("by_email_and_versionId", [
-    "email",
-    "versionId",
-  ]),
+   *  person and version, so it stays dismissed on every device. Deleted with a withdrawn patch
+   *  (by_versionId; #1574). */
+  patchBannerDismissals: defineTable({ email: v.string(), versionId: v.id("siteScoring") })
+    .index("by_email_and_versionId", ["email", "versionId"])
+    .index("by_versionId", ["versionId"]),
 };

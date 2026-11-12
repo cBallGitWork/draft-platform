@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { Infer } from "convex/values";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { NEWS_PAGE, type LeagueNews } from "../../../convex/home/leagueNews";
-import type { leagueEvent } from "../../../convex/schema";
+import type { LeagueEvent } from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
@@ -33,7 +32,7 @@ const read = async ({ before = null, teamId = null, kind = null }: Asked = {}, e
   (await actingAs(t, email)).query(api.home.leagueNews.ofLeague, { leagueId, before, teamId, kind });
 
 /** Files the event at `at`, as the league's squad changes file theirs. */
-const file = (at: number, event: Infer<typeof leagueEvent>, by = ANN) => t.run((ctx) => ctx.db.insert("leagueEvents", { leagueId, at, by, event }));
+const file = (at: number, event: LeagueEvent, by = ANN) => t.run((ctx) => ctx.db.insert("leagueEvents", { leagueId, at, by, event }));
 const onTeam = (team: number, player = SAKA) => ({ ...player, teamId: teams[team].teamId, teamName: teams[team].teamName });
 
 /** Each move's kind, team, who joined, who left and where from; a trade's sides and other team. */

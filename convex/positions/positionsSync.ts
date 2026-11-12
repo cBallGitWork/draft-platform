@@ -36,6 +36,9 @@ export const DAILY_RUN_UK_HOUR = 6;
 /** The UTC hours crons.ts fires `daily` at: 06:00 UK is one of them in winter and the other in summer. */
 export const DAILY_RUN_UTC_HOURS = [DAILY_RUN_UK_HOUR - 1, DAILY_RUN_UK_HOUR] as const;
 
+/** Those hours as crons.ts's cron string, for the positions sync and Sportmonks' (#1419). */
+export const DAILY_RUN_CRON = `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`;
+
 /** The cron's: starts a run when it is `DAILY_RUN_UK_HOUR` in the UK, and does nothing the hour the
  *  clocks put it at the other. */
 export const daily = internalMutation({

@@ -3,7 +3,7 @@ import { internal } from "./_generated/api";
 import { CRON_TRIGGER } from "./heartbeats/heartbeat";
 import { LEAD_WAKE_CRON } from "./heartbeats/leadWake";
 import { FEED_SCHEDULES } from "./shared/feedSchedule";
-import { DAILY_RUN_UTC_HOURS } from "./positions/positionsSync";
+import { DAILY_RUN_CRON } from "./positions/positionsSync";
 import { PRUNE_EVERY } from "./shared/syncRuns";
 import { OFFER_CHECK_EVERY } from "./trades/tradeClose";
 import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
@@ -33,7 +33,7 @@ crons.interval("waiver runs", WAIVER_CHECK_EVERY, internal.waivers.waiverRun.run
 crons.interval("trade offers", OFFER_CHECK_EVERY, internal.trades.tradeClose.closeDue, {});
 
 // The positions sync (#1194, spec/06): daily at 06:00 UK time, whatever the clocks (positionsSync.ts).
-crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.positions.positionsSync.daily, {});
+crons.cron("positions sync", DAILY_RUN_CRON, internal.positions.positionsSync.daily, {});
 
 // Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
@@ -44,7 +44,7 @@ crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 crons.interval("sportmonks sync", FEED_SCHEDULES.sportmonks.every, internal.football.sportmonks.sportmonksSync.run, BY_CRON);
 crons.interval("sportmonks live tick", FEED_SCHEDULES.sportmonksLive.every, internal.football.sportmonks.sportmonksLive.tick, {});
 // And the Scottish Premiership's lineups, for positions (#1419), at the positions sync's 06:00 UK time.
-crons.cron("sportmonks positions", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.football.sportmonks.sportmonksPositionsSync.daily, {});
+crons.cron("sportmonks positions", DAILY_RUN_CRON, internal.football.sportmonks.sportmonksPositionsSync.daily, {});
 
 // Not one of spec/20's jobs but the build pipeline's: wakes the lead every half hour, since GitHub's
 // schedule drops its passes (heartbeats/leadWake.ts). Only where its token is set: the development deployment, never the live one.

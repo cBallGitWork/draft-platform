@@ -1,7 +1,7 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
@@ -105,7 +105,6 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
   };
 }
 
-type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
 type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;

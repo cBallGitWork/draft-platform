@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { draftOrderOf } from "../draft/draftOrder";
 import { draftIsOver } from "../draft/draftRow";
-import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { latestBegun, nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { WAIVER_ORDERS, type LeagueRules } from "../rules/leagueRulesShape";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -11,7 +11,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { standingsOf } from "../table/leagueTable";
 import { tableOf } from "../table/sentTables";
 import type { TableRow } from "../table/standings";
-import { latestBegun, latestEnded, mayFallInLock, runAhead, underWayIn } from "./waiverLock";
+import { latestEnded, mayFallInLock, runAhead, underWayIn } from "./waiverLock";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver order (#1198, spec/08 Waivers and free agency): who a run tries first. Its starting
