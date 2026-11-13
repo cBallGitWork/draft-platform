@@ -92,6 +92,9 @@ both=$repo/docs/design/approved/both && mkdir -p "$both"
 printf 'Routes: `/team` and\n`/other`, checked on `/other?preview=manager`.\n' > "$both/README.md"
 on_branch several src/other/OtherPage.tsx
 says "changes a screen with an approved picture: /other (src/other/OtherPage.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
+# a README saved with CRLF line endings is read as LF (Python's text mode), so its paragraph still ends at its blank line
+printf 'Route: `/other`.\r\n\r\nIts button opens `/gone`.\r\n' > "$both/README.md"
+says "changes a screen with an approved picture: /other (src/other/OtherPage.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
 # a folder whose README names no route, or that has none, is refused, never passed as no screen
 printf '# Both\n\nRoute: the Both tab, `spec/12`.\n' > "$both/README.md"
 says "can't read which routes docs/design/approved/both/ shows" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"

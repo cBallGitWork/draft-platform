@@ -2,12 +2,12 @@
 # the hooks, actionlint), `unit` (`npm test` in vitest shards) and `build`; beside them `npm run smoke`. What it catches and why
 # here: ARCHITECTURE.md, Services. Split again to halve a PR's wait (about 4 min as one job, 5 Nov 2026).
 # A pull request that changes only docs (docs/, spec/, .claude/, *.md) or the agents' prompt workflows runs the cheap
-# checks and skips the unit tests, build and smoke; any other change runs all three, smoke included, since what the
-# browser loads (the convex/ modules src/ imports, the smoke specs and their config) outgrows a list of folders
-# (#1721). A merge to main runs nothing: a nightly run on main (and a manual one, from the Actions tab) runs all of
-# it, the safety net for two merges that pass alone but clash together. A failed nightly run goes red on main's last
-# commit and opens (or comments on) the `nightly-ci` issue. The jobs named `verify` and `smoke` are the results the
-# ruleset requires: `verify` fails when any job it waits on failed, and a skipped job is not a failure.
+# checks and skips the unit tests, build and smoke; any other change runs all three, smoke included, since what smoke
+# exercises (the bundle, with the convex/ modules src/ imports, and the smoke specs and their config) outgrows a list
+# of folders (#1721). A merge to main runs nothing: a nightly run on main (and a manual one, from the Actions tab) runs
+# all of it, the safety net for two merges that pass alone but clash together. A failed nightly run goes red on main's
+# last commit and opens (or comments on) the `nightly-ci` issue. The jobs named `verify` and `smoke` are the results
+# the ruleset requires: `verify` fails when any job it waits on failed, and a skipped job is not a failure.
 name: verify
 
 on:
