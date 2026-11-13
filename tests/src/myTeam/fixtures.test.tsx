@@ -184,7 +184,8 @@ describe("the results", () => {
     expect(screen.queryByText(provisionalWords)).toBeNull();
   });
 
-  it("marks a live game's score Live, and says points are provisional once, in the Results panel's head (#1965)", async () => {
+  it("marks a live game's score Live, and says points are provisional", async () => {
+    // Once, in the Results panel's head where the picture has "After GWn", never above the panels (#1965).
     openFixtures({ fixtures: fixturesOf([game(1, { kind: "team", teamName: "Team 2" }, null, scored), game(2, { kind: "leagueAverage" }, null, live)]) });
     await screen.findByRole("table", { name: resultsTableLabel("Team 1") });
 
