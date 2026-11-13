@@ -75,7 +75,7 @@ describe("the waiver cron", () => {
     await waiverPass();
     const kickoff = await w.t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).find(({ code }) => code === NEXT + 1)!);
     const { _id, _creationTime, ...sent } = kickoff;
-    await w.t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...sent, kickoff: kickoff.kickoff! - 60_000 }] });
+    await w.t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...sent, kickoff: kickoff.kickoff! - MINUTE_MS }] });
     expect(await waiverPass()).toEqual([w.leagueId]);
   });
 });
