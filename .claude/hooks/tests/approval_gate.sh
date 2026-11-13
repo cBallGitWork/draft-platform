@@ -116,6 +116,8 @@ echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF2
 tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 git -C "$repo" switch -q main
+# one check a route: the merge's only judge (approval_gate.py's _no_wait) reads no pull request, so the four bodies
+# (differs, pasted, matches, plain) the loop here once fed never reached a check; #2032 may bring a judge back
 check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
 check allow guard_github.py "$tool"
 # gh pr merge with no number merges the branch's pull request: one open on it is named, none or two can't be
