@@ -35,6 +35,12 @@ async function inviteToRun(ctx: QueryCtx, inviteId: Id<"invites">) {
   return { by, invite, invitedTo };
 }
 
+/** Refuses a second live invite to this email for this league, besides `except`. */
+async function refuseIfInvited(ctx: QueryCtx, leagueId: Id<"leagues">, email: string, now: number, except?: Id<"invites">) {
+  const live = await liveInvitesTo(ctx, email, now);
+  if (live.some((invite) => invite.leagueId === leagueId && invite._id !== except)) refuse(joiningRefusals.alreadyInvited(email));
+}
+
 /** For the league's commissioners and the admin: refuses someone already managing a team in it, a
  *  new team once the draft has started, a full league or a team not vacated, and a second live
  *  invite to the same email. */
@@ -46,9 +52,7 @@ export const send = mutation({
     const email = namedEmail(args.email);
     const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId, await draftHasStarted(ctx, league._id))?.name ?? null;
     const now = Date.now();
-    if ((await liveInvitesTo(ctx, email, now)).some((invite) => invite.leagueId === league._id)) {
-      refuse(joiningRefusals.alreadyInvited(email));
-    }
+    await refuseIfInvited(ctx, league._id, email, now);
 
     await admitEmail(ctx, email);
     const inviteId = await ctx.db.insert("invites", {
@@ -78,8 +82,7 @@ export const resend = mutation({
     if (invite.delivery === "waiting") refuse(joiningRefusals.inviteWaiting);
     if (invite.delivery === "sending") return null;
     const now = Date.now();
-    const othersLive = (await liveInvitesTo(ctx, invite.email, now)).some((each) => each.leagueId === invite.leagueId && each._id !== inviteId);
-    if (othersLive) refuse(joiningRefusals.alreadyInvited(invite.email));
+    await refuseIfInvited(ctx, invite.leagueId, invite.email, now, inviteId);
     await ctx.db.patch("invites", inviteId, { delivery: "sending", expiresAt: now + INVITE_LIFETIME_MS });
     await recordEvent(ctx, invite.leagueId, by, { kind: "inviteResent", ...invitedTo });
     await ctx.scheduler.runAfter(0, internal.joining.invites.deliver, { inviteId });
