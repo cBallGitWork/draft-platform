@@ -7,7 +7,9 @@ raises Unread, which each gate turns into a denial, never a silent pass. Which p
 gh pr merge names is worked out before any gate judges it, so one it can't name is refused, and one with --admin is refused before any gate: the gh token is Craig's, and
 an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. A write to gh api's merge
 endpoint (repos/o/r/pulls/N/merge) is refused outright: it is the same admin merge with no checks of
-gh pr merge's own, and gh pr merge or the GitHub tool does the job (#1075). Stdlib only, Python 3.9+.
+gh pr merge's own, and gh pr merge or the GitHub tool does the job (#1075). So is a gh api graphql call
+whose query runs the mergePullRequest or enablePullRequestAutoMerge mutation, or whose query the hook can't
+read (from a file or --input), the same merge by GraphQL (#2057). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -34,8 +36,10 @@ API_VALUE_OPTS = GH_VALUE_OPTS | {"-F", "--field", "-H", "--header", "--input", 
 METHOD_OPTS = {"-X", "--method"}
 READ_METHODS = {"GET", "HEAD"}
 API_MERGE_PATH = re.compile(r"(?:^|/)pulls/[^/]*/merge/?(?:\?.*)?$")
-API_MERGE = ("gh api's merge endpoint skips gh pr merge's checks, and with Craig's admin token the main ruleset's "
-             "bypass can let it merge a pull request whose checks or review aren't done (#1075). Merge with "
+GRAPHQL_MERGE = re.compile(r"\b(?:mergePullRequest|enablePullRequestAutoMerge)\b")
+FIELD_OPTS = {"-f", "--raw-field", "-F", "--field"}
+API_MERGE = ("gh api's merge endpoint, or a GraphQL merge or auto-merge through gh api graphql (#2057), skips "
+             "gh pr merge's checks, and with Craig's admin token the main ruleset's bypass can let it merge a pull request whose checks or review aren't done (#1075). Merge with "
              "gh pr merge (no --admin) or the GitHub tool, or ask Craig.")
 ADMIN_BYPASS = ("gh pr merge --admin bypasses the main ruleset's checks and review, and the admin bypass "
                 "is Craig's, used by him in GitHub. Merge without --admin once the pull request is "
@@ -74,6 +78,22 @@ def api_merge(words):
         return False
     methods = [value for opt, value in opts if opt in METHOD_OPTS]
     return bool(methods) and methods[-1].upper() not in READ_METHODS
+
+
+def graphql_merge(words):
+    """True if this simple command runs gh api graphql with a query that merges a pull request or turns on
+    its auto-merge, or with one the hook can't read: a field read from a file (-F query=@q.graphql) or --input.
+    A query that only reads passes."""
+    i = runs_at(words, "gh")
+    if i is None:
+        return False
+    opts, operands = arguments(words[i + 1 :], API_VALUE_OPTS)
+    if operands[:2] != ["api", "graphql"]:
+        return False
+    fields = [value for opt, value in opts if opt in FIELD_OPTS]
+    unread = any(opt == "--input" for opt, _ in opts) or any(
+        opt in {"-F", "--field"} and value.partition("=")[2].startswith("@") for opt, value in opts)
+    return unread or any(GRAPHQL_MERGE.search(value) for value in fields)
 
 
 def view_args(args):
@@ -161,7 +181,7 @@ def merges_problem(cmds, judge):
     """judge(repo, number, folder)'s deny reason for the first gh pr merge in cmds (each (words,
     folder)) that has one, else None."""
     for words, here in cmds:
-        if api_merge(words):
+        if api_merge(words) or graphql_merge(words):
             return API_MERGE
         args = merge_args(words)
         if args is None:

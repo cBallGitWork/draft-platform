@@ -135,6 +135,18 @@ for read in "gh api repos/o/r/pulls/5/merge" "gh api -X GET repos/o/r/pulls/5/me
   "gh api repos/o/r/pulls/5 --jq .merged" 'echo "gh api -X PUT repos/o/r/pulls/5/merge"'; do
   check allow guard_bash.py "$(bash_in "$repo" "$read")"
 done
+# so is a GraphQL merge or auto-merge through gh api graphql, or a query the hook can't read (#2057); a read passes
+for merge in "gh api graphql -f query='mutation{mergePullRequest(input:{pullRequestId:\"x\"}){clientMutationId}}'" \
+  "gh api graphql -f 'query=mutation { enablePullRequestAutoMerge(input:{pullRequestId:\"x\"}) { clientMutationId } }'" \
+  "cd /x && gh -R o/r api graphql --raw-field=query='mutation{mergePullRequest(input:{}){clientMutationId}}'" \
+  "gh api graphql -F query=@merge.graphql" "gh api graphql --input q.json"; do
+  check deny guard_bash.py "$(bash_in "$repo" "$merge")"
+done
+says "gh api graphql" guard_bash.py "$(bash_in "$repo" "gh api graphql -f query='mutation{mergePullRequest(input:{}){clientMutationId}}'")"
+for read in "gh api graphql -f query='query{viewer{login}}'" "gh api graphql -f query='query(\$o:String!){repository(owner:\$o,name:\"r\"){id}}' -F o=x" \
+  'echo "gh api graphql -f query=mutation{mergePullRequest}"'; do
+  check allow guard_bash.py "$(bash_in "$repo" "$read")"
+done
 check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 
 # this repo's own routes trace to their pages and the stylesheets, so a rename in src/routes/ that
