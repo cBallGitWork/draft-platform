@@ -45,9 +45,9 @@ import {
 
 /** A real club's page under Football (spec/18, Club pages): its mark and name on the title plate
  *  with its tabs; its table place, last five results and top three scorers beside its next match as
- *  an opponent card, and its stadium, capacity and manager (`S18.7`); the Squad tab, its players in the league's numbers (`S18.8`); and the
- *  Fixtures tab, its matches this season, each opening its match page (`S18.9`). No difficulty
- *  colours. */
+ *  an opponent card, and its stadium, capacity and manager (`S18.7`); the Squad tab, its players
+ *  in the league's numbers (`S18.8`); and the Fixtures tab, its matches this season, each opening
+ *  its match page (`S18.9`). No difficulty colours. */
 export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; seam: PremierLeagueSeam; clubCode: number }) {
   const page = seam.useClub(league.leagueId, clubCode);
   const squad = seam.useClubSquad(league.leagueId, clubCode);
