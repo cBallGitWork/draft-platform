@@ -87,7 +87,9 @@ export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [],
   return {
     useLatestMail: vi.fn<HomeSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),
-    useRecap: vi.fn<HomeSeam["useRecap"]>((_, gameweek) => (loading ? undefined : (recaps.find((recap) => recap.gameweek === gameweek) ?? null))),
+    useRecap: vi.fn<HomeSeam["useRecap"]>((_, gameweek) =>
+      loading ? undefined : ((gameweek === undefined ? recaps.at(-1) : recaps.find((recap) => recap.gameweek === gameweek)) ?? null),
+    ),
     useLeagueNews: vi.fn<HomeSeam["useLeagueNews"]>((_, asked) => (loading ? undefined : news(asked))),
   };
 }

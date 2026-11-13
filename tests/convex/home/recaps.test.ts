@@ -98,10 +98,24 @@ test("League home shows it until the next gameweek's first matchday mode begins,
   expect(await recapOf(league)).not.toBeNull();
 });
 
+/** The recap the recap's own address opens, no gameweek named (#1967). */
+const latestRecapOf = async ({ t, leagueId }: ScoresLeague) => (await actingAs(t, BOB)).query(api.home.recaps.ofGameweek, { leagueId });
+
+test("with no gameweek named, Read the recap opens the latest written, even once League home no longer shows it", async () => {
+  const { league } = await finalLeague();
+  const nextKickoff = LEAGUE_FULL_TIME_READ + WEEK_MS;
+  await league.t.run((ctx) => ctx.db.insert("fixtures", { code: 900_001, gameweek: GAMEWEEK + 1, homeClubCode: 1, awayClubCode: 2, kickoff: nextKickoff }));
+
+  expect((await homeAt(league, nextKickoff))!.recap).toBeNull();
+  expect(await latestRecapOf(league)).toEqual(await recapOf(league));
+  expect((await latestRecapOf(league))?.gameweek).toBe(GAMEWEEK);
+});
+
 test("before it is written there is none to show", async () => {
   const league = await scoresLeague();
   expect((await homeAt(league, AFTER))!.recap).toBeNull();
   expect(await recapOf(league)).toBeNull();
+  expect(await latestRecapOf(league)).toBeNull();
 });
 
 test("a failed write is logged and tried again later, up to a day's worth of tries; none lands, so nobody is told", async () => {
