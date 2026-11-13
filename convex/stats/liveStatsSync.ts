@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
-import { withHeartbeat } from "../heartbeats/heartbeat";
+import { timedJobsOn, withHeartbeat } from "../heartbeats/heartbeat";
 import { syncDue } from "./matchStatsSync";
 import { delayCommentary } from "../football/matchCommentary";
 import { readFplPayloads } from "../football/fpl/fpl";
@@ -23,8 +23,9 @@ type Outcome = Infer<typeof liveStatsTickFields.outcome>;
 export const tick = internalAction({
   args: {},
   returns: v.null(),
-  handler: async (ctx) =>
-    withHeartbeat("liveStatsTick", async () => {
+  handler: async (ctx) => {
+    if (!timedJobsOn()) return null;
+    return withHeartbeat("liveStatsTick", async () => {
       const ranAt = Date.now();
       // FPL read at most once a tick, by whichever of the two reads needs it first.
       let read: ReturnType<typeof readFplPayloads> | undefined;
@@ -33,7 +34,8 @@ export const tick = internalAction({
       // After the live matches and apart from them: it never throws, and is on its own feed's row.
       await syncTeamSheets(ctx, ranAt, fpl);
       return null;
-    }),
+    });
+  },
 });
 
 /** Each live match read, and the tick's row, then its side reads' rows (#522): its team stats and

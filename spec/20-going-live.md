@@ -46,7 +46,8 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 
 ## Timed jobs
 
-These run the same on the live site and on development:
+These run on the live site. On development the feeds, waiver runs and trade offers are off, so
+they spend none of the free plan's database reads (Craig, 13 Nov 2026, #1997). `S20.8`
 
 - the football sync, every six hours;
 - live stats, every minute;
