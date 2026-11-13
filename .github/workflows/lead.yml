@@ -14,7 +14,7 @@
 #   1c. A ready pull request with no review REVIEW_WAIT_MINUTES after it opened gets review.yml started for it, once
 #      (REVIEW_STARTED_LABEL): its own run never fired. No build slot is used.
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
-#      every rule settled), with no `rules:open`, `lane:craig` or STALE_LABEL, and no open pull request naming them
+#      every rule settled), with no `rules:open`, `lane:craig`, STALE_LABEL or DONE_LABEL, and no open pull request naming them
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
@@ -27,7 +27,8 @@
 # NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
 # since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
 # them, so no daytime build stops to ask; a settled one gets `rules:clear` and is built; one already built or out
-# of date gets STALE_LABEL and a comment saying why, for the dashboard to close in one go. Nothing is built that
+# of date gets DONE_LABEL and a comment saying why, and the lead closes it; one built but for work a build can't do
+# (a session's, a deployment's, Craig's) gets STALE_LABEL and stays open for that. Nothing is built that
 # the sweep or a grill hasn't checked, since many old issues are done or out of date (5 Nov 2026: #8, #14).
 # A run by hand with `dry_run` says what it would start and label and starts nothing: how a change here is tested
 # from its branch (CLAUDE.md). Builds are dispatched on the lead's own ref, so a branch's lead runs that branch's
@@ -88,7 +89,8 @@ env:
   FIXED_LABEL: "lead:fixed"
   RESUMED_LABEL: "lead:resumed"
   CLEAR_LABEL: "rules:clear"
-  STALE_LABEL: "lead:stale"
+  STALE_LABEL: "lead:stale"  # built but for work a build can't do: left open for a session
+  DONE_LABEL: "lead:done"  # a build found nothing left: the lead closes it
   NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
   OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
   SWEEP_CRON: "37 1 * * *"  # the rules sweep's schedule: the Fill step's SWEEP tests it, the board prints it
@@ -153,7 +155,8 @@ jobs:
           make "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
           make "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
           make "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
-          make "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
+          make "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it built but for work a build can't do" --force
+          make "$DONE_LABEL" --color BFBFBF --description "A build found it already built or replaced: the lead closes it" --force
           make "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
           make "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
           make "$CONFLICT_LABEL" --color 5319E7 --description "The lead gave this pull request a round for its conflicts with main" --force
@@ -178,6 +181,16 @@ jobs:
               [ "$DRY_RUN" = true ] || gh issue close "$n" --reason completed --comment "Built by #$pr, merged. Closed by the lead: the merge left it open." \
                 || echo "::warning::couldn't close #$n"
             done
+      # An issue a build found already built or replaced (DONE_LABEL, with its comment saying how) is closed here: on
+      # 13 Nov 2026 eight such sat open, labelled stale, for days. One Craig reopened stays open.
+      - name: Close the issues builds found done
+        run: |
+          gh issue list --state open --label "$DONE_LABEL" --limit 100 --json number --jq '.[].number' | while read -r n; do
+            [ "$(gh api "repos/$GH_REPO/issues/$n" --jq '.state_reason // "none"')" != reopened ] || continue
+            echo "Closing #$n: a build found it done"
+            [ "$DRY_RUN" = true ] || gh issue close "$n" --reason completed --comment "Closed by the lead: a build found nothing left (its comment above says why). Reopen it to keep it open." \
+              || echo "::warning::couldn't close #$n"
+          done
       - name: Fill the builders
         env:
           # builds are started as the pipeline's own account (CBHelper180): GitHub fires no workflow_run for a run started
@@ -360,7 +373,7 @@ jobs:
           issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
           ready=$(jq -r '
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.STUCK_LABEL))
+              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.STUCK_LABEL))
               | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
               | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
                 elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"

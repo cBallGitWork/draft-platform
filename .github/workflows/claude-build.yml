@@ -101,7 +101,7 @@ jobs:
 
         First, the rules check (about 8 turns, no code yet). Read the issue, the SPEC.md and spec/NN-*.md lines it names, any docs/design/approved/<screen>/README.md it touches, and every owner comment on it and on its sibling issues: every issue it names (its Blocked by line, its links) and every issue with the same spec file (`gh issue list --search "<the spec file name> in:body" --state all`, then `gh issue view <n> --comments`). Answers Craig has given there are settled: never ask them again. Your own earlier "## Open rules" comments are out of date once Craig answers.
         - If any product rule is unsettled (what a manager or commissioner sees or can do, what happens in an edge case; never an implementation choice you can make alone; drafts can happen mid-season and players come and go), post ONE comment that starts with the line `## Open rules`, then a numbered list, at most 5, each with a bold short name, the question in plain UK words with a concrete example, `Rec:` your recommended answer and `Alt:` one alternative. Then run `gh issue edit ${{ inputs.issue || github.event.issue.number }} --add-label rules:open` and stop without coding. Craig's answer starts the build again.
-        - If main already does what the issue asks (a merged pull request that names it, `gh pr list --state merged --search "#${{ inputs.issue || github.event.issue.number }} in:body"`, often has), or a later issue or spec answer replaced it, post one comment saying so with the pull request, file or issue that shows it, run `gh issue edit ${{ inputs.issue || github.event.issue.number }} --add-label lead:stale`, and stop without coding: never close it.
+        - If main already does what the issue asks (a merged pull request that names it, `gh pr list --state merged --search "#${{ inputs.issue || github.event.issue.number }} in:body"`, often has), or a later issue or spec answer replaced it, post one comment saying so with the pull request, file or issue that shows it, and stop without coding: never close it yourself. If nothing at all is left, run `gh issue edit ${{ inputs.issue || github.event.issue.number }} --add-label lead:done`, and the lead closes it. If something is left that a build can't do (a change in `.claude/` or `.github/`, a run on a deployment, a picture, Craig's check, an issue to file), name each leftover in the comment and run `gh issue edit ${{ inputs.issue || github.event.issue.number }} --add-label lead:stale`, which leaves it open for a session.
         - Otherwise run `gh issue edit ${{ inputs.issue || github.event.issue.number }} --remove-label rules:open` (it fails harmlessly when the label isn't there) and build. Where the spec turns out silent part-way, stop and ask the same way rather than guess.
 
         Build only what the issue and the spec files it names say. The builder only builds (Craig, 4 Nov 2026): don't run the pr-reviewer agent (review.yml reviews the pull request), and, unless the issue itself asks for them (the weekly drift pass does), don't work the /refactor skill's checklist or edit SPEC.md's status rows or ARCHITECTURE.md to record what you built.
@@ -128,7 +128,7 @@ jobs:
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
           fi
-      # the rules check's three labels, made here so the agent never finds one missing (a 5 Nov 2026 test build found
+      # the rules check's four labels, made here so the agent never finds one missing (a 5 Nov 2026 test build found
       # an issue stale, couldn't add `lead:stale`, and left it `rules:clear`, to be built again)
       - name: Make the labels the rules check sets
         if: steps.gate.outputs.go == 'true'
@@ -141,7 +141,8 @@ jobs:
           make() { grep -qxF "$1" <<<"$have" || gh label create "$@"; }
           make 'rules:open' --color D93F0B --description 'Rules Craig must answer before this issue builds' --force
           make 'rules:clear' --color 0E8A16 --description 'The rules sweep found every rule settled' --force
-          make 'lead:stale' --color BFBFBF --description 'The rules sweep found it already built or out of date' --force
+          make 'lead:stale' --color BFBFBF --description 'The rules sweep found it built but for work a build can't do' --force
+          make 'lead:done' --color BFBFBF --description 'A build found it already built or replaced: the lead closes it' --force
       - name: Note when the build started  # the draft step tells a question asked since then from an unfinished build
         if: steps.gate.outputs.go == 'true'
         run: echo "BUILD_STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
