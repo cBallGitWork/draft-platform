@@ -11,7 +11,7 @@ import { MAIL_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { league, manager, newcomer, openApp } from "../../support/src/shell.harness";
+import { league, manager, newcomer, openApp, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { MAIL_TITLE, fromWords, kindPlaceholderLabel, letterKindWords, letterTime, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
 import { letterButton, lettersPanel, letterShown, mailLetter, mailLetters, twoUnread } from "../../support/src/mailScreen.harness";
 
@@ -150,7 +150,7 @@ describe("All and Unread", () => {
 describe("who reads the letters (#211)", () => {
   it("another screen never asks for them, so a letter filed doesn't re-send them all to it", async () => {
     const app = openApp(LEAGUES_PATH, manager, { topBar: twoUnread, letters: mailLetters });
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
     expect(app.mail.useLetters).not.toHaveBeenCalled();
   });
@@ -207,7 +207,7 @@ describe("someone in no league, as a manager removed from their last one is (spe
     expect(app.path()).toBe(MAIL_PATH);
 
     await userEvent.click(screen.getByRole("link", { name: LEAGUES_TITLE }));
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

@@ -37,10 +37,6 @@ import {
 
 const cellClasses = "px-2 text-left align-top";
 
-/** A way into one of a league's pages from its row: a full tap on a phone, a plain line on a
- *  desktop. */
-const leagueRowLinkClasses = "flex min-h-tap items-center font-normal lg:min-h-0";
-
 /** The ways into a league from its row, for someone who runs it. They stay on the rows until Run
  *  the league is grilled (the picture's placeholder, docs/design/approved/leagues). */
 const runnerLinks = (leagueId: string) => [
@@ -153,8 +149,9 @@ function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; 
             <th scope="row" className={`${cellClasses} font-semibold`}>
               <span className="block text-lead">{league.name}</span>
               <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
+              {/* A way into one of the league's pages: a full tap on a phone, a plain line on a desktop. */}
               {(runs(league) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (
-                <Link key={to} to={to} className={leagueRowLinkClasses}>
+                <Link key={to} to={to} className="flex min-h-tap items-center font-normal lg:min-h-0">
                   {title}
                 </Link>
               ))}

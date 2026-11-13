@@ -7,9 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { commissioner, league, managerIn, openApp } from "../../support/src/shell.harness";
+import { commissioner, league, managerIn, openApp, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { descriptionOf } from "../../support/src/describedBy";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { invitesPath } from "../../../src/joining/paths";
 import type { InvitesPageData } from "../../../src/joining/seam";
 import {
@@ -67,7 +66,7 @@ describe("the invites page", () => {
     cleanup();
 
     openApp("/leagues", managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     expect(screen.queryByRole("link", { name: INVITES_TITLE })).toBeNull();
   });
 

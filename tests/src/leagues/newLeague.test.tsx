@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { admin, openApp } from "../../support/src/shell.harness";
+import { admin, openApp, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { ADMIN_PATH } from "../../../src/admin/paths";
 import { ADMIN_TITLE } from "../../../src/admin/words";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
@@ -33,7 +33,7 @@ describe("creating a league", () => {
     await fillIn();
 
     expect(app.leagues.createLeague).toHaveBeenCalledWith({ name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" });
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
@@ -80,7 +80,7 @@ describe("creating a league", () => {
 
     expect(within(adminPanel).getByRole("link", { name: ADMIN_TITLE }).getAttribute("href")).toBe(ADMIN_PATH);
     await userEvent.click(within(adminPanel).getByRole("link", { name: LEAGUES_TITLE }));
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
@@ -88,7 +88,7 @@ describe("creating a league", () => {
     const app = openApp(NEW_LEAGUE_PATH, admin);
     await userEvent.click(await screen.findByRole("link", { name: backToLeaguesWords }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.leagues.createLeague).not.toHaveBeenCalled();
   });
 });

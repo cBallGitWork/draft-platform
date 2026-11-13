@@ -9,6 +9,7 @@ import {
   ask,
   fakeResend,
   linkCode,
+  linkNotSentLine,
   openLink,
   setSentToday,
   signInDeployment,
@@ -218,7 +219,7 @@ describe("when the email can't be sent", () => {
 
     expect(await ask(t, LISTED)).toBe("notSent");
 
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${LISTED} wasn't sent`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(LISTED)));
     const [stored] = await asksStored(LISTED);
     expect(stored.sendError).toContain("Resend refused the email (500)");
   });
@@ -231,7 +232,7 @@ describe("when the email can't be sent", () => {
     expect(await ask(t, LISTED)).toBe("notSent");
 
     expect(sent).toEqual([]);
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${LISTED} wasn't sent: AUTH_RESEND_KEY isn't set`));
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`${linkNotSentLine(LISTED)}: AUTH_RESEND_KEY isn't set`));
     const [stored] = await asksStored(LISTED);
     expect(stored.sendError).toContain("AUTH_RESEND_KEY isn't set");
   });

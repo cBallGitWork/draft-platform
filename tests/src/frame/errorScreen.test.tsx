@@ -16,13 +16,13 @@ import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import { settingsPath } from "../../../src/leagueSettings/paths";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { backToLeaguesWords, LEAGUES_TITLE } from "../../../src/leagues/words";
+import { backToLeaguesWords } from "../../../src/leagues/words";
 import { scoringPath } from "../../../src/scoring/paths";
 import { squadsPath } from "../../../src/squads/paths";
 import { findLabel, menuWords } from "../../../src/shared/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { JoiningData } from "../../support/src/joining.harness";
-import { admin, commissioned, league, manager, managerIn, newcomer, openApp, type AppSetUp } from "../../support/src/shell.harness";
+import { admin, commissioned, league, manager, managerIn, newcomer, openApp, type AppSetUp, yourLeaguesHeading } from "../../support/src/shell.harness";
 
 type App = ReturnType<typeof openApp>;
 
@@ -40,7 +40,7 @@ async function openTableThrowing(error: unknown) {
 /** Follows the error page's way back, which lands on Your leagues and leaves the error behind. */
 async function goBackToLeagues(app: App) {
   await userEvent.click(screen.getByRole("link", { name: backToLeaguesWords }));
-  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+  expect(await yourLeaguesHeading()).toBeTruthy();
   expect(app.path()).toBe(LEAGUES_PATH);
   expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
 }

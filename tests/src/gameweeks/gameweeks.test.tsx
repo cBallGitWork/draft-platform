@@ -7,8 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
+import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { BEGUN, season } from "../../support/src/gameweeks.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { begunWords, gameweekColumns, GAMEWEEKS_TITLE, loadingWords } from "../../../src/gameweeks/words";
@@ -42,13 +41,13 @@ describe("reaching the gameweeks", () => {
 
   it("a manager who doesn't run the league isn't offered them", async () => {
     openApp(LEAGUES_PATH, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
   });
 
   it("a manager who doesn't run the league, opening them, is sent back to their leagues", async () => {
     const app = openApp(PAGE, managerIn(league));
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
     expect(app.gameweeks.useLeagueGameweeks).not.toHaveBeenCalled();
   });

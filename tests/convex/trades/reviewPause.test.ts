@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { actingAs, COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { deletes, undoes } from "../../support/convex/leagueDeletion.harness";
+import { COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { ANNS_FIRST_DROP, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
@@ -16,7 +16,7 @@ beforeEach(async () => {
   w = await tradeLeague();
 });
 
-const undo = async () => (await actingAs(w.t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId: w.leagueId });
+const undo = () => undoes(w.t, COMMISSIONER, w.leagueId);
 const reviewOf = async () => (await w.offers())[0]?.review;
 
 describe("a trade in review while its league is frozen (#1493)", () => {

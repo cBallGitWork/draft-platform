@@ -9,7 +9,7 @@ import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import { currentLeagueLabel, leaveWords } from "../../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../../src/leagues/words";
-import { league, manager, managerIn, miniBeta, newcomer, openApp } from "../../../support/src/shell.harness";
+import { league, manager, managerIn, miniBeta, newcomer, openApp, yourLeaguesHeading } from "../../../support/src/shell.harness";
 
 const openList = async () => userEvent.click(await screen.findByRole("button", { name: new RegExp(`^${currentLeagueLabel} `) }));
 const leaveOffered = () => screen.queryByRole("button", { name: leaveWords.open }) !== null;
@@ -64,7 +64,7 @@ describe("leaving the league", () => {
     await userEvent.click(screen.getByRole("button", { name: leaveWords.yes }));
     app.becomes(newcomer);
 
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

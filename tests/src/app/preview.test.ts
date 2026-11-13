@@ -2,6 +2,7 @@ import { expect, test, vi } from "vitest";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { leaguesToWriteFrom } from "../../../src/mail/MailPage";
 import { previewNames, previewSession } from "../../../src/app/preview";
+import { proLeague } from "../../../src/shared/preview";
 import { previewUrl } from "../../support/smoke/previewUrl";
 
 /** The preview session the app reads on load, with the address bar at `search`. */
@@ -18,7 +19,7 @@ test("on the dev server, ?preview=manager opens the signed-in frame, in a league
 test("on the dev server, ?preview=commissioner runs both of the manager's leagues, so Mail offers each; ?preview=manager runs neither", () => {
   vi.stubEnv("DEV", true);
   const named = (session: ReturnType<typeof previewSession>) => (session ? leaguesToWriteFrom(session).map((league) => league.name) : null);
-  expect(named(previewOnLoad("?preview=commissioner"))).toEqual(["Tim Hortons Pro League", "Mini beta"]);
+  expect(named(previewOnLoad("?preview=commissioner"))).toEqual([proLeague.name, "Mini beta"]);
   expect(named(previewOnLoad("?preview=manager"))).toEqual([]);
 });
 

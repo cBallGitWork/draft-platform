@@ -35,6 +35,7 @@ import { fakeHome } from "./home.harness";
 import { fakePremierLeague } from "./premierLeague.harness";
 import { fakeTable } from "./table.harness";
 import { MY_TEAM_NAME } from "./teams.harness";
+import { LEAGUE_NAME } from "../convex/leagues.harness";
 
 export const visitor: Session = { signedIn: false };
 
@@ -51,7 +52,7 @@ const withPowers = (leagues: readonly LeagueSummary[], admin: boolean) =>
 /** A league as signIn/account:signedInAs sends it, for `manager`, who runs Team 1 in it. */
 export const league: LeagueSummary = {
   leagueId: A_LEAGUE_ID,
-  name: "Tim Hortons Pro League",
+  name: LEAGUE_NAME,
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
   powers: powersOf(["manager"], false),
@@ -224,10 +225,13 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
 /** A panel on the open screen, found by its title. */
 export const panel = (title: string | RegExp) => screen.findByRole("region", { name: title });
 
+/** Your leagues' page heading, once it shows. */
+export const yourLeaguesHeading = () => screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+
 /** Opens `path` for `session` and expects to land on Your leagues; the app, for what else to check. */
 export async function expectSentToLeagues(path: string, session: Session) {
   const app = openApp(path, session);
-  await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+  await yourLeaguesHeading();
   expect(app.path()).toBe(LEAGUES_PATH);
   return app;
 }
@@ -235,7 +239,7 @@ export async function expectSentToLeagues(path: string, session: Session) {
 /** Your leagues, opened for `session`, offers no link named `linkTitle`; the page is closed after. */
 export async function expectNotOffered(linkTitle: string, session: Session) {
   openApp(LEAGUES_PATH, session);
-  await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+  await yourLeaguesHeading();
   expect(screen.queryByRole("link", { name: linkTitle })).toBeNull();
   cleanup();
 }
