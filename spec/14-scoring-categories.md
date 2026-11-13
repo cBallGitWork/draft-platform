@@ -99,6 +99,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - When the first kickoff of a waiting patch's gameweek moves later, the patch's start moves with
   it ("yes"), and a gameweek with no kickoff time yet plays the rules already in force ("old but
   gameweeks always have a time") (Craig, 1 Nov 2026, on #901). `S14.14`
+- When that first kickoff is brought forward, the patch's start moves earlier with it, so the
+  brought-forward match is the first scored under the patch: "earlier" (Craig, 9 Nov 2026, on
+  #1304). `S14.26`
 - A mistake in a value can be fixed at once, without the week's notice, announced as a fix; it
   still never touches a gameweek already played.
 - A patch is announced by a Mail letter to every manager (`spec/16`), and by a site banner from the
