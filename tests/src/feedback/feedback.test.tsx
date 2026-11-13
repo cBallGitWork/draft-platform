@@ -16,6 +16,7 @@ import {
   feedbackListTitle,
   feedbackLoadingWords,
   feedbackTabWords,
+  feedbackWords,
   moreFeedbackWords,
   noFeedbackWords,
 } from "../../../src/admin/words";
@@ -30,11 +31,12 @@ import { descriptionOf } from "../../support/src/describedBy";
 import { admin, commissioner, expectSentToLeagues, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
 const SENT_AT = Date.parse("2026-10-24T20:00:00Z");
-const entry = (number: number, from: string, message: string): FeedbackList["entries"][number] => ({
+const entry = (number: number, from: string, message: string, read = false): FeedbackList["entries"][number] => ({
   feedbackId: `feedback-${number}` as Id<"feedback">,
   from,
   at: SENT_AT - number * MINUTE_MS,
   message,
+  read,
 });
 
 const box = () => screen.getByRole("textbox", { name: messageLabel });
@@ -98,10 +100,44 @@ describe("the admin's Feedback tab", () => {
   it("#357 Done: lists what was sent, newest first, with who sent it and when", async () => {
     openList({ entries: [entry(1, "ann@example.com", "Newest.\nTwo lines."), entry(2, "bob@example.com", "Older.")], more: false });
     const items = within(await screen.findByRole("list", { name: feedbackListTitle })).getAllByRole("listitem");
+    const { markRead, remove } = feedbackWords;
     expect(items.map((item) => item.textContent)).toEqual([
-      `ann@example.com${whenWords(SENT_AT - MINUTE_MS)}Newest.\nTwo lines.`,
-      `bob@example.com${whenWords(SENT_AT - 2 * MINUTE_MS)}Older.`,
+      `ann@example.com${whenWords(SENT_AT - MINUTE_MS)}${markRead}${remove}Newest.\nTwo lines.`,
+      `bob@example.com${whenWords(SENT_AT - 2 * MINUTE_MS)}${markRead}${remove}Older.`,
     ]);
+  });
+
+  it("S15.5: a message marked read says so, and has no Mark read", async () => {
+    openList({ entries: [entry(1, "ann@example.com", "Seen it.", true)], more: false });
+    const item = within(await screen.findByRole("list", { name: feedbackListTitle })).getByRole("listitem");
+    expect(within(item).getByText(feedbackWords.read)).toBeTruthy();
+    expect(within(item).queryByRole("button", { name: feedbackWords.markReadLabel("ann@example.com") })).toBeNull();
+  });
+
+  it("S15.5: Mark read marks that message read", async () => {
+    const app = openList({ entries: [entry(1, "ann@example.com", "Newest."), entry(2, "bob@example.com", "Older.")], more: false });
+    await userEvent.click(await screen.findByRole("button", { name: feedbackWords.markReadLabel("bob@example.com") }));
+    expect(app.feedback.markRead).toHaveBeenCalledWith("feedback-2");
+  });
+
+  it("S15.5: Delete asks first; Keep it deletes nothing, Delete it deletes that message", async () => {
+    const app = openList({ entries: [entry(1, "ann@example.com", "Newest.")], more: false });
+    await userEvent.click(await screen.findByRole("button", { name: feedbackWords.removeLabel("ann@example.com") }));
+    expect(screen.getByText(feedbackWords.confirm("ann@example.com"))).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: feedbackWords.no }));
+    expect(screen.queryByText(feedbackWords.confirm("ann@example.com"))).toBeNull();
+    expect(app.feedback.remove).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: feedbackWords.removeLabel("ann@example.com") }));
+    await userEvent.click(screen.getByRole("button", { name: feedbackWords.yes }));
+    expect(app.feedback.remove).toHaveBeenCalledWith("feedback-1");
+  });
+
+  it("a refused change is said in the alert strip", async () => {
+    const app = openList({ entries: [entry(1, "ann@example.com", "Newest.")], more: false });
+    app.feedback.markRead.mockResolvedValue(feedbackRefusals.gone);
+    await userEvent.click(await screen.findByRole("button", { name: feedbackWords.markReadLabel("ann@example.com") }));
+    expect(await screen.findByRole("alert")).toHaveProperty("textContent", feedbackRefusals.gone);
   });
 
   it("says when nothing has been sent", async () => {

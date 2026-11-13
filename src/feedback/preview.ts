@@ -1,5 +1,6 @@
 // Feedback in the preview (src/app/preview.ts): sending says it's a preview and sends nothing, and the
-// admin's Feedback tab lists three made-up messages, one of them long and on several lines.
+// admin's Feedback tab lists three made-up messages, one of them long and on several lines, and the
+// oldest read; marking read and deleting change nothing.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { HOUR_MS } from "../../convex/shared/time";
@@ -14,6 +15,7 @@ const entry = (number: number, hoursAgo: number, from: string, message: string):
   from,
   at: NEWEST - hoursAgo * HOUR_MS,
   message,
+  read: hoursAgo > 24,
 });
 
 const list: FeedbackList = {
@@ -30,7 +32,11 @@ const list: FeedbackList = {
   more: false,
 };
 
+const nothingChanged = previewSays("nothing changed");
+
 export const previewFeedback: FeedbackSeam = {
   send: previewSays(notSentWords),
+  markRead: nothingChanged,
+  remove: nothingChanged,
   useFeedbackList: () => list,
 };

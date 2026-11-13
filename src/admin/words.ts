@@ -183,6 +183,17 @@ export const feedbackLoadingWords = "Loading the feedback…";
 export const noFeedbackWords = "No feedback yet.";
 /** Past the newest the list shows, said as the late corrections say it. */
 export const moreFeedbackWords = moreCorrectionsWords;
+/** A message's own controls (#395, S15.5): mark it read, or delete it after a yes. */
+export const feedbackWords = {
+  read: "Read",
+  markRead: "Mark read",
+  markReadLabel: (from: string) => `Mark ${from}'s feedback read`,
+  remove: "Delete",
+  removeLabel: (from: string) => `Delete ${from}'s feedback`,
+  confirm: (from: string) => `Delete this feedback from ${from}? It can't be undone.`,
+  yes: "Delete it",
+  no: "Keep it",
+};
 
 /** The Availability tab (#1209, spec/06 Availability; the approved auto-team picture): every player
  *  set by hand over the feed, and the picked one's panel. */
