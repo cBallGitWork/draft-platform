@@ -8,16 +8,18 @@ import { previewSaid, proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
 import { previewWaiverOutcomes } from "../../src/playerCard/preview";
 import { SCOUTING_PATH } from "../../src/frame/menu";
+import { previewPlayers } from "../../src/scouting/preview";
 import { availabilityWords } from "../../src/scouting/words";
 import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pickUpWords, postponedWords, SEASON_TITLE, whoGoesLabel } from "../../src/playerCard/words";
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
-/** Scouting's preview players (src/scouting/preview.ts): the preview manager's own Saka, Rice a free
- *  agent and James on waivers. */
-const SAKA = 1;
-const RICE = 2;
-const JAMES = 5;
+/** A Scouting preview player's code, by his name: the preview manager's own Saka, Rice a free agent
+ *  and James on waivers. */
+const codeOf = (name: string) => previewPlayers.find((player) => player.name === name)!.code;
+const SAKA = codeOf("Saka");
+const RICE = codeOf("Rice");
+const JAMES = codeOf("James");
 
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
   test("opens from Scouting, switches its game log to every stat and shows a match's breakdown (#1027)", async ({ page }) => {

@@ -4,6 +4,7 @@
 // moving to the next gameweek. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
+import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import { MATCHUP_PATH } from "../../src/frame/menu";
 import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDIPRINTER_TITLE } from "../../src/matchup/words";
 import { DESK } from "../../scripts/viewports.mjs";
@@ -13,7 +14,6 @@ import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A starter of the preview opponent's. */
 const OPPONENTS_STRIKER = "Haaland";
-const ELEVEN = 11;
 
 test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () => {
   test.use({ viewport: DESK });
@@ -23,7 +23,7 @@ test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () =>
 
     const pitches = page.getByRole("list", { name: /'s pitch$/ });
     await expect(pitches).toHaveCount(2);
-    for (const pitch of await pitches.all()) await expect(pitch.getByRole("listitem", { name: /./ })).toHaveCount(ELEVEN);
+    for (const pitch of await pitches.all()) await expect(pitch.getByRole("listitem", { name: /./ })).toHaveCount(STARTER_COUNT);
 
     await page.getByRole("button", { name: openBreakdownLabel(OPPONENTS_STRIKER) }).click();
     const breakdown = page.getByRole("region", { name: new RegExp(OPPONENTS_STRIKER) });

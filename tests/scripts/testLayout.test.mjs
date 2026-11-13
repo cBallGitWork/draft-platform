@@ -1,6 +1,8 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join, matchesGlob, relative, sep } from "node:path";
 import { expect, test } from "vitest";
+import live, { TEST_ACCOUNT_SPEC } from "../../playwright.live.config.ts";
+import testAccount from "../../playwright.testAccount.config.ts";
 import config from "../../vitest.config.ts";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
@@ -38,6 +40,12 @@ test("a test file no project includes is named, and one a project includes is no
   const strays = ["tests/convex/x.test.tsx", "tests/src/x.spec.ts", "tests/elsewhere/x.test.ts"];
   const runs = ["tests/convex/x.test.ts", "tests/src/deep/x.test.tsx", "tests/scripts/x.test.mjs"];
   expect(unrunTestFiles([...strays, ...runs], projectIncludes)).toEqual(strays);
+});
+
+test("the release check leaves out the test account's sign-in, which its own config runs", () => {
+  expect(existsSync(join(REPO_ROOT, live.testDir, TEST_ACCOUNT_SPEC))).toBe(true);
+  expect(live.testIgnore).toBe(TEST_ACCOUNT_SPEC);
+  expect(testAccount.testMatch).toBe(TEST_ACCOUNT_SPEC);
 });
 
 test("the walk finds this file, so a stray beside it would be found too", () => {

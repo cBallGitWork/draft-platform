@@ -6,6 +6,7 @@ import { matchPath } from "../../../src/premierLeague/paths";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, type PremierLeagueData } from "./premierLeague.harness";
 import { manager, openApp } from "./shell.harness";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 export const FIXTURE = 2645271;
 
@@ -24,12 +25,12 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
 });
 
 export const MEN: MatchMan[] = [
-  man(1, "Raya", "home", { position: "GK", ownerTeamName: "Team 1", points: 2 }),
-  man(2, "Saka", "home", { ownerTeamName: "Team 2", points: 11 }),
-  man(3, "Rice", "home", { ownerTeamName: "Team 1", points: null }),
+  man(1, "Raya", "home", { position: "GK", ownerTeamName: MY_TEAM_NAME, points: 2 }),
+  man(2, "Saka", "home", { ownerTeamName: THEIR_TEAM_NAME, points: 11 }),
+  man(3, "Rice", "home", { ownerTeamName: MY_TEAM_NAME, points: null }),
   man(4, "Ødegaard", "home", { started: false, played: true, points: 3 }),
-  man(5, "Arrizabalaga", "home", { position: "GK", started: false, played: false, ownerTeamName: "Team 1", points: 0, counts: false }),
-  man(6, "Palmer", "away", { ownerTeamName: "Team 2", points: 7 }),
+  man(5, "Arrizabalaga", "home", { position: "GK", started: false, played: false, ownerTeamName: MY_TEAM_NAME, points: 0, counts: false }),
+  man(6, "Palmer", "away", { ownerTeamName: THEIR_TEAM_NAME, points: 7 }),
 ];
 
 export const matchOf = (more: Partial<MatchPageData> = {}): MatchPageData => ({
