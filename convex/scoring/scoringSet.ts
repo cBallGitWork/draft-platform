@@ -78,6 +78,26 @@ export interface ScoringSet {
    *  points of a man whose team picked it, on top of every rule and his role. An instruction it
    *  doesn't name scores nothing; a set with none scores no instruction. */
   instructions?: readonly InstructionScoring[];
+  /** Each moving role's run (spec/05 Runs, `S05.8`): held here beside the roles' scoring, so an
+   *  announced patch can change one. A role it doesn't name holds its place; a set with none draws
+   *  no run. It scores nothing. */
+  runs?: readonly RoleRun[];
+}
+
+/** A point of a run, in metres from the player's place: forward toward the goal he attacks (back
+ *  is negative), and across toward the middle of the pitch (out wide is negative; in the centre
+ *  lane, toward his right), so one run serves a role on either side. */
+export interface RunPoint {
+  forward: number;
+  across: number;
+}
+
+/** Where a player on a role goes as if it were a real match (spec/05 Runs): drawn on the pitch as
+ *  a dashed arrow from his place through each point in turn. */
+export interface RoleRun {
+  /** A role's key (lineup/roles.ts). */
+  role: string;
+  path: readonly RunPoint[];
 }
 
 /** One team instruction's scoring (spec/05 Team instructions): its lines, each scored apart. */
@@ -156,6 +176,25 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   );
   if (set.roles !== undefined) validateRoles(set.roles, isScorable, (stat) => categoryName(stat, ownStats));
   if (set.instructions !== undefined) validateInstructions(set.instructions, isScorable, (stat) => categoryName(stat, ownStats));
+  if (set.runs !== undefined) validateRuns(set.runs);
+}
+
+/** Each run names a role once and goes through at least one point, each a number of metres. */
+function validateRuns(runs: unknown): void {
+  if (!Array.isArray(runs)) throw new UnsoundScoring("a scoring set's runs must be a list");
+  const seen = new Set<string>();
+  for (const each of runs as unknown[]) {
+    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new UnsoundScoring("a run names no role");
+    const named = `the role ${showValue(each.role)}'s run`;
+    if (seen.has(each.role)) throw new UnsoundScoring(`the role ${showValue(each.role)} has two runs`);
+    seen.add(each.role);
+    if (!Array.isArray(each.path) || each.path.length === 0) throw new UnsoundScoring(`${named} goes through no point`);
+    for (const point of each.path as unknown[]) {
+      if (!isObject(point)) throw new UnsoundScoring(`${named} has ${showValue(point)}, which is no point`);
+      requireNumber(point.forward, `${named} goes forward`);
+      requireNumber(point.across, `${named} goes across`);
+    }
+  }
 }
 
 /** Each instruction named once, with at least one line, each sound. */

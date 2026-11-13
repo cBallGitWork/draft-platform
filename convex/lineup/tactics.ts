@@ -19,6 +19,8 @@ import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
+import { roleRunShape } from "../scoring/scoringSetShape";
+import { siteScoringInGameweek } from "../scoring/siteVersions";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
 // one a save now is from (lineups.ts's `save`), so the screen edits the lineup that save replaces,
@@ -73,6 +75,9 @@ const tacticsShape = v.union(
     lineup: heldLineupShape,
     /** What the league plays in the gameweek, for the role parts (#1582). */
     mode: gameModeShape,
+    /** Each moving role's run, as the site's scoring set in the gameweek holds it (spec/05 Runs,
+     *  `S05.8`): what the pitch draws. */
+    runs: v.array(roleRunShape),
   }),
 );
 export type Tactics = Infer<typeof tacticsShape>;
@@ -131,6 +136,7 @@ export const ofMyTeam = query({
       squad,
       lineup,
       mode: gameModeOf(rules),
+      runs: [...((await siteScoringInGameweek(ctx, gameweek)).runs ?? [])],
     };
   },
 });

@@ -156,11 +156,18 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
   const own = (ownStats: unknown) => ({ ...setOf(), ownStats });
   const ownWith = (change: object) => own([{ ...TACKLES_AND_CLEARANCES, ...change }]);
   const T_C = TACKLES_AND_CLEARANCES.stat;
+  const runs = (runs: unknown) => ({ ...setOf(), runs });
+  const overlap = (path: unknown = [{ forward: 10, across: 0 }]) => ({ role: "overlapping", path });
 
   // One case for each throw in scoringSet.ts, ruleChecks.ts and ownStats.ts but the last, in their order.
   const SWEEP: readonly (readonly [unknown, string])[] = [
     [{}, "a scoring set must be a list of rules"],
     [{ rules: [] }, "a scoring set must say whether its points are whole only, true or false, not undefined"],
+    [runs({}), "a scoring set's runs must be a list"],
+    [runs([{ role: "" }]), "a run names no role"],
+    [runs([overlap(), overlap()]), 'the role "overlapping" has two runs'],
+    [runs([overlap([])]), `the role "overlapping"'s run goes through no point`],
+    [runs([overlap([null])]), `the role "overlapping"'s run has null, which is no point`],
     [instructions({}), "a scoring set's instructions must be a list"],
     [instructions([{ instruction: "" }]), "an instruction's scoring names no instruction"],
     [instructions([parked(), parked()]), 'the instruction "parkTheBus" is scored twice'],
