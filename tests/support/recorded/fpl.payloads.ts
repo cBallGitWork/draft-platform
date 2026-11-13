@@ -47,5 +47,8 @@ export function recordedFpl(): FplPayloads {
 export function recordedSeason(): FplPayloads {
   const whole = structuredClone(season as FplPayloads);
   whole.bootstrap.elements = structuredClone(bootstrap.elements as RawBootstrap["elements"]);
+  // Cut to the deadline's keys, it holds no scores: each match reads as not started, so a sync of
+  // it records no score problem, which now fails the football feed and emails the admin (#904).
+  for (const fixture of whole.fixtures) fixture.started = false;
   return whole;
 }

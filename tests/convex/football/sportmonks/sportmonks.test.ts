@@ -4,6 +4,7 @@
 import { expect, test } from "vitest";
 import { mapSportmonks } from "../../../../convex/football/sportmonks/sportmonks";
 import { mapSportmonksMatch, smScoreRead } from "../../../../convex/football/sportmonks/sportmonksMatch";
+import { SM_STATE } from "../../../../convex/football/sportmonks/sportmonksRaw";
 import { MISSING, NOT_IN_SPORTMONKS, SPORTMONKS_STAT_IDS, SPORTMONKS_STAT_TYPES } from "../../../../convex/football/sportmonks/sportmonksStats";
 import { STAT_CATALOGUE } from "../../../../convex/scoring/statCatalogueList";
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
@@ -118,9 +119,14 @@ test("a changed payload throws, naming what was missing, rather than map a guess
   expect(() => mapSportmonks(noAway)).toThrow(`Sportmonks sent match ${SM.rangersHearts} with no home or away club`);
 });
 
+test("an abandoned match is read as never played: not started, no score, never a problem (S05.6, #904)", () => {
+  const abandoned = { ...oldFirm(), state_id: SM_STATE.abandoned };
+  expect(smScoreRead(abandoned)).toEqual({ fixtureCode: SM.oldFirm, state: "upcoming", homeGoals: null, awayGoals: null, minutes: null, clockLabel: null });
+});
+
 test("a state Sportmonks hasn't been mapped for, or a live match with no running score, is a problem for the run row, never a score", () => {
-  const abandoned = { ...oldFirm(), state_id: 15 };
-  expect(() => smScoreRead(abandoned)).toThrow(`Sportmonks sent state 15 for match ${SM.oldFirm}`);
+  const cancelled = { ...oldFirm(), state_id: 12 };
+  expect(() => smScoreRead(cancelled)).toThrow(`Sportmonks sent state 12 for match ${SM.oldFirm}`);
   const noScore = { ...oldFirm(), scores: [] };
   expect(() => smScoreRead(noScore)).toThrow(`Sportmonks sent no home score for match ${SM.oldFirm} at live`);
 });

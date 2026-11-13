@@ -461,6 +461,12 @@ From Craig, 1 Nov 2026.
 - An abandoned match's player stats are deleted, and only its replay counts: "removed, first game
   never happened". A league's points overrides on it (`spec/14`) are deleted with it: "abandoned
   match essentially doesn't happen" (Craig, 7 Nov 2026, on #904). `S05.7`
+- The admin marks a match abandoned on the match's own page, with a "Mark abandoned" button only
+  he sees, and can take the mark back: unmarking brings its stats back from the next feed read,
+  while the overrides deleted with it stay deleted, for him to add again if he wants them (Craig,
+  13 Nov 2026, on #904: yes to both recommendations). `S05.46`
+- A match marked abandoned, by the admin or the feed, files one Mail letter in each league with a
+  player in that match (Craig, 13 Nov 2026, on #904). `S05.47`
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
   not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
