@@ -80,6 +80,19 @@ describe("a manager in two leagues", () => {
     expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
   });
 
+  it.each([
+    ["the other league", miniBetaChoice],
+    ["the league they're in", () => screen.getByRole("button", { current: true })],
+  ])("picking %s from the keyboard hands focus back to the switcher", async (_, choice) => {
+    openApp(MY_TEAM_PATH, inTwo);
+    await userEvent.click(await switcher());
+    choice().focus();
+    await userEvent.keyboard("{Enter}");
+
+    expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
+    expect(document.activeElement).toBe(await switcher());
+  });
+
   it("is told why a switch was refused, with the list still open", async () => {
     const app = openApp(MY_TEAM_PATH, inTwo);
     app.leagues.switchLeague.mockResolvedValue(refusals.notInLeague);
@@ -134,6 +147,15 @@ describe("a manager in two leagues", () => {
     expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
     expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
+  });
+
+  it("closes the list on all their leagues when already on that page", async () => {
+    const app = openApp(LEAGUES_PATH, inTwo);
+    await userEvent.click(await switcher());
+    await userEvent.click(screen.getByRole("link", { name: allLeaguesWords }));
+
+    expect((await switcher()).getAttribute("aria-expanded")).toBe("false");
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
 
