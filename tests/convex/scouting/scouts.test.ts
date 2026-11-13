@@ -60,7 +60,7 @@ describe("sending a scout", () => {
   });
 
   test("the site's number of scouts is the cap", async () => {
-    await t.mutation(internal.admin.platformSettings.setScoutsPerTeam, { scouts: 1 });
+    await t.mutation(internal.admin.platformSettings.setSettings, { scoutsPerTeam: 1 });
     const ann = await as(ANN);
     await ann.send(SCORER.code);
     await expectRefused(ann.send(STEADY.code), scoutRefusals.allOut(1));

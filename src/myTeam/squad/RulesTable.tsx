@@ -1,4 +1,4 @@
-import type { SquadLimit } from "../../../convex/squads/squadLimits";
+import type { SquadLimit } from "../../../convex/squads/squadRulesView";
 import { AREA_WORDS } from "../../shared/words";
 import { ColumnHeads } from "../../ui/ColumnHeads";
 import { PanelNote } from "../../ui/Panel";
@@ -23,7 +23,7 @@ const classOf = (column: Column) => squadCellClass(WORDS.includes(column));
 
 /** The Rules view (#1006; spec/12: "your squad against the league's limits"): one row per limit,
  *  each naming the players it counts, and a row the squad is outside flagged with how far out
- *  (Craig, 6 Nov 2026). The rows are the server's (convex/squads/squadLimits.ts). */
+ *  (Craig, 6 Nov 2026). The rows are the server's (convex/squads/squadRulesView.ts). */
 export function RulesTable({ teamName, limits, players }: { teamName: string; limits: readonly SquadLimit[]; players: readonly Row[] }) {
   if (limits.length === 0) return <PanelNote>{noLimitsWords}</PanelNote>;
   const nameOf = new Map(players.map(({ code, name }) => [code, name]));
