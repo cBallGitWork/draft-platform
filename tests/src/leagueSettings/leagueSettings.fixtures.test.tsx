@@ -1,5 +1,6 @@
-// League settings' Fixtures tab (#1034, docs/design/approved/settings/1440.png): the format, double
-// gameweeks, the deadline and the table's tie-breaks, saved with the rest of the settings. The
+// League settings' Fixtures tab (#1034, docs/design/approved/settings/1440.png): the format (S03.1),
+// double gameweeks, the deadline (S03.3) and the table's tie-breaks, moved Up and Down (S03.2),
+// saved with the rest of the settings. The
 // odd team out and games a gameweek are leagueSettings.test.tsx's; the scoring start,
 // leagueSettings.scoringStart.test.tsx's.
 

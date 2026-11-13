@@ -7,8 +7,8 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
-// The Fixtures tab's league rules (spec/03; #1034): the format, the deadline, double gameweeks and
-// the table's tie-breaks, saved through League settings as its other rules are. The format's lock
+// The Fixtures tab's league rules (spec/03; #1034): the format (S03.1), the deadline (S03.3), double
+// gameweeks and the table's tie-breaks, whose order the commissioner changes (S03.2), saved through League settings as its other rules are. The format's lock
 // once the season has begun is formatLock.test.ts's.
 
 let t: TestConvex;
@@ -20,12 +20,11 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const asCommissioner = () => actingAs(t, COMMISSIONER);
-const settingsNow = async () => (await (await asCommissioner()).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() })).part;
+const settingsNow = async () => (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() })).part;
 /** The latest settings with `changed` over them, saved. */
 async function changeTo(changed: Partial<LeagueSettings>) {
   const settings = { ...(await settingsNow()), ...changed };
-  return (await asCommissioner()).mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings, revision: await rulesRevision(t, leagueId) });
+  return (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings, revision: await rulesRevision(t, leagueId) });
 }
 
 describe("the Fixtures tab's rules", () => {

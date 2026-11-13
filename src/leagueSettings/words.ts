@@ -46,7 +46,7 @@ export const blankDeadlineWords = noNumberWords("Deadline");
 /** The table's tie-breaks, whose order the commissioner changes (spec/03, S03.2). */
 export const tableTitle = "Table";
 export const tieBreaksLabel = "Tie-breaks, in order";
-export const tieBreakWords: Record<TieBreak, string> = { pointsFor: columns.pointsFor.long, headToHead: "Head-to-head", pointsAgainst: columns.pointsAgainst.long };
+export const tieBreakWords: Record<TieBreak, string> = { pointsFor: columns.pointsFor.long, headToHead: formatWords.headToHead, pointsAgainst: columns.pointsAgainst.long };
 
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";

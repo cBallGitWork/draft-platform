@@ -34,6 +34,7 @@ import {
 /** The games box's hint's id, which the box is described by (#915). */
 const GAMES_HINT_ID = "settings-games-hint";
 const DEADLINE_HINT_ID = "settings-deadline-hint";
+const TIE_BREAKS_LABEL_ID = "settings-tie-breaks-label";
 const FORMATS = ["headToHead", "totalPoints"] as const satisfies readonly LeagueSettings["format"][];
 
 type Edit = { draft: LeagueSettings; edit: (settings: LeagueSettings) => void };
@@ -103,10 +104,10 @@ function TieBreaks({ tieBreaks, reorder }: { tieBreaks: readonly TieBreak[]; reo
   }
   return (
     <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-      <span id="tie-breaks-label" className="text-soft">
+      <span id={TIE_BREAKS_LABEL_ID} className="text-soft">
         {tieBreaksLabel}
       </span>
-      <ol aria-labelledby="tie-breaks-label" className="flex flex-col gap-1">
+      <ol aria-labelledby={TIE_BREAKS_LABEL_ID} className="flex flex-col gap-1">
         {tieBreaks.map((tieBreak, place) => (
           <li key={tieBreak} className="flex items-center gap-3">
             <span className="w-4 text-right text-figure tabular-nums">{place + 1}</span>
