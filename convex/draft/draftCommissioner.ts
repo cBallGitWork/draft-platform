@@ -5,8 +5,9 @@ import { changeLatest } from "../rules/leagueRules";
 import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { tellUndone, tellUpNext } from "./draftLetters";
-import { liveClock, pauseRefusals } from "./draftPause";
+import { liveClock } from "./draftPause";
 import { draftIsPaused, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
+import { pickRefusals } from "./draftPicks";
 import { draftHasStarted, draftIsLive, draftIsOver, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
 import { putBackOnClock, takeBackPick } from "./pickWindow";
@@ -28,8 +29,8 @@ import { putBackOnClock, takeBackPick } from "./pickWindow";
 
 /** Why the commissioner's undo or "I'll pick for this one" is refused, in the words he is shown. */
 export const commissionerRefusals = {
-  notStarted: pauseRefusals.notStarted,
-  over: pauseRefusals.over,
+  notStarted: pickRefusals.notStarted,
+  over: pickRefusals.over,
   noPick: "No pick has been made yet, so there is none to undo.",
   draftStarted: "The draft has started, so who picks for a team can no longer be changed.",
   hasManager: (teamName: string) => `${teamName} has a manager, who picks for it.`,
