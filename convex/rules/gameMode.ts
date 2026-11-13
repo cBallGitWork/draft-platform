@@ -1,3 +1,4 @@
+import { v, type Infer } from "convex/values";
 import type { ScoringSet } from "../scoring/scoringSet";
 import type { LeagueRules } from "./leagueRulesShape";
 
@@ -7,19 +8,21 @@ import type { LeagueRules } from "./leagueRulesShape";
 // modes' grill's, so the answers other than `hasMatchups` are the same for every league today.
 // Pure: no I/O, so the screens read it too.
 
-/** What a league plays in a gameweek, by its rules then. */
-export interface GameMode {
+/** What a league plays in a gameweek, by its rules then, as the queries behind its role parts send
+ *  it (Tactics and Squad, the matchup, the player card, Scouting; src/shared/gameMode.tsx). */
+export const gameModeShape = v.object({
   /** Its men score their roles' points (spec/05, Roles). */
-  scoresRoles: boolean;
+  scoresRoles: v.boolean(),
   /** Its teams score their instructions and back line (spec/05, Team instructions). */
-  scoresInstructions: boolean;
+  scoresInstructions: v.boolean(),
   /** Its men's stars are shown and copied at the deadline. */
-  showsStars: boolean;
+  showsStars: v.boolean(),
   /** Its teams meet in matchups, head-to-head; total points has none. */
-  hasMatchups: boolean;
+  hasMatchups: v.boolean(),
   /** The higher score wins a matchup and tops the table. */
-  higherWins: boolean;
-}
+  higherWins: v.boolean(),
+});
+export type GameMode = Infer<typeof gameModeShape>;
 
 /** What a league with these rules plays. */
 export function gameModeOf(rules: Pick<LeagueRules, "format">): GameMode {

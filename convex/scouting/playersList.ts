@@ -15,6 +15,8 @@ import { listFigures, shownStat } from "./playersOrder";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
+import { gameModeOf, gameModeShape } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { latestSiteScoring } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { firstRunsIn, runAhead, type RunAhead } from "../waivers/waiverLock";
@@ -121,6 +123,8 @@ const playersList = v.object({
    *  his panel follows a pickup, a claim or a drop that moves him out of the list (#1551); null once
    *  he is no longer a Premier League player. Left out when none is asked. */
   kept: v.optional(v.union(listedPlayer, v.null())),
+  /** What the league plays by its latest rules, for the role parts (#1582). */
+  mode: gameModeShape,
 });
 /** The list as the server sends it. */
 export type ListedRows = Infer<typeof playersList>;
@@ -177,7 +181,8 @@ export const list = query({
       };
     };
     const rows = players.map(rowOf);
-    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [] };
+    const mode = gameModeOf((await seasonRules(ctx, leagueId)).latest);
+    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [], mode };
     if (keep === undefined) return listed;
     const kept = rows.find(({ code }) => code === keep) ?? (await keptOutside(ctx, keep, listedClubOf, rowOf));
     return { ...listed, kept };

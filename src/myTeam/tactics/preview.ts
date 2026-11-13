@@ -16,6 +16,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { previewGameMode } from "../../shared/preview";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
@@ -96,6 +97,7 @@ const tacticsWith = ({ starters, bench, classicFormation, instructions: picked }
     ...(classicFormation && { classic: classicFormation }),
     ...(picked && { instructions: picked }),
   },
+  mode: previewGameMode,
 });
 
 // A new object only when it changes, as useSyncExternalStore needs.

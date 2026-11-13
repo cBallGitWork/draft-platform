@@ -11,6 +11,7 @@ import type { Stats } from "../../../convex/stats/statTotals";
 import { mostFirst, raceOrder } from "../../../convex/scouting/raceOrder";
 import type { PlayersList, RacingTeam, ScoutingSeam, StatRace, YourPlayer } from "../../../src/scouting/seam";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
+import { previewGameMode } from "../../../src/shared/preview";
 import type { CardAction } from "../../../src/playerCard/seam";
 import { fakePlayerCard } from "./playerCard.harness";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
@@ -71,6 +72,7 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
         players: listOf(rows, filters, sort),
         pointsSeason,
         periodGameweeks: period === undefined || period === "season" ? [] : PERIOD_GAMEWEEKS_SHOWN[period],
+        mode: previewGameMode,
         ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
       };
     }),

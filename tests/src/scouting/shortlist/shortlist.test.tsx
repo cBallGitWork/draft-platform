@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { SHORTLIST_MOST } from "../../../../convex/scouting/shortlist";
 import { shortlistRefusals } from "../../../../convex/scouting/shortlistWords";
+import { previewGameMode } from "../../../../src/shared/preview";
 import { freeAgentWords } from "../../../../src/shared/words";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
@@ -121,6 +122,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   categories: [],
   lastSeason: null,
   nextFixtures: [],
+  mode: previewGameMode,
 });
 
 const openCard = (cardShown: PlayerCard, shortlist: ShortlistData, session = manager) =>

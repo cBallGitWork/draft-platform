@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { classicFormationShape, leagueRulesShape } from "../rules/leagueRulesShape";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
+import { gameModeOf, gameModeShape } from "../rules/gameMode";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
@@ -70,6 +71,8 @@ const tacticsShape = v.union(
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
+    /** What the league plays in the gameweek, for the role parts (#1582). */
+    mode: gameModeShape,
   }),
 );
 export type Tactics = Infer<typeof tacticsShape>;
@@ -127,6 +130,7 @@ export const ofMyTeam = query({
       picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,
       lineup,
+      mode: gameModeOf(rules),
     };
   },
 });

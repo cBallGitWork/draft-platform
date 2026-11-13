@@ -1,4 +1,5 @@
 import { v, type GenericValidator, type Infer, type Validator } from "convex/values";
+import { gameModeShape } from "../rules/gameMode";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
@@ -228,6 +229,9 @@ const matchupWith = <Game extends GenericValidator>(game: Game) =>
        *  playing more than one a gameweek: who each is against, or a bye. Empty with no gameweek. */
       games: v.array(v.union(opponent, v.object({ kind: v.literal(BYE) }))),
       game,
+      /** What the league plays in the gameweek, or by its latest rules with none, for the role
+       *  parts (#1582). */
+      mode: gameModeShape,
     }),
   );
 

@@ -7,6 +7,7 @@ import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
@@ -57,6 +58,8 @@ describe("the lineup to set", () => {
       presets: HELD_FIRST_RULES.presets,
       // The lineup it got with its squad: its first, picked from the squad (spec/05, #637, #1040).
       lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench },
+      // What the league plays, for the role parts: everything, as every league today (#1582).
+      mode: gameModeOf(HELD_FIRST_RULES),
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
