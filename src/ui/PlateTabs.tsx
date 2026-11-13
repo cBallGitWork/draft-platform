@@ -3,8 +3,9 @@ const TAB =
   "aria-pressed:text-fact aria-pressed:shadow-tab-active lg:min-h-bar-control";
 
 /** A page's tabs, butted on its title plate after the title (the approved Table and Scouting
- *  pictures): one button each, the chosen one pressed. `alone` butts them on a plate with no title
- *  (the approved Football picture). */
+ *  pictures): one button each, the chosen one pressed. Tabs too many for the phone's width wrap
+ *  onto the plate's next line rather than push the page sideways (League settings' six; #1034).
+ *  `alone` butts them on a plate with no title (the approved Football picture). */
 export function PlateTabs<Tab extends string>({
   label,
   tabs,
@@ -21,7 +22,7 @@ export function PlateTabs<Tab extends string>({
   alone?: boolean;
 }) {
   return (
-    <span role="group" aria-label={label} className={`flex grow self-stretch ${alone ? "" : "ml-6"}`}>
+    <span role="group" aria-label={label} className={`flex grow flex-wrap self-stretch ${alone ? "" : "ml-6"}`}>
       {tabs.map((tab) => (
         <button key={tab} type="button" aria-pressed={chosen === tab} onClick={() => choose(tab)} className={TAB}>
           {words[tab]}

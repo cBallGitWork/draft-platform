@@ -121,6 +121,7 @@ export const gates: Record<string, Gate> = {
   "joining/joinRequests:approve": "runner",
   "joining/joinRequests:ask": "signedIn",
   "joining/joinRequests:joinPage": "open",
+  "joining/joinRequests:waitingMine": "signedInOrNothing",
   "joining/joinRequests:refuseRequest": "runner",
   "leagues/lastLeague:switchTo": "member",
   "leagues/leagueDeletion:deleteLeague": "deleter",

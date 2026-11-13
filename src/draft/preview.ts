@@ -6,8 +6,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import { previewScouting } from "../scouting/preview";
-import { previewLists, usePreviewAutoPick } from "./previewLists";
+import { previewListedPlayer, previewPlayers, previewPlayersListOf } from "../scouting/preview";
+import { previewLists, previewListsPlayers, setPreviewPlayers, usePreviewAutoPick } from "./previewLists";
 import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
@@ -55,6 +55,15 @@ const TRADED = [{ round: 5, teamId: order[2].teamId, ownerId: order[1].teamId }]
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+/** The room's players: Scouting's preview players and the ones its queue and do-not-draft list
+ *  start with, so every player on a list is in the list (#1969). His panel's Add to queue finds
+ *  any of them. */
+const ROOM_PLAYERS = [
+  ...previewPlayers,
+  ...previewListsPlayers.map(({ code, name, fullName, club, position }) => previewListedPlayer(code, name, fullName, club, position === null ? [] : [position])),
+];
+setPreviewPlayers(ROOM_PLAYERS);
+
 /** The preview changes nothing, and says nothing went wrong. */
 const done = () => Promise.resolve(null);
 const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done, pickFor: done };
@@ -91,8 +100,8 @@ export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
   useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED, maxPerClub: 2 }),
   useInMenu: () => true,
-  // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
-  usePlayersList: previewScouting.usePlayersList,
+  // The room's players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
+  usePlayersList: previewPlayersListOf(ROOM_PLAYERS),
   useGreyedOut: () => (isBefore() ? [] : GREYED),
   useFigures: () => figures,
   useDraftChanges: () => PREVIEW_CHANGES,

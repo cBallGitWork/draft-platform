@@ -211,3 +211,24 @@ describe("the join page of a league being deleted (spec/13 Deleting)", () => {
     expect((await joinPageFor(BOB))?.standing).toBe("inLeague");
   });
 });
+
+describe("the person's own waiting requests, for Your leagues", () => {
+  const waitingMineOf = async (email: string) => (await actingAs(t, email)).query(api.joining.joinRequests.waitingMine, {});
+
+  test("name each league they wait on, until it's answered", async () => {
+    expect(await waitingMineOf(ANN)).toEqual([]);
+    const requestId = await askToJoin(t, leagueId, token, ANN);
+    expect(await waitingMineOf(ANN)).toEqual([{ leagueName: LEAGUE_NAME }]);
+    expect(await waitingMineOf(BOB)).toEqual([]);
+
+    await (await asCommissioner(t)).mutation(api.joining.joinRequests.refuseRequest, { requestId });
+    expect(await waitingMineOf(ANN)).toEqual([]);
+  });
+
+  test("leave out a league being deleted, and are nothing signed out", async () => {
+    await askToJoin(t, leagueId, token, ANN);
+    await deletes(t, COMMISSIONER, leagueId);
+    expect(await waitingMineOf(ANN)).toEqual([]);
+    expect(await t.query(api.joining.joinRequests.waitingMine, {})).toEqual([]);
+  });
+});

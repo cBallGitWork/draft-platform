@@ -13,6 +13,7 @@ import { recordEvent } from "../mail/letters";
 import { delivery } from "../schema";
 import { putOnTeam } from "../leagues/teams";
 import { leagueOpens } from "../leagues/leagueOpens";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 
 // Join requests (#73; spec/13 Joining, spec/15 Joining a league): a person who opens the invite
 // link asks to join. They have at most one request waiting in a league; its runners approve it,
@@ -59,6 +60,27 @@ export const joinPage = query({
     if (team) return { ...shown, standing: "inLeague" as const, teamName: team.name };
     const waiting = await waitingRequestOf(ctx, league._id, email);
     return { ...shown, standing: waiting ? ("waiting" as const) : ("mayAsk" as const) };
+  },
+});
+
+/** The leagues the signed-in person has asked to join and waits on, by name, for "Your leagues"
+ *  (spec/13: they see it waits for the commissioner). A league being deleted is hidden from them. */
+const waitingRequest = v.object({ leagueName: v.string() });
+export type WaitingRequest = Infer<typeof waitingRequest>;
+
+export const waitingMine = query({
+  args: {},
+  returns: v.array(waitingRequest),
+  handler: async (ctx) => {
+    const email = await signedInEmail(ctx);
+    if (email === null) return [];
+    const requests = await takeAllOrThrow(
+      ctx.db.query("joinRequests").withIndex("by_email_and_decision", (q) => q.eq("email", email).eq("decision", undefined)),
+      LEAGUES_READ_MOST,
+      `${email} waits on more join requests than there can be leagues`,
+    );
+    const leagues = await Promise.all(requests.map((request) => ctx.db.get("leagues", request.leagueId)));
+    return leagues.flatMap((league) => (league && leagueOpens(league) ? [{ leagueName: league.name }] : []));
   },
 });
 

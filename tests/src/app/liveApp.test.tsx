@@ -42,9 +42,10 @@ vi.mock("convex/react", async () => {
           return 0;
         }),
         // What the top bar, the leagues page and the patch banner read: no lineup due, no ended
-        // invite, no patch waiting.
+        // invite, no join request waiting, no patch waiting.
         "lineup/lineupDue:isDue": unlessSkipped(() => false),
         "joining/endedInvite:mine": unlessSkipped(() => null),
+        "joining/joinRequests:waitingMine": unlessSkipped(() => []),
         "scoring/patchNotes:banner": unlessSkipped(() => null),
         // Every club's colours, for the shirts and club marks: none held, so the file's first.
         "football/clubKits:all": unlessSkipped(() => undefined),

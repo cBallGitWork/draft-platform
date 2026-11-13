@@ -7,7 +7,7 @@ import { memberOf, runnerOf } from "../shared/leagueAccess";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
-import { whyNotLegalFor } from "./draftPicks";
+import { whyNotLegalFor } from "./draftLegal";
 import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { notLegal } from "./legalPlayers";
@@ -18,7 +18,7 @@ import { lastPricedSeason, lastSeasonPoints } from "../pastSeasons/lastSeasonPoi
 // Scouting's (../scouting/playersList.ts); beside it:
 // - its legal flag: which players the reader's team can't take as its next pick, and why, so the
 //   list greys them out in their place ("yes" to Claude's recommendation, 4 Nov 2026) and his Draft
-//   button can't be pressed. The rule is the pick's own (draftPicks.ts `whyNotLegalFor`,
+//   button can't be pressed. The rule is the pick's own (draftLegal.ts `whyNotLegalFor`,
 //   legalPlayers.ts), so the list and the pick never disagree; and for the commissioner, the same
 //   for the team on the clock, which his "Pick for <team>" is greyed by (#1475);
 // - each player's place on the site's ranking, last season's points and the overview's stats, as

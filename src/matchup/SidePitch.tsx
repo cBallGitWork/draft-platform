@@ -1,10 +1,10 @@
 import { cellKey, LANES, sameCell } from "../../convex/lineup/pitch";
 import type { MatchupBenchSlot, MatchupSide, MatchupStarter } from "../../convex/matchup/matchupShape";
-import { PITCH_ROOM_STYLE } from "../myTeam/tactics/pitch/Pitch";
-import { PitchLines } from "../myTeam/tactics/pitch/PitchLines";
-import { RoleRuns } from "../myTeam/tactics/pitch/RoleRuns";
-import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../myTeam/tactics/pitch/rowLayout";
 import type { Starter } from "../myTeam/tactics/lineupEdits";
+import { PITCH_ROOM_STYLE } from "../ui/pitch/pitchMarkings";
+import { PitchLines } from "../ui/pitch/PitchLines";
+import { RoleRuns } from "../ui/pitch/RoleRuns";
+import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../ui/pitch/rowLayout";
 import { PlayerTile, type Picking, type TileMan } from "./PlayerTile";
 import { benchLabel, BENCH_TITLE, sidePitchLabel } from "./words";
 

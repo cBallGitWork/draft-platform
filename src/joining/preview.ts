@@ -37,6 +37,8 @@ export const previewJoining: JoiningSeam = {
   useInvitesPage: (leagueId) => (leagueId === invitesPage.leagueId ? invitesPage : null),
   // The newcomer's invite to Mini beta ran out before they signed in.
   useEndedInvite: () => ({ leagueName: miniBeta.name, ended: "expired", reason: null }),
+  // They asked to join a league through its invite link, and wait on its commissioner.
+  useWaitingRequests: () => [{ leagueName: "Sunday Funday" }],
   useJoinPage: (token) => {
     if (token === "gone") return null;
     const league = { leagueName: miniBeta.name, commissionerEmail: miniBeta.commissionerEmail, teams: invitesPage.teams.length, maxTeams: miniBeta.maxTeams };

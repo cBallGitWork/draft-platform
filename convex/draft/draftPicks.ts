@@ -3,29 +3,27 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
-import { playerPositionsNow, positionsNow, type MinimumAreasNow } from "../positions/playerPositions";
+import { playerPositionsNow, positionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { managerOf, playerOrRefuse, refuse, runnerOf, teamIn } from "../shared/leagueAccess";
-import { heldPlayerByCode } from "../shared/players";
 import { SECOND_MS } from "../shared/time";
-import { placeOf, squadOf } from "../squads/squadPlace";
+import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
 import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
+import { legalForTurn } from "./draftLegal";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
 import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
-import type { Position } from "../positions/positionTables";
-import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
+import { draftOf, lastPickIn, liveClockOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
-import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { undraftedIn } from "./undrafted";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
-// it may legally take (legalPlayers.ts, under the squad rules the draft started under, leaving a
+// it may legally take (draftLegal.ts, under the squad rules the draft started under, leaving a
 // legal finish from the players still undrafted), and he joins its
 // squad as a commissioner's assignment does: his squad row, the `playerAssigned` event, and the
 // team's first lineup picked again; but with no Mail letter, for any pick (Craig, 4 Nov 2026, on
@@ -60,49 +58,6 @@ export const pickRefusals = {
   notOnAutoPick: "You aren't on auto-pick.",
   onAutoPick: "You're already on auto-pick.",
 };
-
-/** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
- *  under, with `picksLeft` picks still to make counting this one and a legal finish from the
- *  `undrafted`; null when it may, each player's areas for the minimums read through
- *  `minimumAreasOf`. The pick and the draft room's greyed-out list both ask it. */
-export async function whyNotLegalFor(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  started: StartedDraft,
-  teamId: Id<"teams">,
-  picksLeft: number,
-  undrafted: readonly Doc<"players">[],
-  minimumAreasOf: MinimumAreasNow,
-): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
-  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">, positions?: Position[]): Promise<DraftPlayer> => ({
-    clubCode,
-    areas: await minimumAreasOf(code, positions),
-  });
-  // His squad counts each player it drafted at the positions he had then (#1484).
-  const drafted = await draftedPositionsIn(ctx, leagueId);
-  const squad = await Promise.all(
-    (await squadOf(ctx, teamId)).map(async ({ playerCode }) =>
-      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`), drafted.get(playerCode)),
-    ),
-  );
-  const why = whyNotLegal(squad, picksLeft, started.squad, await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
-  return async (player) => why(await asDraftPlayer(player));
-}
-
-/** Whether the team on the clock may legally take a player, under the squad rules the draft started
- *  under, with the picks it has left counting this one and a legal finish from the `undrafted`. */
-async function legalForTurn(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  draft: Doc<"drafts">,
-  started: StartedDraft,
-  turn: Turn,
-  undrafted: readonly Doc<"players">[],
-  minimumAreasOf: MinimumAreasNow,
-): Promise<(player: Doc<"players">) => Promise<boolean>> {
-  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, await picksLeftOf(ctx, draft, started, turn.team), undrafted, minimumAreasOf);
-  return async (player) => (await why(player)) === null;
-}
 
 /** The player the manager picks, or the refusal: there is no such player, he has left the Premier
  *  League, or a team in the league already holds him. */
