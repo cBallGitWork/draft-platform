@@ -31,16 +31,23 @@ beforeEach(async () => {
   [annsTeam] = (await addManagers(t, leagueId, [ANN, BOB])) as [Id<"teams">];
   await holdStarsPlayers(t);
   await refreshEveryone(t);
+  await holdSeason(seasonStartYear(Date.now()));
 });
+
+/** Holds a gameweek of the season starting in `season`: the newest held is the server's season. */
+const holdSeason = (season: number) =>
+  t.run(async (ctx) => {
+    await ctx.db.insert("gameweeks", { season, number: 1, deadline: Date.UTC(season, JULY + 1, 1) });
+  });
 
 const inAnnsSquad = (...codes: number[]) =>
   t.run(async (ctx) => {
     for (const playerCode of codes) await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode });
   });
 const ofPlayer = async (playerCode: number, email = ANN) =>
-  (await actingAs(t, email)).query(api.stars.playerStars.ofPlayer, { leagueId, playerCode, now: Date.now() });
+  (await actingAs(t, email)).query(api.stars.playerStars.ofPlayer, { leagueId, playerCode });
 const ofPlayers = async (playerCodes: number[]) =>
-  (await actingAs(t, ANN)).query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes, now: Date.now() });
+  (await actingAs(t, ANN)).query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes });
 
 // Each shown test's players are in Ann's squad, so shown to her.
 
@@ -111,8 +118,28 @@ describe("who is shown whose stars (spec/19, Role stars)", () => {
   test("a scouted player is hidden again once a new season starts", async () => {
     await (await actingAs(t, ANN)).mutation(api.scouting.scouts.send, { leagueId, playerCode: SCORER.code });
     await elapse(t, SCOUT_TRIP_MS);
-    vi.setSystemTime(Date.UTC(seasonStartYear(Date.now()) + 1, JULY, 1));
+    await holdSeason(seasonStartYear(Date.now()) + 1);
     expect(await ofPlayer(SCORER.code)).toBeNull();
+  });
+
+  test("the season is the one the server holds, so a clock already in the next one changes nothing (#2046)", async () => {
+    await (await actingAs(t, ANN)).mutation(api.scouting.scouts.send, { leagueId, playerCode: SCORER.code });
+    await elapse(t, SCOUT_TRIP_MS);
+    vi.setSystemTime(Date.UTC(seasonStartYear(Date.now()) + 1, JULY, 1));
+    expect(await ofPlayer(SCORER.code)).toEqual(everyStrikerRole(5));
+  });
+
+  test("with no season held yet, only his squad's are shown", async () => {
+    await t.run(async (ctx) => {
+      for (const { _id } of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", _id);
+    });
+    await inAnnsSquad(STEADY.code);
+    await (await actingAs(t, ANN)).mutation(api.scouting.scouts.send, { leagueId, playerCode: SCORER.code });
+    await elapse(t, SCOUT_TRIP_MS);
+    expect(await ofPlayers([SCORER.code, STEADY.code])).toEqual([
+      { playerCode: SCORER.code, stars: null },
+      { playerCode: STEADY.code, stars: everyStrikerRole(3.5) },
+    ]);
   });
 
   test("a commissioner who runs no team is shown none", async () => {
