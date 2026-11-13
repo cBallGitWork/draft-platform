@@ -90,7 +90,7 @@ describe("the trade cron", () => {
     expect(await offerPass()).toEqual([w.leagueId]);
   });
 
-  test("looks at an open offer's league only at the next deadline, and closes it then", async () => {
+  test("looks at an open offer's league only once the coming deadline passes, and closes it then", async () => {
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await offerPass();
     expect((await row())?.offersAt).toBe(await nextDeadlineAt());
