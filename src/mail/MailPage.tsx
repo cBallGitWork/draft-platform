@@ -92,22 +92,22 @@ export function MailPage({
   return (
     <PageSection title={MAIL_TITLE} aside={plate} className={PAGE_STACK}>
       <div className="grid items-start gap-2 lg:grid-cols-mail">
-      <Panel title={LETTERS_TITLE} className="min-w-0">
-        {letters === undefined ? (
-          <Loading className="px-3 py-2">{loadingWords}</Loading>
+        <Panel title={LETTERS_TITLE} className="min-w-0">
+          {letters === undefined ? (
+            <Loading className="px-3 py-2">{loadingWords}</Loading>
+          ) : (
+            <Letters letters={tab === "unread" ? letters.filter((letter) => !letter.read || letter.letterId === openId) : letters} tab={tab} openId={openId} open={open} />
+          )}
+        </Panel>
+        {reading === "writing" ? (
+          <WriteToLeague leagues={writableLeagues} cut={leaguesCut} writeToLeague={mail.writeToLeague} />
+        ) : openLetter ? (
+          <OpenLetter letter={openLetter} />
         ) : (
-          <Letters letters={tab === "unread" ? letters.filter((letter) => !letter.read || letter.letterId === openId) : letters} tab={tab} openId={openId} open={open} />
+          <div className="bg-panel">
+            <PanelNote>{noLetterOpenWords}</PanelNote>
+          </div>
         )}
-      </Panel>
-      {reading === "writing" ? (
-        <WriteToLeague leagues={writableLeagues} cut={leaguesCut} writeToLeague={mail.writeToLeague} />
-      ) : openLetter ? (
-        <OpenLetter letter={openLetter} />
-      ) : (
-        <div className="bg-panel">
-          <PanelNote>{noLetterOpenWords}</PanelNote>
-        </div>
-      )}
       </div>
     </PageSection>
   );
