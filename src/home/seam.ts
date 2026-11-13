@@ -18,9 +18,9 @@ export type NewsAsked = { before: LeagueNews["older"]; teamId: Id<"teams"> | nul
 export type HomeSeam = Pick<SquadSeam, "useLatestMail"> & {
   /** League home at the minute `now`, live (a hook): undefined while it loads. */
   useLeagueHome(leagueId: Id<"leagues">, now: number): LeagueHome | undefined;
-  /** The league's recap of the gameweek, whole, live (a hook): undefined while it loads, null
-   *  while there is none. */
-  useRecap(leagueId: Id<"leagues">, gameweek: number): Recap | null | undefined;
+  /** The league's recap of the gameweek, whole, or its latest written with no gameweek (#1967),
+   *  live (a hook): undefined while it loads, null while there is none. */
+  useRecap(leagueId: Id<"leagues">, gameweek: number | undefined): Recap | null | undefined;
   /** A page of the News tab's moves (#1356), live (a hook): undefined while it loads. */
   useLeagueNews(leagueId: Id<"leagues">, asked: NewsAsked): LeagueNews | undefined;
 };

@@ -152,7 +152,7 @@ const news = (before: NewsAsked["before"]): LeagueNews => {
 export const previewHome: HomeSeam = {
   useLeagueHome: () => home,
   useLatestMail: () => previewLatestMail,
-  useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null),
+  useRecap: (_, gameweek) => (gameweek === undefined || gameweek === SCORED ? home.recap : null),
   useLeagueNews: (_, { before, teamId, kind }) => {
     const page = news(before);
     return { ...page, moves: page.moves.filter((move) => (teamId === null || namesTeam(move, teamId)) && (kind === null || move.kind === kind)) };

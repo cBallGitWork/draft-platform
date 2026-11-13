@@ -185,6 +185,14 @@ function shown(recap: Doc<"recaps">, changedTeamId: TeamId | null) {
  *  leaves, null for never, for the screen to drop it at (home/homeAt.ts). */
 export const heldRecap = shownRecap.extend({ until: v.union(v.number(), v.null()) });
 
+/** The league's latest written recap; null with none. */
+async function latestWritten(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"recaps"> | null> {
+  for await (const recap of ctx.db.query("recaps").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).order("desc")) {
+    if (recap.state === "written") return recap;
+  }
+  return null;
+}
+
 /** The recap League home shows: the league's latest written, until the next gameweek's first
  *  matchday mode begins; null with none. `results` are the league's scores, the table's. */
 export async function homeRecap(
@@ -192,13 +200,7 @@ export async function homeRecap(
   leagueId: Id<"leagues">,
   results: ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>,
 ): Promise<Infer<typeof heldRecap> | null> {
-  let latest: Doc<"recaps"> | null = null;
-  for await (const recap of ctx.db.query("recaps").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).order("desc")) {
-    if (recap.state === "written") {
-      latest = recap;
-      break;
-    }
-  }
+  const latest = await latestWritten(ctx, leagueId);
   if (latest === null) return null;
   const until = await nextMatchdayStart(ctx, latest.gameweek);
   const recap = shown(latest, await changedTeam(latest, async (teamId) => results.get(latest.gameweek)?.get(teamId)));
@@ -221,18 +223,19 @@ async function nextMatchdayStart(ctx: QueryCtx, gameweek: number): Promise<numbe
   return Infinity;
 }
 
-/** The league's recap of the gameweek, whole, for Read the recap; null while there is none. For
+/** The league's recap of the gameweek, whole, for Read the recap: with no gameweek named, its
+ *  latest written, so the recap's own address opens it (#1967); null while there is none. For
  *  anyone with a part in the league. */
 export const ofGameweek = query({
-  args: { leagueId: v.id("leagues"), gameweek: v.number() },
+  args: { leagueId: v.id("leagues"), gameweek: v.optional(v.number()) },
   returns: v.union(shownRecap, v.null()),
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league } = await memberOf(ctx, leagueId);
-    const recap = await recapOf(ctx, leagueId, gameweek);
+    const recap = gameweek === undefined ? await latestWritten(ctx, leagueId) : await recapOf(ctx, leagueId, gameweek);
     if (recap === null || recap.state !== "written") return null;
     const season = await seasonRules(ctx, leagueId);
     const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
-    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), recap.gameweek, teamIds);
     const held = new Set(teamIds);
     return shown(recap, await changedTeam(recap, async (teamId) => (held.has(teamId) ? inGameweek.pointsOf(teamId) : undefined)));
   },

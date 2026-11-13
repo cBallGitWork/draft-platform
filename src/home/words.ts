@@ -80,6 +80,9 @@ export const scoreChangedWords = "A score has changed since this recap was writt
 export const changedMatchupLink = "See the matchup";
 export const loadingRecapWords = "Loading the recap…";
 export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
+/** Read the recap's page with no gameweek named (#1967): the latest recap, before it loads or with none. */
+export const latestRecapTitle = "Latest recap";
+export const noRecapYetWords = "No recap yet.";
 export const backHomeLink = "Back to League home";
 
 export const moreOnNewsLink = "More, on News";

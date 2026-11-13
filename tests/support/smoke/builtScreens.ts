@@ -73,6 +73,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", HOME_NEWS_PATH, NEWS_TITLE],
   // Read the recap's page names its gameweek in the address's search: the preview's recap.
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
+  // Its address with no gameweek, shared or bookmarked, opens the latest recap, the preview's (#1967).
+  ["manager", RECAP_PATH, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
   // The draft room's title carries the draft's state: the preview's is live (src/draft/preview.ts).
   ["manager", DRAFT_PATH, `${DRAFT_TITLE} ${stateWords.live}`],
   // Tactics, Squad and Fixtures are titled with the manager's team in the league he's in (the
