@@ -7494,6 +7494,10 @@
                               },
                               {
                                 "type": "literal",
+                                "value": "twoUpFront"
+                              },
+                              {
+                                "type": "literal",
                                 "value": "backThreeOrFour"
                               },
                               {
@@ -12021,6 +12025,10 @@
                               },
                               {
                                 "type": "literal",
+                                "value": "twoUpFront"
+                              },
+                              {
+                                "type": "literal",
                                 "value": "backThreeOrFour"
                               },
                               {
@@ -12895,6 +12903,10 @@
                               {
                                 "type": "literal",
                                 "value": "threeInARow"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "twoUpFront"
                               },
                               {
                                 "type": "literal",
