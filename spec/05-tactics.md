@@ -369,8 +369,8 @@ From Craig, 1 Nov 2026.
   (Craig, 5 Nov 2026).
 - Roles stack with team instructions: a pressing forward under a high press earns both
   adjustments, and a sweeper keeper suits a high defensive line.
-- A player dropped into a slot starts on the role he has the most stars for; until stars are
-  built, on the slot's first role. The manager can change his slot and his role; the pitch shows
+- A player dropped into a slot starts on the role he has the most stars for. The manager can
+  change his slot and his role; the pitch shows
   each starter's role under his name (26 Oct 2026). He changes the role on the role card, opened
   by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
 - The role card shows every role for his slot, each with his stars, what it scores more and less
@@ -408,6 +408,9 @@ From Craig, 1 Nov 2026.
   - Every placement is a drop into a slot: dragging or swapping him, the first lineup and each
     draft pick going onto the pitch, a preset moving him to a slot that doesn't offer his role,
     and an auto-sub coming on in his own area.
+  - When the squad changes and the first lineup is picked again, a player still in the same spot
+    keeps the role he had and isn't re-picked by his stars (Craig, 2 Nov 2026, on #971: "yes").
+    `S05.44`
 - The player card shows what his role did to his points ("Attacking full-back: +2, two key
   passes").
 - Your tactics change only your own players' points, never your opponent's.
