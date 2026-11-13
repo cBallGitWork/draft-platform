@@ -153,6 +153,7 @@ import type * as lineup_instructionsShape from "../lineup/instructionsShape.js";
 import type * as lineup_instructionsWords from "../lineup/instructionsWords.js";
 import type * as lineup_lineup from "../lineup/lineup.js";
 import type * as lineup_lineupDue from "../lineup/lineupDue.js";
+import type * as lineup_lineupDueAt from "../lineup/lineupDueAt.js";
 import type * as lineup_lineupLimits from "../lineup/lineupLimits.js";
 import type * as lineup_lineupRows from "../lineup/lineupRows.js";
 import type * as lineup_lineupWords from "../lineup/lineupWords.js";
@@ -554,6 +555,7 @@ declare const fullApi: ApiFromModules<{
   "lineup/instructionsWords": typeof lineup_instructionsWords;
   "lineup/lineup": typeof lineup_lineup;
   "lineup/lineupDue": typeof lineup_lineupDue;
+  "lineup/lineupDueAt": typeof lineup_lineupDueAt;
   "lineup/lineupLimits": typeof lineup_lineupLimits;
   "lineup/lineupRows": typeof lineup_lineupRows;
   "lineup/lineupWords": typeof lineup_lineupWords;
