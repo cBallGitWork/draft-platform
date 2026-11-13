@@ -7,7 +7,7 @@ Craig's latest message in this session (last_prompt.py; an answer he picks in a 
 guard_ask.py records it) says to act: one of GO_WORDS, as "build it", "go ahead", "file it", "ship it",
 "merge it" (merge and the verbs after a yes need an object), a bare "File", a message opening with "yes" or
 with "file" and an object ("file answers"), one made only of numbered answers ("1 a\n2 b"), or a slash
-command, which is an instruction by itself.
+command, which is an instruction by itself. A line that opens with a no ("No, don't build it yet") is talk.
 Only a gh call the command line really runs is gated, each read as the shell reads it (commands.py), so a
 commit message, echo or grep that quotes one isn't, and gh's options before its command are skipped; in a
 line it can't read, every gh counts.
@@ -51,6 +51,8 @@ OPENS_WITH_GO = re.compile(
 # a message made only of numbered answers to Claude's lettered questions: "1a 2b", "1 a\n2 a", "1. a" (9 Nov 2026)
 NUMBERED_ANSWERS = re.compile(r"^\s*(?:\d+\s*[.):-]?\s*[a-z]\b[\s,;.]*)+$", re.I)
 SLASH_COMMAND = re.compile(r"^\s*/[a-z]")
+# a line that opens with a no is talk, whatever go word it holds: a box answer "No, don't build it yet" (#2023's review)
+SAYS_NO = re.compile(r"^\W*(?:no(?!\s+(?:worries|problem|bother))|nope|not|don[’']?t|do not|never|later|wait|hold|skip|leave)\b", re.I)
 GH_GATED = {("issue", "create"), ("issue", "edit"), ("pr", "create"), ("pr", "ready"), ("pr", "merge"),
             ("workflow", "run")}
 GITHUB_TOOL = "mcp__github__"
@@ -65,6 +67,12 @@ TALK = ("Craig's latest message didn't say to build, file or ship ({what}); it r
 
 
 def go_said(prompt):
+    """The whole message reads as a go, and so do its lines that don't open with a no, so a no never makes one."""
+    rest = "\n".join(line for line in prompt.splitlines() if not SAYS_NO.match(line))
+    return reads_as_go(prompt) and reads_as_go(rest)
+
+
+def reads_as_go(prompt):
     return bool(GO_WORDS.search(prompt) or BARE_GO.match(prompt) or OPENS_WITH_GO.match(prompt)
                 or NUMBERED_ANSWERS.match(prompt) or SLASH_COMMAND.match(prompt))
 

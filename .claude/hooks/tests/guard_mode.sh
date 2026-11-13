@@ -115,6 +115,17 @@ picked "Build the six fixes now?" "Yes, build them all"
 check allow guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
 picked "Shall I build them?" "Not yet, keep it as talk"
 check deny guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
+# a line opening with a no is talk, even with a go word in it (#2023's review)
+for no in "No, don't build it yet" "Don't build it, just file the idea" "don’t merge it" "Later, build it next week" \
+  "Not now, ship it Friday" "Yes, build the first
+No, skip the second"; do
+  picked "Build them now?" "$no"
+  case "$no" in Yes*) want=allow ;; *) want=deny ;; esac
+  check "$want" guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
+done
+said "no worries, go ahead"  # a no that isn't one
+check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
+said "hmm, what about a libero though"
 picked "Build them now?" ""  # no answer: his message before stands
 check deny guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
 # another session's message doesn't speak for this one
