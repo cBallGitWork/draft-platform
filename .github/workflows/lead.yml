@@ -14,7 +14,7 @@
 #   1c. A ready pull request with no review REVIEW_WAIT_MINUTES after it opened gets review.yml started for it, once
 #      (REVIEW_STARTED_LABEL): its own run never fired. No build slot is used.
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
-#      every rule settled), with no `rules:open`, `lane:craig`, STALE_LABEL or DONE_LABEL, and no open pull request naming them
+#      every rule settled), with no `rules:open`, `lane:craig`, STALE_LABEL, DONE_LABEL or SESSION_LABEL, and no open pull request naming them
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
@@ -375,7 +375,7 @@ jobs:
           issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
           ready=$(jq -r '
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.STUCK_LABEL))
+              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.SESSION_LABEL and .name != env.STUCK_LABEL))
               | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
               | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
                 elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"
