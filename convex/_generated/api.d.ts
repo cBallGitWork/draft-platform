@@ -181,6 +181,7 @@ import type * as mail_overrideLetterWords from "../mail/overrideLetterWords.js";
 import type * as mail_scoringLetterWords from "../mail/scoringLetterWords.js";
 import type * as mail_tradeLetterWords from "../mail/tradeLetterWords.js";
 import type * as mail_waiverLetterWords from "../mail/waiverLetterWords.js";
+import type * as match_matchMarks from "../match/matchMarks.js";
 import type * as match_matchOwners from "../match/matchOwners.js";
 import type * as match_matchPage from "../match/matchPage.js";
 import type * as match_sheetOrder from "../match/sheetOrder.js";
@@ -586,6 +587,7 @@ declare const fullApi: ApiFromModules<{
   "mail/scoringLetterWords": typeof mail_scoringLetterWords;
   "mail/tradeLetterWords": typeof mail_tradeLetterWords;
   "mail/waiverLetterWords": typeof mail_waiverLetterWords;
+  "match/matchMarks": typeof match_matchMarks;
   "match/matchOwners": typeof match_matchOwners;
   "match/matchPage": typeof match_matchPage;
   "match/sheetOrder": typeof match_sheetOrder;

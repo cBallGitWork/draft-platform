@@ -7,7 +7,7 @@
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { previewClub, previewTeamNames } from "../shared/preview";
-import type { MatchMan, MatchPageData } from "./seam";
+import type { MatchMan, MatchMarks, MatchPageData } from "./seam";
 
 /** FPL's code for the recorded match. */
 const RECORDED_MATCH = 2645271;
@@ -25,8 +25,21 @@ function man(
   points: number | null,
   counts = owner !== null,
 ): MatchMan {
-  return { playerCode, name, position, side, started, played, ownerTeamName: owner === null ? null : previewTeamNames[owner], points, counts };
+  const ownerTeamName = owner === null ? null : previewTeamNames[owner];
+  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks: { ...NO_MARKS, ...MARKS[name] }, points, counts };
 }
+
+/** The preview manager's team, Saka Potatoes (proLeague's), whose men the sheets light. */
+const MY_TEAM = 0;
+const NO_MARKS: MatchMarks = { goals: 0, assists: 0, yellowCards: 0, redCards: 0 };
+/** The recording's goals, assist and cards, as the lines below give them. */
+const MARKS: Record<string, Partial<MatchMarks>> = {
+  Enciso: { goals: 1 },
+  "N.Williams": { goals: 1 },
+  Muñoz: { assists: 1 },
+  Diop: { yellowCards: 1 },
+  Murillo: { yellowCards: 1 },
+};
 
 /** The sheets in the recording's order. */
 const SHEETS: MatchMan[] = [
@@ -198,7 +211,7 @@ export const previewMatch: MatchPageData = {
 export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
-  men: MEN.map((each) => ({ ...each, played: null, points: null, counts: each.ownerTeamName !== null })),
+  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };

@@ -22,6 +22,7 @@ import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../stats/matchRecordReads";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
+import { marksOf, matchMarks } from "./matchMarks";
 import { bySheetOrder } from "./sheetOrder";
 import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 
@@ -40,8 +41,9 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 // five team stats are as the live poller last read them (football/matchTeamStats.ts).
 
 
-/** A man the match names: from his record, or before any, from the sheets, not yet played. */
-type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played" | "clubCode">;
+/** A man the match names: from his record, or before any, from the sheets, not yet played and
+ *  with no stats. */
+type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played" | "clubCode"> & { stats?: Record<string, number> };
 
 const side = v.union(v.literal("home"), v.literal("away"));
 
@@ -57,6 +59,10 @@ const matchMan = v.object({
   played: v.union(v.boolean(), v.null()),
   /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
+  /** Whether that team is the viewer's own, whose men the sheets light (spec/10 S10.9). */
+  mine: v.boolean(),
+  /** His goals, assists and cards in this match so far, by his record; all 0 before it. */
+  marks: matchMarks,
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
    *  and for every man before the league's gameweek begins, as his card opens on him (basePoints).
@@ -97,7 +103,7 @@ export const ofMatch = query({
   args: { leagueId: v.id("leagues"), fixtureCode: v.number() },
   returns: v.union(heldMatchPage, v.null()),
   handler: async (ctx, { leagueId, fixtureCode }) => {
-    const { league } = await memberOf(ctx, leagueId);
+    const { league, team } = await memberOf(ctx, leagueId);
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
@@ -111,7 +117,7 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, lineupOwners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners }, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null }, priced, unownedPoints);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -218,14 +224,14 @@ async function menOf(
   leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
-  { owners, lineupOwners }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">> },
+  { owners, lineupOwners, viewerTeam }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
 ): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
-    named.map(async ({ playerCode, started, played, clubCode }) => {
+    named.map(async ({ playerCode, started, played, clubCode, stats }) => {
       const player = await playerByCode(ctx, playerCode);
       const name = nameOf(player, playerCode);
       const positions = await positionsOfNow(playerCode);
@@ -234,6 +240,7 @@ async function menOf(
       if (unownedMan?.lines) unowned.set(playerCode, { name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
       const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
       const playedFor = clubCode ?? player?.clubCode;
+      const owner = owners.get(playerCode);
       return {
         playerCode,
         name,
@@ -241,7 +248,9 @@ async function menOf(
         side: playedFor === undefined ? null : sideOf(fixture, playedFor),
         started,
         played,
-        ownerTeamName: owners.get(playerCode)?.name ?? null,
+        ownerTeamName: owner?.name ?? null,
+        mine: owner !== undefined && owner._id === viewerTeam,
+        marks: marksOf(stats),
         points: slot?.points ?? null,
         counts: slot?.counts ?? true,
       };

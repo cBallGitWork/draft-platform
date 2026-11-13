@@ -10,7 +10,8 @@ import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 export const FIXTURE = 2645271;
 
-/** A man, by default owned by no team, so his points count for none, as the server sends him. */
+/** A man, by default owned by no team, so his points count for none, with no goal, assist or card,
+ *  as the server sends him; the viewer's own while MY_TEAM_NAME owns him. */
 export const man = (playerCode: number, name: string, side: MatchMan["side"], more: Partial<MatchMan> = {}): MatchMan => ({
   playerCode,
   name,
@@ -19,6 +20,8 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   started: true,
   played: true,
   ownerTeamName: null,
+  mine: more.ownerTeamName === MY_TEAM_NAME,
+  marks: { goals: 0, assists: 0, yellowCards: 0, redCards: 0 },
   points: null,
   counts: (more.ownerTeamName ?? null) !== null,
   ...more,

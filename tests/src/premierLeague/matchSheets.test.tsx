@@ -8,6 +8,8 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import {
   cameOnWords,
   freeAgentWords,
+  markLabels,
+  matchColumns,
   MOVED_TITLE,
   noFigureWords,
   noMenWords,
@@ -25,6 +27,7 @@ import {
 import { expectColumnHeads, expectUnseenHead } from "../../support/src/columnHeads";
 import { man, matchOf, MEN, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "../../support/src/teams.harness";
 
 /** The rows of a club's team sheet, each as its cells' text. */
 function sheetRows(club: string) {
@@ -42,14 +45,14 @@ describe("the team sheets", () => {
     openMatch({ match: matchOf() });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
     expect(sheetRows(ARSENAL.name)).toEqual([
-      ["GK", "RayaTeam 1", "2"],
-      ["CM", "SakaTeam 2", "11"],
-      ["CM", "RiceTeam 1", noFigureWords],
+      ["GK", "Raya", "Team 1", "2"],
+      ["CM", "Saka", "Team 2", "11"],
+      ["CM", "Rice", "Team 1", noFigureWords],
       [SUBSTITUTES_TITLE],
-      ["CM", `Ødegaard${cameOnWords}${freeAgentWords}`, "3"],
-      ["GK", `Arrizabalaga ${unusedLabel}Team 1`, `0 ${notCountingLabel}`],
+      ["CM", `Ødegaard${cameOnWords}`, freeAgentWords, "3"],
+      ["GK", `Arrizabalaga ${unusedLabel}`, "Team 1", `0 ${notCountingLabel}`],
     ]);
-    expect(sheetRows(CHELSEA.name)).toEqual([["CM", "PalmerTeam 2", "7"]]);
+    expect(sheetRows(CHELSEA.name)).toEqual([["CM", "Palmer", "Team 2", "7"]]);
   });
 
   // "people don't think grey means no teams" (Craig, 31 Oct 2026).
@@ -78,14 +81,47 @@ describe("the team sheets", () => {
     const men = [man(1, "Raya", "home", { ...before, position: "GK", ownerTeamName: "Team 1" }), man(4, "Ødegaard", "home", { ...before, started: false })];
     openMatch({ match: matchOf({ kickoff: Date.now() + HOUR_MS, score: null, men }) });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
-    expect(sheetRows(ARSENAL.name)).toEqual([["GK", "RayaTeam 1", noFigureWords], [SUBSTITUTES_TITLE], ["CM", `Ødegaard${freeAgentWords}`, noFigureWords]]);
-    expect(screen.getByRole("rowheader", { name: `Ødegaard${freeAgentWords}` }).closest("tr")!.className).not.toContain("text-muted");
+    expect(sheetRows(ARSENAL.name)).toEqual([["GK", "Raya", "Team 1", noFigureWords], [SUBSTITUTES_TITLE], ["CM", "Ødegaard", freeAgentWords, noFigureWords]]);
+    expect(screen.getByRole("rowheader", { name: "Ødegaard" }).closest("tr")!.className).not.toContain("text-muted");
   });
 
   it("a man who has since left both clubs has his own panel", async () => {
     openMatch({ match: matchOf({ men: [...MEN, man(7, "Isak", null)] }) });
     await screen.findByRole("table", { name: sheetLabel(MOVED_TITLE) });
-    expect(sheetRows(MOVED_TITLE)).toEqual([["CM", `Isak${freeAgentWords}`, noFigureWords]]);
+    expect(sheetRows(MOVED_TITLE)).toEqual([["CM", "Isak", freeAgentWords, noFigureWords]]);
+  });
+
+  // "the team sheets' column of the league team owning each player is headed Owner" (Craig, 10 Nov 2026, on #1032; S10.7).
+  it("heads the team each man's points are for Owner", async () => {
+    openMatch({ match: matchOf() });
+    const sheet = await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
+    expectColumnHeads(within(sheet).getAllByRole("row")[0], Object.values(matchColumns));
+    expect(matchColumns.owner.short).toBe("Owner");
+  });
+
+  // "We probably need an assist icon somewhere too" (Craig, 10 Nov 2026, on #1032): a ball, a boot and cards after the name.
+  it("marks each goal, assist and card after a man's name, and none for a man with none", async () => {
+    const saka = man(2, "Saka", "home", { marks: { goals: 2, assists: 1, yellowCards: 1, redCards: 1 } });
+    openMatch({ match: matchOf({ men: [saka, man(3, "Rice", "home")] }) });
+    const row = (await screen.findByRole("rowheader", { name: /^Saka/ })).closest("tr")!;
+    expect(within(row).getAllByRole("img").map((mark) => mark.getAttribute("aria-label"))).toEqual([
+      markLabels.goals,
+      markLabels.goals,
+      markLabels.assists,
+      markLabels.yellowCards,
+      markLabels.redCards,
+    ]);
+    expect(within(screen.getByRole("rowheader", { name: "Rice" }).closest("tr")!).queryAllByRole("img")).toEqual([]);
+  });
+
+  // "your own players highlighted" (Craig, 10 Nov 2026, on #1032): their rows lit, their owner in white.
+  it("lights the viewer's own men, and only theirs", async () => {
+    openMatch({ match: matchOf() });
+    const rowOf = async (name: string) => (await screen.findByRole("rowheader", { name })).closest("tr")!;
+    expect((await rowOf("Raya")).className).toContain("bg-row-lit");
+    expect(within(await rowOf("Raya")).getByText(MY_TEAM_NAME).closest("td")!.className).toContain("text-fact");
+    expect((await rowOf("Saka")).className).not.toContain("bg-row-lit");
+    expect(within(await rowOf("Saka")).getByText(THEIR_TEAM_NAME).closest("td")!.className).toContain("text-soft");
   });
 
   it("when the league's points can't be worked out, says why in the alert strip", async () => {
