@@ -35,6 +35,7 @@ import {
   placeWords,
   provisionalWords,
   resultsTableLabel,
+  RESULTS_TITLE,
   scoreWords,
   SEASON_TITLE,
   tableMoreWords,
@@ -183,12 +184,26 @@ describe("the results", () => {
     expect(screen.queryByText(provisionalWords)).toBeNull();
   });
 
-  it("marks a live game's score Live, and says points are provisional", async () => {
+  it("marks a live game's score Live, and says points are provisional once, in the Results panel's head (#1965)", async () => {
     openFixtures({ fixtures: fixturesOf([game(1, { kind: "team", teamName: "Team 2" }, null, scored), game(2, { kind: "leagueAverage" }, null, live)]) });
     await screen.findByRole("table", { name: resultsTableLabel("Team 1") });
 
     expect(resultRows().map((row) => cells(row)[3])).toEqual([`${resultWords.lost.short}${scoreWords(22, 30)}${liveWords}`, `${resultWords.won.short}${scoreWords(61.5, 48)}`]);
-    expect(screen.getAllByText(provisionalWords).length).toBeGreaterThan(0);
+    const [note] = screen.getAllByText(provisionalWords);
+    expect(screen.getAllByText(provisionalWords)).toHaveLength(1);
+    expect(screen.getByRole("region", { name: RESULTS_TITLE }).contains(note)).toBe(true);
+  });
+
+  it("marks only the gameweek in play Live, never one finished, as the server sends them (#1965)", async () => {
+    const twoScored = { gameweeks: [1, 2], scores: new Map([1, 2].map((gameweek) => [gameweek, new Map(TEAMS.map((team, index) => [team, 40 + index + gameweek]))])), provisional: TEAMS };
+    openFixtures({ fixtures: teamFixturesOf(TEAMS, "Team 1", twoScored), leagueTable: leagueTableOf(TEAMS, twoScored) });
+    await screen.findByRole("table", { name: resultsTableLabel("Team 1") });
+
+    const live = resultRows().map((row) => [cells(row)[0], cells(row)[3]!.endsWith(liveWords)]);
+    expect(live).toEqual([
+      ["2", true],
+      ["1", false],
+    ]);
   });
 
   it("says why a gameweek begun has no result, when it can't be scored", async () => {
