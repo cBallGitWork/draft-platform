@@ -10,8 +10,8 @@ import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/rulesHistory";
 import { areaShape } from "../lineup/pitchShape";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { areasOf, type Area } from "../lineup/pitch";
-import { positionsNow } from "../positions/playerPositions";
+import type { Area } from "../lineup/pitch";
+import { playerPositionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
@@ -170,7 +170,7 @@ export const squads = query({
     const { email, league } = await memberOf(ctx, leagueId);
     const seesEmails = powersIn(league, email).runs;
     const rules = await latestRules(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const { minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
     return Promise.all(
       (await teamsOf(ctx, leagueId)).map(async (team) => {
@@ -186,7 +186,7 @@ export const squads = query({
         );
         // Positions are read only for a league with area minimums, the one limit that needs them.
         const playersAreas = rules?.squad.minimumByArea
-          ? await Promise.all(squad.map(async ({ playerCode }) => areasOf(await positionsOfNow(playerCode))))
+          ? await Promise.all(squad.map(({ playerCode }) => minimumAreasOf(playerCode)))
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
@@ -218,7 +218,7 @@ export type LimitsBroken = (playerCodes: readonly number[]) => Promise<SquadWarn
  *  limit. A caller that changes a player's club or positions takes a new reader to read them again. */
 export async function limitsReader(ctx: QueryCtx, leagueId: Id<"leagues">, squad: LeagueRules["squad"] | null): Promise<LimitsBroken> {
   if (squad === null) return async () => [];
-  const positionsOfNow = await positionsNow(ctx, leagueId);
+  const { minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
   const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
   // A player the football sync doesn't hold has no club.
   const clubOf = readOnce(async (code: number) => {
@@ -228,7 +228,7 @@ export async function limitsReader(ctx: QueryCtx, leagueId: Id<"leagues">, squad
   return async (playerCodes) => {
     // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
     const clubs = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map(clubOf))).filter((club) => club !== null);
-    const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
+    const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map((code) => minimumAreasOf(code))) : [];
     return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
   };
 }

@@ -122,6 +122,7 @@ beforeEach(async () => {
         caller.mutation(api.positions.playerPositions.removePosition, { code: SOME_CODE, position: SOME_POSITION }),
       "positions/playerPositions:setPosition": () =>
         caller.mutation(api.positions.playerPositions.setPosition, { code: SOME_CODE, position: SOME_POSITION }),
+      "positions/unplacedAreas:setUnplacedArea": () => caller.mutation(api.positions.unplacedAreas.setUnplacedArea, { code: SOME_CODE, area: "defence" }),
       "positions/positionSettings:setApproveMode": () => caller.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "proposals" }),
       "positions/positionSettings:setChangeThresholds": () =>
         caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),
