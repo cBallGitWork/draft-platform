@@ -1,8 +1,11 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
+import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
+import { matchWords } from "../mail/letterWords";
 import { everyLeague, takeShown } from "../shared/cappedRead";
-import { fixtureByCode } from "../shared/fixtures";
+import { byKickoff, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { adminOf, refuse } from "../shared/leagueAccess";
+import { clubsByCode, type Clubs } from "../shared/players";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { followKickoffs } from "../scoring/patchKickoffs";
 import { recordPassedDeadlines } from "./deadlineRecorder";
@@ -20,8 +23,8 @@ import { isGameweek, noSuchGameweek } from "./usedGameweeks";
 // The deadline follows the gameweek's first kickoff as it stands (Craig, 12 Nov 2026, on #1417:
 // "Deadline follows the match"), and a passed one stays where it fell (S05.25); the admin is
 // warned when the move puts a deadline in the past or before the gameweek before ends. His moves
-// are logged where only he sees them (spec/15). No screen yet: the admin dashboard has no approved
-// picture, so he runs it from the CLI (docs/setup.md).
+// are logged where only he sees them (spec/15). He does both on his dashboard's Move a match panel
+// (src/admin/MatchMovePanels.tsx), or from the CLI (docs/setup.md).
 
 /** Why a move is refused, as the admin is told it. */
 export const matchMoveRefusals = {
@@ -75,19 +78,67 @@ export const move = mutation({
   },
 });
 
-/** Every move and clear the admin has made, newest first: for his eyes only. */
-export const log = query({
-  args: {},
-  returns: v.object({
-    rows: v.array(v.object({ fixtureCode: v.number(), from: v.union(v.number(), v.null()), to: v.union(v.number(), v.null()), at: v.number() })),
-    more: v.boolean(),
-  }),
-  handler: async (ctx) => {
+const gameweekOrNone = v.union(v.number(), v.null());
+
+const gameweekMatch = v.object({
+  fixtureCode: v.number(),
+  /** "Home v Away". */
+  match: v.string(),
+  kickoff: v.union(v.number(), v.null()),
+  /** Null while the admin hasn't moved it; moved, the gameweek the window rule would give it
+   *  (null for a match the feed puts in no round). */
+  move: v.union(v.object({ unmoved: gameweekOrNone }), v.null()),
+});
+
+export type GameweekMatch = Infer<typeof gameweekMatch>;
+
+/** The gameweek's matches, in kickoff order, each with his move of it, if any: what he picks from
+ *  on his dashboard. */
+export const gameweekMatches = query({
+  args: { gameweek: v.number() },
+  returns: v.array(gameweekMatch),
+  handler: async (ctx, { gameweek }) => {
     await adminOf(ctx);
-    const { rows, more } = await takeShown(ctx.db.query("matchMoveLog").withIndex("by_at").order("desc"), MATCH_MOVE_LOG_SHOWN);
-    return { rows: rows.map(({ fixtureCode, from, to, at }) => ({ fixtureCode, from, to, at })), more };
+    const clubs = clubsByCode(ctx);
+    const matches = byKickoff(await gameweekFixtures(ctx, gameweek, "the admin's list of them would be cut short"));
+    return Promise.all(
+      matches.map(async (fixture) => {
+        const held = await moveOf(ctx, fixture.code);
+        return { fixtureCode: fixture.code, match: await nameOf(clubs, fixture), kickoff: fixture.kickoff, move: held === null ? null : { unmoved: held.unmoved } };
+      }),
+    );
   },
 });
+
+const logRow = v.object({ fixtureCode: v.number(), match: v.string(), from: gameweekOrNone, to: gameweekOrNone, at: v.number() });
+
+export type MatchMoveLogRow = Infer<typeof logRow>;
+
+/** Every move and clear the admin has made, newest first, each match named: for his eyes only. */
+export const log = query({
+  args: {},
+  returns: v.object({ rows: v.array(logRow), more: v.boolean() }),
+  handler: async (ctx) => {
+    await adminOf(ctx);
+    const clubs = clubsByCode(ctx);
+    const { rows, more } = await takeShown(ctx.db.query("matchMoveLog").withIndex("by_at").order("desc"), MATCH_MOVE_LOG_SHOWN);
+    const named = await Promise.all(
+      rows.map(async ({ fixtureCode, from, to, at }) => {
+        // A logged match was held when he moved it, and a match is never deleted (shared/fixtures.ts).
+        const fixture = await fixtureByCode(ctx, fixtureCode);
+        if (fixture === null) throw new Error(`Logged match ${fixtureCode} is no longer held`);
+        return { fixtureCode, match: await nameOf(clubs, fixture), from, to, at };
+      }),
+    );
+    return { rows: named, more };
+  },
+});
+
+/** "Home v Away", by the clubs' names. */
+async function nameOf(clubs: Clubs, fixture: Doc<"fixtures">): Promise<string> {
+  const [home, away] = await Promise.all([clubs(fixture.homeClubCode), clubs(fixture.awayClubCode)]);
+  return matchWords(home.name, away.name);
+}
 
 /** The warnings for `gameweek`'s deadline in each league where the move changed it: now already
  *  past, or before the gameweek before's last kickoff. */
