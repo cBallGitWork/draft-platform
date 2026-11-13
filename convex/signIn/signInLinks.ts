@@ -38,11 +38,16 @@ const askOutcome = v.union(
 );
 
 /** Open to anyone, signed in or not: ASKS_PER_HOUR asks an email an hour, none past the day's email
- *  limit, and a link goes only to an allowed email. */
+ *  limit, and a link goes only to an allowed email. A link that wasn't sent is still told "check
+ *  your email", as an unlisted email is, so the reply never shows who is on the list (spec/02,
+ *  #2065); the failure is logged and kept on the ask. */
 export const ask = action({
   args: { email: v.string() },
   returns: signInReply,
-  handler: (ctx, { email }) => askForLink(ctx, email),
+  handler: async (ctx, { email }): Promise<SignInReply> => {
+    const reply = await askForLink(ctx, email);
+    return reply === "notSent" ? "checkYourEmail" : reply;
+  },
 });
 
 /** `ask`'s work, for the server's own sends too: a newly named commissioner's link (leagues.ts),

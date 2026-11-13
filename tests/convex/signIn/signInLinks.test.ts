@@ -212,23 +212,25 @@ describe("the day's email limit", () => {
 });
 
 describe("when the email can't be sent", () => {
-  test("Resend refusing it is told as not sent, and kept on the ask", async () => {
+  test("Resend refusing it is told the same as an unlisted email, and kept on the ask", async () => {
     fakeResend(500);
     const logged = silenceConsoleError();
 
-    expect(await ask(t, LISTED)).toBe("notSent");
+    const unlisted = await ask(t, UNLISTED);
+    expect(await ask(t, LISTED)).toBe(unlisted);
+    expect(unlisted).toBe("checkYourEmail");
 
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${LISTED} wasn't sent`));
     const [stored] = await asksStored(LISTED);
     expect(stored.sendError).toContain("Resend refused the email (500)");
   });
 
-  test("without AUTH_RESEND_KEY set, it is told as not sent", async () => {
+  test("without AUTH_RESEND_KEY set, it is told to check its email, and kept on the ask", async () => {
     const sent = fakeResend();
     vi.stubEnv("AUTH_RESEND_KEY", "");
     const logged = silenceConsoleError();
 
-    expect(await ask(t, LISTED)).toBe("notSent");
+    expect(await ask(t, LISTED)).toBe("checkYourEmail");
 
     expect(sent).toEqual([]);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The sign-in link to ${LISTED} wasn't sent: AUTH_RESEND_KEY isn't set`));
