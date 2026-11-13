@@ -44,9 +44,11 @@ describe("with no review", () => {
   test("an accepted trade goes through at once: its players move, filed as moves, and the league gets the trade letter", async () => {
     await annTradesForSaka();
 
-    expect(await squadOf(w.annsTeam)).toContain(SAKA);
+    // Each joins his new team last, never in his old row's place (#2037).
+    expect((await squadOf(w.annsTeam)).at(-1)).toBe(SAKA);
     expect(await squadOf(w.annsTeam)).not.toContain(ANNS_FIRST_DROP);
-    expect(await squadOf(w.bobsTeam)).toEqual(expect.arrayContaining([PALMER, ANNS_FIRST_DROP]));
+    expect(await squadOf(w.bobsTeam)).toContain(PALMER);
+    expect((await squadOf(w.bobsTeam)).at(-1)).toBe(ANNS_FIRST_DROP);
     expect(await w.offers()).toEqual([]);
     expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerTraded")).toEqual([
       expect.objectContaining({ playerCode: ANNS_FIRST_DROP, teamId: w.bobsTeam, fromTeamId: w.annsTeam, by: BOB }),

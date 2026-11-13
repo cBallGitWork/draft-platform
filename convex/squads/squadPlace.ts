@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import type { QueryCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { LeagueEvent } from "../schema";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -19,6 +19,14 @@ export function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
     .query("squadPlayers")
     .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
     .unique();
+}
+
+/** Puts the player on another team in his league, as a move or a trade does: a new row, so he joins
+ *  last in its order (#2037), on no number of its own (spec/05 Squad numbers), and never its
+ *  free-agent pickup, so its drop sends him to waivers (#1479). */
+export async function joinAnother(ctx: MutationCtx, place: Doc<"squadPlayers">, teamId: Id<"teams">) {
+  await ctx.db.delete("squadPlayers", place._id);
+  await ctx.db.insert("squadPlayers", { leagueId: place.leagueId, teamId, playerCode: place.playerCode });
 }
 
 /** The most squad rows one league holds: every team's squad full. */
