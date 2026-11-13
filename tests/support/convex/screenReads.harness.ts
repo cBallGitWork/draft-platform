@@ -1,10 +1,12 @@
-// League home and the matchup read as their screens read them (#1550): the small query taking the
-// minute, then the clock-free ones it points at, put together at the minute as the live seams put
-// them (src/home/liveHome.ts, src/matchup/liveMatchup.ts).
+// League home and the matchup read as their screens read them (#1550): the small query that tells
+// the time (league home's sends its times, judged at the minute: #2005), then the clock-free ones it
+// points at, put together at the minute as the live seams put them (src/home/liveHome.ts,
+// src/matchup/liveMatchup.ts).
 
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { leagueHomeAt } from "../../../convex/home/homeAt";
+import { clockAt, leagueHomeAt } from "../../../convex/home/homeAt";
+import { HOUR_MS } from "../../../convex/shared/time";
 import { matchupAt } from "../../../convex/matchup/commentaryAt";
 import type { actingAs } from "./leagues.harness";
 
@@ -12,7 +14,7 @@ type Caller = Awaited<ReturnType<typeof actingAs>>;
 
 /** League home at `now`, as `caller` reads it. */
 export async function leagueHomeOf(caller: Caller, leagueId: Id<"leagues">, now: number) {
-  const clock = await caller.query(api.home.homeClock.clockOf, { leagueId, now });
+  const clock = clockAt(await caller.query(api.home.homeClock.clockOf, { leagueId, hour: now - (now % HOUR_MS) }), now);
   const held = await caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: clock.gameweek });
   const open = clock.matchday;
   const matchday = open === null ? null : { gameweek: open.gameweek, commentary: await caller.query(api.home.leagueHome.matchdayOf, { leagueId, ...open }) };

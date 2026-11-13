@@ -84,7 +84,7 @@ beforeEach(async () => {
       "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
       "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
-      "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, now }),
+      "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, hour: now }),
       "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),
       "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: null }),
       "home/leagueNews:ofLeague": () => caller.query(api.home.leagueNews.ofLeague, { leagueId, before: null, teamId: null, kind: null }),
@@ -98,8 +98,7 @@ beforeEach(async () => {
       "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
-      // Its nothing is "not due", so false is read as nothing here alone.
-      "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
+      "lineup/lineupDue:isDue": () => caller.query(api.lineup.lineupDue.isDue, { leagueId }),
       "lineup/roleCard:forSlot": () =>
         caller.query(api.lineup.roleCard.forSlot, { leagueId, playerCode: SOME_CODE, cell: { area: "goalkeeper", lane: "centre" }, formation: [], now }),
       "lineup/autoTeam:ofMyTeam": () => caller.query(api.lineup.autoTeam.ofMyTeam, { leagueId }),

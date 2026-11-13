@@ -1,17 +1,20 @@
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { leagueHomeAt } from "../../convex/home/homeAt";
+import { clockAt, leagueHomeAt } from "../../convex/home/homeAt";
+import { HOUR_MS } from "../../convex/shared/time";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import type { HomeSeam } from "./seam";
 
-/** The league home seam filled in by Convex. Only the small clock query takes the minute; the rest
- *  take what it says, so they are read again only when their data changes (#1550; homeAt.ts). Each
+/** The league home seam filled in by Convex. No read takes the minute: the small clock query takes
+ *  only the hour and sends its times, judged here at the minute (homeAt.ts's `clockAt`, #2005), and
+ *  the rest take what that says, so they are read again only when their data changes (#1550). Each
  *  read's last answer is held while its next loads (the league's home across a gameweek's turn, the
  *  matchday's lines across its matches changing), so the home doesn't blank when the clock moves on. */
 export const liveHome: HomeSeam = {
   useLeagueHome: (leagueId, now) => {
-    const clock = useLastLoaded(useQuery(api.home.homeClock.clockOf, { leagueId, now }), leagueId);
+    const times = useLastLoaded(useQuery(api.home.homeClock.clockOf, { leagueId, hour: now - (now % HOUR_MS) }), leagueId);
+    const clock = useMemo(() => (times === undefined ? undefined : clockAt(times, now)), [times, now]);
     const held = useLastLoaded(
       useQuery(api.home.leagueHome.ofLeague, clock === undefined ? "skip" : { leagueId, gameweek: clock.gameweek }),
       leagueId,
