@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useClubColours } from "../shared/clubColours";
 
 /** A club's name on the desk, its three letters on a phone, which has no room for "Nottingham
@@ -30,15 +30,23 @@ export function crestUrl(code: number): string {
   return `https://resources.premierleague.com/premierleague/badges/70/t${code}.png`;
 }
 
+/** Where a club's crest comes from, by its code; null draws its square. The live app's is
+ *  crestUrl; the preview's, its own copies (src/shared/previewCrests.ts), so a preview or smoke run
+ *  asks no outside host for an image (#2014). */
+export type CrestSource = (code: number) => string | null;
+const CrestSourceContext = createContext<CrestSource>(crestUrl);
+export const CrestSourceProvider = CrestSourceContext.Provider;
+
 /** The mark before a club's code or name where it stands alone (spec/12, Club colours): its crest,
  *  or, where the crest won't load, a small square in its two colours (Craig, 6 Nov 2026, #840). Its
  *  code or name beside it says which club, so screen readers skip the mark. */
 export function ClubMark({ code }: { code: number }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return <ClubSquare code={code} />;
+  const src = useContext(CrestSourceContext)(code);
+  if (failed || src === null) return <ClubSquare code={code} />;
   return (
     <img
-      src={crestUrl(code)}
+      src={src}
       alt=""
       aria-hidden="true"
       loading="lazy"
