@@ -18,6 +18,7 @@ import {
   closePanelLabel,
   DO_NOT_DRAFT_TITLE,
   draftPlayerWords,
+  foldedGlyph,
   inGamesWords,
   lastSeasonPointsColumn,
   leftSuffixWords,
@@ -205,7 +206,7 @@ export function PickPanel({
               );
             })}
           <Link to={playerCardPath(leagueId, player.code)} className="ml-auto inline-flex min-h-tap items-center font-semibold">
-            {playerCardWords} ▸
+            {playerCardWords} {foldedGlyph}
           </Link>
         </div>
       </div>

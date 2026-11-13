@@ -4,6 +4,7 @@
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
 import { failedWords, placeWords, playersCount, statColumns, viaWords } from "../shared/words";
+import type { DraftList } from "./seam";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export { DRAFT_TITLE } from "../shared/words";
@@ -22,10 +23,11 @@ export const noStartWords = "When the commissioner starts it";
 /** Where a team picks in the first two rounds: "8th, then 13th". */
 export const youPickWords = (first: number, second: number | null) => (second === null ? placeWords(first) : `${placeWords(first)}, then ${placeWords(second)}`);
 
-/** A pick time, short: "90s", "2m", "8h". */
+/** A pick time, short, in the largest unit it is a whole number of: "90s", "2m", "8h". */
 export function pickTimeWords(seconds: number): string {
-  if (seconds % 3600 === 0) return `${seconds / 3600}h`;
-  if (seconds % 60 === 0) return `${seconds / 60}m`;
+  const ms = seconds * SECOND_MS;
+  if (ms % HOUR_MS === 0) return `${ms / HOUR_MS}h`;
+  if (ms % MINUTE_MS === 0) return `${ms / MINUTE_MS}m`;
   return `${seconds}s`;
 }
 export const aPickWords = (seconds: number) => `${pickTimeWords(seconds)} a pick`;
@@ -34,8 +36,8 @@ export const aPickWords = (seconds: number) => `${pickTimeWords(seconds)} a pick
 export function timeLeftWords(left: number): string {
   const ms = Math.max(0, left);
   if (ms < HOUR_MS) {
-    const seconds = Math.ceil(ms / SECOND_MS);
-    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+    const whole = Math.ceil(ms / SECOND_MS) * SECOND_MS;
+    return `${Math.floor(whole / MINUTE_MS)}:${String((whole % MINUTE_MS) / SECOND_MS).padStart(2, "0")}`;
   }
   return hoursLeftWords(ms);
 }
@@ -68,6 +70,9 @@ export const wholeBoardWords = "Whole board";
 export const roundHead = { short: "Rd", long: "Round" };
 /** Which way a round runs, for screen readers: the snake turns each round. */
 export const roundWayLabel = (leftToRight: boolean) => (leftToRight ? "runs left to right" : "runs right to left");
+/** Which way a round runs, as the board draws it beside the round, decoration, as roundWayLabel
+ *  says it; the text-presentation selector keeps the arrows from drawing as bright emoji. */
+export const roundWayGlyph = (leftToRight: boolean) => (leftToRight ? "▶︎" : "◀︎");
 /** A pick's slot, as the board writes it: round 4's 3rd pick is "4.03". */
 export const slotWords = (round: number, pickInRound: number) => `${round}.${String(pickInRound).padStart(2, "0")}`;
 /** Before the time it has left: "4.03, 0:48". */
@@ -83,6 +88,8 @@ export { viaWords } from "../shared/words";
 export const heldViaWords = (owner: string, team: string) => `${owner} ${viaWords(team)}`;
 /** A pick whose player the football data no longer holds (#323). */
 export const lostPlayerWords = "Player missing from the football data";
+/** A pick whose team the draft order no longer holds. */
+export const lostTeamWords = "Team missing from the draft order";
 /** The queue and do-not-draft panels (spec/04, The queue and the ranking; #1100). */
 export const QUEUE_TITLE = "Your queue";
 export const queueAside = (count: number) => `${count}, only you see it`;
@@ -104,10 +111,14 @@ export const doNotDraftAside = (count: number) => `${count}, auto-pick skips the
 export const queueListLabel = "Your queue, first choice first";
 export const doNotDraftListLabel = "Your do-not-draft list";
 /** On a row's cross, for screen readers: whom it takes off which list. */
-export const takeOffLabel = (name: string, list: "queue" | "doNotDraft") =>
+export const takeOffLabel = (name: string, list: DraftList) =>
   list === "queue" ? `Take ${name} off your queue` : `Take ${name} off your do-not-draft list`;
 /** On a queued row's handle, for screen readers: it drags, or moves a place with the arrow keys. */
 export const moveLabel = (name: string, place: number) => `Move ${name}, ${placeWords(place)} in your queue: drag, or press the up or down arrow`;
+/** A queued row's handle, decoration, as moveLabel says it. */
+export const dragGlyph = "⠿";
+/** A row's cross and a link onwards ("Player card ▸"), decoration, as each carries its label. */
+export { closeGlyph, foldedGlyph } from "../shared/words";
 export const listChangeFailedWords = failedWords("your draft lists didn't change");
 
 /** The auto-pick panel (spec/04, Auto-pick; #1100). */
