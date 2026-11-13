@@ -13,6 +13,7 @@ import { mapSportmonksMatch } from "./sportmonksMatch";
 import { halfTimeReached, sportmonksPlayerStats } from "./sportmonksPlayerStats";
 import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
 import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
+import { noteFirstMinutes } from "./fplLinksSync";
 
 // Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each match of
 // a competition that is on (#1414), from kickoff to full time, read with its competition's others
@@ -144,7 +145,8 @@ export const writePlayerStats = internalMutation({
   },
 });
 
-/** One match's live read: its score, and its lineups and events replaced whole. */
+/** One match's live read: its score, and its lineups and events replaced whole, each man playing
+ *  his first minute of its competition noted (#1421). */
 export const writeMatch = internalMutation({
   args: { score: scoreRead, men: v.array(sportmonksLineupMan), events: v.array(sportmonksEvent), readAt: v.number() },
   returns: v.null(),
@@ -155,6 +157,7 @@ export const writeMatch = internalMutation({
       .query("sportmonksMatches")
       .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
       .unique();
+    await noteFirstMinutes(ctx, fixtureCode, men, held?.men ?? [], readAt);
     if (held === null) await ctx.db.insert("sportmonksMatches", { fixtureCode, men, events, readAt });
     else await ctx.db.replace("sportmonksMatches", held._id, { fixtureCode, men, events, readAt });
     return null;

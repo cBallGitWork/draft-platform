@@ -105,6 +105,9 @@ export const sportmonksPositionsSyncFields = {
   ),
 };
 
+/** What a link to FPL's code is for (#1421): a club, a man or a match. */
+export const sportmonksLinkKind = v.union(v.literal("club"), v.literal("player"), v.literal("match"));
+
 /** One man's stats in one match (#1415, football/sportmonks/sportmonksPlayerStats.ts), in
  *  `playerMatchStats`' shape but keyed on Sportmonks' player and match ids, `clubCode` his team's.
  *  Provisional until full time and every man who played has sent his stats (`S07.10`); never
@@ -165,4 +168,30 @@ export const sportmonksTables = {
   sportmonksPositionsSyncs: defineTable(sportmonksPositionsSyncFields),
   /** One row a live tick for each competition it found a match on in, each match read or why not. */
   sportmonksLiveTicks: defineTable(sportmonksTickFields).index("by_competition", ["competition"]),
+  /** Each Premier League club, man and match Sportmonks sends, by its Sportmonks id (`code`), and
+   *  FPL's `code` for it (#1421): what past seasons, keyed on FPL's codes, are converted through
+   *  (S14.16). Null while it links to nothing or to two, with the FPL codes it might be, for the
+   *  admin to link by hand. A link, once made, stands: the link run never works it out again
+   *  (football/sportmonks/fplLinksSync.ts). */
+  sportmonksFplLinks: defineTable({
+    kind: sportmonksLinkKind,
+    code: v.number(),
+    fplCode: v.union(v.number(), v.null()),
+    /** FPL codes it might be: none when nothing fits, two or more when it can't tell which, and
+     *  one that another row has too. Empty once linked. */
+    candidates: v.array(v.number()),
+    /** Linked by the admin, not by name. */
+    byHand: v.optional(v.literal(true)),
+    /** When the link run first held it. */
+    since: v.number(),
+  })
+    .index("by_kind_and_code", ["kind", "code"])
+    .index("by_kind_and_fplCode", ["kind", "fplCode"]),
+  /** When each man first played a minute in a competition, by his Sportmonks id, from the live
+   *  read's lineups (#1421): an unlinked Premier League man is listed for the admin from then on
+   *  (Craig, 12 Nov 2026: "Once he plays"). */
+  sportmonksFirstMinutes: defineTable({ playerCode: v.number(), competition: v.number(), at: v.number() }).index("by_playerCode_and_competition", [
+    "playerCode",
+    "competition",
+  ]),
 };

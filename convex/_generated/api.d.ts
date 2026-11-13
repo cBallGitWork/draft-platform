@@ -74,6 +74,8 @@ import type * as football_premierLeague_plSeasons from "../football/premierLeagu
 import type * as football_premierLeague_plTeamStats from "../football/premierLeague/plTeamStats.js";
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
+import type * as football_sportmonks_fplLinks from "../football/sportmonks/fplLinks.js";
+import type * as football_sportmonks_fplLinksSync from "../football/sportmonks/fplLinksSync.js";
 import type * as football_sportmonks_sportmonks from "../football/sportmonks/sportmonks.js";
 import type * as football_sportmonks_sportmonksLive from "../football/sportmonks/sportmonksLive.js";
 import type * as football_sportmonks_sportmonksMatch from "../football/sportmonks/sportmonksMatch.js";
@@ -463,6 +465,8 @@ declare const fullApi: ApiFromModules<{
   "football/premierLeague/plTeamStats": typeof football_premierLeague_plTeamStats;
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
+  "football/sportmonks/fplLinks": typeof football_sportmonks_fplLinks;
+  "football/sportmonks/fplLinksSync": typeof football_sportmonks_fplLinksSync;
   "football/sportmonks/sportmonks": typeof football_sportmonks_sportmonks;
   "football/sportmonks/sportmonksLive": typeof football_sportmonks_sportmonksLive;
   "football/sportmonks/sportmonksMatch": typeof football_sportmonks_sportmonksMatch;

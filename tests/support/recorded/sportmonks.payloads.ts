@@ -12,6 +12,7 @@
 import type { RawFixture, SportmonksPayloads } from "../../../convex/football/sportmonks/sportmonksRaw";
 import liveRead from "./sportmonks-fixture.json";
 import season from "./sportmonks-season.json";
+import plSeason from "./sportmonks-pl-season.json";
 
 /** The ids the tests name. */
 export const SM = {
@@ -35,4 +36,27 @@ export function sportmonksSeason(): SportmonksPayloads {
 /** One live read's body, whole, a fresh copy each call. */
 export function sportmonksLiveRead(): { data: RawFixture[] } {
   return structuredClone(liveRead) as unknown as { data: RawFixture[] };
+}
+
+// sportmonks-pl-season.json (#1421): the Premier League's six-hourly read. NOT YET RECORDED
+// either: the Premier League needs the paid plan, not yet on. Shaped as sportmonks-season.json is,
+// and cut to mirror fpl-bootstrap-static.json and fpl-fixtures.json: their seven men and three
+// matches, the clubs those name, and two men FPL doesn't list, an academy keeper and a youngster
+// with no date of birth sent. Swap it for a real read once the paid trial's token is on dev.
+
+/** The Premier League ids the tests name. */
+export const SM_PL = {
+  arsenal: 19,
+  manCity: 9,
+  saka: 32982,
+  haaland: 154421,
+  /** The two men FPL doesn't list. */
+  wrenfield: 90000001,
+  oyelaran: 90000002,
+  arsenalCoventry: 19400001,
+} as const;
+
+/** The Premier League's six-hourly read's three bodies' `data`, a fresh copy each call. */
+export function sportmonksPremierLeague(): SportmonksPayloads {
+  return structuredClone(plSeason) as unknown as SportmonksPayloads;
 }

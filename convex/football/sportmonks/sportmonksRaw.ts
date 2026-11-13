@@ -10,6 +10,8 @@ export interface RawPlayer {
   name: string;
   display_name?: string | null;
   common_name?: string | null;
+  /** "2001-09-05"; null for a man Sportmonks has none for. */
+  date_of_birth?: string | null;
   /** Asked for only by the positions read (`players.player.position;players.player.detailedPosition`). */
   position?: RawPosition | null;
   detailedposition?: RawPosition | null;
