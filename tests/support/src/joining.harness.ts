@@ -2,7 +2,8 @@
 // change a test can see asked for.
 
 import { vi } from "vitest";
-import type { EndedInvite, InvitesPageData, JoinPageData, JoiningSeam, WaitingRequest } from "../../../src/joining/seam";
+import type { WaitingRequest } from "../../../convex/joining/joinRequests";
+import type { EndedInvite, InvitesPageData, JoinPageData, JoiningSeam } from "../../../src/joining/seam";
 
 /** What the pages read; one left out is still loading. */
 export type JoiningData = {

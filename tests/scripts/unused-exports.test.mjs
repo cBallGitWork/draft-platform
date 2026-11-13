@@ -1,6 +1,7 @@
 // scripts/unused-exports.mjs, the unused-exports check that `npm run verify` runs (#1811): which
-// exports it reads as Convex registrations and re-exports, what tests read, which findings fail,
-// how the baseline pins them, and, in a scratch project knip reads, the check end to end.
+// exports it reads as Convex registrations and re-exports, what tests and the top's config files
+// read, which findings fail, how the baseline pins them, and, in a scratch project knip reads, the
+// check end to end.
 
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -135,6 +136,11 @@ describe("the check in a project", () => {
     expect(status).toBe(1);
     expect(said).toContain(`  ${DUMMY}\n`);
     expect(said).not.toContain("forTest");
+  });
+
+  test("an export a config file at the top reads passes, though knip's production run never reads that file", () => {
+    scratch.write("tool.config.ts", 'import { DUMMY_UNUSED } from "./src/used";\nconsole.log(DUMMY_UNUSED);\n');
+    expect(check()).toEqual({ status: 0, said: "" });
   });
 
   test("pinned in the baseline it passes, and a stale baseline line fails", () => {

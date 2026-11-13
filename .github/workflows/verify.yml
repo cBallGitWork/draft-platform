@@ -85,6 +85,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      # exports nothing reads (knip), against a baseline that only shrinks (#1811)
+      - run: node scripts/unused-exports.mjs
       - run: node scripts/recorded-add-only.mjs
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs

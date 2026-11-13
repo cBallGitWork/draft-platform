@@ -204,8 +204,3 @@ const PANEL_NOTE_EDGES = {
 export function PanelNote({ edge = "y", children }: { edge?: keyof typeof PANEL_NOTE_EDGES; children: ReactNode }) {
   return <p className={`${PANEL_NOTE_EDGES[edge]} text-muted`}>{children}</p>;
 }
-
-/** The line under a scored list saying its points are live, not final yet. */
-export function LiveNote({ children }: { children: ReactNode }) {
-  return <p className="px-3 py-2 text-derived">{children}</p>;
-}
