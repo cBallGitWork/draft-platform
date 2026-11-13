@@ -148,6 +148,7 @@ import type * as lineup_autoTeamWords from "../lineup/autoTeamWords.js";
 import type * as lineup_classicFormations from "../lineup/classicFormations.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
 import type * as lineup_firstLineupBackfill from "../lineup/firstLineupBackfill.js";
+import type * as lineup_highLineDropped from "../lineup/highLineDropped.js";
 import type * as lineup_instructions from "../lineup/instructions.js";
 import type * as lineup_instructionsShape from "../lineup/instructionsShape.js";
 import type * as lineup_instructionsWords from "../lineup/instructionsWords.js";
@@ -550,6 +551,7 @@ declare const fullApi: ApiFromModules<{
   "lineup/classicFormations": typeof lineup_classicFormations;
   "lineup/firstLineup": typeof lineup_firstLineup;
   "lineup/firstLineupBackfill": typeof lineup_firstLineupBackfill;
+  "lineup/highLineDropped": typeof lineup_highLineDropped;
   "lineup/instructions": typeof lineup_instructions;
   "lineup/instructionsShape": typeof lineup_instructionsShape;
   "lineup/instructionsWords": typeof lineup_instructionsWords;

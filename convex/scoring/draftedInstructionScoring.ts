@@ -83,12 +83,6 @@ export const FIRST_INSTRUCTION_SCORING: readonly InstructionScoring[] = [
     line(2, 1, [TACKLES_WON, INTERCEPTIONS], { positions: UP_FRONT }),
     line(1, -1, [FOULS]),
   ),
-  // DEF +1 per 2 offsides won and interceptions, up to 3; GK/DEF −1 per 2 goals conceded.
-  instruction(
-    "holdAHighLine",
-    line(2, 1, ["offside_provoked", INTERCEPTIONS], { positions: DEFENDERS, most: 3 }),
-    line(2, -1, [GOALS_CONCEDED], { positions: KEEPER_AND_DEFENDERS }),
-  ),
   // DEF +1 per 3 clearances and blocks; −1 per 6 possession lost: spec/05's cost is "defenders
   // losing the ball", so it scores defenders too.
   instruction(

@@ -1,6 +1,7 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
+import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
 import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
@@ -18,7 +19,7 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 /** The deadline strip's boxes (docs/design/approved/home/, Placeholders: which boxes, in which
  *  states, is still to grill). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your line-up", "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, YOUR_LINEUP, "Claims close", "Table"] as const;
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
 export { MAIL_TITLE } from "../shared/words";

@@ -117,7 +117,7 @@ export interface InstructionLine {
   stats: readonly WeighedStat[];
   every: number;
   points: number;
-  /** The most points it gives either way in a match, as Hold a high line's "up to 3". */
+  /** The most points it gives either way in a match, such as "up to 3". */
   most?: number;
   /** The minutes he must play before it gives anything: a clean sheet's 60, as in base scoring. */
   minMinutes?: number;
