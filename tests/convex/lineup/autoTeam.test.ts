@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
@@ -13,7 +13,8 @@ import { ADMIN, COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLea
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, REVERSED_BENCH, sent, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { keptAtDeadline } from "../../../convex/stars/deadlineStars";
 import { autoTeamFailedLog } from "../../../convex/lineup/autoTeam";
 import { fileLetter } from "../../../convex/mail/letters";
 
@@ -129,6 +130,23 @@ describe("switched on by a person", () => {
     expect(subjects).toContain(`${name} is off the auto team`);
     const on = (await lettersTo(t, BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
     expect(on.body).toContain(`until after gameweek ${NEXT + 2}`);
+  });
+
+  test("the stars at the deadline are kept only after it sets the lineup, from the bench it set (#2041)", async () => {
+    await switches(ANN, true);
+    await setAvailability(OUT_MIDFIELDER, "out");
+    const starsAskedFor = async () => (await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).filter((job) => job.args[0].gameweek === NEXT);
+    await passNextDeadline(t);
+    // Asked for by the auto team's job alone, never beside it at the same instant.
+    expect(await starsAskedFor()).toHaveLength(0);
+
+    await runDue();
+    expect(await starsAskedFor()).toHaveLength(1);
+    await runDue();
+
+    const keptBench = await t.run(async (ctx) => [...(await keptAtDeadline(ctx, leagueId, NEXT, annsTeam)).get(annsTeam)!.stars.keys()]);
+    expect(keptBench).toEqual(await benchIn(NEXT));
+    expect(keptBench).toContain(OUT_MIDFIELDER);
   });
 });
 

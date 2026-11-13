@@ -62,6 +62,9 @@ describe("recording", () => {
   test("asks for each league's benches to be kept with their stars once its deadline is recorded (#11)", async () => {
     vi.setSystemTime(deadlineBefore(OPENER));
     await recordPassed();
+    // Through the auto team's job, which asks for them once it has set the lineups (#2041).
+    expect((await pendingJobs(t, internal.lineup.autoTeam.atDeadline)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: GAMEWEEK });
+    await t.mutation(internal.lineup.autoTeam.atDeadline, { leagueId, gameweek: GAMEWEEK });
 
     expect((await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: GAMEWEEK });
   });

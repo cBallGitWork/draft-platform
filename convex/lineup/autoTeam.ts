@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { availabilityOf } from "../availability/availability";
@@ -85,8 +86,9 @@ export const autoTeamFailedLog = (teamName: string, teamId: string, gameweek: nu
   `The auto team's step for ${teamName} (team ${teamId}) at gameweek ${gameweek}'s deadline failed, maybe part-way; check its lineup and switch`;
 
 /** Each team on the auto team at the league's deadline for `gameweek` has its lineup set, and a
- *  manager's switch that ends after this gameweek, or one before, goes off. One team whose step
- *  throws is logged and the others carry on. */
+ *  manager's switch that ends after this gameweek, or one before, goes off; then the league's
+ *  stars at the deadline are asked for. One team whose step throws is logged and the others carry
+ *  on. */
 export const atDeadline = internalMutation({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
@@ -104,6 +106,9 @@ export const atDeadline = internalMutation({
         logFailure(autoTeamFailedLog(team.name, team._id, gameweek), error);
       }
     }
+    // Only then are the league's benches kept with their stars (#11), so they read the lineups the
+    // auto team set (#2041): a job scheduled here runs once this one has committed.
+    await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.storeLeague, { leagueId, gameweek });
     return null;
   },
 });
