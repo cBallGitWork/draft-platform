@@ -130,8 +130,8 @@ export const elevenAsideWords = "season pts";
 export const elevenPitchLabel = "Your eleven on the pitch, attack at the top, with season points";
 export const elevenPlayerLabel = (name: string, points: string) => `${name}, ${points} points this season`;
 export const elevenBenchLabel = "The bench, in order";
-export const noLineupWords = "No lineup to set: every gameweek has begun.";
-export const setLineupWords = "Set lineup";
+export const noLineupWords = "No line-up to set: every gameweek has begun.";
+export const setLineupWords = "Set line-up";
 
 /** The Mail widget: the newest letters, each opened in Mail. */
 export const MAIL_WIDGET_TITLE = "Mail and news";

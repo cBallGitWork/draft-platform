@@ -51,7 +51,7 @@ test("a pair the formation offers is saved and read back", async () => {
 
 test("one the formation blocks is refused, saying what it needs", async () => {
   const manager = await ann();
-  await expectRefused(manager.save(FOUR_FOUR_TWO, { attacking: "playOutFromTheBack", defensive: "parkTheBus" }), "Park the bus needs 5 at the back, which this lineup's formation doesn't have.");
+  await expectRefused(manager.save(FOUR_FOUR_TWO, { attacking: "playOutFromTheBack", defensive: "parkTheBus" }), "Park the bus needs 5 at the back, which this line-up's formation doesn't have.");
 });
 
 test("one the league doesn't hold, or on the wrong side, is refused", async () => {

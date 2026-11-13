@@ -53,7 +53,7 @@ export function useLineupEdits({
       return typeof answer === "string" && !movedSince() ? answer : null;
     });
     if (movedSince()) return;
-    // A refusal leaves no saved line; a save says when it landed ("Lineup saved 14:02"; spec/05).
+    // A refusal leaves no saved line; a save says when it landed ("Line-up saved 14:02"; spec/05).
     setSavedAt(made ? Date.now() : null);
     // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
     if (made) setShape("");

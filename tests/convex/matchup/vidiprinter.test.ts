@@ -70,7 +70,7 @@ test("under the first set, the goal, the assist and the card show what they move
   const lines = shown(FIRST_SCORING as ScoringSet);
   expect(lines).toHaveLength(STORED.length + 1);
   expect(lines[0]).toBe("FT IPS 1–1 NFO: N.Williams 6, Muñoz 5, Murillo 1");
-  expect(lines.slice(-2)).toEqual(["KO IPS v NFO", "Lineups out"]);
+  expect(lines.slice(-2)).toEqual(["KO IPS v NFO", "Line-ups out"]);
   // Only the lineups' men's lines carry points, in the match's own order.
   expect(lines.filter((line) => line.includes(" | ") || /GOAL|YELLOW/.test(line))).toEqual([
     "~60' N.Williams: 60 minutes | +1",
@@ -123,7 +123,7 @@ test("the matches' lines run newest first among each other, a later kickoff's af
     lines: [
       { sourceId: 9, text: "FT", minute: 1, addedMinute: 0, type: "end 14", playerCodes: [] },
       { sourceId: 8, text: "42' Corner", minute: 42, addedMinute: 0, type: "corner", playerCodes: [] },
-      { sourceId: 7, text: "Lineups out", minute: null, addedMinute: null, type: "lineup", playerCodes: [] },
+      { sourceId: 7, text: "Line-ups out", minute: null, addedMinute: null, type: "lineup", playerCodes: [] },
     ],
     steps: [],
   };
@@ -156,8 +156,8 @@ test("a line for a man whose record hasn't arrived shows no points yet", () => {
 test("a step the clock gave no minute for sorts at its match's kickoff, after the lineups, not as the oldest line", () => {
   const unclocked: StoredStep = { ...STEPS[0], minute: null };
   const texts = vidiprinter([{ ...MATCH, steps: [unclocked] }], PLAYERS, FIRST_SCORING as ScoringSet).map((line) => line.text);
-  expect(texts.at(-1)).toBe("Lineups out");
-  expect(texts.indexOf("N.Williams: 60 minutes")).toBeLessThan(texts.indexOf("Lineups out"));
+  expect(texts.at(-1)).toBe("Line-ups out");
+  expect(texts.indexOf("N.Williams: 60 minutes")).toBeLessThan(texts.indexOf("Line-ups out"));
 });
 
 // Every point movement, up or down, gets a line (#835; spec/10, The commentary: Craig, 31 Oct

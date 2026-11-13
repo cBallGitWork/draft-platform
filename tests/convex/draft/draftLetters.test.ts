@@ -201,7 +201,7 @@ describe("the draft over", () => {
       { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted." },
       {
         subject: "Scoring starts in gameweek 2",
-        body: "The draft ended after gameweek 1's deadline, so scoring starts in gameweek 2, not 1. Squads and lineups count from gameweek 2's deadline.",
+        body: "The draft ended after gameweek 1's deadline, so scoring starts in gameweek 2, not 1. Squads and line-ups count from gameweek 2's deadline.",
       },
     ]);
   });
