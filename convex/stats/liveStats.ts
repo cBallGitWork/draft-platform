@@ -6,7 +6,7 @@ import { matchRecordsOf } from "./matchRecordReads";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { storeThresholdSteps } from "./thresholdSteps";
+import { storeThresholdSteps } from "../matchup/thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches

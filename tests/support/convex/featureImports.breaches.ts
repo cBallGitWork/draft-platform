@@ -81,6 +81,7 @@ export const STILL_IMPORTING_SCHEMA: string[] = [
 export const STILL_USED_BY_THREE: string[] = [
   "convex/admin/feedFailureEmails",
   "convex/admin/platformSettings",
+  "convex/admin/sideRuns",  // matchup/thresholdSteps reads its SideMatchOutcome type since #2068
   "convex/draft/draftRow",
   "convex/football/matchCommentary",
   "convex/football/matchScores",
@@ -111,7 +112,6 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/mail/letterShape",
   "convex/mail/letterWords",
   "convex/mail/letters",
-  "convex/matchup/vidiprinter",
   "convex/outbound/deploymentSettings",
   "convex/outbound/email",
   "convex/outbound/emailLimit",
@@ -127,7 +127,6 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/rules/squadMaximums",
   "convex/scoring/breakdownShape",
   "convex/scoring/categories",
-  "convex/scoring/ownStats",
   "convex/scoring/scoring",
   "convex/scoring/scoringSet",
   "convex/scoring/scoringSetShape",

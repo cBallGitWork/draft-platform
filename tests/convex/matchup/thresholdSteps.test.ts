@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
-import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, thresholdSteps, thresholdStepsOf } from "../../../convex/stats/thresholdSteps";
+import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, thresholdSteps, thresholdStepsOf } from "../../../convex/matchup/thresholdSteps";
 import { LIVE_WINDOW_MS } from "../../../convex/shared/dueMatches";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";

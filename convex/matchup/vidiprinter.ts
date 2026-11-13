@@ -28,7 +28,7 @@ import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
-import { stepPoints } from "../stats/thresholdSteps";
+import { stepPoints } from "./thresholdSteps";
 import { signedWords } from "../shared/numberWords";
 import type { PlayerCode } from "../shared/players";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
