@@ -1,4 +1,4 @@
-// The backup before a release (spec/20, Rolling back; #1996): a release that could strand saved
+// The backup before a release (spec/20, Rolling back, S20.8; #1996): a release that could strand saved
 // data (a table or field removed, a type narrowed) takes a backup first or stops, and one that
 // doesn't, the same shape or only added to, goes straight through, with no export read from the
 // live database. The Convex CLI is faked; the shapes are the real convex/schema.ts's.
