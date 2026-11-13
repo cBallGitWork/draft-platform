@@ -54,18 +54,34 @@ export const HULL_EVERTON_TEAM_STATS = {
  *  stats (#45) at full time, which the live tick reads; a URL containing `refuse` answers `REFUSED_STATUS`.
  *  `seasons` is the Premier League's list of seasons, the recorded one unless given. */
 export function fakeFeeds(payloads: Gw6Payloads, refuse?: string, seasons?: RawPlCompSeason[]) {
-  const bodies = new Map<string, unknown>([
+  return fakeFetch(gw6Bodies(payloads, seasons), (url) => refuse !== undefined && url.includes(refuse));
+}
+
+/** `fakeFeeds` with Hull v Everton postponed and moved by FPL to `gameweek` (#2044): FPL's live
+ *  stats for it come under that gameweek, whose Premier League list leaves the match out, while the
+ *  Premier League's season list still holds it under gameweek 6. */
+export function fakeFeedsMovedTo(payloads: Gw6Payloads, gameweek: number) {
+  const bodies = gw6Bodies(payloads);
+  const others = payloads.pl.round.content.filter((fixture) => fixture.id !== MATCH.hullEverton.pl);
+  bodies.set(fplLiveUrl(gameweek), payloads.fpl.live);
+  bodies.set(plFixturesUrl(PL_THIS_SEASON, gameweek), { ...payloads.pl.round, content: others });
+  return fakeFetch(bodies);
+}
+
+function gw6Bodies(payloads: Gw6Payloads, seasons?: RawPlCompSeason[]) {
+  return new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
     [FPL_FIXTURES_URL, payloads.fpl.fixtures],
     [fplLiveUrl(GAMEWEEK), payloads.fpl.live],
     plSeasonsBody(seasons),
     [plFixturesUrl(PL_THIS_SEASON, GAMEWEEK), payloads.pl.round],
+    // The season's list, where a match a gameweek's list leaves out is looked for (#2044).
+    [plFixturesUrl(PL_THIS_SEASON), payloads.pl.round],
     ...payloads.pl.fixtures.map((fixture) => [plFixtureUrl(fixture.id), fixture] as const),
     ...payloads.pl.playerStats.map((read) => [plPlayerStatsUrl(read.player, read.fixture), read.payload] as const),
     [plCommentaryUrl(MATCH.hullEverton.pl), recordedCommentary(MATCH.hullEverton.pl)],
     [plTeamStatsUrl(MATCH.hullEverton.pl), recordedTeamStats(MATCH.hullEverton.pl)],
   ]);
-  return fakeFetch(bodies, (url) => refuse !== undefined && url.includes(refuse));
 }
 
 /** A test's Convex, holding Hull v Everton and both clubs as the football sync would. */

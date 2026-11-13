@@ -83,6 +83,7 @@ export async function syncDue(
   // Read once, inside each gameweek's try: a season the Premier League doesn't list fails each due
   // match with the reason, not the whole run (#300).
   let seasons: Promise<PlSeasons> | undefined;
+  let season: Promise<GameweekReads["listed"]> | undefined;
   // The live tick reads each match's commentary too (#43), after its points and apart from them.
   const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
   const matches: MatchOutcome[] = [];
@@ -96,7 +97,18 @@ export async function syncDue(
       const { current } = await seasons;
       const [live, round] = await Promise.all([readFplLive(gameweek), readPlFixtures(current, gameweek)]);
       const fplLines = fplStatLines(live, bootstrap.elements, fixtures);
-      const listed = new Map(round.map((each) => [fixtureCodeIn(each), each]));
+      const listed = byFixtureCode(round);
+      // A postponed match FPL moves to another gameweek stays in the Premier League's list for the
+      // one it was first set in (#2044), so one this gameweek's list leaves out is looked for in
+      // the season's, read once a run.
+      if (codes.some((fixtureCode) => !listed.has(fixtureCode))) {
+        season ??= readPlFixtures(current).then(byFixtureCode);
+        const all = await season;
+        for (const fixtureCode of codes) {
+          const moved = all.get(fixtureCode);
+          if (!listed.has(fixtureCode) && moved !== undefined) listed.set(fixtureCode, moved);
+        }
+      }
       const scored = dueScores(listed, codes);
       reads = { gameweek, codeByOpta, fplLines, listed, clocks: new Map(scored.reads.map((read) => [read.fixtureCode, read.minutes])) };
       scores.reads.push(...scored.reads);
@@ -143,6 +155,11 @@ async function writeDueScores(ctx: ActionCtx, readAt: number, scores: ScoreReads
     const unwritten = scores.reads.map(({ fixtureCode }) => ({ fixtureCode, problem }));
     return { received: scores.reads.length + scores.problems.length, written: 0, problems: [...scores.problems, ...unwritten] };
   }
+}
+
+/** A Premier League list by FPL's fixture code. */
+function byFixtureCode(list: RawPlFixture[]): GameweekReads["listed"] {
+  return new Map(list.map((each) => [fixtureCodeIn(each), each]));
 }
 
 /** Each due match's score from the Premier League's list. One the list leaves out is `syncMatch`'s
