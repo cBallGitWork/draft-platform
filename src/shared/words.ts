@@ -302,6 +302,9 @@ export const DRAFT_TITLE = menuWords.draft;
  *  while every team has played nothing, the row of the viewer's team, and the league average. */
 export const noResultsWords = "No results yet.";
 export const yourTeamWords = "Your team";
+/** Two of the table's columns, which League settings' tie-breaks name too (spec/03, S03.2). */
+export const pointsForWords = "Points for";
+export const pointsAgainstWords = "Points against";
 export const leagueAverageWords = "League average";
 /** A gameweek that can't be scored (the table and My team). */
 export const unscoredWords = (gameweek: number, reason: string) =>

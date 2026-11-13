@@ -13,11 +13,10 @@ import type { DoubleGameweekRule } from "../../convex/scoring/values";
 import { hoursWords } from "../../convex/shared/time";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import type { TieBreak } from "../../convex/table/standings";
-import { columns } from "../table/words";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -46,7 +45,7 @@ export const blankDeadlineWords = noNumberWords("Deadline");
 /** The table's tie-breaks, whose order the commissioner changes (spec/03, S03.2). */
 export const tableTitle = "Table";
 export const tieBreaksLabel = "Tie-breaks, in order";
-export const tieBreakWords: Record<TieBreak, string> = { pointsFor: columns.pointsFor.long, headToHead: formatWords.headToHead, pointsAgainst: columns.pointsAgainst.long };
+export const tieBreakWords: Record<TieBreak, string> = { pointsFor: pointsForWords, headToHead: formatWords.headToHead, pointsAgainst: pointsAgainstWords };
 
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
