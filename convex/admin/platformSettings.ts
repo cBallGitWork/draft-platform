@@ -1,11 +1,12 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf, refuse } from "../shared/leagueAccess";
+import { savedSetting, saveSetting } from "../shared/platformSettingRows";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { FIRST_PLATFORM_SETTINGS, settingRefusals, type PlatformSettings, type SettingName } from "./platformSettingDefaults";
 
 // The platform's own settings, one row each, the admin's to change on his dashboard (spec/15,
-// #1555). The internal setters below set one or two at a time, for tests and the command line.
+// #1555). The internal setSettings sets any of them, for tests and the command line.
 // The defaults and refusals live in platformSettingDefaults.ts, which the browser's preview reads.
 
 export type { PlatformSettings };
@@ -52,22 +53,13 @@ export function scoutsPerTeam(ctx: QueryCtx): Promise<number> {
   return valueOf(ctx, "scoutsPerTeam");
 }
 
-/** Sets the window. A lock already scheduled reads it again when it fires. */
-export const setStatCorrectionWindow = internalMutation({
-  args: { minutes: v.number() },
+/** Sets any of the settings, as `save` does without the admin, for tests and the command line
+ *  (`npx convex run admin/platformSettings:setSettings '{"scoutsPerTeam": 2}'`). */
+export const setSettings = internalMutation({
+  args: platformSettings.partial().fields,
   returns: v.null(),
-  handler: async (ctx, { minutes }) => {
-    await saveAll(ctx, { statCorrectionWindowMinutes: minutes });
-    return null;
-  },
-});
-
-/** Sets how many scouts each team has. A scout already out stays out; only new sends count it. */
-export const setScoutsPerTeam = internalMutation({
-  args: { scouts: v.number() },
-  returns: v.null(),
-  handler: async (ctx, { scouts }) => {
-    await saveAll(ctx, { scoutsPerTeam: scouts });
+  handler: async (ctx, values) => {
+    await saveAll(ctx, values);
     return null;
   },
 });
@@ -79,38 +71,15 @@ export async function matchdayMargins(ctx: QueryCtx): Promise<{ beforeMs: number
   return { beforeMs: before * HOUR_MS, afterMs: after * HOUR_MS };
 }
 
-/** Sets matchday mode's hours, before the first kickoff and after the last final whistle. */
-export const setMatchdayHours = internalMutation({
-  args: { before: v.number(), after: v.number() },
-  returns: v.null(),
-  handler: async (ctx, { before, after }) => {
-    await saveAll(ctx, { matchdayHoursBefore: before, matchdayHoursAfter: after });
-    return null;
-  },
-});
-
 const isWholeAndNotBelowNought = (value: number) => Number.isInteger(value) && value >= 0;
 
 /** Checks every value before setting any, so a refusal sets nothing. */
 async function saveAll(ctx: MutationCtx, values: Partial<PlatformSettings>) {
   const entries = Object.entries(values) as [SettingName, number][];
   for (const [name, value] of entries) if (!isWholeAndNotBelowNought(value)) refuse(settingRefusals[name](value));
-  for (const [name, value] of entries) await setSetting(ctx, name, value);
+  for (const [name, value] of entries) await saveSetting(ctx, name, value);
 }
 
 async function valueOf(ctx: QueryCtx, name: SettingName): Promise<number> {
-  return (await settingRow(ctx, name))?.value ?? FIRST_PLATFORM_SETTINGS[name];
-}
-
-function settingRow(ctx: QueryCtx, name: SettingName) {
-  return ctx.db
-    .query("platformSettings")
-    .withIndex("by_name", (q) => q.eq("name", name))
-    .unique();
-}
-
-async function setSetting(ctx: MutationCtx, name: SettingName, value: number) {
-  const row = await settingRow(ctx, name);
-  if (row === null) await ctx.db.insert("platformSettings", { name, value });
-  else await ctx.db.patch("platformSettings", row._id, { value });
+  return (await savedSetting(ctx, name)) ?? FIRST_PLATFORM_SETTINGS[name];
 }

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLOSED_READ_MOST } from "../../../convex/trades/closedOffers";
 import { MINUTE_MS, seasonStartAt } from "../../../convex/shared/time";
-import { actingAs, COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, ANN, BOB, CAT, TEAM_1 } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
@@ -67,7 +67,7 @@ describe("closed offers", () => {
     expect(await closedFor(BOB)).toEqual([expect.objectContaining({ why: "playerLeft", fromTeamId: w.annsTeam })]);
     const filed = (await w.subjectsTo(BOB)).slice(before);
     expect(filed).toHaveLength(2);
-    expect(filed[0]).toBe(`Team 1 dropped ${nameOf(ANNS_FIRST_DROP)}`);
+    expect(filed[0]).toBe(`${TEAM_1} dropped ${nameOf(ANNS_FIRST_DROP)}`);
   });
 
   test("keeps a trade blocked in review, but not one that goes through", async () => {

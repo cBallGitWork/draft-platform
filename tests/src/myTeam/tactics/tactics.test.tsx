@@ -31,6 +31,7 @@ import {
   ARRIZABALAGA,
   RAYA,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SQUAD,
   STARTERS,
@@ -101,7 +102,8 @@ describe("reaching it", () => {
 describe("the deadline", () => {
   it("says when the gameweek locks and counts down to it", async () => {
     const minute = Date.now() - (Date.now() % MINUTE_MS);
-    const deadline = minute + DAY_MS + 17 * HOUR_MS;
+    // Half past the hour, so a minute ticking over mid-test still reads "1d 17h".
+    const deadline = minute + DAY_MS + 17 * HOUR_MS + 30 * MINUTE_MS;
     openTacticsTab({ tactics: { ...SAVED, deadline } });
     // In My team's header band (src/myTeam/header/TeamHeader.tsx).
     expect(await screen.findByText(deadlineHead(TACTICS_GAMEWEEK))).toBeTruthy();
@@ -129,7 +131,7 @@ describe("the lineup held", () => {
     await openedPitch({ tactics: { ...SAVED, squad } });
     const shirtNumber = (player: Member, cell: Cell) => blockOf(player, cell).querySelector("svg text")?.textContent ?? null;
     expect(shirtNumber(numbered, { area: "goalkeeper", lane: "centre" })).toBe("22");
-    expect(shirtNumber(SALIBA, { area: "defence", lane: "leftCentre" })).toBeNull();
+    expect(shirtNumber(SALIBA, SALIBAS_CELL)).toBeNull();
   });
 
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {

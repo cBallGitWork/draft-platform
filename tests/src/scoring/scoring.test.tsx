@@ -8,7 +8,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { gameweekWords } from "../../../src/shared/words";
 import {
   addCategoryWords,
@@ -35,7 +34,7 @@ import { discardWords, saveWords, unchangedWords } from "../../../src/rules/word
 import { ADMINS_VIEW, CHANGES_FROM } from "../../support/src/scoring.harness";
 import { refusalBeside } from "../../support/src/describedBy";
 import { box, categories, choose, openScoring, retype, save, savedSet, SCORING_PAGE } from "../../support/src/scoringScreen.harness";
-import { adminSeeing, coCommissioned, commissioner, league, managerIn, newcomer, openApp, withNoPart } from "../../support/src/shell.harness";
+import { adminSeeing, coCommissioned, commissioner, expectSentToLeagues, league, managerIn, newcomer, openApp, withNoPart } from "../../support/src/shell.harness";
 
 const PAGE = SCORING_PAGE;
 
@@ -55,9 +54,7 @@ describe("reaching Player scoring", () => {
   });
 
   it("someone with no part in the league is sent back to Your leagues", async () => {
-    const app = openApp(PAGE, newcomer);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectSentToLeagues(PAGE, newcomer);
   });
 });
 

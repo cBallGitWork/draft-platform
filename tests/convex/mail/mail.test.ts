@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3 } from "../../support/convex/leagues.harness";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
@@ -39,9 +40,9 @@ describe("letters about the league's events", () => {
   test("each goes to everyone in the league as it is after the event, and to nobody else", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
 
-    expect(await (await mailOf(ANN)).subjects()).toEqual([`${BOB} joined as manager of Team 2`, `${ANN} joined as manager of Team 1`]);
+    expect(await (await mailOf(ANN)).subjects()).toEqual([`${BOB} joined as manager of ${TEAM_2}`, `${ANN} joined as manager of ${TEAM_1}`]);
     // Bob joined after Ann, so her letter was never his.
-    expect(await (await mailOf(BOB)).subjects()).toEqual([`${BOB} joined as manager of Team 2`]);
+    expect(await (await mailOf(BOB)).subjects()).toEqual([`${BOB} joined as manager of ${TEAM_2}`]);
     expect(await (await mailOf(CAT)).letters()).toEqual([]);
     expect(await (await mailOf(ADMIN)).letters()).toEqual([]);
   });
@@ -56,7 +57,7 @@ describe("letters about the league's events", () => {
 
   test("someone with two parts in the league gets one copy", async () => {
     await addManagers(t, leagueId, [COMMISSIONER, ANN]);
-    const copies = (await everyLetter()).filter(([to, subject]) => to === COMMISSIONER && subject === `${ANN} joined as manager of Team 2`);
+    const copies = (await everyLetter()).filter(([to, subject]) => to === COMMISSIONER && subject === `${ANN} joined as manager of ${TEAM_2}`);
     expect(copies).toHaveLength(1);
   });
 
@@ -67,6 +68,22 @@ describe("letters about the league's events", () => {
 
     expect((await (await mailOf(CAT)).letters()).map((letter) => letter.leagueName)).toEqual(["Other"]);
     expect((await (await mailOf(ANN)).letters()).map((letter) => letter.leagueName)).toEqual([LEAGUE_NAME]);
+  });
+
+  test("Mail in one league lists that league's letters and the site's, newest first, never another league's (S16.1)", async () => {
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other");
+    await addManagers(t, leagueId, [ANN]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await addManagers(t, otherLeague, [ANN]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await t.run((ctx) => ctx.db.insert("letters", { to: ANN, at: Date.now(), subject: "Patch 1.4", body: "Clean sheets." }));
+    const ann = await actingAs(t, ANN);
+    const subjectsIn = async (league: Id<"leagues">) => (await ann.query(api.mail.mail.letters, { leagueId: league })).map((letter) => letter.subject);
+
+    expect(await subjectsIn(leagueId)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
+    expect(await subjectsIn(otherLeague)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
+    expect((await ann.query(api.mail.mail.letters, { leagueId })).map((letter) => letter.leagueName)).toEqual([PRODUCT_NAME, LEAGUE_NAME]);
+    expect(await (await mailOf(ANN)).letters()).toHaveLength(3);
   });
 
   test("the copy to whoever did it is filed read, and everyone else's unread", async () => {
@@ -92,10 +109,10 @@ describe("letters about the league's events", () => {
     await addManagers(t, leagueId, [CAT]);
 
     const ann = await (await mailOf(ANN)).subjects();
-    expect(ann[0]).toBe(`${ANN} was removed from Team 1`);
-    expect(ann).not.toContain(`${CAT} joined as manager of Team 3`);
-    expect(await (await mailOf(BOB)).subjects()).toContain(`${CAT} joined as manager of Team 3`);
-    expect(await (await mailOf(BOB)).subjects()).toContain(`${ANN} was removed from Team 1`);
+    expect(ann[0]).toBe(`${ANN} was removed from ${TEAM_1}`);
+    expect(ann).not.toContain(`${CAT} joined as manager of ${TEAM_3}`);
+    expect(await (await mailOf(BOB)).subjects()).toContain(`${CAT} joined as manager of ${TEAM_3}`);
+    expect(await (await mailOf(BOB)).subjects()).toContain(`${ANN} was removed from ${TEAM_1}`);
   });
 
   test("a co-commissioner who is replaced is told, as is the one named", async () => {
@@ -113,7 +130,7 @@ describe("letters about the league's events", () => {
     await (await actingAs(t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
 
     const [left] = await (await mailOf(ANN)).letters();
-    expect(left).toMatchObject({ subject: `${ANN} left Team 1`, read: true });
+    expect(left).toMatchObject({ subject: `${ANN} left ${TEAM_1}`, read: true });
   });
 });
 

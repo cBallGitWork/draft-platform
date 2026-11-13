@@ -3,7 +3,7 @@ import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { expectRefused } from "../../support/convex/test.harness";
 import { PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
-import { ANN, CAT } from "../../support/convex/leagues.harness";
+import { ANN, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 
 // Trades follow the rules in force in the gameweek, never a change waiting for the next: trade
 // review and the trade deadline are league rules, and a rule change applies from the next gameweek
@@ -32,7 +32,7 @@ test("a waiting change to a vote sends no trade accepted now to one", async () =
   await w.annTradesForSaka();
 
   expect(await annsSquad()).toContain(SAKA);
-  expect(await w.subjectsTo(CAT)).not.toContain("Vote on the trade between Team 1 and Team 2");
+  expect(await w.subjectsTo(CAT)).not.toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
 });
 
 test("the change takes effect once its gameweek begins", async () => {

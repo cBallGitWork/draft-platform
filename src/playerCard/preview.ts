@@ -11,7 +11,7 @@ import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
-import { previewGameweek, previewSays, proLeague } from "../shared/preview";
+import { previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import { seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
@@ -127,6 +127,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
       home: weeksOn % 2 === 0 ? player.club : opponentOf(player.club.code, weeksOn),
       away: weeksOn % 2 === 0 ? opponentOf(player.club.code, weeksOn) : player.club,
     })),
+    mode: previewGameMode,
   };
 }
 

@@ -11,7 +11,8 @@ import { drawn, teamsOf } from "../../support/convex/roundRobin.harness";
 // reason, and Craig's nod.
 
 /** A gameweek as one line: "gameweek: team v opponent, ... | bye team, ...", teams by number. */
-const short = (team: string) => team.replace("Team ", "");
+const NUMBER_OF = new Map(teamsOf(6).map((team, index) => [team, String(index + 1)]));
+const short = (team: string) => NUMBER_OF.get(team)!;
 const lineOf = ({ gameweek, fixtures, byes }: GameweekFixtures<string>) => {
   const games = fixtures.map(({ team, opponent }) => `${short(team)} v ${opponent === LEAGUE_AVERAGE ? "average" : short(opponent)}`);
   return `${gameweek}: ${games.join(", ")}${byes.length > 0 ? ` | bye ${byes.map(short).join(", ")}` : ""}`;

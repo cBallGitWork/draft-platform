@@ -4,10 +4,12 @@
 
 import { afterEach, beforeEach, expect, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { leagueUrl, liveFixturesUrl, scheduleUrl, SEEDED_COMPETITIONS, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../convex/football/sportmonks/sportmonks";
+import { mapFpl } from "../../../convex/football/fpl/fpl";
+import { leagueUrl, liveFixturesUrl, mapSportmonks, scheduleUrl, SEEDED_COMPETITIONS, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../convex/football/sportmonks/sportmonks";
 import type { SportmonksPayloads } from "../../../convex/football/sportmonks/sportmonksRaw";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { SM, sportmonksLiveRead, sportmonksSeason } from "../recorded/sportmonks.payloads";
+import { recordedFpl } from "../recorded/fpl.payloads";
+import { SM, sportmonksLiveRead, sportmonksPremierLeague, sportmonksSeason } from "../recorded/sportmonks.payloads";
 import type { TestConvex } from "./test.harness";
 
 export const TOKEN = "test-token";
@@ -98,4 +100,20 @@ export function premierLeagueOn(t: TestConvex) {
   return t.run(async (ctx) => {
     for (const competition of SEEDED_COMPETITIONS) await ctx.db.insert("sportmonksCompetitions", { ...competition, on: true });
   });
+}
+
+/** Both feeds' recorded Premier League rows held, as each six-hourly sync holds them (#1421): FPL's
+ *  and Sportmonks' (sportmonks-pl-season.json), ready for the link run. */
+export async function bothFeedsHeld(t: TestConvex, ranAt: number) {
+  const { bootstrap, fixtures } = recordedFpl();
+  const fpl = mapFpl(bootstrap, fixtures);
+  await t.mutation(internal.football.footballSync.upsertClubs, { rows: fpl.clubs });
+  await t.mutation(internal.football.footballSync.upsertPlayers, { rows: fpl.players });
+  await t.mutation(internal.football.footballSync.upsertFixtures, { rows: fpl.fixtures });
+  const sportmonks = mapSportmonks(sportmonksPremierLeague());
+  const sync = internal.football.sportmonks.sportmonksSync;
+  const run = { competition: PREMIER_LEAGUE, ranAt };
+  await t.mutation(sync.syncClubs, { ...run, rows: sportmonks.clubs });
+  await t.mutation(sync.syncPlayers, { ...run, rows: sportmonks.players });
+  await t.mutation(sync.syncFixtures, { ...run, rows: sportmonks.fixtures });
 }

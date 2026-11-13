@@ -67,7 +67,6 @@ export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Pr
 /** A player on the queue or do-not-draft list: as the shortlist lists him, with his main position
  *  now (cardOpensAt), for the draft room's chip (#1100), null for none. */
 const draftListed = v.object({ ...ownListPlayer.fields, position: v.union(position, v.null()) });
-export type DraftListed = Infer<typeof draftListed>;
 
 /** The caller's queue, first choice first, and do-not-draft list, by name; or null for someone in
  *  the league who runs no team (a commissioner or the admin only), who has neither. */

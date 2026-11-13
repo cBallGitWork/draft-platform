@@ -39,7 +39,7 @@ test.each(locks.map((row) => [row["full time"]!, row["last record arrives"]!, ro
     // Each time is read against the table's full time, which the harness's full-time read stands for.
     const at = (clock: string) => FULL_TIME_READ + (minutesOf(clock) - minutesOf(fullTime)) * MINUTE_MS;
     const t = await withHullEverton();
-    await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: windowHours * 60 });
+    await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: windowHours * 60 });
 
     if (at(arrives) > FULL_TIME_READ) {
       // Coyle is the record still to come.

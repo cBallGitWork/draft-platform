@@ -22,9 +22,9 @@ const LETTERS: [LeagueEvent, string, string][] = [
   [
     { kind: "gameweekUsed", gameweek: 9, used: false, startMovedTo: 10 },
     "Gameweek 9 won't count",
-    "out of the league's season. Scoring starts in gameweek 10, not 9: squads and lineups count from its deadline, and the gameweeks before it score nothing.",
+    "out of the league's season. Scoring starts in gameweek 10, not 9: squads and line-ups count from its deadline, and the gameweeks before it score nothing.",
   ],
-  [{ kind: "scoringStartSet", from: 9, to: 12 }, "Scoring starts in gameweek 12", "Scoring starts in gameweek 12, not 9: squads and lineups count"],
+  [{ kind: "scoringStartSet", from: 9, to: 12 }, "Scoring starts in gameweek 12", "Scoring starts in gameweek 12, not 9: squads and line-ups count"],
   [{ kind: "scoringStartSet", from: null, to: 5 }, "Scoring starts in gameweek 5", "Scoring starts in gameweek 5: squads"],
   [{ kind: "invited", email: ANN, teamId: null, teamName: null }, `${ANN} was invited`, "to manage a new team"],
   [{ kind: "inviteResent", email: ANN, teamId: TEAM, teamName: "Saka Potatoes" }, `${ANN}'s invite was sent again`, "Saka Potatoes"],
@@ -40,7 +40,7 @@ const LETTERS: [LeagueEvent, string, string][] = [
   [
     { kind: "pointsOverrideRemoved", playerCode: 1, playerName: "Saka", fixtureCode: 1, matchName: "Arsenal v Chelsea", gameweek: 6, from: 8, to: null, teams: [] },
     "Saka's override in Arsenal v Chelsea was removed",
-    "gameweek 6: 8 no longer stands.\n\nNo team's total moved: no lineup counted him.",
+    "gameweek 6: 8 no longer stands.\n\nNo team's total moved: no line-up counted him.",
   ],
   [
     { kind: "teamPointsOverridden", teamId: TEAM, teamName: "Lions", gameweek: 6, from: 54, to: 60, reason: "two subs missed" },

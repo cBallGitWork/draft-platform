@@ -44,6 +44,9 @@ comes to exist, fills, changes and ends.
   removes them.
 - Someone whose invite expired, was cancelled or couldn't be used, and who is in no league, is told
   so on signing in, with why, and to ask the commissioner for a new one (22 Oct 2026).
+- A fault while taking up an invite at sign-in still signs the person in, and the invite stays
+  open. They see "We couldn't add you to the league just now; open your invite link again" (Craig,
+  12 Nov 2026, on #1437). `S13.1`
 - The commissioner can switch the league's invite link off, or replace it with a new one; the old
   one then stops working.
 - The commissioner approves or refuses each join request. A person has at most one request

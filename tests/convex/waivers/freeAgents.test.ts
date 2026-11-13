@@ -5,7 +5,7 @@ import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, eventsIn, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -50,8 +50,8 @@ describe("in the window", () => {
     expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: teamNumbered(2) });
     expect((await eventsIn(w.t, w.leagueId)).at(-1)).toMatchObject({ kind: "playerPickedUp", playerCode: SAKA, teamId: w.bobsTeam, dropped: null, by: BOB });
     expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: `Team 2 picked up ${nameOf(SAKA)}`,
-      body: `${BOB} picked up ${nameOf(SAKA)} for Team 2 as a free agent.`,
+      subject: `${TEAM_2} picked up ${nameOf(SAKA)}`,
+      body: `${BOB} picked up ${nameOf(SAKA)} for ${TEAM_2} as a free agent.`,
     });
     const { transactions } = await (await actingAs(w.t, BOB)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
     expect(transactions).toContainEqual(expect.objectContaining({ kind: "pickedUp", playerCode: SAKA }));
@@ -76,8 +76,8 @@ describe("in the window", () => {
       { kind: "playerPickedUp", playerCode: SAKA, dropped: { playerCode: ANNS_FIRST_DROP, toWaivers: true } },
     ]);
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `Team 1 picked up ${nameOf(SAKA)}`,
-      body: `${ANN} picked up ${nameOf(SAKA)} for Team 1 as a free agent. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
+      subject: `${TEAM_1} picked up ${nameOf(SAKA)}`,
+      body: `${ANN} picked up ${nameOf(SAKA)} for ${TEAM_1} as a free agent. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
     });
   });
 

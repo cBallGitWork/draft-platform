@@ -177,6 +177,7 @@ test("everything here is the admin's alone: anyone else signed in is refused", a
     () => someone.mutation(api.positions.playerPositions.approveClub, { clubCode: NEWCASTLE.code }),
     () => someone.mutation(api.positions.playerPositions.setPosition, { code, position: "SS" }),
     () => someone.mutation(api.positions.playerPositions.removePosition, { code, position: "W" }),
+    () => someone.mutation(api.positions.unplacedAreas.setUnplacedArea, { code, area: "defence" }),
     () => someone.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "countAtOnce" }),
   ]) {
     await expectRefused(call(), refusals.notAdmin);

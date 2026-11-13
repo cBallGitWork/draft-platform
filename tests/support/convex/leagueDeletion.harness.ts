@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id, TableNames } from "../../../convex/_generated/dataModel";
 import { UNDO_MS, tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { askToJoin, invite, makeLink } from "./joining.harness";
+import { HELD_FIRST_RULES } from "./leagueRules.harness";
 import { elapse } from "./test.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "./leagues.harness";
 
@@ -77,9 +78,9 @@ export async function aRowInEveryTable(t: TestConvex, leagueId: Id<"leagues">): 
     await ctx.db.insert("teamSeasonStats", { leagueId, teamId, stats: { goals_scored: 1 } });
     await ctx.db.insert("deadlineStars", { leagueId, gameweek, teamId, bench: [{ playerCode, stars: [] }] });
     await ctx.db.insert("letters", { to: ANN, leagueId, at: 0, subject: WORDS, body: WORDS });
-    await ctx.db.insert("drafts", { leagueId, started: { at: 0, teamIds: [teamId], rounds: 1 } });
+    await ctx.db.insert("drafts", { leagueId, started: { at: 0, teamIds: [teamId], rounds: 1, squad: HELD_FIRST_RULES.squad } });
     await ctx.db.insert("draftLists", { leagueId, teamId, queue: [playerCode], doNotDraft: [] });
-    await ctx.db.insert("draftPicks", { leagueId, pick: 1, teamId, playerCode, at: 0 });
+    await ctx.db.insert("draftPicks", { leagueId, pick: 1, teamId, playerCode, at: 0, positions: ["CM"] });
   });
 }
 

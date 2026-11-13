@@ -27,6 +27,15 @@ export function playerLeftLetter(playerName: string): Words {
   };
 }
 
+/** To the manager, when a day of tries couldn't write the report: the scout is back with none,
+ *  and free again (Craig, 12 Nov 2026, on #1437). */
+export function notFiledLetter(playerName: string): Words {
+  return {
+    subject: `Your scout couldn't file a report on ${playerName}`,
+    body: `Your scout couldn't file a report on ${playerName}; send a scout again.`,
+  };
+}
+
 /** One starter's slot in the brief: its position and role. */
 interface BriefSlot {
   position: string;

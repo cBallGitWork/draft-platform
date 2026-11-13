@@ -2,12 +2,11 @@
 // admin alone; the queue of new signings and starts waiting; approving a club; how starts count;
 // and correcting any player's positions.
 
-import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { admin, commissioner, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, expectNotOffered, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
 import { descriptionOf } from "../../support/src/describedBy";
@@ -47,7 +46,10 @@ import {
   switchModeWords,
   waitingHint,
   waitingTitle,
+  noAreaWords,
+  unplacedAreaLabel,
 } from "../../../src/admin/words";
+import { AREA_WORDS } from "../../../src/shared/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
 const ARSENAL = { code: 3, name: "Arsenal", colours: { primary: "#E50107", secondary: "#FFFFFF", pattern: "plain" as const } };
@@ -72,6 +74,7 @@ const DATA: AdminData = {
         { position: "ST", source: "starts", confirmed: true, flaggedElsewhere: 4 },
         { position: "CAM", source: "label", confirmed: false, flaggedElsewhere: null },
       ],
+      unplacedArea: null,
     },
   ],
 };
@@ -86,14 +89,8 @@ describe("reaching the dashboard", () => {
   });
 
   it("anyone else isn't offered it, and is sent back to Your leagues if they go there", async () => {
-    openApp(LEAGUES_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: ADMIN_TITLE })).toBeNull();
-
-    cleanup();
-    const app = openApp(ADMIN_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectNotOffered(ADMIN_TITLE, commissioner);
+    await expectSentToLeagues(ADMIN_PATH, commissioner);
   });
 });
 
@@ -237,6 +234,21 @@ describe("correcting a player", () => {
     await userEvent.selectOptions(give, "SS");
     await userEvent.click(within(found).getByRole("button", { name: setWords }));
     expect(app.admin.setPosition).toHaveBeenCalledExactlyOnceWith(WOLTEMADE.code, "SS");
+    expect(within(found).queryByRole("combobox", { name: unplacedAreaLabel(WOLTEMADE.name) })).toBeNull();
+  });
+
+  it("#911: sets the area a player no feed has placed counts towards, and clears it", async () => {
+    const unplaced = { code: 9, name: "Okafor", fullName: "Chidi Okafor", clubCode: NEWCASTLE.code, positions: [], unplacedArea: "defence" as const };
+    const app = openDashboard({ ...DATA, found: [unplaced] });
+    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), unplaced.name);
+    const area = within(screen.getByRole("list", { name: foundListLabel })).getByRole("combobox", { name: unplacedAreaLabel(unplaced.name) });
+    expect((area as HTMLSelectElement).value).toBe("defence");
+    await userEvent.selectOptions(area, AREA_WORDS.midfield);
+    await userEvent.selectOptions(area, noAreaWords);
+    expect(app.admin.setUnplacedArea.mock.calls).toEqual([
+      [unplaced.code, "midfield"],
+      [unplaced.code, null],
+    ]);
   });
 
   it("shows why a change was refused", async () => {

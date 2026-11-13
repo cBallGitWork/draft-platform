@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { TEAM_NAME_MAX } from "../../../convex/leagues/leagueLimits";
+import { teamNumbered } from "../../../convex/leagues/teams";
 import {
   ADMIN,
   actingAs,
@@ -20,6 +21,9 @@ import {
   CAT,
   DAN,
   EVE,
+  TEAM_1,
+  TEAM_2,
+  TEAM_3,
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -41,10 +45,15 @@ describe("adding managers", () => {
     const [annsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
 
     expect(await teamNames()).toEqual([
-      { name: "Team 1", managerEmail: ANN },
-      { name: "Team 2", managerEmail: BOB },
+      { name: TEAM_1, managerEmail: ANN },
+      { name: TEAM_2, managerEmail: BOB },
     ]);
-    expect((await eventsIn(t, leagueId))[2]).toEqual({ by: ADMIN, kind: "managerAdded", email: ANN, teamId: annsTeam, teamName: "Team 1" });
+    expect((await eventsIn(t, leagueId))[2]).toEqual({ by: ADMIN, kind: "managerAdded", email: ANN, teamId: annsTeam, teamName: TEAM_1 });
+  });
+
+  test('a new team starts as "Team N" (spec/13, Teams)', () => {
+    // eslint-disable-next-line no-restricted-syntax -- the one place the name teamNumbered gives is pinned, so every other test can use it
+    expect(teamNumbered(3)).toBe("Team 3");
   });
 
   test("an added manager is let sign in", async () => {
@@ -54,7 +63,7 @@ describe("adding managers", () => {
 
   test("the commissioner can run a team, joining like anyone", async () => {
     await addManagers(t, leagueId, [COMMISSIONER]);
-    expect(await teamNames()).toEqual([{ name: "Team 1", managerEmail: COMMISSIONER }]);
+    expect(await teamNames()).toEqual([{ name: TEAM_1, managerEmail: COMMISSIONER }]);
   });
 
   test("past the maximum, no team is made", async () => {
@@ -70,9 +79,9 @@ describe("adding managers", () => {
 
   test("a new team skips a Team N that another team took as its name", async () => {
     const [annsTeam] = await addManagers(t, leagueId, [ANN]);
-    await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "Team 2" });
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: TEAM_2 });
     await addManagers(t, leagueId, [BOB]);
-    expect((await teamNames()).map((team) => team.name)).toEqual(["Team 2", "Team 3"]);
+    expect((await teamNames()).map((team) => team.name)).toEqual([TEAM_2, TEAM_3]);
   });
 
   // "admin only (not commissioner or co-commissioner)" (Craig, 22 Oct 2026): they invite instead.
@@ -97,7 +106,7 @@ describe("renaming a team", () => {
     await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "  Red Army  " });
 
     expect((await teamNames())[0].name).toBe("Red Army");
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "teamRenamed", teamId: annsTeam, from: "Team 1", to: "Red Army" });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "teamRenamed", teamId: annsTeam, from: TEAM_1, to: "Red Army" });
   });
 
   test(`a name of ${TEAM_NAME_MAX} characters is kept, and one longer is refused`, async () => {
@@ -111,12 +120,12 @@ describe("renaming a team", () => {
     await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "TEAM 1" });
 
     expect((await teamNames())[0].name).toBe("TEAM 1");
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "teamRenamed", teamId: annsTeam, from: "Team 1", to: "TEAM 1" });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: ANN, kind: "teamRenamed", teamId: annsTeam, from: TEAM_1, to: "TEAM 1" });
   });
 
   test("renaming it to the name it has, give or take spaces, files nothing", async () => {
     const before = await eventsIn(t, leagueId);
-    await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: " Team 1 " });
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: ` ${TEAM_1} ` });
     expect(await eventsIn(t, leagueId)).toEqual(before);
   });
 

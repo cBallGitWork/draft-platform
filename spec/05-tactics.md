@@ -170,13 +170,22 @@ and how they score from Craig, 4 Nov 2026.
   | | Get it wide | crosses | failed crosses | wide players or wing-backs on both flanks |
   | | Shoot on sight | shots, any range | shots off target | any shape |
   | | Gung-ho | goals and assists | goals conceded | two at the back |
-  | defensive | Press high | the front three's tackles won and interceptions | fouls | three up front |
+  | defensive | Press high | the forwards' and attacking midfielders' tackles won and interceptions | fouls | two or more up front, attacking midfielders counted |
   | | Clear it | defenders' clearances and blocks | defenders losing the ball | any shape |
   | | Get stuck in | tackles and duels won | cards and fouls | any shape |
   | | Keep it tight early | a clean sheet at half-time | goals let in before half-time | any shape |
   | | Park the bus | the keeper's and defenders' clean sheets | goals and assists | five at the back |
 
-- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the front three's tackles won and interceptions, in a shape with three up front ("press high could just be the front 3", 9 Nov 2026, on #1196); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
+- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the tackles won and interceptions of those up front, in a shape with two or more up front ("press high could just be the front 3", 9 Nov 2026, on #1196; two or more from 13 Nov 2026, on #1452); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
+- Press high needs two or more up front, and attacking midfielders count: a 4-4-2, a 4-3-3 and a
+  4-2-3-1 all get it ("Attacking mids count", 12 Nov 2026; "allow" a 4-4-2, 13 Nov 2026, on #1452).
+  Everyone up front scores it, so all five in a 2-3-5's attack row do ("All the forwards", 12 Nov
+  2026). Sacchi's Milan keeps it. `S05.42`
+- A saved lineup or classic formation that loses an instruction to these changes: Hold a high line
+  comes off with nothing in its place ("Dropped, Mail says so", 10 Nov 2026); Press high switches to
+  its formation's default defensive instruction ("Formation's default", 12 Nov 2026). Either way its
+  manager gets a Mail saying so, so he can pick another. The site isn't live, so the new scoring
+  applies as soon as it ships ("the site isint live yet", 12 Nov 2026, on #1452). `S05.43`
 - A formation offers every instruction its shape allows, so the shape decides the list: "we have
   to block it from certain formations". Each formation has a default attacking and a default
   defensive instruction.
@@ -360,10 +369,10 @@ From Craig, 1 Nov 2026.
   (Craig, 5 Nov 2026).
 - Roles stack with team instructions: a pressing forward under a high press earns both
   adjustments, and a sweeper keeper suits a high defensive line.
-- A player dropped into a slot starts on the role he has the most stars for; until stars are
-  built, on the slot's first role. The manager can change his slot and his role; the pitch shows
+- A player dropped into a slot starts on the role he has the most stars for. The manager can
+  change his slot and his role; the pitch shows
   each starter's role under his name (26 Oct 2026). He changes the role on the role card, opened
-  by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
+  by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026). `S05.45`
 - The role card shows every role for his slot, each with his stars, what it scores more and less
   for, its description, and what he would have scored under it in his recent matches. Each role's
   description is held with the role. Explaining the game's own mechanics is wanted; only the
@@ -399,6 +408,9 @@ From Craig, 1 Nov 2026.
   - Every placement is a drop into a slot: dragging or swapping him, the first lineup and each
     draft pick going onto the pitch, a preset moving him to a slot that doesn't offer his role,
     and an auto-sub coming on in his own area.
+  - When the squad changes and the first lineup is picked again, a player still in the same spot
+    keeps the role he had and isn't re-picked by his stars (Craig, 2 Nov 2026, on #971: "yes").
+    `S05.44`
 - The player card shows what his role did to his points ("Attacking full-back: +2, two key
   passes").
 - Your tactics change only your own players' points, never your opponent's.

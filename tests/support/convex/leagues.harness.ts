@@ -5,6 +5,7 @@ import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ADMIN } from "./signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 import type { TestConvex } from "./test.harness";
 
 export { ADMIN };
@@ -49,6 +50,8 @@ export const lettersCount = (t: TestConvex) => t.run(async (ctx) => (await ctx.d
 
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;
+/** Its teams' starting names, as convex/leagues/teams.ts gives them: "Team 1" to "Team 4". */
+export const [TEAM_1, TEAM_2, TEAM_3, TEAM_4] = Array.from({ length: TEST_LEAGUE_TEAMS }, (_, index) => teamNumbered(index + 1));
 
 /** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent.
  *  Only what is due now runs, and the clock stays put: a held season has an alarm pending for its

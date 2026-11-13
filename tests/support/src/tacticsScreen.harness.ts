@@ -41,12 +41,16 @@ export const WHITE = member(6, "White", ["FB", "WB"]);
 export const SQUAD = [RAYA, SALIBA, RICE, HAVERTZ, ARRIZABALAGA, WHITE];
 
 export const at = (player: Member, cell: Cell) => ({ playerCode: player.playerCode, ...cell });
+/** Saliba's cell in the saved lineup, left-centre of defence. */
+export const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const satisfies Cell;
+/** Havertz's cell in the saved lineup, centre of attack. */
+export const HAVERTZS_CELL = { area: "attack", lane: "centre" } as const satisfies Cell;
 /** Four starters and two on the bench: the screen never judges whether eleven stand. */
 export const STARTERS = [
   at(RAYA, { area: "goalkeeper", lane: "centre" }),
-  at(SALIBA, { area: "defence", lane: "leftCentre" }),
+  at(SALIBA, SALIBAS_CELL),
   at(RICE, { area: "midfield", lane: "centre" }),
-  at(HAVERTZ, { area: "attack", lane: "centre" }),
+  at(HAVERTZ, HAVERTZS_CELL),
 ];
 export const SAVED = openTactics({
   squad: SQUAD,
@@ -141,8 +145,8 @@ export async function pickRole(name: string, role: string) {
 /** The server's refusal of a lineup starting five, in its own words: what a save answers in a
  *  refused-save test. */
 export const REFUSAL = problemWords({ kind: "wrongStarterCount", starterCount: 5 }, String);
-/** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
-export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
+/** The line a save leaves, "Line-up saved 14:02", at whatever minute it landed. */
+export const SAVED_LINE = /^Line-up saved \d{2}:\d{2}$/;
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */
 export const IN_A_442 = (() => {
   const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));

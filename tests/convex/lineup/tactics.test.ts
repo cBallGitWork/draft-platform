@@ -7,6 +7,7 @@ import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
@@ -17,6 +18,9 @@ import { ratedRoles } from "../../../convex/stars/stars";
 import { NO_DATA } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { movedToFullBack } from "../../support/convex/positionStarts.harness";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -57,11 +61,22 @@ describe("the lineup to set", () => {
       presets: HELD_FIRST_RULES.presets,
       // The lineup it got with its squad: its first, picked from the squad (spec/05, #637, #1040).
       lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench },
+      // What the league plays, for the role parts: everything, as every league today (#1582).
+      mode: gameModeOf(HELD_FIRST_RULES),
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
       SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], flagged: [], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]), availability: "available" })),
     );
+  });
+
+  // S05.8
+  test("sends the roles' runs the site's scoring set holds in the gameweek, none while it holds none", async () => {
+    const before = await tacticsOf(ANN);
+    expect(before.kind === "open" && before.runs).toEqual([]);
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, runs: [...FIRST_RUNS] }, kind: "fix" }));
+    const after = await tacticsOf(ANN);
+    expect(after.kind === "open" && after.runs).toEqual(FIRST_RUNS);
   });
 
   test("keeps a squad player the football sync doesn't hold, saying so in place of his name (#323)", async () => {

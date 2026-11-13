@@ -30,10 +30,8 @@ import {
   seenWords,
 } from "../../../src/admin/words";
 import { whenWords } from "../../../src/shared/words";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import { admin, commissioner, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 
 const NOW = Date.parse("2026-10-17T12:00:00Z");
 const NONE_ON_RECORD = { lastRunAt: null, lastSuccessAt: null, lastError: null };
@@ -83,9 +81,7 @@ describe("reaching the feeds", () => {
   });
 
   it("anyone else is sent back to Your leagues", async () => {
-    const app = openApp(ADMIN_FEEDS_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectSentToLeagues(ADMIN_FEEDS_PATH, commissioner);
   });
 
   it("says so while the feeds load", async () => {

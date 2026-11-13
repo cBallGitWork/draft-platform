@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { FROM_CLAUSE, SOURCE_PREFIX, typeOnly } from "../support/importLines";
 
 // No value-import cycle in convex/. A cycle works only while every use sits inside a function:
 // a module-level constant built from a file in the loop is undefined at load (#198). #637 added
@@ -21,7 +22,6 @@ const SCORER_FILES = [
   "convex/scoring/ruleChecks.ts",
   "convex/scoring/ownStats.ts",
 ];
-const SOURCE_PREFIX = "../../";
 const GENERATED = "convex/_generated/";
 const TS = ".ts";
 const TSX = ".tsx";
@@ -29,8 +29,6 @@ const INDEX = "/index.ts";
 /** A specifier naming a file that isn't code, such as a stylesheet, which no cycle runs through. */
 const NOT_CODE = /\.(css|svg|png|json)$/;
 
-/** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
-const FROM_CLAUSE = /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
 /** `import "x"`, run for its effects. */
 const BARE_IMPORT = /^\s*import\s*["']([^"']+)["']/gm;
 
@@ -41,15 +39,6 @@ function files(sources: Record<string, string> = SOURCES): Map<string, string> {
     if (!path.startsWith(GENERATED)) out.set(path, source);
   }
   return out;
-}
-
-/** True when the clause brings in only types. */
-function typeOnly(clause: string): boolean {
-  if (/^type\s/.test(clause)) return true;
-  const braces = clause.match(/^\{([\s\S]*)\}$/);
-  if (!braces) return false;
-  const names = braces[1].split(",").map((name) => name.trim()).filter(Boolean);
-  return names.length > 0 && names.every((name) => /^type\s/.test(name));
 }
 
 /** The folder of a path, without the trailing slash. */
@@ -177,6 +166,20 @@ test("no value-import cycle in convex/", () => {
 test("no value-import cycle in src/ (#1330)", () => {
   const found = cycles(edges(new Map([...files(), ...files(BROWSER_SOURCES)])));
   expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
+});
+
+/** The browser's entry: everything it loads by a static import goes in the bundle. The preview's
+ *  modules load by a dynamic import() the build drops (scripts/bundle-has-no-preview.mjs), which
+ *  the walk doesn't follow, so they are left out. */
+const BROWSER_ENTRY = "src/main.tsx";
+const isSchema = (path: string) => path === "convex/schema.ts" || path.startsWith("convex/schema/");
+
+test("the browser's bundle loads no schema file, which carries every table and the sign-in ones (#1715)", () => {
+  const loaded = loadedBy(BROWSER_ENTRY, new Map([...files(), ...files(BROWSER_SOURCES)]));
+  // The walk reaches the screens and the pure server files they read, so it can't pass blind.
+  expect(loaded.has("src/myTeam/words.ts")).toBe(true);
+  expect(loaded.has("convex/squads/squadLimits.ts")).toBe(true);
+  expect([...loaded].filter(isSchema)).toEqual([]);
 });
 
 test("schema.ts and the rules editor load none of the scorer's files (#756)", () => {

@@ -24,7 +24,7 @@ import {
 } from "./words";
 
 // The Squad tab's Your eleven (its approved picture): the lineup being set for the next gameweek,
-// read-only, each player with his season points, the bench in order under it, and Set lineup to the
+// read-only, each player with his season points, the bench in order under it, and Set line-up to the
 // Tactics tab, where it is set.
 
 /** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):

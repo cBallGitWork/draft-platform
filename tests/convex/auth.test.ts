@@ -4,6 +4,7 @@ import { LINK_LIFETIME_S } from "../../convex/signIn/signInLimits";
 import { approvedEmail, inviteEmail } from "../../convex/joining/joiningEmails";
 import { SIGN_IN_SUBJECT_START, signInEmail } from "../../convex/signIn/signInEmail";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
+import { TEAM_1 } from "../support/convex/leagues.harness";
 
 // spec/02: a link lasts an hour. The words saying so live with each email and screen, so this
 // keeps them in step with the lifetime Convex Auth is given.
@@ -42,7 +43,7 @@ test("an invite resent a minute later has a different subject, so Gmail doesn't 
 
 test("a second approval into the same league has a different subject, so Gmail doesn't fold it into the first (#1052)", () => {
   vi.stubEnv("SITE_URL", "https://example.com");
-  const facts = { leagueName: "A league", teamName: "Team 1" };
+  const facts = { leagueName: "A league", teamName: TEAM_1 };
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = approvedEmail(facts, sentAt).subject;
   expect(first).toBe("You're in A league on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");

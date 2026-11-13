@@ -10,6 +10,7 @@ const NEEDS_WORDS: Record<ShapeNeed, string> = {
   wideOnBothFlanks: "wide players on both flanks",
   twoAtTheBack: "2 at the back",
   threeInARow: "3 or more in one row of midfield or attack",
+  twoUpFront: "2 or more in attack and attacking midfield",
   backThreeOrFour: "3 or 4 at the back",
   fiveAtTheBack: "5 at the back",
 };
@@ -26,5 +27,5 @@ export function switchedWords(switched: readonly Switched[]): string | null {
 export function pairRefusalWords(refusal: { side: Side; key: string; blockedBy?: ShapeNeed }, set: readonly Instruction[]): string {
   const name = set.find(({ key }) => key === refusal.key)?.name;
   if (refusal.blockedBy === undefined || name === undefined) return `"${refusal.key}" isn't one of this league's ${refusal.side} instructions.`;
-  return `${name} needs ${NEEDS_WORDS[refusal.blockedBy]}, which this lineup's formation doesn't have.`;
+  return `${name} needs ${NEEDS_WORDS[refusal.blockedBy]}, which this line-up's formation doesn't have.`;
 }

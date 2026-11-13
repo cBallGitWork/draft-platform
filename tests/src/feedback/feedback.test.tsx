@@ -24,11 +24,10 @@ import type { FeedbackList } from "../../../src/feedback/seam";
 import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendWords, sentWords } from "../../../src/feedback/words";
 import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { whenWords } from "../../../src/shared/words";
 import { descriptionOf } from "../../support/src/describedBy";
-import { admin, commissioner, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
+import { admin, commissioner, expectSentToLeagues, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 
 const SENT_AT = Date.parse("2026-10-24T20:00:00Z");
 const entry = (number: number, from: string, message: string): FeedbackList["entries"][number] => ({
@@ -132,9 +131,7 @@ describe("the admin's Feedback tab", () => {
   });
 
   it("#357 Done: anyone else is sent back to Your leagues", async () => {
-    const app = openApp(ADMIN_FEEDBACK_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    const app = await expectSentToLeagues(ADMIN_FEEDBACK_PATH, commissioner);
     expect(app.feedback.useFeedbackList).not.toHaveBeenCalled();
   });
 });

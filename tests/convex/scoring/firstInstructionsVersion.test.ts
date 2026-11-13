@@ -48,6 +48,26 @@ test("run again on a set that scores some of them, it adds only those it lacks, 
   expect(await addFirstInstructions()).toBeNull();
 });
 
+const redraw = () => t.mutation(internal.scoring.firstInstructionsVersion.redrawForSportmonks, {});
+
+test("Shoot on sight and Press high take their redrawn lines (#1452), every other instruction as the set holds it, with no letter, and only once", async () => {
+  await holdGameweeks(t, { next: 9 });
+  const old = (lines: number) => ({ lines: [{ stats: [{ stat: "goals_scored", weight: 1 }], every: 1, points: lines }] });
+  const held = FIRST_INSTRUCTION_SCORING.map((each) =>
+    each.instruction === "shootOnSight" || each.instruction === "pressHigh" || each.instruction === "getStuckIn" ? { ...each, ...old(2) } : each,
+  );
+  const before = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], instructions: held };
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: before, kind: "fix", at: TODAY - 1 }));
+
+  expect(await redraw()).toEqual({ name: "26_27.2", fromGameweek: 9 });
+  const firstOf = (key: string) => FIRST_INSTRUCTION_SCORING.find(({ instruction }) => instruction === key);
+  const after = held.map((each) => (each.instruction === "getStuckIn" ? each : firstOf(each.instruction)));
+  expect(await inGameweek(9)).toEqual({ ...before, instructions: after });
+  expect(await letters()).toBe(0);
+  expect(await redraw()).toBeNull();
+  expect(await versions()).toBe(2);
+});
+
 test("while a patch made without them waits to take effect, they aren't added, so it can't drop them", async () => {
   await holdGameweeks(t, { next: 9 });
   await patch(EDITED, TODAY + NOTICE);

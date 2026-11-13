@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { positionsNow } from "../positions/playerPositions";
+import { playerPositionsNow } from "../positions/playerPositions";
 import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/values";
@@ -16,7 +16,8 @@ import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
-import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
+import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN } from "./squadLimits";
+import { squadLimit, squadLimits } from "./squadRulesView";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
@@ -117,7 +118,7 @@ export const teamSquad = v.object({
   /** The Schedule view's gameweeks, from the one a lineup is being set for, at most
    *  SCHEDULE_GAMEWEEKS (squadLimits.ts): none once the season is over or with no rules. */
   scheduleGameweeks: v.array(v.number()),
-  /** The Rules view's rows: the squad against each of the league's squad limits (squadLimits.ts). */
+  /** The Rules view's rows: the squad against each of the league's squad limits (squadRulesView.ts). */
   limits: v.array(squadLimit),
 });
 export type TeamSquad = Infer<typeof teamSquad>;
@@ -178,7 +179,7 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const { positionsOf: positionsOfNow, minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const begun = await begunGameweeks(ctx, league);
     const lastGameweek = begun.at(-1) ?? null;
@@ -221,7 +222,11 @@ export const ofMyTeam = query({
       unheld,
       squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
-      limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
+      limits: squadLimits(
+        await Promise.all(rows.map(async (row) => ({ ...row, minimumAreas: await minimumAreasOf(row.code) }))),
+        unheld.length,
+        rules?.squad ?? null,
+      ),
     };
   },
 });

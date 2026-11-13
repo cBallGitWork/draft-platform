@@ -7,13 +7,17 @@ import { priceFor, type Priced } from "./priced";
 import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
 import type { WeighedStat } from "./values";
 import { groupedBy, keyedByCount } from "../shared/groupedBy";
+import { sortedJson } from "../shared/sortedJson";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
 // the patch notes list every version's changes; #356), worked out from the stored sets, never typed
 // by hand: one line a change, in the words the patch notes and the patch's Mail letter say, in one
 // place for Craig to change. A rule is compared position by position, so a value set by area that
-// becomes one for all names only the positions whose points moved.
+// becomes one for all names only the positions whose points moved. The notes and the letter are
+// the site's, read by every league, so they list every line; what one league plays changes is the
+// same lines between its played sets (rules/gameMode.ts's `playedSet`), roles and instructions
+// apart (#1582).
 
 /** What the notes and the letter say for a version with no change to list: only reordering the
  *  categories makes one. */
@@ -123,8 +127,8 @@ function ownStatChanges(before: readonly OwnStat[], after: readonly OwnStat[]): 
 const rulesByKey = (rules: readonly Rule[]) => keyedByCount(rules, (rule) => rule.stat);
 
 /** Every change from `before` to `after`, one line each: the rules in the new set's order, those
- *  no longer scored, whole points, own stats, roles, then team instructions. None when the two
- *  score alike. */
+ *  no longer scored, whole points, own stats, roles, team instructions, then the roles' runs. None
+ *  when the two score and run alike. */
 export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
   const beforeRules = rulesByKey(before.rules);
   const afterRules = rulesByKey(after.rules);
@@ -139,6 +143,23 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
   lines.push(...ownStatChanges(before.ownStats ?? [], after.ownStats ?? []));
   lines.push(...roleChanges(before, after));
   lines.push(...instructionChanges(before, after));
+  lines.push(...runChanges(before, after));
+  return lines;
+}
+
+/** One line for each role whose run on the pitch changed (spec/05 Runs, `S05.8`): that it has one
+ *  now, holds his place now, or that its run changes. */
+function runChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
+  const pathOf = (set: StoredScoringSet, role: string) => sortedJson((set.runs ?? []).find((each) => each.role === role)?.path ?? null);
+  const roles = new Set([...(before.runs ?? []), ...(after.runs ?? [])].map(({ role }) => role));
+  const lines: string[] = [];
+  for (const role of roles) {
+    const was = pathOf(before, role);
+    const now = pathOf(after, role);
+    if (was === now) continue;
+    const change = was === "null" ? "now makes a run on the pitch" : now === "null" ? "now holds his place on the pitch" : "his run on the pitch changes";
+    lines.push(`${roleName(role)}: ${change}`);
+  }
   return lines;
 }
 

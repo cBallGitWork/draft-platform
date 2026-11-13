@@ -7,6 +7,8 @@ import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { scoreOf } from "../football/matchScores";
 import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../scoring/breakdownShape";
+import { gameModeOf, gameModeShape } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
@@ -130,6 +132,8 @@ const playerCard = v.object({
   lastSeason: v.union(lastSeason, v.null()),
   /** His club's next matches, soonest first, at most NEXT_FIXTURES_SHOWN. */
   nextFixtures: v.array(match),
+  /** What the league plays by its latest rules, for the role parts (#1582). */
+  mode: gameModeShape,
 });
 export type PlayerCard = Infer<typeof playerCard>;
 
@@ -164,6 +168,7 @@ export const card = query({
       categories: logCategories(await siteScoringAt(ctx, now), pricedAt),
       lastSeason: await lastSeasonLine(ctx, playerCode, positions, now),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
+      mode: gameModeOf((await seasonRules(ctx, leagueId)).latest),
     };
   },
 });

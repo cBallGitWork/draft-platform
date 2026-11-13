@@ -11,7 +11,8 @@ import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
-import { previewClub, previewGameweek, previewTeamNames } from "../shared/preview";
+import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
+import { previewClub, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
@@ -182,6 +183,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
     autoTeam: false,
     lineup: { starters, bench },
     formation: null,
+    runs: [...FIRST_RUNS],
   };
 }
 
@@ -236,6 +238,7 @@ function matchupAt(minute: number, gameweek: number): Matchup {
       commentary: commentaryAt(minute),
       version: null,
     },
+    mode: previewGameMode,
   };
 }
 

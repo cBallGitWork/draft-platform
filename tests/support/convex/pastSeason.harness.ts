@@ -6,7 +6,7 @@
 
 import bootstrap from "../scripts/aiCarling/data/raw/fpl/wayback_bootstrap/bootstrap_sample.json";
 import log from "../scripts/aiCarling/playerMatchLog.sample.json";
-import { fplCodesByRoot, fplPositionsByCode, pastSeasonRows, type LogRow, type PersonFile } from "../../../convex/pastSeasons/pastSeasonRows";
+import { fplCodesByRoot, fplPositionsByCode, pastSeasonRows, type LogRow, type PastSeasonRow, type PersonFile } from "../../../convex/pastSeasons/pastSeasonRows";
 
 const people = import.meta.glob("../scripts/aiCarling/data/identity/persons/root/*.json", { eager: true, import: "default" });
 
@@ -15,5 +15,12 @@ export const SAMPLE_LOG: readonly LogRow[] = log;
 export const SAMPLE_BOOTSTRAP: unknown = bootstrap;
 export const SAMPLE_PERSONS: PersonFile[] = Object.entries(people).map(([path, json]) => ({ name: path.split("/").pop()!, json }));
 
-/** The sample's rows as the copy stores them. */
-export const sampleRows = () => pastSeasonRows(SAMPLE_SEASON, SAMPLE_LOG, fplCodesByRoot(SAMPLE_PERSONS), fplPositionsByCode(SAMPLE_BOOTSTRAP));
+type CodedRow = Extract<PastSeasonRow, { playerCode: number }>;
+
+/** The sample's rows as the copy stores them: every one under an FPL code, as the sample's log
+ *  names no one without one. */
+export const sampleRows = (): CodedRow[] =>
+  pastSeasonRows(SAMPLE_SEASON, SAMPLE_LOG, fplCodesByRoot(SAMPLE_PERSONS), fplPositionsByCode(SAMPLE_BOOTSTRAP)).map((row) => {
+    if (!("playerCode" in row)) throw new Error(`The sample's log names ${row.person}, who has no FPL code`);
+    return row;
+  });

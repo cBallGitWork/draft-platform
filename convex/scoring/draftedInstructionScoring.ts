@@ -1,5 +1,5 @@
-import type { FirstInstructionKey } from "../lineup/instructions";
-import type { SlotPosition } from "../lineup/pitch";
+import { UP_FRONT_AREAS, type FirstInstructionKey } from "../lineup/instructions";
+import { AREA_OF_POSITION, SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
 import {
   ACCURATE_CROSSES,
@@ -20,6 +20,8 @@ import {
   INTERCEPTIONS,
   POSSESSION_LOST,
   RED_CARDS,
+  SHOTS,
+  SHOTS_OFF_TARGET,
   TACKLES_WON,
   YELLOW_CARDS,
 } from "./statKeys";
@@ -41,8 +43,8 @@ type InstructionLine = InstructionScoring["lines"][number];
 const KEEPER_AND_DEFENDERS: SlotPosition[] = ["GK", "FB", "CB", "WB"];
 /** DEF: GK/DEF but the keeper. */
 const DEFENDERS: SlotPosition[] = ["FB", "CB", "WB"];
-/** ATT/MID: every slot GK/DEF isn't. */
-const ATTACKERS_AND_MIDFIELDERS: SlotPosition[] = ["CDM", "WM", "CM", "W", "CAM", "ST"];
+/** Up front (S05.42): the slots of the attack row and the attacking midfield row behind it. */
+const UP_FRONT: SlotPosition[] = SLOT_POSITIONS.filter((position) => UP_FRONT_AREAS.includes(AREA_OF_POSITION[position]));
 /** ATT: the forwards, the attack row's. */
 const ATTACKERS: SlotPosition[] = ["ST"];
 
@@ -70,20 +72,15 @@ export const FIRST_INSTRUCTION_SCORING: readonly InstructionScoring[] = [
   ),
   // +1 per accurate cross; −1 per 2 failed crosses.
   instruction("getItWide", line(1, 1, [ACCURATE_CROSSES]), line(2, -1, [FAILED_CROSSES])),
-  // Long-range goals +2, long shots on target +1; −1 per 2 long shots off target or blocked.
-  instruction(
-    "shootOnSight",
-    line(1, 2, ["att_obox_goal"]),
-    line(1, 1, ["att_obox_target"]),
-    line(2, -1, ["att_obox_miss", "att_obox_blocked"]),
-  ),
+  // +1 per shot, any range; −1 per 2 shots off target (Craig, 10 Nov 2026, S05.37; not refitted yet).
+  instruction("shootOnSight", line(1, 1, [SHOTS]), line(2, -1, [SHOTS_OFF_TARGET])),
   // Goals and assists +1; GK/DEF −1 per 2 goals conceded.
   instruction("gungHo", line(1, 1, [GOALS, ASSISTS]), line(2, -1, [GOALS_CONCEDED], { positions: KEEPER_AND_DEFENDERS })),
-  // ATT/MID +1 per possession won in the attacking third, +1 per 2 won in midfield; −1 per foul.
+  // Up front +1 per 2 tackles won and interceptions; −1 per foul (Craig, 10 and 12 Nov 2026,
+  // S05.37 and S05.42; not refitted yet).
   instruction(
     "pressHigh",
-    line(1, 1, ["poss_won_att_3rd"], { positions: ATTACKERS_AND_MIDFIELDERS }),
-    line(2, 1, ["poss_won_mid_3rd"], { positions: ATTACKERS_AND_MIDFIELDERS }),
+    line(2, 1, [TACKLES_WON, INTERCEPTIONS], { positions: UP_FRONT }),
     line(1, -1, [FOULS]),
   ),
   // DEF +1 per 2 offsides won and interceptions, up to 3; GK/DEF −1 per 2 goals conceded.

@@ -11,7 +11,7 @@ import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, REVERSED_BENCH, sent, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { autoTeamFailedLog } from "../../../convex/lineup/autoTeam";
@@ -186,6 +186,22 @@ describe("an illegal lineup", () => {
     await setAvailability(DOUBTFUL_MIDFIELDER, "out");
     await passWeekOn();
     expect(await startersIn(NEXT + 1)).toContain(DOUBTFUL_MIDFIELDER);
+  });
+
+  test("a slot no bench player fits is left empty, and the rest of the lineup stays (#1437, S09.2)", async () => {
+    // The bench holds no keeper, so no one can come on for the keeper released.
+    const error = silenceConsoleError();
+    const keeper = FOUR_FOUR_TWO.starters.find(({ area }) => area === "goalkeeper")!.playerCode;
+    await (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: sent(REVERSED_BENCH) });
+    await (await squadMoves(t, leagueId, COMMISSIONER)).release(keeper);
+    await setAvailability(OUT_MIDFIELDER, "out");
+    await passDeadline();
+
+    expect(error).not.toHaveBeenCalled();
+    // The out midfielder swaps with the first on her bench, as an auto-sub comes on; nothing is picked again.
+    const [firstOnBench] = REVERSED_BENCH.bench;
+    expect(await startersIn(NEXT)).toEqual(STARTERS.filter((code) => code !== keeper).map((code) => (code === OUT_MIDFIELDER ? firstOnBench : code)));
+    expect(await benchIn(NEXT)).toEqual(REVERSED_BENCH.bench.map((code) => (code === firstOnBench ? OUT_MIDFIELDER : code)));
   });
 
   test("a letter that fails after the lineup is set is logged as part-way, the new lineup kept, and the other teams carry on (#1760)", async () => {

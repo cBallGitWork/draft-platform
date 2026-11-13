@@ -29,6 +29,8 @@ interface RawElement {
   web_name: string;
   first_name: string;
   second_name: string;
+  /** "2001-09-05"; null or unsent for a man FPL has none for. */
+  birth_date?: string | null;
   /** The club's per-season id. */
   team: number;
   /** Why he may miss the next match, e.g. "Back injury - Unknown return date"; "" with nothing to say. */
@@ -132,6 +134,7 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[], now?: nu
       news: element.news,
       chanceOfPlaying: element.chance_of_playing_next_round,
       availability: availabilityOf(element),
+      ...(element.birth_date && { birthDate: element.birth_date }),
     })),
     (player) => player.code,
   );

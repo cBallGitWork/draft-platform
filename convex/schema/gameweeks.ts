@@ -41,6 +41,25 @@ export const gameweekTables = {
     firstKickoff: v.number(),
     recordedAt: v.number(),
   }).index("by_season_and_round", ["season", "round"]),
+  /** A match the admin has moved to another gameweek (#1417; spec/07 S07.9): the window rule
+   *  (`roundStarts`) yields to it until he clears it. One row a match, by FPL's fixture `code`,
+   *  written by gameweeks/matchMoves.ts. `unmoved` is the gameweek the window rule would give it
+   *  (null for a postponed match the feed puts in no round), kept by each football sync, so a
+   *  clear puts the match straight back there. */
+  matchMoves: defineTable({
+    fixtureCode: v.number(),
+    gameweek: v.number(),
+    unmoved: v.union(v.number(), v.null()),
+    movedAt: v.number(),
+  }).index("by_fixtureCode", ["fixtureCode"]),
+  /** Each move and clear the admin makes (#1417), seen only by him (spec/15: "His actions are
+   *  logged where only he sees them"). `to` is null for a clear. Never changed once written. */
+  matchMoveLog: defineTable({
+    fixtureCode: v.number(),
+    from: v.union(v.number(), v.null()),
+    to: v.union(v.number(), v.null()),
+    at: v.number(),
+  }).index("by_at", ["at"]),
   /** The one deadline alarm pending, site-wide (#1329): at most one row, written only by
    *  deadlineRecorder.ts's `setDeadlineAlarm`, so it cancels or keeps the alarm by its id rather
    *  than scanning every scheduled function Convex keeps. */

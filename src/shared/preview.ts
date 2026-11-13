@@ -4,6 +4,8 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { FIRST_RULES } from "../../convex/rules/firstRules";
+import { gameModeOf } from "../../convex/rules/gameMode";
 
 /** What each made-up person may do in a league, as the server's powersIn would send it. */
 export const managerPowers = { names: false, runs: false };
@@ -52,6 +54,9 @@ export const previewClub = (shortName: PreviewClubShortName) => {
 
 /** The Pro League's gameweek in every preview screen: begun, its matches under way. */
 export const previewGameweek = 9;
+
+/** What the Pro League plays in every preview screen: the first rules' mode, as every league's today (#1582). */
+export const previewGameMode = gameModeOf(FIRST_RULES);
 
 /** Made-up leagues, in the shape signIn/account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";

@@ -15,14 +15,18 @@ const DEFAULT_STAT_CORRECTION_WINDOW_MINUTES = 60;
 /** How many scouts each team has (spec/19, Scouts: "3 scouts, a number the site sets"), until set. */
 export const DEFAULT_SCOUTS_PER_TEAM = 3;
 
-/** Each setting until the admin sets it. League home's matchday mode (spec/12, League home) runs
- *  from this many hours before a matchday's first kickoff to this many after its last final
- *  whistle ("hours the site can tune"). */
+/** League home's matchday mode (spec/12, League home) runs from this many hours before a
+ *  matchday's first kickoff to this many after its last final whistle ("hours the site can
+ *  tune"), until set. */
+const DEFAULT_MATCHDAY_HOURS_BEFORE = 3;
+const DEFAULT_MATCHDAY_HOURS_AFTER = 2;
+
+/** Each setting until the admin sets it. */
 export const FIRST_PLATFORM_SETTINGS: PlatformSettings = {
   statCorrectionWindowMinutes: DEFAULT_STAT_CORRECTION_WINDOW_MINUTES,
   scoutsPerTeam: DEFAULT_SCOUTS_PER_TEAM,
-  matchdayHoursBefore: 3,
-  matchdayHoursAfter: 2,
+  matchdayHoursBefore: DEFAULT_MATCHDAY_HOURS_BEFORE,
+  matchdayHoursAfter: DEFAULT_MATCHDAY_HOURS_AFTER,
 };
 
 /** Why a setting is refused, as the admin is told it. */

@@ -10,9 +10,9 @@
 // The parquet is read by ai-carling's own Python (pyarrow) and printed as JSON, so this checkout
 // adds no parquet reader. Before anything is written the season's sizes are checked against the
 // counts it was planned on (docs/research/last-season-points.md for 2025/26; 380 matches for the
-// older ones). A player with no FPL code is skipped, his rows left out and his name printed (Craig,
-// 6 Nov 2026, on #842); every other row's player must have a position in the season's FPL list:
-// a miss stops the run, naming him. The season's old rows are cleared
+// older ones). A player with no FPL code keeps his played rows under his person id, and his name is
+// printed (Craig, 13 Nov 2026, on #1541; spec/14 S14.24); every other row's player must have a
+// position in the season's FPL list: a miss stops the run, naming him. The season's old rows are cleared
 // first, so a second run replaces the first. Then last season's points are re-priced under the
 // site's set as it stands (#1114; convex/pastSeasons/pastSeasonPoints.ts), a job that pages on by
 // itself.
@@ -21,7 +21,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { PAST_ROWS_ADDED_MOST } from "../convex/pastSeasons/pastSeasonLimits.ts";
-import { SOURCE_COLUMNS, fplCodesByRoot, fplPositionsByCode, pastSeasonRows, seasonCounts, withoutFplCode } from "../convex/pastSeasons/pastSeasonRows.ts";
+import { SOURCE_COLUMNS, fplCodesByRoot, fplPositionsByCode, pastSeasonRows, seasonCounts, withNoFplCode } from "../convex/pastSeasons/pastSeasonRows.ts";
 import { bin, captured, cli } from "./live-setup/tools.mjs";
 import { ranDirectly } from "./thisScript.mjs";
 
@@ -126,12 +126,12 @@ export async function loadPastSeason({ season, from, players, prod = false, cwd 
   checkCounts(season, counts, plan.counts);
   const codes = fplCodesByRoot(await personFiles(from));
   const positions = fplPositionsByCode(await readJson(join(from, list)));
-  const { kept, skipped } = withoutFplCode(log, codes);
-  if (skipped.length > 0) {
-    const names = skipped.map(({ root, played }) => `${root} (${played} played)`).join(", ");
-    print(`${season}: skipped ${skipped.length} with no FPL code, ${skipped.reduce((sum, { played }) => sum + played, 0)} played matches in all: ${names}`);
+  const noCode = withNoFplCode(log, codes);
+  if (noCode.length > 0) {
+    const names = noCode.map(({ root, played }) => `${root} (${played} played)`).join(", ");
+    print(`${season}: ${noCode.length} with no FPL code kept under their person id, ${noCode.reduce((sum, { played }) => sum + played, 0)} played matches in all: ${names}`);
   }
-  const rows = pastSeasonRows(season, kept, codes, positions);
+  const rows = pastSeasonRows(season, log, codes, positions);
 
   const convex = bin(cwd, "convex");
   const target = prod ? ["--prod"] : [];
@@ -149,7 +149,7 @@ export async function loadPastSeason({ season, from, players, prod = false, cwd 
     `${season}: ${counts.matches} matches, ${counts.playedRows} played rows, ${counts.played} who played and ${counts.named} named; ` +
       `${cleared} old rows cleared and ${added} added to ${prod ? "the live deployment" : "dev"}, last season's points re-priced`,
   );
-  return { counts, cleared, added, skipped };
+  return { counts, cleared, added, noCode };
 }
 
 if (ranDirectly(import.meta.url)) {

@@ -2,8 +2,9 @@
 
 Each role's run on the Tactics pitch (spec/05 Runs; #846, #962), researched role by role, replacing
 the rough first runs copied from FM's nearest role. Craig: "Yes, research them" (PM dashboard,
-1 Nov 2026). The runs and descriptions live with the roles in `convex/lineup/roles.ts`; this file
-is why each one goes where it does, for Craig to refine by patch.
+1 Nov 2026). The descriptions live with the roles in `convex/lineup/roles.ts`; the runs are held in
+the site's scoring set, first seeded from `convex/scoring/draftedRoleRuns.ts`, so an announced patch
+can change one (#886). This file is why each one goes where it does, for Craig to refine by patch.
 
 Superseded in part by the roles redrawn around Sportmonks' stats (#1445, spec/05 S05.35): the
 underlapping full-back, the wide-midfield touchline winger, the late runner, the wide forward and

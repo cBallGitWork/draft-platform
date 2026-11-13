@@ -12,8 +12,8 @@ import type { MoveRefusal } from "./swaps";
 export const TACTICS_TITLE = menuWords.tactics;
 export { BENCH_TITLE } from "../../shared/words";
 
-export const tacticsLoadingWords = "Loading your lineup…";
-export const seasonOverWords = "Every gameweek this league plays has begun, so there's no lineup left to set this season.";
+export const tacticsLoadingWords = "Loading your line-up…";
+export const seasonOverWords = "Every gameweek this league plays has begun, so there's no line-up left to set this season.";
 
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
@@ -63,8 +63,8 @@ export const quickPickWords = "Quick Pick";
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
 export const undoWords = "Undo";
 /** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
-export const savedWords = (at: number) => `Lineup saved ${timeOfDayWords(at)}`;
-export const saveFailedWords = failedWords("the lineup wasn't saved");
+export const savedWords = (at: number) => `Line-up saved ${timeOfDayWords(at)}`;
+export const saveFailedWords = failedWords("the line-up wasn't saved");
 export const planSaveFailedWords = failedWords("the preset wasn't saved");
 export const planDeleteFailedWords = failedWords("the preset wasn't deleted");
 /** A plan loaded with roles the league no longer offers in their slot (Craig, 6 Nov 2026, #992). */
@@ -144,10 +144,10 @@ export const playerCardLabel = (name: string) => `${name}'s player card`;
  *  read on hover and by screen readers. */
 export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;
 export const outOfPositionMarkLabel = (position: string) => `Out of position: no longer plays ${position}`;
-export const LINEUP_CHECK_TITLE = "Lineup check";
+export const LINEUP_CHECK_TITLE = "Line-up check";
 /** A line of the lineup check for each starter out of position (#23; Craig, 6 Nov 2026). */
 export const outOfPositionLineWords = (position: string) => `: out of position at ${position}`;
-export const lineupCheckPlaceholder = "Lineup check: who is doubtful, booked, injured or suspended shows here once the status chips' data is settled";
+export const lineupCheckPlaceholder = "Line-up check: who is doubtful, booked, injured or suspended shows here once the status chips' data is settled";
 export const opponentTitle = (gameweek: number) => `${gameweekShort(gameweek)} opponent`;
 
 /** Who joined the squad since the lineup was saved. */

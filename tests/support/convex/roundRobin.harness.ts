@@ -3,8 +3,9 @@
 import { drawFixtures, LEAGUE_AVERAGE, type DrawRules, type GameweekFixtures } from "../../../convex/table/roundRobin";
 import { usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "./footballRows.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
-export const teamsOf = (count: number) => Array.from({ length: count }, (_, index) => `Team ${index + 1}`);
+export const teamsOf = (count: number) => Array.from({ length: count }, (_, index) => teamNumbered(index + 1));
 export const SEED = "league-a";
 export const pairKey = (one: string, other: string) => [one, other].toSorted().join(" v ");
 export type DrawOptions = DrawRules & { seed: string };

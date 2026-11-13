@@ -98,8 +98,8 @@ export const thresholdStepTables = {
     steps: v.array(thresholdStep),
   }).index("by_fixtureCode", ["fixtureCode"]),
   /** One row a step, as stored before #871: neither read nor written. Kept only until the rows the
-   *  production deployment still holds are cleared, as a schema without it can't deploy over them
-   *  (#1755). */
+   *  production deployment still holds are cleared (stats/oldThresholdStepsClear.ts), as a schema
+   *  without it can't deploy over them (#1755). */
   thresholdSteps: defineTable({
     fixtureCode: v.number(),
     playerCode: v.number(),

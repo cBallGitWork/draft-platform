@@ -34,6 +34,7 @@ export function useLiveAdmin(): AdminSeam {
   const approveClub = useMutation(api.positions.playerPositions.approveClub);
   const setPosition = useMutation(api.positions.playerPositions.setPosition);
   const removePosition = useMutation(api.positions.playerPositions.removePosition);
+  const setUnplacedArea = useMutation(api.positions.unplacedAreas.setUnplacedArea);
   const setApproveMode = useMutation(api.positions.positionSettings.setApproveMode);
   const setChangeThresholds = useMutation(api.positions.positionSettings.setChangeThresholds);
   const setClubColours = useMutation(api.football.clubKits.set);
@@ -51,12 +52,13 @@ export function useLiveAdmin(): AdminSeam {
       approveClub: (clubCode) => refusalOf(() => approveClub({ clubCode }), "Approving a club", changeFailedWords),
       setPosition: (code, position) => refusalOf(() => setPosition({ code, position }), "Setting a position", changeFailedWords),
       removePosition: (code, position) => refusalOf(() => removePosition({ code, position }), "Removing a position", changeFailedWords),
+      setUnplacedArea: (code, area) => refusalOf(() => setUnplacedArea({ code, area }), "Setting a player's area", changeFailedWords),
       setApproveMode: (approveMode) => refusalOf(() => setApproveMode({ approveMode }), "Changing the approve mode", changeFailedWords),
       setChangeThresholds: (thresholds) => refusalOf(() => setChangeThresholds(thresholds), "Changing the thresholds", changeFailedWords),
       setClubColours: (code, colours) => refusalOf(() => setClubColours({ code, ...colours }), "Setting a club's colours", changeFailedWords),
       setAvailability: (code, availability) => refusalOf(() => setAvailability({ code, availability }), "Setting a player's availability", changeFailedWords),
       savePlatformSettings: (settings) => refusalOf(() => savePlatformSettings(settings), "Saving the site's settings", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours, setAvailability, savePlatformSettings],
+    [approvePlayer, approveClub, setPosition, removePosition, setUnplacedArea, setApproveMode, setChangeThresholds, setClubColours, setAvailability, savePlatformSettings],
   );
 }

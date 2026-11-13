@@ -53,6 +53,7 @@ export function fakeAdmin({
     approveClub: vi.fn<AdminSeam["approveClub"]>(async () => null),
     setPosition: vi.fn<AdminSeam["setPosition"]>(async () => null),
     removePosition: vi.fn<AdminSeam["removePosition"]>(async () => null),
+    setUnplacedArea: vi.fn<AdminSeam["setUnplacedArea"]>(async () => null),
     setApproveMode: vi.fn<AdminSeam["setApproveMode"]>(async () => null),
     setChangeThresholds: vi.fn<AdminSeam["setChangeThresholds"]>(async () => null),
     setClubColours: vi.fn<AdminSeam["setClubColours"]>(async () => null),

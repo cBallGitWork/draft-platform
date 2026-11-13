@@ -7,7 +7,7 @@ import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
@@ -46,10 +46,10 @@ describe("an offer", () => {
     }
     expect(await w.mine(CAT)).toEqual([]);
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: "Team 1 offered Team 2 a trade",
-      body: `${ANN} offered Team 2 a trade for Team 1: Team 1 give ${nameOf(ANNS_FIRST_DROP)}; Team 2 give ${nameOf(SAKA)} and ${nameOf(PALMER)}. The note: "Fancy a swap?" Team 2 can accept, reject or counter it; unanswered, it closes at the next deadline.`,
+      subject: `${TEAM_1} offered ${TEAM_2} a trade`,
+      body: `${ANN} offered ${TEAM_2} a trade for ${TEAM_1}: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)} and ${nameOf(PALMER)}. The note: "Fancy a swap?" ${TEAM_2} can accept, reject or counter it; unanswered, it closes at the next deadline.`,
     });
-    expect(await w.subjectsTo(ANN)).toContain("Team 1 offered Team 2 a trade");
+    expect(await w.subjectsTo(ANN)).toContain(`${TEAM_1} offered ${TEAM_2} a trade`);
   });
 
   test("can give or get nobody on one side", async () => {
@@ -140,8 +140,8 @@ describe("answering an offer", () => {
     expect(await w.offers()).toEqual([]);
     for (const email of [ANN, BOB]) {
       expect(await w.lettersTo(email)).toContainEqual({
-        subject: "The trade between Team 1 and Team 2 is closed",
-        body: `Team 2 rejected it. The offer was: Team 1 give ${nameOf(ANNS_FIRST_DROP)}; Team 2 give ${nameOf(SAKA)}.`,
+        subject: `The trade between ${TEAM_1} and ${TEAM_2} is closed`,
+        body: `${TEAM_2} rejected it. The offer was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
       });
     }
   });
@@ -169,8 +169,8 @@ describe("answering an offer", () => {
 
     expect(await w.offers()).toEqual([expect.objectContaining({ _id: countered.offerId, fromTeamId: w.bobsTeam, toTeamId: w.annsTeam, gives: [SAKA], gets: [ANNS_FIRST_DROP] })]);
     expect(await w.lettersTo(ANN)).toContainEqual({
-      subject: "Team 2 offered Team 1 a trade",
-      body: `${BOB} countered Team 1's offer with this one for Team 2, which closes the old offer: Team 2 give ${nameOf(SAKA)}; Team 1 give ${nameOf(ANNS_FIRST_DROP)}. Team 1 can accept, reject or counter it; unanswered, it closes at the next deadline.`,
+      subject: `${TEAM_2} offered ${TEAM_1} a trade`,
+      body: `${BOB} countered ${TEAM_1}'s offer with this one for ${TEAM_2}, which closes the old offer: ${TEAM_2} give ${nameOf(SAKA)}; ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}. ${TEAM_1} can accept, reject or counter it; unanswered, it closes at the next deadline.`, // one-home-ok: pins the whole letter a manager reads
     });
     await expectRefused(w.accept(BOB, offerId), offerRefusals.closed);
   });
@@ -181,7 +181,7 @@ describe("answering an offer", () => {
     await w.withdraw(ANN, offerId);
 
     expect(await w.offers()).toEqual([]);
-    expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Team 1 withdrew it\./) }));
+    expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_1} withdrew it\\.`)) }));
 
     const accepted = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await w.accept(BOB, accepted.offerId);

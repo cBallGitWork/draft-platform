@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { squadFullRefusal } from "../../../convex/trades/tradeSquads";
-import { actingAs, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, eventsIn, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
@@ -41,8 +41,8 @@ describe("a review's end (#1325)", () => {
     expect((await w.offers()).map(({ _id }) => _id)).not.toContain(second.offerId);
     expect(await squadOf(w.catsTeam)).toContain(RICE);
     const letter = {
-      subject: "The trade between Team 3 and Team 1 didn't go through",
-      body: `Team 1 would hold more than ${MOST_IN_SQUAD} players, so nobody moves. The trade was: Team 3 give ${nameOf(RICE)}; Team 1 give nobody.`,
+      subject: `The trade between ${TEAM_3} and ${TEAM_1} didn't go through`,
+      body: `${TEAM_1} would hold more than ${MOST_IN_SQUAD} players, so nobody moves. The trade was: ${TEAM_3} give ${nameOf(RICE)}; ${TEAM_1} give nobody.`,
     };
     expect(await w.lettersTo(CAT)).toContainEqual(letter);
     expect(await w.lettersTo(ANN)).toContainEqual(letter);
@@ -70,8 +70,8 @@ describe("a review's end (#1325)", () => {
     expect(await squadOf(w.annsTeam)).toContain(ANNS_FIRST_DROP);
     expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerMoved")).toEqual([]);
     const letter = {
-      subject: "The trade between Team 1 and Team 2 didn't go through",
-      body: `It couldn't be made, so nobody moves. The trade was: Team 1 give ${nameOf(ANNS_FIRST_DROP)}; Team 2 give ${nameOf(SAKA)}.`,
+      subject: `The trade between ${TEAM_1} and ${TEAM_2} didn't go through`,
+      body: `It couldn't be made, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
     };
     expect(await w.lettersTo(ANN)).toContainEqual(letter);
     expect(await w.lettersTo(BOB)).toContainEqual(letter);

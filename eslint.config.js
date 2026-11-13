@@ -1,7 +1,7 @@
 // The lint step (#154): React's two hook rules, so a hand-written dependency list is checked, and
 // a few bans that keep a value with one owner from being typed again (design values in
-// src/styles.css, those #1810 names, and a named helper written out by hand, #1806); no style rule
-// sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
+// src/styles.css, those #1810 names, a team's starting name in Convex tests, and a named helper
+// written out by hand, #1806); no style rule sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
 import tsParser from "@typescript-eslint/parser";
 import reactHooks from "eslint-plugin-react-hooks";
 
@@ -9,6 +9,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 const REACT_FILES = ["src/**/*.{ts,tsx}", "tests/src/**/*.{ts,tsx}", "tests/support/src/**/*.{ts,tsx}"];
 const SRC_FILES = ["src/**/*.{ts,tsx}"];
 const CONVEX_FILES = ["convex/**/*.ts"];
+const CONVEX_TEST_FILES = ["tests/convex/**/*.ts", "tests/support/convex/**/*.ts"];
 
 /** A ban on a string: as a plain literal or as a piece of a template literal. */
 const stringBan = (pattern, message) => [
@@ -41,13 +42,22 @@ const BLANK_NUMBER_BAN = [
   { selector: "Identifier[name='NaN']", message: "NaN typed by hand: use BLANK_NUMBER or blankOrOff from src/rules/blank.ts." },
 ];
 
-// A smoke test's preview session in its address; a test's own title may name it.
-const PREVIEW_MESSAGE = "?preview= typed by hand: use previewUrl(path, session) from tests/support/smoke/previewUrl.ts.";
-const TEST_TITLE = "CallExpression[callee.name='test'] > ";
-const PREVIEW_BAN = [
-  { selector: `Literal[value=/preview=/]:not(${TEST_TITLE}Literal)`, message: PREVIEW_MESSAGE },
-  { selector: `TemplateElement[value.raw=/preview=/]:not(${TEST_TITLE}TemplateLiteral > TemplateElement)`, message: PREVIEW_MESSAGE },
+/** A stringBan in tests, where a test's or a describe's own title may name the string. */
+const TEST_TITLE = "CallExpression[callee.name=/^(test|it|describe)$/] > ";
+const testStringBan = (pattern, message) => [
+  { selector: `Literal[value=${pattern}]:not(${TEST_TITLE}Literal)`, message },
+  { selector: `TemplateElement[value.raw=${pattern}]:not(${TEST_TITLE}TemplateLiteral > TemplateElement)`, message },
 ];
+
+// A smoke test's preview session in its address.
+const PREVIEW_BAN = testStringBan("/preview=/", "?preview= typed by hand: use previewUrl(path, session) from tests/support/smoke/previewUrl.ts.");
+
+// A new team's starting name ("Team 3", or `Team ${n}`) in a Convex test: convex/leagues/teams.ts
+// owns it. tests/src is left out (#1810).
+const TEAM_NUMBERED_BAN = testStringBan(
+  "/Team [0-9]|Team $/",
+  "A team's starting name typed by hand: use teamNumbered(n), or TEAM_1 to TEAM_4 from tests/support/convex/leagues.harness.ts.",
+);
 
 // A rule with a named helper, written out by hand (#1806): each entry matches the hand-written
 // form, and its message names the helper and its home, so the fix is one import. `src` says the
@@ -160,4 +170,5 @@ export default [
   { files: ["convex/shared/moments.ts"], rules: bans(helperBans(false)) },
   ...homeBlocks(false, LOCALE_BAN),
   { files: ["tests/smoke/**/*.ts"], languageOptions: { parser: tsParser }, rules: bans(PREVIEW_BAN) },
+  { files: CONVEX_TEST_FILES, languageOptions: { parser: tsParser }, rules: bans(TEAM_NUMBERED_BAN) },
 ];

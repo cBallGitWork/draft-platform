@@ -11,6 +11,7 @@ import { openTactics } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
+  HAVERTZS_CELL,
   RICE,
   SALIBA,
   SAVED,
@@ -37,7 +38,6 @@ import {
 } from "../../../support/src/tacticsScreen.harness";
 
 const KEEPERS_CELL = { area: "goalkeeper", lane: "centre" } as const;
-const HAVERTZS_CELL = { area: "attack", lane: "centre" } as const;
 const nameOf = (playerCode: number) => SQUAD.find((each) => each.playerCode === playerCode)!.name;
 /** The line under the toolbar a refused drop is said in. */
 const said = () => screen.getByRole("alert").textContent;

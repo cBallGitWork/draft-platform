@@ -1,0 +1,58 @@
+{
+  "league": { "id": 8, "sport_id": 1, "country_id": 462, "name": "Premier League", "active": true, "short_code": "UK PL", "type": "league", "sub_type": "domestic", "currentseason": { "id": 25583, "sport_id": 1, "league_id": 8, "name": "2026/2027", "finished": false, "is_current": true } },
+  "teams": [
+    {
+      "id": 19, "sport_id": 1, "country_id": 462, "venue_id": 204, "gender": "male", "name": "Arsenal", "short_code": "ARS", "founded": 1886, "type": "domestic",
+      "players": [
+        { "id": 11, "transfer_id": null, "player_id": 32982, "team_id": 19, "position_id": 26, "jersey_number": 7, "captain": false, "player": { "id": 32982, "name": "Bukayo Saka", "common_name": "B. Saka", "display_name": "Bukayo Saka", "firstname": "Bukayo", "lastname": "Saka", "date_of_birth": "2001-09-05" } },
+        { "id": 12, "transfer_id": null, "player_id": 95694, "team_id": 19, "position_id": 26, "jersey_number": 8, "captain": true, "player": { "id": 95694, "name": "Martin Ødegaard", "common_name": "M. Ødegaard", "display_name": "Martin Ødegaard", "firstname": "Martin", "lastname": "Ødegaard", "date_of_birth": "1998-12-17" } },
+        { "id": 13, "transfer_id": null, "player_id": 37601, "team_id": 19, "position_id": 24, "jersey_number": 22, "captain": false, "player": { "id": 37601, "name": "David Raya Martín", "common_name": "D. Raya", "display_name": "David Raya", "firstname": "David", "lastname": "Raya Martín", "date_of_birth": "1995-09-15" } },
+        { "id": 14, "transfer_id": null, "player_id": 172104, "team_id": 19, "position_id": 25, "jersey_number": 2, "captain": false, "player": { "id": 172104, "name": "William Alain André Gabriel Saliba", "common_name": "W. Saliba", "display_name": "William Saliba", "firstname": "William Alain André Gabriel", "lastname": "Saliba", "date_of_birth": "2001-03-24" } },
+        { "id": 15, "transfer_id": null, "player_id": 31055, "team_id": 19, "position_id": 27, "jersey_number": 9, "captain": false, "player": { "id": 31055, "name": "Gabriel Fernando de Jesus", "common_name": "Gabriel Jesus", "display_name": "Gabriel Jesus", "firstname": "Gabriel Fernando", "lastname": "de Jesus", "date_of_birth": "1997-04-03" } },
+        { "id": 16, "transfer_id": null, "player_id": 90000001, "team_id": 19, "position_id": 24, "jersey_number": 81, "captain": false, "player": { "id": 90000001, "name": "Tobias Wrenfield", "common_name": "T. Wrenfield", "display_name": "Tobias Wrenfield", "firstname": "Tobias", "lastname": "Wrenfield", "date_of_birth": "2009-02-11" } }
+      ]
+    },
+    {
+      "id": 9, "sport_id": 1, "country_id": 462, "venue_id": 151, "gender": "male", "name": "Manchester City", "short_code": "MCI", "founded": 1880, "type": "domestic",
+      "players": [
+        { "id": 21, "transfer_id": null, "player_id": 154421, "team_id": 9, "position_id": 27, "jersey_number": 9, "captain": false, "player": { "id": 154421, "name": "Erling Braut Haaland", "common_name": "E. Haaland", "display_name": "Erling Haaland", "firstname": "Erling Braut", "lastname": "Haaland", "date_of_birth": "2000-07-21" } },
+        { "id": 22, "transfer_id": null, "player_id": 90000002, "team_id": 9, "position_id": 26, "jersey_number": 74, "captain": false, "player": { "id": 90000002, "name": "Marcus Oyelaran", "common_name": "M. Oyelaran", "display_name": "Marcus Oyelaran", "firstname": "Marcus", "lastname": "Oyelaran", "date_of_birth": null } }
+      ]
+    },
+    {
+      "id": 11, "sport_id": 1, "country_id": 462, "venue_id": 12, "gender": "male", "name": "Fulham", "short_code": "FUL", "founded": 1879, "type": "domestic",
+      "players": [
+        { "id": 31, "transfer_id": null, "player_id": 172150, "team_id": 11, "position_id": 25, "jersey_number": 30, "captain": false, "player": { "id": 172150, "name": "Ryan Sessegnon", "common_name": "R. Sessegnon", "display_name": "Ryan Sessegnon", "firstname": "Ryan", "lastname": "Sessegnon", "date_of_birth": "2000-05-18" } }
+      ]
+    },
+    { "id": 1843, "sport_id": 1, "country_id": 462, "venue_id": 230, "gender": "male", "name": "Coventry City", "short_code": "COV", "founded": 1883, "type": "domestic", "players": [] },
+    { "id": 6, "sport_id": 1, "country_id": 462, "venue_id": 214, "gender": "male", "name": "Tottenham Hotspur", "short_code": "TOT", "founded": 1882, "type": "domestic", "players": [] },
+    { "id": 116, "sport_id": 1, "country_id": 462, "venue_id": 200, "gender": "male", "name": "Ipswich Town", "short_code": "IPS", "founded": 1878, "type": "domestic", "players": [] },
+    { "id": 63, "sport_id": 1, "country_id": 462, "venue_id": 199, "gender": "male", "name": "Nottingham Forest", "short_code": "NFO", "founded": 1865, "type": "domestic", "players": [] }
+  ],
+  "schedule": [
+    {
+      "id": 77476001,
+      "rounds": [
+        {
+          "id": 372001, "sport_id": 1, "league_id": 8, "season_id": 25583, "stage_id": 77476001, "name": "1", "finished": true, "is_current": false, "starting_at": "2026-08-21", "ending_at": "2026-08-24",
+          "fixtures": [
+            { "id": 19400001, "round_id": 372001, "state_id": 5, "name": "Arsenal vs Coventry City", "starting_at": "2026-08-21 19:00:00", "starting_at_timestamp": 1787338800, "participants": [{ "id": 19, "meta": { "location": "home" } }, { "id": 1843, "meta": { "location": "away" } }] }
+          ]
+        },
+        {
+          "id": 372007, "sport_id": 1, "league_id": 8, "season_id": 25583, "stage_id": 77476001, "name": "7", "finished": false, "is_current": true, "starting_at": "2026-10-17", "ending_at": "2026-10-19",
+          "fixtures": [
+            { "id": 19400070, "round_id": 372007, "state_id": 5, "name": "Tottenham Hotspur vs Coventry City", "starting_at": "2026-10-19 19:00:00", "starting_at_timestamp": 1792436400, "participants": [{ "id": 6, "meta": { "location": "home" } }, { "id": 1843, "meta": { "location": "away" } }] }
+          ]
+        },
+        {
+          "id": 372008, "sport_id": 1, "league_id": 8, "season_id": 25583, "stage_id": 77476001, "name": "8", "finished": false, "is_current": false, "starting_at": "2026-10-23", "ending_at": "2026-10-26",
+          "fixtures": [
+            { "id": 19400078, "round_id": 372008, "state_id": 1, "name": "Ipswich Town vs Nottingham Forest", "starting_at": "2026-10-23 19:00:00", "starting_at_timestamp": 1792782000, "participants": [{ "id": 116, "meta": { "location": "home" } }, { "id": 63, "meta": { "location": "away" } }] }
+          ]
+        }
+      ]
+    }
+  ]
+}

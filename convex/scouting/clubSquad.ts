@@ -5,7 +5,7 @@ import { howPositionsCount } from "../positions/positionSettings";
 import { positionRank, type Position } from "../positions/positionTables";
 import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
-import { findClubByCode } from "../shared/players";
+import { currentPlayersAt, findClubByCode } from "../shared/players";
 import { MINUTES_STAT, STARTS_STAT } from "../stats/matchRecords";
 import { newestSeasonWithTotals } from "../stats/seasonStats";
 import { lastGameweeksTotals, periodPointsIn } from "./period";
@@ -20,7 +20,8 @@ import { shownSeasonPoints } from "./shownSeasonPoints";
 // finished Premier League gameweeks, the same five for every row, as Scouting's last 4 or 6 are
 // (period.ts), and his season's starts and minutes. Before the season's first match, the points,
 // the five gameweeks and the starts and minutes are all last season's, so a row agrees with itself
-// (Craig, 12 Nov 2026). The doubt chip is the screen's greyed placeholder, so nothing here.
+// (Craig, 12 Nov 2026). The doubt chip is the screen's greyed placeholder where FPL holds a doubt
+// about him, as My Team's is, so a row carries FPL's chance he plays.
 
 /** How many finished gameweeks a row shows his points in (`S18.8`). */
 export const CLUB_FORM_GAMEWEEKS = 5;
@@ -64,6 +65,8 @@ const squadPlayer = v.object({
   lastGameweeks: v.array(v.union(v.number(), v.null())),
   starts: v.number(),
   minutes: v.number(),
+  /** FPL's chance he plays in the next round, in percent; null while it has no doubt about him. */
+  chanceOfPlaying: v.union(v.number(), v.null()),
 });
 export type SquadPlayer = Infer<typeof squadPlayer>;
 
@@ -93,6 +96,7 @@ export const ofClub = query({
     const club = await findClubByCode(ctx, clubCode);
     if (club === null || club.droppedAt !== undefined) return null;
     const players = await currentScoutingPlayersAt(ctx, clubCode);
+    const chanceOf = new Map((await currentPlayersAt(ctx, clubCode)).map((player) => [player.code, player.chanceOfPlaying ?? null]));
     const codes = players.map(({ code }) => code);
     const ownerOf = await ownersIn(ctx, leagueId);
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
@@ -119,6 +123,7 @@ export const ofClub = query({
         lastGameweeks: pointsIn.map((of) => of(player.code, positions)),
         starts: totals[STARTS_STAT] ?? 0,
         minutes: totals[MINUTES_STAT] ?? 0,
+        chanceOfPlaying: chanceOf.get(player.code) ?? null,
       };
     };
     const appearancesOf = new Map(players.map((player) => [player.code, player.totals?.season === season ? (player.totals.stats.appearances ?? 0) : 0]));

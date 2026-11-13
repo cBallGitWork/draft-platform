@@ -75,7 +75,7 @@ describe("the glance", () => {
     const home = (await read(managers[WHOLE_TABLE_MOST - 1]))!;
 
     expect(home.table.map((row) => row.position)).toEqual(Array.from({ length: WHOLE_TABLE_MOST }, (_, i) => i + 1));
-    expect(home.table.filter((row) => row.mine).map((row) => row.teamName)).toEqual([`Team ${WHOLE_TABLE_MOST}`]);
+    expect(home.table.filter((row) => row.mine).map((row) => row.teamName)).toEqual([teamNumbered(WHOLE_TABLE_MOST)]);
     expect(home.table.every((row) => row.form.length === 0 && row.played === 0)).toBe(true);
   });
 
@@ -86,7 +86,7 @@ describe("the glance", () => {
 
     expect(home.teams).toBe(WHOLE_TABLE_MOST + 2);
     expect(home.table.map((row) => row.position)).toEqual([1, 2, 3, 4, 5, WHOLE_TABLE_MOST + 2]);
-    expect(home.table.at(-1)).toMatchObject({ mine: true, teamName: `Team ${WHOLE_TABLE_MOST + 2}` });
+    expect(home.table.at(-1)).toMatchObject({ mine: true, teamName: teamNumbered(WHOLE_TABLE_MOST + 2) });
   });
 
   test(`past ${WHOLE_TABLE_MOST} teams, a commissioner running no team sees the top ${TOP_ROWS} alone`, async () => {

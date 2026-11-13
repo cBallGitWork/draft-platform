@@ -5,7 +5,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, TEAM_2 } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer, insertSetPositions } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
@@ -145,7 +145,7 @@ describe("each change files one letter to the league", () => {
   test("Ann, managing a team, gets the letter", async () => {
     await (await as(COMMISSIONER)).assign(SAKA, teams[1]);
     const letters = await (await actingAs(t, ANN)).query(api.mail.mail.letters, {});
-    expect(letters[0]).toMatchObject({ subject: "Saka joined Team 2" });
+    expect(letters[0]).toMatchObject({ subject: `Saka joined ${TEAM_2}` });
   });
 });
 
@@ -219,6 +219,16 @@ describe("squad limits warn, never block", () => {
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
 
     expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([{ kind: "underAreaMinimum", area: "midfield", players: 0, minimum: 1 }]);
+  });
+
+  test("#911: a player no feed has placed fills the area the admin set, and none with no area set", async () => {
+    await setSquadRules({ size: null, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 1 }, maxPerClub: null });
+    await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
+    const short = [{ kind: "underAreaMinimum", area: "defence", players: 0, minimum: 1 }];
+    expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual(short);
+
+    await (await actingAs(t, ADMIN)).mutation(api.positions.unplacedAreas.setUnplacedArea, { code: SAKA, area: "defence" });
+    expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([]);
   });
 
   test("a league with no squad limits warns of nothing", async () => {

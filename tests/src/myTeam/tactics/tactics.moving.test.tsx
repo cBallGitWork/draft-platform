@@ -26,6 +26,7 @@ import {
   RAYA,
   RICE,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SQUAD,
   STARTERS,
@@ -52,8 +53,6 @@ import {
 import { OPEN_PICKED, openTactics } from "../../../support/src/tactics.harness";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { starsLabel } from "../../../../src/ui/StarRating";
-
-const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
 describe("moving a player", () => {
   it("picked up from the bench, lights only the starters he can swap with, and swaps with one", async () => {

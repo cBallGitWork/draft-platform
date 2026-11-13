@@ -50,7 +50,7 @@ export function SidePitch({ side, picking, runsShown }: { side: TeamSide; pickin
       <div style={PITCH_ROOM_STYLE} className="pitch-room-full p-2">
         <div className="pitch relative mx-auto">
           <PitchLines rows={rows} />
-          <RoleRuns starters={starters} rows={rows} tapped={picking.picked} switchedOn={runsShown} />
+          <RoleRuns starters={starters} runs={side.runs} rows={rows} tapped={picking.picked} switchedOn={runsShown} />
           <ul aria-label={sidePitchLabel(side.teamName)} style={cellGridOf(rows)} className="absolute inset-0 grid">
             {ROWS_DRAWN.flatMap((area) =>
               LANES.map((lane) => {

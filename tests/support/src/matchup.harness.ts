@@ -6,11 +6,14 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import { centreSlotOf } from "../../../src/matchup/preview";
+import { previewGameMode } from "../../../src/shared/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
 import { serverStore } from "./serverStore";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 /** Each tile of a team's lineup on screen, as it is read out: the pitch's top to bottom, then the
  *  bench's in order. */
@@ -115,6 +118,7 @@ export const teamSide = (
   autoTeam: false,
   lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...(slot.autoSub?.kind === "on" ? centreSlotOf(slot.area) : {}), ...slot })) },
   formation: null,
+  runs: [...FIRST_RUNS],
 });
 
 type Game = HeadToHead["game"];
@@ -144,16 +148,17 @@ export const headToHead = (
     gameweeks = [5, 6, 7],
     deadline = null as number | null,
     gameNumber = 1,
-    games = [{ kind: "team", teamName: "Team 2" }] as HeadToHead["games"],
+    games = [{ kind: "team", teamName: THEIR_TEAM_NAME }] as HeadToHead["games"],
   } = {},
 ): HeadToHead => ({
   kind: "headToHead",
-  teamId: "team-Team 1" as Id<"teams">,
-  teamName: "Team 1",
+  teamId: `team-${MY_TEAM_NAME}` as Id<"teams">,
+  teamName: MY_TEAM_NAME,
   gameweeks,
   gameweek,
   deadline,
   gameNumber,
   games,
   game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
+  mode: previewGameMode,
 });

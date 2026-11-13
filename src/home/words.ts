@@ -18,7 +18,7 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 /** The deadline strip's boxes (docs/design/approved/home/, Placeholders: which boxes, in which
  *  states, is still to grill). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your line-up", "Claims close", "Table"] as const;
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
 export { MAIL_TITLE } from "../shared/words";
@@ -29,7 +29,7 @@ export const needsYouToComeWords = "Which letters need you is still to come.";
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";
 export const openMatchupLink = "Open the matchup";
-export const setLineupLink = "Set lineup";
+export const setLineupLink = "Set line-up";
 export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} pts`;
 export const scoreToComeLabel = toComeLabel("The score");
 

@@ -81,6 +81,8 @@ beforeEach(async () => {
       "football/plPointsOverrides:set": () => caller.mutation(api.football.plPointsOverrides.set, { clubCode: SOME_CODE, points: null }),
       "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
       "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
+      "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
+      "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
       "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, now }),
       "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),
@@ -120,6 +122,7 @@ beforeEach(async () => {
         caller.mutation(api.positions.playerPositions.removePosition, { code: SOME_CODE, position: SOME_POSITION }),
       "positions/playerPositions:setPosition": () =>
         caller.mutation(api.positions.playerPositions.setPosition, { code: SOME_CODE, position: SOME_POSITION }),
+      "positions/unplacedAreas:setUnplacedArea": () => caller.mutation(api.positions.unplacedAreas.setUnplacedArea, { code: SOME_CODE, area: "defence" }),
       "positions/positionSettings:setApproveMode": () => caller.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "proposals" }),
       "positions/positionSettings:setChangeThresholds": () =>
         caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),

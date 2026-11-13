@@ -16,6 +16,7 @@ import { ATTACK, BELLOUMI, GELHARDT, KEEPER, LEFT_CENTRE_BACK, MIDFIELD, team } 
 // keeper and defence slots (Craig, 9 Nov 2026, on #990).
 
 const WING_BACK = { area: "defensiveMidfield", lane: "left" } as const;
+const WINGER = { area: "attackingMidfield", lane: "left" } as const;
 
 const SET: ScoringSet = { ...FIRST_SCORING, ownStats: FIRST_ROLE_OWN_STATS, instructions: FIRST_INSTRUCTION_SCORING };
 const picks = (...instructions: string[]): TeamScoring => ({ instructions, backLine: null });
@@ -56,6 +57,28 @@ describe("an instruction's line", () => {
     const high = (offsides: number) => scoreMatch({ minutes: 90, offside_provoked: offsides, interception: 1 }, SET, LEFT_CENTRE_BACK, undefined, picks("holdAHighLine"));
     expect(high(2).instructions?.[0].points).toBe(1); // 3 counted, one whole 2
     expect(high(9).instructions?.[0].points).toBe(3); // 10 counted would be 5
+  });
+
+  test("Shoot on sight: +1 a shot of any range, −1 for each 2 off target, in any slot (S05.37)", () => {
+    const shooting = (cell: typeof ATTACK | typeof LEFT_CENTRE_BACK) =>
+      scoreMatch({ minutes: 90, total_scoring_att: 4, shot_off_target: 3 }, SET, cell, undefined, picks("shootOnSight")).instructions?.[0];
+    expect(shooting(ATTACK)).toEqual({
+      instruction: "shootOnSight",
+      points: 3,
+      lines: [
+        { points: 4, stats: [{ stat: "total_scoring_att", actions: 4 }] },
+        { points: -1, stats: [{ stat: "shot_off_target", actions: 3 }] },
+      ],
+    });
+    expect(shooting(LEFT_CENTRE_BACK)?.points).toBe(3);
+  });
+
+  test("Press high: up front, attacking midfielders too, +1 for each 2 tackles won and interceptions; −1 a foul in any slot (S05.37, S05.42)", () => {
+    const pressing = (cell: typeof ATTACK | typeof MIDFIELD | typeof WINGER) =>
+      scoreMatch({ minutes: 90, won_tackle: 2, interception: 3, fouls: 1 }, SET, cell, undefined, picks("pressHigh")).instructions?.[0].points;
+    expect(pressing(ATTACK)).toBe(1); // 5 counted, two whole 2s, less a foul
+    expect(pressing(WINGER)).toBe(1);
+    expect(pressing(MIDFIELD)).toBe(-1);
   });
 
   test("scores his team's attacking and defensive picks apart, each a line, both in his total", () => {

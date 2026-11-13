@@ -3,8 +3,9 @@
 //   npm run test-account
 // which runs Playwright with .env.local loaded. It reads TEST_ACCOUNT_EMAIL and TEST_ACCOUNT_SECRET (the same values the live
 // deployment holds) and TEST_ACCOUNT_CONVEX_URL, the live deployment's address. While any is
-// missing it skips, as it does in CI, which holds none. The session goes to TEST_ACCOUNT_STATE
-// (gitignored); a later test reuses it with `test.use({ storageState: TEST_ACCOUNT_STATE })`.
+// missing it skips. Its own config (playwright.testAccount.config.ts) keeps it out of the release
+// check. The session goes to TEST_ACCOUNT_STATE (gitignored), for a later run to load as its
+// Playwright `storageState`.
 
 import { expect, test } from "@playwright/test";
 import { ConvexHttpClient } from "convex/browser";
@@ -14,7 +15,7 @@ import { TEST_ACCOUNT_PROVIDER } from "../../convex/signIn/testAccount";
 import { signOutWords } from "../../src/frame/words";
 
 /** Where the saved session goes: .gitignore keeps it out of the repository. */
-export const TEST_ACCOUNT_STATE = ".auth/test-account.json";
+const TEST_ACCOUNT_STATE = ".auth/test-account.json";
 /** The live deployment's address, as the site's VITE_CONVEX_URL is. */
 const CONVEX_URL_SETTING = "TEST_ACCOUNT_CONVEX_URL";
 /** Convex Auth's browser keys (@convex-dev/auth/react), each ending with the deployment's address

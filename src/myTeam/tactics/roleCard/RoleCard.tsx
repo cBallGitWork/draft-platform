@@ -3,6 +3,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
 import type { RoleCard as RoleCardData } from "../../../../convex/lineup/roleCardShape";
 import { roleIn, type Formation } from "../../../../convex/lineup/roles";
+import type { RoleRun } from "../../../../convex/scoring/scoringSet";
 import { starsIn } from "../../../../convex/stars/bestRole";
 import { NO_DATA, UNSURE } from "../../../../convex/stars/starsShape";
 import { POSITION_NAMES } from "../../../shared/words";
@@ -51,7 +52,8 @@ import {
 // with nothing changed. His season per 90 waits on who his stat ranks are against (the README's
 // Interaction notes), so it shows as a placeholder.
 
-type Shown = { player: SquadMember; starter: Starter; onPlay(role: string): void; onClose(): void };
+/** `runs` are the roles' runs the Tactics pitch draws, for the card's small pitch. */
+type Shown = { player: SquadMember; starter: Starter; runs: readonly RoleRun[]; onPlay(role: string): void; onClose(): void };
 
 /** The card for a starter standing in `formation` (the eleven's cells), read from the seam at
  *  `now` (the screen's minute). */
@@ -62,7 +64,7 @@ export function RoleCardWindow({ seam, leagueId, now, formation, ...shown }: Sho
 }
 
 /** `card` is undefined while it loads. */
-export function RoleCard({ player, starter, card, onPlay, onClose }: Shown & { card: RoleCardData | undefined }) {
+export function RoleCard({ player, starter, runs, card, onPlay, onClose }: Shown & { card: RoleCardData | undefined }) {
   const titleId = useId();
   // Opened under the toolbar, it scrolls into view whole, as the formation window does.
   const section = useRef<HTMLElement>(null);
@@ -90,7 +92,7 @@ export function RoleCard({ player, starter, card, onPlay, onClose }: Shown & { c
         <div className="grid gap-2 p-2 lg:grid-cols-role-card">
           <RolesTable card={card} player={player} starter={starter} inUse={inUse.key} previewed={role.key} onPreview={setPreviewed} />
           <div className="flex min-w-0 flex-col">
-            <Preview card={card} player={player} starter={starter} role={role} inUse={card.roles.find(({ key }) => key === inUse.key) ?? null} />
+            <Preview card={card} player={player} starter={starter} runs={runs} role={role} inUse={card.roles.find(({ key }) => key === inUse.key) ?? null} />
             <div className="mt-auto flex justify-end gap-2 border-t border-panel-rule p-2">
               <button type="button" onClick={onClose} className="secondary-action">
                 {cancelWords}
@@ -198,7 +200,21 @@ function RolesTable({
 
 /** The previewed role: its name, stars and their word, what it would have given against the role in
  *  use, its description, his season (a placeholder), where he moves, and his matches under it. */
-function Preview({ card, player, starter, role, inUse }: { card: RoleCardData; player: SquadMember; starter: Starter; role: Role; inUse: Role | null }) {
+function Preview({
+  card,
+  player,
+  starter,
+  runs,
+  role,
+  inUse,
+}: {
+  card: RoleCardData;
+  player: SquadMember;
+  starter: Starter;
+  runs: readonly RoleRun[];
+  role: Role;
+  inUse: Role | null;
+}) {
   const played = card.matches.length;
   const against = inUse === null || inUse.key === role.key || played === 0 ? null : inUse;
   return (
@@ -213,7 +229,7 @@ function Preview({ card, player, starter, role, inUse }: { card: RoleCardData; p
       <p className="px-3 py-2 text-lead">{role.description}</p>
       <div className="flex gap-3 px-3">
         <Placeholder label={seasonStatsPlaceholder} className="h-mini-pitch min-w-0 grow" />
-        <MiniPitch starter={{ ...starter, role: role.key }} />
+        <MiniPitch starter={{ ...starter, role: role.key }} runs={runs} />
       </div>
       <RoleMatches card={card} role={role} />
     </section>
@@ -221,12 +237,12 @@ function Preview({ card, player, starter, role, inUse }: { card: RoleCardData; p
 }
 
 /** His place in the slot and the role's run from it, on a small pitch (the approved role card). */
-function MiniPitch({ starter }: { starter: Starter }) {
+function MiniPitch({ starter, runs }: { starter: Starter; runs: readonly RoleRun[] }) {
   return (
     <figure className="flex flex-col gap-1">
       <div style={{ aspectRatio: `${PITCH_SIZE.width} / ${PITCH_SIZE.length}` }} className="relative h-mini-pitch">
         <PitchLines />
-        <RoleRuns starters={[starter]} rows={EVEN_ROWS} tapped={starter.playerCode} switchedOn />
+        <RoleRuns starters={[starter]} runs={runs} rows={EVEN_ROWS} tapped={starter.playerCode} switchedOn />
       </div>
       <figcaption className="text-muted">{whereHeMovesWords}</figcaption>
     </figure>

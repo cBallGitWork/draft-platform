@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { OverridePoints } from "../../../src/playerCard/OverridePoints";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
+import { previewGameMode } from "../../../src/shared/preview";
 import {
   cancelOverrideWords,
   OVERRIDE_TITLE,
@@ -69,6 +70,7 @@ const SAKA: PlayerCard = {
   categories: [],
   lastSeason: null,
   nextFixtures: [],
+  mode: previewGameMode,
 };
 const REASON = "The feed gave his goal to Rice";
 

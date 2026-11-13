@@ -4,9 +4,10 @@ import {
   STILL_REACHING_IN,
   STILL_USED_BY_THREE,
 } from "../support/convex/featureImports.breaches";
+import { FROM_CLAUSE, SOURCE_PREFIX, typeOnly } from "../support/importLines";
 
-// ARCHITECTURE.md "Where code lives", rule 4, beside importCycles.test.ts, which catches only a
-// loop (#1330, #1581). A feature imports another only through what that one offers others: its
+// ARCHITECTURE.md "Where code lives", rule 4, with tests/convex/importCycles.test.ts, which catches
+// only a loop (#1330, #1581). A feature imports another only through what that one offers others: its
 // Link component, its seam's types, its paths.ts, its live<Feature>.ts (into a live file) and its
 // preview.ts (into a preview). And a feature's words.ts never re-exports another feature's words;
 // words two features say live in src/shared/words.ts. Two more scans (#1815): only
@@ -23,11 +24,6 @@ const CONVEX_SOURCES = import.meta.glob(
   ["../../convex/**/*.ts", "!../../convex/_generated/**"],
   { query: "?raw", import: "default", eager: true },
 ) as Record<string, string>;
-const SOURCE_PREFIX = "../../";
-
-/** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
-const FROM_CLAUSE =
-  /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
 
 /** Folders that join every feature (the app's start and the routes), so they import any of them,
  *  as does src/'s top level (main.tsx). */
@@ -48,7 +44,7 @@ const OFFERED_FILES = new Set(["src/frame/menu", "src/mail/DateBlock"]);
 
 /** The feature a path under src/ or convex/ belongs to: its first folder. */
 const featureOf = (path: string) => path.split("/")[1];
-const nameOf = (path: string) => path.slice(path.lastIndexOf("/") + 1);
+const fileNameOf =(path: string) => path.slice(path.lastIndexOf("/") + 1);
 const withoutExtension = (path: string) => path.replace(/\.tsx?$/, "");
 /** True for a file at src/'s or convex/'s top level, which no feature owns. */
 const topLevel = (path: string) => path.split("/").length === 2;
@@ -62,22 +58,10 @@ function resolve(from: string, specifier: string): string {
   return parts.join("/");
 }
 
-/** True when the clause brings in only types. */
-function typeOnly(clause: string): boolean {
-  if (/^type\s/.test(clause)) return true;
-  const braces = clause.match(/^\{([\s\S]*)\}$/);
-  if (!braces) return false;
-  const names = braces[1]
-    .split(",")
-    .map((name) => name.trim())
-    .filter(Boolean);
-  return names.length > 0 && names.every((name) => /^type\s/.test(name));
-}
-
 /** True when `target` is one of the files a feature offers others, by rule 4. */
 const offeredFile = (target: string) =>
   OFFERED_FILES.has(target) ||
-  /^(paths|seam|preview|live[A-Z]\w*|\w*Links?)$/.test(nameOf(target));
+  /^(paths|seam|preview|live[A-Z]\w*|\w*Links?)$/.test(fileNameOf(target));
 
 /** True when `target` is something its feature offers the importer, by rule 4. */
 function offered(
@@ -87,8 +71,8 @@ function offered(
   kind: string,
 ): boolean {
   if (!offeredFile(target)) return false;
-  const name = nameOf(target);
-  const from = nameOf(withoutExtension(importer));
+  const name = fileNameOf(target);
+  const from = fileNameOf(withoutExtension(importer));
   if (name === "seam") return kind === "import" && typeOnly(clause);
   if (name === "preview") return from === "preview";
   if (/^live[A-Z]/.test(name)) return /^live[A-Z]/.test(from);
@@ -134,7 +118,7 @@ function crossImports(sources: Record<string, string>): CrossImport[] {
       OPEN.has(featureOf(target))
     )
       continue;
-    const wordsReexport = kind === "export" && nameOf(path) === "words.ts";
+    const wordsReexport = kind === "export" && fileNameOf(path) === "words.ts";
     const line = `${withoutExtension(path)} -> ${target}`;
     if (wordsReexport || !offered(path, target, clause, kind))
       found.set(line, {

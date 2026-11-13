@@ -7,7 +7,7 @@ import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/sc
 import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { previewClub, previewTeamNames, proLeague } from "../shared/preview";
+import { previewClub, previewGameMode, previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
@@ -163,6 +163,7 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
       players: listOf(rows, filters, sort),
       pointsSeason: null,
       periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
+      mode: previewGameMode,
       ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
     };
   },

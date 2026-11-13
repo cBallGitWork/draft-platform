@@ -21,3 +21,5 @@ coverage/
 /.pr-body-*.md
 # and their Open rules comments.
 /.open-rules*.md
+# and their throwaway screenshot specs, which never land (#1715).
+/tests/smoke/zz-*

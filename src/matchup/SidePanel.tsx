@@ -9,7 +9,7 @@ import { SidePitch } from "./SidePitch";
 import { averageWords, customFormationWords, leagueAverageWords, LINEUP_TITLE } from "./words";
 
 // One side of a scored matchup (spec/10, The matchup, as a live match), as the approved picture
-// draws it: a "Lineup" panel, its team's "Auto team" tag beside the title while nobody runs it,
+// draws it: a "Line-up" panel, its team's "Auto team" tag beside the title while nobody runs it,
 // then its Runs switch and formation, its pitch and bench; or the league's average.
 
 /** A side's panel, named by its team for screen readers: tapping a man opens his breakdown (#798).

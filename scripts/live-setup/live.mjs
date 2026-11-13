@@ -1,6 +1,6 @@
 // What the setup command (`npm run setup:live`, scripts/live-setup.mjs) sets up, in one home: the
 // live site's sender, and the names it gives each service (spec/20, The live site). The site's
-// address and the after-release check's secrets are the check's own (tests/live/releaseCheck.ts).
+// address and the after-release check's settings are in scripts/live-site.mjs, which the check reads too.
 
 import {
   ADMIN_EMAIL_SETTING,
@@ -9,7 +9,7 @@ import {
   SITE_URL_SETTING,
 } from "../../convex/outbound/deploymentSettings.ts";
 import { MINUTE_MS, SECOND_MS } from "../../convex/shared/time.ts";
-import { CHECK_ENV, LIVE_SITE_URL } from "../../tests/live/releaseCheck.ts";
+import { CHECK_ENV, LIVE_SITE_URL } from "../live-site.mjs";
 
 export { LIVE_SITE_URL };
 export const LIVE_DOMAIN = new URL(LIVE_SITE_URL).hostname;

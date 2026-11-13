@@ -7,7 +7,7 @@ import { failedWords, gameweekColumn } from "../shared/words";
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
 export const howTickingWorks =
-  "An unticked gameweek scores nothing and has no head-to-head, and lineups, waivers, free agency " +
+  "An unticked gameweek scores nothing and has no head-to-head, and line-ups, waivers, free agency " +
   "and trades are locked through it until its last match is over. A gameweek can't be changed from its deadline.";
 
 /** "… plays N of M gameweeks.", M being however many the season has (#1618). */

@@ -45,10 +45,16 @@ describe("each instruction's shape gate", () => {
     for (const name of ["4-3-1-2", "4-1-2-1-2"]) expect(offers(name, "getItWide")).toBe(false);
   });
 
-  it("offers Press high with three in one row of midfield, attacking midfield or attack", () => {
-    expect(offers("4-4-2", "pressHigh")).toBe(true);
-    expect(offers("4-2-3-1", "pressHigh")).toBe(true);
-    expect(offers("4-2-2-2", "pressHigh")).toBe(false);
+  it("offers Press high with two or more up front, attacking midfielders counted (S05.42)", () => {
+    for (const name of ["4-4-2", "4-3-3", "4-2-3-1", "4-4-1-1", "2-3-5"]) expect(offers(name, "pressHigh")).toBe(true);
+    for (const name of ["4-1-4-1", "4-5-1", "5-4-1"]) expect(offers(name, "pressHigh")).toBe(false);
+  });
+
+  it("still reads a league's set saved before #1452, its Press high needing three in one row", () => {
+    const saved = FIRST_INSTRUCTIONS.map((each) => (each.key === "pressHigh" ? { ...each, needs: "threeInARow" as const } : each));
+    const offersSaved = (name: string) => offeredOn("defensive", cellsOf(name), saved).some(({ key }) => key === "pressHigh");
+    expect(offersSaved("4-5-1")).toBe(true);
+    expect(offersSaved("4-2-2-2")).toBe(false);
   });
 });
 

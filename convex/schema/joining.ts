@@ -30,6 +30,9 @@ const inviteFields = {
   cancelledAt: v.optional(v.number()),
   joined: v.optional(v.object({ teamId: v.id("teams"), teamName: v.string() })),
   couldNotJoin: v.optional(v.string()),
+  /** When a sign-in last failed to take it up for an unexpected fault: it stays live, to be taken
+   *  up at the next (Craig, 12 Nov 2026, on #1437: "Signed in, invite kept"). */
+  joinFailedAt: v.optional(v.number()),
 };
 
 /** A league's one live invite link, by its token: switching it off or replacing it deletes the row. */

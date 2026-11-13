@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { CHECK_ENV } from "../live/releaseCheck";
+import { CHECK_ENV } from "../../scripts/live-site.mjs";
 import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_ENV, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";

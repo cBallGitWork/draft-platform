@@ -154,6 +154,25 @@ change is good".
 - A role or team instruction whose stats weren't copied from the past seasons is listed as "not
   tested", naming its missing stats, with no average and no flag, in the lab and the patch notes
   (Craig, 7 Nov 2026, on #843: "a"). `S14.13`
+- A club's XI is its 11 starters, each on his whole match's stats, even after he came off; subs
+  don't count, and its shape is read from where the starters lined up: "The 11 starters" (Craig,
+  12 Nov 2026, on #1541). `S14.19`
+- Each past match row holds the club the player was at that day, so a January signing's autumn
+  counts for his old club, and the five seasons are copied again once: "Match by match" (Craig,
+  12 Nov 2026, on #1541). `S14.20`
+- A stat missing for one starter counts as 0, and the XI stays in: "zero, zero is a number" (Craig,
+  12 Nov 2026, on #1541). `S14.21`
+- Every past starter is stored: "what? why would we not store old players?" An old row lacking a
+  starter's position is filled in rather than the XI dropped, and one the source truly has nothing
+  for is flagged on the admin list (Craig, 12 Nov 2026, on #1541). `S14.22`
+- Each past starter takes the position he played in that match, never a season-wide guess: "We
+  should just be using the roles per match. Sometimes players fill in." A starter whose match gives
+  no position is flagged and isn't given one (Craig, 13 Nov 2026, on #1541). `S14.23`
+- A past player with no FPL code is stored under ai-carling's person id. He counts in his club's
+  XI, but is never matched to a Sportmonks player, so never shows in Scouting or last season's
+  points (Craig, 13 Nov 2026, on #1541). `S14.24`
+- The flag is a "Past starters with no position" line in the lab report: the count, and the first
+  10 names with their club and match (Craig, 13 Nov 2026, on #1541). `S14.25`
 
 ## The first scoring set
 

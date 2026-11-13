@@ -5,8 +5,8 @@ import { SM_EVENT_TYPE, sportmonksCommentary, sportmonksCommentaryRead } from ".
 import { SM, sportmonksLiveRead } from "../../support/recorded/sportmonks.payloads";
 
 // The vidiprinter from Sportmonks' events timeline (#1418, `S10.4`, `S10.5`), on Celtic v Rangers'
-// live read (sportmonks-fixture.json, still shaped from Sportmonks' docs until a real read replaces
-// it, #1391). That read has no assist and no second yellow, so two events are added to it here.
+// live read (sportmonks-docs-fixture.json, shaped from Sportmonks' docs, as the real read of
+// 10 Nov 2026 had no live match, #1391). That read has no assist and no second yellow, so two events are added to it here.
 
 const NAMES = new Map<number, string>([
   [SM.kyogo, "Kyogo"],

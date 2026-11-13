@@ -4,3 +4,6 @@
 
 /** A Healthchecks ping, the lead's wake-up to GitHub. */
 export const OUTBOUND_TIMEOUT_MS = 10_000;
+
+/** Claude writing a scout's report or a recap: a few hundred tokens, well inside a minute. */
+export const WRITING_TIMEOUT_MS = 60_000;

@@ -1,7 +1,8 @@
 // A real club's page under Football (#1936; spec/18, Club pages): its name links to it wherever it
 // shows, its mark doesn't (`S18.6`); its header has its table place, last five results and next
 // match as an opponent card (`S18.7`); its Fixtures tab lists its season's matches, each opening its
-// match page, with no difficulty colours (`S18.9`).
+// match page, with no difficulty colours (`S18.9`). The Squad tab and the top scorers (#1937) are in
+// clubSquad.test.tsx.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -54,6 +55,11 @@ const arsenal: ClubPageData = {
 };
 
 const openClub = (premierLeague: PremierLeagueData) => openApp(clubPath(ARSENAL.code), manager, { premierLeague });
+/** Presses the Fixtures tab on the title plate (the Squad tab shows first) and finds its panel. */
+async function showFixtures() {
+  await userEvent.click(await screen.findByRole("button", { name: clubTabWords.fixtures }));
+  return screen.getByRole("region", { name: clubTabWords.fixtures });
+}
 
 describe("reaching it", () => {
   it("opens from a club's name on the Football table, and its fixture opens the match page", async () => {
@@ -72,7 +78,7 @@ describe("reaching it", () => {
     expect(await screen.findByRole("heading", { level: 1, name: ARSENAL.name })).toBeTruthy();
     expect(app.premierLeague.useClub).toHaveBeenLastCalledWith(expect.anything(), ARSENAL.code);
 
-    const fixtures = screen.getByRole("region", { name: clubTabWords.fixtures });
+    const fixtures = await showFixtures();
     await userEvent.click(within(fixtures).getAllByRole("row")[1].querySelector(`a[href="${matchPath(10)}"]`)!);
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(10));
@@ -117,7 +123,7 @@ describe("the header", () => {
 describe("the Fixtures tab", () => {
   it("lists each match with its gameweek, the opponent home or away, and its result from the club's side or its kick-off", async () => {
     openClub({ club: arsenal });
-    const fixtures = await screen.findByRole("region", { name: clubTabWords.fixtures });
+    const fixtures = await showFixtures();
     const lines = within(fixtures)
       .getAllByRole("row")
       .slice(1)
@@ -131,8 +137,8 @@ describe("the Fixtures tab", () => {
 
   it("gives an away win the club's goals first, and its link names the match home side first", async () => {
     openClub({ club: { ...arsenal, fixtures: [arsenalMatch(40, 4, false, CHELSEA, lastWeek, fullTimeScore(0, 3))] } });
-    const fixtures = await screen.findByRole("region", { name: clubTabWords.fixtures });
-    const link = within(fixtures).getByRole("link", { name: `${CHELSEA.name} ${scoreWords(0, 3)} ${ARSENAL.name}: the match` });
+    const fixtures = await showFixtures();
+    const link =within(fixtures).getByRole("link", { name: `${CHELSEA.name} ${scoreWords(0, 3)} ${ARSENAL.name}: the match` });
     expect(link.textContent).toBe(`W${scoreWords(3, 0)}`);
   });
 });

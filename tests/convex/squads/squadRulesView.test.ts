@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import type { Position } from "../../../convex/positions/positionTables";
 import { minimumsFilled } from "../../../convex/squads/areaMinimums";
-import { squadLimits, type LimitPlayer } from "../../../convex/squads/squadLimits";
+import { squadLimits, type LimitPlayer } from "../../../convex/squads/squadRulesView";
 import { areasOf } from "../../../convex/lineup/pitch";
 import { NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";

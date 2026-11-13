@@ -14,7 +14,8 @@ import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, stillKept, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
-import { starsLookup } from "../stars/playerStars";
+import { gameModeOf } from "../rules/gameMode";
+import { starsLookupIn } from "../stars/playerStars";
 import { heldCell } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicFormationShape } from "./classics";
@@ -253,7 +254,7 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const squad = await squadCodes(ctx, teamId);
   const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
-  const starsOf = await starsLookup(ctx, squad);
+  const starsOf = await starsLookupIn(ctx, squad, gameModeOf(season.inGameweek(fromGameweek)));
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), starsOf, positions, row?.starters);
   // Replacing its own row, it picks only the players: the rest of that row is left as it was.
   await writeRowFor(ctx, leagueId, teamId, fromGameweek, row, (replacing) =>

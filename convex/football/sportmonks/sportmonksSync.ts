@@ -9,7 +9,7 @@ import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { clubRow, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { isPlaying, wins } from "../matchScores";
 import { keyOf, sameFields } from "../footballSync";
-import { readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
+import { PREMIER_LEAGUE, readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
 
 // Sportmonks' six-hourly read stored (#1391): each competition that is on (#1414), its clubs,
 // players, fixtures and rounds, every row naming its competition, and each match's score, on the
@@ -60,6 +60,11 @@ async function syncCompetition(ctx: ActionCtx, token: string, competition: numbe
     const fixtures = football.betweenSeasons ? NO_WRITES : await ctx.runMutation(sync.syncFixtures, { ...args, rows: football.fixtures });
     const { reads, problems } = football.scores;
     const written = await ctx.runMutation(sync.writeScores, { reads, readAt: ranAt });
+    // The Premier League's rows linked to FPL's codes (#1421); a link run that fails fails the run.
+    if (competition === PREMIER_LEAGUE) {
+      const links = await ctx.runMutation(internal.football.sportmonks.fplLinksSync.link, { ranAt });
+      console.log(`Sportmonks' Premier League linked to FPL's codes: ${JSON.stringify(links)}`);
+    }
     return {
       ok: true as const,
       clubs,

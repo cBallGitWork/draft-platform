@@ -37,8 +37,14 @@ const thenReason = (reason: string | null) => (reason === null ? "" : ` ${reason
 
 export const couldNotJoinWords = (reason: string | null) => `Signed in, but couldn't join.${thenReason(reason)}`;
 
-/** "Your leagues" for someone in none, when their newest invite ended without them joining. */
+/** "Your leagues" for someone in none, when their newest invite is live but a sign-in's fault kept
+ *  them from joining (Craig, 12 Nov 2026, on #1437). */
+export const joinFailedWords = "We couldn't add you to the league just now; open your invite link again.";
+
+/** "Your leagues" for someone in none, when their newest invite ended without them joining, or a
+ *  fault kept them from joining by it. */
 export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): string {
+  if (ended === "joinFailed") return joinFailedWords;
   const how = { expired: "expired.", cancelled: "was cancelled.", couldNotJoin: `couldn't be used.${thenReason(reason)}` }[ended];
   return `Your invite to ${leagueName} ${how} Ask the commissioner for a new one.`;
 }

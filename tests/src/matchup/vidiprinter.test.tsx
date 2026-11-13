@@ -68,7 +68,7 @@ describe("the vidiprinter", () => {
       commentaryLine("5", "FT HUL 1–0 EVE: Coyle 6", { columns: [null, null] }),
       commentaryLine("4", "45+1' GOAL Coyle", { columns: ["+5", null] }),
       commentaryLine("3", "~61' Coyle: 60 minutes", { columns: ["+1", null] }),
-      commentaryLine("2", "Lineups out", { columns: [null, null] }),
+      commentaryLine("2", "Line-ups out", { columns: [null, null] }),
       kickoffLine,
     ];
     openMatchup({ matchup: scored({ kind: "read", lines, delayed: false }) });

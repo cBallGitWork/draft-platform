@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { reviewRefusals } from "../../../convex/trades/tradeReview";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
@@ -14,8 +14,8 @@ import { noDraft } from "../../support/convex/waivers.harness";
 // don't restart. With nobody left who may block it, it goes to a league vote.
 
 const NEW_COMMISSIONER = "newcommissioner@example.com";
-const BLOCK_IT = "Block the trade between Team 1 and Team 2?";
-const TRADED = "Team 1 and Team 2 traded";
+const BLOCK_IT = `Block the trade between ${TEAM_1} and ${TEAM_2}?`;
+const TRADED = `${TEAM_1} and ${TEAM_2} traded`;
 
 let w: TradeLeague;
 beforeEach(async () => {
@@ -85,7 +85,7 @@ describe("a trade the commissioner is in, reviewed by the co-commissioner,", () 
     const endsAt = Date.now() + REVIEW_MS;
     await nameCoCommissioner(null, ANN);
 
-    expect(await w.subjectsTo(CAT)).toContain("Vote on the trade between Team 1 and Team 2");
+    expect(await w.subjectsTo(CAT)).toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
     expect(await w.toReview(CAT)).toEqual([expect.objectContaining({ offerId, yours: "against", reviewEndsAt: endsAt })]);
     expect((await offersTab(BOB))[0]).toMatchObject({ reviewer: "vote" });
   });

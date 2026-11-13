@@ -24,11 +24,9 @@ import {
   pickPlayerLabel,
   setByHandTitle,
 } from "../../../src/admin/words";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { AdminData } from "../../support/src/admin.harness";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import { admin, commissioner, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 
 const SAKA: AvailabilityRow = { code: 5, name: "Saka", clubShortName: "ARS", positions: ["W"], feed: "doubtful", set: "available" };
 const WATKINS: AvailabilityRow = { code: 8, name: "Watkins", clubShortName: "AVL", positions: ["ST"], feed: "out", set: "doubtful" };
@@ -52,9 +50,7 @@ describe("reaching Availability", () => {
   });
 
   it("anyone else is sent back to Your leagues", async () => {
-    const app = openApp(ADMIN_AVAILABILITY_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectSentToLeagues(ADMIN_AVAILABILITY_PATH, commissioner);
   });
 
   it("says so while the list loads", async () => {
@@ -97,7 +93,7 @@ describe("a player's panel", () => {
   });
 
   it("#1209 story 4: the admin finds a player on the feed's and sets him out by hand", async () => {
-    const app = openAvailability({ setByHand: [SAKA], players: [SAKA, ISAK], found: [{ code: ISAK.code, name: "Isak", fullName: "Alexander Isak", clubCode: 14, positions: [] }] });
+    const app = openAvailability({ setByHand: [SAKA], players: [SAKA, ISAK], found: [{ code: ISAK.code, name: "Isak", fullName: "Alexander Isak", clubCode: 14, positions: [], unplacedArea: null }] });
     await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Isak");
     await userEvent.click(within(screen.getByRole("list", { name: foundListLabel })).getByRole("button", { name: "Alexander Isak" }));
     const isak = await panelOf(ISAK.name);

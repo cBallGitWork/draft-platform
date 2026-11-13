@@ -27,7 +27,7 @@ test("a match still provisional when its window closes is behind, and not before
 test("a match behind is judged by the admin's own window", async () => {
   const t = freshConvex();
   await holdStatus(t, 1, T0);
-  await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: 90 });
+  await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: 90 });
 
   expect((await feedsAt(t, T0 + 90 * MINUTE_MS)).behind).toEqual([]);
   expect((await feedsAt(t, T0 + 90 * MINUTE_MS + 1)).behind).toHaveLength(1);

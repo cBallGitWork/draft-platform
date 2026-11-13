@@ -4,7 +4,7 @@
 
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
-import { dayWords, failedWords, timeOfDayWords } from "../shared/words";
+import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export { MAIL_TITLE } from "../shared/words";
 export const noLettersWords = "No letters yet.";
@@ -18,12 +18,28 @@ export const unreadCount = (unread: number) => `${unreadFigure(unread)} unread`;
 /** A menu tab with unread letters, as a screen reader names it: "Mail, 3 unread". */
 export const unreadTabLabel = (label: string, unread: number) => `${label}, ${unreadCount(unread)}`;
 
-/** Where a letter came from: its league, and who wrote it, if someone did. */
-export const letterSource = (leagueName: string, from: string | null) => (from === null ? leagueName : `${leagueName}, from ${from}`);
+/** Who a letter is from: whoever wrote it, or else its league, or the site for a letter from it. */
+export const senderWords = (leagueName: string, from: string | null) => from ?? leagueName;
+/** The open letter's plate: "From Kroos Control". */
+export const fromWords = (sender: string) => `From ${sender}`;
 
-/** When a letter was filed, in the reader's own time: "20 Oct" and "09:00". */
+/** When a letter was filed, in the reader's own time: "20 Oct" and "09:00"; the day its group in
+ *  the list stands under, "Tue 10 Nov"; and when the open letter came, "Tue 10 Nov, 08:12". */
 export const letterDay = dayWords;
 export const letterTime = timeOfDayWords;
+export const letterDate = dateWords;
+export const letterWhen = (at: number) => `${dateWords(at)}, ${timeOfDayWords(at)}`;
+
+/** The tabs on Mail's plate (the approved picture), Unread with its count. */
+export const MAIL_TABS = ["all", "unread"] as const;
+export type MailTab = (typeof MAIL_TABS)[number];
+export const mailTabsLabel = "Which letters";
+export const mailTabWords = (unread: number): Record<MailTab, string> => ({ all: "All", unread: `Unread (${unreadFigure(unread)})` });
+export const LETTERS_TITLE = "Letters";
+export const noUnreadWords = "No unread letters.";
+export const noLetterOpenWords = "No letter open.";
+/** A letter's kind chip, which no letter holds yet (the approved picture's Deadline, Trade, Doubt). */
+export const kindPlaceholderLabel = "Kind: not held yet";
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "No one can reply: there is no chat.";
