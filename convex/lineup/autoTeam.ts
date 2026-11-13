@@ -29,13 +29,15 @@ import { onAutoTeam } from "./autoTeamSwitch";
 // A team is on it while a person has switched it on (`set`), until switched off or, if its manager
 // named one, until the gameweek it ends after has begun; while it has no manager, until it is
 // handed on (leagues/teams.ts clears the switch); and, for one gameweek, when its lineup can't
-// stand at the deadline. Fixing that lineup takes the auto-subs' way first, and if it still can't
-// stand, the lineup is picked from the squad as a first lineup is (firstLineup.ts), anyone out kept
-// on the bench. Switching on or off files a Mail letter to the whole league (spec/16).
+// stand at the deadline. Fixing that lineup takes the auto-subs' way, and a slot left by one who
+// left the squad that no bench player fits stays empty (#1437). Only a lineup that couldn't stand
+// as saved, and still can't, is picked from the squad as a first lineup is (firstLineup.ts),
+// anyone out kept on the bench. Switching on or off files a Mail letter to the whole league (spec/16).
 
 /** The auto team's lineup for the gameweek: `held` with each starter who is out, and each slot
- *  `vacated` by one who left the squad, filled as auto-subs fill them; and when that still can't
- *  stand, the squad's first lineup with anyone out kept on the bench. Pure. */
+ *  `vacated` by one who left the squad, filled as auto-subs fill them, a slot no one fits left
+ *  empty; only when the lineup as saved couldn't stand either, and the subs don't make it, the
+ *  squad's first lineup with anyone out kept on the bench. Pure. */
 function autoTeamLineup(
   held: Pick<HeldLineup, "starters" | "bench" | "vacated">,
   positions: PlayerPositions,
@@ -46,9 +48,21 @@ function autoTeamLineup(
   const squad = namedCodes(held);
   const plays = new Map<number, GameweekPlay>(squad.map((playerCode) => [playerCode, isOut(playerCode) ? "didNotPlay" : "played"]));
   const subbed = autoSubs(held, positions, plays, rules, held.vacated, ratingsOf).lineup;
-  if (standingProblems(subbed, positions, rules).length === 0) return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
+  // A slot no bench player can fill is left empty, as auto-subs leave it, and the rest of the
+  // lineup stays (spec/05, Auto-subs; Craig, 12 Nov 2026, on #1437: "Leave the slot empty").
+  if (savedStood(held, positions, rules) || standingProblems(subbed, positions, rules).length === 0) {
+    return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
+  }
   const outs = new Set(squad.filter(isOut));
   return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, positions, held.starters);
+}
+
+/** Whether the lineup as saved could stand, each who left the squad back in the slot he left, as
+ *  auto-subs weigh it: then only a gap no bench player fits keeps it from standing now. */
+function savedStood(held: Pick<HeldLineup, "starters" | "bench" | "vacated">, positions: PlayerPositions, rules: FirstLineupRules): boolean {
+  const asSaved = { starters: [...held.starters, ...held.vacated], bench: held.bench };
+  const weighed: PlayerPositions = new Map([...positions, ...held.vacated.map(({ playerCode }) => [playerCode, []] as const)]);
+  return standingProblems(asSaved, weighed, rules).length === 0;
 }
 
 /** A starter auto-subs placed: every cell they hand back is on the pitch (lineupProblems refused

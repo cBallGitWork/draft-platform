@@ -8,7 +8,7 @@ import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
-import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, writeWithClaude } from "../outbound/claude";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import type { SlotPoints } from "../scoring/teamPoints";
@@ -19,7 +19,7 @@ import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { lostPlayerName, playerByCode } from "../shared/players";
-import { DAY_MS, MINUTE_MS } from "../shared/time";
+import { MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLetter, type RecapPlayer } from "./recapWords";
@@ -31,10 +31,6 @@ import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLett
 // bench. Mail tells the whole league it is up. League home shows it until the next gameweek's first
 // matchday mode begins, and Read the recap opens it whole. It is written once and never rewritten:
 // a score that changes after puts a line under it, linking to that matchup (Craig, 6 Nov 2026).
-
-/** The most tries at writing a recap, a day's worth at CLAUDE_RETRY_MS apart: each failure is
- *  logged and kept on the recap's row, so a lasting one (no API key, say) shows. */
-export const RECAP_TRIES_MOST = Math.ceil(DAY_MS / CLAUDE_RETRY_MS);
 
 type TeamId = Id<"teams">;
 
@@ -113,7 +109,7 @@ export function performersOf(starters: readonly RecapPlayer[]): { topPerformers:
 
 /** Writes the recap (scheduled by `startRecap`): Claude writes it from `brief`, and it lands. A
  *  failed write is logged, kept on the recap's row and tried again CLAUDE_RETRY_MS later, up to
- *  RECAP_TRIES_MOST tries. */
+ *  CLAUDE_TRIES_MOST tries, each kept so a lasting failure (no API key, say) shows. */
 export const write = internalAction({
   args: { recapId: v.id("recaps") },
   returns: v.null(),
@@ -158,7 +154,7 @@ export const failed = internalMutation({
     if (recap === null || recap.state !== "writing") return null;
     const failedTries = (recap.failedTries ?? 0) + 1;
     await ctx.db.patch("recaps", recapId, { failedTries, lastFailure: failure });
-    if (failedTries < RECAP_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
+    if (failedTries < CLAUDE_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
     return null;
   },
 });

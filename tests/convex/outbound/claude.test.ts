@@ -46,6 +46,17 @@ test("throws with the status and body when the API refuses", async () => {
   await expect(writeWithClaude(ASK)).rejects.toThrow("refused the request (529): overloaded");
 });
 
+test("throws when the reply was cut off at its token limit: half a report is a failed write (#1437)", async () => {
+  fakeApi(Response.json({ content: [{ type: "text", text: "Arsenal's defence was" }], stop_reason: "max_tokens" }));
+  await expect(writeWithClaude(ASK)).rejects.toThrow("cut the reply off at 400 tokens");
+});
+
+test("gives up on an API that doesn't answer in time", async () => {
+  const fetchMock = fakeApi(Response.json({ content: [{ type: "text", text: "A fine fit." }] }));
+  await writeWithClaude(ASK);
+  expect(fetchMock.mock.calls[0]![1].signal).toBeInstanceOf(AbortSignal);
+});
+
 test("throws when the reply holds no text", async () => {
   fakeApi(Response.json({ content: [{ type: "tool_use" }, { type: "text", text: "   " }] }));
   await expect(writeWithClaude(ASK)).rejects.toThrow("replied with no text");
