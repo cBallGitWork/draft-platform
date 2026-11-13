@@ -9,7 +9,7 @@ import type { LeagueRules } from "./leagueRulesShape";
 // Pure: no I/O, so the screens read it too.
 
 /** What a league plays in a gameweek, by its rules then, as the queries behind its role parts send
- *  it (Tactics and Squad, the matchup, the player card, Scouting; src/shared/gameMode.tsx). */
+ *  it beside each screen's own data (Tactics and Squad, the matchup, the player card, Scouting). */
 export const gameModeShape = v.object({
   /** Its men score their roles' points (spec/05, Roles). */
   scoresRoles: v.boolean(),
