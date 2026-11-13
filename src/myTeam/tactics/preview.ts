@@ -6,6 +6,7 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { cardRolesOf, pricedMatch } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import { lineupProblems } from "../../../convex/lineup/lineup";
 import { PLANS_KEPT, planRefusals, problemWords } from "../../../convex/lineup/lineupWords";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
@@ -98,6 +99,7 @@ const tacticsWith = ({ starters, bench, classicFormation, instructions: picked }
     ...(picked && { instructions: picked }),
   },
   mode: previewGameMode,
+  runs: [...FIRST_RUNS],
 });
 
 // A new object only when it changes, as useSyncExternalStore needs.

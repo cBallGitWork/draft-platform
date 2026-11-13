@@ -1,11 +1,20 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
+import { DEFAULT_ROLES, isRole } from "../../../convex/lineup/roles";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 
-// Each role's run (spec/05 Runs; #846, #962): where a player on the role goes as if it were a real
-// match, held with the role, as docs/role-runs.md's research found it.
+// Each role's first run (spec/05 Runs; #846, #962): where a player on the role goes as if it were a
+// real match, as docs/role-runs.md's research found it, put into the site's scoring set once
+// (`S05.8`; #886) and changed by patch after that.
 
-describe("each role's run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () => {
-  const everyRole = Object.values(DEFAULT_ROLES).flat();
+describe("each role's first run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () => {
+  const everyRole = Object.values(DEFAULT_ROLES)
+    .flat()
+    .map(({ key }) => ({ key, run: FIRST_RUNS.find(({ role }) => role === key) ?? null }));
+
+  test("every first run is a role's the default set holds, one each", () => {
+    for (const { role } of FIRST_RUNS) expect(isRole(role), role).toBe(true);
+    expect(new Set(FIRST_RUNS.map(({ role }) => role)).size).toBe(FIRST_RUNS.length);
+  });
   const roleOf = (key: string) => everyRole.find((each) => each.key === key)!;
   const endOf = (key: string) => roleOf(key).run!.path.at(-1)!;
 

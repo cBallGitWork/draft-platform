@@ -12,6 +12,7 @@ import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
 import { StarRating } from "../../../ui/StarRating";
+import type { RoleRun } from "../../../../convex/scoring/scoringSet";
 import { landingOf, positionsIn, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
 import type { DropTarget, Reach } from "../swaps";
 import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
@@ -61,7 +62,8 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
 }
 
 /** `slots` are the cells of the preset last picked, if any: those still empty are marked, the
- *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs).
+ *  shape's slots nobody fills (spec/05). `runs` are the roles' runs in the site's scoring set, and
+ *  `runsShown` the desk's switch for them (spec/05 Runs).
  *  `ratingsOf` gives the stars a lit player shows for the swap (#11). `season` is each player's row
  *  on the Squad tab's read, his club's matches among it, and `gameweek` the one being picked for:
  *  the opponents on his chip (#845). */
@@ -70,6 +72,7 @@ export function Pitch({
   squad,
   moving,
   slots,
+  runs,
   runsShown,
   ratingsOf,
   season,
@@ -79,6 +82,7 @@ export function Pitch({
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
+  runs: readonly RoleRun[];
   runsShown: boolean;
   ratingsOf: RatingsOf;
   season: SeasonOf;
@@ -93,7 +97,7 @@ export function Pitch({
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
       <PitchLines rows={rows} />
-      <RoleRuns starters={draft.starters} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
+      <RoleRuns starters={draft.starters} runs={runs} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };

@@ -186,6 +186,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
           now={now}
           player={squad.get(roleCardFor.playerCode)!}
           starter={roleCardFor}
+          runs={tactics.runs}
           formation={draft.starters}
           onPlay={(role) => closeRoleCard(roleCardFor.playerCode, role)}
           onClose={() => closeRoleCard(roleCardFor.playerCode)}
@@ -230,7 +231,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} ratingsOf={ratingsOf} season={season} gameweek={tactics.gameweek} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runs={tactics.runs} runsShown={runsShown} ratingsOf={ratingsOf} season={season} gameweek={tactics.gameweek} />
             </div>
           </Panel>
           <LineupCheck

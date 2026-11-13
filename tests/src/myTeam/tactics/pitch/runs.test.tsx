@@ -1,6 +1,6 @@
 // The roles' runs on the Tactics pitch (spec/05 Runs; #846; Craig, 31 Oct 2026): each moving role's
-// run is a dashed arrow from his place, read from the role; a role that holds its place draws
-// nothing. On the desk every run shows, with a switch to hide them; on a phone only the tapped
+// run is a dashed arrow from his place, read from the site's scoring set (`S05.8`; #886); a role
+// that holds its place draws nothing. On the desk every run shows, with a switch to hide them; on a phone only the tapped
 // player's. Which width hides which is the CSS's: the real browser checks it at 390 and 1440
 // (tests/smoke/smoke.spec.ts); here, the utility each run carries.
 
@@ -12,6 +12,7 @@ import { everyRoleOf, roleIn } from "../../../../../convex/lineup/roles";
 import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows } from "../../../../../src/myTeam/tactics/pitch/runs";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
 import { runsWords } from "../../../../../src/myTeam/tactics/words";
+import { firstRunOf } from "../../../../support/src/tactics.harness";
 import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../../support/src/tacticsScreen.harness";
 
 /** The players whose runs are drawn, by code, each with the utility hiding it where it doesn't show. */
@@ -36,6 +37,14 @@ describe("the runs on the pitch", () => {
     await openedPitch({ tactics: { ...SAVED, lineup: { ...SAVED.lineup, starters: holding } } });
     expect(codes()).not.toContain(SALIBA.playerCode);
     expect(codes()).toHaveLength(2);
+  });
+
+  it("draws the runs the site's scoring set holds, so a patch that changes them changes the pitch (S05.8)", async () => {
+    // A patch gives the ball-playing centre-back a run and takes the poacher's away.
+    const runs = [...SAVED.runs.filter(({ role }) => role !== "poacher"), { role: "ballPlayingDefender", path: [{ forward: 9, across: 0 }] }];
+    const holding = STARTERS.map((starter) => (starter.playerCode === SALIBA.playerCode ? { ...starter, role: "ballPlayingDefender" } : starter));
+    await openedPitch({ tactics: { ...SAVED, runs, lineup: { ...SAVED.lineup, starters: holding } } });
+    expect(codes()).toEqual([SALIBA, RICE].map(({ playerCode }) => playerCode).toSorted());
   });
 
   it("the tapped player's run shows on the phone too, and only his", async () => {
@@ -69,7 +78,7 @@ describe("the runs on the pitch", () => {
 describe("where a run goes, in the pitch's metres", () => {
   const LEFT_WING = { area: "attackingMidfield", lane: "left" } as const;
   const RIGHT_WING = { area: "attackingMidfield", lane: "right" } as const;
-  const insideForward = roleIn(LEFT_WING, "insideForward").run!;
+  const insideForward = firstRunOf(roleIn(LEFT_WING, "insideForward").key)!;
 
   it("starts at his place and goes forward up the pitch, toward the middle from either wing", () => {
     const fromLeft = runPath(insideForward, LEFT_WING);
@@ -83,14 +92,14 @@ describe("where a run goes, in the pitch's metres", () => {
 
   it("stops short of the goal line, from a slot further up than its usual one", () => {
     const striker = { area: "attack", lane: "centre" } as const;
-    const attackingEight = roleIn({ area: "midfield", lane: "centre" }, "attackingEight").run!;
+    const attackingEight = firstRunOf("attackingEight")!;
     const end = runPath(attackingEight, striker).at(-1)!;
     expect(end.y).toBe(RUN_MARGIN);
   });
 
   it("starts a sweeper's from his place in the line, as any centre-back's", () => {
     const centreBack = { area: "defence", lane: "centre" } as const;
-    expect(runPath(roleIn(centreBack, "sweeper").run!, centreBack)[0]).toEqual(placeOf(centreBack));
+    expect(runPath(firstRunOf("sweeper")!, centreBack)[0]).toEqual(placeOf(centreBack));
   });
 
   it("puts a place in the middle of its cell: the keeper's in the bottom row, the attack's in the top", () => {
@@ -102,7 +111,8 @@ describe("where a run goes, in the pitch's metres", () => {
     /** How far from where two rows meet a run may end, in metres, and still show between their players. */
     const BETWEEN_ROWS = 1;
     for (const cell of ALL_CELLS) {
-      for (const { key, run } of everyRoleOf(cell)) {
+      for (const { key } of everyRoleOf(cell)) {
+        const run = firstRunOf(key);
         if (run === null || run.path.some(({ across }) => across !== 0)) continue;
         const end = runPath(run, cell).at(-1)!;
         const fromRowsMeeting = Math.abs(end.y - Math.round(end.y / ROW_LENGTH) * ROW_LENGTH);

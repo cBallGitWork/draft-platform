@@ -8,6 +8,7 @@ import { everyRoleOf } from "../../../../../convex/lineup/roles";
 import { PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "../../../../../src/myTeam/tactics/pitch/rowLayout";
 import { placeOf, runPath } from "../../../../../src/myTeam/tactics/pitch/runs";
+import { firstRunOf } from "../../../../support/src/tactics.harness";
 
 /** A 4-2-3-1's rows: nobody in midfield, the gap Craig saw. */
 const FOUR_TWO_THREE_ONE: { area: Area }[] = [
@@ -40,7 +41,8 @@ describe("the pitch's rows", () => {
   it("fit a run so one ending where two rows meet on the even pitch ends where they meet as drawn", () => {
     const meetings = rows.tops.concat(PITCH_SIZE.length);
     for (const cell of ALL_CELLS.filter(({ area }) => heightOf(area) > 0)) {
-      for (const { key, run } of everyRoleOf(cell)) {
+      for (const { key } of everyRoleOf(cell)) {
+        const run = firstRunOf(key);
         if (run === null || run.path.some(({ across }) => across !== 0)) continue;
         const evenEnd = runPath(run, cell).at(-1)!.y;
         if (Math.abs(evenEnd - Math.round(evenEnd / ROW_LENGTH) * ROW_LENGTH) > 1e-9) continue;

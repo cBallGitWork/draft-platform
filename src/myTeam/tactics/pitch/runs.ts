@@ -1,9 +1,10 @@
-// Where a role's run goes on the drawn pitch (spec/05 Runs; #846): the run is held with the role
-// (convex/lineup/roles.ts), in metres from the player's place; this turns it into points on the
-// pitch's own metres (./pitchMarkings.ts), attack at the top, for ./RoleRuns.tsx to draw.
+// Where a role's run goes on the drawn pitch (spec/05 Runs; #846): the run is held in the site's
+// scoring set (convex/scoring/scoringSet.ts's RoleRun; `S05.8`, #886), in metres from the player's
+// place; this turns it into points on the pitch's own metres (./pitchMarkings.ts), attack at the
+// top, for ./RoleRuns.tsx to draw.
 
 import { AREAS, LANES, type Cell } from "../../../../convex/lineup/pitch";
-import type { Run } from "../../../../convex/lineup/roles";
+import type { RoleRun } from "../../../../convex/scoring/scoringSet";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
 import { EVEN_ROWS, fitDepth, type RowLayout } from "./rowLayout";
 
@@ -35,7 +36,7 @@ const within = (value: number, size: number) => Math.min(size - RUN_MARGIN, Math
  *  middle, so a run from the right is turned the other way; the centre lane's goes to his right.
  *  Forward is measured on the even pitch, then fitted to `rows`, so a run ends between the same two
  *  rows however many are closed up. */
-export function runPath(run: Run, cell: Cell, rows: RowLayout = EVEN_ROWS): PitchPoint[] {
+export function runPath(run: Pick<RoleRun, "path">, cell: Cell, rows: RowLayout = EVEN_ROWS): PitchPoint[] {
   const place = placeOf(cell);
   const inward = LANES.indexOf(cell.lane) > MIDDLE_LANE ? -1 : 1;
   return [
