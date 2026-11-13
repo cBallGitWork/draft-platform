@@ -63,7 +63,7 @@ test("a re-price after the set changes moves the rows to the set as it stands", 
 test("a player no longer in the copied season loses his row", async () => {
   await reprice();
   await t.run(async (ctx) => {
-    for (const row of await ctx.db.query("pastPlayerMatchStats").collect()) if (row.playerCode === BENCHED.code) await ctx.db.delete(row._id);
+    for (const row of await ctx.db.query("pastPlayerMatchStats").collect()) if ("playerCode" in row && row.playerCode === BENCHED.code) await ctx.db.delete(row._id);
   });
   await reprice();
   expect((await kept()).has(BENCHED.code)).toBe(false);

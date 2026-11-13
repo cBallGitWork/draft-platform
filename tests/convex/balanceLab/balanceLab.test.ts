@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { balanceLab, roleStats, slotOfStart, type PastStart } from "../../../convex/balanceLab/balanceLab";
+import { balanceLab, roleStats, slotOfStart, startersWithNoPosition, type PastStart } from "../../../convex/balanceLab/balanceLab";
+import { NO_POSITION_NAMED } from "../../../convex/balanceLab/balanceLabLimits";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { EXAMPLE_SET, shotStopper } from "../../support/convex/scoring.example";
 
@@ -12,7 +13,7 @@ const side = (bars: number[], ...parts: [string, number][]) => ({ bars, parts: p
 const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["accurate_through_ball", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });
 
-const start = (startingPosition: string, stats: Record<string, number>, season = 2024): PastStart => ({ season, startingPosition, stats });
+const start = (startingPosition: string, stats: Record<string, number>, season = 2024): PastStart => ({ season, player: 1, kickoff: 1, startingPosition, stats });
 const KEEPERS = [start("GK", { saves: 2, goals_conceded: 0 }), start("GK", { saves: 4, goals_conceded: 3 }, 2025), start("GK", { saves: 6, goals_conceded: 1 })];
 
 describe("roles on the past seasons", () => {
@@ -65,12 +66,57 @@ describe("team instructions on the past seasons (#1541)", () => {
   const gungHo: InstructionScoring = { instruction: "gungHo", lines: [line("goals_scored", "assists"), line("goals_conceded")] };
   const shootOnSight: InstructionScoring = { instruction: "shootOnSight", lines: [line("att_obox_goal"), line("att_obox_miss", "ontarget_scoring_att")] };
 
-  test("each instruction the set scores is listed in its order, not tested, naming the stats the past seasons lack", () => {
-    const report = balanceLab({ ...EXAMPLE_SET, instructions: [shootOnSight, gungHo] }, KEEPERS);
-    expect(report.instructions).toEqual([
-      { instruction: "shootOnSight", missing: ["att_obox_goal", "att_obox_miss"] },
-      { instruction: "gungHo", missing: [] },
+  const getStuckIn: InstructionScoring = { instruction: "getStuckIn", lines: [line("goals_scored")] };
+  const parkTheBus: InstructionScoring = { instruction: "parkTheBus", lines: [line("goals_scored")] };
+  const FOUR_FOUR_TWO = ["GK", "DL", "DC", "DC", "DR", "ML", "MC", "MC", "MR", "ST", "ST"];
+  const FIVE_FOUR_ONE = ["GK", "DL", "DCL", "DC", "DCR", "DR", "ML", "MC", "MC", "MR", "ST"];
+  /** A club's XI at one kickoff, each starter on no goals but the last, on `goals`. */
+  const xiOf = (club: string, positions: readonly string[], goals: number, kickoff = 1): PastStart[] =>
+    positions.map((startingPosition, index) => ({ season: 2024, player: index, kickoff, club, startingPosition, stats: { goals_scored: index === positions.length - 1 ? goals : 0 } }));
+
+  test("each instruction's average is for a whole XI, over each club's real XIs in a shape that allows it, in the set's order (S14.9, S14.19)", () => {
+    // Leeds' 4-4-2 scores 2; Everton's 5-4-1 scores 1, and is the only one Park the bus's five at
+    // the back allows; neither has Gung-ho's two at the back.
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [getStuckIn, parkTheBus, gungHo, shootOnSight] }, [
+      ...xiOf("Leeds", FOUR_FOUR_TWO, 2),
+      ...xiOf("Everton", FIVE_FOUR_ONE, 1),
     ]);
+    expect(report.instructions).toEqual([
+      { instruction: "getStuckIn", xis: 2, average: 1.5 },
+      { instruction: "parkTheBus", xis: 1, average: 1 },
+      { instruction: "gungHo", xis: 0, average: null },
+      { instruction: "shootOnSight", missing: ["att_obox_goal", "att_obox_miss"] },
+    ]);
+    expect(report).toMatchObject({ xis: 2, xisShort: 0 });
+  });
+
+  test("a stat blank for one starter counts as 0, and the XI stays in (S14.21)", () => {
+    const [blank, ...rest] = xiOf("Leeds", FOUR_FOUR_TWO, 3);
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [getStuckIn] }, [{ ...blank, stats: {} }, ...rest]);
+    expect(report.instructions).toEqual([{ instruction: "getStuckIn", xis: 1, average: 3 }]);
+  });
+
+  test("the same club at another kickoff is another XI, and a start copied with no club is in none", () => {
+    const { club: _club, ...clubless } = xiOf("Leeds", ["ST"], 5, 3)[0];
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [getStuckIn] }, [...xiOf("Leeds", FOUR_FOUR_TWO, 2), ...xiOf("Leeds", FOUR_FOUR_TWO, 0, 2), clubless]);
+    expect(report.instructions).toEqual([{ instruction: "getStuckIn", xis: 2, average: 1 }]);
+  });
+
+  test("an XI short of a starter whose position maps to a slot is scored on the ones it has, its shape read from them, and counted", () => {
+    // A sweeper maps to no slot, so Everton stand four at the back: Park the bus doesn't allow it.
+    const everton = xiOf("Everton", ["GK", "SW", "DL", "DC", "DR", "ML", "MC", "MC", "MR", "ST", "ST"], 1);
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [getStuckIn, parkTheBus] }, everton);
+    expect(report.instructions).toEqual([
+      { instruction: "getStuckIn", xis: 1, average: 1 },
+      { instruction: "parkTheBus", xis: 0, average: null },
+    ]);
+    expect(report).toMatchObject({ xis: 1, xisShort: 1 });
+  });
+
+  test("a line held to slots scores only the starters in them, on their slot from where they lined up", () => {
+    const strikers: InstructionScoring = { instruction: "getStuckIn", lines: [{ ...line("goals_scored"), positions: ["ST"] }] };
+    const leeds = xiOf("Leeds", FOUR_FOUR_TWO, 2).map((start) => ({ ...start, stats: { goals_scored: 1 } }));
+    expect(balanceLab({ ...EXAMPLE_SET, instructions: [strikers] }, leeds).instructions).toEqual([{ instruction: "getStuckIn", xis: 1, average: 2 }]);
   });
 
   test("an own stat in a line counts as the stats it adds up", () => {
@@ -79,7 +125,10 @@ describe("team instructions on the past seasons (#1541)", () => {
       ownStats: [{ stat: "league:failed_crosses", name: "Failed crosses", shortCode: "FCR", parts: [{ stat: "total_cross", weight: 1 }, { stat: "accurate_cross", weight: -1 }] }],
       instructions: [{ instruction: "getItWide", lines: [line("league:failed_crosses")] }],
     };
-    expect(balanceLab(set, []).instructions).toEqual([{ instruction: "getItWide", missing: [] }]);
+    expect(balanceLab(set, []).instructions).toEqual([{ instruction: "getItWide", xis: 0, average: null }]);
+    // Five crosses, two found: three failed, worked out before the line scores them.
+    const leeds = xiOf("Leeds", FOUR_FOUR_TWO, 0).map((each, index) => (index === 5 ? { ...each, stats: { total_cross: 5, accurate_cross: 2 } } : each));
+    expect(balanceLab(set, leeds).instructions).toEqual([{ instruction: "getItWide", xis: 1, average: 3 }]);
   });
 
   test("a set scoring no instruction lists none", () => {
@@ -87,7 +136,35 @@ describe("team instructions on the past seasons (#1541)", () => {
   });
 });
 
+describe("past starters with no position (S14.22, S14.23, S14.25; Craig, 13 Nov 2026, on #1541)", () => {
+  const at = (player: number | string, startingPosition: string, season: number, kickoff: number, club?: string): PastStart => ({
+    season,
+    player,
+    kickoff,
+    ...(club === undefined ? {} : { club }),
+    startingPosition,
+    stats: {},
+  });
+
+  test("each starter whose match gives a position the pitch has none for is flagged, the first ones by season and kickoff", () => {
+    const starts = [at(1, "GK", 2024, 1, "Leeds"), at("no-code", "SW", 2024, 5, "Leeds"), at(2, "SW", 2023, 9, "Everton"), at(3, "", 2024, 2)];
+    expect(startersWithNoPosition(starts)).toEqual({ count: 3, first: [starts[2], starts[3], starts[1]] });
+  });
+
+  test(`only the first ${NO_POSITION_NAMED} are named, and every one counted`, () => {
+    const starts = Array.from({ length: NO_POSITION_NAMED + 2 }, (_, index) => at(index, "SW", 2024, index));
+    const { count, first } = startersWithNoPosition(starts);
+    expect(count).toBe(NO_POSITION_NAMED + 2);
+    expect(first).toEqual(starts.slice(0, NO_POSITION_NAMED));
+  });
+
+  test("a starter the pitch has a position for is never flagged", () => {
+    expect(startersWithNoPosition([at(1, "GK", 2024, 1), at(2, "amcl", 2024, 1)])).toEqual({ count: 0, first: [] });
+  });
+});
+
 test("the log's starting positions map to slots, left and right alike", () => {
   expect(["GK", "DR", "DL", "DC", "WBL", "DM", "MR", "MC", "AML", "AMC", "ST"].map(slotOfStart)).toEqual(["GK", "FB", "FB", "CB", "WB", "CDM", "WM", "CM", "W", "CAM", "ST"]);
+  expect(["DCL", "DMR", "MCR", "AMCL", "STL", "FC"].map(slotOfStart)).toEqual(["CB", "WB", "CM", "CAM", "ST", "ST"]);
   expect(slotOfStart("SW")).toBeNull();
 });

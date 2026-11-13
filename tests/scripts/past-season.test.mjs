@@ -61,7 +61,7 @@ test("the log is read by ai-carling's own Python, the columns the copy keeps and
 
 test("the season's old rows are cleared page by page, then its rows added and last season re-priced, on dev", async () => {
   const { exec, calls } = await fakeTools({ clearing: 2500 });
-  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: SAMPLE_ROWS_ADDED, skipped: [] });
+  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: SAMPLE_ROWS_ADDED, noCode: [] });
   const convexCalls = calls.filter((call) => call.command === CONVEX).map((call) => call.args);
   expect(convexCalls.map((args) => args[1])).toEqual([CLEAR_SEASON, CLEAR_SEASON, CLEAR_SEASON, ADD_ROWS, REPRICE]);
   expect(JSON.parse(convexCalls.at(-1)[2])).toEqual({ cursor: null });
@@ -108,7 +108,7 @@ test("an older season loads from the FPL list named with --players, checked only
   expect(added.every((row) => row.season === 2021)).toBe(true);
 });
 
-test("a player with no FPL code is skipped and named, and the rest of the season still loads", async () => {
+test("a player with no FPL code keeps his played rows under his person id and is named (S14.24)", async () => {
   const sample = JSON.parse(SAMPLE_LOG);
   const unmatched = sample.filter((row) => row.person_root_id === "keeper-one").map((row) => ({ ...row, person_root_id: "no-fpl-seven" }));
   const { exec } = await fakeTools();
@@ -116,9 +116,11 @@ test("a player with no FPL code is skipped and named, and the rest of the season
   const printed = [];
   const counts = { 2025: { ...SAMPLE[2025], counts: { matches: 2 } } };
   const result = await run(withUnmatched, { seasons: counts, print: (line) => printed.push(line) });
-  expect(result.added).toBe(SAMPLE_ROWS_ADDED);
-  expect(result.skipped.map(({ root }) => root)).toEqual(["no-fpl-seven"]);
-  expect(printed[0]).toMatch(/^2025: skipped 1 with no FPL code, \d+ played matches in all: no-fpl-seven \(\d+ played\)$/);
+  const unmatchedPlayed = unmatched.filter((row) => row.competition === "premier_league" && row.fpl_minutes > 0).length;
+  expect(unmatchedPlayed).toBeGreaterThan(0);
+  expect(result.added).toBe(SAMPLE_ROWS_ADDED + unmatchedPlayed);
+  expect(result.noCode.map(({ root }) => root)).toEqual(["no-fpl-seven"]);
+  expect(printed[0]).toBe(`2025: 1 with no FPL code kept under their person id, ${unmatchedPlayed} played matches in all: no-fpl-seven (${unmatchedPlayed} played)`);
 });
 
 test("a season the copy doesn't know is refused", async () => {

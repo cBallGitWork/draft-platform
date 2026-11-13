@@ -46,6 +46,13 @@ export const PATCH_GAMEWEEKS = [
 /** The lab's report the fake server gives: a role off its target and one not tested. */
 export const LAB_REPORT: LabReport = {
   seasons: [2024, 2025],
+  noPosition: {
+    count: 2,
+    first: [
+      { name: "Sam Sweeper", club: "Leeds", kickoff: Date.UTC(2024, 8, 14, 14) },
+      { name: "Person no-code-eight", kickoff: Date.UTC(2025, 0, 4, 15) },
+    ],
+  },
   starts: 1200,
   startsSkipped: 3,
   roles: [
@@ -53,9 +60,12 @@ export const LAB_REPORT: LabReport = {
     { role: "numberTen", slot: "CAM", target: 0.6, missing: ["big_chance_created"] },
   ],
   instructions: [
-    { instruction: "gungHo", missing: [] },
+    { instruction: "gungHo", xis: 40, average: 1.61 },
+    { instruction: "parkTheBus", xis: 0, average: null },
     { instruction: "shootOnSight", missing: ["att_obox_goal"] },
   ],
+  xis: 1520,
+  xisShort: 12,
 };
 
 /** The view the fake server gives by default: the first set, as the admin reads it, with no

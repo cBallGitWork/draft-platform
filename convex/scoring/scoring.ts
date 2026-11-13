@@ -117,6 +117,14 @@ export function roleTotal(record: MatchStats, set: ScoringSet, role: string | un
   return rolePoints(withOwnStats(record, set), set, role)?.points ?? 0;
 }
 
+/** What team instruction `key` gives a man with this record at a slot standing for `position`
+ *  under `set`, own stats worked out, on his whole match's minutes: 0 for one the set doesn't
+ *  score. A club XI's test in the rule balance lab (spec/14 S14.9). */
+export function instructionTotal(record: MatchStats, set: ScoringSet, key: string, position: SlotPosition): number {
+  const own = withOwnStats(record, set);
+  return instructionPoints(own, set, key, position, statIn(own, MINUTES_STAT))?.points ?? 0;
+}
+
 /** The role's points for this record (spec/05 Roles): whole points by bars, never per action, on
  *  top of every rule and its points limit (spec/14), whatever his minutes (Craig, 5 Nov 2026: bars
  *  count per match, a cameo's too). Undefined when the set doesn't score the role. */

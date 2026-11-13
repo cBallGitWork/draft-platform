@@ -5,7 +5,7 @@ import { siteScoringRefusals } from "../scoring/siteScoring";
 import { scoringSetShape, type StoredScoringSet } from "../scoring/scoringSetShape";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { zoneOf } from "../signIn/timeZone";
-import { balanceLab, type PastStart } from "./balanceLab";
+import { balanceLab, startersWithNoPosition, type PastStart } from "./balanceLab";
 import { labReportShape, type LabReport } from "./labReportShape";
 
 // Running the rule balance lab (spec/14, The rule balance lab; #843): the admin presses a button on
@@ -18,18 +18,30 @@ import { labReportShape, type LabReport } from "./labReportShape";
  *  so about 1.8 MB, well inside a query's reads. */
 const PAST_ROWS_PAGE = 2000;
 
-const pastStart = v.object({ season: v.number(), startingPosition: v.string(), stats: v.record(v.string(), v.number()) });
+const pastStart = v.object({
+  season: v.number(),
+  player: v.union(v.number(), v.string()),
+  kickoff: v.number(),
+  club: v.optional(v.string()),
+  startingPosition: v.string(),
+  stats: v.record(v.string(), v.number()),
+});
 
 /** One page of the past seasons' rows from `cursor` (null for the first): the real starts on it,
- *  a match he came on in (no starting position) left out, and where the next page starts. */
+ *  each with its match and club, so the lab forms each club's XI; a match he came on in (no
+ *  starting position) left out; and where the next page starts. */
 export const startsPage = internalQuery({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.object({ starts: v.array(pastStart), cursor: v.string(), isDone: v.boolean() }),
   handler: async (ctx, { cursor }) => {
     const page = await ctx.db.query("pastPlayerMatchStats").paginate({ numItems: PAST_ROWS_PAGE, cursor });
-    const starts = page.page.flatMap(({ season, match }) =>
-      match === null || match.startingPosition === null ? [] : [{ season, startingPosition: match.startingPosition, stats: match.stats }],
-    );
+    const starts = page.page.flatMap((row) => {
+      const { season, match } = row;
+      if (match === null || match.startingPosition === null) return [];
+      const player = "person" in row ? row.person : row.playerCode;
+      const club = match.club === undefined ? {} : { club: match.club };
+      return [{ season, player, kickoff: match.kickoff, ...club, startingPosition: match.startingPosition, stats: match.stats }];
+    });
     return { starts, cursor: page.continueCursor, isDone: page.isDone };
   },
 });
@@ -44,8 +56,35 @@ async function labOn(ctx: ActionCtx, set: StoredScoringSet): Promise<LabReport> 
     if (page.isDone) break;
     cursor = page.cursor;
   }
-  return balanceLab(set, starts);
+  const { count, first } = startersWithNoPosition(starts);
+  const names: string[] = await ctx.runQuery(internal.balanceLab.balanceLabRun.pastNames, { players: first.map(({ player }) => player) });
+  const named = first.map(({ club, kickoff }, at) => ({ name: names[at]!, ...(club === undefined ? {} : { club }), kickoff }));
+  return { ...balanceLab(set, starts), noPosition: { count, first: named } };
 }
+
+/** A past player today's players table no longer holds, by his FPL code. */
+const pastCodeWords = (code: number) => `FPL code ${code}`;
+/** A past player with no FPL code, by ai-carling's person id. */
+const pastPersonWords = (person: string) => `Person ${person}`;
+
+/** Each past player's name, in order: an FPL code's from the players table, falling back on the
+ *  code where today's list no longer holds him; a person id (a man with no FPL code, S14.24) is
+ *  the only name the copy keeps for him. */
+export const pastNames = internalQuery({
+  args: { players: v.array(v.union(v.number(), v.string())) },
+  returns: v.array(v.string()),
+  handler: async (ctx, { players }) =>
+    Promise.all(
+      players.map(async (player) => {
+        if (typeof player === "string") return pastPersonWords(player);
+        const known = await ctx.db
+          .query("players")
+          .withIndex("by_code", (q) => q.eq("code", player))
+          .first();
+        return known?.fullName ?? pastCodeWords(player);
+      }),
+    ),
+});
 
 /** The admin's draft patch saved at `draftSavedAt`. Refused, with the reason, for anyone but the
  *  admin, with no draft, or one saved over since. */

@@ -3,10 +3,14 @@ import { v } from "convex/values";
 
 // Past seasons' Premier League matches, copied once from ai-carling-premiership by
 // scripts/past-season.mjs (#1113 for 2025/26, the first season of #842's table; pastSeasonRows.ts).
-// Keyed by FPL's season-stable `code`, the season and the kickoff, never FPL's per-season ids.
+// Keyed by FPL's season-stable `code`, the season and the kickoff, never FPL's per-season ids; a
+// man with no FPL code by ai-carling's person root id instead.
 
 export const pastMatch = v.object({
   kickoff: v.number(),
+  /** The club he played for that day, as ai-carling's log names it (Craig, 12 Nov 2026, on #1541:
+   *  "Match by match"); absent on a row copied before. */
+  club: v.optional(v.string()),
   /** Where he started, as ai-carling's log gives it; null where it gives none. */
   startingPosition: v.union(v.string(), v.null()),
   /** Under our stat names (matchRecords.ts); a stat the log has no value for is absent. */
@@ -14,7 +18,7 @@ export const pastMatch = v.object({
 });
 
 /** One match a player played, or, with `match` null, a player the season names who played none. */
-export const pastSeasonRow = v.object({
+const codedRow = v.object({
   /** The year the season starts, as shared/time.ts's `seasonStartYear`. */
   season: v.number(),
   playerCode: v.number(),
@@ -22,6 +26,17 @@ export const pastSeasonRow = v.object({
   fplPosition: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4)),
   match: v.union(pastMatch, v.null()),
 });
+
+/** One match played by a man with no FPL code, under ai-carling's person root id (spec/14 S14.24;
+ *  Craig, 13 Nov 2026, on #1541): he counts in his club's XI in the rule balance lab, and is never
+ *  matched to a Sportmonks player, so never in Scouting or last season's points. */
+const personRow = v.object({
+  season: v.number(),
+  person: v.string(),
+  match: pastMatch,
+});
+
+export const pastSeasonRow = v.union(codedRow, personRow);
 
 export const pastSeasonTables = {
   pastPlayerMatchStats: defineTable(pastSeasonRow).index("by_season_and_playerCode", ["season", "playerCode"]),
