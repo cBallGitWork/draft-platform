@@ -5,8 +5,9 @@ session takes. Every gate reads GitHub's REST API (gh api), which a cloud sessio
 pr view's GraphQL can't (403), so each gate judges both routes alike (#1045). What it can't read
 raises Unread, which each gate turns into a denial, never a silent pass. Which pull request a
 gh pr merge names is worked out before any gate judges it, so one it can't name is refused, and one with --admin is refused before any gate: the gh token is Craig's, and
-an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. Stdlib only,
-Python 3.9+.
+an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. A write to gh api's merge
+endpoint (repos/o/r/pulls/N/merge) is refused outright: it is the same admin merge with no checks of
+gh pr merge's own, and gh pr merge or the GitHub tool does the job (#1075). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -16,7 +17,8 @@ import json
 import re
 
 from run_command import call
-from where import current_branch, runs_at
+from private_words import GH_VALUE_OPTS
+from where import arguments, current_branch, runs_at
 
 MERGE_CALL = ["pr", "merge"]
 MERGE_TOOL = "mcp__github__merge_pull_request"
@@ -27,6 +29,14 @@ PLACEHOLDER = "{owner}/{repo}"  # gh api fills it from the folder's remote
 PR_URL = re.compile(r"github\.com/([^/\s]+/[^/\s]+)/pull/(\d+)")
 WHICH_PR = "Can't tell which pull request this merges"
 ADMIN_OPT = "--admin"
+API_VALUE_OPTS = GH_VALUE_OPTS | {"-F", "--field", "-H", "--header", "--input", "--template", "--cache",
+                                 "--preview", "--hostname"}  # gh api's options that take a value
+METHOD_OPTS = {"-X", "--method"}
+READ_METHODS = {"GET", "HEAD"}
+API_MERGE_PATH = re.compile(r"(?:^|/)pulls/[^/]*/merge/?(?:\?.*)?$")
+API_MERGE = ("gh api's merge endpoint skips gh pr merge's checks, and with Craig's admin token the main ruleset's "
+             "bypass can let it merge a pull request whose checks or review aren't done (#1075). Merge with "
+             "gh pr merge (no --admin) or the GitHub tool, or ask Craig.")
 ADMIN_BYPASS = ("gh pr merge --admin bypasses the main ruleset's checks and review, and the admin bypass "
                 "is Craig's, used by him in GitHub. Merge without --admin once the pull request is "
                 "mergeable, or ask Craig to merge it.")
@@ -51,6 +61,19 @@ def merge_args(words):
     if words[i : i + 2] != MERGE_CALL:
         return None
     return before + words[i + 2 :]
+
+
+def api_merge(words):
+    """True if this simple command runs gh api with a method other than GET on a pull request's merge
+    endpoint. With no -X gh api reads (or posts fields), and neither merges."""
+    i = runs_at(words, "gh")
+    if i is None:
+        return False
+    opts, operands = arguments(words[i + 1 :], API_VALUE_OPTS)
+    if operands[:1] != ["api"] or len(operands) < 2 or not API_MERGE_PATH.search(operands[1]):
+        return False
+    methods = [value for opt, value in opts if opt in METHOD_OPTS]
+    return bool(methods) and methods[-1].upper() not in READ_METHODS
 
 
 def view_args(args):
@@ -138,6 +161,8 @@ def merges_problem(cmds, judge):
     """judge(repo, number, folder)'s deny reason for the first gh pr merge in cmds (each (words,
     folder)) that has one, else None."""
     for words, here in cmds:
+        if api_merge(words):
+            return API_MERGE
         args = merge_args(words)
         if args is None:
             continue
