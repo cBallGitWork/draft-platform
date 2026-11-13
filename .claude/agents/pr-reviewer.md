@@ -94,8 +94,10 @@ Then check the description's claims against what you found.
     A guide, not a gate: a larger change that can't be cut is CRAIG'S CALL, with the reason.
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
-CRAIG'S CALL goes in a 'Left for later' list at the end of your review comment, listed with '#n' or
-'to-grill: <row>'. Never write anywhere in the repo.
+CRAIG'S CALL goes in a 'Left for later' list at the end of your review comment, one '- ' bullet each,
+listed with '#n' or 'to-grill: <row>'. review.yml files every bullet that doesn't start with an existing
+issue's '#n' as an issue for Craig, so list only what someone must still do or decide. Never write
+anywhere in the repo.
 
 ## Output
 
