@@ -71,9 +71,6 @@
   /* A cup tie's box, its two teams' rows (the approved table's cup picture) */
   --spacing-tie: calc(var(--spacing-row) * 2);
 
-  /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
-  --flex-basis-letters: 480px;
-  --flex-basis-letter-form: 320px;
   /* The rules editor's list of categories, beside the one chosen on the desk */
   --flex-basis-categories: 360px;
   /* A box for one number of a rule: room for "-10.5" */
@@ -155,6 +152,9 @@
   --grid-template-columns-sign-in: minmax(0, 1fr) 21.25rem;
   /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
+  /* Mail: the letters and the open one; a letter's row: kind, sender over subject, time (approved/mail) */
+  --grid-template-columns-mail: minmax(0, 2fr) minmax(0, 3fr);
+  --grid-template-columns-letter-row: 6rem minmax(0, 1fr) auto;
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
   --grid-template-columns-news: minmax(0, 5fr) minmax(0, 2fr);
   /* Scouting's Players tab: the list, and the right column of widgets (approved/scouting/1440.png) */
