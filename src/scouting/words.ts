@@ -211,13 +211,10 @@ export function seasonColumns(lastSeason: number | null) {
   };
 }
 
-/** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
- *  wasn't in last season's data; and role fit waits on role stars and scouts (spec/19, Role stars). */
-export const noPointsYetWords = "No points yet: none of his matches is scored.";
-export const notLastSeasonWords = "No points: he isn't in last season's data.";
+/** Why a figure isn't there yet (shared/words.ts), and role fit waits on role stars and scouts
+ *  (spec/19, Role stars). */
+export { noPointsYetWords, notLastSeasonWords, noSeasonPointsWords } from "../shared/words";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
-/** Why a player's season points are "—": none priced yet, or not in last season's data. */
-export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
 /** Two players side by side (spec/19, The players list); "with your player" when the second is the

@@ -2,7 +2,18 @@
 
 import { LOCALE } from "../../convex/shared/moments";
 import { DAY_MS } from "../../convex/shared/time";
-import { awayWords, gameweekWords, homeWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
+import {
+  awayWords,
+  gameweekShort,
+  gameweekWords,
+  homeWords,
+  lastSeasonPointsColumn,
+  scoreWords,
+  seasonShortWords,
+  STAT_WORD,
+  timeOfDayWords,
+  versusWords,
+} from "../shared/words";
 
 export { clockWords, fullTime, gameweekWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
@@ -112,10 +123,10 @@ export const possessionWords = (share: number) => `${Math.round(share)}%`;
 export { placeWords } from "../shared/words";
 export const loadingClubWords = "Loading the club…";
 export const noClubWords = "No club with this code is held.";
-/** The club page's tabs on its title plate; the Squad tab comes with #1937. */
-export const CLUB_TABS = ["fixtures"] as const;
+/** The club page's tabs on its title plate, the Squad tab first (spec/18). */
+export const CLUB_TABS = ["squad", "fixtures"] as const;
 export type ClubTab = (typeof CLUB_TABS)[number];
-export const clubTabWords: Record<ClubTab, string> = { fixtures: "Fixtures" };
+export const clubTabWords: Record<ClubTab, string> = { squad: "Squad", fixtures: "Fixtures" };
 export const clubTabsLabel = "The club's tabs";
 export const CLUB_TITLE = "Club";
 export const NEXT_MATCH_TITLE = "Next match";
@@ -134,6 +145,45 @@ export function daysAwayWords(kickoff: number, now: number): string {
   const days = Math.round((dayStart(kickoff) - dayStart(now)) / DAY_MS);
   if (days <= 0) return "Today";
   return days === 1 ? "Tomorrow" : `In ${days} days`;
+}
+
+// The club page's Squad tab and top scorers (#1937; spec/18 `S18.7`, `S18.8`).
+
+export { statusNotSettledLabel } from "../shared/words";
+/** The club's top three scorers, under its table place and form: "Saka 42". */
+export const topScorersHead = "Top scorers";
+export const loadingSquadWords = "Loading the squad…";
+export const noSquadWords = "No players are held at this club.";
+/** In the Team column, a player on the league's waivers. */
+export const waiversWords = "Waivers";
+/** Each group's band over its players: FM's split (Craig, 12 Nov 2026), no position last. */
+export const squadGroupWords = {
+  GK: "Goalkeepers",
+  DEF: "Defenders",
+  MID: "Midfielders",
+  AM: "Attacking midfielders",
+  FWD: "Forwards",
+} as const;
+export const noPositionGroupWords = "No position";
+/** Why his season points are "—", as Scouting says it. */
+export { noSeasonPointsWords } from "../shared/words";
+/** Why a gameweek's cell is "—". */
+export const didNotPlayWords = (gameweek: number) => `He didn't play in ${gameweekWords(gameweek)}.`;
+/** A row, read out: pressing it opens his player card. */
+export const openCardLabel = (name: string) => `${name}'s player card`;
+
+/** The Squad tab's columns, the last five gameweeks' between the points and the starts: a short
+ *  head, and what it stands for. The points' head names the season while they are last season's. */
+export function squadColumns(gameweeks: readonly number[], pointsSeason: number | null) {
+  return {
+    positions: { short: "Pos", long: "Positions" },
+    player: { short: "Player", long: "Player" },
+    owner: { short: "Team", long: "The team that owns him in this league, Free agent or Waivers" },
+    points: pointsSeason === null ? { short: "Pts", long: "Season points in this league" } : lastSeasonPointsColumn(pointsSeason),
+    ...Object.fromEntries(gameweeks.map((gameweek) => [`gw${gameweek}`, { short: gameweekShort(gameweek), long: `Points in ${gameweekWords(gameweek)}` }])),
+    starts: { short: "St", long: pointsSeason === null ? "Starts this season" : `Starts in ${seasonShortWords(pointsSeason)}` },
+    minutes: { short: "Mins", long: pointsSeason === null ? "Minutes this season" : `Minutes in ${seasonShortWords(pointsSeason)}` },
+  };
 }
 
 /** The Fixtures tab's columns: a short head, and what it stands for. */
