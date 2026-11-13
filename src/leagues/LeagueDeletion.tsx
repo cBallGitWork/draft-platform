@@ -62,7 +62,7 @@ export function DeletedLeagueStrip({
         <p>
           <strong>{league.name}</strong> <span>{beingDeleted(deletesAt)}</span>
         </p>
-        <button type="button" disabled={busy} onClick={() => void run(() => actions.undoDeletion(league.leagueId))} className="action">
+        <button type="button" disabled={busy} onClick={() => void run(() => actions.undoDeletion(league.leagueId))} className="secondary-action">
           {undoWords}
         </button>
       </div>
