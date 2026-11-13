@@ -4,7 +4,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
-import { ClubMark, crestUrl } from "../../../src/ui/ClubName";
+import { ClubMark, CrestSourceProvider, crestUrl } from "../../../src/ui/ClubName";
 import { styledColour } from "../../support/src/styledColour";
 
 const ARSENAL_CODE = 3;
@@ -29,6 +29,19 @@ describe("a club's mark", () => {
     expect(square.className).toContain("size-club-mark");
     const halves = [...square.children].map((half) => (half as HTMLElement).style.backgroundColor);
     expect(halves).toEqual([CLUB_COLOURS[ARSENAL_CODE].primary, CLUB_COLOURS[ARSENAL_CODE].secondary].map(styledColour));
+  });
+
+  it("takes its crest from the source it is given, and draws its square where the source has none (#2014)", () => {
+    const LOCAL = "/crests/t3.png";
+    const source = (code: number) => (code === ARSENAL_CODE ? LOCAL : null);
+    const { container } = render(
+      <CrestSourceProvider value={source}>
+        <ClubMark code={ARSENAL_CODE} />
+        <ClubMark code={999} />
+      </CrestSourceProvider>,
+    );
+    expect(container.querySelector("img")!.getAttribute("src")).toBe(LOCAL);
+    expect(container.querySelectorAll('[data-club-mark="drawn"]')).toHaveLength(1);
   });
 
   it("draws a club with no colours held in white, so every code still has a mark", () => {
