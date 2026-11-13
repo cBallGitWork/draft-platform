@@ -4,7 +4,7 @@
 // asked at held by its watch alone, so the shell doesn't re-render each minute.
 
 import { act, render } from "@testing-library/react";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MINUTE_MS } from "../../../../convex/shared/time";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../../../../src/frame/menu";
@@ -26,15 +26,9 @@ vi.mock("convex/react", async () =>
 );
 
 beforeEach(() => {
-  convex.isDue.mockReset();
   convex.isDue.mockReturnValue(false);
-  convex.countMine.mockReset();
   convex.countMine.mockReturnValue(0);
-  convex.offersWaiting.mockReset();
   convex.offersWaiting.mockReturnValue(0);
-});
-afterEach(() => {
-  vi.useRealTimers();
 });
 
 const UNREAD = 3;

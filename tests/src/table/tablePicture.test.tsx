@@ -3,13 +3,11 @@
 // the gameweek's games.
 
 import { screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { FIXTURES_TITLE, leagueGamesHead, seasonLineWords } from "../../../src/table/words";
 import { openTable } from "../../support/src/tableScreen.harness";
 const scored = (scores: [string, number][]) => ({ scores: new Map([[1, new Map(scores)]]) });
-
-afterEach(() => vi.useRealTimers());
 
 describe("the table and fixtures, as the picture draws them", () => {
   it("shows points for and against to one place, a whole total too: 30.0 beside 10.5", async () => {

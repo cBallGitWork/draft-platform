@@ -22,6 +22,7 @@ import {
   REFUSAL,
   RICE,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SAVED_LINE,
   STARTERS,
@@ -58,7 +59,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     // Saliba, at left-centre of defence, keeps that cell, a 4-4-2 back four's; Rice, centre of
     // midfield, takes the nearest of its flat four's; Havertz takes a strike pair's place.
     expect(blockOf(RAYA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
-    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(SALIBA, SALIBAS_CELL)).toBeTruthy();
     expect(blockOf(RICE, { area: "midfield", lane: "leftCentre" })).toBeTruthy();
     expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
   });
@@ -106,8 +107,6 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
 });
 
 describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
-  const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
-
   it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
     await openedPitch();
     expect(roleShown(SALIBA.name)).toBe("Stopper");

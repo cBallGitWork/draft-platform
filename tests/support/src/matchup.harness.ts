@@ -12,6 +12,7 @@ import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, Match
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
 import { serverStore } from "./serverStore";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 /** Each tile of a team's lineup on screen, as it is read out: the pitch's top to bottom, then the
  *  bench's in order. */
@@ -145,12 +146,12 @@ export const headToHead = (
     gameweeks = [5, 6, 7],
     deadline = null as number | null,
     gameNumber = 1,
-    games = [{ kind: "team", teamName: "Team 2" }] as HeadToHead["games"],
+    games = [{ kind: "team", teamName: THEIR_TEAM_NAME }] as HeadToHead["games"],
   } = {},
 ): HeadToHead => ({
   kind: "headToHead",
-  teamId: "team-Team 1" as Id<"teams">,
-  teamName: "Team 1",
+  teamId: `team-${MY_TEAM_NAME}` as Id<"teams">,
+  teamName: MY_TEAM_NAME,
   gameweeks,
   gameweek,
   deadline,

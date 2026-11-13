@@ -15,7 +15,9 @@ import { CHELSEA } from "../../../../support/convex/footballRows.harness";
 import {
   HAVERTZ,
   RAYA,
+  HAVERTZS_CELL,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   STARTERS,
   blockOf,
@@ -27,8 +29,6 @@ import {
 } from "../../../../support/src/tacticsScreen.harness";
 
 const SET = FIRST_SCORING_WITH_ROLES;
-const SALIBAS_CELL = STARTERS[1];
-const HAVERTZS_CELL = STARTERS[3];
 /** A goal in 90 minutes away at Chelsea in gameweek 8, then 20 minutes in one of last season's. */
 const GOAL = { minutes: 90, goals_scored: 1 };
 const CAMEO = { minutes: 20 };

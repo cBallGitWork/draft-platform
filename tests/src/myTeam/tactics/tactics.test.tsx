@@ -31,6 +31,7 @@ import {
   ARRIZABALAGA,
   RAYA,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SQUAD,
   STARTERS,
@@ -130,7 +131,7 @@ describe("the lineup held", () => {
     await openedPitch({ tactics: { ...SAVED, squad } });
     const shirtNumber = (player: Member, cell: Cell) => blockOf(player, cell).querySelector("svg text")?.textContent ?? null;
     expect(shirtNumber(numbered, { area: "goalkeeper", lane: "centre" })).toBe("22");
-    expect(shirtNumber(SALIBA, { area: "defence", lane: "leftCentre" })).toBeNull();
+    expect(shirtNumber(SALIBA, SALIBAS_CELL)).toBeNull();
   });
 
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {

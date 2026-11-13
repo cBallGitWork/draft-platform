@@ -9,7 +9,7 @@ import { ClubColoursProvider } from "../../../../../src/shared/clubColours";
 import { Shirt } from "../../../../../src/myTeam/tactics/pitch/Pitch";
 import { ARSENAL } from "../../../../support/convex/footballRows.harness";
 import { colorToken } from "../../../../support/src/colorTokens";
-import { blockOf, openedPitch, RAYA, SALIBA } from "../../../../support/src/tacticsScreen.harness";
+import { blockOf, openedPitch, RAYA, SALIBA, SALIBAS_CELL } from "../../../../support/src/tacticsScreen.harness";
 
 /** WCAG 2.2 AA: a shirt's edge on the grass is a shape, 3:1. */
 const SHAPE_CONTRAST = 3;
@@ -29,7 +29,7 @@ describe("the shirts", () => {
 
   it("dresses an outfield player in his club's colour and his keeper in its second, hidden from screen readers", async () => {
     await openedPitch();
-    const outfield = shirtOf(blockOf(SALIBA, { area: "defence", lane: "leftCentre" }));
+    const outfield = shirtOf(blockOf(SALIBA, SALIBAS_CELL));
     const keeper = shirtOf(blockOf(RAYA, { area: "goalkeeper", lane: "centre" }));
 
     expect(outfield.querySelector("path")!.style.fill).toBe(hexToRgb(CLUB_COLOURS[ARSENAL.code].primary));

@@ -14,6 +14,7 @@ import type {
   TradeToReview,
 } from "../../../src/trades/seam";
 import { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 
@@ -64,9 +65,9 @@ export const screenTeam = (
 export const screenOffer = (rest: Partial<ScreenOffer> = {}): ScreenOffer => ({
   offerId: "offer-1" as Id<"tradeOffers">,
   fromTeamId: THEIR_TEAM,
-  fromTeamName: "Team 2",
+  fromTeamName: THEIR_TEAM_NAME,
   toTeamId: MY_TEAM,
-  toTeamName: "Team 1",
+  toTeamName: MY_TEAM_NAME,
   gives: [PALMER],
   gets: [SAKA],
   picks: null,
@@ -86,8 +87,8 @@ export const quietTrades: TradesView = {
   shut: null,
   squadMaximum: 20,
   teams: [
-    screenTeam(MY_TEAM, "Team 1", [SAKA, RICE]),
-    screenTeam(THEIR_TEAM, "Team 2", [PALMER, JAMES]),
+    screenTeam(MY_TEAM, MY_TEAM_NAME, [SAKA, RICE]),
+    screenTeam(THEIR_TEAM, THEIR_TEAM_NAME, [PALMER, JAMES]),
   ],
   offers: [],
   closed: [],
@@ -97,9 +98,9 @@ export const quietTrades: TradesView = {
 export const closedOffer = (rest: Partial<ClosedOffer> = {}): ClosedOffer => ({
   closedId: "closed-1" as Id<"closedTradeOffers">,
   fromTeamId: THEIR_TEAM,
-  fromTeamName: "Team 2",
+  fromTeamName: THEIR_TEAM_NAME,
   toTeamId: MY_TEAM,
-  toTeamName: "Team 1",
+  toTeamName: MY_TEAM_NAME,
   gives: [PALMER],
   gets: [SAKA],
   picks: null,

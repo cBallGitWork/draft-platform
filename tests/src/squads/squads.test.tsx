@@ -2,12 +2,11 @@
 // the league; find a player and put him on a team, move or release him; each team's squad and the
 // league's squad limits it breaks.
 
-import { cleanup, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
+import { adminSeeing, coCommissioned, commissioner, expectNotOffered, expectSentToLeagues, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
 import type { SquadsData } from "../../support/src/squads.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
@@ -61,14 +60,8 @@ describe("reaching the squads", () => {
   });
 
   it("a manager isn't offered them, and is sent back to Your leagues if they go there", async () => {
-    openApp(LEAGUES_PATH, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: SQUADS_TITLE })).toBeNull();
-
-    cleanup();
-    const app = openApp(PAGE, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectNotOffered(SQUADS_TITLE, managerIn(league));
+    await expectSentToLeagues(PAGE, managerIn(league));
   });
 });
 
