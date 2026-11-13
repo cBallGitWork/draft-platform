@@ -17,6 +17,9 @@
 // so the copy goes with it: the backup that lasts is the one Convex keeps. If the backup fails,
 // nothing is deployed and the release stops, saying why. docs/setup.md says how to restore.
 //
+// Just before deploying, it sets TIMED_JOBS_ON on the live deployment, which runs the timed feed,
+// waiver and trade jobs there and only there (#1997); if it can't, nothing is deployed.
+//
 // Before any of that, it refuses a build that isn't production's, or that has no deploy key, and
 // says why in the build log: a preview (a `vercel deploy` from the CLI, say) must never put its
 // code on the live deployment, and without the key `convex deploy` can't reach it.
@@ -26,6 +29,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { TIMED_JOBS_SETTING } from "../convex/outbound/deploymentSettings.ts";
 import { fingerprintOf, savedShape, shapeFromParts, shapeParts, strandedIn } from "./schema-shape.mjs";
 import { ranDirectly } from "./thisScript.mjs";
 
@@ -33,8 +37,10 @@ import { ranDirectly } from "./thisScript.mjs";
 export const FINGERPRINT_ENV = "LIVE_SCHEMA_FINGERPRINT";
 /** The live deployment's environment variables holding the last release's shape, numbered from 1. */
 export const SHAPE_ENV_PREFIX = "LIVE_SCHEMA_SHAPE_";
-/** The most variables the shape is read from, far more than today's schema needs (one). */
-const SHAPE_PARTS_MAX = 20;
+/** The most variables the shape is read from or recorded in, far more than today's schema needs (two, 13 Nov 2026). */
+export const SHAPE_PARTS_MAX = 20;
+/** What each release sets `TIMED_JOBS_SETTING` to on the live deployment: any value turns them on. */
+export const TIMED_JOBS_ON = "on";
 const SCHEMA_PATH = "convex/schema.ts";
 export const DEPLOY_ARGS = ["deploy", "--cmd", "npm run build"];
 const BACKUP_FILE = "backup.zip";
@@ -140,6 +146,10 @@ function backupReason(convex, shape, live) {
 /** Records the shape now live: its parts, then any left from a longer one removed, then its fingerprint. */
 function recordShape(convex, shape) {
   const parts = shapeParts(shape);
+  // Past the cap the next release couldn't read it back, so it would back up every time: say so.
+  if (parts.length > SHAPE_PARTS_MAX) {
+    return { status: 1, stderr: `the shape needs ${parts.length} variables, over the ${SHAPE_PARTS_MAX} a release reads` };
+  }
   for (const [at, part] of parts.entries()) {
     const set = convex(["env", "set", shapeEnv(at + 1), part], { capture: true });
     if (set.status !== 0) return set;
@@ -187,6 +197,13 @@ export function release({ convex, shape, backupPath, log = console.log }) {
         ? `Backup taken: snapshot ${snapshot}, on ${BACKUP_PAGE}.`
         : `Backup taken, but the CLI printed no timestamp: it is the newest on ${BACKUP_PAGE}.`,
     );
+  }
+
+  // Before the code that reads it goes live, so the live site's timed jobs never stop (#1997).
+  const jobsOn = convex(["env", "set", TIMED_JOBS_SETTING, TIMED_JOBS_ON], { capture: true });
+  if (jobsOn.status !== 0) {
+    log(`${STOPPED}: couldn't set ${TIMED_JOBS_SETTING} on the live deployment (${failure(jobsOn)}), and without it its feeds, waiver runs and trade offers stop.`);
+    return 1;
   }
 
   const deployed = convex(DEPLOY_ARGS);

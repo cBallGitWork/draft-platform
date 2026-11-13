@@ -5,7 +5,7 @@ import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated
 import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { scheduleHeartbeat } from "../heartbeats/heartbeat";
+import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
@@ -252,6 +252,7 @@ export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
+    if (!timedJobsOn()) return null;
     await scheduleEveryLeague(ctx, internal.waivers.waiverRun.runLeagueDue, "so waivers can't be run in every one", leagueOpens);
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;

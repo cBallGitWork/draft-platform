@@ -27,3 +27,8 @@ export const TEST_ACCOUNT_SECRET_SETTING = "TEST_ACCOUNT_SECRET";
 /** A GitHub token that may run this repository's workflows (Actions: read and write), for the lead's
  *  wake-up (heartbeats/leadWake.ts). Set on the development deployment only, never the live one (Craig, 8 Nov 2026): unset, nothing wakes the lead. */
 export const LEAD_WAKE_TOKEN_SETTING = "LEAD_WAKE_GITHUB_TOKEN";
+
+/** Turns on the timed feed, waiver and trade jobs (heartbeats/heartbeat.ts, `timedJobsOn`). Set on
+ *  the live deployment only, by every release (scripts/release.mjs); development leaves it unset, so
+ *  its crons spend none of the free plan's database reads (Craig, 13 Nov 2026, #1997). */
+export const TIMED_JOBS_SETTING = "TIMED_JOBS_ON";
