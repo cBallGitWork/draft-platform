@@ -2,36 +2,23 @@ import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
-import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { PALMER, RICE, SAKA } from "../../support/convex/footballRows.harness";
 import { playersListed } from "../../support/convex/playersList.harness";
+import { holdSeasonTotals, scoutingLeague } from "../../support/convex/scouting.harness";
 
 // Every row of Scouting's list shows his season's minutes, goals, assists and shots on target (the
 // approved picture, #1028), with no stat chosen, and each sorts the list. A stat chosen is
 // tests/convex/scouting/playersList.test.ts's.
 
-const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
-
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 // Saka and Palmer have totals this season, Rice none at all.
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId } = await scoutingLeague([SAKA, RICE, PALMER]));
   await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, RICE, PALMER]);
-    await ctx.db.insert("playerSeasonStats", {
-      season: FPL_SEASON,
-      playerCode: SAKA.code,
-      stats: { minutes: 540, goals_scored: 3, assists: 4, ontarget_scoring_att: 9, expected_goals: 2.5 },
-    });
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: PALMER.code, stats: { minutes: 610, goals_scored: 5, ontarget_scoring_att: 7 } });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 540, goals_scored: 3, assists: 4, ontarget_scoring_att: 9, expected_goals: 2.5 });
+    await holdSeasonTotals(ctx, PALMER.code, { minutes: 610, goals_scored: 5, ontarget_scoring_att: 7 });
   });
 });
 

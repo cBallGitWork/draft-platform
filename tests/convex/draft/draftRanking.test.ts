@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { draftRanking, RANKING_LINES_MOST, rankingRefusals } from "../../../convex/draft/draftRanking";
 import { rankingProblems } from "../../../convex/draft/rankingFile";
-import { ARSENAL, GONE, insertClubs, insertDroppedPlayer, insertPlayers, SAKA, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, GONE, insertClubs, insertDroppedPlayer, insertPlayers, ODEGAARD, RICE, SAKA, UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, type TestConvex } from "../../support/convex/test.harness";
@@ -10,9 +10,6 @@ import { expectRefused, type TestConvex } from "../../support/convex/test.harnes
 // The admin's ranking (spec/04, The queue and the ranking; #1093): one for the whole platform,
 // stored only when every line is good, each upload replacing the last; a player who has left the
 // game is skipped, never a bad line (Craig, 4 Nov 2026, on #1093).
-
-const RICE: HeldPlayer = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CM"] };
-const ODEGAARD: HeldPlayer = { code: 1003, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code, positions: ["CM"] };
 
 let t: TestConvex;
 

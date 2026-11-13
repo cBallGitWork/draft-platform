@@ -1,13 +1,11 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Position } from "../../../convex/positions/positionTables";
 import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { MANAGERS, actingAs, teamName, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, PALMER as CAM_PALMER, SAKA, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { holdSeasonTotals, scoutingLeague } from "../../support/convex/scouting.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Two players side by side (#373, spec/19 The players list; the approved picture's compare, #1028):
@@ -16,24 +14,19 @@ import { expectRefused } from "../../support/convex/test.harness";
 // are "—" (null) here, with none priced; that they match the list's is
 // tests/convex/stats/seasonPoints.test.ts's.
 
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM", "W"] as Position[] };
+const PALMER: HeldPlayer = { ...CAM_PALMER, positions: ["CAM", "W"] };
 /** Held by the football sync, with no match yet. */
-const NEW_BOY = { code: 1005, name: "New", fullName: "New Boy", clubCode: CHELSEA.code, positions: [] as Position[] };
+const NEW_BOY: HeldPlayer = { code: 1005, name: "New", fullName: "New Boy", clubCode: CHELSEA.code, positions: [] };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await scoutingLeague([SAKA, PALMER, NEW_BOY], [ANN, BOB]));
   await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, PALMER, NEW_BOY]);
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: SAKA.code, stats: { minutes: 180, goals_scored: 3, assists: 1 } });
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: PALMER.code, stats: { minutes: 90, assists: 3 } });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 180, goals_scored: 3, assists: 1 });
+    await holdSeasonTotals(ctx, PALMER.code, { minutes: 90, assists: 3 });
   });
 });
 

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Position } from "../../../convex/positions/positionTables";
 import {
   LISTED_PLAYERS_MOST,
   type ListedPlayer,
@@ -16,7 +15,7 @@ import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, PALMER, RICE as CDM_RICE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
@@ -27,9 +26,9 @@ import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harnes
 
 const BRENTFORD = { code: 94, name: "Brentford", shortName: "BRE" };
 
-const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
-const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
+/** A second position, so a CM filter finds him. */
+const RICE: HeldPlayer = { ...CDM_RICE, positions: ["CDM", "CM"] };
+const MBEUMO: HeldPlayer = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

@@ -28,7 +28,12 @@ export const COVENTRY: Club = { code: 9, name: "Coventry", shortName: "COV" };
 /** A player as a test holds him: his players row, and the positions set for him. */
 export type HeldPlayer = WithoutSystemFields<Doc<"players">> & { positions: Position[] };
 
+// The named players the tests hold, one row and one code each. A test that needs him in another
+// position spreads his row, `{ ...RICE, positions: ["CM", "CB"] }`, and keeps his code.
 export const SAKA: HeldPlayer = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] };
+export const RICE: HeldPlayer = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM"] };
+export const ODEGAARD: HeldPlayer = { code: 1003, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code, positions: ["CAM"] };
+export const PALMER: HeldPlayer = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] };
 
 export const insertClubs = async (ctx: MutationCtx, clubs: readonly Club[]) => {
   for (const club of clubs) await ctx.db.insert("clubs", club);
@@ -38,6 +43,11 @@ export const insertClubs = async (ctx: MutationCtx, clubs: readonly Club[]) => {
  *  row is written already or not needed. */
 export const insertSetPositions = (ctx: MutationCtx, code: number, positions: Position[]) =>
   ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: positions, removed: [] });
+
+/** Each player's row only, with no positions set, for a test whose reads never ask them. */
+export const insertPlayerRows = async (ctx: MutationCtx, players: readonly HeldPlayer[]) => {
+  for (const { positions: _, ...player } of players) await ctx.db.insert("players", player);
+};
 
 /** Each player's row, and his positions as the admin set them, with no starts counted. */
 export const insertPlayers = async (ctx: MutationCtx, players: readonly HeldPlayer[]) => {
