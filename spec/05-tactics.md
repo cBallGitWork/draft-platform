@@ -170,13 +170,22 @@ and how they score from Craig, 4 Nov 2026.
   | | Get it wide | crosses | failed crosses | wide players or wing-backs on both flanks |
   | | Shoot on sight | shots, any range | shots off target | any shape |
   | | Gung-ho | goals and assists | goals conceded | two at the back |
-  | defensive | Press high | the front three's tackles won and interceptions | fouls | three up front |
+  | defensive | Press high | the forwards' and attacking midfielders' tackles won and interceptions | fouls | two or more up front, attacking midfielders counted |
   | | Clear it | defenders' clearances and blocks | defenders losing the ball | any shape |
   | | Get stuck in | tackles and duels won | cards and fouls | any shape |
   | | Keep it tight early | a clean sheet at half-time | goals let in before half-time | any shape |
   | | Park the bus | the keeper's and defenders' clean sheets | goals and assists | five at the back |
 
-- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the front three's tackles won and interceptions, in a shape with three up front ("press high could just be the front 3", 9 Nov 2026, on #1196); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
+- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the tackles won and interceptions of those up front, in a shape with two or more up front ("press high could just be the front 3", 9 Nov 2026, on #1196; two or more from 13 Nov 2026, on #1452); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
+- Press high needs two or more up front, and attacking midfielders count: a 4-4-2, a 4-3-3 and a
+  4-2-3-1 all get it ("Attacking mids count", 12 Nov 2026; "allow" a 4-4-2, 13 Nov 2026, on #1452).
+  Everyone up front scores it, so all five in a 2-3-5's attack row do ("All the forwards", 12 Nov
+  2026). Sacchi's Milan keeps it. `S05.42`
+- A saved lineup or classic formation that loses an instruction to these changes: Hold a high line
+  comes off with nothing in its place ("Dropped, Mail says so", 10 Nov 2026); Press high switches to
+  its formation's default defensive instruction ("Formation's default", 12 Nov 2026). Either way its
+  manager gets a Mail saying so, so he can pick another. The site isn't live, so the new scoring
+  applies as soon as it ships ("the site isint live yet", 12 Nov 2026, on #1452). `S05.43`
 - A formation offers every instruction its shape allows, so the shape decides the list: "we have
   to block it from certain formations". Each formation has a default attacking and a default
   defensive instruction.
