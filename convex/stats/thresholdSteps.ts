@@ -98,7 +98,7 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
     const adjustedMoves = from !== to && adjusted.has(stat);
     // A back line reprices a clean sheet and each goal conceded (teamScoring.ts), so a goal
     // conceded the set's own rule leaves unpriced is a step too (#1754).
-    const pricings = [rules, rules.map((rule) => withBackLine(rule, ANY_BACK_LINE))];
+    const pricings = [rules, withBackLine(rules, ANY_BACK_LINE)];
     const moves = (priced: readonly ScoringRule[]) => ALL_CELLS.some((cell) => statPoints(priced, cell, from, minutesWere) !== statPoints(priced, cell, to, minutesNow));
     if (adjustedMoves || pricings.some(moves)) {
       steps.push({ stat, from, to });
