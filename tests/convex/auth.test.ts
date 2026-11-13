@@ -4,6 +4,7 @@ import { LINK_LIFETIME_S } from "../../convex/signIn/signInLimits";
 import { approvedEmail, inviteEmail } from "../../convex/joining/joiningEmails";
 import { SIGN_IN_SUBJECT_START, signInEmail } from "../../convex/signIn/signInEmail";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
+import { PRODUCT_NAME } from "../../convex/shared/product";
 import { TEAM_1 } from "../support/convex/leagues.harness";
 
 // spec/02: a link lasts an hour. The words saying so live with each email and screen, so this
@@ -37,7 +38,7 @@ test("an invite resent a minute later has a different subject, so Gmail doesn't 
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = inviteEmail(url, facts, sentAt).subject;
   const next = inviteEmail(url, facts, sentAt + MINUTE_MS).subject;
-  expect(first).toBe("You're invited to A league on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
+  expect(first).toBe(`You're invited to A league on ${PRODUCT_NAME}, Sunday 1 November at 14:32 GMT`);
   expect(next).not.toBe(first);
 });
 
@@ -46,6 +47,6 @@ test("a second approval into the same league has a different subject, so Gmail d
   const facts = { leagueName: "A league", teamName: TEAM_1 };
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = approvedEmail(facts, sentAt).subject;
-  expect(first).toBe("You're in A league on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
+  expect(first).toBe(`You're in A league on ${PRODUCT_NAME}, Sunday 1 November at 14:32 GMT`);
   expect(approvedEmail(facts, sentAt + MINUTE_MS).subject).not.toBe(first);
 });

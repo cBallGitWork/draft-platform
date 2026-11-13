@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getFunctionName } from "convex/server";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { deletes, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
+import { deletes, leagueWithPeople, moreEventsThanOneRun, undoes } from "../../support/convex/leagueDeletion.harness";
 import { UNEMAILED_KEPT_MS, notEmailedLog, waitingLog } from "../../../convex/leagues/deletionNotices";
 import { PRUNE_ORDER } from "../../../convex/admin/runLogs";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { EMAILS_PER_DAY, startOfNextDay } from "../../../convex/outbound/emailLimit";
 import { finishWhatIsDueNow } from "../../support/convex/joining.harness";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
@@ -53,7 +53,7 @@ describe("while a deletion can be undone", () => {
 
   test("undoing it emails nobody, then or after the day", async () => {
     await deletes(t, COMMISSIONER, leagueId);
-    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+    await undoes(t, COMMISSIONER, leagueId);
     await goneForGood();
     expect(sent).toEqual([]);
     expect(await unemailedRows()).toEqual([]);

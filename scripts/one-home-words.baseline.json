@@ -110,9 +110,6 @@
   "tests/convex/gameweeks/deadlineRecorderAlarm.test.ts": [
     "at the next deadline"
   ],
-  "tests/convex/joining/invites.test.ts": [
-    "Tim Hortons Pro League"
-  ],
   "tests/convex/leagues/leagueDeletion.test.ts": [
     "is no longer being deleted"
   ],
@@ -364,9 +361,6 @@
   "tests/src/admin/feeds.test.tsx": [
     "Premier League"
   ],
-  "tests/src/app/preview.test.ts": [
-    "Tim Hortons Pro League"
-  ],
   "tests/src/draft/commissionerPanel.test.tsx": [
     "Change the start",
     "The draft is over"
@@ -410,9 +404,6 @@
   ],
   "tests/src/joining/invitesPage.test.tsx": [
     "to the team chosen"
-  ],
-  "tests/src/joining/joinPage.test.tsx": [
-    "Tim Hortons Pro League"
   ],
   "tests/src/leagueSettings/leagueSettings.test.tsx": [
     "games a gameweek"

@@ -7,11 +7,11 @@ import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
+import { yourLeaguesHeading } from "../../support/src/shell.harness";
 import { signInToJoinWords } from "../../../src/joining/words";
 import { ERROR_PAGE_TITLE, readFailedWords, retryWords, signOutWords } from "../../../src/frame/words";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { LINK_CHECK_FAILED_LOG, LiveApp, takeLinkCode } from "../../../src/app/liveApp";
 import { NO_CONVEX_URL } from "../../../src/shared/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
@@ -161,7 +161,7 @@ test("signed in, in no league, the app opens on the leagues page", async () => {
 
   openAt("/");
 
-  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+  expect(await yourLeaguesHeading()).toBeTruthy();
   expect(window.location.pathname).toBe(LEAGUES_PATH);
   // The browser's zone is kept each time the app opens signed in (#442); the tests run in London's.
   expect(convex.recordZone).toHaveBeenCalledWith({ zone: "Europe/London" });
@@ -199,7 +199,7 @@ test("Retry above the pages reads again, and shows the app once the read succeed
   convex.unreadFails = null;
   await userEvent.click(retry);
 
-  expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+  expect(await yourLeaguesHeading()).toBeTruthy();
   expect(screen.queryByRole("heading", { name: ERROR_PAGE_TITLE })).toBeNull();
 });
 

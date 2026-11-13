@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { askToJoin, invite, makeLink, openLastLinkTo } from "../../support/convex/joining.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
-import { aRowInEveryTable, deletes, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo } from "../../support/convex/leagueDeletion.harness";
+import { aRowInEveryTable, deletes, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo, undoes } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/convex/leagueMutations.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, accountOf, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
@@ -115,7 +115,7 @@ describe("while it can be undone", () => {
     for (const email of [CO_COMMISSIONER, ANN]) {
       await expectRefused((await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notUndoer);
     }
-    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+    await undoes(t, COMMISSIONER, leagueId);
 
     expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "deletionUndone", name: LEAGUE_NAME });
@@ -126,7 +126,7 @@ describe("while it can be undone", () => {
     const deletesAt = await deletes(t, COMMISSIONER, leagueId);
     const { scheduledId } = (await leagueRow(t, leagueId))!.deletion!;
     await elapse(t, deletesAt - 1 - Date.now());
-    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+    await undoes(t, COMMISSIONER, leagueId);
     await everyJobRuns(t);
 
     const deletion = await t.run((ctx) => ctx.db.system.get("_scheduled_functions", scheduledId));
@@ -147,7 +147,7 @@ describe("while it can be undone", () => {
       const person = await actingAs(t, email);
       await expectRefused(person.mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notUndoer);
     }
-    await (await actingAs(t, ADMIN)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+    await undoes(t, ADMIN, leagueId);
     expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
   });
 
@@ -177,7 +177,7 @@ describe("while it can be undone", () => {
 
     test("the commissioner undoing the admin's deletion tells the admin too; nobody else", async () => {
       await deletes(t, ADMIN, leagueId);
-      await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+      await undoes(t, COMMISSIONER, leagueId);
       expect(await lettersSaying(UNDONE)).toEqual([
         { to: COMMISSIONER, read: true },
         { to: ADMIN, read: false },

@@ -10,7 +10,7 @@ import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
-import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
+import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { scoringPath } from "../../../src/scoring/paths";
@@ -37,7 +37,7 @@ import { expectColumnHeads } from "../../support/src/columnHeads";
 describe("someone signed in, in no league", () => {
   it.each(["/", MY_TEAM_PATH, SIGN_IN_PATH])("opening %s sees their leagues page, saying they're in none", async (path) => {
     const app = openApp(path, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(screen.getByText(notInALeagueWords("manager@example.com"))).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
@@ -86,7 +86,7 @@ describe("someone signed in, in no league", () => {
 
   it("sees a Main menu of only their leagues and Mail, no section tabs, no Create a league, and can sign out", async () => {
     const app = openApp(LEAGUES_PATH, newcomer);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     const main = screen.getByRole("navigation", { name: mainMenuLabel });
     expect(within(main).getAllByRole("link").map((tab) => tab.textContent)).toEqual([LEAGUES_TITLE, MAIL_TITLE]);
     expect(screen.getAllByRole("navigation")).toEqual([main]);
@@ -101,7 +101,7 @@ describe("someone signed in, in no league", () => {
 
   it("opening Create a league, not being the admin, is sent back to their leagues", async () => {
     const app = openApp(NEW_LEAGUE_PATH, newcomer);
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
@@ -138,13 +138,13 @@ describe("the admin, with no part in a league", () => {
   it("is offered no way into a league being deleted, and its pages send him back to his leagues", async () => {
     const deleting = adminSeeing(beingDeleted(withNoPart(league)));
     openApp(LEAGUES_PATH, deleting);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     expect(screen.queryByRole("rowheader", { name: new RegExp(`^${league.name}`) })).toBeNull();
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
     expect(screen.queryByRole("link", { name: SCORING_TITLE })).toBeNull();
 
     const app = openApp(scoringPath(league.leagueId), deleting);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 
@@ -159,7 +159,7 @@ describe("the admin, with no part in a league", () => {
     ["Player scoring", scoringPath],
   ])("opening %s of a league past the list's cut lands on his leagues, which says some are missing (#297)", async (_, pathOf) => {
     const app = openApp(pathOf("league-past-the-cut"), { ...adminSeeing(withNoPart(league)), leaguesCut: true });
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    await yourLeaguesHeading();
     expect(app.path()).toBe(LEAGUES_PATH);
     expect(screen.getByRole("status").textContent).toBe(leaguesCutWords);
   });

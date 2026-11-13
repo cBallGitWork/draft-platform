@@ -8,6 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { undoes } from "../../support/convex/leagueDeletion.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -169,7 +170,7 @@ describe("resuming", () => {
 // resume (Craig, 11 Nov 2026, on #1486: "Accept all").
 describe("when its league is deleted", () => {
   const deleteLeague = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
-  const undo = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+  const undo = () => undoes(t, COMMISSIONER, leagueId);
   const lettersCountTo = async (email: string) => (await lettersTo(t, email)).length;
 
   test("the draft pauses, keeps its time left, picks nothing and tells no manager", async () => {

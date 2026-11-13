@@ -8,12 +8,12 @@ import { joinPath, linkOffWords } from "../../../convex/joining/joiningShared";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { signInWords } from "../../../src/signIn/words";
 import { LINK_REPLY, newcomer, openApp, visitor } from "../../support/src/shell.harness";
+import { LEAGUE_NAME } from "../../support/convex/leagues.harness";
 import type { JoinPageData } from "../../../src/joining/seam";
 import { joinPageWords, signInToJoinWords } from "../../../src/joining/words";
 
 const TOKEN = "the-token";
-const LEAGUE = "Tim Hortons Pro League";
-const SHOWN = { leagueName: LEAGUE, commissionerEmail: "sam@example.com", teams: 3, maxTeams: 8 };
+const SHOWN = { leagueName: LEAGUE_NAME, commissionerEmail: "sam@example.com", teams: 3, maxTeams: 8 };
 const openLink = (joinPage: JoinPageData, session = newcomer) => openApp(joinPath(TOKEN), session, { joining: { joinPage } });
 
 describe("a signed-out visitor opening the invite link", () => {
@@ -53,7 +53,7 @@ describe("someone signed in opening the invite link", () => {
   it("sees the league, who runs it and how full it is, beside how joining goes, and asks to join (#1497)", async () => {
     const app = openLink({ ...SHOWN, standing: "mayAsk" });
     expect(await screen.findByRole("heading", { level: 1, name: joinPageWords.title })).toBeTruthy();
-    expect(screen.getByRole("heading", { level: 2, name: LEAGUE })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: LEAGUE_NAME })).toBeTruthy();
     const facts = [...document.querySelectorAll("dt")].map((term) => [term.textContent, term.nextElementSibling?.textContent]);
     expect(facts).toEqual([
       [joinPageWords.commissioner, "sam@example.com"],
@@ -73,7 +73,7 @@ describe("someone signed in opening the invite link", () => {
 
   it("having asked, sees the request waiting for the commissioner", async () => {
     openLink({ ...SHOWN, standing: "waiting" });
-    expect((await screen.findByRole("status")).textContent).toBe(joinPageWords.waiting(LEAGUE));
+    expect((await screen.findByRole("status")).textContent).toBe(joinPageWords.waiting(LEAGUE_NAME));
     expect(screen.queryByRole("button", { name: joinPageWords.ask })).toBeNull();
   });
 
@@ -90,12 +90,12 @@ describe("someone signed in opening the invite link", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: joinPageWords.ask }));
     app.becomes(newcomer); // drawn again, as the server's new answer would
-    expect(await screen.findByText(joinPageWords.waiting(LEAGUE))).toBe(status);
+    expect(await screen.findByText(joinPageWords.waiting(LEAGUE_NAME))).toBe(status);
   });
 
   it("already in the league, is told their team", async () => {
     openLink({ ...SHOWN, standing: "inLeague", teamName: "Team 3" });
-    expect(await screen.findByText(joinPageWords.inLeague(LEAGUE, "Team 3"))).toBeTruthy();
+    expect(await screen.findByText(joinPageWords.inLeague(LEAGUE_NAME,"Team 3"))).toBeTruthy();
   });
 
   it("once it was replaced or switched off, is told it no longer works", async () => {

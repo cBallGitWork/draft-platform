@@ -25,6 +25,10 @@ export async function deletes(t: TestConvex, email: string, leagueId: Id<"league
   return deletesAt;
 }
 
+/** `email` undoes the league's deletion. */
+export const undoes = async (t: TestConvex, email: string, leagueId: Id<"leagues">) =>
+  (await actingAs(t, email)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+
 /** How many events `moreEventsThanOneRun` gives a league: more than two of deleteForGood's runs
  *  take, so it hands on at least twice. */
 const MANY_EVENTS = 1200;

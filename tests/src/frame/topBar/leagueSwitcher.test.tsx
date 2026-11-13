@@ -23,12 +23,15 @@ import {
   openApp,
   visitor,
   withNoPart,
+  yourLeaguesHeading,
 } from "../../../support/src/shell.harness";
 import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import { allLeaguesWords, currentLeagueLabel, ERROR_PAGE_TITLE, signOutWords } from "../../../../src/frame/words";
 
 const inTwo = managerIn(league, miniBeta);
 const inMiniBeta = { ...inTwo, currentLeagueId: miniBeta.leagueId };
+/** `league`'s row in the list: its name, then the manager's team. */
+const LEAGUE_CHOICE = `${league.name}${league.teamName}`;
 
 const SWITCHER_NAME = new RegExp(`^${currentLeagueLabel} `);
 const switcher = () => screen.findByRole("button", { name: SWITCHER_NAME });
@@ -52,9 +55,9 @@ describe("a manager in two leagues", () => {
     openApp(MY_TEAM_PATH, inTwo);
     await userEvent.click(await switcher());
 
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1", "Mini betaCommissioner"]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE, "Mini betaCommissioner"]);
     expect(within(screen.getByRole("list", { name: LEAGUES_TITLE })).getByRole("button", { current: true }).textContent).toBe(
-      "Tim Hortons Pro LeagueTeam 1",
+      LEAGUE_CHOICE,
     );
     expect((await switcher()).getAttribute("aria-expanded")).toBe("true");
   });
@@ -144,7 +147,7 @@ describe("a manager in two leagues", () => {
     await userEvent.click(await switcher());
     await userEvent.click(screen.getByRole("link", { name: allLeaguesWords }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
     expect(screen.queryByRole("list", { name: LEAGUES_TITLE })).toBeNull();
   });
@@ -170,19 +173,19 @@ describe("the top bar's league, for someone in one", () => {
   it("opens to the one league for a manager, so they can leave it (spec/13, Leaving)", async () => {
     openApp(MY_TEAM_PATH, manager);
     await userEvent.click(await switcher());
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE]);
   });
 
   it("leaves out a league they're deleting, which is frozen", async () => {
     openApp(MY_TEAM_PATH, managerIn(league, beingDeleted(miniBeta)));
     await userEvent.click(await switcher());
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE]);
   });
 
   it("is the admin's own league alone, not those he only oversees", async () => {
     openApp(MY_TEAM_PATH, { ...adminSeeing(league, { ...miniBeta, roles: [] }), inLeague: true, currentLeagueId: league.leagueId });
     await userEvent.click(await switcher());
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE]);
   });
 });
 
@@ -190,7 +193,7 @@ describe("the leagues to switch between (#207)", () => {
   it("are the server's list, leaving out a league it leaves out", async () => {
     openApp(MY_TEAM_PATH, { ...inTwo, switchableLeagueIds: [league.leagueId] });
     await userEvent.click(await switcher());
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1"]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE]);
   });
 
   // The switcher's old rule (a part, and not being deleted) dropped each of these.
@@ -200,7 +203,7 @@ describe("the leagues to switch between (#207)", () => {
   ])("are the server's list, which the switcher doesn't judge again: it keeps $kept", async ({ other, otherChoice }) => {
     openApp(MY_TEAM_PATH, { ...managerIn(league, other), switchableLeagueIds: [league.leagueId, other.leagueId] });
     await userEvent.click(await switcher());
-    expect(choices().map((choice) => choice.textContent)).toEqual(["Tim Hortons Pro LeagueTeam 1", otherChoice]);
+    expect(choices().map((choice) => choice.textContent)).toEqual([LEAGUE_CHOICE, otherChoice]);
   });
 
   // signIn/account:signedInAs never sends this: the app is always in one of the leagues it lists.
@@ -228,7 +231,7 @@ describe("a league deleted under someone on its pages", () => {
     await switcherOrName();
     app.becomes({ ...manager, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null });
 
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
