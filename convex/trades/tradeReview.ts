@@ -62,8 +62,8 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   const scheduledId = await ctx.scheduler.runAt(endsAt, internal.trades.tradeReview.finish, { offerId: offer._id });
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer: storedReviewer(review) } });
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, "trade",await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
-  await fileLetter(ctx, league, "trade",reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
+  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
+  await fileLetter(ctx, league, "trade", reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
 }
 
 /** The player in the trade no longer on his side's team, if one is. */
@@ -95,7 +95,7 @@ async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boole
 /** Closes the trade unmade, telling both managers why. */
 async function failTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, words: TradeWords, failed: TradeFailed): Promise<void> {
   await endOffer(ctx, offer, "failed");
-  await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), "trade",await managersOf(ctx, offer), tradeFailedLetter(words, failed));
+  await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), "trade", await managersOf(ctx, offer), tradeFailedLetter(words, failed));
 }
 
 /** Makes the trade: its players move at once, the league gets the usual trade letter, each team's
@@ -124,7 +124,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
   });
   if (offer.picks !== undefined) {
     await movePicks(ctx, offer, offer.picks);
-    await fileLetter(ctx, league, "trade",await wholeLeague(ctx, league), tradeMadeLetter(words, []), watched ? by : undefined);
+    await fileLetter(ctx, league, "trade", await wholeLeague(ctx, league), tradeMadeLetter(words, []), watched ? by : undefined);
     return;
   }
   const warnings = await tradeWarnings(ctx, league._id, offer);
@@ -148,7 +148,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     });
   }
   const overLimits = warnings.filter(({ warnings }) => warnings.length > 0).map(({ teamName }) => teamName);
-  await fileLetter(ctx, league, "trade",await wholeLeague(ctx, league), tradeMadeLetter(words, overLimits), watched ? by : undefined);
+  await fileLetter(ctx, league, "trade", await wholeLeague(ctx, league), tradeMadeLetter(words, overLimits), watched ? by : undefined);
   await pickFirstLineupAgain(ctx, league._id, from._id);
   await pickFirstLineupAgain(ctx, league._id, to._id);
   await closeOffersHolding(ctx, league._id, from._id, offer.gives);
@@ -161,7 +161,7 @@ async function blockTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, review: R
   const words = await tradeWordsOf(ctx, offer);
   if (offer.review !== undefined) await ctx.scheduler.cancel(offer.review.scheduledId);
   await endOffer(ctx, offer, "blocked");
-  await fileLetter(ctx, league, "trade",await wholeLeague(ctx, league), tradeBlockedLetter(words, review), by);
+  await fileLetter(ctx, league, "trade", await wholeLeague(ctx, league), tradeBlockedLetter(words, review), by);
 }
 
 /** The offer in review in the league, or the refusal that it isn't. */

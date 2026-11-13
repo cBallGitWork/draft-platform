@@ -8,6 +8,7 @@ import type { Session } from "../signIn/seam";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { KindChip } from "../ui/KindChip";
+import { Placeholder } from "../ui/Placeholder";
 import { runs } from "../leagues/access";
 import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";
@@ -17,6 +18,7 @@ import {
   MAIL_TITLE,
   WRITE_TITLE,
   fromWords,
+  kindPlaceholderLabel,
   letterDate,
   letterKindWords,
   letterTime,
@@ -169,7 +171,13 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
         onClick={open}
         className={`grid min-h-tap w-full grid-cols-letter-row items-center gap-3 px-3 py-1 text-left hover:bg-stepper ${edge}`}
       >
-        <span>{letter.kind !== null && <KindChip>{letterKindWords[letter.kind]}</KindChip>}</span>
+        {letter.kind === null ? (
+          <Placeholder label={kindPlaceholderLabel} className="h-4 w-full" />
+        ) : (
+          <span>
+            <KindChip>{letterKindWords[letter.kind]}</KindChip>
+          </span>
+        )}
         <span className="min-w-0">
           {!letter.read && <span className="sr-only">{unreadWords}: </span>}
           <span className="block truncate text-muted">{senderWords(letter.leagueName, letter.from)}</span>

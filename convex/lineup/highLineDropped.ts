@@ -103,7 +103,7 @@ export const dropInLeague = internalMutation({
     const league = await getLeague(ctx, leagueId);
     for (const team of await teamsOf(ctx, leagueId)) {
       const lost = await redrawTeam(ctx, team, latest);
-      if (lost.length > 0 && team.managerEmail !== undefined) await fileLetter(ctx, league, "lineup",[team.managerEmail], lostInstructionsLetter(lost));
+      if (lost.length > 0 && team.managerEmail !== undefined) await fileLetter(ctx, league, "lineup", [team.managerEmail], lostInstructionsLetter(lost));
     }
     return null;
   },

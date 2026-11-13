@@ -7,7 +7,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
 import { letterAsRead } from "./letterMoments";
 import type { Doc, Id } from "../_generated/dataModel";
-import { letterKind } from "../schema/mail";
+import { letterKind } from "./letterShape";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,

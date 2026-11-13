@@ -97,6 +97,6 @@ export async function passReviews(ctx: MutationCtx, leagueId: Id<"leagues">): Pr
     const now = reviewOf(by);
     await ctx.db.patch("tradeOffers", offer._id, { review: { ...review, reviewer: storedReviewer(now) } });
     const words = await tradeWordsOf(ctx, offer);
-    await fileLetter(ctx, league, "trade",await reviewersOf(ctx, offer, now), (tell) => reviewLetter(words, now, review.endsAt, tell));
+    await fileLetter(ctx, league, "trade", await reviewersOf(ctx, offer, now), (tell) => reviewLetter(words, now, review.endsAt, tell));
   }
 }

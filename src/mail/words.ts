@@ -4,7 +4,7 @@
 
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
-import type { LetterKind } from "../../convex/schema/mail";
+import type { LetterKind } from "../../convex/mail/letterShape";
 import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export { MAIL_TITLE } from "../shared/words";
@@ -53,6 +53,8 @@ export const letterKindWords = {
   recap: "Recap",
   patch: "Patch",
 } as const satisfies Record<LetterKind, string>;
+/** The kind chip's placeholder, on a letter filed before letters held their kind. */
+export const kindPlaceholderLabel = "Kind: not held yet";
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "No one can reply: there is no chat.";

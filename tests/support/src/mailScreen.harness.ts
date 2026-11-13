@@ -4,7 +4,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
-import type { LetterKind } from "../../../convex/schema/mail";
+import type { LetterKind } from "../../../convex/mail/letterShape";
 import { LETTERS_TITLE, WRITE_TITLE } from "../../../src/mail/words";
 import { league } from "./shell.harness";
 

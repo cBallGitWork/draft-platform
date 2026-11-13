@@ -5,7 +5,7 @@ import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
 import type { LeagueEvent } from "../schema";
-import type { LetterKind } from "../schema/mail";
+import type { LetterKind } from "./letterShape";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 

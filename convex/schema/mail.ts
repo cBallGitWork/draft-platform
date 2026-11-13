@@ -1,14 +1,9 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { letterKind } from "../mail/letterShape";
 
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
 // fixed when it's filed: someone who joins later doesn't get the league's old letters.
-
-/** What a letter is about, which its chip on Mail names (approved/mail): one for each kind of
- *  letter Mail files (spec/16, S16.5), its words in src/mail/words.ts (`letterKindWords`). */
-export const LETTER_KINDS = ["trade", "waivers", "assigned", "commissioner", "league", "draft", "lineup", "positions", "scout", "recap", "patch"] as const;
-export type LetterKind = (typeof LETTER_KINDS)[number];
-export const letterKind = v.union(...LETTER_KINDS.map((kind) => v.literal(kind)));
 
 export const letterFields = {
   /** Whom this copy is to, by email. */
