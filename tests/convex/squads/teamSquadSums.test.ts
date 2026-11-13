@@ -1,21 +1,23 @@
 import { describe, expect, test } from "vitest";
 import { checkCatalogueStat } from "../../../convex/scoring/statCatalogue";
 import { FORM_GAMEWEEKS } from "../../../convex/squads/squadLimits";
-import { SQUAD_STATS, squadEleven, squadForm, squadPoints } from "../../../convex/squads/teamSquad";
+import { SQUAD_STATS, gameweekPoints, squadEleven, squadForm } from "../../../convex/squads/teamSquad";
 
-// My team's Squad tab's sums (#364), apart from the query's reads (teamSquad.test.ts): his points
-// added up from his priced matches, his form, and the stats a row holds.
+// My team's Squad tab's sums (#364), apart from the query's reads (teamSquad.test.ts): a
+// gameweek's points added up from his priced matches, his form, and the stats a row holds. His
+// season points are his card's total (seasonPoints.ts, #628), tested there.
 
-describe("the points", () => {
+describe("a gameweek's points", () => {
   test("add up only the matches priced, and a gameweek he didn't play is '—'", () => {
     const matches = [
       { gameweek: 1, points: 4, counted: true },
       { gameweek: 2, points: null, counted: true },
       { gameweek: 2, points: 3, counted: true },
     ];
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 7, lastGameweekPoints: 3 });
-    expect(squadPoints(matches, 3)).toEqual({ seasonPoints: 7, lastGameweekPoints: null });
-    expect(squadPoints([], null)).toEqual({ seasonPoints: null, lastGameweekPoints: null });
+    expect(gameweekPoints(matches, 2)).toBe(3);
+    expect(gameweekPoints(matches, 1)).toBe(4);
+    expect(gameweekPoints(matches, 3)).toBeNull();
+    expect(gameweekPoints([], null)).toBeNull();
   });
 
   test("leave out a match his team didn't count, so a gameweek of only those is 0, not '—' (#595)", () => {
@@ -23,7 +25,7 @@ describe("the points", () => {
       { gameweek: 1, points: 4, counted: true },
       { gameweek: 2, points: 6, counted: false },
     ];
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 4, lastGameweekPoints: 0 });
+    expect(gameweekPoints(matches, 2)).toBe(0);
   });
 
   test("keep to tenths, as the table does: 0.1 and 0.2 make 0.3", () => {
@@ -32,7 +34,7 @@ describe("the points", () => {
       { gameweek: 2, points: 0.2, counted: true },
     ];
     expect(0.1 + 0.2).not.toBe(0.3);
-    expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 0.3, lastGameweekPoints: 0.3 });
+    expect(gameweekPoints(matches, 2)).toBe(0.3);
   });
 });
 
