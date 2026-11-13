@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
-import { isPlaying } from "../../convex/football/matchScores";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { ClubLink } from "./ClubLink";
@@ -39,7 +38,7 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   const [competition, choose] = useState<Competition>(COMPETITIONS[0]);
   return (
     <PageSection title={FOOTBALL_TITLE} plate={false} className={PAGE_STACK}>
-      <div className="flex bg-plate shadow-bevel-plate">
+      <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
         <PlateTabs label={competitionsLabel} tabs={COMPETITIONS} words={competitionWords} chosen={competition} choose={choose} alone />
       </div>
       <div className={PANEL_COLUMNS}>
@@ -62,7 +61,8 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
 function GameweekMatches({ seam, opening, last }: { seam: PremierLeagueSeam; opening: number; last: number }) {
   const [gameweek, choose] = useState(opening);
   const matches = seam.useGameweekMatches(gameweek);
-  const live = matches?.some(({ score }) => score !== null && isPlaying(score.state)) ?? false;
+  // Being played, as matchScores.ts's isPlaying says on the server, which the browser can't import.
+  const live = matches?.some(({ score }) => score?.state === "live" || score?.state === "halfTime") ?? false;
   const title = (
     <>
       {FIXTURES_TITLE}
