@@ -83,7 +83,7 @@ export async function syncDue(
   // Read once, inside each gameweek's try: a season the Premier League doesn't list fails each due
   // match with the reason, not the whole run (#300).
   let seasons: Promise<PlSeasons> | undefined;
-  let season: Promise<GameweekReads["listed"]> | undefined;
+  let seasonList: Promise<GameweekReads["listed"]> | undefined;
   // The live tick reads each match's commentary too (#43), after its points and apart from them.
   const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
   const matches: MatchOutcome[] = [];
@@ -102,8 +102,8 @@ export async function syncDue(
       // one it was first set in (#2044), so one this gameweek's list leaves out is looked for in
       // the season's, read once a run.
       if (codes.some((fixtureCode) => !listed.has(fixtureCode))) {
-        season ??= readPlFixtures(current).then(byFixtureCode);
-        const all = await season;
+        seasonList ??= readPlFixtures(current).then(byFixtureCode);
+        const all = await seasonList;
         for (const fixtureCode of codes) {
           const moved = all.get(fixtureCode);
           if (!listed.has(fixtureCode) && moved !== undefined) listed.set(fixtureCode, moved);

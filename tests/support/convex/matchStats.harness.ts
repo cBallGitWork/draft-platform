@@ -68,6 +68,7 @@ export function fakeFeedsMovedTo(payloads: Gw6Payloads, gameweek: number) {
   return fakeFetch(bodies);
 }
 
+/** Each URL `fakeFeeds` answers, with its recorded body. */
 function gw6Bodies(payloads: Gw6Payloads, seasons?: RawPlCompSeason[]) {
   return new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
