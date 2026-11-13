@@ -65,7 +65,7 @@ vi.mock("convex/react", async () => {
             ["scoring/siteScoring:fix", "scoring/siteScoring:saveDraft", "scoring/siteScoring:announce", "scoring/siteScoring:withdraw"],
             ["rules/leagueSettings:changeSettings", "draft/draftOrder:setTeamOrder", "draft/draftOrder:drawTeamOrder", "gameweeks/scoringStart:setScoringStart"],
             ["feedback/feedback:send", "football/clubKits:set", "availability/availability:set"],
-            ["scoring/patchNotes:dismissBanner", "draft/draftStart:setStart", "admin/platformSettings:save"],
+            ["scoring/patchNotes:dismissBanner", "draft/draftStart:setStart", "admin/platformSettings:save", "gameweeks/matchMoves:move"],
           ]
             .flat()
             .map((name) => [name, vi.fn()]),

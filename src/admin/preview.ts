@@ -1,14 +1,14 @@
 // The admin's dashboard in the preview (src/app/preview.ts): a new signing, a man whose starts wait, a
-// position flagged and one removed, four clubs, one with no colours yet, and a search that finds one player with positions
-// from all three sources, one of them flagged. On the feeds page, FPL's sync late, match stats
+// position flagged and one removed, four clubs, one with no colours yet, a search that finds one player with positions
+// from all three sources, one of them flagged, and a match moved into the gameweek typed. On the feeds page, FPL's sync late, match stats
 // failing, a match behind and a correction after the lock. On the Availability tab, three players
 // set by hand over the feed, and the one a search finds, set by none (the approved auto-team picture).
 
 import { FIRST_PLATFORM_SETTINGS } from "../../convex/admin/platformSettingDefaults";
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
-import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { previewSays } from "../shared/preview";
-import type { AdminSeam, AvailabilityRow, FeedsReport, PositionsQueue } from "./seam";
+import type { AdminSeam, AvailabilityRow, FeedsReport, GameweekMatch, MatchMoveLogRow, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {
   newSignings: [{ code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" }],
@@ -62,6 +62,14 @@ const setByHand: AvailabilityRow[] = [
 ];
 const woltemade: AvailabilityRow = { code: 3, name: "Woltemade", clubShortName: "NEW", positions: ["ST", "CAM", "SS"], feed: "available", set: null };
 
+/** Any gameweek typed shows these: Arsenal v Spurs moved in from the gameweek before. */
+const gameweekMatches: GameweekMatch[] = [
+  { fixtureCode: 101, match: "Arsenal v Spurs", kickoff: now - DAY_MS, move: { unmoved: 13 } },
+  { fixtureCode: 102, match: "Chelsea v Newcastle", kickoff: now + 2 * DAY_MS, move: null },
+  { fixtureCode: 103, match: "Brentford v Fulham", kickoff: null, move: null },
+];
+const moveLog: MatchMoveLogRow[] = [{ fixtureCode: 101, match: "Arsenal v Spurs", from: 13, to: 14, at: now - 3 * HOUR_MS }];
+
 export const previewAdmin: AdminSeam = {
   useQueue: () => queue,
   useFoundPlayers: (text) =>
@@ -96,4 +104,7 @@ export const previewAdmin: AdminSeam = {
   setAvailability: previewSays("no player's availability changed"),
   usePlatformSettings: () => FIRST_PLATFORM_SETTINGS,
   savePlatformSettings: previewSays("the site's settings didn't change"),
+  useGameweekMatches: (gameweek) => (gameweek === null ? undefined : gameweekMatches),
+  useMatchMoveLog: () => ({ rows: moveLog, more: false }),
+  moveMatch: previewSays("no match moved"),
 };
