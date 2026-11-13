@@ -18,7 +18,7 @@ import {
 } from "../mail/tradeLetterWords";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
-import { placeOf } from "../squads/squadPlace";
+import { joinAnother, placeOf } from "../squads/squadPlace";
 import { closeOffersHolding, endOffer } from "./tradeClose";
 import { leagueOf, managersOf, teamsOfTrade, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
@@ -135,9 +135,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
   for (const { playerCode, out, into } of moves) {
     const place = await placeOf(ctx, league._id, playerCode);
     if (place === null) throw new Error(`Player ${playerCode} left his squad while his trade was made`);
-    // A new team starts him afresh, as a move does: on no number of its own (spec/05 Squad
-    // numbers), and never its free-agent pickup, so its drop sends him to waivers (#1479).
-    await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined, pickedUpAt: undefined });
+    await joinAnother(ctx, place, into._id);
     await knownOnJoining(ctx, league._id, into._id, playerCode);
     await fileEvent(ctx, league._id, by, {
       kind: "playerTraded",

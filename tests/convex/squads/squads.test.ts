@@ -9,6 +9,7 @@ import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManager, addManagers
 import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer, insertSetPositions } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
+import { squadCodes as joinOrder } from "../../../convex/squads/squadPlace";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 import { expectRefused } from "../../support/convex/test.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -108,6 +109,13 @@ describe("a player is on one team in a league at most", () => {
     await commissioner.assign(SAKA, teams[0]);
     await commissioner.move(SAKA, teams[2]);
     expect(await squadCodes()).toEqual([[], [], [SAKA], []]);
+  });
+
+  test("moved, he joins his new team last, never in his old row's place (#2037)", async () => {
+    const commissioner = await as(COMMISSIONER);
+    for (const [code, team] of [[1002, 0], [SAKA, 1], [1003, 0]]) await commissioner.assign(code, teams[team]);
+    await commissioner.move(SAKA, teams[0]);
+    expect(await t.run((ctx) => joinOrder(ctx, teams[0]))).toEqual([1002, 1003, SAKA]);
   });
 
   test("released, he is a free agent, and can be assigned again", async () => {

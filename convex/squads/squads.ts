@@ -15,7 +15,7 @@ import { playerPositionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
-import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
+import { heldOrNot, joinAnother, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { closeOffersHolding } from "../trades/tradeClose";
@@ -97,9 +97,7 @@ export const move = mutation({
     if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
     await roomOn(ctx, team);
     const from = await teamIn(ctx, leagueId, place.teamId);
-    // A new team starts him afresh: on no number of its own (spec/05 Squad numbers), and never its
-    // free-agent pickup, so its drop sends him to waivers (#1479).
-    await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined, pickedUpAt: undefined });
+    await joinAnother(ctx, place, teamId);
     await knownOnJoining(ctx, leagueId, teamId, playerCode);
     await recordEvent(ctx, leagueId, by, {
       kind: "playerMoved",
