@@ -13,13 +13,13 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { league, manager, newcomer, openApp } from "../../support/src/shell.harness";
 import { MAIL_TITLE, fromWords, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
-import { letter, letterButton, letters, lettersPanel, shown, twoUnread } from "../../support/src/mailScreen.harness";
+import { letterButton, lettersPanel, letterShown, mailLetter, mailLetters, twoUnread } from "../../support/src/mailScreen.harness";
 
 const tab = (name: string) => within(screen.getByRole("group", { name: mailTabsLabel })).getByRole("button", { name });
 
 describe("the letters", () => {
   it("are listed in the order the server sends them, newest first, dated, with the unread ones marked", async () => {
-    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     const rows = within(await lettersPanel()).getAllByRole("button").map((row) => row.textContent);
 
     expect(rows[0]).toContain("commish@example.com");
@@ -32,58 +32,58 @@ describe("the letters", () => {
   });
 
   it("stand under the day each came, newest day first", async () => {
-    const sameDay = { ...letter(2, true), letterId: "letter-2b" as Id<"letters">, subject: "Letter 2b", at: letters[1].at - 60_000 };
-    openApp(MAIL_PATH, manager, { letters: [...letters.slice(0, 2), sameDay, letters[2]] });
+    const sameDay = { ...mailLetter(2, true), letterId: "letter-2b" as Id<"letters">, subject: "Letter 2b", at: mailLetters[1].at - 60_000 };
+    openApp(MAIL_PATH, manager, { letters: [...mailLetters.slice(0, 2), sameDay, mailLetters[2]] });
     const days = within(await lettersPanel()).getAllByRole("heading", { level: 3 }).map((day) => day.textContent);
     expect(days).toEqual(["Tue 13 Oct", "Mon 12 Oct", "Sun 11 Oct"]);
   });
 
   it("are the top bar's league's, asked for by that league (S16.1); someone in none asks for every one", async () => {
-    const app = openApp(MAIL_PATH, manager, { letters });
+    const app = openApp(MAIL_PATH, manager, { letters: mailLetters });
     await lettersPanel();
     expect(app.mail.useLetters).toHaveBeenLastCalledWith(league.leagueId);
     cleanup();
-    const outside = openApp(MAIL_PATH, newcomer, { letters });
+    const outside = openApp(MAIL_PATH, newcomer, { letters: mailLetters });
     await lettersPanel();
     expect(outside.mail.useLetters).toHaveBeenLastCalledWith(null);
   });
 
   it("one the address names opens with the page, marked read if it was unread (a screen's Mail widget links there)", async () => {
-    const app = openApp(`${MAIL_PATH}?letter=letter-2`, manager, { topBar: twoUnread, letters });
+    const app = openApp(`${MAIL_PATH}?letter=letter-2`, manager, { topBar: twoUnread, letters: mailLetters });
     await lettersPanel();
-    expect(shown("The text of letter 2.")).toBe(true);
-    expect(shown("The text of letter 3.")).toBe(false);
+    expect(letterShown("The text of letter 2.")).toBe(true);
+    expect(letterShown("The text of letter 3.")).toBe(false);
     expect(app.mail.open).toHaveBeenCalledTimes(1);
     expect(app.mail.open).toHaveBeenCalledWith("letter-2");
   });
 
   it("one the address names that is already read is opened without asking anything", async () => {
-    const app = openApp(`${MAIL_PATH}?letter=letter-1`, manager, { topBar: twoUnread, letters });
+    const app = openApp(`${MAIL_PATH}?letter=letter-1`, manager, { topBar: twoUnread, letters: mailLetters });
     await lettersPanel();
-    expect(shown("The text of letter 1.")).toBe(true);
+    expect(letterShown("The text of letter 1.")).toBe(true);
     expect(app.mail.open).not.toHaveBeenCalled();
   });
 
   it("opening an unread one shows its text and marks it read; opening a read one asks nothing", async () => {
-    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     await lettersPanel();
-    expect(shown("The text of letter 3.")).toBe(false);
-    expect(shown(noLetterOpenWords)).toBe(true);
+    expect(letterShown("The text of letter 3.")).toBe(false);
+    expect(letterShown(noLetterOpenWords)).toBe(true);
 
     await userEvent.click(letterButton("Letter 3"));
-    expect(shown("The text of letter 3.")).toBe(true);
+    expect(letterShown("The text of letter 3.")).toBe(true);
     expect(letterButton("Letter 3").getAttribute("aria-current")).toBe("true");
     expect(app.mail.open).toHaveBeenCalledWith("letter-3");
 
     await userEvent.click(letterButton("Letter 1"));
-    expect(shown("The text of letter 1.")).toBe(true);
-    expect(shown("The text of letter 3.")).toBe(false);
+    expect(letterShown("The text of letter 1.")).toBe(true);
+    expect(letterShown("The text of letter 3.")).toBe(false);
     expect(letterButton("Letter 3").getAttribute("aria-current")).toBeNull();
     expect(app.mail.open).toHaveBeenCalledTimes(1);
   });
 
   it("the open one is beside the list, its plate saying who it's from, its subject over its text", async () => {
-    openApp(MAIL_PATH, manager, { letters });
+    openApp(MAIL_PATH, manager, { letters: mailLetters });
     await lettersPanel();
     await userEvent.click(letterButton("Letter 3"));
     const open = screen.getByRole("region", { name: fromWords("commish@example.com") });
@@ -103,7 +103,7 @@ describe("the letters", () => {
   });
 
   it(`at ${LETTERS_SHOWN}, says older ones aren't shown; under it, says nothing`, async () => {
-    const full = Array.from({ length: LETTERS_SHOWN }, (_, index) => letter(index + 1, true));
+    const full = Array.from({ length: LETTERS_SHOWN }, (_, index) => mailLetter(index + 1, true));
     openApp(MAIL_PATH, manager, { letters: full });
     expect(await screen.findByText(onlyLatestWords)).toBeTruthy();
     cleanup();
@@ -115,7 +115,7 @@ describe("the letters", () => {
 
 describe("All and Unread", () => {
   it("Unread lists only the unread, keeping the one opened there until another is", async () => {
-    openApp(MAIL_PATH, manager, { letters });
+    openApp(MAIL_PATH, manager, { letters: mailLetters });
     await lettersPanel();
     await userEvent.click(tab(mailTabWords(2).unread));
     expect(tab(mailTabWords(2).unread).getAttribute("aria-pressed")).toBe("true");
@@ -128,7 +128,7 @@ describe("All and Unread", () => {
   });
 
   it("Unread with none unread says so", async () => {
-    openApp(MAIL_PATH, manager, { letters: [letter(1, true)] });
+    openApp(MAIL_PATH, manager, { letters: [mailLetter(1, true)] });
     await lettersPanel();
     await userEvent.click(tab(mailTabWords(0).unread));
     expect(screen.getByText(noUnreadWords)).toBeTruthy();
@@ -137,14 +137,14 @@ describe("All and Unread", () => {
 
 describe("who reads the letters (#211)", () => {
   it("another screen never asks for them, so a letter filed doesn't re-send them all to it", async () => {
-    const app = openApp(LEAGUES_PATH, manager, { topBar: twoUnread, letters });
+    const app = openApp(LEAGUES_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
     expect(app.mail.useLetters).not.toHaveBeenCalled();
   });
 
   it("Mail asks for them", async () => {
-    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     await lettersPanel();
     expect(app.mail.useLetters).toHaveBeenCalled();
   });
@@ -152,14 +152,14 @@ describe("who reads the letters (#211)", () => {
 
 describe("the unread count", () => {
   it("is the same on Mail's plate and in the menu", async () => {
-    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     await lettersPanel();
     expect(tab(mailTabWords(2).unread)).toBeTruthy();
     expect(screen.getByRole("link", { name: "Mail, 2 unread" })).toBeTruthy();
   });
 
   it("sits on the title plate beside the heading, not in it", async () => {
-    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
+    openApp(MAIL_PATH, manager, { topBar: twoUnread, letters: mailLetters });
     const title = await screen.findByRole("heading", { level: 1, name: MAIL_TITLE });
     expect(screen.getByRole("region", { name: MAIL_TITLE })).toBeTruthy();
     expect(title.parentElement?.contains(tab(mailTabWords(2).unread))).toBe(true);
@@ -167,7 +167,7 @@ describe("the unread count", () => {
   });
 
   it(`past ${UNREAD_COUNTED}, shows ${UNREAD_COUNTED}+`, async () => {
-    const unread = Array.from({ length: UNREAD_COUNTED + 1 }, (_, index) => letter(index + 1, false));
+    const unread = Array.from({ length: UNREAD_COUNTED + 1 }, (_, index) => mailLetter(index + 1, false));
     openApp(MAIL_PATH, manager, { topBar: { unreadMail: UNREAD_COUNTED + 1, next: null }, letters: unread });
     await lettersPanel();
     expect(tab(`Unread (${UNREAD_COUNTED}+)`)).toBeTruthy();
@@ -177,7 +177,7 @@ describe("the unread count", () => {
 
 describe("someone in no league, as a manager removed from their last one is (spec/13)", () => {
   it("sees Mail and its count on the top bar, opens it, and reads a letter", async () => {
-    const app = openApp(LEAGUES_PATH, newcomer, { topBar: twoUnread, letters });
+    const app = openApp(LEAGUES_PATH, newcomer, { topBar: twoUnread, letters: mailLetters });
     await userEvent.click(await screen.findByRole("link", { name: "Mail, 2 unread" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
@@ -185,12 +185,12 @@ describe("someone in no league, as a manager removed from their last one is (spe
     const main = screen.getByRole("navigation", { name: mainMenuLabel });
     expect(within(main).getAllByRole("link").map((tab) => tab.textContent)).toEqual([LEAGUES_TITLE, `${MAIL_TITLE}${unreadFigure(twoUnread.unreadMail)}`]);
     await userEvent.click(letterButton("Letter 3"));
-    expect(shown("The text of letter 3.")).toBe(true);
+    expect(letterShown("The text of letter 3.")).toBe(true);
     expect(app.mail.open).toHaveBeenCalledWith("letter-3");
   });
 
   it("opening Mail's address stays on Mail, and the top bar goes back to their leagues", async () => {
-    const app = openApp(MAIL_PATH, newcomer, { topBar: twoUnread, letters });
+    const app = openApp(MAIL_PATH, newcomer, { topBar: twoUnread, letters: mailLetters });
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
 
