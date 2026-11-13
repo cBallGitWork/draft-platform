@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { clubResultOf, goalsOf } from "../../convex/football/clubFixtures";
 import { useMinute } from "../shared/useMinute";
@@ -8,6 +8,7 @@ import { ClubMark } from "../ui/ClubName";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { FormChips, ResultChip } from "../ui/FormChips";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
+import { Placeholder } from "../ui/Placeholder";
 import { PlateTabs } from "../ui/PlateTabs";
 import { ClubLink } from "./ClubLink";
 import { SquadTab, TopScorers } from "./ClubSquad";
@@ -15,12 +16,15 @@ import { MatchState } from "./MatchState";
 import { matchPath } from "./paths";
 import type { ClubPageData, ClubPageFixture, PremierLeagueSeam } from "./seam";
 import {
+  capacityWords,
+  CLUB_DETAIL_HEADS,
   CLUB_TABS,
   CLUB_TITLE,
   clubFixtureColumns,
   clubTabsLabel,
   clubTabWords,
   daysAwayWords,
+  detailNotHeldLabel,
   goalsWords,
   kickoffDayWords,
   kickoffHead,
@@ -35,12 +39,13 @@ import {
   placeWords,
   scoreWords,
   venueWords,
+  type ClubDetail,
   type ClubTab,
 } from "./words";
 
 /** A real club's page under Football (spec/18, Club pages): its mark and name on the title plate
  *  with its tabs; its table place, last five results and top three scorers beside its next match as
- *  an opponent card (`S18.7`); the Squad tab, its players in the league's numbers (`S18.8`); and the
+ *  an opponent card, and its stadium, capacity and manager (`S18.7`); the Squad tab, its players in the league's numbers (`S18.8`); and the
  *  Fixtures tab, its matches this season, each opening its match page (`S18.9`). No difficulty
  *  colours. */
 export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; seam: PremierLeagueSeam; clubCode: number }) {
@@ -73,6 +78,7 @@ export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; se
               <FormChips form={page.form} />
             </dd>
             <TopScorers leagueId={league.leagueId} squad={squad} />
+            <ClubDetails club={page.club} />
           </dl>
         </Panel>
         <NextMatch next={page.next} />
@@ -80,6 +86,22 @@ export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; se
       {tab === "squad" ? <SquadTab leagueId={league.leagueId} squad={squad} /> : <ClubFixtures club={page.club} fixtures={page.fixtures} />}
     </PageSection>
   );
+}
+
+/** The club's stadium, its capacity and its manager under its top scorers (`S18.7`), each one the
+ *  feed hasn't sent a greyed placeholder in its place. */
+function ClubDetails({ club }: { club: ClubPageData["club"] }) {
+  const shown: Record<ClubDetail, string | undefined> = {
+    stadium: club.stadium,
+    capacity: club.capacity === undefined ? undefined : capacityWords(club.capacity),
+    manager: club.manager,
+  };
+  return (Object.keys(CLUB_DETAIL_HEADS) as ClubDetail[]).map((detail) => (
+    <Fragment key={detail}>
+      <dt className="text-muted">{CLUB_DETAIL_HEADS[detail]}</dt>
+      <dd>{shown[detail] ?? <Placeholder label={detailNotHeldLabel(detail)} className="h-4 w-full" />}</dd>
+    </Fragment>
+  ));
 }
 
 /** The opponent card (`S18.7`): who the club meets next and where, their table place and form, and

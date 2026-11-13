@@ -162,6 +162,13 @@ export const clubTabWords: Record<ClubTab, string> = { squad: "Squad", fixtures:
 export const clubTabsLabel = "The club's tabs";
 export const CLUB_TITLE = "Club";
 export const NEXT_MATCH_TITLE = "Next match";
+/** The club's ground, its capacity and its manager in the header, from Sportmonks (`S18.7`, #1938). */
+export const CLUB_DETAIL_HEADS = { stadium: "Stadium", capacity: "Capacity", manager: "Manager" } as const;
+export type ClubDetail = keyof typeof CLUB_DETAIL_HEADS;
+/** A detail the feed hasn't sent, on its greyed placeholder: "Stadium: not held yet". */
+export const detailNotHeldLabel = (detail: ClubDetail) => `${CLUB_DETAIL_HEADS[detail]}: not held yet`;
+/** A ground's capacity: "60,704". */
+export { thousandsWords as capacityWords } from "../shared/words";
 export const kickoffHead = "Kick-off";
 /** Where a club has no match left to play this season. */
 export const noNextMatchWords = "No match to come.";

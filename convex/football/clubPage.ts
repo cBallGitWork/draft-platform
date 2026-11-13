@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
-import { clubRecord, scoreRead } from "../schema";
+import type { Doc } from "../_generated/dataModel";
+import { clubRecord, clubRow, scoreRead } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubOf, findClubByCode, type Club } from "../shared/players";
 import { RESULTS } from "../table/standings";
@@ -9,7 +10,8 @@ import { scoreOnly } from "./matchScores";
 import { scoredFixtures, standingsOf } from "./plStandings";
 
 // A real club's page under Football (#1936; spec/18, Club pages): its header (`S18.7`: its table
-// place, its last five results and its next match as an opponent card) and its Fixtures tab
+// place, its last five results, its next match as an opponent card, and its stadium, capacity and
+// manager, #1938) and its Fixtures tab
 // (`S18.9`), one read per club and league. The league is the one the app is in: only its members
 // read it.
 
@@ -27,7 +29,8 @@ const clubFixture = v.object({
 });
 
 const clubPage = v.object({
-  club: clubRecord,
+  /** With its stadium, capacity and manager, each only where its row holds one. */
+  club: clubRow,
   /** Its place in the table; null for a club no longer in it. */
   position: v.union(v.number(), v.null()),
   form,
@@ -62,6 +65,18 @@ export const ofClub = query({
       away: clubIn(fixture.awayClubCode),
       score: score === null ? null : scoreOnly(score),
     }));
-    return clubPageOf(clubOf(held), matches, (code) => tableClubs.get(code)?.position ?? null);
+    return clubPageOf(clubWithDetailsOf(held), matches, (code) => tableClubs.get(code)?.position ?? null);
   },
 });
+
+/** The club as its header names it (`S18.7`): with its stadium, capacity and manager, each left off
+ *  where the row holds none, so the page greys it rather than make one up. */
+function clubWithDetailsOf(held: Doc<"clubs">) {
+  const { stadium, capacity, manager } = held;
+  return {
+    ...clubOf(held),
+    ...(stadium !== undefined && { stadium }),
+    ...(capacity !== undefined && { capacity }),
+    ...(manager !== undefined && { manager }),
+  };
+}

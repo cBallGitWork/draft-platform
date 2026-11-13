@@ -6,7 +6,9 @@ import { actingAs, addManager, adminCreatesLeague, ANN, OUTSIDER } from "../../s
 import { syncRun } from "../../support/convex/footballSync.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, SLOW_TEST } from "../../support/convex/test.harness";
+import { SM, sportmonksSeason } from "../../support/recorded/sportmonks.payloads";
 import { recordedResults } from "../../support/recorded/standings.payloads";
+import { mapSportmonks } from "../../../convex/football/sportmonks/sportmonks";
 
 // A real club's page (#1936; spec/18, Club pages), the same read for any club the league's
 // competitions hold (`S18.11`): its table place, its last five results, its next match as an
@@ -41,6 +43,22 @@ test("a club's page has its place, its last five results, its next match and its
 
   expect(page.next).toMatchObject({ gameweek: 9, atHome: true, opponent: { code: SUNDERLAND_CODE }, opponentPosition: 20 });
   expect(page.next!.opponentForm).toHaveLength(FORM_RESULTS);
+});
+
+// The header's stadium, capacity and manager (#1938), as the Sportmonks read writes them into the
+// club's row: Celtic's from the recorded season, put on Coventry's row while the site's clubs still
+// come from FPL (#1424).
+test("a club's page has its stadium, capacity and manager where its row holds them, and none made up where it doesn't", SLOW_TEST, async () => {
+  const { t, leagueId } = await setUp();
+  const celtic = mapSportmonks(sportmonksSeason()).clubs.find(({ code }) => code === SM.celtic)!;
+  const ann = await actingAs(t, ANN);
+  expect((await ann.query(api.football.clubPage.ofClub, { leagueId, clubCode: COVENTRY_CODE }))!.club).toEqual({ code: COVENTRY_CODE, name: "Coventry City", shortName: expect.any(String) });
+
+  await t.run(async (ctx) => {
+    const row = (await ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", COVENTRY_CODE)).unique())!;
+    await ctx.db.patch(row._id, { stadium: celtic.stadium, capacity: celtic.capacity, manager: celtic.manager });
+  });
+  expect((await ann.query(api.football.clubPage.ofClub, { leagueId, clubCode: COVENTRY_CODE }))!.club).toMatchObject({ stadium: "Celtic Park", capacity: 60411, manager: "Martin O'Neill" });
 });
 
 test("a club the football sync doesn't hold has no page; someone outside the league can't read one", SLOW_TEST, async () => {
