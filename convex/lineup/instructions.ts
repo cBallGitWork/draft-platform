@@ -4,8 +4,10 @@
 // here takes them as arguments; FIRST_INSTRUCTIONS is only the set a league is given. What a shape
 // "allows" is Craig's answers on #990 (6 Nov 2026): only the defence row counts as the back, a
 // winger stands wide in attacking midfield or attack, wide means both flanks filled above the
-// defence, and Press high's three are counted one row at a time. Pure: the server's save and the
-// Tactics screen both read it, so the two never differ. Scoring an instruction is not here.
+// defence. Press high's front is everyone in attack and attacking midfield, two or more of them
+// (Craig, 12 and 13 Nov 2026, on #1452: "Attacking mids count", "allow" a 4-4-2). Pure: the server's
+// save and the Tactics screen both read it, so the two never differ. Scoring an instruction is not
+// here.
 
 import {
   AREAS,
@@ -29,8 +31,11 @@ export const SHAPE_NEEDS = [
   /** Someone in the left lane and someone in the right lane of a row above the defence. */
   "wideOnBothFlanks",
   "twoAtTheBack",
-  /** Three or more in one row of midfield, attacking midfield or attack. */
+  /** Press high's before #1452, which a league's set saved then still holds: three or more in one
+   *  row of midfield, attacking midfield or attack. */
   "threeInARow",
+  /** Two or more up front: in attack and attacking midfield together (UP_FRONT_AREAS). */
+  "twoUpFront",
   "backThreeOrFour",
   "fiveAtTheBack",
 ] as const;
@@ -60,11 +65,11 @@ export const FIRST_INSTRUCTIONS = [
   { key: "getItWide", side: "attacking", name: "Get it wide", needs: "wideOnBothFlanks",
     description: "Rewards crosses; costs failed crosses." },
   { key: "shootOnSight", side: "attacking", name: "Shoot on sight", needs: "anyShape",
-    description: "Rewards goals and shots on target from outside the box; costs long shots off target or blocked." },
+    description: "Rewards every shot, from any range; costs shots off target." },
   { key: "gungHo", side: "attacking", name: "Gung-ho", needs: "twoAtTheBack",
     description: "Rewards goals and assists; costs goals conceded." },
-  { key: "pressHigh", side: "defensive", name: "Press high", needs: "threeInARow",
-    description: "Rewards possession won high and in midfield; costs fouls." },
+  { key: "pressHigh", side: "defensive", name: "Press high", needs: "twoUpFront",
+    description: "Rewards the forwards' and attacking midfielders' tackles won and interceptions; costs fouls." },
   { key: "holdAHighLine", side: "defensive", name: "Hold a high line", needs: "backThreeOrFour",
     description: "Rewards defenders' offsides won and interceptions; costs goals conceded." },
   { key: "clearIt", side: "defensive", name: "Clear it", needs: "anyShape",
@@ -95,6 +100,12 @@ export function firstPairFor(cells: readonly Cell[]): Record<Side, FirstInstruct
   };
 }
 
+/** Up front, as Press high counts and scores it (spec/05 `S05.42`): the attack row and the
+ *  attacking midfielders just behind it. */
+export const UP_FRONT_AREAS: readonly Area[] = ["attackingMidfield", "attack"];
+/** The fewest up front Press high needs (Craig, 13 Nov 2026, on #1452: "allow" a 4-4-2). */
+const UP_FRONT_FEWEST = 2;
+
 const inArea = (cells: readonly Cell[], area: Area) => cells.filter((cell) => cell.area === area);
 const ABOVE_DEFENCE: readonly Area[] = AREAS.slice(AREAS.indexOf("defensiveMidfield"));
 const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack"];
@@ -116,6 +127,8 @@ function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
       return back === TWO_AT_THE_BACK_COUNT;
     case "threeInARow":
       return PRESSING_ROWS.some((area) => inArea(cells, area).length >= 3);
+    case "twoUpFront":
+      return cells.filter((cell) => UP_FRONT_AREAS.includes(cell.area)).length >= UP_FRONT_FEWEST;
     case "backThreeOrFour":
       return back === 3 || back === 4;
     case "fiveAtTheBack":
