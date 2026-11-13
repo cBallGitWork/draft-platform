@@ -2,40 +2,30 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { mainArea, per90Stats, percentileOf, RANKED_MINUTES } from "../../../convex/scouting/per90Figures";
-import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { MANAGERS, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, ODEGAARD, PALMER, RICE, SAKA, insertPlayers } from "../../support/convex/footballRows.harness";
+import { holdSeasonTotals, scoutingLeague } from "../../support/convex/scouting.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The selected player's per-90 figures on Scouting (#1028; Craig, 9 Nov 2026, on #1028): his
 // area's stats per 90 over the season, with his percentile among his area's players of 270+
 // minutes, a winger and an attacking midfielder alike.
 
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
-const ODEGAARD = { code: 1005, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code, positions: ["CAM" as const] };
 const RAYA = { code: 1006, name: "Raya", fullName: "David Raya", clubCode: ARSENAL.code, positions: ["GK" as const] };
-const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 // Saka (W) and Palmer (CAM) are attacking midfield with 900 minutes each, Ødegaard too with only
 // 180, Rice a defensive midfielder with many goals, Raya a keeper.
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId } = await scoutingLeague([SAKA, PALMER, ODEGAARD, RAYA, RICE]));
   await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, PALMER, ODEGAARD, RAYA, RICE]);
-    const totals = (playerCode: number, stats: Record<string, number>) => ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode, stats });
-    await totals(SAKA.code, { minutes: 900, goals_scored: 5, assists: 2, total_att_assist: 20 });
-    await totals(PALMER.code, { minutes: 900, goals_scored: 10, assists: 4, total_att_assist: 30 });
-    await totals(ODEGAARD.code, { minutes: 180, goals_scored: 4 });
-    await totals(RICE.code, { minutes: 900, goals_scored: 20 });
-    await totals(RAYA.code, { minutes: 900, saves: 30 });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 900, goals_scored: 5, assists: 2, total_att_assist: 20 });
+    await holdSeasonTotals(ctx, PALMER.code, { minutes: 900, goals_scored: 10, assists: 4, total_att_assist: 30 });
+    await holdSeasonTotals(ctx, ODEGAARD.code, { minutes: 180, goals_scored: 4 });
+    await holdSeasonTotals(ctx, RICE.code, { minutes: 900, goals_scored: 20 });
+    await holdSeasonTotals(ctx, RAYA.code, { minutes: 900, saves: 30 });
   });
 });
 
@@ -70,7 +60,7 @@ test("goals conceded ranks the keeper who lets in fewest highest, as every fewer
   const sanchez = { code: 1007, name: "Sánchez", fullName: "Robert Sánchez", clubCode: CHELSEA.code, positions: ["GK" as const] };
   await t.run(async (ctx) => {
     await insertPlayers(ctx, [sanchez]);
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: sanchez.code, stats: { minutes: 900, goals_conceded: 21, saves: 40 } });
+    await holdSeasonTotals(ctx, sanchez.code, { minutes: 900, goals_conceded: 21, saves: 40 });
     const raya = (await ctx.db.query("playerSeasonStats").collect()).find((row) => row.playerCode === RAYA.code)!;
     await ctx.db.patch("playerSeasonStats", raya._id, { stats: { ...raya.stats, goals_conceded: 7 } });
   });

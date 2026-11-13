@@ -1,31 +1,22 @@
 import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Position } from "../../../convex/positions/positionTables";
-import { actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, teamName, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { ARSENAL, GONE, PALMER, RICE, SAKA, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { serverList } from "../../support/convex/playersList.harness";
+import { scoutingLeague } from "../../support/convex/scouting.harness";
 
 // Scouting's players list keeps the selected player (#1551): asked with his code, it returns his
 // row whatever club is chosen, so his panel follows a pickup, a claim or a drop that takes him out
 // of the list. Who holds him and his position are filtered in the browser (#1552), so only the
 // club leaves him out here. The list itself is tests/convex/scouting/playersList.test.ts's.
 
-const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
-
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 // Saka is Ann's; Rice and Palmer are free agents.
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams } = await scoutingLeague([SAKA, RICE, PALMER]));
   await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, RICE, PALMER]);
     await insertDroppedPlayer(ctx, GONE, Date.now());
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
   });

@@ -5,18 +5,18 @@ import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Period } from "../../../convex/scouting/periods";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertLockedStatus, insertPlayers } from "../../support/convex/footballRows.harness";
+import { COMMISSIONER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, PALMER, SAKA, completeRecord, insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { playersListed } from "../../support/convex/playersList.harness";
+import { holdSeasonTotals, scoutingLeague } from "../../support/convex/scouting.harness";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { at } from "../../support/convex/seasonPoints.harness";
 import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Scouting's period (#1028, story 3; Craig, 9 Nov 2026, on #1028, answer 5): the list, his per-90
 // panel and Compare over the last 4 or 6 finished Premier League gameweeks, a match he missed
 // counting 0 minutes, and before the season's first match, last season's final 4 or 6.
 
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 const KICKOFF = Date.parse("2026-08-15T14:00:00Z");
 
 /** One match a gameweek, a week apart, from `first`. */
@@ -36,15 +36,8 @@ const sakaIn = (gameweek: number): Record<string, number> => (gameweek >= 3 ?{ m
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN]);
-  await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, PALMER]);
-    await holdExampleScoring(ctx);
-  });
+  ({ t, leagueId } = await scoutingLeague([SAKA, PALMER]));
+  await t.run((ctx) => holdExampleScoring(ctx));
 });
 
 /** Gameweeks 1 to 7 of 2026/27, 1 to 6 finished; Saka plays every one, Palmer only the first. */
@@ -56,7 +49,7 @@ const thisSeason = () =>
       await ctx.db.insert("playerMatchStats", completeRecord(SAKA.code, gameweek, gameweek === 7 ? { minutes: 90, goals_scored: 5 } : sakaIn(gameweek)));
     }
     await ctx.db.insert("playerMatchStats", completeRecord(PALMER.code, 1, { minutes: 90, goals_scored: 1 }));
-    await ctx.db.insert("playerSeasonStats", { season: 2026, playerCode: SAKA.code, stats: { minutes: 630, goals_scored: 9 } });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 630, goals_scored: 9 });
   });
 
 const listOver = async (period: Period) =>
@@ -127,7 +120,7 @@ test("before the season's first match, they are last season's final gameweeks, u
       await fullTime(ctx, last.code);
       await ctx.db.insert("playerMatchStats", completeRecord(SAKA.code, last.code, { minutes: 90, goals_scored: 1 }));
     }
-    await ctx.db.insert("playerSeasonStats", { season: 2025, playerCode: SAKA.code, stats: { minutes: 450, goals_scored: 5 } });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 450, goals_scored: 5 }, FPL_SEASON - 1);
     await ctx.db.insert("pointsOverrides", { leagueId, gameweek: 38, fixtureCode: 138, playerCode: SAKA.code, points: 20, reason: "The feed was wrong", by: COMMISSIONER, at: KICKOFF });
   });
   expect((await listOver("last4")).periodGameweeks).toEqual([35, 36, 37, 38]);
@@ -139,7 +132,7 @@ test("before the season's first match, they are last season's final gameweeks, u
 test("with no gameweek finished, the period counts none", async () => {
   await t.run(async (ctx) => {
     await ctx.db.insert("fixtures", match(1));
-    await ctx.db.insert("playerSeasonStats", { season: 2026, playerCode: SAKA.code, stats: { minutes: 90 } });
+    await holdSeasonTotals(ctx, SAKA.code, { minutes: 90 });
   });
   const list = await listOver("last6");
   expect(list.periodGameweeks).toEqual([]);

@@ -3,10 +3,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { OWN_STAT_PREFIX } from "../../../convex/scoring/statKeys";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
-import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { PALMER, RICE, SAKA } from "../../support/convex/footballRows.harness";
+import { holdSeasonTotals, scoutingLeague } from "../../support/convex/scouting.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { BY_NAME, playersListed } from "../../support/convex/playersList.harness";
 
@@ -14,9 +13,6 @@ import { BY_NAME, playersListed } from "../../support/convex/playersList.harness
 // list; #910): the list says which, and one shown is each player's season total, worked out from
 // his season totals as a match's own stat is from its record (spec/14, Own stats). The catalogue's
 // stats are tests/convex/scouting/playersList.test.ts's.
-
-const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
-const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 
 const INVOLVEMENTS = { stat: `${OWN_STAT_PREFIX}involvements`, name: "Involvements", shortCode: "INV" };
 const HALF_XG = { stat: `${OWN_STAT_PREFIX}half_xg`, name: "Half xG", shortCode: "HXG" };
@@ -26,15 +22,10 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 // Saka has goals and xG this season, Palmer only xG, and Rice no totals at all.
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId } = await scoutingLeague([SAKA, RICE, PALMER]));
   await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, RICE, PALMER]);
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: SAKA.code, stats: { goals_scored: 3, expected_goals: 2.5 } });
-    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: PALMER.code, stats: { expected_goals: 0.5 } });
+    await holdSeasonTotals(ctx, SAKA.code, { goals_scored: 3, expected_goals: 2.5 });
+    await holdSeasonTotals(ctx, PALMER.code, { expected_goals: 0.5 });
   });
 });
 

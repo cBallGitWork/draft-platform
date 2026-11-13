@@ -4,12 +4,8 @@
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "./leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "./footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, ODEGAARD, PALMER, SAKA, insertClubs, insertDroppedPlayer, insertPlayerRows } from "./footballRows.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
-
-export const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
-export const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
-export const ODEGAARD = { code: 1003, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code };
 
 /** A league for 4 with Ann's and Bob's teams, in that order, and Saka, Palmer, Ødegaard and Gone. */
 export async function listsLeague(): Promise<{ t: TestConvex; leagueId: Id<"leagues">; teams: Id<"teams">[] }> {
@@ -19,7 +15,7 @@ export async function listsLeague(): Promise<{ t: TestConvex; leagueId: Id<"leag
   const teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    for (const player of [SAKA, PALMER, ODEGAARD]) await ctx.db.insert("players", player);
+    await insertPlayerRows(ctx, [SAKA, PALMER, ODEGAARD]);
     await insertDroppedPlayer(ctx, GONE, Date.now());
   });
   return { t, leagueId, teams };

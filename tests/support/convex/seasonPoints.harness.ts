@@ -3,12 +3,11 @@ import { inTenths } from "../../../convex/scoring/values";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pointsAt } from "../../../convex/playerCard/cardPoints";
 import type { SlotPosition } from "../../../convex/lineup/pitch";
-import type { Position } from "../../../convex/positions/positionTables";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "./leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "./footballRows.harness";
+import { ARSENAL, CHELSEA, PALMER, RICE as SHARED_RICE, SAKA, completeRecord, insertClubs, insertPlayers, type HeldPlayer } from "./footballRows.harness";
 import { BY_NAME, playersListed } from "./playersList.harness";
 import { EXAMPLE_SET } from "./scoring.example";
 import { holdExampleScoring } from "./siteScoring.harness";
@@ -20,9 +19,9 @@ import { fakeResend, signInDeployment } from "./signIn.harness";
 
 export { SAKA };
 /** Two positions in different areas, so they price a goal differently: his card opens on CB. */
-export const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CM", "CB"] as Position[] };
+export const RICE: HeldPlayer = { ...SHARED_RICE, positions: ["CM", "CB"] };
 /** A free agent: his points show though no team holds him. */
-export const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
+export { PALMER };
 export const ALL_CODES = [SAKA.code, RICE.code, PALMER.code];
 
 export const KICKOFF = Date.parse("2026-08-22T14:00:00Z");
