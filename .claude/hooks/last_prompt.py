@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """UserPromptSubmit hook: keeps Craig's latest message, so guard_mode.py can tell talk from a go.
 The message's first PROMPT_BYTES go to a file named for the session under STATE_DIR; a message
-that is a slash command or a pasted block still counts (it is what he sent). A payload that isn't
+that is a slash command or a pasted block still counts (it is what he sent), and so do the answers
+he picks in a question box (guard_ask.py calls remember with them, #1228). A payload that isn't
 JSON exits 1 with one line on stderr (hook_payload.py); a write that fails says nothing, and
 guard_mode.py then judges by the message before. Stdlib only, Python 3.9+.
 """

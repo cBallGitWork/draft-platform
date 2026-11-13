@@ -11,7 +11,8 @@ Claude may. An unreadable payload is reported on stderr and the question goes ah
 would stop every question to Craig. A question counts as asked only once Craig answered it: the
 PostToolUse run records each answered question, and the PreToolUse run refuses one recorded within
 ASK_ONCE_DAYS. A refused call, or one Craig met with a message instead of answers, records nothing
-(9 Nov 2026: such questions were logged at PreToolUse and could never be asked again). Stdlib only,
+(9 Nov 2026: such questions were logged at PreToolUse and could never be asked again). The answers
+he picks are also kept as his latest message (last_prompt.py), which guard_mode.py reads. Stdlib only,
 Python 3.9+.
 """
 
@@ -27,6 +28,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from hook_payload import BadPayload, field, read_payload, report
+from last_prompt import remember
 
 ASK_TOOL = "AskUserQuestion"
 WRAP_UP_TOOL = "mcp__ccd_turn__wrap_up"
@@ -130,7 +132,10 @@ def record_answered(payload):
         print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
               "so no question was recorded as asked.", file=sys.stderr)
         return
-    answered = {normal(str(q)) for q, a in answers.items() if str(a or "").strip()}
+    picked = {str(q): str(a).strip() for q, a in answers.items() if str(a or "").strip()}
+    # what he picked is his latest message, so guard_mode.py reads "Yes, build them all" as a go (#1228)
+    remember(field(payload, "session_id", str, ""), "\n".join(picked.values()))
+    answered = {normal(q) for q in picked}
     for text in ask_texts(field(payload, "tool_input", dict, {})):
         if normal(text) in answered:
             try:
