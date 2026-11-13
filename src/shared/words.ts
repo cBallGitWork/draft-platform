@@ -273,7 +273,7 @@ export const menuWords = {
   trades: "Trades",
   offers: "Offers",
   newOffer: "New offer",
-  premierLeague: "Premier League",
+  football: "Football",
   mail: "Mail",
   draft: "Draft",
 } as const;
