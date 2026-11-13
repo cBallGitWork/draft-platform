@@ -31,7 +31,9 @@ export const settings = query({
  *  more, and no more than the league's teams have rounds for; the squad's maximum no more than a
  *  Premier League squad, and the minimums by area adding up to no more than it; the pick clock and
  *  the timeouts before auto-pick within ../draft/draftLimits.ts's; a trade deadline a gameweek of
- *  the season; waivers run at least once a week, never twice at one time. */
+ *  the season; waivers run at least once a week, never twice at one time; the deadline's minutes a
+ *  whole number, 0 or more; no tie-break listed twice. A format change is refused once the league's
+ *  first scored gameweek has begun (formatLock.ts). */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },
   returns: v.number(),
@@ -46,6 +48,10 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
   if ((size === null) !== (settings.squadMaximum === null)) refuse(settingsRefusals.squadSizeFixed);
   return {
     ...rules,
+    format: settings.format,
+    deadline: settings.deadline,
+    doubleGameweek: settings.doubleGameweek,
+    tieBreaks: settings.tieBreaks,
     oddTeamOut: settings.oddTeamOut,
     gamesPerGameweek: settings.gamesPerGameweek,
     draft: settings.draft,
