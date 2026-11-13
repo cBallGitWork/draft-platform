@@ -40,9 +40,11 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 
 - A release is undone by reverting its merge.
 - Saved data changes shape only in safe steps: widen, fill in, then narrow (Craig, 22 Oct 2026).
-- A backup is taken before any release that changes saved data's shape, because reverting code
+- A backup is taken before any release that could strand saved data, because reverting code
   doesn't bring back changed data. Whether it is taken automatically or the release stops for
-  one is Claude's call (Craig, 28 Oct 2026).
+  one is Claude's call (Craig, 28 Oct 2026). Only a change that could strand saved data takes
+  one: a field or table removed, or a type narrowed; a release that only adds fields skips it
+  (Craig, 13 Nov 2026, #1996). `S20.9`
 
 ## Timed jobs
 
