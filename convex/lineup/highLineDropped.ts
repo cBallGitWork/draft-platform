@@ -10,12 +10,12 @@ import { historyOf, RULES_CHANGES_MOST } from "../rules/rulesHistory";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { getLeague, teamsOf } from "../shared/leagueAccess";
 import { sameValue } from "../scouting/scoutingPlayers";
-import { FIRST_INSTRUCTIONS, keptOrSwitched, type FirstInstructionKey, type Instruction, type InstructionPair } from "./instructions";
+import { FIRST_INSTRUCTIONS, keptOrSwitched, SIDES, type FirstInstructionKey, type Instruction, type InstructionPair } from "./instructions";
 import { lostInstructionsLetter, type LostInstruction } from "./instructionsWords";
 import { PLANS_KEPT } from "./lineupWords";
 import type { Cell } from "./pitch";
 
-// The one-off for #1452 (spec/05 S05.37, S05.42, S05.44): the leagues already made, and the admin's
+// The one-off for #1452 (spec/05 S05.37, S05.42, S05.46): the leagues already made, and the admin's
 // default rules every new league copies, catch up with the first set (instructions.ts).
 // - Hold a high line leaves each league's set until Sportmonks sends offsides won.
 // - Press high and Shoot on sight take their new words, and Press high its two-up-front need, where
@@ -138,8 +138,7 @@ async function redrawTeam(ctx: MutationCtx, team: Doc<"teams">, { before, after 
   const set = instructionsOf(after);
   const nameIn = (rules: LeagueRules, key: string) => instructionsOf(rules).find((each) => each.key === key)?.name ?? key;
   const lostIn = (held: InstructionPair, kept: InstructionPair, plan?: string): LostInstruction[] =>
-    (["attacking", "defensive"] as const)
-      .filter((side) => held[side] !== kept[side])
+    SIDES.filter((side) => held[side] !== kept[side])
       .map((side) => ({ from: held[side], fromName: nameIn(before, held[side]), toName: nameIn(after, kept[side]), ...(plan !== undefined && { plan }) }));
 
   const lost: LostInstruction[] = [];

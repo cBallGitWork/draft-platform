@@ -39,7 +39,7 @@ const WHY_LOST: Record<string, string> = {
   pressHigh: `Press high now needs ${NEEDS_WORDS.twoUpFront}.`,
 };
 
-/** The Mail to a manager whose line-up or plans lost a pick (spec/05 S05.43: "Mail says so, so he
+/** The Mail to a manager whose line-up or plans lost a pick (spec/05 S05.46: "Mail says so, so he
  *  can pick another"). */
 export function lostInstructionsLetter(lost: readonly LostInstruction[]): Words {
   const why = [...new Set(lost.map(({ from }) => WHY_LOST[from]).filter((each) => each !== undefined))];

@@ -13,7 +13,7 @@ import { holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.ha
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 
-// #1452's one-off (spec/05 S05.37, S05.42, S05.43): Hold a high line leaves the leagues already
+// #1452's one-off (spec/05 S05.37, S05.42, S05.46): Hold a high line leaves the leagues already
 // made, Press high and Shoot on sight take their redrawn words and need, and a line-up, plan, preset
 // or classic formation that loses a pick takes its formation's default, its manager told by Mail.
 

@@ -181,11 +181,15 @@ and how they score from Craig, 4 Nov 2026.
   4-2-3-1 all get it ("Attacking mids count", 12 Nov 2026; "allow" a 4-4-2, 13 Nov 2026, on #1452).
   Everyone up front scores it, so all five in a 2-3-5's attack row do ("All the forwards", 12 Nov
   2026). Sacchi's Milan keeps it. `S05.42`
-- A saved lineup or classic formation that loses an instruction to these changes: Hold a high line
-  comes off with nothing in its place ("Dropped, Mail says so", 10 Nov 2026); Press high switches to
-  its formation's default defensive instruction ("Formation's default", 12 Nov 2026). Either way its
-  manager gets a Mail saying so, so he can pick another. The site isn't live, so the new scoring
-  applies as soon as it ships ("the site isint live yet", 12 Nov 2026, on #1452). `S05.43`
+- A saved lineup or classic formation that loses an instruction to these changes, Hold a high line
+  or Press high, switches to its formation's default defensive instruction, and its manager gets a
+  Mail saying so, so he can pick another ("Dropped, Mail says so", 10 Nov 2026; "Formation's
+  default", 12 Nov 2026 for Press high and 13 Nov 2026 for Hold a high line, on #1452). The site
+  isn't live, so the new scoring applies as soon as it ships ("the site isint live yet", 12 Nov
+  2026, on #1452). `S05.46`
+- Hold a high line came off a saved lineup or classic formation with nothing in its place
+  ("Dropped, Mail says so", 10 Nov 2026). Replaced by the formation's default (13 Nov 2026, on
+  #1452). `S05.43 withdrawn`
 - A formation offers every instruction its shape allows, so the shape decides the list: "we have
   to block it from certain formations". Each formation has a default attacking and a default
   defensive instruction.
