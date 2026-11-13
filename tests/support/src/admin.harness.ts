@@ -3,7 +3,16 @@
 import { vi } from "vitest";
 import { FIRST_PLATFORM_SETTINGS } from "../../../convex/admin/platformSettingDefaults";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
-import type { AdminSeam, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue } from "../../../src/admin/seam";
+import type {
+  AdminSeam,
+  AvailabilityRow,
+  FeedsReport,
+  FoundPlayerPositions,
+  GameweekMatch,
+  MatchMoveLogRow,
+  PlatformSettings,
+  PositionsQueue,
+} from "../../../src/admin/seam";
 
 /** What the fake server holds: the queue, who a search finds, the feeds page's report
  *  (undefined: still loading), and players' availability: `setByHand` lists those set by hand
@@ -19,6 +28,9 @@ export type AdminData = {
   /** The site's settings, still on their way while `settingsLoading`. */
   platformSettings?: PlatformSettings;
   settingsLoading?: boolean;
+  /** Any gameweek's matches (#1417), and his log of moves (undefined: still loading). */
+  gameweekMatches?: readonly GameweekMatch[];
+  moveLog?: { rows: readonly MatchMoveLogRow[]; more: boolean };
 };
 export const EMPTY_QUEUE: PositionsQueue = {
   newSignings: [],
@@ -42,6 +54,8 @@ export function fakeAdmin({
   players = setByHand ?? [],
   platformSettings = FIRST_PLATFORM_SETTINGS,
   settingsLoading = false,
+  gameweekMatches = [],
+  moveLog,
 }: AdminData = {}) {
   return {
     useQueue: vi.fn<AdminSeam["useQueue"]>(() => (loading ? undefined : queue)),
@@ -60,5 +74,8 @@ export function fakeAdmin({
     setAvailability: vi.fn<AdminSeam["setAvailability"]>(async () => null),
     usePlatformSettings: vi.fn<AdminSeam["usePlatformSettings"]>(() => (settingsLoading ? undefined : platformSettings)),
     savePlatformSettings: vi.fn<AdminSeam["savePlatformSettings"]>(async () => null),
+    useGameweekMatches: vi.fn<AdminSeam["useGameweekMatches"]>((gameweek) => (gameweek === null ? undefined : gameweekMatches)),
+    useMatchMoveLog: vi.fn<AdminSeam["useMatchMoveLog"]>(() => moveLog),
+    moveMatch: vi.fn<AdminSeam["moveMatch"]>(async () => ({ warnings: [] })),
   };
 }

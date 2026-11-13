@@ -17,17 +17,27 @@ export const feedState = v.union(
 );
 export type FeedState = Infer<typeof feedState>;
 
-/** A run's outcome as each run table records it: a sync or tick that reads matches lists each. */
+/** A run's outcome as each run table records it: a sync or tick that reads matches lists each, and
+ *  one that reads scores lists the matches whose score it couldn't read. */
 export type RunOutcome =
-  | { ok: true; matches?: readonly ({ ok: true } | { ok: false; error: string })[]; betweenSeasons?: true }
+  | {
+      ok: true;
+      matches?: readonly ({ ok: true } | { ok: false; error: string })[];
+      scores?: { problems: readonly { problem: string }[] };
+      betweenSeasons?: true;
+    }
   | { ok: false; error: string };
 
-/** Why a run failed, or null if it didn't. A run that read matches fails if any match failed: a
- *  feed refusing every match still leaves a run marked ok. */
+/** Why a run failed, or null if it didn't. A run that read matches fails if any match failed, and
+ *  one that read scores fails on its score problems, every one named, as a failed match does, so the feeds page
+ *  shows it and the admin is emailed (S15.1; Craig, 13 Nov 2026, on #904): a feed refusing every
+ *  match still leaves a run marked ok. */
 export function failureOf(outcome: RunOutcome): string | null {
   if (!outcome.ok) return outcome.error;
   const failed = outcome.matches?.find((match) => !match.ok);
-  return failed === undefined || failed.ok ? null : failed.error;
+  if (failed !== undefined && !failed.ok) return failed.error;
+  const problems = outcome.scores?.problems ?? [];
+  return problems.length === 0 ? null : problems.map(({ problem }) => problem).join(" and ");
 }
 
 /** `judgeFeed`'s `owedSince` for a feed that always owes a success. Otherwise it is when the feed

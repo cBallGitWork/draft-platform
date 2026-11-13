@@ -60,6 +60,24 @@ describe("a feed that fails", () => {
     expect(sent.map((email) => email.text.includes(MATCH_ERROR))).toEqual([true]);
   });
 
+  test("with a match's score problem emails too, once a day like any failure (S15.1, S15.6, #904)", async () => {
+    const problem = "Sportmonks sent no home score for match 7 at fullTime";
+    const writes = { received: 0, inserted: 0, updated: 0 };
+    const outcome = {
+      ok: true as const,
+      clubs: writes,
+      players: writes,
+      fixtures: writes,
+      rounds: writes,
+      scores: { received: 1, written: 0, problems: [{ fixtureCode: 7, problem }] },
+    };
+    for (const ranAt of [now, now + HOUR_MS]) {
+      await t.mutation(internal.football.sportmonks.sportmonksSync.record, { competition: 8, trigger: "cron", ranAt, outcome });
+    }
+    await everyJobRuns(t);
+    expect(sent.map((email) => email.text.includes(problem))).toEqual([true]);
+  });
+
   test("emails from every feed's own record of its run", async () => {
     const failed = { ok: false as const, error: ERROR };
     await t.mutation(internal.football.footballSync.record, { trigger: "manual", ranAt: now, outcome: failed });

@@ -13,7 +13,7 @@ import { previewLatestMail } from "../mail/preview";
 import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable } from "../table/preview";
-import { PREVIEW_GAMEWEEK, previewSquad, previewTactics } from "./tactics/preview";
+import { PREVIEW_GAMEWEEK, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -86,7 +86,7 @@ const NOTHING_COUNTED ={ appearances: 0, minutes: 0, goals: 0, assists: 0, clean
 
 /** A made-up season for each of the Tactics tab's players, worked out from his code so a reload
  *  shows the same; the last one has played nothing yet, and two carry FPL news. */
-const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number }) => {
+const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number, news }) => {
     const unplayed = code === previewSquad.length;
     const keeper = positions.includes("GK");
     return {
@@ -115,8 +115,8 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
         yellowCards: code % 3,
         redCards: code === 7 ? 1 : 0,
       },
-      news: code === 10 ? "Knock - 75% chance of playing" : code === 15 ? "Hamstring injury - Expected back 22 Nov" : null,
-      chanceOfPlaying: code === 10 ? 75 : code === 15 ? 0 : null,
+      news,
+      chanceOfPlaying: previewChanceOf(code),
     };
   });
 const squad: TeamSquad = {

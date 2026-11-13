@@ -147,7 +147,9 @@ export const outOfPositionMarkLabel = (position: string) => `Out of position: no
 export const LINEUP_CHECK_TITLE = "Line-up check";
 /** A line of the lineup check for each starter out of position (#23; Craig, 6 Nov 2026). */
 export const outOfPositionLineWords = (position: string) => `: out of position at ${position}`;
-export const lineupCheckPlaceholder = "Line-up check: who is doubtful, booked, injured or suspended shows here once the status chips' data is settled";
+/** A line for each starter with FPL news, the note word for word (Craig, 13 Nov 2026, on #1976). */
+export const newsLineWords = (news: string) => `: ${news}`;
+export const nothingToCheckWords = "No starter is out of position or has news.";
 export const opponentTitle = (gameweek: number) => `${gameweekShort(gameweek)} opponent`;
 
 /** Who joined the squad since the lineup was saved. */

@@ -4,56 +4,19 @@ import { Panel, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { FoldingPanel } from "./FoldingPanel";
 import { PanelLink } from "./PanelLink";
-import {
-  premierLeagueTitle,
-  recapTitle,
-  recapToComeWords,
-  RUN_LEAGUE_TITLE,
-  runLeagueAside,
-  runLeagueLink,
-  SQUAD_NEWS_TITLE,
-  stripBoxes,
-  stripLabel,
-  toComeLabel,
-} from "./words";
+import { recapTitle, recapToComeWords, RUN_LEAGUE_TITLE, runLeagueAside, runLeagueLink, toComeLabel } from "./words";
 
 // League home's panels whose data or grill is still to come (docs/design/approved/home/,
-// Placeholders): each in its place and size, as outlines, never a made-up figure (plate.md, Marks).
+// Placeholders): each in its place and size, an outline with what it waits for written inside,
+// never a made-up figure (plate.md, Marks; Craig, 13 Nov 2026, on #1976).
 
-/** The bars' widths, line by line, as the picture draws them. */
-const WIDTHS = ["w-full", "w-full", "w-11/12", "w-2/3", "w-1/2"];
-
-/** Bars standing for lines still to come, each a little shorter than the last. */
-function PlaceholderLines({ label, lines }: { label: string; lines: number }) {
+/** A panel's lines still to come, as one outline the height of `lines` lines. */
+const HEIGHTS = { 3: "h-24", 4: "h-32" } as const;
+function PlaceholderLines({ label, lines }: { label: string; lines: keyof typeof HEIGHTS }) {
   return (
-    <div className="flex flex-col gap-2 px-3 py-2">
-      {Array.from({ length: lines }, (_, line) => (
-        <Placeholder key={line} label={label} className={`block h-5 ${WIDTHS[line % WIDTHS.length]}`} />
-      ))}
+    <div className="px-3 py-2">
+      <Placeholder label={label} className={`w-full ${HEIGHTS[lines]}`} written />
     </div>
-  );
-}
-
-/** The deadline strip under the tabs: each box's label, its value an outline until its grill. */
-export function DeadlineStrip({ gameweek }: { gameweek: number }) {
-  return (
-    <ul aria-label={stripLabel} className="flex flex-wrap bg-panel">
-      {stripBoxes(gameweek).map((box) => (
-        <li key={box} className="flex flex-col gap-1 border-r border-panel-rule px-4 py-2">
-          <span className="text-soft">{box}</span>
-          <Placeholder label={toComeLabel(box)} className="h-5 w-32" />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-export function PremierLeagueToCome({ gameweek }: { gameweek: number }) {
-  const title = premierLeagueTitle(gameweek);
-  return (
-    <FoldingPanel title={title}>
-      <PlaceholderLines label={toComeLabel(title)} lines={5} />
-    </FoldingPanel>
   );
 }
 
@@ -64,14 +27,6 @@ export function RecapToCome({ gameweek }: { gameweek: number }) {
     <FoldingPanel title={title}>
       <PlaceholderLines label={toComeLabel(title)} lines={4} />
       <PanelNote>{recapToComeWords(gameweek)}</PanelNote>
-    </FoldingPanel>
-  );
-}
-
-export function SquadNewsToCome() {
-  return (
-    <FoldingPanel title={SQUAD_NEWS_TITLE}>
-      <PlaceholderLines label={toComeLabel(SQUAD_NEWS_TITLE)} lines={4} />
     </FoldingPanel>
   );
 }

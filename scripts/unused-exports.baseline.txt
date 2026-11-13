@@ -14,7 +14,6 @@ src/draft/ClockLeft.tsx: PickClock
 src/draft/ClockLeft.tsx: leftAt
 src/draft/seam.ts: CommissionerView
 src/frame/menu.ts: sections
-src/frame/words.ts: notBuiltWords
 src/joining/seam.ts: EndedInvite
 src/leagueSettings/seam.ts: TeamOrder
 src/leagues/seam.ts: NewLeague

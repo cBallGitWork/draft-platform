@@ -10,18 +10,31 @@ export function pickNamed(team: ScreenTeam | null, pick: TradePick | null) {
   return held === undefined ? null : pickWords(held.round, held.teamName);
 }
 
+/** The codes of `ticked` still in `team`'s squad, in the order ticked. */
+function stillIn(team: ScreenTeam | null, ticked: readonly number[]): readonly number[] {
+  const held = new Set((team?.players ?? []).map(({ code }) => code));
+  return ticked.filter((code) => held.has(code));
+}
+
 // What the New offer tab has ticked (#383, #1096): players on either side, or one draft pick each
 // way. An offer with a pick in it is one pick each way and nothing else (spec/04, The picks), so
 // ticking a pick clears the players, and ticking a player clears the picks.
 
-export function useOfferTicks(start: {
-  gives: readonly number[];
-  gets: readonly number[];
-  givePick?: TradePick | null;
-  getPick?: TradePick | null;
-}) {
-  const [gives, setGives] = useState<readonly number[]>(start.gives);
-  const [gets, setGets] = useState<readonly number[]>(start.gets);
+export function useOfferTicks(
+  start: {
+    gives: readonly number[];
+    gets: readonly number[];
+    givePick?: TradePick | null;
+    getPick?: TradePick | null;
+  },
+  /** Each side's squad now: a ticked player who has left it since (moved, traded, dropped) is no
+   *  longer ticked, nor offered (#1437). */
+  squads: { mine: ScreenTeam; theirs: ScreenTeam | null },
+) {
+  const [givesTicked, setGives] = useState<readonly number[]>(start.gives);
+  const [getsTicked, setGets] = useState<readonly number[]>(start.gets);
+  const gives = stillIn(squads.mine, givesTicked);
+  const gets = stillIn(squads.theirs, getsTicked);
   const [givePick, setGivePick] = useState<TradePick | null>(start.givePick ?? null);
   const [getPick, setGetPick] = useState<TradePick | null>(start.getPick ?? null);
 

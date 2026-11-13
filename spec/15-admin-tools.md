@@ -26,6 +26,9 @@ each league's **commissioner**.
   on admin"; the admin owning them leaves room for real shirt packs and away kits later).
 - Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
   lands in a list on the admin dashboard, with no email (25 Oct 2026).
+- One person sends the admin at most 5 feedback messages a day: a 6th is refused, and the sender
+  is told so in plain words. The admin can delete a message, and can mark one read (Craig,
+  13 Nov 2026, on #395: "5 a day, delete and read"). `S15.7`
 - A feeds page: when Sportmonks' data last arrived, and whether scoring is behind. Sportmonks
   replaces FPL's and the Premier League's feeds (Craig, 9 Nov 2026, on #1196: "stop with fpl and
   prem, thats not scalable"). A feed that stops silently is the failure to catch. A feed or sync
@@ -34,6 +37,11 @@ each league's **commissioner**.
   ([7](07-scoring.md#match-stats)). `S15.2`
 - A match's score problems show on the feeds page and are emailed to the admin, as well as on its
   run row: "a and b" (Craig, 7 Nov 2026, on #904). `S15.1`
+- A match's score problem shows as its feed's row failing, the problem its last error, as a live
+  tick's failed match does; a match the feed marks abandoned is no problem (Craig, 13 Nov 2026,
+  on #904). `S15.5`
+- A score problem's email is that feed's failure, under its limit of one a day: the same match
+  failing every sync for a day sends one email (Craig, 13 Nov 2026, on #904). `S15.6`
 - One league whose rules are broken never stops the football feed for the other leagues: it is
   skipped, named in the log and emailed to the admin, and the others carry on (Craig, 1 Nov 2026:
   "no", to whether one league's broken rules should stop the feed for every league; #896).

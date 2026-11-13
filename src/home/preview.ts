@@ -11,7 +11,9 @@ import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { namedFixture } from "../../convex/table/roundRobin";
 import { formOf, teamsInGameweek } from "../../convex/table/standings";
 import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
+import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewLatestMail } from "../mail/preview";
+import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/tactics/preview";
 import { previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewLeagueTable, previewSchedule, previewScored } from "../table/preview";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -48,6 +50,33 @@ const form = formOf(mode, previewTeamNames, schedule, scores);
 /** The same scores, as the head-to-heads read them. */
 const sides = new Map([...scores].map(([gameweek, teams]) => [gameweek, new Map([...teams].map(([team, points]) => [team, { points, provisional: provisional.includes(team) }]))]));
 const current = thisGameweekOf(schedule, deadlineOf, Date.now())!;
+const deadline = deadlineOf(current.gameweek);
+
+/** The reader's own panels (#1976): Tactics' squad, its news and its lineup, made-up claims, and
+ *  this gameweek's matches pairing his players' clubs, his opponent's men made up. */
+const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
+const startersOf = new Set(previewStarterCodes);
+const clubs = [...new Map(previewSquad.map(({ clubCode, clubShortName }) => [clubCode, { code: clubCode, name: clubShortName, shortName: clubShortName }])).values()];
+const THEIRS = ["Raya, Saliba", "Dias", "Jones, Gravenberch, Salah", "Gusto", ""];
+const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, index) => {
+  const [home, away] = [clubs[2 * index], clubs[2 * index + 1]];
+  const playing = new Set([home.code, away.code]);
+  return {
+    fixtureCode: 9000 + index,
+    kickoff: deadline + (2 + (index % 3) * 3) * HOUR_MS,
+    home,
+    away,
+    you: previewSquad.filter(({ clubCode }) => playing.has(clubCode)).map(({ name }) => name),
+    them: (THEIRS[index] ?? "").split(", ").filter(Boolean),
+  };
+});
+const yours: LeagueHome["yours"] = {
+  squadNews,
+  lineup: { set: true, flagged: squadNews.filter(({ playerCode }) => startersOf.has(playerCode)) },
+  waiverRuns: FIRST_RULES.waivers.runs,
+  claims: 2,
+  premierLeague,
+};
 
 const home: LeagueHome = {
   format: "headToHead",
@@ -60,6 +89,8 @@ const home: LeagueHome = {
     }),
     byes: current.byes,
   },
+  deadline,
+  yours,
   // A matchday open, its lines made up.
   matchday: {
     gameweek: current.gameweek,

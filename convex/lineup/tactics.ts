@@ -51,6 +51,9 @@ const squadMember = v.object({
   /** Out, doubtful or available (spec/06, Availability), which Quick Pick reads (#849); null for
    *  one the football sync doesn't hold. */
   availability: v.union(availability, v.null()),
+  /** FPL's news note on him, word for word, which flags him on the Lineup check (Craig, 13 Nov
+   *  2026, on #1976); null with none. */
+  news: v.union(v.string(), v.null()),
 });
 
 const tacticsShape = v.union(
@@ -117,6 +120,7 @@ export const ofMyTeam = query({
           number: await shirtNumber(ctx, member),
           stars: starsOf(playerCode),
           availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
+          news: player?.news || null,
         };
       }),
     );

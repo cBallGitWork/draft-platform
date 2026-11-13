@@ -30,6 +30,3 @@ export const leaveWords = {
   yes: "Leave",
   no: "Stay",
 } as const;
-
-/** A page the menu reaches before its screen is built (PageNotBuilt.tsx). */
-export const notBuiltWords = "This screen isn't built yet.";

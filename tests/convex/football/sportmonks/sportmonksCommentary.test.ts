@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
-import { mapSportmonksMatch, type SportmonksEvent } from "../../../convex/football/sportmonks/sportmonksMatch";
-import { SM_EVENT_TYPE, sportmonksCommentary, sportmonksCommentaryRead } from "../../../convex/football/sportmonksCommentary";
-import { SM, sportmonksLiveRead } from "../../support/recorded/sportmonks.payloads";
+import { STREAM_BEHIND } from "../../../../convex/football/matchCommentary";
+import { mapSportmonksMatch, type SportmonksEvent } from "../../../../convex/football/sportmonks/sportmonksMatch";
+import { SM_EVENT_TYPE, sportmonksCommentary, sportmonksCommentaryRead } from "../../../../convex/football/sportmonks/sportmonksCommentary";
+import { SM, sportmonksLiveRead } from "../../../support/recorded/sportmonks.payloads";
 
 // The vidiprinter from Sportmonks' events timeline (#1418, `S10.4`, `S10.5`), on Celtic v Rangers'
 // live read (sportmonks-docs-fixture.json, shaped from Sportmonks' docs, as the real read of

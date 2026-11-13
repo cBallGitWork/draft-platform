@@ -17,8 +17,10 @@ import { NewsPanel } from "./NewsPanel";
 import { PanelLink } from "./PanelLink";
 import { RecapPanel } from "./Recap";
 import type { HomeSeam, LeagueHome } from "./seam";
-import { DeadlineStrip, PremierLeagueToCome, RecapToCome, RunLeagueToCome, SquadNewsToCome } from "./ToCome";
+import { DeadlineStrip } from "./DeadlineStrip";
+import { RecapToCome, RunLeagueToCome } from "./ToCome";
 import { YourMatchup } from "./YourMatchup";
+import { PremierLeaguePanel, SquadNewsPanel } from "./YourPlayers";
 import {
   byeWords,
   columns,
@@ -64,11 +66,13 @@ const cellClasses = (column: Column) =>
  *  Under the league's title plate, the deadline strip; then Mail and News on the left; Your matchup,
  *  this gameweek's head-to-heads, scored once begun, and the table with each team's form in the
  *  centre; and on the right, the Vidiprinter while a matchday is open (1440-locked.png), the
- *  latest recap, and the panels still to come, each in its place. */
+ *  Premier League's gameweek with the reader's players, the latest recap, his squad's news, and the
+ *  panels still to come, each in its place. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
   // The minute is in the query's arguments, and league home mustn't blank every minute (nor its
   // Mail panel's choice reset); another league's loads afresh.
-  const home = useLastLoaded(seam.useLeagueHome(league.leagueId, useMinute()), league.leagueId);
+  const now = useMinute();
+  const home = useLastLoaded(seam.useLeagueHome(league.leagueId, now), league.leagueId);
   const mail = seam.useLatestMail();
   const gameweek = home?.thisGameweek?.gameweek ?? null;
   const title = (
@@ -88,7 +92,7 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
         <Loading>{loadingWords}</Loading>
       ) : (
         <>
-          {gameweek !== null && <DeadlineStrip gameweek={gameweek} />}
+          {gameweek !== null && <DeadlineStrip home={home} gameweek={gameweek} now={now} />}
           <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-home">
             <div className="flex flex-col gap-2">
               <HomeMail mail={mail} />
@@ -101,9 +105,9 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
             </div>
             <div className="flex flex-col gap-2">
               {home.matchday !== null && <Vidiprinter commentary={home.matchday.commentary} title={VIDIPRINTER_TITLE} noLinesWords={noMatchdayLinesWords} />}
-              {gameweek !== null && <PremierLeagueToCome gameweek={gameweek} />}
+              {gameweek !== null && home.yours !== null && <PremierLeaguePanel gameweek={gameweek} matches={home.yours.premierLeague} />}
               {home.recap !== null ? <RecapPanel recap={home.recap} /> : gameweek !== null && <RecapToCome gameweek={gameweek} />}
-              <SquadNewsToCome />
+              {home.yours !== null && <SquadNewsPanel leagueId={league.leagueId} news={home.yours.squadNews} />}
               <RunLeagueToCome league={league} />
             </div>
           </div>

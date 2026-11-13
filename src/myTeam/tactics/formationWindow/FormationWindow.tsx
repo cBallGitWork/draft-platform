@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
-import type { ClassicFormation } from "../../../../convex/lineup/classics";
+import type { ClassicFormation } from "../../../../convex/lineup/classicFormations";
 import { presetNameOf } from "../../../../convex/lineup/presets";
-import { classicFormationInUse, onClassicFormation } from "../classicLineup";
+import { classicFormationInUse, onClassicFormation } from "../classicFormationLineup";
 import type { EditedLineup, MoveRules, PresetShape as Shape, RatingsOf } from "../lineupEdits";
 import { backGroups } from "./formationGroups";
 import { FormationPreview } from "./FormationPreview";
@@ -66,7 +66,7 @@ export function FormationWindow({
   presets: readonly Shape[];
   classicFormations: readonly ClassicFormation[];
   /** The formation in use, by name: a classic formation's, marked custom once changed
-   *  (classicLineup.ts). */
+   *  (classicFormationLineup.ts). */
   inUse: string | null;
   draft: EditedLineup;
   rules: Pick<MoveRules, "positionsOf">;

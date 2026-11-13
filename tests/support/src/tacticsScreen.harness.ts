@@ -30,6 +30,7 @@ export const member = (playerCode: number, name: string, positions: Position[], 
   number,
   stars: [],
   availability: "available",
+  news: null,
 });
 
 export const RAYA = member(1, "Raya", ["GK"]);

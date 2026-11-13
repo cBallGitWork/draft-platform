@@ -355,9 +355,6 @@
   "tests/smoke/smoke.spec.ts": [
     "No one (a bye)"
   ],
-  "tests/smoke/zz-shoot-1618.spec.ts": [
-    "A trade deadline"
-  ],
   "tests/src/admin/admin.test.tsx": [
     "Positions his starts give him,",
     "from his label",
