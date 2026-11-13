@@ -39,10 +39,12 @@ const goals = (gameweek: number, index: number, side: number) => (gameweek * 3 +
 export const previewFixtureCode = (gameweek: number, index: number) => gameweek * 100 + index;
 
 function matchesOf(gameweek: number): GameweekMatch[] {
-  // Each gameweek pairs the clubs afresh: a rotation, so no club meets itself.
+  // Each gameweek pairs the clubs afresh: a rotation, so no club meets itself. The sides swap every
+  // other gameweek, so each club plays at home and away (#1966); odd ones, the current among them,
+  // keep the first ten clubs at home.
   return KICKOFF_OFFSETS.map((offset, index) => {
-    const home = CLUBS[index];
-    const away = CLUBS[10 + ((index + gameweek) % 10)];
+    const pair = [CLUBS[index], CLUBS[10 + ((index + gameweek) % 10)]];
+    const [home, away] = gameweek % 2 === 0 ? pair.toReversed() : pair;
     const fixtureCode = previewFixtureCode(gameweek, index);
     const kickoff = startOf(gameweek) + offset;
     const finished = gameweek < CURRENT;
