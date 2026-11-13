@@ -67,6 +67,22 @@ test("a club's stadium, capacity and manager come from its venue and active coac
   expect(mapSportmonks(payloads).clubs[0]).toMatchObject({ manager: "New Man" });
 });
 
+test("a man in two squads, moved mid-window, is filed under the club he joined last, wherever it is listed (#2043)", () => {
+  const payloads = sportmonksSeason();
+  const [celtic, rangers] = payloads.teams;
+  const kyogo = celtic.players?.find((man) => man.player_id === SM.kyogo);
+  if (!kyogo) throw new Error("the recorded season has no Kyogo at Celtic");
+  // He joined Celtic in September; Rangers, listed after, still lists his old spell.
+  kyogo.start = "2026-09-01";
+  rangers.players = [...(rangers.players ?? []), { ...kyogo, start: "2024-07-01" }];
+  const byCode = () => new Map(mapSportmonks(payloads).players.map((man) => [man.code, man]));
+  expect(byCode().get(SM.kyogo)).toMatchObject({ clubCode: SM.celtic });
+
+  // The other way round: his Rangers spell is the newer one.
+  rangers.players = rangers.players.map((man) => (man.player_id === SM.kyogo ? { ...man, start: "2026-10-01" } : man));
+  expect(byCode().get(SM.kyogo)).toMatchObject({ clubCode: SM.rangers });
+});
+
 test("an open injury or suspension is out, with its name and expected return where sent; a finished one is not (#1420)", () => {
   const byCode = new Map(mapSportmonks(sportmonksSeason()).players.map((man) => [man.code, man]));
 
