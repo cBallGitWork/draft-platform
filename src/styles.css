@@ -54,6 +54,8 @@
   --color-area-midfield: #41c3ae;
   --color-area-attacking-midfield: #9a3db8;
   --color-area-attack: #f28c8c;
+  --color-card-red: #e5332a; /* a red card's mark (plate.md, Marks: match events) */
+  --color-row-lit: rgb(255 255 255 / 0.05); /* your own men lit on everyone's list (plate.md, Marks) */
 
   --font-sans: "Archivo Narrow", "Arial Narrow", sans-serif;
   /* the second face, for page titles and team names only (the display-face utility below) */

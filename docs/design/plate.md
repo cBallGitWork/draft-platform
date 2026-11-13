@@ -116,6 +116,12 @@ name (the score).
   `--color-ground` or `--color-fact`, whichever reads better on it.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
+- **Match events** (spec/10 S10.9; `approved/premier-league-match/`): after a man's name, a
+  white ball for each goal, a white boot for each assist, and an 8 by 11 card for each booking,
+  `--color-figure` for a yellow and `--color-card-red` for a red. Built once,
+  `src/premierLeague/MatchMarks.tsx`.
+- **Your own men** on a list of everyone's (the match page's sheets): the row lit
+  `--color-row-lit`, their owner in `--color-fact` 600; anyone else's owner `--color-soft`.
 - **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
   after the name in a row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.

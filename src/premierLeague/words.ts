@@ -121,9 +121,13 @@ export const MOVED_TITLE = "Since left both clubs";
 export const noMenWords = "No team sheets yet.";
 export const matchColumns = {
   position: { short: "Pos", long: "Position" },
-  player: { short: "Player", long: "Player, and the team that owns him" },
+  player: { short: "Player", long: "Player" },
+  /** "Owner" (Craig, 10 Nov 2026, on #1032; spec/10 S10.7). */
+  owner: { short: "Owner", long: "The team his points are for" },
   points: { short: "Pts", long: "Points for his team" },
 } as const;
+/** Each mark after a man's name, read out (spec/10 S10.9): one a goal, an assist or a card. */
+export const markLabels = { goals: "Goal", assists: "Assist", yellowCards: "Yellow card", redCards: "Red card" } as const;
 /** A substitute who came on. */
 export const cameOnWords = "On";
 /** Read out for a substitute who never came on, greyed on screen. */

@@ -5,10 +5,11 @@
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import type { MatchMarks } from "../../convex/match/matchMarks";
 import type { MatchMan, MatchPageData } from "../../convex/match/matchPage";
 import type { ClubSquad, SquadGroup, SquadPlayer } from "../../convex/scouting/clubSquad";
 
-export type { ClubSquad, MatchMan, MatchPageData, SquadGroup, SquadPlayer };
+export type { ClubSquad, MatchMan, MatchMarks, MatchPageData, SquadGroup, SquadPlayer };
 
 /** How many gameweeks the season has, and each one's first kickoff (football/plGameweeks:firstKickoffs). */
 export type PlGameweeks = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>;

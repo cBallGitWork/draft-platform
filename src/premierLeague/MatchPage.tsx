@@ -10,6 +10,7 @@ import { OwnerName } from "../ui/OwnerName";
 import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
+import { MatchMarks } from "./MatchMarks";
 import { MatchState } from "./MatchState";
 import {
   cameOnWords,
@@ -165,7 +166,7 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
         <PanelNote>{noMenWords}</PanelNote>
       ) : (
         <table aria-label={sheetLabel(title)} className="w-full border-collapse">
-          <ColumnHeads columns={matchColumns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
+          <ColumnHeads columns={matchColumns} classOf={(column) => (column === "player" || column === "owner" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {starters.map((man) => (
               <ManRow key={man.playerCode} man={man} />
@@ -187,25 +188,27 @@ function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
   );
 }
 
-/** One man: an unused substitute greyed, one who came on marked, the team his points are for, or
- *  "Free agent" for a man no lineup held at the deadline (once waivers are built, a man on waivers
- *  reads so instead), and his points, greyed while his team's lineup doesn't count them, as the
- *  matchup greys a bench man (spec/14). A free agent's show plainly: "people don't think grey
- *  means no teams" (Craig, 31 Oct 2026). */
-function ManRow({ man: { name, position, started, played, ownerTeamName, points, counts } }: { man: MatchMan }) {
+/** One man: an unused substitute greyed, one who came on marked, his goals, assists and cards
+ *  marked after his name (S10.9), the team his points are for under Owner (S10.7), or "Free agent"
+ *  for a man no lineup held at the deadline (once waivers are built, a man on waivers reads so
+ *  instead), the viewer's own men lit, and his points, greyed while his team's lineup doesn't count
+ *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
+ *  think grey means no teams" (Craig, 31 Oct 2026). */
+function ManRow({ man: { name, position, started, played, ownerTeamName, mine, marks, points, counts } }: { man: MatchMan }) {
   const unused = !started && played === false;
   const greyed = !counts && ownerTeamName !== null;
   return (
-    <tr className={`border-t border-panel-rule align-top ${unused ? "text-muted" : ""}`}>
+    <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
         {name}
+        <MatchMarks marks={marks} />
         {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
-        <span className="block text-data font-normal text-muted">
-          <OwnerName teamName={ownerTeamName} />
-        </span>
       </th>
+      <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>
+        <OwnerName teamName={ownerTeamName} />
+      </td>
       <td className={`px-2 text-right ${!greyed && points !== null ? "font-bold text-figure" : "text-muted"}`}>
         {points === null ? noFigureWords : figureWords(points)}
         {greyed && <span className="sr-only"> {notCountingLabel}</span>}
