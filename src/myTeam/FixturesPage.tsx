@@ -7,7 +7,7 @@ import { LEAGUE_AVERAGE } from "../../convex/table/roundRobin";
 import { resultOf } from "../../convex/table/standings";
 import { BYE } from "../../convex/table/teamGames";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { LiveNote, Loading, Panel, PanelNote } from "../ui/Panel";
+import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";
 import { dateWords } from "../shared/words";
@@ -73,7 +73,6 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
   const toPlay = fixtures.games.filter((game) => !isPlayed(game));
   const played = fixtures.games.filter(isPlayed).reverse();
   const next = toPlay[0]?.gameweek;
-  const live = fixtures.games.some((game) => game.score?.provisional);
   return (
     <div className="mt-2 flex flex-col gap-2">
       {fixtures.unscored.map(({ gameweek, reason }) => (
@@ -81,7 +80,6 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
           {unscoredWords(gameweek, reason)}
         </p>
       ))}
-      {live && <LiveNote>{provisionalWords}</LiveNote>}
       <div className="grid items-start gap-2 lg:grid-cols-team-fixtures">
         <ToPlayPanel fixtures={fixtures} games={toPlay} next={next} table={table} leagueId={league.leagueId} />
         <ResultsPanel fixtures={fixtures} games={played} table={table} leagueId={league.leagueId} />

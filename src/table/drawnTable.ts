@@ -28,7 +28,8 @@ export type Drawn = Partial<DrawRules> & {
   scores?: GameweekScores<string>;
   /** The league's tie-breaks, in its order: a new league's by default, as the server's would be. */
   tieBreaks?: readonly TieBreak[];
-  /** The teams whose scores are still provisional. */
+  /** The teams whose scores are still provisional in the latest gameweek scored: as on the server,
+   *  only the gameweek in play may still move, never one finished (#1965). */
   provisional?: readonly string[];
   unscored?: LeagueTable["unscored"];
   /** The teams on the auto team: none by default. */
@@ -58,10 +59,11 @@ function inputsOf(teamNames: readonly string[], drawn: Drawn) {
   const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const teamIds = teamNames.map(idOf);
   const schedule = drawnSchedule(teamIds, drawn);
+  const latest = Math.max(...scores.keys());
   const results: Results = new Map(
     [...scores].map(([gameweek, scored]) => [
       gameweek,
-      new Map([...scored].map(([team, points]) => [idOf(team), { points, provisional: provisional.includes(team) }])),
+      new Map([...scored].map(([team, points]) => [idOf(team), { points, provisional: gameweek === latest && provisional.includes(team) }])),
     ]),
   );
   return { format, teamIds, schedule, results, unscored, deadlineOf, named };
