@@ -47,7 +47,7 @@ export function redrawnSet(set: readonly Instruction[]): Instruction[] {
       const first = FIRST_INSTRUCTIONS.find(({ key }) => key === held.key);
       if (first === undefined) return held;
       const oldWords = WORDS_BEFORE[first.key] === held.description;
-      return { ...held, ...(oldWords && { description: first.description }), ...(held.needs === "threeInARow" && { needs: first.needs }) };
+      return { ...held, ...(oldWords && { description: first.description }), ...(first.key === "pressHigh" && held.needs === "threeInARow" && { needs: first.needs }) };
     });
 }
 

@@ -33,16 +33,16 @@ export interface LostInstruction {
   plan?: string;
 }
 
-/** Why each pick #1452 took off went, by its key (spec/05 S05.37, S05.42). */
+/** Why each pick #1452 took off went, by its key, after its name (spec/05 S05.37, S05.42). */
 const WHY_LOST: Record<string, string> = {
-  holdAHighLine: "Hold a high line is gone until Sportmonks sends offsides won.",
-  pressHigh: `Press high now needs ${NEEDS_WORDS.twoUpFront}.`,
+  holdAHighLine: "is gone until Sportmonks sends offsides won.",
+  pressHigh: `now needs ${NEEDS_WORDS.twoUpFront}.`,
 };
 
 /** The Mail to a manager whose line-up or plans lost a pick (spec/05 S05.46: "Mail says so, so he
  *  can pick another"). */
 export function lostInstructionsLetter(lost: readonly LostInstruction[]): Words {
-  const why = [...new Set(lost.map(({ from }) => WHY_LOST[from]).filter((each) => each !== undefined))];
+  const why = [...new Set(lost.flatMap(({ from, fromName }) => (WHY_LOST[from] === undefined ? [] : [`${fromName} ${WHY_LOST[from]}`])))];
   const switched = lost.map(({ fromName, toName, plan }) =>
     `${plan === undefined ? "Your line-up" : `Your plan "${plan}"`} switched from ${fromName} to ${toName}, its formation's default.`,
   );

@@ -46,6 +46,11 @@ describe("the redrawn set and rules", () => {
     expect(redrawnSet(own).find(({ key }) => key === "shootOnSight")?.description).toBe("Shoot!");
   });
 
+  test("keep a commissioner's own need on any instruction but Press high", () => {
+    const own = SET_BEFORE.map((each): Instruction => (each.key === "shootOnSight" ? { ...each, needs: "threeInARow" } : each));
+    expect(redrawnSet(own).find(({ key }) => key === "shootOnSight")?.needs).toBe("threeInARow");
+  });
+
   test("move a classic formation or preset off a pick its shape no longer offers, to its formation's default", () => {
     const presets = HELD_FIRST_RULES.presets.map((preset) =>
       preset.name === "4-5-1" ? { ...preset, instructions: { attacking: "playOutFromTheBack", defensive: "pressHigh" } } : preset,
