@@ -56,14 +56,16 @@ export function SquadTab({ leagueId, squad }: { leagueId: Id<"leagues">; squad: 
   }
   return (
     <Panel title={clubTabWords.squad}>
-      <table className="w-full border-collapse">
-        <ColumnHeads columns={squadColumns(squad.gameweeks, squad.pointsSeason)} classOf={cellClasses} />
-        <tbody>
-          {squad.players.map((player) => (
-            <SquadRow key={player.code} leagueId={leagueId} player={player} squad={squad} open={() => void navigate({ to: playerCardPath(leagueId, player.code) })} />
-          ))}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <ColumnHeads columns={squadColumns(squad.gameweeks, squad.pointsSeason)} classOf={cellClasses} />
+          <tbody>
+            {squad.players.map((player) => (
+              <SquadRow key={player.code} leagueId={leagueId} player={player} squad={squad} open={() => void navigate({ to: playerCardPath(leagueId, player.code) })} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Panel>
   );
 }
@@ -120,7 +122,7 @@ export function TopScorers({ leagueId, squad }: { leagueId: Id<"leagues">; squad
           <ol className="flex flex-wrap gap-x-4">
             {squad.topScorers.map((scorer) => (
               <li key={scorer.code}>
-                <Link to={playerCardPath(leagueId, scorer.code)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
+                <Link to={playerCardPath(leagueId, scorer.code)} className="inline-flex min-h-tap min-w-tap items-center font-semibold lg:min-h-0 lg:min-w-0">
                   {scorer.name}
                 </Link>{" "}
                 <span className="font-bold text-figure">{figureWords(scorer.seasonPoints)}</span>
