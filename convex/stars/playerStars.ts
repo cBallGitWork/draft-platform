@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
+import type { GameMode } from "../rules/gameMode";
 import { EVERY_LEAGUE } from "../positions/positionSettings";
 import type { Doc, Id } from "../_generated/dataModel";
 import { scoutedThisSeason } from "../scouting/scouts";
@@ -66,6 +67,16 @@ export async function starsLookup(ctx: QueryCtx, playerCodes: readonly number[])
     if (his === undefined) throw new Error(starsLookupErrors.notAsked(playerCode));
     return his;
   };
+}
+
+/** starsLookup as a league in `mode` reads stars: in one that shows none (`showsStars`, #1582) no
+ *  player has any and nothing is read, so a dropped man plays the slot's first role. */
+export async function starsLookupIn(
+  ctx: QueryCtx,
+  playerCodes: readonly number[],
+  mode: Pick<GameMode, "showsStars">,
+): Promise<(playerCode: number) => RoleStars[]> {
+  return mode.showsStars ? starsLookup(ctx, playerCodes) : () => [];
 }
 
 /** The players whose stars the team is shown in the season `now` falls in: its squad, every player

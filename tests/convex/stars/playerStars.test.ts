@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { JULY, seasonStartYear } from "../../../convex/shared/time";
-import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsReadRefusals } from "../../../convex/stars/playerStars";
+import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsLookupIn, starsReadRefusals } from "../../../convex/stars/playerStars";
 import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
@@ -73,6 +73,13 @@ test("the stars lookup gives an asked player's stars and throws for one it was n
     const starsOf = await starsLookup(ctx, [SCORER.code]);
     expect(starsOf(SCORER.code)).toEqual(everyStrikerRole(5));
     expect(() => starsOf(STEADY.code)).toThrow(starsLookupErrors.notAsked(STEADY.code));
+  });
+});
+
+test("a league that shows no stars reads none, so the auto team and a first lineup drop each man on the slot's first role (#1582)", async () => {
+  await t.run(async (ctx) => {
+    expect((await starsLookupIn(ctx, [SCORER.code], { showsStars: true }))(SCORER.code)).toEqual(everyStrikerRole(5));
+    expect((await starsLookupIn(ctx, [SCORER.code], { showsStars: false }))(SCORER.code)).toEqual([]);
   });
 });
 

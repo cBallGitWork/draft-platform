@@ -5,10 +5,11 @@ import { availabilityOf } from "../availability/availability";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
+import { gameModeOf, type GameMode } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
-import { starsLookup } from "../stars/playerStars";
+import { starsLookupIn } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
@@ -84,7 +85,7 @@ export const atDeadline = internalMutation({
     const lineups = await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek);
     for (const team of teams) {
       try {
-        await runTeam(ctx, league, team, lineups.get(team._id)!, rules, gameweek);
+        await runTeam(ctx, league, team, lineups.get(team._id)!, rules, gameModeOf(rules), gameweek);
       } catch (error: unknown) {
         logFailure(autoTeamFailedLog(team.name, team._id, gameweek), error);
       }
@@ -96,7 +97,15 @@ export const atDeadline = internalMutation({
 /** One team's step at the deadline. Every read, the letters' readers among them, is done before
  *  the first write, so a throw while working it out leaves the team as it was; only a write's own
  *  throw can stop it part-way. */
-async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"teams">, held: HeldLineup, rules: FirstLineupRules, gameweek: number) {
+async function runTeam(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  team: Doc<"teams">,
+  held: HeldLineup,
+  rules: FirstLineupRules,
+  mode: Pick<GameMode, "showsStars">,
+  gameweek: number,
+) {
   const switched = team.autoTeam;
   const endsAfter = switched?.endsAfter;
   const lapsed = endsAfter !== undefined && endsAfter < gameweek;
@@ -110,7 +119,7 @@ async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"team
   if (byPerson || noManager || illegal) {
     const outs = new Set<number>();
     for (const playerCode of squad) if ((await availabilityOf(ctx, playerCode)).availability === "out") outs.add(playerCode);
-    const starsOf = await starsLookup(ctx, squad);
+    const starsOf = await starsLookupIn(ctx, squad, mode);
     const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf);
     if (!sameLineup(set, held)) lineup = set;
   }
