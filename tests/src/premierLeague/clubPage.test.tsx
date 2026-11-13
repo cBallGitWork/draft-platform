@@ -58,7 +58,7 @@ const openClub = (premierLeague: PremierLeagueData) => openApp(clubPath(ARSENAL.
 describe("reaching it", () => {
   it("opens from a club's name on the Football table, and its fixture opens the match page", async () => {
     const app = openApp(PREMIER_LEAGUE_PATH, manager, {
-      premierLeague: { standings: { rows: [standingsRow(1, ARSENAL)], provisional: false }, club: arsenal, match: null },
+      premierLeague: { standings: { rows: [standingsRow(1, ARSENAL)], provisional: false, liveGameweek: null }, club: arsenal, match: null },
     });
     const table = await screen.findByRole("region", { name: TABLE_TITLE });
     const row = within(table).getAllByRole("row")[1];

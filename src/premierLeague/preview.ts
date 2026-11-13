@@ -3,7 +3,7 @@
 // the rest to come; earlier gameweeks finished, later ones to come; the table worked out from
 // them. Made-up scores.
 
-import { plTable } from "../../convex/football/plTable";
+import { placesMoved, plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { previewClubs, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
@@ -69,9 +69,11 @@ const matches = new Map(SEASON.map((gameweek) => [gameweek, matchesOf(gameweek)]
 
 /** The table from the made-up results by the server's own rules (plTable.ts): the current
  *  gameweek's live and half-time matches count as they stand, so it is provisional. */
-const results = [...matches.values()].flat().flatMap(({ home, away, score }) =>
-  score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
-);
+const resultsOf = (played: readonly GameweekMatch[]) =>
+  played.flatMap(({ home, away, score }) =>
+    score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
+  );
+const results = resultsOf([...matches.values()].flat());
 /** Each match still to come, opening the recorded match as it stood before kickoff, on its own
  *  day and in its own gameweek. */
 const upcoming = new Map(
@@ -82,9 +84,16 @@ const upcoming = new Map(
   ),
 );
 const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
+const tableOf = (counted: typeof results) => plTable(CLUBS, counted, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: false, unplayed });
+const rows = tableOf(results);
+/** The current gameweek is live: each club's places moved since it began, by the server's rule
+ *  (plStandings.ts), the table again without its matches. */
+const before = resultsOf([...matches].flatMap(([gameweek, gameweekMatches]) => (gameweek === CURRENT ? [] : gameweekMatches)));
+const moved = placesMoved(tableOf(before), rows);
 const standings = {
-  rows: plTable(CLUBS, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: false, unplayed }),
+  rows: rows.map((row) => ({ ...row, moved: moved.get(row.club) ?? 0 })),
   provisional: true,
+  liveGameweek: CURRENT,
 };
 
 export const previewPremierLeague: PremierLeagueSeam = {

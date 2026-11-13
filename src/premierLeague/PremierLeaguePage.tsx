@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
+import { isPlaying } from "../../convex/football/matchScores";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
+import { PlateTabs } from "../ui/PlateTabs";
 import { ClubLink } from "./ClubLink";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
@@ -10,54 +12,74 @@ import { TablePanel } from "./TablePanel";
 import type { GameweekMatch, PremierLeagueSeam } from "./seam";
 import { MatchState } from "./MatchState";
 import {
+  COMPETITIONS,
+  competitionsLabel,
+  competitionWords,
   dayWords,
   FIXTURES_TITLE,
+  FOOTBALL_TITLE,
   goalsWords,
+  liveWords,
   loadingGameweekWords,
   loadingWords,
   matchesListLabel,
   matchLinkLabel,
   noDateWords,
   noMatchesWords,
-  PREMIER_LEAGUE_TITLE,
   versusWords,
+  type Competition,
 } from "./words";
 
-/** The Premier League section (spec/18), the real competition: its fixtures and results, a
- *  gameweek at a time, beside its table. No fixture difficulty and no count of owned players here
- *  (spec/18). */
+/** The Football section (spec/18), the real competitions: a tab for each the league plays on the
+ *  title plate, which is the tabs only, then the competition's fixtures and results, a gameweek at
+ *  a time, beside its table (docs/design/approved/premier-league/). No fixture difficulty and no
+ *  count of owned players here (spec/18). */
 export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   const gameweeks = seam.useGameweeks();
+  const [competition, choose] = useState<Competition>(COMPETITIONS[0]);
   return (
-    <PageSection title={PREMIER_LEAGUE_TITLE} className={PAGE_STACK}>
+    <PageSection title={FOOTBALL_TITLE} plate={false} className={PAGE_STACK}>
+      <div className="flex bg-plate shadow-bevel-plate">
+        <PlateTabs label={competitionsLabel} tabs={COMPETITIONS} words={competitionWords} chosen={competition} choose={choose} alone />
+      </div>
       <div className={PANEL_COLUMNS}>
-        <Panel title={FIXTURES_TITLE}>
-          {gameweeks === undefined ? (
+        {gameweeks === undefined ? (
+          <Panel title={FIXTURES_TITLE}>
             <Loading className="px-3 py-2">{loadingWords}</Loading>
-          ) : (
-            <GameweekMatches seam={seam} opening={openingGameweek(gameweeks.firstKickoffs, Date.now())} last={gameweeks.seasonGameweeks} />
-          )}
-        </Panel>
-        <TablePanel seam={seam} />
+          </Panel>
+        ) : (
+          <GameweekMatches seam={seam} opening={openingGameweek(gameweeks.firstKickoffs, Date.now())} last={gameweeks.seasonGameweeks} />
+        )}
+        <TablePanel seam={seam} competition={competition} />
       </div>
     </PageSection>
   );
 }
 
-/** One gameweek's matches under the ◄ GW ► stepper, over the season's gameweeks to its `last`,
- *  opening on `opening`; live, so a score moves as the feeds read it. */
+/** One gameweek's matches under the ◄ GW ► stepper on the panel's plate, over the season's
+ *  gameweeks to its `last`, opening on `opening`; live, so a score moves as the feeds read it, and
+ *  Live after the title while one of them is being played. */
 function GameweekMatches({ seam, opening, last }: { seam: PremierLeagueSeam; opening: number; last: number }) {
   const [gameweek, choose] = useState(opening);
   const matches = seam.useGameweekMatches(gameweek);
-  return (
+  const live = matches?.some(({ score }) => score !== null && isPlaying(score.state)) ?? false;
+  const title = (
     <>
-      <GameweekStepper
-        gameweek={gameweek}
-        hasPrevious={gameweek > FIRST_GAMEWEEK}
-        hasNext={gameweek < last}
-        onPrevious={() => choose(gameweek - 1)}
-        onNext={() => choose(gameweek + 1)}
-      />
+      {FIXTURES_TITLE}
+      {live && <span className="ml-3 font-semibold text-event">{liveWords}</span>}
+    </>
+  );
+  const stepper = (
+    <GameweekStepper
+      gameweek={gameweek}
+      hasPrevious={gameweek > FIRST_GAMEWEEK}
+      hasNext={gameweek < last}
+      onPrevious={() => choose(gameweek - 1)}
+      onNext={() => choose(gameweek + 1)}
+    />
+  );
+  return (
+    <Panel title={title} aside={stepper}>
       {matches === undefined ? (
         <Loading className="px-3 py-2">{loadingGameweekWords(gameweek)}</Loading>
       ) : matches.length === 0 ? (
@@ -76,7 +98,7 @@ function GameweekMatches({ seam, opening, last }: { seam: PremierLeagueSeam; ope
           ))}
         </div>
       )}
-    </>
+    </Panel>
   );
 }
 

@@ -5,7 +5,18 @@ import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { crestUrl } from "../../../src/ui/ClubName";
 import type { PlStandings } from "../../../src/premierLeague/seam";
-import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
+import { COMPETITION_TABLE_LINES } from "../../../convex/football/tableLines";
+import {
+  loadingTableWords,
+  movedColumn,
+  movedLabel,
+  movedWords,
+  noClubsWords,
+  provisionalWords,
+  TABLE_TITLE,
+  tableColumns,
+  tableLineWords,
+} from "../../../src/premierLeague/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow } from "../../support/src/premierLeague.harness";
 import { openSection } from "../../support/src/premierLeagueScreen.harness";
@@ -20,6 +31,7 @@ const standings: PlStandings = {
     standingsRow(3, FOREST, { played: 2, drawn: 1, lost: 1, goalsFor: 2, goalsAgainst: 3, goalDifference: -1, points: 1 }),
   ],
   provisional: false,
+  liveGameweek: null,
 };
 
 /** Each body row's cells, the club by its full name (the desk's). */
@@ -38,7 +50,7 @@ describe("the Premier League table", () => {
   });
 
   it("says why it has no table before any club is held", async () => {
-    openSection({ standings: { rows: [], provisional: false } });
+    openSection({ standings: { rows: [], provisional: false, liveGameweek: null } });
     expect(within(await tablePanel()).getByText(noClubsWords)).toBeTruthy();
     expect(within(await tablePanel()).queryByRole("table")).toBeNull();
   });
@@ -85,5 +97,37 @@ describe("the Premier League table", () => {
 
     app.premierLeague.sendStandings(standings);
     expect(within(await tablePanel()).queryByText(provisionalWords)).toBeNull();
+  });
+
+  it("while a gameweek is live, shows after Pos each club's places moved since it began, and not between gameweeks (S18.4)", async () => {
+    const live: PlStandings = {
+      rows: [standingsRow(1, CHELSEA, { moved: 1 }), standingsRow(2, ARSENAL, { moved: -1 }), standingsRow(3, SPURS, { moved: 0 }), standingsRow(3, FOREST, { moved: 0 })],
+      provisional: true,
+      liveGameweek: 11,
+    };
+    const app = openSection({ standings: live });
+    const rows = within(await tablePanel()).getAllByRole("row").slice(1);
+    expect(rows.map((row) => row.children[1].textContent)).toEqual([movedWords(1), movedWords(-1), movedWords(0), movedWords(0)]);
+    expect([movedWords(2), movedWords(-1), movedWords(0)]).toEqual(["▲ 2", "▼ 1", "–"]);
+    expect(rows.map((row) => row.children[1].getAttribute("title"))).toEqual([movedLabel(1, 11), movedLabel(-1, 11), movedLabel(0, 11), movedLabel(0, 11)]);
+    expect(movedLabel(2, 11)).toBe("Up 2 since GW11 began");
+    expectColumnHeads(await tablePanel(), [tableColumns.position, movedColumn, ...Object.values(tableColumns).slice(1)]);
+
+    app.premierLeague.sendStandings(standings);
+    expect(within(await tablePanel()).getAllByRole("columnheader")).toHaveLength(Object.keys(tableColumns).length);
+  });
+
+  it("draws the competition's lines under its European places and above relegation, each saying what it marks (S18.5)", async () => {
+    const clubs = Array.from({ length: 20 }, (_, index) => ({ code: 100 + index, name: `Club ${index + 1}`, shortName: `C${index + 1}` }));
+    openSection({ standings: { rows: clubs.map((club, index) => standingsRow(index + 1, club)), provisional: false, liveGameweek: null } });
+    const rows = within(await tablePanel()).getAllByRole("row").slice(1);
+    const lines = rows.flatMap((row, index) => (row.title === "" ? [] : [[index + 1, row.title]]));
+    const { championsLeague, otherEurope, relegation } = COMPETITION_TABLE_LINES.premierLeague;
+    expect(lines).toEqual([
+      [championsLeague, tableLineWords.championsLeague],
+      [otherEurope, tableLineWords.otherEurope],
+      [relegation, tableLineWords.relegation],
+    ]);
+    expect([championsLeague, otherEurope, relegation]).toEqual([5, 7, 17]);
   });
 });

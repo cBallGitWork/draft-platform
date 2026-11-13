@@ -78,8 +78,9 @@ export const standingsRow = (position: number, club: StandingsRow["club"], rest:
   goalsAgainst: 0,
   goalDifference: 0,
   points: 0,
+  moved: null,
   ...rest,
 });
 
 /** No club held yet. */
-const NO_STANDINGS: PlStandings = { rows: [], provisional: false };
+const NO_STANDINGS: PlStandings = { rows: [], provisional: false, liveGameweek: null };
