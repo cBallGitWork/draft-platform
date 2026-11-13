@@ -186,7 +186,7 @@ and how they score from Craig, 4 Nov 2026.
   Mail saying so, so he can pick another ("Dropped, Mail says so", 10 Nov 2026; "Formation's
   default", 12 Nov 2026 for Press high and 13 Nov 2026 for Hold a high line, on #1452). The site
   isn't live, so the new scoring applies as soon as it ships ("the site isint live yet", 12 Nov
-  2026, on #1452). `S05.46`
+  2026, on #1452). `S05.48`
 - Hold a high line came off a saved lineup or classic formation with nothing in its place
   ("Dropped, Mail says so", 10 Nov 2026). Replaced by the formation's default (13 Nov 2026, on
   #1452). `S05.43 withdrawn`

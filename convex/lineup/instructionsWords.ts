@@ -33,18 +33,21 @@ export interface LostInstruction {
   plan?: string;
 }
 
+/** A manager's own line-up, as this Mail and league home's strip (src/home/words.ts) name it. */
+export const YOUR_LINEUP = "Your line-up";
+
 /** Why each pick #1452 took off went, by its key, after its name (spec/05 S05.37, S05.42). */
 const WHY_LOST: Record<string, string> = {
   holdAHighLine: "is gone until Sportmonks sends offsides won.",
   pressHigh: `now needs ${NEEDS_WORDS.twoUpFront}.`,
 };
 
-/** The Mail to a manager whose line-up or plans lost a pick (spec/05 S05.46: "Mail says so, so he
+/** The Mail to a manager whose line-up or plans lost a pick (spec/05 S05.48: "Mail says so, so he
  *  can pick another"). */
 export function lostInstructionsLetter(lost: readonly LostInstruction[]): Words {
   const why = [...new Set(lost.flatMap(({ from, fromName }) => (WHY_LOST[from] === undefined ? [] : [`${fromName} ${WHY_LOST[from]}`])))];
   const switched = lost.map(({ fromName, toName, plan }) =>
-    `${plan === undefined ? "Your line-up" : `Your plan "${plan}"`} switched from ${fromName} to ${toName}, its formation's default.`,
+    `${plan === undefined ? YOUR_LINEUP :`Your plan "${plan}"`} switched from ${fromName} to ${toName}, its formation's default.`,
   );
   return {
     subject: "Your team instructions changed",

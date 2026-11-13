@@ -15,7 +15,7 @@ import { lostInstructionsLetter, type LostInstruction } from "./instructionsWord
 import { PLANS_KEPT } from "./lineupWords";
 import type { Cell } from "./pitch";
 
-// The one-off for #1452 (spec/05 S05.37, S05.42, S05.46): the leagues already made, and the admin's
+// The one-off for #1452 (spec/05 S05.37, S05.42, S05.48): the leagues already made, and the admin's
 // default rules every new league copies, catch up with the first set (instructions.ts).
 // - Hold a high line leaves each league's set until Sportmonks sends offsides won.
 // - Press high and Shoot on sight take their new words, and Press high its two-up-front need, where

@@ -3,6 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { redrawnRules, redrawnSet } from "../../../convex/lineup/highLineDropped";
 import { FIRST_INSTRUCTIONS, type Instruction, type InstructionPair } from "../../../convex/lineup/instructions";
+import { lostInstructionsLetter } from "../../../convex/lineup/instructionsWords";
 import { roleIn } from "../../../convex/lineup/roles";
 import { classicFormationsOf, instructionsOf } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
@@ -13,7 +14,7 @@ import { holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.ha
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 
-// #1452's one-off (spec/05 S05.37, S05.42, S05.46): Hold a high line leaves the leagues already
+// #1452's one-off (spec/05 S05.37, S05.42, S05.48): Hold a high line leaves the leagues already
 // made, Press high and Shoot on sight take their redrawn words and need, and a line-up, plan, preset
 // or classic formation that loses a pick takes its formation's default, its manager told by Mail.
 
@@ -126,14 +127,12 @@ describe("the one-off", () => {
       ["Midfield five", { attacking: "shootOnSight", defensive: "keepItTightEarly" }],
       ["Up top", { attacking: "shootOnSight", defensive: "pressHigh" }],
     ]);
-    expect(await lettersTo(t, ANN)).toContainEqual({
-      subject: "Your team instructions changed",
-      body:
-        "Hold a high line is gone until Sportmonks sends offsides won. Press high now needs 2 or more in attack and attacking midfield. " +
-        "Your line-up switched from Hold a high line to Keep it tight early, its formation's default. " +
-        `Your plan "Midfield five" switched from Press high to Keep it tight early, its formation's default. ` +
-        "Pick another on the Tactics tab if you'd rather.",
-    });
+    expect(await lettersTo(t, ANN)).toContainEqual(
+      lostInstructionsLetter([
+        { from: "holdAHighLine", fromName: "Hold a high line", toName: "Keep it tight early" },
+        { from: "pressHigh", fromName: "Press high", toName: "Keep it tight early", plan: "Midfield five" },
+      ]),
+    );
   });
 
   test("Mails no one whose picks stand, and running it again changes nothing", async () => {
