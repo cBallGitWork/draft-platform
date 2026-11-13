@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
+import { playedSet } from "../../../convex/rules/gameMode";
 import { scoringChanges } from "../../../convex/scoring/patchChanges";
 
 // What the patch notes and a version's letter say changed (spec/14, Changes and corrections;
@@ -135,5 +136,29 @@ describe("the set", () => {
     ]);
     expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([]))).toEqual(["Park the bus: no longer scored"]);
     expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([], { instructions: [parkTheBus(1)] }))).toEqual([]);
+  });
+});
+
+describe("a league's game mode (#1582)", () => {
+  type Instruction = NonNullable<StoredScoringSet["instructions"]>[number];
+  type Role = NonNullable<StoredScoringSet["roles"]>[number];
+  const POACHER: Role = {
+    role: "poacher",
+    bonus: { parts: [{ stat: "goals_scored", weight: 1 }], bars: [1, 2, 3] },
+    cost: { parts: [{ stat: "big_chances_missed", weight: 1 }], bars: [1, 2, 3] },
+  };
+  const PARK_THE_BUS: Instruction = { instruction: "parkTheBus", lines: [{ stats: [{ stat: "clean_sheets", weight: 1 }], every: 1, points: 1 }] };
+  const before = set([assists(3)]);
+  const after = set([assists(4)], { roles: [POACHER], instructions: [PARK_THE_BUS] });
+
+  test("a league that plays roles and instructions reads every line", () => {
+    const mode = { scoresRoles: true, scoresInstructions: true };
+    expect(scoringChanges(playedSet(before, mode), playedSet(after, mode))).toEqual(scoringChanges(before, after));
+  });
+
+  test("one that plays neither reads no role or instruction line, as the scorer adds no such points", () => {
+    const mode = { scoresRoles: false, scoresInstructions: false };
+    expect(scoringChanges(before, after)).toHaveLength(3);
+    expect(scoringChanges(playedSet(before, mode), playedSet(after, mode))).toEqual(["Assists: 3 → 4"]);
   });
 });

@@ -7,6 +7,7 @@ import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { centreSlotOf } from "../../../src/matchup/preview";
+import { previewGameMode } from "../../../src/shared/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
@@ -156,4 +157,5 @@ export const headToHead = (
   gameNumber,
   games,
   game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
+  mode: previewGameMode,
 });

@@ -3,6 +3,7 @@
 import { vi } from "vitest";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { firstPairFor } from "../../../convex/lineup/instructions";
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
@@ -28,6 +29,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   picked: OPEN_PICKED,
   squad: [],
   lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
+  mode: gameModeOf(FIRST_RULES),
   ...change,
 });
 

@@ -13,7 +13,10 @@ import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 // the patch notes list every version's changes; #356), worked out from the stored sets, never typed
 // by hand: one line a change, in the words the patch notes and the patch's Mail letter say, in one
 // place for Craig to change. A rule is compared position by position, so a value set by area that
-// becomes one for all names only the positions whose points moved.
+// becomes one for all names only the positions whose points moved. The notes and the letter are
+// the site's, read by every league, so they list every line; what one league plays changes is the
+// same lines between its played sets (rules/gameMode.ts's `playedSet`), roles and instructions
+// apart (#1582).
 
 /** What the notes and the letter say for a version with no change to list: only reordering the
  *  categories makes one. */
