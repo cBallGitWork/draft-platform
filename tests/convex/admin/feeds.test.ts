@@ -85,15 +85,19 @@ test("a run whose every match failed is a failure, though the run itself finishe
   expect(await feedAt(t, "matchStats", T0)).toMatchObject({ state: "failing", lastSuccessAt: null, lastError: { error: "gameweek 8's reads failed" } });
 });
 
-test("a run with a match's score problem is failing, the problem its last error, as a failed match is (S15.1, S15.5, #904)", async () => {
+test("a run with matches' score problems is failing, every problem in its last error, as a failed match is (S15.1, S15.5, #904)", async () => {
   const t = freshConvex();
-  const problem = "FPL sent score null for a match at fullTime";
-  const scores = { received: 1, written: 0, problems: [{ fixtureCode: 1, problem }] };
+  const problems = ["FPL sent score null for a match at fullTime", "FPL sent minutes null"];
+  const scores = { received: 2, written: 0, problems: problems.map((problem, fixtureCode) => ({ fixtureCode, problem })) };
   const none = { received: 0, inserted: 0, updated: 0 };
   const writes = { clubs: none, players: none, fixtures: none, gameweeks: none };
   await t.run((ctx) => ctx.db.insert("footballSyncs", { trigger: "cron", ranAt: T0, outcome: { ok: true, ...writes, scores } }));
 
-  expect(await feedAt(t, "football", T0)).toMatchObject({ state: "failing", lastSuccessAt: null, lastError: { at: T0, error: problem } });
+  expect(await feedAt(t, "football", T0)).toMatchObject({
+    state: "failing",
+    lastSuccessAt: null,
+    lastError: { at: T0, error: `${problems[0]} and ${problems[1]}` },
+  });
 });
 
 test("each Sportmonks competition that is on is its own row, judged by its own runs alone (#1414)", async () => {
