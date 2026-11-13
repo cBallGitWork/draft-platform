@@ -61,7 +61,7 @@ function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boole
           <News card={card} />
           <Panel title={ROLE_FIT_TITLE}>
             <div className="p-3">
-              <Placeholder label={roleFitLabel} className="h-24 w-full" />
+              <Placeholder label={roleFitLabel} className="h-24 w-full" written />
             </div>
           </Panel>
         </div>
@@ -92,7 +92,7 @@ function News({ card }: { card: PlayerCard }) {
     <Panel title={NEWS_TITLE}>
       {news === null ? <PanelNote>{noNewsWords}</PanelNote> : <p className="px-3 py-2 text-event">{news}</p>}
       <div className="border-t border-panel-rule p-3">
-        <Placeholder label={newsNotesLabel} className="h-16 w-full" />
+        <Placeholder label={newsNotesLabel} className="h-16 w-full" written />
       </div>
     </Panel>
   );
@@ -132,7 +132,7 @@ function ClubCaptain() {
       <dl className="grid grid-cols-facts items-center gap-x-6 gap-y-2 p-3">
         <dt className="text-soft">{captainLabel}</dt>
         <dd>
-          <Placeholder label={hintNotHeldLabel(captainLabel)} className="h-5 w-40" />
+          <Placeholder label={hintNotHeldLabel(captainLabel)} className="w-fit" written />
         </dd>
       </dl>
     </Panel>

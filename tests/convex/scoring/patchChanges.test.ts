@@ -137,6 +137,15 @@ describe("the set", () => {
     expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([]))).toEqual(["Park the bus: no longer scored"]);
     expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([], { instructions: [parkTheBus(1)] }))).toEqual([]);
   });
+
+  // S05.8: a patch can change a role's run, and its letter says so.
+  test("a role's run on the pitch added, changed and taken away", () => {
+    const stopper = (forward: number) => ({ role: "stopper", path: [{ forward, across: 0 }] });
+    expect(scoringChanges(set([]), set([], { runs: [stopper(9)] }))).toEqual(["Stopper: now makes a run on the pitch"]);
+    expect(scoringChanges(set([], { runs: [stopper(9)] }), set([], { runs: [stopper(12)] }))).toEqual(["Stopper: his run on the pitch changes"]);
+    expect(scoringChanges(set([], { runs: [stopper(9)] }), set([], { runs: [] }))).toEqual(["Stopper: now holds his place on the pitch"]);
+    expect(scoringChanges(set([], { runs: [stopper(9)] }), set([], { runs: [stopper(9)] }))).toEqual([]);
+  });
 });
 
 describe("a league's game mode (#1582)", () => {

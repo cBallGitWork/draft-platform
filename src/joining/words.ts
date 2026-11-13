@@ -126,3 +126,13 @@ export const joinPageWords = {
     `Your request to join ${leagueName} is waiting for the commissioner. You'll get an email once it's approved.`,
   inLeague: (leagueName: string, teamName: string) => `You're in ${leagueName}, running ${teamName}.`,
 } as const;
+
+/** Your leagues' side panels, as its approved pictures word them (docs/design/approved/leagues). */
+export const yourJoinRequestWords = {
+  title: "Your join request",
+  waiting: "Waiting for its commissioner. You get an email once you are approved.",
+} as const;
+export const joiningALeagueWords = {
+  title: "Joining a league",
+  how: "A commissioner's emailed invite, or their league's invite link, brings you in.",
+} as const;

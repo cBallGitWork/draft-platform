@@ -3,6 +3,7 @@ import type { FunctionReference } from "convex/server";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { lineupDueAt } from "../../../convex/lineup/lineupDueAt";
 import { useMinute } from "../../shared/useMinute";
 import { nextStep, type TopBarState } from "./topBarState";
 
@@ -11,10 +12,10 @@ type LineupDueAnswer = { leagueId: Id<"leagues">; due: boolean };
 
 /** The top bar filled in by Convex: Mail's unread count (useLiveMail's), whether the manager's
  *  lineup in the league the app is in is due, his pending claims there and the trade offers waiting
- *  for his answer (#1553). `watch` must be rendered: it asks whether the lineup is due at the minute,
- *  as a query may not read the clock, and holds the minute itself, so the shell re-renders only
- *  when the answer changes, never each minute. Due only by the league's latest answer: not with no
- *  league, nor before the league first answers; while a new minute's answer loads, the last stands. */
+ *  for his answer (#1553). `watch` must be rendered: it reads the times the lineup is due by, which
+ *  take no minute (#2005), and judges them at the minute it holds itself, so the shell re-renders
+ *  only when the answer changes, never each minute. Due only by the league's latest answer: not with
+ *  no league, nor before the league first answers; while new times load, the last answer stands. */
 export function useLiveTopBar(unreadMail: number, leagueId: Id<"leagues"> | null): { topBar: TopBarState; watch: ReactNode } {
   const [answer, setAnswer] = useState<LineupDueAnswer | null>(null);
   const [claims, setClaims] = useState<CountAnswer | null>(null);
@@ -63,7 +64,9 @@ function CountWatch({ query, leagueId, onAnswer }: { query: CountQuery; leagueId
 }
 
 function LineupDueWatch({ leagueId, onAnswer }: { leagueId: Id<"leagues">; onAnswer: (answer: LineupDueAnswer) => void }) {
-  const due = useQuery(api.lineup.lineupDue.isDue, { leagueId, now: useMinute() });
+  const times = useQuery(api.lineup.lineupDue.isDue, { leagueId });
+  const minute = useMinute();
+  const due = times === undefined ? undefined : lineupDueAt(times, minute);
   useEffect(() => {
     if (due !== undefined) onAnswer({ leagueId, due });
   }, [due, leagueId, onAnswer]);

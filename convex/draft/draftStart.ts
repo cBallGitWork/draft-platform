@@ -2,14 +2,14 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { nextOpenGameweek } from "../gameweeks/saveGameweek";
 import { draftRulesOf } from "../rules/firstRules";
-import { historyOf, inForce, latestRules } from "../rules/rulesHistory";
+import { latestRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
+import { checkSoon } from "../leagues/leagueChecks";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
@@ -38,15 +38,6 @@ export const draftStartRefusals = {
   notAhead: "The start has to be in the future.",
   squadsNotEmpty: "The draft can't start until every squad is empty.",
 };
-
-/** The league's rules in force at `now`: those of the gameweek under way, or before the league's
- *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
- *  The squad rules of a draft started before #1090 kept none, so oldDraftsBackfill.ts saves these. */
-export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
-  const history = await historyOf(ctx, leagueId);
-  const underWay = (await nextOpenGameweek(ctx, leagueId, now)) - 1;
-  return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
-}
 
 /** Whether any team in the league holds a player. */
 async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
@@ -91,6 +82,8 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
+  // Free agents waiting on the draft go back on waivers once it is over: the waiver cron looks (#1998).
+  await checkSoon(ctx, league._id, ["waivers"]);
   await closePickTrades(ctx, league._id);
   await undoCutTrades(ctx, league, can.rounds);
   const first = await startClock(ctx, league._id, 0, started.at, pickSeconds);

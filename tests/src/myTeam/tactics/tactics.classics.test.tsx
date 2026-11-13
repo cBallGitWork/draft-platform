@@ -5,7 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classicFormations";
 import { sameCell } from "../../../../convex/lineup/pitch";
 import { applyWords, CLASSIC_FORMATIONS, classicFormationTitleWords, inUseWords, WINDOW_TITLE } from "../../../../src/myTeam/tactics/formationWindow/words";
 import { allFormationsWords, customWords, instructionLabel, pitchTitle } from "../../../../src/myTeam/tactics/words";

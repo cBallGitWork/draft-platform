@@ -27,11 +27,17 @@ describe("each instruction's shape gate", () => {
     expect(offeredBy("gungHo")).toEqual(["2-3-5", "2-3-2-3"]);
   });
 
-  it("offers Hold a high line with a back three or four: a 3-5-2 is a back three", () => {
-    expect(offers("3-5-2", "holdAHighLine")).toBe(true);
-    expect(offers("4-4-2", "holdAHighLine")).toBe(true);
-    expect(offers("5-3-2", "holdAHighLine")).toBe(false);
-    expect(offers("2-3-5", "holdAHighLine")).toBe(false);
+  it("offers Hold a high line in no formation, as the first set no longer holds it (S05.37)", () => {
+    expect(offeredBy("holdAHighLine")).toEqual([]);
+  });
+
+  it("still reads Hold a high line's gate from a set saved before #1452: a back three or four, a 3-5-2 a back three", () => {
+    const saved: Instruction[] = [...FIRST_INSTRUCTIONS, { key: "holdAHighLine", side: "defensive", name: "Hold a high line", description: "", needs: "backThreeOrFour" }];
+    const offersSaved = (name: string) => offeredOn("defensive", cellsOf(name), saved).some(({ key }) => key === "holdAHighLine");
+    expect(offersSaved("3-5-2")).toBe(true);
+    expect(offersSaved("4-4-2")).toBe(true);
+    expect(offersSaved("5-3-2")).toBe(false);
+    expect(offersSaved("2-3-5")).toBe(false);
   });
 
   it("offers Boot it with one up top and no winger wide in attacking midfield or attack", () => {
@@ -45,10 +51,16 @@ describe("each instruction's shape gate", () => {
     for (const name of ["4-3-1-2", "4-1-2-1-2"]) expect(offers(name, "getItWide")).toBe(false);
   });
 
-  it("offers Press high with three in one row of midfield, attacking midfield or attack", () => {
-    expect(offers("4-4-2", "pressHigh")).toBe(true);
-    expect(offers("4-2-3-1", "pressHigh")).toBe(true);
-    expect(offers("4-2-2-2", "pressHigh")).toBe(false);
+  it("offers Press high with two or more up front, attacking midfielders counted (S05.42)", () => {
+    for (const name of ["4-4-2", "4-3-3", "4-2-3-1", "4-4-1-1", "2-3-5"]) expect(offers(name, "pressHigh")).toBe(true);
+    for (const name of ["4-1-4-1", "4-5-1", "5-4-1"]) expect(offers(name, "pressHigh")).toBe(false);
+  });
+
+  it("still reads a league's set saved before #1452, its Press high needing three in one row", () => {
+    const saved = FIRST_INSTRUCTIONS.map((each) => (each.key === "pressHigh" ? { ...each, needs: "threeInARow" as const } : each));
+    const offersSaved = (name: string) => offeredOn("defensive", cellsOf(name), saved).some(({ key }) => key === "pressHigh");
+    expect(offersSaved("4-5-1")).toBe(true);
+    expect(offersSaved("4-2-2-2")).toBe(false);
   });
 });
 

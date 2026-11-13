@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { POSITIONS } from "../positions/positionTables";
+import { areaShape } from "../lineup/pitchShape";
 import { failure, syncTrigger } from "./football";
 
 // Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
@@ -32,7 +33,14 @@ export const positionInputs = v.object({
   removed: v.array(position),
 });
 
-const playerPositionFields = { code: v.number(), ...positionInputs.fields };
+const playerPositionFields = {
+  code: v.number(),
+  ...positionInputs.fields,
+  /** The area the admin set for a player no feed has placed yet: he counts towards its squad
+   *  minimum until a feed places him (spec/06 `S06.1`; `minimumAreas` in areaMinimums.ts). Absent
+   *  until the admin sets one. Only the minimums read it, so Scouting keeps no copy. */
+  unplacedArea: v.optional(areaShape),
+};
 
 export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
 
@@ -40,8 +48,9 @@ export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnc
  *  `ChangeThresholds` in positionChanges.ts. */
 export const changeThresholds = v.object({ flagAfter: v.number(), removeAfter: v.number() });
 
-/** How positions from starts count, and change: a single row, absent until the admin first sets
- *  one. A threshold is absent until he tunes it (`FIRST_THRESHOLDS` in positionChanges.ts). */
+/** Leaving (#200): how positions from starts counted and changed, a single row, before these
+ *  settings moved to `platformSettings`. Read only as a fallback until positionSettingsMove.ts has
+ *  run on each deployment; then this table and the fallback go. */
 const positionSettingsFields = { approveMode, ...changeThresholds.partial().fields };
 
 // One row per run of positionsSync.run, so a failed read is on record, never silent.

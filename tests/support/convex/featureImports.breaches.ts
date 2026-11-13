@@ -5,14 +5,7 @@
 /** Cross-feature imports past rule 4, as "importer -> target" without the extension. Each goes
  *  when its target moves to src/ui/ or src/shared/, or becomes something its owner offers. */
 export const STILL_REACHING_IN: string[] = [
-  // The pitch's drawing, used by a third feature: for src/ui/ (#1581).
-  "src/matchup/PlayerTile -> src/myTeam/tactics/pitch/Pitch",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/Pitch",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/PitchLines",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/RoleRuns",
-  "src/matchup/SidePitch -> src/myTeam/tactics/pitch/rowLayout",
-  "src/playerCard/CardHead -> src/myTeam/tactics/pitch/Pitch",
-  // Other parts one feature draws and another shows.
+  // Parts one feature draws and another shows.
   "src/draft/CommissionerPanel -> src/leagueSettings/pickClock",
   "src/draft/playersView -> src/scouting/findPlayers",
   "src/frame/AppFrame -> src/feedback/FeedbackPage",
@@ -104,6 +97,7 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/gameweeks/seasonGameweeks",
   "convex/gameweeks/usedGameweeks",
   "convex/heartbeats/heartbeat",
+  "convex/leagues/leagueChecks",
   "convex/leagues/leagueLimits",
   "convex/leagues/leagueOpens",
   "convex/lineup/autoTeamSwitch",
@@ -151,6 +145,9 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/stats/matchRecordReads",
   "convex/stats/matchRecords",
   "convex/stats/matchStats",
+  // The Squad tab's Season became his card's total (#628), making squads its third user beside
+  // scouting and waivers; it reads stats, scoring and gameweekScorer, so it moves with them (#1581).
+  "convex/stats/seasonPoints",
   "convex/stats/seasonRebuilds",
   "convex/stats/seasonRecords",
   "convex/stats/seasonStats",

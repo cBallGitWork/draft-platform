@@ -89,8 +89,16 @@ describe("a league being deleted", () => {
 
     const refusal = await screen.findByRole("alert");
     expect(refusal.textContent).toBe("It's too late to undo: the league is being deleted for good.");
-    // The row is already the alert strip, so the refusal is a line in it, not a strip inside a strip.
+    // The league is already the alert strip, so the refusal is a line in it, not a strip inside a strip.
     expect(refusal.classList.contains("alert-strip")).toBe(false);
-    expect(refusal.closest("td")?.classList.contains("alert-strip")).toBe(true);
+    expect(refusal.closest(".alert-strip")).toBeTruthy();
+  });
+
+  it("is a strip under Your leagues, named, not a row of the table (its approved picture)", async () => {
+    openApp(LEAGUES_PATH, deleter);
+    const line = await screen.findByText(beingDeletedLine(DELETES_AT));
+    expect(line.closest("p")?.textContent).toBe(`${league.name} ${beingDeletedLine(DELETES_AT)}`);
+    expect(line.closest("table")).toBeNull();
+    expect(screen.queryByRole("rowheader", { name: new RegExp(`^${league.name}`) })).toBeNull();
   });
 });

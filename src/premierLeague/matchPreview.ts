@@ -169,7 +169,7 @@ const LINES: [number, string, string?][] = [
   [2877967, "6' Free kick McAtee"],
   [2877964, "5' SHOT Enciso, off target"],
   [2877955, "KO IPS v NFO"],
-  [2877807, "Lineups out"],
+  [2877807, "Line-ups out"],
 ];
 
 export const previewMatch: MatchPageData = {

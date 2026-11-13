@@ -7,7 +7,17 @@ import { FoldingPanel } from "./FoldingPanel";
 import { PanelLink } from "./PanelLink";
 import { recapLink } from "./paths";
 import type { HomeSeam, Recap } from "./seam";
-import { backHomeLink, changedMatchupLink, loadingRecapWords, noRecapWords, readRecapLink, recapTitle, scoreChangedWords } from "./words";
+import {
+  backHomeLink,
+  changedMatchupLink,
+  latestRecapTitle,
+  loadingRecapWords,
+  noRecapWords,
+  noRecapYetWords,
+  readRecapLink,
+  recapTitle,
+  scoreChangedWords,
+} from "./words";
 import { HOME_PATH } from "../frame/menu";
 
 // League home's weekly recap (spec/12, League home; #387): its panel on the home, a few lines and
@@ -38,16 +48,18 @@ export function RecapPanel({ recap }: { recap: Recap }) {
   );
 }
 
-/** Read the recap's page: the league's recap of the gameweek, whole, dated. */
-export function RecapPage({ league, seam, gameweek }: { league: LeagueSummary; seam: HomeSeam; gameweek: number }) {
+/** Read the recap's page: the league's recap of the gameweek, whole, dated; with no gameweek named,
+ *  its latest (#1967). */
+export function RecapPage({ league, seam, gameweek }: { league: LeagueSummary; seam: HomeSeam; gameweek: number | undefined }) {
   const recap = seam.useRecap(league.leagueId, gameweek);
+  const shownGameweek = gameweek ?? recap?.gameweek;
   return (
-    <PageSection title={recapTitle(gameweek)} className={PAGE_STACK}>
+    <PageSection title={shownGameweek === undefined ? latestRecapTitle : recapTitle(shownGameweek)} className={PAGE_STACK}>
       <div className="bg-panel">
         {recap === undefined ? (
           <Loading>{loadingRecapWords}</Loading>
         ) : recap === null ? (
-          <PanelNote>{noRecapWords(gameweek)}</PanelNote>
+          <PanelNote>{gameweek === undefined ? noRecapYetWords : noRecapWords(gameweek)}</PanelNote>
         ) : (
           <article className="flex flex-col items-start gap-1 px-3 pt-2">
             <DateBlock at={recap.writtenAt} />

@@ -8,8 +8,8 @@ import { ADMIN } from "../../support/convex/leagues.harness";
 import { EDITED, EDITED_AGAIN, fixAs, inGameweek, kickoffOf, patch, siteDeadlineOf, t, useSiteScoringDeployment, viewAs } from "../../support/convex/siteScoring.harness";
 
 // What an announced patch does when its gameweek's schedule changes (Craig, 1 Nov 2026, on #901):
-// a first kickoff moving later takes the patch's start with it, and a gameweek with no kickoff
-// time yet plays the rules in force, never a patch still waiting.
+// a first kickoff moving later takes the patch's start with it (earlier too, 9 Nov 2026, on #1304),
+// and a gameweek with no kickoff time yet plays the rules in force, never a patch still waiting.
 
 useSiteScoringDeployment();
 
@@ -37,12 +37,25 @@ describe("a waiting patch whose gameweek's first kickoff moves", () => {
     expect(await refreshTimes()).toEqual([siteDeadlineOf(GAMEWEEK), later]);
   });
 
-  test("earlier, stays where it was", async () => {
+  test("#1304 Done: earlier, moves with it, so the brought-forward match is the first scored under it (S14.26)", async () => {
     await patch(EDITED, siteDeadlineOf(GAMEWEEK));
+    const earlier = siteDeadlineOf(GAMEWEEK) - DAY_MS;
 
     await moveOpener(GAMEWEEK, kickoffOf(GAMEWEEK) - DAY_MS);
 
-    expect(await takesEffectAt()).toEqual([siteDeadlineOf(GAMEWEEK)]);
+    expect(await takesEffectAt()).toEqual([earlier]);
+    expect(await inGameweek(GAMEWEEK - 1)).toEqual(FIRST_SCORING);
+    expect(await inGameweek(GAMEWEEK)).toEqual(EDITED);
+    expect(await refreshTimes()).toEqual([siteDeadlineOf(GAMEWEEK), earlier]);
+  });
+
+  test("earlier than the patch before it, moves no further than it, so the two keep their order", async () => {
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
+    await patch(EDITED_AGAIN, siteDeadlineOf(GAMEWEEK + 1));
+
+    await moveOpener(GAMEWEEK + 1, kickoffOf(GAMEWEEK) - DAY_MS);
+
+    expect(await takesEffectAt()).toEqual([siteDeadlineOf(GAMEWEEK), siteDeadlineOf(GAMEWEEK)]);
   });
 
   test("later than the next patch's moment, moves no further than it, so the two keep their order", async () => {

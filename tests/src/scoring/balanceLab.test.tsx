@@ -10,7 +10,18 @@ import { categoryName } from "../../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import type { VersionNotes } from "../../../src/patches/seam";
-import { instructionsHint, labTitle, noTeamInstructionsWords, notTestedWords, notTestedYetWords, offTargetWords } from "../../../src/patches/words";
+import { signedWords } from "../../../convex/shared/numberWords";
+import {
+  instructionsHint,
+  instructionsUntestedHint,
+  labTitle,
+  noPositionWords,
+  noTeamInstructionsWords,
+  notTestedWords,
+  notTestedYetWords,
+  noXisWords,
+  offTargetWords,
+} from "../../../src/patches/words";
 import { draftTabWords, runLabWords, saveDraftToRunLabWords } from "../../../src/scoring/words";
 import { ADMINS_VIEW, DRAFT_SAVED_AT, LAB_REPORT } from "../../support/src/scoring.harness";
 import { openScoring } from "../../support/src/scoringScreen.harness";
@@ -57,12 +68,34 @@ it("an announced patch's notes carry its lab report", async () => {
 });
 
 describe("an announced patch's notes", () => {
-  it("list each team instruction the set scores as not tested, naming any stat the past seasons lack (S14.13; #1541)", async () => {
+  const rowOf = (name: string) => screen.getByRole("rowheader", { name }).closest("tr")?.textContent;
+
+  it("give each team instruction's average for a whole XI and the XIs it was tested on, or not tested, naming any stat the past seasons lack (S14.9, S14.13; #1541)", async () => {
     await openNotesWith(LAB_REPORT);
-    expect(screen.getByText(instructionsHint)).toBeTruthy();
-    expect(screen.getByRole("rowheader", { name: "Gung-ho" }).closest("tr")?.textContent).toContain(notTestedYetWords);
-    expect(screen.getByRole("rowheader", { name: "Shoot on sight" }).closest("tr")?.textContent).toContain(notTestedWords([categoryName("att_obox_goal")]));
+    expect(screen.getByText(instructionsHint(1520, 12))).toBeTruthy();
+    expect(rowOf("Gung-ho")).toBe(`Gung-ho${signedWords(1.61)}40`);
+    expect(rowOf("Park the bus")).toBe(`Park the bus${noXisWords}0`);
+    expect(rowOf("Shoot on sight")).toContain(notTestedWords([categoryName("att_obox_goal")]));
     expect(screen.queryByText(noTeamInstructionsWords)).toBeNull();
+  });
+
+  it("count the past starters with no position and name the first ones, with club and match day, and say nothing of them on a report kept before (S14.25; #1541)", async () => {
+    await openNotesWith(LAB_REPORT);
+    const { noPosition: flagged, ...before } = LAB_REPORT;
+    const line = noPositionWords(flagged!.count, flagged!.first);
+    expect(screen.getByText(line)).toBeTruthy();
+    expect(line).toContain(": 2. First 2: Sam Sweeper, Leeds, 14 Sept 2024; Person no-code-eight, 4 Jan 2025.");
+
+    cleanup();
+    await openNotesWith(before);
+    expect(screen.queryByText(line)).toBeNull();
+  });
+
+  it("list each instruction as not tested on a report kept before the averages", async () => {
+    const { xis: _xis, xisShort: _short, ...before } = LAB_REPORT;
+    await openNotesWith({ ...before, instructions: [{ instruction: "gungHo", missing: [] }] });
+    expect(screen.getByText(instructionsUntestedHint)).toBeTruthy();
+    expect(rowOf("Gung-ho")).toContain(notTestedYetWords);
   });
 
   it("say the set scores no team instructions only when it scores none, and say nothing of them on a report kept before #1541", async () => {
@@ -73,6 +106,6 @@ describe("an announced patch's notes", () => {
     cleanup();
     await openNotesWith(before);
     expect(screen.queryByText(noTeamInstructionsWords)).toBeNull();
-    expect(screen.queryByText(instructionsHint)).toBeNull();
+    expect(screen.queryByText(instructionsHint(1520, 12))).toBeNull();
   });
 });

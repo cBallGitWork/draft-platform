@@ -127,7 +127,7 @@ describe("a signed-in manager", () => {
       menuWords.table,
       menuWords.scouting,
       menuWords.trades,
-      menuWords.premierLeague,
+      menuWords.football,
       MAIL_TITLE,
     ]);
   });

@@ -6,16 +6,17 @@ import { Notice, Panel } from "../../ui/Panel";
 import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { formationNameOf } from "./classicLineup";
+import { formationNameOf } from "./classicFormationLineup";
 import { benchedAt, openingLineup, placeOf, positionsIn, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { dropOutcome, reachOf } from "./swaps";
 import { quickPick } from "./quickPick";
-import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
+import { Pitch, type Moving } from "./pitch/Pitch";
+import { PITCH_ROOM_STYLE } from "../../ui/pitch/pitchMarkings";
 import { useFormationPicks } from "./useFormationPicks";
 import { SelectionTable } from "./SelectionTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
-import { PlayerPanel } from "./widgets/PlayerPanel";
+import { TacticsPlayerPanel } from "./widgets/PlayerPanel";
 import { RoleCardWindow } from "./roleCard/RoleCard";
 import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
@@ -186,6 +187,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
           now={now}
           player={squad.get(roleCardFor.playerCode)!}
           starter={roleCardFor}
+          runs={tactics.runs}
           formation={draft.starters}
           onPlay={(role) => closeRoleCard(roleCardFor.playerCode, role)}
           onClose={() => closeRoleCard(roleCardFor.playerCode)}
@@ -230,7 +232,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} ratingsOf={ratingsOf} season={season} gameweek={tactics.gameweek} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runs={tactics.runs} runsShown={runsShown} ratingsOf={ratingsOf} season={season} gameweek={tactics.gameweek} />
             </div>
           </Panel>
           <LineupCheck
@@ -256,7 +258,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (
-            <PlayerPanel
+            <TacticsPlayerPanel
               leagueId={league.leagueId}
               player={selected}
               place={selectedPlace}

@@ -7,8 +7,8 @@ import { problemWords } from "../../../convex/lineup/lineupWords";
 const nameOf = (playerCode: number) => `Player ${playerCode}`;
 
 test.each<[LineupProblem, string]>([
-  [{ kind: "wrongStarterCount", starterCount: 10 }, "A lineup starts 11 players; this one starts 10."],
-  [{ kind: "playerTwice", playerCode: 7 }, "Player 7 is in the lineup twice."],
+  [{ kind: "wrongStarterCount", starterCount: 10 }, "A line-up starts 11 players; this one starts 10."],
+  [{ kind: "playerTwice", playerCode: 7 }, "Player 7 is in the line-up twice."],
   [{ kind: "noSuchCell", playerCode: 7, area: "bench", lane: "middle" }, 'Player 7 is placed at "bench", "middle", which isn\'t a cell on the pitch.'],
   [{ kind: "cellShared", area: "midfield", lane: "rightCentre", playerCodes: [1, 2, 3] }, "Player 1, Player 2 and Player 3 share the right-centre cell in Midfield: one player a cell."],
   [{ kind: "positionsUnknown", playerCode: 7 }, "Player 7 has no positions yet, so he can't start."],
@@ -20,8 +20,8 @@ test.each<[LineupProblem, string]>([
     { kind: "outsideHisAreas", playerCode: 7, area: "midfield", lane: "centre", positions: [] },
     "Player 7 has no positions, so he can't stand in the centre cell in Midfield.",
   ],
-  [{ kind: "aboveMaximum", area: "defence", starterCount: 6, maximum: 5 }, "The league starts at most 5 in Defence; this lineup starts 6 there."],
-  [{ kind: "belowMinimum", area: "goalkeeper", starterCount: 0, minimum: 1 }, "The league starts at least 1 in Goalkeeper; this lineup starts 0 there."],
+  [{ kind: "aboveMaximum", area: "defence", starterCount: 6, maximum: 5 }, "The league starts at most 5 in Defence; this line-up starts 6 there."],
+  [{ kind: "belowMinimum", area: "goalkeeper", starterCount: 0, minimum: 1 }, "The league starts at least 1 in Goalkeeper; this line-up starts 0 there."],
 ])("%o reads %s", (problem, words) => {
   expect(problemWords(problem, nameOf)).toBe(words);
 });

@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
 import { logFailure, outcomeOf } from "../shared/errors";
-import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, cronRunOff, withHeartbeat } from "../heartbeats/heartbeat";
 import { fplSeason, readFplPayloads } from "../football/fpl/fpl";
 import { readPlSeasons } from "../football/premierLeague/plSeasons";
 import type { PlSeasons } from "../football/football";
@@ -42,8 +42,9 @@ interface GameweekReads {
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
-  handler: async (ctx, { trigger }) =>
-    withHeartbeat(trigger === CRON_TRIGGER ? "lateStats" : null, async () => {
+  handler: async (ctx, { trigger }) => {
+    if (cronRunOff(trigger)) return null;
+    return withHeartbeat(trigger === CRON_TRIGGER ? "lateStats" : null, async () => {
       const ranAt = Date.now();
       let teamStats: SideMatchOutcome[] = [];
       let unseenFrom: number | undefined;
@@ -59,7 +60,8 @@ export const run = internalAction({
       // Only its full-time reads read team stats, and the feed owes none between matches.
       await recordSideMatches(ctx, ranAt, { teamStats }, false);
       return null;
-    }),
+    });
+  },
 });
 
 /** What a read does with a match the Premier League does not yet call full time: the sync leaves

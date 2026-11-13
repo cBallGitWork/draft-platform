@@ -1827,6 +1827,38 @@
               }
             },
             "optional": false
+          },
+          "unplacedArea": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "goalkeeper"
+                },
+                {
+                  "type": "literal",
+                  "value": "defence"
+                },
+                {
+                  "type": "literal",
+                  "value": "defensiveMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "midfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attackingMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attack"
+                }
+              ]
+            },
+            "optional": true
           }
         }
       }
@@ -3090,39 +3122,90 @@
       "vectorIndexes": [],
       "stagedVectorIndexes": [],
       "documentType": {
-        "type": "object",
-        "value": {
-          "name": {
-            "fieldType": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "literal",
-                  "value": "statCorrectionWindowMinutes"
+        "type": "union",
+        "value": [
+          {
+            "type": "object",
+            "value": {
+              "name": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "statCorrectionWindowMinutes"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "scoutsPerTeam"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "matchdayHoursBefore"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "matchdayHoursAfter"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "positionsFlagAfter"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "positionsRemoveAfter"
+                        }
+                      ]
+                    }
+                  ]
                 },
-                {
-                  "type": "literal",
-                  "value": "scoutsPerTeam"
+                "optional": false
+              },
+              "value": {
+                "fieldType": {
+                  "type": "number"
                 },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursBefore"
-                },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursAfter"
-                }
-              ]
-            },
-            "optional": false
+                "optional": false
+              }
+            }
           },
-          "value": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
+          {
+            "type": "object",
+            "value": {
+              "name": {
+                "fieldType": {
+                  "type": "literal",
+                  "value": "positionsApproveMode"
+                },
+                "optional": false
+              },
+              "value": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "proposals"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "countAtOnce"
+                    }
+                  ]
+                },
+                "optional": false
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -6154,6 +6237,58 @@
       }
     },
     {
+      "tableName": "leagueChecks",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId",
+          "fields": [
+            "leagueId"
+          ]
+        },
+        {
+          "indexDescriptor": "by_waiversAt",
+          "fields": [
+            "waiversAt"
+          ]
+        },
+        {
+          "indexDescriptor": "by_offersAt",
+          "fields": [
+            "offersAt"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "waiversAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "offersAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "unemailedDeletions",
       "indexes": [
         {
@@ -6411,6 +6546,13 @@
             "email",
             "decision"
           ]
+        },
+        {
+          "indexDescriptor": "by_email_and_decision",
+          "fields": [
+            "email",
+            "decision"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -6504,6 +6646,14 @@
           ]
         },
         {
+          "indexDescriptor": "by_to_and_leagueId_and_at",
+          "fields": [
+            "to",
+            "leagueId",
+            "at"
+          ]
+        },
+        {
           "indexDescriptor": "by_leagueId",
           "fields": [
             "leagueId"
@@ -6587,6 +6737,13 @@
           "fields": [
             "at"
           ]
+        },
+        {
+          "indexDescriptor": "by_from_and_at",
+          "fields": [
+            "from",
+            "at"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -6614,6 +6771,12 @@
               "type": "string"
             },
             "optional": false
+          },
+          "readAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -7494,6 +7657,10 @@
                               },
                               {
                                 "type": "literal",
+                                "value": "twoUpFront"
+                              },
+                              {
+                                "type": "literal",
                                 "value": "backThreeOrFour"
                               },
                               {
@@ -11190,6 +11357,46 @@
                           }
                         },
                         "optional": true
+                      },
+                      "runs": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "role": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "path": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "forward": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "across": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
                       }
                     }
                   },
@@ -12018,6 +12225,10 @@
                               {
                                 "type": "literal",
                                 "value": "threeInARow"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "twoUpFront"
                               },
                               {
                                 "type": "literal",
@@ -12898,6 +13109,10 @@
                               },
                               {
                                 "type": "literal",
+                                "value": "twoUpFront"
+                              },
+                              {
+                                "type": "literal",
                                 "value": "backThreeOrFour"
                               },
                               {
@@ -16584,6 +16799,46 @@
                                           "type": "number"
                                         },
                                         "optional": true
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
+                      },
+                      "runs": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "role": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "path": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "forward": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "across": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
                                       }
                                     }
                                   }
@@ -20305,6 +20560,46 @@
                     }
                   },
                   "optional": true
+                },
+                "runs": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "role": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "path": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "forward": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "across": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
                 }
               }
             },
@@ -20362,6 +20657,49 @@
                     }
                   },
                   "optional": false
+                },
+                "noPosition": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "count": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "first": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "name": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "club": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": true
+                              },
+                              "kickoff": {
+                                "fieldType": {
+                                  "type": "number"
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
                 },
                 "starts": {
                   "fieldType": {
@@ -20471,25 +20809,73 @@
                   "fieldType": {
                     "type": "array",
                     "value": {
-                      "type": "object",
-                      "value": {
-                        "instruction": {
-                          "fieldType": {
-                            "type": "string"
-                          },
-                          "optional": false
-                        },
-                        "missing": {
-                          "fieldType": {
-                            "type": "array",
-                            "value": {
-                              "type": "string"
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "object",
+                          "value": {
+                            "instruction": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "xis": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "average": {
+                              "fieldType": {
+                                "type": "union",
+                                "value": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "optional": false
                             }
-                          },
-                          "optional": false
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "value": {
+                            "instruction": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "missing": {
+                              "fieldType": {
+                                "type": "array",
+                                "value": {
+                                  "type": "string"
+                                }
+                              },
+                              "optional": false
+                            }
+                          }
                         }
-                      }
+                      ]
                     }
+                  },
+                  "optional": true
+                },
+                "xis": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                },
+                "xisShort": {
+                  "fieldType": {
+                    "type": "number"
                   },
                   "optional": true
                 }
@@ -24198,6 +24584,46 @@
                     }
                   },
                   "optional": true
+                },
+                "runs": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "role": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "path": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "forward": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "across": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
                 }
               }
             },
@@ -25914,7 +26340,7 @@
                       }
                     }
                   },
-                  "optional": true
+                  "optional": false
                 }
               }
             },
@@ -26344,7 +26770,7 @@
                 ]
               }
             },
-            "optional": true
+            "optional": false
           },
           "own": {
             "fieldType": {
@@ -26380,49 +26806,123 @@
       "vectorIndexes": [],
       "stagedVectorIndexes": [],
       "documentType": {
-        "type": "object",
-        "value": {
-          "season": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
-          },
-          "playerCode": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
-          },
-          "fplPosition": {
-            "fieldType": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "literal",
-                  "value": 1
+        "type": "union",
+        "value": [
+          {
+            "type": "object",
+            "value": {
+              "season": {
+                "fieldType": {
+                  "type": "number"
                 },
-                {
-                  "type": "literal",
-                  "value": 2
+                "optional": false
+              },
+              "playerCode": {
+                "fieldType": {
+                  "type": "number"
                 },
-                {
-                  "type": "literal",
-                  "value": 3
+                "optional": false
+              },
+              "fplPosition": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": 1
+                    },
+                    {
+                      "type": "literal",
+                      "value": 2
+                    },
+                    {
+                      "type": "literal",
+                      "value": 3
+                    },
+                    {
+                      "type": "literal",
+                      "value": 4
+                    }
+                  ]
                 },
-                {
-                  "type": "literal",
-                  "value": 4
-                }
-              ]
-            },
-            "optional": false
+                "optional": false
+              },
+              "match": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "object",
+                      "value": {
+                        "kickoff": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        },
+                        "club": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": true
+                        },
+                        "startingPosition": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        },
+                        "stats": {
+                          "fieldType": {
+                            "type": "record",
+                            "keys": {
+                              "type": "string"
+                            },
+                            "values": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "optional": false
+              }
+            }
           },
-          "match": {
-            "fieldType": {
-              "type": "union",
-              "value": [
-                {
+          {
+            "type": "object",
+            "value": {
+              "season": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "person": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "match": {
+                "fieldType": {
                   "type": "object",
                   "value": {
                     "kickoff": {
@@ -26430,6 +26930,12 @@
                         "type": "number"
                       },
                       "optional": false
+                    },
+                    "club": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": true
                     },
                     "startingPosition": {
                       "fieldType": {
@@ -26462,14 +26968,11 @@
                     }
                   }
                 },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "optional": false
+                "optional": false
+              }
+            }
           }
-        }
+        ]
       }
     },
     {

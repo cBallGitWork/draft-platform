@@ -103,8 +103,13 @@ test("two rows are the same whatever their fields' order, an absent field and an
 // Every write to a row the copy comes from must keep the copy in step, or Scouting shows a stale
 // player with no error. These are the modules that write those tables, each calling the keep; the
 // football sync writes `players` through its tables' shared upsert and drop, so it is named by
-// hand. A new writer fails here until it keeps the copy and is added.
+// hand, and keeps the copy through afterFootballSync.ts's afterPlayersSent and afterPlayersDropped
+// (#1581). A new writer fails here until it keeps the copy and is added.
 const SOURCE_WRITERS = ["football/footballSync.ts", "positions/playerPositions.ts", "stats/seasonStats.ts"];
+/** A writer that keeps the copy through another module: the calls it makes, and that module. */
+const KEPT_THROUGH: Record<string, { calls: RegExp; module: string }> = {
+  "football/footballSync.ts": { calls: /afterPlayersSent\([\s\S]*afterPlayersDropped\(/, module: "football/afterFootballSync.ts" },
+};
 const SOURCE_WRITE = /\.(insert|patch|replace|delete)\(\s*"(players|playerPositions|playerSeasonStats)"/;
 const convexModules = import.meta.glob<string>(["../../../convex/**/*.ts", "!../../../convex/_generated/**"], { query: "?raw", import: "default", eager: true });
 
@@ -113,7 +118,11 @@ test("every module that writes players, positions or season totals keeps the Sco
   const writers = modules.filter(({ source }) => SOURCE_WRITE.test(source)).map(({ path }) => path);
   expect(writers).toEqual(expect.arrayContaining(["positions/playerPositions.ts", "stats/seasonStats.ts"]));
   expect(writers.filter((path) => !SOURCE_WRITERS.includes(path))).toEqual([]);
+  const sourceOf = (path: string) => modules.find((module) => module.path === path)?.source;
   for (const path of SOURCE_WRITERS) {
-    expect(modules.find((module) => module.path === path)?.source, `${path} must call keepScoutingPlayer(s)`).toMatch(/keepScoutingPlayers?\(/);
+    const through = KEPT_THROUGH[path];
+    if (through !== undefined) expect(sourceOf(path), `${path} must keep the copy through ${through.module}`).toMatch(through.calls);
+    const keeper = through?.module ?? path;
+    expect(sourceOf(keeper), `${keeper} must call keepScoutingPlayer(s)`).toMatch(/keepScoutingPlayers?\(/);
   }
 });

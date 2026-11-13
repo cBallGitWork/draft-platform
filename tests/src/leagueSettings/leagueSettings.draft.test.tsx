@@ -29,7 +29,7 @@ import {
   undraftedWords,
 } from "../../../src/leagueSettings/words";
 import { REVISION, TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
-import { box, fill, FIRST_SETTINGS, openedSettings, save, saveButton, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
+import { box, fill, FIRST_SETTINGS, openedOn, save, saveButton, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
 import { league } from "../../support/src/shell.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 
@@ -42,7 +42,7 @@ const withDraft = (draft: Partial<typeof FIRST_SETTINGS.draft>) => ({
 
 describe("the draft settings (#1087)", () => {
   it("opens on the league's: 90 seconds a pick, auto-pick after 2 timeouts, and waivers, with no draft order switch", async () => {
-    await openedSettings();
+    await openedOn("draft");
 
     expect(screen.queryByRole("radio", { name: "Random" })).toBeNull();
     expect(box(pickClockLabel).value).toBe("90");
@@ -53,7 +53,7 @@ describe("the draft settings (#1087)", () => {
   });
 
   it("offers waivers or free agents for undrafted players, with no line saying waivers aren't built (#1748)", async () => {
-    await openedSettings();
+    await openedOn("draft");
 
     expect(radio(undraftedWords.waivers)).toBeTruthy();
     expect(radio(undraftedWords.freeAgents)).toBeTruthy();
@@ -61,7 +61,7 @@ describe("the draft settings (#1087)", () => {
   });
 
   it("saves each one changed with the rest of the settings", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draft");
     await fill(pickClockLabel, "8");
     await userEvent.click(radio(pickClockUnitWords.hours));
     await userEvent.click(autoPickTick());
@@ -73,7 +73,7 @@ describe("the draft settings (#1087)", () => {
   });
 
   it("shows a clock in the largest unit it is a whole number of, and saves one typed in minutes in seconds", async () => {
-    const app = await openedSettings(withDraft({ pickSeconds: 2 * 3600 }));
+    const app = await openedOn("draft",withDraft({ pickSeconds: 2 * 3600 }));
     expect(box(pickClockLabel).value).toBe("2");
     expect(radio(pickClockUnitWords.hours).checked).toBe(true);
 
@@ -85,7 +85,7 @@ describe("the draft settings (#1087)", () => {
   });
 
   it("says never, and shows no box, with auto-pick after timeouts off; turned on, its box is saved", async () => {
-    const app = await openedSettings(withDraft({ timeoutsBeforeAutoPick: null }));
+    const app = await openedOn("draft",withDraft({ timeoutsBeforeAutoPick: null }));
     expect(screen.getByText(neverAutoPickWords)).toBeTruthy();
     expect(screen.queryByRole("textbox", { name: timeoutsLabel })).toBeNull();
 
@@ -100,7 +100,7 @@ describe("the draft settings (#1087)", () => {
     ["the pick clock", () => fill(pickClockLabel, ""), blankPickClockWords],
     ["the timeouts", () => fill(timeoutsLabel, ""), blankTimeoutsWords],
   ])("with %s left without a number, refuses the save itself and asks the server nothing", async (_, leaveBlank, words) => {
-    const app = await openedSettings();
+    const app = await openedOn("draft");
     await leaveBlank();
     await save();
 
@@ -109,7 +109,7 @@ describe("the draft settings (#1087)", () => {
   });
 
   it("shows the server's refusal of a clock under 15 seconds", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draft");
     const refusal = "The pick clock's seconds must be a whole number from 15 to 86400, not 10.";
     app.leagueSettings.save.mockResolvedValueOnce(refusal);
     await fill(pickClockLabel, "10");
@@ -129,18 +129,18 @@ describe("the draft's start date (#1476)", () => {
   const setFor = (value: string) => ({ draftStart: { startsAt: new Date(value).getTime(), started: false } });
 
   it("shows the date set, in the viewer's own zone, with Clear; with none, an empty box and no Clear", async () => {
-    await openedSettings(setFor(SATURDAY));
+    await openedOn("draft",setFor(SATURDAY));
     expect(dateBox().value).toBe(SATURDAY);
     expect(clearButton()).toBeTruthy();
 
     cleanup();
-    await openedSettings();
+    await openedOn("draft");
     expect(dateBox().value).toBe("");
     expect(clearButton()).toBeNull();
   });
 
   it("saves a new date with the settings' Save, leaving the settings unsaved when they haven't changed", async () => {
-    const app = await openedSettings(setFor(SATURDAY));
+    const app = await openedOn("draft",setFor(SATURDAY));
     expect(saveButton().disabled).toBe(true);
     typeDate(SUNDAY);
     await save();
@@ -152,7 +152,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("says a date saved alone was saved, not an earlier settings save's gameweek (#1780)", async () => {
-    await openedSettings(setFor(SATURDAY));
+    await openedOn("draft",setFor(SATURDAY));
     await userEvent.click(radio(undraftedWords.freeAgents));
     await save();
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
@@ -163,7 +163,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("says a date saved with the settings in the settings' words", async () => {
-    await openedSettings();
+    await openedOn("draft");
     typeDate(SUNDAY);
     await userEvent.click(radio(undraftedWords.freeAgents));
     await save();
@@ -172,7 +172,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("clears the date, so the draft waits for the commissioner to press start", async () => {
-    const app = await openedSettings(setFor(SATURDAY));
+    const app = await openedOn("draft",setFor(SATURDAY));
     await userEvent.click(clearButton()!);
     expect(dateBox().value).toBe("");
     await save();
@@ -181,7 +181,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("saves a date and the settings together", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draft");
     typeDate(SUNDAY);
     await userEvent.click(radio(undraftedWords.freeAgents));
     await save();
@@ -191,7 +191,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("says why a date is refused, and saves no settings with it", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draft");
     app.leagueSettings.setDraftStart.mockResolvedValueOnce(draftStartRefusals.tooFewTeams);
     typeDate(SUNDAY);
     await userEvent.click(radio(undraftedWords.freeAgents));
@@ -202,7 +202,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("Discard puts the date back", async () => {
-    await openedSettings(setFor(SATURDAY));
+    await openedOn("draft",setFor(SATURDAY));
     typeDate(SUNDAY);
     await userEvent.click(screen.getByRole("button", { name: discardWords }));
 
@@ -210,7 +210,7 @@ describe("the draft's start date (#1476)", () => {
   });
 
   it("once the draft has started, says so, with no box", async () => {
-    await openedSettings({ draftStart: { startsAt: null, started: true } });
+    await openedOn("draft",{ draftStart: { startsAt: null, started: true } });
 
     expect(screen.getByText(draftStartedFixedWords)).toBeTruthy();
     expect(screen.queryByLabelText(draftStartLabel)).toBeNull();
@@ -221,7 +221,7 @@ describe("the commissioner's draft order (#1087)", () => {
   const [saka, kroos, pique] = TEAMS_IN_ORDER;
 
   it("lists the teams first pick first, offering no Up for the first and no Down for the last", async () => {
-    await openedSettings();
+    await openedOn("draftOrder");
     const rows = within(orderPanel()!).getAllByRole("listitem");
 
     expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}UpDown`, `2${kroos.name}UpDown`, `3${pique.name}UpDown`]);
@@ -230,7 +230,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("saves a move at once, without the settings' Save", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draftOrder");
     await userEvent.click(screen.getByRole("button", { name: moveUpLabel(kroos.name) }));
 
     expect(app.leagueSettings.saveTeamOrder).toHaveBeenCalledExactlyOnceWith(expect.anything(), [kroos.teamId, saka.teamId, pique.teamId]);
@@ -238,7 +238,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("shows the server's refusal of a move", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draftOrder");
     app.leagueSettings.saveTeamOrder.mockResolvedValueOnce(draftOrderRefusals.teamsChanged);
     await userEvent.click(screen.getByRole("button", { name: moveDownLabel(saka.name) }));
 
@@ -246,7 +246,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("draws the order at random at once, without the settings' Save", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draftOrder");
     await userEvent.click(within(orderPanel()!).getByRole("button", { name: drawOrderWords }));
 
     expect(app.leagueSettings.drawTeamOrder).toHaveBeenCalledOnce();
@@ -254,7 +254,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("shows the server's refusal of a draw once the draft has started", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("draftOrder");
     app.leagueSettings.drawTeamOrder.mockResolvedValueOnce(draftOrderRefusals.started);
     await userEvent.click(screen.getByRole("button", { name: drawOrderWords }));
 
@@ -262,7 +262,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("once the draft has started, shows the order fixed, with no moves and no draw", async () => {
-    await openedSettings({ draftStarted: true });
+    await openedOn("draftOrder", { draftStarted: true });
     const rows = within(orderPanel()!).getAllByRole("listitem");
 
     expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}`, `2${kroos.name}`, `3${pique.name}`]);
@@ -271,7 +271,7 @@ describe("the commissioner's draft order (#1087)", () => {
   });
 
   it("offers no draw with one team or none", async () => {
-    await openedSettings({ teamOrder: [saka] });
+    await openedOn("draftOrder", { teamOrder: [saka] });
 
     expect(screen.queryByRole("button", { name: drawOrderWords })).toBeNull();
   });

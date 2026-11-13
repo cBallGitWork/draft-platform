@@ -1,20 +1,21 @@
-// League home in the preview (src/app/preview.ts): the Pro League's nine teams, scored up to the
-// preview's gameweek so the form shows, the server's own rules picking this gameweek (nextGameweek.ts)
-// and the rows (glance.ts), its head-to-heads scored, a matchday open with a few Vidiprinter lines, a
-// pinned letter, a few squad moves, the News tab's two pages of them and the last gameweek's recap.
-// Made up.
+// League home in the preview (src/app/preview.ts): the Pro League's nine teams, its table, fixtures
+// and scores the table preview's (src/table/preview.ts) so the two screens agree, the server's own
+// rules picking this gameweek (nextGameweek.ts) and the rows (glance.ts), its head-to-heads scored, a
+// matchday open with a few Vidiprinter lines, a pinned letter, a few squad moves, the News tab's two
+// pages of them and the last gameweek's recap. Made up.
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
-import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { gameModeOf } from "../../convex/rules/gameMode";
-import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
-import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
-import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
+import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
+import { namedFixture } from "../../convex/table/roundRobin";
+import { formOf, teamsInGameweek } from "../../convex/table/standings";
 import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
+import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewLatestMail } from "../mail/preview";
-import { previewGameweek, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
-import { previewIdOf } from "../table/preview";
+import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/tactics/preview";
+import { previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewIdOf, previewLeagueTable, previewSchedule, previewScored } from "../table/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
@@ -39,19 +40,43 @@ const [MINE] = previewTeamNames;
 const SCORED = previewGameweek;
 /** The gameweek whose recap the preview has: the last one scored. */
 export const PREVIEW_RECAP_GAMEWEEK = SCORED;
-const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
-const schedule = drawFixtures(previewTeamNames, seasonGameweeks(previewSeasonGameweeks), () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
-/** Made-up scores: each team's points a gameweek, from its place in the league and the gameweek. */
-const scores = new Map(
-  Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(previewTeamNames.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),
-);
+/** The table preview's fixtures and scores, so League home and the table agree (#1969). */
+const schedule = previewSchedule;
+const { scores, provisional, deadlineOf } = previewScored;
 /** The preview league plays head-to-head. */
 const mode = gameModeOf({ format: "headToHead" });
 const form = formOf(mode, previewTeamNames, schedule, scores);
-/** The same scores, each final, as the head-to-heads read them. */
-const sides = new Map([...scores].map(([gameweek, teams]) => [gameweek, new Map([...teams].map(([team, points]) => [team, { points, provisional: false }]))]));
-const current = thisGameweekOf(schedule, (gameweek) => firstDeadline + (gameweek - 1) * WEEK_MS, Date.now())!;
+/** The same scores, as the head-to-heads read them. */
+const sides = new Map([...scores].map(([gameweek, teams]) => [gameweek, new Map([...teams].map(([team, points]) => [team, { points, provisional: provisional.includes(team) }]))]));
+const current = thisGameweekOf(schedule, deadlineOf, Date.now())!;
+const deadline = deadlineOf(current.gameweek);
+
+/** The reader's own panels (#1976): Tactics' squad, its news and its lineup, made-up claims, and
+ *  this gameweek's matches pairing his players' clubs, his opponent's men made up. */
+const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
+const startersOf = new Set(previewStarterCodes);
+const clubs = [...new Map(previewSquad.map(({ clubCode, clubShortName }) => [clubCode, { code: clubCode, name: clubShortName, shortName: clubShortName }])).values()];
+const THEIRS = ["Raya, Saliba", "Dias", "Jones, Gravenberch, Salah", "Gusto", ""];
+const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, index) => {
+  const [home, away] = [clubs[2 * index], clubs[2 * index + 1]];
+  const playing = new Set([home.code, away.code]);
+  return {
+    fixtureCode: 9000 + index,
+    kickoff: deadline + (2 + (index % 3) * 3) * HOUR_MS,
+    home,
+    away,
+    you: previewSquad.filter(({ clubCode }) => playing.has(clubCode)).map(({ name }) => name),
+    them: (THEIRS[index] ?? "").split(", ").filter(Boolean),
+  };
+});
+const yours: LeagueHome["yours"] = {
+  squadNews,
+  lineup: { set: true, flagged: squadNews.filter(({ playerCode }) => startersOf.has(playerCode)) },
+  waiverRuns: FIRST_RULES.waivers.runs,
+  claims: 2,
+  premierLeague,
+};
 
 const home: LeagueHome = {
   format: "headToHead",
@@ -64,6 +89,8 @@ const home: LeagueHome = {
     }),
     byes: current.byes,
   },
+  deadline,
+  yours,
   // A matchday open, its lines made up.
   matchday: {
     gameweek: current.gameweek,
@@ -78,7 +105,7 @@ const home: LeagueHome = {
     },
   },
   table: shownRows(
-    headToHeadTable(mode, previewTeamNames, schedule, scores, []).map(({ team, ...row }) => ({ ...row, teamId: team })),
+    previewLeagueTable.table.map(({ teamName, ...row }) => ({ ...row, teamId: teamName })),
     MINE,
   ).map(({ teamId, position, played, won, drawn, lost, points }) => ({
     position,
@@ -156,7 +183,7 @@ const news = (before: NewsAsked["before"]): LeagueNews => {
 export const previewHome: HomeSeam = {
   useLeagueHome: () => home,
   useLatestMail: () => previewLatestMail,
-  useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null),
+  useRecap: (_, gameweek) => (gameweek === undefined || gameweek === SCORED ? home.recap : null),
   useLeagueNews: (_, { before, teamId, kind }) => {
     const page = news(before);
     return { ...page, moves: page.moves.filter((move) => (teamId === null || namesTeam(move, teamId)) && (kind === null || move.kind === kind)) };

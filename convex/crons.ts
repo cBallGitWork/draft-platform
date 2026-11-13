@@ -8,8 +8,10 @@ import { PRUNE_EVERY } from "./shared/syncRuns";
 import { OFFER_CHECK_EVERY } from "./trades/tradeClose";
 import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
 
-// The timed jobs, the same on the live site and on development: spec/20's "Timed jobs", Sportmonks'
-// three (#1391, #1414, #1419), and the build pipeline's wake-up for the lead, the last below.
+// The timed jobs: spec/20's "Timed jobs", Sportmonks' three (#1391, #1414, #1419), and the build
+// pipeline's wake-up for the lead, the last below. FPL's and the Premier League's feeds, waiver runs
+// and trade offers do nothing where `TIMED_JOBS_ON` is unset, as on development (#1997,
+// heartbeats/heartbeat.ts's `timedJobsOn`): only the live site, which every release sets it on, runs them.
 const crons = cronJobs();
 /** A sync's argument when its cron starts it, so its run row says so. */
 const BY_CRON = { trigger: CRON_TRIGGER } as const;

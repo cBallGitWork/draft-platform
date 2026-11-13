@@ -1,11 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { managerOf, ownTeamOrNone } from "../shared/leagueAccess";
 import { saveGameweekOf } from "../gameweeks/saveGameweek";
-import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
+import { lineupDueTimes } from "./lineupDueAt";
 
 // Continue's lineup step (spec/12, The frame; #526): "From 24 hours before each gameweek's deadline
 // until the deadline, Continue takes the manager to his Tactics tab", until "he has opened the
@@ -13,22 +13,23 @@ import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
 // (saveGameweek.ts's `saveGameweekOf`), as the Tactics tab's is. Opening it is kept on the team's row
 // (`tacticsOpenedInGameweek`), so his other devices know too.
 
-/** Whether Continue leads the caller to his Tactics tab in the league at `now` (the screen's minute:
- *  a query may not read the clock): his team's gameweek locks within LINEUP_DUE_BEFORE_DEADLINE_MS
- *  and he hasn't opened Tactics in it. False, never a refusal, for anyone it can't apply to: the top
+/** What Continue's lineup step is judged on for the caller in the league: the league's deadlines,
+ *  its last gameweek and the gameweek he last opened Tactics in. lineupDueAt.ts's `lineupDueAt`
+ *  judges it at the screen's minute; this takes no time, so it runs again only when one of them
+ *  changes, never each minute (#2005). Null, never a refusal, for anyone it can't apply to: the top
  *  bar asks it on every page, and one with no team in the league has no lineup step. */
 export const isDue = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.boolean(),
-  handler: async (ctx, { leagueId, now }) => {
+  args: { leagueId: v.id("leagues") },
+  returns: v.union(v.null(), lineupDueTimes),
+  handler: async (ctx, { leagueId }) => {
     const own = await ownTeamOrNone(ctx, leagueId);
-    if (own === null) return false;
-    const { team } = own;
-    const next = await saveGameweekOf(ctx, leagueId, now);
-    if (next.kind !== "open" || team.tacticsOpenedInGameweek === next.gameweek) return false;
-    const { gameweek } = next;
-    const deadline = (await leagueDeadlineOf(ctx, leagueId))(gameweek);
-    return deadline !== null && now >= deadline - LINEUP_DUE_BEFORE_DEADLINE_MS && now < deadline;
+    if (own === null) return null;
+    const { league, team } = own;
+    return {
+      deadlines: [...(await leagueDeadlines(ctx, leagueId))].map(([gameweek, deadline]) => ({ gameweek, deadline })),
+      lastGameweek: lastPlayedGameweek(league, await seasonGameweekCount(ctx)),
+      openedIn: team.tacticsOpenedInGameweek ?? null,
+    };
   },
 });
 

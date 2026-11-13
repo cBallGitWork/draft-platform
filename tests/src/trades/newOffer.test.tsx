@@ -83,6 +83,28 @@ describe("a new offer", () => {
     expect(app.path()).toBe(TRADES_NEW_PATH);
   });
 
+  it("lets go of a ticked player once he leaves either squad (#1437)", async () => {
+    const app = openNewOffer();
+    await tick("Team 1", SAKA.name);
+    await tick("Team 1", RICE.name);
+    await tick("Team 2", PALMER.name);
+    const [mine, theirs] = quietTrades.teams;
+    app.trades.showView({
+      ...quietTrades,
+      teams: [
+        { ...mine, players: mine.players.filter(({ code }) => code !== SAKA.code) },
+        { ...theirs, players: theirs.players.filter(({ code }) => code !== PALMER.code) },
+      ],
+    });
+    expect(screen.getByRole("region", { name: YOUR_OFFER_TITLE }).textContent).not.toContain(SAKA.name);
+    await userEvent.click(screen.getByRole("button", { name: sendOfferWords }));
+    expect(app.trades.offer).toHaveBeenCalledWith(league.leagueId, THEIR_TEAM, {
+      gives: [RICE.code],
+      gets: [],
+      note: null,
+    });
+  });
+
   it("greys a held player, who can't be ticked", async () => {
     openNewOffer({
       view: {

@@ -27,6 +27,13 @@ const SENT: Fixture[] = ROUNDS.flatMap((round) => [
 ]);
 /** Round 14's later match. */
 const LATER_14 = 142;
+/** The clubs SENT's matches are between, by code 1 to 4. */
+const CLUBS = [
+  { code: 1, name: "Arsenal", shortName: "ARS" },
+  { code: 2, name: "Spurs", shortName: "TOT" },
+  { code: 3, name: "Chelsea", shortName: "CHE" },
+  { code: 4, name: "Fulham", shortName: "FUL" },
+];
 
 let t: TestConvex;
 beforeEach(async () => {
@@ -34,6 +41,9 @@ beforeEach(async () => {
   // A league made here sends its commissioner a sign-in link.
   fakeResend();
   await upsertSent();
+  await t.run(async (ctx) => {
+    for (const club of CLUBS) await ctx.db.insert("clubs", club);
+  });
 });
 
 const upsertSent = () => t.mutation(internal.football.footballSync.upsertFixtures, { rows: SENT });
@@ -85,7 +95,20 @@ test("only the admin moves a match or reads his log", async () => {
   const outsider = await actingAs(t, OUTSIDER);
   await expectRefused(outsider.mutation(api.gameweeks.matchMoves.move, { fixtureCode: LATER_14, gameweek: 15 }), refusals.notAdmin);
   await expectRefused(outsider.query(api.gameweeks.matchMoves.log, {}), refusals.notAdmin);
+  await expectRefused(outsider.query(api.gameweeks.matchMoves.gameweekMatches, { gameweek: 14 }), refusals.notAdmin);
   expect(await gameweekOf(LATER_14)).toBe(14);
+});
+
+test("a gameweek's matches, in kickoff order and named, mark the one he moved in with where it came from", async () => {
+  await move(LATER_14, 15);
+  const matches = (gameweek: number) => asAdmin(t).then((admin) => admin.query(api.gameweeks.matchMoves.gameweekMatches, { gameweek }));
+
+  expect(await matches(15)).toEqual([
+    { fixtureCode: LATER_14, match: "Chelsea v Fulham", kickoff: startOf(14) + 2 * HOUR_MS, move: { unmoved: 14 } },
+    { fixtureCode: 151, match: "Arsenal v Spurs", kickoff: startOf(15), move: null },
+    { fixtureCode: 152, match: "Chelsea v Fulham", kickoff: startOf(15) + 2 * HOUR_MS, move: null },
+  ]);
+  expect((await matches(14)).map(({ fixtureCode }) => fixtureCode)).toEqual([141]);
 });
 
 test("a match not held, or a gameweek the season doesn't have, is refused", async () => {
@@ -99,9 +122,9 @@ test("his moves and clears are logged, newest first", async () => {
   await move(LATER_14, null);
 
   const { rows, more } = await (await asAdmin(t)).query(api.gameweeks.matchMoves.log, {});
-  expect(rows.map(({ fixtureCode, from, to }) => ({ fixtureCode, from, to }))).toEqual([
-    { fixtureCode: LATER_14, from: 15, to: null },
-    { fixtureCode: LATER_14, from: 14, to: 15 },
+  expect(rows.map(({ fixtureCode, match, from, to }) => ({ fixtureCode, match, from, to }))).toEqual([
+    { fixtureCode: LATER_14, match: "Chelsea v Fulham", from: 15, to: null },
+    { fixtureCode: LATER_14, match: "Chelsea v Fulham", from: 14, to: 15 },
   ]);
   expect(more).toBe(false);
 });

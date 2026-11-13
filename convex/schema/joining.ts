@@ -59,7 +59,8 @@ export const joiningTables = {
   inviteLinks: defineTable(inviteLinkFields).index("by_leagueId", ["leagueId"]).index("by_token", ["token"]),
   joinRequests: defineTable(joinRequestFields)
     .index("by_leagueId_and_decision", ["leagueId", "decision"])
-    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"]),
+    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"])
+    .index("by_email_and_decision", ["email", "decision"]),
 };
 
 /** Whom an invite is for: a vacated team, or (both null) a new team. */

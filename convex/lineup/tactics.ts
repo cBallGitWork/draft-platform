@@ -19,6 +19,8 @@ import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
+import { roleRunShape } from "../scoring/scoringSetShape";
+import { siteScoringInGameweek } from "../scoring/siteVersions";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
 // one a save now is from (lineups.ts's `save`), so the screen edits the lineup that save replaces,
@@ -49,6 +51,9 @@ const squadMember = v.object({
   /** Out, doubtful or available (spec/06, Availability), which Quick Pick reads (#849); null for
    *  one the football sync doesn't hold. */
   availability: v.union(availability, v.null()),
+  /** FPL's news note on him, word for word, which flags him on the Lineup check (Craig, 13 Nov
+   *  2026, on #1976); null with none. */
+  news: v.union(v.string(), v.null()),
 });
 
 const tacticsShape = v.union(
@@ -73,6 +78,9 @@ const tacticsShape = v.union(
     lineup: heldLineupShape,
     /** What the league plays in the gameweek, for the role parts (#1582). */
     mode: gameModeShape,
+    /** Each moving role's run, as the site's scoring set in the gameweek holds it (spec/05 Runs,
+     *  `S05.8`): what the pitch draws. */
+    runs: v.array(roleRunShape),
   }),
 );
 export type Tactics = Infer<typeof tacticsShape>;
@@ -112,6 +120,7 @@ export const ofMyTeam = query({
           number: await shirtNumber(ctx, member),
           stars: starsOf(playerCode),
           availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
+          news: player?.news || null,
         };
       }),
     );
@@ -131,6 +140,7 @@ export const ofMyTeam = query({
       squad,
       lineup,
       mode: gameModeOf(rules),
+      runs: [...((await siteScoringInGameweek(ctx, gameweek)).runs ?? [])],
     };
   },
 });

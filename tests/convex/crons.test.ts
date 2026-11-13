@@ -1,8 +1,9 @@
 import { expect, test } from "vitest";
 import crons from "../../convex/crons";
 
-// spec/20, "Timed jobs": the same four run on the live site and on development, and nothing else
-// starts any of them. Without the football sync the league's data goes stale silently; without the
+// spec/20, "Timed jobs": each is scheduled on the live site and on development, and nothing else
+// starts any of them; the feeds, waiver runs and trade offers do nothing on development (#1997,
+// heartbeats/timedJobs.test.ts). Without the football sync the league's data goes stale silently; without the
 // live tick points stand still during matches; without late stats a match still unsettled when
 // the live window ends is never read again; without waiver runs no claim is ever made (spec/08,
 // #1198); without the offers' check an unanswered trade offer never closes (spec/08, #383);

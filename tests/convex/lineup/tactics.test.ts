@@ -18,6 +18,9 @@ import { ratedRoles } from "../../../convex/stars/stars";
 import { NO_DATA } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { movedToFullBack } from "../../support/convex/positionStarts.harness";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -63,15 +66,24 @@ describe("the lineup to set", () => {
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
-      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], flagged: [], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]), availability: "available" })),
+      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], flagged: [], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]), availability: "available", news: null })),
     );
+  });
+
+  // S05.8
+  test("sends the roles' runs the site's scoring set holds in the gameweek, none while it holds none", async () => {
+    const before = await tacticsOf(ANN);
+    expect(before.kind === "open" && before.runs).toEqual([]);
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, runs: [...FIRST_RUNS] }, kind: "fix" }));
+    const after = await tacticsOf(ANN);
+    expect(after.kind === "open" && after.runs).toEqual(FIRST_RUNS);
   });
 
   test("keeps a squad player the football sync doesn't hold, saying so in place of his name (#323)", async () => {
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: UNHELD }));
     const tactics = await tacticsOf(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
-    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], flagged: [], number: null, stars: [], availability: null });
+    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], flagged: [], number: null, stars: [], availability: null, news: null });
     expect(tactics.squad).toHaveLength(SQUAD.length + 1);
   });
 
@@ -116,6 +128,17 @@ describe("the lineup to set", () => {
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     const availabilityOf = (code: number) => tactics.squad.find((member) => member.playerCode === code)?.availability;
     expect([availabilityOf(keeper.playerCode), availabilityOf(back.playerCode)]).toEqual(["doubtful", "out"]);
+  });
+
+  test("sends FPL's news note on each player word for word, for the Lineup check (#1976)", async () => {
+    const [keeper] = FOUR_FOUR_TWO.starters;
+    await t.run(async (ctx) => {
+      const row = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", keeper.playerCode)).unique();
+      await ctx.db.patch("players", row!._id, { news: "Knock - 75% chance of playing", chanceOfPlaying: 75 });
+    });
+    const tactics = await tacticsOf(ANN);
+    if (tactics.kind !== "open") throw new Error("expected an open gameweek");
+    expect(tactics.squad.filter(({ news }) => news !== null).map(({ playerCode, news }) => [playerCode, news])).toEqual([[keeper.playerCode, "Knock - 75% chance of playing"]]);
   });
 
   test("holds the lineup the manager saved", async () => {

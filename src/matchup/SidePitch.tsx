@@ -1,10 +1,10 @@
 import { cellKey, LANES, sameCell } from "../../convex/lineup/pitch";
 import type { MatchupBenchSlot, MatchupSide, MatchupStarter } from "../../convex/matchup/matchupShape";
-import { PITCH_ROOM_STYLE } from "../myTeam/tactics/pitch/Pitch";
-import { PitchLines } from "../myTeam/tactics/pitch/PitchLines";
-import { RoleRuns } from "../myTeam/tactics/pitch/RoleRuns";
-import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../myTeam/tactics/pitch/rowLayout";
 import type { Starter } from "../myTeam/tactics/lineupEdits";
+import { PITCH_ROOM_STYLE } from "../ui/pitch/pitchMarkings";
+import { PitchLines } from "../ui/pitch/PitchLines";
+import { RoleRuns } from "../ui/pitch/RoleRuns";
+import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../ui/pitch/rowLayout";
 import { PlayerTile, type Picking, type TileMan } from "./PlayerTile";
 import { benchLabel, BENCH_TITLE, sidePitchLabel } from "./words";
 
@@ -50,7 +50,7 @@ export function SidePitch({ side, picking, runsShown }: { side: TeamSide; pickin
       <div style={PITCH_ROOM_STYLE} className="pitch-room-full p-2">
         <div className="pitch relative mx-auto">
           <PitchLines rows={rows} />
-          <RoleRuns starters={starters} rows={rows} tapped={picking.picked} switchedOn={runsShown} />
+          <RoleRuns starters={starters} runs={side.runs} rows={rows} tapped={picking.picked} switchedOn={runsShown} />
           <ul aria-label={sidePitchLabel(side.teamName)} style={cellGridOf(rows)} className="absolute inset-0 grid">
             {ROWS_DRAWN.flatMap((area) =>
               LANES.map((lane) => {

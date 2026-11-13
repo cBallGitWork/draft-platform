@@ -24,7 +24,7 @@ export const LIVE_DRAFT_ROUNDS = 15;
  *  left on the clock: free agency and waivers wait for that (#1326). */
 export const draftStarted = (t: TestConvex, leagueId: Id<"leagues">, teamIds: Id<"teams">[], rounds = 0) =>
   t.run(async (ctx) => {
-    await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds, rounds } });
+    await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds, rounds, squad: HELD_FIRST_RULES.squad } });
   });
 
 /** A central midfielder named for his code, at Arsenal unless a test says. */

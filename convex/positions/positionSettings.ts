@@ -1,17 +1,19 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { mutation, type QueryCtx } from "../_generated/server";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { latestOf, type ScheduledMatch } from "../gameweeks/deadline";
 import { everyLeague } from "../shared/cappedRead";
 import { adminOf, refuse } from "../shared/leagueAccess";
+import { savedSetting, saveSetting } from "../shared/platformSettingRows";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
 import { START_WINDOW, type ApproveMode, type PositionInputs } from "./positions";
 import { approveMode, changeThresholds } from "../schema";
 import { internal } from "../_generated/api";
 
 // How positions from starts count and change, platform-wide (spec/06): the admin's settings, his
-// alone to change, and the gameweek boundary changes are judged at.
+// alone to change and saved with every platform setting (#200), and the gameweek boundary changes
+// are judged at.
 
 /** Spec/06: at first, positions from starts wait for the admin. */
 const FIRST_APPROVE_MODE: ApproveMode = "proposals";
@@ -29,7 +31,7 @@ export const setApproveMode = mutation({
   returns: v.null(),
   handler: async (ctx, { approveMode: mode }) => {
     await adminOf(ctx);
-    await saveSettings(ctx, { approveMode: mode });
+    await saveSetting(ctx, "positionsApproveMode", mode);
     await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
@@ -45,7 +47,8 @@ export const setChangeThresholds = mutation({
     if (!Number.isInteger(flagAfter) || flagAfter < 1) refuse(thresholdRefusals.flagAfter);
     if (!Number.isInteger(removeAfter) || removeAfter <= flagAfter) refuse(thresholdRefusals.removeAfter);
     if (removeAfter > START_WINDOW) refuse(thresholdRefusals.pastWindow);
-    await saveSettings(ctx, { flagAfter, removeAfter });
+    await saveSetting(ctx, "positionsFlagAfter", flagAfter);
+    await saveSetting(ctx, "positionsRemoveAfter", removeAfter);
     await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
@@ -74,18 +77,20 @@ export function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor, mat
 }
 
 async function workedOut(ctx: QueryCtx, positionsFor: PositionsFor, matches?: ScheduledMatch[]): Promise<HowPositionsCount> {
-  const settings = await settingsRow(ctx);
-  return {
-    approveMode: settings?.approveMode ?? FIRST_APPROVE_MODE,
-    thresholds: thresholdsOf(settings),
-    judgedBefore: await judgedBefore(ctx, positionsFor, matches),
+  const [mode, flagAfter, removeAfter, leaving] = await Promise.all([
+    savedSetting(ctx, "positionsApproveMode"),
+    savedSetting(ctx, "positionsFlagAfter"),
+    savedSetting(ctx, "positionsRemoveAfter"),
+    leavingRow(ctx),
+  ]);
+  const thresholds: ChangeThresholds = {
+    flagAfter: flagAfter ?? leaving?.flagAfter ?? FIRST_THRESHOLDS.flagAfter,
+    removeAfter: removeAfter ?? leaving?.removeAfter ?? FIRST_THRESHOLDS.removeAfter,
   };
-}
-
-function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThresholds {
   return {
-    flagAfter: settings?.flagAfter ?? FIRST_THRESHOLDS.flagAfter,
-    removeAfter: settings?.removeAfter ?? FIRST_THRESHOLDS.removeAfter,
+    approveMode: mode ?? leaving?.approveMode ?? FIRST_APPROVE_MODE,
+    thresholds,
+    judgedBefore: await judgedBefore(ctx, positionsFor, matches),
   };
 }
 
@@ -132,12 +137,8 @@ async function newestGoodSync(ctx: QueryCtx): Promise<Doc<"positionsSyncs"> | nu
   return null;
 }
 
-function settingsRow(ctx: QueryCtx) {
+/** The settings' old one-row table, leaving (#200): a setting not yet saved in `platformSettings`
+ *  is read from it, so nothing the admin set is lost before positionSettingsMove.ts runs. */
+export function leavingRow(ctx: QueryCtx) {
   return ctx.db.query("positionSettings").unique();
-}
-
-async function saveSettings(ctx: MutationCtx, changes: Partial<Omit<Doc<"positionSettings">, "_id" | "_creationTime">>) {
-  const settings = await settingsRow(ctx);
-  if (settings === null) await ctx.db.insert("positionSettings", { approveMode: FIRST_APPROVE_MODE, ...changes });
-  else await ctx.db.patch("positionSettings", settings._id, changes);
 }

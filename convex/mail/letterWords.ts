@@ -135,7 +135,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
  *  while none was set, when every ticked gameweek scored), and the gameweeks before it score nothing. */
 function startsInWords(to: number, from: number | null): string {
   const instead = from === null ? "" : `, not ${from}`;
-  return `Scoring starts in gameweek ${to}${instead}: squads and lineups count from its deadline, and the gameweeks before it score nothing.`;
+  return `Scoring starts in gameweek ${to}${instead}: squads and line-ups count from its deadline, and the gameweeks before it score nothing.`;
 }
 
 /** The league's average, as a letter about the fixtures names it. */

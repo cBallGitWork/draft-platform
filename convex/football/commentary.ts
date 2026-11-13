@@ -85,7 +85,7 @@ type Named = (index: number) => string;
 
 /** Each worded type's line after its minute. Kick-off and full time are written apart. */
 const WORDING: Readonly<Record<string, (man: Named, line: CommentaryLine) => string>> = {
-  [FEED_TYPE.lineup]: () => "Lineups out",
+  [FEED_TYPE.lineup]: () => "Line-ups out",
   [FEED_TYPE.end1]: () => "HT",
   [FEED_TYPE.start]: () => "Second half",
   [FEED_TYPE.addedTime]: () => "Added time",

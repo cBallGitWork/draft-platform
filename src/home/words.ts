@@ -1,8 +1,9 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
+import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
+import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
@@ -12,13 +13,26 @@ export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../shared/words
 
 export const loadingWords = "Loading league home…";
 
-/** What a placeholder holds until its data or its grill comes (plate.md, Marks: A placeholder). */
+/** What a placeholder says until its data or its grill comes, written inside it (plate.md, Marks: A
+ *  placeholder). */
 export const toComeLabel = (what: string) => `${what}: still to come`;
 
-/** The deadline strip's boxes (docs/design/approved/home/, Placeholders: which boxes, in which
- *  states, is still to grill). */
+/** The deadline strip's boxes, as the picture has them (Craig, 13 Nov 2026, on #1976). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, YOUR_LINEUP, "Claims close", "Table"] as const;
+/** Your line-up's box: its first flagged starter, by FPL's chance he plays ("doubtful" at 25 to 75%,
+ *  "out" at 0), and how many more are flagged; or whether it is set at all. */
+export const lineupSetWords = "Set";
+export const lineupNotSetWords = notSetWords;
+export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) =>
+  chanceOfPlaying === 0 ? `${name} out` : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? `${name} doubtful` : name;
+export const moreFlaggedWords = (more: number) => ` and ${more} more`;
+/** Claims close's box: the next waiver run, then the claims waiting on it. */
+export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
+/** The Table box: "2nd, 18 pts", then the gap: "1 behind 1st", or "3 ahead of 2nd" on top. */
+export const gapWords = (gap: number, onTop: boolean) => (onTop ? `${gap} ahead of 2nd` : `${gap} behind 1st`);
+export { countdownWords, noFigureWords, placeWords, versusWords, weekdayTimeWords } from "../shared/words";
+export const pointsShortWords = "pts";
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
 export { MAIL_TITLE } from "../shared/words";
@@ -29,7 +43,7 @@ export const needsYouToComeWords = "Which letters need you is still to come.";
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";
 export const openMatchupLink = "Open the matchup";
-export const setLineupLink = "Set lineup";
+export const setLineupLink = "Set line-up";
 export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} pts`;
 export const scoreToComeLabel = toComeLabel("The score");
 
@@ -38,9 +52,16 @@ export const THIS_GAMEWEEK_TITLE = "This gameweek";
 /** The News panel: the commissioner's latest letter pinned on top, then the latest moves. */
 export const NEWS_PANEL_TITLE = "News";
 
-/** The right-hand column's panels still to come, each in its place. */
+/** The right-hand column: the Premier League's gameweek, with whose players are in each match. */
 export const premierLeagueTitle = (gameweek: number) => `Premier League, ${gameweekShort(gameweek)}`;
+export const matchListLabel = (gameweek: number) => `${premierLeagueTitle(gameweek)}: the matches with your players or your opponent's`;
+export const youWords = "You";
+export const themWords = "Them";
+export const noMatchesWords = "Neither your players nor your opponent's play this gameweek.";
+export const allFixturesLink = "All fixtures";
+/** Your squad news: each player FPL gives a note, the note word for word. */
 export const SQUAD_NEWS_TITLE = "Your squad news";
+export const noSquadNewsWords = "No news on your squad.";
 export const RUN_LEAGUE_TITLE = "Run the league";
 export const runLeagueAside = "commissioner";
 export const runLeagueLink = `${RUN_LEAGUE_TITLE} ${foldedGlyph}`;
@@ -80,6 +101,9 @@ export const scoreChangedWords = "A score has changed since this recap was writt
 export const changedMatchupLink = "See the matchup";
 export const loadingRecapWords = "Loading the recap…";
 export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
+/** Read the recap's page with no gameweek named (#1967): the latest recap, before it loads or with none. */
+export const latestRecapTitle = "Latest recap";
+export const noRecapYetWords = "No recap yet.";
 export const backHomeLink = "Back to League home";
 
 export const moreOnNewsLink = "More, on News";

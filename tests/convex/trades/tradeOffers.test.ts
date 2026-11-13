@@ -241,8 +241,11 @@ describe("answering an offer", () => {
   });
 
   test("a league holding no offer isn't asked to close any (#1558)", async () => {
+    // A league new or woken is looked at once, which finds no offer and leaves it until one is made (#1998).
+    await w.closeDue();
+    const asked = await pendingJobs(w.t, internal.trades.tradeClose.closeLeagueDue);
     await w.t.mutation(internal.trades.tradeClose.closeDue, {});
-    expect(await pendingJobs(w.t, internal.trades.tradeClose.closeLeagueDue)).toEqual([]);
+    expect(await pendingJobs(w.t, internal.trades.tradeClose.closeLeagueDue)).toEqual(asked);
   });
 
   test("an offer made a day before a deadline still closes at it", async () => {

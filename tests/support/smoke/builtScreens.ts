@@ -44,7 +44,7 @@ import { PATCH_NOTES_TITLE } from "../../../src/patches/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { previewMatch } from "../../../src/premierLeague/matchPreview";
 import { clubPath, matchPath } from "../../../src/premierLeague/paths";
-import { MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../../../src/premierLeague/words";
+import { FOOTBALL_TITLE, MATCH_TITLE } from "../../../src/premierLeague/words";
 import { miniBeta, previewTeamNames, proLeague } from "../../../src/shared/preview";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
@@ -73,6 +73,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", HOME_NEWS_PATH, NEWS_TITLE],
   // Read the recap's page names its gameweek in the address's search: the preview's recap.
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
+  // Its address with no gameweek, shared or bookmarked, opens the latest recap, the preview's (#1967).
+  ["manager", RECAP_PATH, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
   // The draft room's title carries the draft's state: the preview's is live (src/draft/preview.ts).
   ["manager", DRAFT_PATH, `${DRAFT_TITLE} ${stateWords.live}`],
   // Tactics, Squad and Fixtures are titled with the manager's team in the league he's in (the
@@ -86,7 +88,7 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", SCOUTING_PATH, SCOUTING_TITLE],
   ["manager", TRADES_PATH, TRADES_TITLE],
   ["manager", TRADES_NEW_PATH, TRADES_TITLE],
-  ["manager", PREMIER_LEAGUE_PATH, PREMIER_LEAGUE_TITLE],
+  ["manager", PREMIER_LEAGUE_PATH, FOOTBALL_TITLE],
   ["manager", matchPath(previewMatch.fixtureCode), MATCH_TITLE],
   // A club's page is titled with its name: the preview's Arsenal (src/premierLeague/preview.ts).
   ["manager", clubPath(3), "Arsenal"],

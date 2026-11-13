@@ -2,7 +2,8 @@
 // log (#1113, the first season of #842's table): a row for each match a player played, and one for
 // each player the season's rows name who played none, so he is known to be in that season's data
 // (Craig, 4 Nov 2026: a newcomer is "Not in last season's data"). Rows are keyed by FPL's
-// season-stable `code`, the season and the kickoff, never the per-season `fpl_fixture_id`.
+// season-stable `code`, the season and the kickoff, never the per-season `fpl_fixture_id`; a man
+// with no FPL code by his person root id (spec/14 S14.24; Craig, 13 Nov 2026, on #1541).
 // Pure, importing at runtime only pastStatColumns.ts (by its file name), so scripts/past-season.mjs
 // reads it in plain Node.
 
@@ -29,6 +30,10 @@ const PERSON_COLUMN = "person_root_id";
 const FIXTURE_COLUMN = "fpl_fixture_id";
 /** Where he started the match, if he did. */
 const STARTING_POSITION_COLUMN = "starting_position";
+/** The club he played for in the match (spec/14 S14.9; Craig, 12 Nov 2026, on #1541: "Match by
+ *  match", so a January signing's autumn counts for his old club). The column's name is not yet
+ *  checked against the file: a missing one stops the read, naming it. */
+const CLUB_COLUMN = "team";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
  *  never kept; FPL's own points are read only by the re-score test; a feed's minutes only say
@@ -39,6 +44,7 @@ export const SOURCE_COLUMNS = [
   FIXTURE_COLUMN,
   KICKOFF_COLUMN,
   STARTING_POSITION_COLUMN,
+  CLUB_COLUMN,
   ...Object.values(STAT_COLUMNS),
   ...Object.values(ZERO_LEFT_OUT_BY),
   "fpl_total_points",
@@ -62,18 +68,23 @@ export const FPL_POSITION_AREA: Readonly<Record<FplPosition, Area>> = { 1: "goal
 /** One match he played. `startingPosition` is the log's, null where it has none. */
 export interface PastMatch {
   kickoff: number;
+  /** The club he played for that day. */
+  club: string;
   startingPosition: string | null;
   stats: Record<string, number>;
 }
 
-/** A stored row: one match he played, or, with `match` null, a player the season names who played none. */
-export interface PastSeasonRow {
-  season: number;
-  playerCode: number;
-  /** His FPL position that season (`element_type`). */
-  fplPosition: FplPosition;
-  match: PastMatch | null;
-}
+/** A stored row: one match he played, or, with `match` null, a player the season names who played
+ *  none; or one match played by a man with no FPL code, under his person root id (S14.24). */
+export type PastSeasonRow =
+  | {
+      season: number;
+      playerCode: number;
+      /** His FPL position that season (`element_type`). */
+      fplPosition: FplPosition;
+      match: PastMatch | null;
+    }
+  | { season: number; person: string; match: PastMatch };
 
 /** The season's sizes, for the run to check against the counts it was planned on. */
 export interface SeasonCounts {
@@ -133,30 +144,26 @@ export const premierLeagueRows = (rows: readonly LogRow[]): LogRow[] => rows.fil
 
 /** A person the season's Premier League rows name who has no FPL code: his person root id, his
  *  rows and the matches he played in them. */
-export interface SkippedPerson {
+export interface NoCodePerson {
   root: string;
   rows: number;
   played: number;
 }
 
-/** The log without the Premier League rows of anyone with no FPL code, and who those were, A to Z.
- *  Older seasons may name a player ai-carling never matched to FPL: his rows are left out and the
- *  rest of the season still loads (Craig, 6 Nov 2026, on #842). */
-export function withoutFplCode(log: readonly LogRow[], codes: ReadonlyMap<string, number>): { kept: LogRow[]; skipped: SkippedPerson[] } {
-  const kept: LogRow[] = [];
-  const skipped = new Map<string, SkippedPerson>();
+/** Who in the log's Premier League rows has no FPL code, A to Z. Older seasons may name a player
+ *  ai-carling never matched to FPL: his played rows are kept under his person root id (S14.24), and
+ *  the copy names him. */
+export function withNoFplCode(log: readonly LogRow[], codes: ReadonlyMap<string, number>): NoCodePerson[] {
+  const found = new Map<string, NoCodePerson>();
   for (const row of premierLeagueRows(log)) {
     const root = row[PERSON_COLUMN];
-    if (typeof root !== "string" || codes.has(root)) {
-      kept.push(row);
-      continue;
-    }
-    const person = skipped.get(root) ?? { root, rows: 0, played: 0 };
+    if (typeof root !== "string" || codes.has(root)) continue;
+    const person = found.get(root) ?? { root, rows: 0, played: 0 };
     person.rows += 1;
     if (playedIn(row)) person.played += 1;
-    skipped.set(root, person);
+    found.set(root, person);
   }
-  return { kept, skipped: [...skipped.values()].sort((a, b) => a.root.localeCompare(b.root)) };
+  return [...found.values()].sort((a, b) => a.root.localeCompare(b.root));
 }
 
 /** A row's value in `column`, or null where it has none; a value that isn't a number throws. */
@@ -199,9 +206,10 @@ function kickoffIn(row: LogRow): number {
 
 /** The rows to store for `season` from the log's rows: every Premier League row he played, and one
  *  with no match for each player the season names who played none. Each player is found by his
- *  person root id's FPL `code`, and his position by that code; a row no code is found for, a
- *  played row no position is found for, or a player twice at one kickoff, stops the copy, naming
- *  him. A row he only sat on the bench for, with no position, is left out. */
+ *  person root id's FPL `code`, and his position by that code; one with no code keeps his played
+ *  rows under his person root id (S14.24). A played row no FPL position or club is found for, or a
+ *  player twice at one kickoff, stops the copy, naming him. A row he only sat on the bench for is
+ *  left out. */
 export function pastSeasonRows(
   season: number,
   log: readonly LogRow[],
@@ -216,7 +224,13 @@ export function pastSeasonRows(
     const root = row[PERSON_COLUMN];
     if (typeof root !== "string") throw new Error(`A Premier League row has ${PERSON_COLUMN} ${String(root)}`);
     const playerCode = codes.get(root);
-    if (playerCode === undefined) throw new Error(`Person ${root} has no FPL code in data/identity/persons/root/`);
+    if (playerCode === undefined) {
+      if (!playedIn(row)) continue;
+      const kickoff = kickoffIn(row);
+      playsOnce(seen, root, `Person ${root}`, kickoff);
+      rows.push({ season, person: root, match: matchIn(row, `Person ${root}`, kickoff) });
+      continue;
+    }
     const fplPosition = positions.get(playerCode);
     if (fplPosition === undefined) {
       // Only on the bench, he never was in FPL's game that season (2022/23's and 2023/24's lists
@@ -227,18 +241,31 @@ export function pastSeasonRows(
     named.set(playerCode, fplPosition);
     if (!playedIn(row)) continue;
     const kickoff = kickoffIn(row);
-    const key = `${playerCode}@${kickoff}`;
-    if (seen.has(key)) throw new Error(`Person ${root} (FPL code ${playerCode}) plays twice at kickoff ${new Date(kickoff).toISOString()}`);
-    seen.add(key);
+    const who = `Person ${root} (FPL code ${playerCode})`;
+    playsOnce(seen, String(playerCode), who, kickoff);
     played.add(playerCode);
-    const started = row[STARTING_POSITION_COLUMN];
-    const startingPosition = started === null || started === undefined ? null : String(started);
-    rows.push({ season, playerCode, fplPosition, match: { kickoff, startingPosition, stats: statsIn(row) } });
+    rows.push({ season, playerCode, fplPosition, match: matchIn(row, who, kickoff) });
   }
   for (const [playerCode, fplPosition] of named) {
     if (!played.has(playerCode)) rows.push({ season, playerCode, fplPosition, match: null });
   }
   return rows;
+}
+
+/** Marks `key` as playing at `kickoff`; a second time stops the copy, naming `who`. */
+function playsOnce(seen: Set<string>, key: string, who: string, kickoff: number): void {
+  const at = `${key}@${kickoff}`;
+  if (seen.has(at)) throw new Error(`${who} plays twice at kickoff ${new Date(kickoff).toISOString()}`);
+  seen.add(at);
+}
+
+/** The match a played row gives; one with no club stops the copy, naming `who`. */
+function matchIn(row: LogRow, who: string, kickoff: number): PastMatch {
+  const club = row[CLUB_COLUMN];
+  if (typeof club !== "string" || club === "") throw new Error(`${who} has no ${CLUB_COLUMN} at kickoff ${new Date(kickoff).toISOString()}`);
+  const started = row[STARTING_POSITION_COLUMN];
+  const startingPosition = started === null || started === undefined ? null : String(started);
+  return { kickoff, club, startingPosition, stats: statsIn(row) };
 }
 
 /** The season's sizes in the log's Premier League rows: its matches (by FPL's fixture id, counted

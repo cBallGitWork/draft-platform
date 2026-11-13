@@ -5,6 +5,7 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
 import { instructionLines, namedCategories, roleLine } from "../scoring/breakdownShape";
+import { roleRunShape } from "../scoring/scoringSetShape";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
 
@@ -108,7 +109,7 @@ const role = v.object({ key: v.string(), name: v.string() });
 
 /** The slot a man plays his role in (spec/10, The matchup, as a live match: "his slot's position
  *  label and his role's run, as on the Tactics pitch"): its lane, which with his `area` is the cell
- *  his run is drawn from (roleIn's run), and its position label (pitch.ts's positionOfSlot). */
+ *  his role's run (the side's `runs`) is drawn from, and its position label (pitch.ts's positionOfSlot). */
 const place = v.object({ lane: laneShape, label: slotPosition });
 export type MatchupPlace = Infer<typeof place>;
 
@@ -140,6 +141,9 @@ const side = v.union(
      *  its preset until its edited"); null once its manager has edited it off every preset, as
      *  what such a shape is called waits on Craig (#878). */
     formation: v.union(v.string(), v.null()),
+    /** Each moving role's run, as the site's scoring set in the gameweek holds it (spec/05 Runs,
+     *  `S05.8`): what its pitch draws, as the Tactics pitch does. */
+    runs: v.array(roleRunShape),
   }),
   /** The league's average, which the odd team out plays in a league that gives it one. */
   v.object({ kind: v.literal(LEAGUE_AVERAGE), points: v.number(), provisional: v.boolean() }),

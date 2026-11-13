@@ -1,5 +1,5 @@
 // The frame on the made-up data every screen's preview module holds, for the session `?preview=`
-// names (src/app/preview.ts). Only main.tsx's dev-server import() loads this file; nothing else may
+// names (src/app/preview.ts), its crests from the preview's own copies. Only main.tsx's dev-server import() loads this file; nothing else may
 // import it, or the preview's data ships (scripts/bundle-has-no-preview.mjs fails the build).
 
 import type { ReactNode } from "react";
@@ -20,6 +20,8 @@ import { previewScoringFor } from "../scoring/preview";
 import { previewPlayerCard } from "../playerCard/preview";
 import { previewPremierLeague } from "../premierLeague/preview";
 import { previewScouting } from "../scouting/preview";
+import { previewCrestUrl } from "../shared/previewCrests";
+import { CrestSourceProvider } from "../ui/ClubName";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "../squads/preview";
 import { previewTable } from "../table/preview";
@@ -30,29 +32,31 @@ export function previewApp(): ReactNode | null {
   const session = previewSession();
   if (!session) return null;
   return (
-    <ShellApp
-      session={session}
-      auth={previewAuth}
-      leagues={previewLeagues}
-      mail={previewMail}
-      joining={previewJoining}
-      topBar={{ ...previewTopBar, pendingClaims: previewPendingClaims }}
-      gameweeks={previewGameweeks}
-      squads={previewSquads}
-      scoring={previewScoringFor(session)}
-      leagueSettings={previewLeagueSettings}
-      table={previewTable}
-      scouting={{ ...previewScouting, useCardAction: previewPlayerCard.useCardAction, useWaiverChanges: previewPlayerCard.useWaiverChanges }}
-      playerCard={previewPlayerCard}
-      home={previewHome}
-      myTeam={previewMyTeam}
-      matchup={previewMatchup}
-      premierLeague={previewPremierLeague}
-      admin={previewAdmin}
-      feedback={previewFeedback}
-      patches={previewPatches}
-      draft={previewDraft}
-      trades={previewTrades}
-    />
+    <CrestSourceProvider value={previewCrestUrl}>
+      <ShellApp
+        session={session}
+        auth={previewAuth}
+        leagues={previewLeagues}
+        mail={previewMail}
+        joining={previewJoining}
+        topBar={{ ...previewTopBar, pendingClaims: previewPendingClaims }}
+        gameweeks={previewGameweeks}
+        squads={previewSquads}
+        scoring={previewScoringFor(session)}
+        leagueSettings={previewLeagueSettings}
+        table={previewTable}
+        scouting={{ ...previewScouting, useCardAction: previewPlayerCard.useCardAction, useWaiverChanges: previewPlayerCard.useWaiverChanges }}
+        playerCard={previewPlayerCard}
+        home={previewHome}
+        myTeam={previewMyTeam}
+        matchup={previewMatchup}
+        premierLeague={previewPremierLeague}
+        admin={previewAdmin}
+        feedback={previewFeedback}
+        patches={previewPatches}
+        draft={previewDraft}
+        trades={previewTrades}
+      />
+    </CrestSourceProvider>
   );
 }

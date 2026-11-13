@@ -44,6 +44,8 @@ beforeEach(async () => {
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
   const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
+  // Marking feedback read and deleting it need a message.
+  const feedbackId = await t.run((ctx) => ctx.db.insert("feedback", { from: ANN, at: Date.now(), message: "Love it" }));
 
   calls = (caller) => {
     const now = Date.now();
@@ -72,6 +74,8 @@ beforeEach(async () => {
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
       "draft/draftStart:ofLeague": () => caller.query(api.draft.draftStart.ofLeague, { leagueId }),
       "feedback/feedback:list": () => caller.query(api.feedback.feedback.list, {}),
+      "feedback/feedback:markRead": () => caller.mutation(api.feedback.feedback.markRead, { feedbackId }),
+      "feedback/feedback:remove": () => caller.mutation(api.feedback.feedback.remove, { feedbackId }),
       "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
       "football/clubKits:all": () => caller.query(api.football.clubKits.all, {}),
       "football/clubKits:set": () => caller.mutation(api.football.clubKits.set, { code: SOME_CODE, primary: "#000000", secondary: "#FFFFFF", pattern: "plain" }),
@@ -81,10 +85,11 @@ beforeEach(async () => {
       "football/plPointsOverrides:set": () => caller.mutation(api.football.plPointsOverrides.set, { clubCode: SOME_CODE, points: null }),
       "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
       "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
+      "gameweeks/matchMoves:gameweekMatches": () => caller.query(api.gameweeks.matchMoves.gameweekMatches, { gameweek: 1 }),
       "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
       "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
-      "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, now }),
+      "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, hour: now }),
       "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),
       "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: null }),
       "home/leagueNews:ofLeague": () => caller.query(api.home.leagueNews.ofLeague, { leagueId, before: null, teamId: null, kind: null }),
@@ -94,11 +99,11 @@ beforeEach(async () => {
       "joining/invitesPage:page": () => caller.query(api.joining.invitesPage.page, { leagueId }),
       "joining/joinRequests:ask": () => caller.mutation(api.joining.joinRequests.ask, { token: NO_SUCH_LINK }),
       "joining/joinRequests:joinPage": () => caller.query(api.joining.joinRequests.joinPage, { token: NO_SUCH_LINK }),
+      "joining/joinRequests:waitingMine": () => caller.query(api.joining.joinRequests.waitingMine, {}),
       "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
-      // Its nothing is "not due", so false is read as nothing here alone.
-      "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
+      "lineup/lineupDue:isDue": () => caller.query(api.lineup.lineupDue.isDue, { leagueId }),
       "lineup/roleCard:forSlot": () =>
         caller.query(api.lineup.roleCard.forSlot, { leagueId, playerCode: SOME_CODE, cell: { area: "goalkeeper", lane: "centre" }, formation: [], now }),
       "lineup/autoTeam:ofMyTeam": () => caller.query(api.lineup.autoTeam.ofMyTeam, { leagueId }),
@@ -122,6 +127,7 @@ beforeEach(async () => {
         caller.mutation(api.positions.playerPositions.removePosition, { code: SOME_CODE, position: SOME_POSITION }),
       "positions/playerPositions:setPosition": () =>
         caller.mutation(api.positions.playerPositions.setPosition, { code: SOME_CODE, position: SOME_POSITION }),
+      "positions/unplacedAreas:setUnplacedArea": () => caller.mutation(api.positions.unplacedAreas.setUnplacedArea, { code: SOME_CODE, area: "defence" }),
       "positions/positionSettings:setApproveMode": () => caller.mutation(api.positions.positionSettings.setApproveMode, { approveMode: "proposals" }),
       "positions/positionSettings:setChangeThresholds": () =>
         caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),

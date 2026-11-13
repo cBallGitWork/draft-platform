@@ -1,0 +1,106 @@
+{
+  "data": [
+    {
+      "id": 19134512,
+      "sport_id": 1,
+      "league_id": 501,
+      "season_id": 25598,
+      "stage_id": 77476879,
+      "round_id": 372191,
+      "state_id": 22,
+      "venue_id": 8909,
+      "name": "Celtic vs Rangers",
+      "starting_at": "2026-11-08 12:00:00",
+      "result_info": null,
+      "leg": "1/1",
+      "length": 90,
+      "placeholder": false,
+      "has_odds": true,
+      "starting_at_timestamp": 1794139200,
+      "participants": [
+        { "id": 53, "name": "Celtic", "short_code": "CEL", "meta": { "location": "home", "winner": null, "position": 1 } },
+        { "id": 62, "name": "Rangers", "short_code": "RAN", "meta": { "location": "away", "winner": null, "position": 2 } }
+      ],
+      "scores": [
+        { "id": 1, "fixture_id": 19134512, "type_id": 1, "participant_id": 53, "score": { "goals": 1, "participant": "home" }, "description": "1ST_HALF" },
+        { "id": 2, "fixture_id": 19134512, "type_id": 1, "participant_id": 62, "score": { "goals": 0, "participant": "away" }, "description": "1ST_HALF" },
+        { "id": 3, "fixture_id": 19134512, "type_id": 1525, "participant_id": 53, "score": { "goals": 2, "participant": "home" }, "description": "CURRENT" },
+        { "id": 4, "fixture_id": 19134512, "type_id": 1525, "participant_id": 62, "score": { "goals": 1, "participant": "away" }, "description": "CURRENT" }
+      ],
+      "periods": [
+        { "id": 1, "fixture_id": 19134512, "type_id": 1, "started": 1794139260, "ended": 1794142080, "counts_from": 0, "ticking": false, "sort_order": 1, "description": "1st-half", "time_added": 2, "period_length": 45, "minutes": 47, "seconds": 12, "has_timer": false },
+        { "id": 2, "fixture_id": 19134512, "type_id": 2, "started": 1794143100, "ended": null, "counts_from": 45, "ticking": true, "sort_order": 2, "description": "2nd-half", "time_added": null, "period_length": 45, "minutes": 67, "seconds": 31, "has_timer": false }
+      ],
+      "lineups": [
+        {
+          "id": 9001, "sport_id": 1, "fixture_id": 19134512, "player_id": 37292381, "team_id": 53, "position_id": 24,
+          "formation_field": "1:1", "type_id": 11, "formation_position": 1, "player_name": "Kasper Schmeichel", "jersey_number": 1,
+          "details": [
+            { "id": 1, "fixture_id": 19134512, "player_id": 37292381, "team_id": 53, "lineup_id": 9001, "type_id": 119, "data": { "value": 67 } },
+            { "id": 2, "fixture_id": 19134512, "player_id": 37292381, "team_id": 53, "lineup_id": 9001, "type_id": 57, "data": { "value": 3 } },
+            { "id": 3, "fixture_id": 19134512, "player_id": 37292381, "team_id": 53, "lineup_id": 9001, "type_id": 88, "data": { "value": 1 } }
+          ]
+        },
+        {
+          "id": 9002, "sport_id": 1, "fixture_id": 19134512, "player_id": 37306481, "team_id": 53, "position_id": 27,
+          "formation_field": "4:1", "type_id": 11, "formation_position": 9, "player_name": "Kyogo Furuhashi", "jersey_number": 8,
+          "details": [
+            { "id": 4, "fixture_id": 19134512, "player_id": 37306481, "team_id": 53, "lineup_id": 9002, "type_id": 119, "data": { "value": 67 } },
+            { "id": 5, "fixture_id": 19134512, "player_id": 37306481, "team_id": 53, "lineup_id": 9002, "type_id": 52, "data": { "value": 2 } },
+            { "id": 6, "fixture_id": 19134512, "player_id": 37306481, "team_id": 53, "lineup_id": 9002, "type_id": 86, "data": { "value": 3 } },
+            { "id": 7, "fixture_id": 19134512, "player_id": 37306481, "team_id": 53, "lineup_id": 9002, "type_id": 118, "data": { "value": 8.4 } }
+          ]
+        },
+        {
+          "id": 9003, "sport_id": 1, "fixture_id": 19134512, "player_id": 37410025, "team_id": 53, "position_id": 26,
+          "formation_field": null, "type_id": 12, "formation_position": null, "player_name": "Luke McCowan", "jersey_number": 14,
+          "details": []
+        },
+        {
+          "id": 9004, "sport_id": 1, "fixture_id": 19134512, "player_id": 31739, "team_id": 62, "position_id": 26,
+          "formation_field": "3:2", "type_id": 11, "formation_position": 7, "player_name": "James Tavernier", "jersey_number": 2,
+          "details": [
+            { "id": 8, "fixture_id": 19134512, "player_id": 31739, "team_id": 62, "lineup_id": 9004, "type_id": 119, "data": { "value": 67 } },
+            { "id": 9, "fixture_id": 19134512, "player_id": 31739, "team_id": 62, "lineup_id": 9004, "type_id": 111, "data": { "value": 1 } },
+            { "id": 10, "fixture_id": 19134512, "player_id": 31739, "team_id": 62, "lineup_id": 9004, "type_id": 84, "data": { "value": 1 } }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": 501, "fixture_id": 19134512, "period_id": 2, "participant_id": 53, "type_id": 18, "section": "event", "player_id": 37410025,
+          "related_player_id": 37306481, "player_name": "Luke McCowan", "related_player_name": "Kyogo Furuhashi", "result": null, "info": null,
+          "addition": null, "minute": 68, "extra_minute": null, "injured": false, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 1
+        },
+        {
+          "id": 502, "fixture_id": 19134512, "period_id": 1, "participant_id": 53, "type_id": 14, "section": "event", "player_id": 37306481,
+          "related_player_id": null, "player_name": "Kyogo Furuhashi", "related_player_name": null, "result": "1-0", "info": "Shot",
+          "addition": "1st Goal", "minute": 12, "extra_minute": null, "injured": null, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 1
+        },
+        {
+          "id": 503, "fixture_id": 19134512, "period_id": 1, "participant_id": 62, "type_id": 19, "section": "event", "player_id": 31739,
+          "related_player_id": null, "player_name": "James Tavernier", "related_player_name": null, "result": null, "info": "Foul",
+          "addition": "1st Yellow Card", "minute": 45, "extra_minute": 2, "injured": null, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 1
+        },
+        {
+          "id": 504, "fixture_id": 19134512, "period_id": 2, "participant_id": 62, "type_id": 16, "section": "event", "player_id": 31739,
+          "related_player_id": null, "player_name": "James Tavernier", "related_player_name": null, "result": "2-1", "info": null,
+          "addition": "3rd Goal", "minute": 55, "extra_minute": null, "injured": null, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 2
+        },
+        {
+          "id": 505, "fixture_id": 19134512, "period_id": 2, "participant_id": 62, "type_id": 10, "section": "event", "player_id": 31739,
+          "related_player_id": null, "player_name": "James Tavernier", "related_player_name": null, "result": null, "info": "Penalty confirmed",
+          "addition": null, "minute": 55, "extra_minute": null, "injured": null, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 1
+        },
+        {
+          "id": 506, "fixture_id": 19134512, "period_id": 1, "participant_id": 53, "type_id": 14, "section": "event", "player_id": 37306481,
+          "related_player_id": null, "player_name": "Kyogo Furuhashi", "related_player_name": null, "result": "2-0", "info": "Header",
+          "addition": "2nd Goal", "minute": 45, "extra_minute": 1, "injured": null, "on_bench": false, "coach_id": null, "sub_type_id": null, "sort_order": 1
+        }
+      ]
+    }
+  ],
+  "subscription": [],
+  "rate_limit": { "resets_in_seconds": 3412, "remaining": 2987, "requested_entity": "Fixture" },
+  "timezone": "UTC"
+}

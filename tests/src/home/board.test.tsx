@@ -1,15 +1,20 @@
 // League home's board, as its approved picture lays it out (#387; docs/design/approved/home/1440.png):
-// the league's title plate and the deadline strip; Mail and News on the left; Your matchup at the top
-// of the centre; and on the right, the recap and the panels still to come, each in its place, folding
-// on its ▾. The head-to-heads, the table and matchday mode are home.test.tsx's.
+// Mail and News on the left; Your matchup at the top of the centre; and on the right, the Premier
+// League's gameweek, the recap and Your squad news, each folding on its ▾. The title plate and the
+// deadline strip are deadlineStrip.test.tsx's; the head-to-heads, the table and matchday mode
+// home.test.tsx's. `S12.8`, `S12.11`, `S12.12`
 
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
-import { HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
+import { DAY_MS } from "../../../convex/shared/time";
+import { HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
+import { playerCardPath } from "../../../src/playerCard/paths";
+import { matchPath } from "../../../src/premierLeague/paths";
 import {
+  allFixturesLink,
   foldLabel,
   LETTER_TITLE,
   loadingWords,
@@ -18,7 +23,9 @@ import {
   moreOnNewsLink,
   needsYouToComeWords,
   NEWS_PANEL_TITLE,
+  noMatchesWords,
   noMovesWords,
+  noSquadNewsWords,
   openMatchupLink,
   premierLeagueTitle,
   recapTitle,
@@ -28,34 +35,19 @@ import {
   setLineupLink,
   SQUAD_NEWS_TITLE,
   standingWords,
-  stripBoxes,
-  stripLabel,
   TABLE_TITLE,
+  themWords,
   toComeLabel,
   unfoldLabel,
+  weekdayTimeWords,
+  youWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
 import { formLabel } from "../../../src/shared/words";
-import { gameweekOneRecap, homeFixture, homeRow } from "../../support/src/home.harness";
+import { gameweekOneRecap, homeFixture, homeRow, quietYours } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";
 import { commissioner, league, manager, openApp, panel } from "../../support/src/shell.harness";
 const follows = (first: Element, second: Element) => Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
-
-describe("the title plate and the deadline strip", () => {
-  it("titles the board with the league and this gameweek, and the strip's boxes are outlines until their grill", async () => {
-    withHome({ thisGameweek: { gameweek: 9, fixtures: [homeFixture("Team 1", "Team 2")], byes: [] } });
-    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe(`${league.name}GW9`);
-    const strip = screen.getByRole("list", { name: stripLabel });
-    expect(within(strip).getAllByRole("listitem").map((box) => box.textContent)).toEqual([...stripBoxes(9)]);
-    expect(within(strip).getAllByRole("img").map((box) => box.getAttribute("aria-label"))).toEqual(stripBoxes(9).map(toComeLabel));
-  });
-
-  it("with no gameweek drawn, has neither the gameweek nor the strip", async () => {
-    withHome({ format: "totalPoints", thisGameweek: null });
-    expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe(league.name);
-    expect(screen.queryByRole("list", { name: stripLabel })).toBeNull();
-  });
-});
 
 describe("Mail", () => {
   const letter: LetterSummary = { letterId: "letter-1" as Id<"letters">, leagueName: league.name, at: Date.now(), from: null, subject: "Set your lineup", body: "GW1 locks soon.", read: false };
@@ -186,12 +178,13 @@ describe("Your matchup", () => {
 });
 
 describe("the right-hand column", () => {
-  it("holds the Premier League, the recap to come and Your squad news as outlines in their places, each folding on its ▾", async () => {
+  it("holds the Premier League, the recap to come, its outline's words written in it, and Your squad news in their places, each folding on its ▾", async () => {
     openHome();
     const premierLeague = await panel(premierLeagueTitle(1));
-    expect(within(premierLeague).getAllByRole("img", { name: toComeLabel(premierLeagueTitle(1)) }).length).toBeGreaterThan(0);
+    expect(within(premierLeague).getByText(noMatchesWords)).toBeTruthy();
     const recap = await panel(recapTitle(1));
     expect(within(recap).getByText(recapToComeWords(1))).toBeTruthy();
+    expect(within(recap).getByRole("img", { name: toComeLabel(recapTitle(1)) }).textContent).toBe(toComeLabel(recapTitle(1)));
     expect(follows(premierLeague, recap)).toBe(true);
     expect(follows(recap, await panel(SQUAD_NEWS_TITLE))).toBe(true);
 
@@ -199,6 +192,40 @@ describe("the right-hand column", () => {
     expect(within(recap).queryByText(recapToComeWords(1))).toBeNull();
     await userEvent.click(within(recap).getByRole("button", { name: unfoldLabel(recapTitle(1)) }));
     expect(within(recap).getByText(recapToComeWords(1))).toBeTruthy();
+  });
+
+  it("lists this gameweek's matches with the reader's players or his opponent's, each opening its page, and All fixtures the Premier League (#1976)", async () => {
+    const kickoff = Date.now() + DAY_MS;
+    const club = (code: number, shortName: string) => ({ code, name: shortName, shortName });
+    const match = { fixtureCode: 501, kickoff, home: club(3, "ARS"), away: club(54, "FUL"), you: ["Saka", "Rice"], them: ["Raya"] };
+    const app = withHome({ yours: { ...quietYours, premierLeague: [match, { ...match, fixtureCode: 502, home: club(43, "MCI"), away: club(8, "CHE"), you: [], them: ["Dias"] }] } });
+    const premierLeague = await panel(premierLeagueTitle(1));
+    expect(within(premierLeague).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      `ARS v FUL${weekdayTimeWords(kickoff)}${youWords} Saka, Rice${themWords} Raya`,
+      `MCI v CHE${weekdayTimeWords(kickoff)}${themWords} Dias`,
+    ]);
+    expect(within(premierLeague).getByRole("link", { name: allFixturesLink }).getAttribute("href")).toBe(PREMIER_LEAGUE_PATH);
+    await userEvent.click(within(premierLeague).getByRole("link", { name: "ARS v FUL" }));
+    expect(app.path()).toBe(matchPath(501));
+  });
+
+  it("lists Your squad news, FPL's note word for word, each name opening his card; and says when there is none (#1976)", async () => {
+    withHome({ yours: { ...quietYours, squadNews: [{ playerCode: 10, name: "Saka", news: "Knock - 75% chance of playing", chanceOfPlaying: 75 }] } });
+    const news = await panel(SQUAD_NEWS_TITLE);
+    expect(within(news).getByRole("listitem").textContent).toBe("SakaKnock - 75% chance of playing");
+    expect(within(news).getByRole("link", { name: "Saka" }).getAttribute("href")).toBe(playerCardPath(league.leagueId, 10));
+  });
+
+  it("says when the squad has no news", async () => {
+    openHome();
+    expect(within(await panel(SQUAD_NEWS_TITLE)).getByText(noSquadNewsWords)).toBeTruthy();
+  });
+
+  it("has no Premier League or squad news for someone running no team", async () => {
+    withHome({ yours: null });
+    await panel(TABLE_TITLE);
+    expect(screen.queryByRole("region", { name: SQUAD_NEWS_TITLE })).toBeNull();
+    expect(screen.queryByRole("region", { name: premierLeagueTitle(1) })).toBeNull();
   });
 
   it("shows the recap once written, in place of its outline", async () => {

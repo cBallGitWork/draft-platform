@@ -68,7 +68,7 @@ colours.
 
 - Overview | News | Calendar: Home's own tabs. Overview and News are drawn; Calendar is not.
 - The patch banner's Read the patch notes: opens Patch notes. The cross hides the banner.
-- The deadline strip: reads only, until its grill says otherwise.
+- The deadline strip: reads only; none of its boxes opens anything (`spec/12` S12.10).
 - Mail's Needs you | All: switches the panel between letters waiting on him and every letter. A
   letter opens it in Mail; All mail opens Mail.
 - News: More, on News opens the News tab. The commissioner's latest letter stays pinned on top
@@ -90,10 +90,10 @@ Each shows in its place and size until its data comes.
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
 | The Calendar tab | what it holds | to-grill: Home's tabs |
-| The deadline strip's boxes | which boxes, in which states | to-grill: The deadline strip |
+| The deadline strip in the other states (after, locked, break, pre-season) | which boxes each state shows; the gameweek before its deadline is wired (`spec/12` S12.9, S12.10; #1976) | to-grill: The deadline strip |
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`); the panel gains Unread as Mail has | #1030 |
-| Premier League, GW9: each match's "You" and "Them" players | whether Home carries the Premier League | to-grill: The Premier League on Home |
-| Your squad news, and its chips | what it lists, and which FPL statuses each chip reads | to-grill: Your squad news on Home; to-grill: Status chips' data |
+| Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
+| Your squad news's chips | the notes, FPL's word for word, are wired, with no chip (`spec/12` S12.8; #1976); which statuses each chip reads | to-grill: Status chips' data |
 | Run the league | what its to-do list holds | to-grill: Run the league |
 | The score boxes, before the deadline (empty) | lineups locked and matches scored | `spec/12`, matchday mode (#387) |
 | GW8 recap (empty lines) | the weekly recap | #387 |

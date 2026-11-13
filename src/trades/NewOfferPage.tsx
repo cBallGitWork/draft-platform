@@ -112,7 +112,7 @@ function NewOffer({
   leagueId,
   view,
   changes,
-  counter,
+  counter: counterNow,
   start,
 }: {
   leagueId: Id<"leagues">;
@@ -121,16 +121,19 @@ function NewOffer({
   counter: Countered | null;
   start: Start | null;
 }) {
+  // A counter stays one once its offer closes on screen, so the server refuses it rather than it
+  // going as a new offer (#1437).
+  const [counter] = useState(counterNow);
   const navigate = useNavigate();
   const mine = myTeamOf(view);
   const partners = partnersOf(view);
   const [partnerId, setPartnerId] = useState<Id<"teams"> | null>(
     start?.teamId ?? partners[0]?.teamId ?? null,
   );
-  const ticks = useOfferTicks(start ?? { gives: [], gets: [] });
+  const partner = partners.find((team) => team.teamId === partnerId) ?? null;
+  const ticks = useOfferTicks(start ?? { gives: [], gets: [] }, { mine, theirs: partner });
   const [note, setNote] = useState("");
   const change = useChange();
-  const partner = partners.find((team) => team.teamId === partnerId) ?? null;
 
   const choosePartner = (teamId: Id<"teams">) => {
     setPartnerId(teamId);

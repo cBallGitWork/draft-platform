@@ -44,7 +44,7 @@ import {
 /** A placeholder in a panel row: the size of a short box. */
 const ROW_PLACEHOLDER = "h-5 w-24";
 
-export function PlayerPanel({
+export function SquadPlayerPanel({
   leagueId,
   player,
   tactics,

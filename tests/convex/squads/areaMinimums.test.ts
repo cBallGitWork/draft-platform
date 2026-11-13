@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { areasShort } from "../../../convex/squads/areaMinimums";
+import { areasShort, minimumAreas } from "../../../convex/squads/areaMinimums";
 import { areasOf } from "../../../convex/lineup/pitch";
 import { NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -20,6 +20,17 @@ describe("a player's areas", () => {
   test("a shadow striker's are attacking midfield and attack; a player with no positions has none", () => {
     expect(areas("SS")).toEqual(["attackingMidfield", "attack"]);
     expect(areas()).toEqual([]);
+  });
+});
+
+describe("a player no feed has placed (#911, spec/06 `S06.1`)", () => {
+  test("counts towards the area the admin set, and with none set fills none", () => {
+    expect(minimumAreas([], "defence")).toEqual(["defence"]);
+    expect(minimumAreas([], null)).toEqual([]);
+  });
+
+  test("once he has positions, they count and the admin's area no longer does", () => {
+    expect(minimumAreas(["ST"], "defence")).toEqual(["attack"]);
   });
 });
 

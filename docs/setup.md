@@ -73,8 +73,8 @@ points this season, by FPL's club `code`, the same way, and `"points":null` goes
 results' total:
 `npx convex run football/plPointsOverrides:set '{"clubCode":11,"points":4}' --identity '{"subject":"<admin's _id>|cli"}'`.
 
-Moving a match to another gameweek has no screen yet either: the admin moves it by FPL's fixture
-`code`, the same way, and `"gameweek":null` clears the move, back to the gameweek its kickoff
+The admin moves a match to another gameweek on his dashboard's Move a match panel, which also
+lists his moves. From the command line he moves it by the match's `code`, the same way, and `"gameweek":null` clears the move, back to the gameweek its kickoff
 makes; it answers with any deadline warnings, and `gameweeks/matchMoves:log` lists his moves:
 `npx convex run gameweeks/matchMoves:move '{"fixtureCode":121,"gameweek":15}' --identity '{"subject":"<admin's _id>|cli"}'`.
 
@@ -175,7 +175,9 @@ schedule has dropped too, as Healthchecks' `lead-pass` email after 3 hours with 
 
 ## Restoring saved data
 
-A release that changes saved data's shape backs it up first (`scripts/release.mjs`): its Vercel
+A release that could strand saved data (a table or field removed, or a type narrowed) backs it up
+first (`scripts/release.mjs`); one that only adds tables or fields, or widens a type, doesn't, and
+its log says it strands nothing. The backup's Vercel
 build log says `Backup taken: snapshot <timestamp>`, and Convex keeps it on the production
 deployment's **Backup & Restore** page, two at most on the free plan, each for 7 days. If the
 backup fails the release stops, nothing goes live, and the log says why: with two already kept,
@@ -187,8 +189,10 @@ To undo such a release with its data:
    managers saved since the release.
 2. Restore the release's backup, the one named in its build log, from its row's menu, **Restore**.
    Or download it and run `npx convex import --prod --replace <file>.zip`.
-3. Revert the release's merge. Its build log should say `Backup taken`, since the shape changes back.
+3. Revert the release's merge.
 
 Convex refuses a schema the saved data doesn't fit, so the order follows the step it undoes: undo a
-widening (data saved since may not fit the old schema) by restoring, then reverting, as above;
-undo a narrowing (the backup holds what the new schema dropped) by reverting, then restoring.
+narrowing, the only release with a backup of its own (the backup holds what the new schema
+dropped), by reverting, then restoring. A widening takes none, since it strands nothing: revert it,
+and that revert, a narrowing, takes its own backup first; if data saved since doesn't fit the old
+schema, Convex refuses the revert, and that data has to change or go before it can land.

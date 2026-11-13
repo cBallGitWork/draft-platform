@@ -4,10 +4,10 @@ import { presetNameOf } from "../../../convex/lineup/presets";
 import { MY_TEAM_PATH } from "../../frame/menu";
 import { NextGlyph } from "../../ui/MoreLink";
 import { Panel, PanelNote } from "../../ui/Panel";
-import { PitchLines } from "../tactics/pitch/PitchLines";
-import { Shirt } from "../tactics/pitch/Pitch";
-import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../tactics/pitch/rowLayout";
-import { PITCH_ASPECT } from "../tactics/pitch/pitchMarkings";
+import { PitchLines } from "../../ui/pitch/PitchLines";
+import { Shirt } from "../../ui/pitch/Shirt";
+import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../../ui/pitch/rowLayout";
+import { PITCH_ASPECT } from "../../ui/pitch/pitchMarkings";
 import type { OpenTactics, Tactics } from "../tactics/seam";
 import { StatusMark } from "../SquadCells";
 import type { Row } from "./SquadTable";
@@ -24,7 +24,7 @@ import {
 } from "./words";
 
 // The Squad tab's Your eleven (its approved picture): the lineup being set for the next gameweek,
-// read-only, each player with his season points, the bench in order under it, and Set lineup to the
+// read-only, each player with his season points, the bench in order under it, and Set line-up to the
 // Tactics tab, where it is set.
 
 /** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):

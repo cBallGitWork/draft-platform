@@ -82,7 +82,7 @@ test("replayed read by read, the match's lines are replaced whole, kick-off to f
   await store(t, polledAt("goal"), await readAt("goal"));
   const atGoal = (await shown(t))!;
   expect(atGoal.delayed).toBe(false);
-  expect(atGoal.lines.at(-1)?.text).toBe("Lineups out");
+  expect(atGoal.lines.at(-1)?.text).toBe("Line-ups out");
   expect(atGoal.lines.at(-2)?.text).toBe("KO IPS v NFO");
   expect(textOf(atGoal.lines, LINE.firstGoal)).toBe("13' GOAL N.Williams");
 

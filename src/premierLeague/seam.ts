@@ -6,8 +6,9 @@ import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchMan, MatchPageData } from "../../convex/match/matchPage";
+import type { ClubSquad, SquadGroup, SquadPlayer } from "../../convex/scouting/clubSquad";
 
-export type { MatchMan, MatchPageData };
+export type { ClubSquad, MatchMan, MatchPageData, SquadGroup, SquadPlayer };
 
 /** How many gameweeks the season has, and each one's first kickoff (football/plGameweeks:firstKickoffs). */
 export type PlGameweeks = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>;
@@ -36,4 +37,7 @@ export type PremierLeagueSeam = {
   /** One club's page as the league sees it, live (a hook): undefined while it loads, null while no
    *  club with its code is held. */
   useClub(leagueId: Id<"leagues">, clubCode: number): ClubPageData | null | undefined;
+  /** One club's Squad tab and top scorers in the league's numbers (scouting/clubSquad:ofClub), live
+   *  (a hook): undefined while it loads, null while no club with its code is held. */
+  useClubSquad(leagueId: Id<"leagues">, clubCode: number): ClubSquad | null | undefined;
 };

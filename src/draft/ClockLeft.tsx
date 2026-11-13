@@ -41,18 +41,19 @@ export function useUndoLeft(window: UndoWindow | null): number | null {
   return left > 0 ? left : null;
 }
 
-/** The time now, read again each second while `ticking`, and as it starts. */
+/** The time now, read again each second while `ticking`, and in the render it starts, so a clock
+ *  resumed never draws the time it held from before its pause (#1437). */
 function useNowWhile(ticking: boolean): number {
   const [now, setNow] = useState(() => Date.now());
+  const [wasTicking, setWasTicking] = useState(ticking);
+  if (ticking !== wasTicking) {
+    setWasTicking(ticking);
+    if (ticking) setNow(Date.now());
+  }
   useEffect(() => {
     if (!ticking) return;
-    const tick = () => setNow(Date.now());
-    const first = setTimeout(tick, 0);
-    const timer = setInterval(tick, SECOND_MS);
-    return () => {
-      clearTimeout(first);
-      clearInterval(timer);
-    };
+    const timer = setInterval(() => setNow(Date.now()), SECOND_MS);
+    return () => clearInterval(timer);
   }, [ticking]);
   return now;
 }

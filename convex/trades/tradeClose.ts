@@ -4,17 +4,19 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { scheduleHeartbeat } from "../heartbeats/heartbeat";
+import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, type OfferClosed } from "../mail/tradeLetterWords";
-import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
-import { deadlinePassedSince, type LeagueDeadlines } from "../gameweeks/deadline";
+import { takeAllOrThrow } from "../shared/cappedRead";
+import { deadlinePassedSince, latestBegun, nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { checkAgainAt, forgetChecks, leaguesDue, NEVER_DUE } from "../leagues/leagueChecks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
+import { MINUTE_MS } from "../shared/time";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { teamIn } from "../shared/leagueAccess";
 import { OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { onAutoTeam } from "../lineup/autoTeamSwitch";
-import { tradesShut } from "./tradeShut";
+import { tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import type { TradesShut } from "./tradeShutWords";
 import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 
@@ -123,43 +125,64 @@ async function closingReason(
   return null;
 }
 
-/** The cron's: asks each league holding an offer to close those whose time is up, each league in
- *  its own transaction (#1558), so the offers cap is each league's, never the platform's (#1539),
- *  and an offer one league can't close never holds up another's. */
+/** The cron's: asks each league whose offers are due a look (../leagues/leagueChecks.ts, #1998) to
+ *  close those whose time is up, each league in its own transaction (#1558), so the offers cap is
+ *  each league's, never the platform's (#1539), and an offer one league can't close never holds up
+ *  another's. */
 export const closeDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    await scheduleEveryLeague(
-      ctx,
-      internal.trades.tradeClose.closeLeagueDue,
-      "so their trade offers due can't all be closed",
-      // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
-      async (league) =>
-        leagueOpens(league) && (await ctx.db.query("tradeOffers").withIndex("by_leagueId", (q) => q.eq("leagueId", league._id)).first()) !== null,
-    );
+    if (!timedJobsOn()) return null;
+    for (const leagueId of await leaguesDue(ctx, "offers", Date.now())) {
+      await ctx.scheduler.runAfter(0, internal.trades.tradeClose.closeLeagueDue, { leagueId });
+    }
     await scheduleHeartbeat(ctx, "tradeOffers");
     return null;
   },
 });
 
-/** Closes each open offer of the league whose time is up, as `closeDue` asks; a league gone or
- *  frozen since closes nothing. */
+/** Closes each open offer of the league whose time is up, as `closeDue` asks, then sets when its
+ *  offers are next looked at. A league gone closes nothing, and one frozen for deletion nothing
+ *  until an undo wakes it (#1493); a league with no open offer waits for one to be made. */
 export const closeLeagueDue = internalMutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const league = await ctx.db.get("leagues", leagueId);
-    if (league === null || !leagueOpens(league)) return null;
-    const open = (await leagueOffers(ctx, leagueId)).filter((offer) => offer.review === undefined);
-    if (open.length === 0) return null;
+    if (league === null) {
+      await forgetChecks(ctx, leagueId);
+      return null;
+    }
+    const open = leagueOpens(league) ? (await leagueOffers(ctx, leagueId)).filter((offer) => offer.review === undefined) : [];
+    if (open.length === 0) {
+      await checkAgainAt(ctx, leagueId, "offers", NEVER_DUE);
+      return null;
+    }
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const shut = await tradesShut(ctx, league, deadlines, now);
+    let left = 0;
     for (const offer of open) {
       const closed = await closingReason(ctx, offer, shut, deadlines, now);
       if (closed !== null) await closeOffer(ctx, offer, closed);
+      else left += 1;
     }
+    await checkAgainAt(ctx, leagueId, "offers", left === 0 ? NEVER_DUE : await nextOffersCheck(ctx, leagueId, shut, deadlines, now));
     return null;
   },
 });
+
+/** When a league's open offers, none closing at `now`, are next worth a look: the next deadline,
+ *  when each closes unanswered (spec/08), as do they all once the trade deadline passes or a
+ *  break starts, both at a deadline. But through the trade deadline's gameweek they close as its
+ *  last match is over, and through a live draft that gameweek may end unseen, neither known ahead,
+ *  so each is looked at on the cron's next pass. A team going on the auto team closes its offers
+ *  at once (`closeOffersOfTeam`). */
+async function nextOffersCheck(ctx: QueryCtx, leagueId: Id<"leagues">, shut: TradesShut, deadlines: LeagueDeadlines, now: number): Promise<number> {
+  const begun = latestBegun(deadlines, now);
+  if (shut === "draftLive" || (begun !== null && begun === (await tradeDeadlineInForce(ctx, leagueId, deadlines, now)))) {
+    return now + OFFER_CHECK_EVERY.minutes * MINUTE_MS;
+  }
+  return nextDeadline(deadlines, now)?.at ?? NEVER_DUE;
+}

@@ -5,6 +5,7 @@ import { AREA_WORDS } from "../../convex/lineup/pitchWords";
 import type { Position } from "../../convex/positions/positionTables";
 import type { TradedSide } from "../../convex/schema";
 import { LOCALE } from "../../convex/shared/moments";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import type { SquadWarning } from "../../convex/squads/squads";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
@@ -39,6 +40,8 @@ export const POSITION_NAMES: Record<Position, string> = {
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
 /** Closes what was opened to change something, changing nothing. */
 export const cancelWords = "Cancel";
+/** The two answers to "Delete this?": deleting a league and the admin's feedback both ask it. */
+export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
 /** When a change failed before the server could say why: the connection, or the server itself. */
 export const changeFailedWords = failedWords("nothing changed");
 
@@ -56,7 +59,21 @@ export const gameweekColumn = { short: "GW", long: "Gameweek" } as const;
  *  line starting with it takes `firstUpper`. */
 export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
 /** Words that start a line, their first letter a capital. */
-export const firstUpper = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
+/** A setting nobody has made yet. */
+export const notSetWords = "Not set";
+
+/** "in 1d 17h", "in 5h 12m", "in 12m": the two largest units, counted down a minute at a time. */
+export function countdownWords(left: number): string {
+  if (left < MINUTE_MS) return "in under a minute";
+  const days = Math.floor(left / DAY_MS);
+  const hours = Math.floor((left % DAY_MS) / HOUR_MS);
+  const minutes = Math.floor((left % HOUR_MS) / MINUTE_MS);
+  if (days > 0) return `in ${days}d ${hours}h`;
+  if (hours > 0) return `in ${hours}h ${minutes}m`;
+  return `in ${minutes}m`;
+}
+
+export const firstUpper =(words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 /** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
  *  decoration, as each button carries its label. */
 export const previousGameweekLabel = "Previous gameweek";
@@ -110,6 +127,12 @@ export const lastSeasonPointsColumn = (season: number | null) =>
   season === null
     ? { short: "Pts last season", long: `Points last season ${underSiteScoringWords}` }
     : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} ${underSiteScoringWords}` };
+/** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
+ *  wasn't in last season's data (Scouting and a club's Squad tab). */
+export const noPointsYetWords = "No points yet: none of his matches is scored.";
+export const notLastSeasonWords = "No points: he isn't in last season's data.";
+/** Why a player's season points are "—": none priced yet, or not in last season's data. */
+export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 /** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
  *  (spec/14, Own stats; #910). */
 export const ownStatsGroupWords = "The site's own stats";
@@ -233,7 +256,7 @@ export const foundListLabel = "Players found";
  *  the switch's name on My team and Squads. */
 export const autoTeamWords = "Auto team";
 /** What the auto team does (spec/09), as its chip's hover and My team's switch say it. */
-export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
+export const autoTeamWhatWords = "Keeps your last line-up, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
 
 /** A traded draft pick, named by the team whose pick it is: "Pickford Pirates' round 4 pick"
  *  (docs/design/approved/team-transactions/). */
@@ -267,7 +290,7 @@ export const menuWords = {
   trades: "Trades",
   offers: "Offers",
   newOffer: "New offer",
-  premierLeague: "Premier League",
+  football: "Football",
   mail: "Mail",
   draft: "Draft",
 } as const;
