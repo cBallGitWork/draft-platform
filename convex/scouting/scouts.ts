@@ -7,7 +7,7 @@ import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, ownTeam, playerOrRefuse, refuse } from "../shared/leagueAccess";
 import { hasLeft, playerByCode, unheldPlayerWords } from "../shared/players";
-import { DAY_MS, seasonStartAt } from "../shared/time";
+import { DAY_MS } from "../shared/time";
 import { scoutRefusals } from "./scoutWords";
 
 // Scouts (spec/19, Scouts; #375): each team has the site's number of them (3). A manager sends one
@@ -52,10 +52,10 @@ function scoutsOut(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"scouts">[]>
   );
 }
 
-/** The players the team's scouts have reported on this season, the season `now` falls in. */
-export async function scoutedThisSeason(ctx: QueryCtx, teamId: Id<"teams">, now: number): Promise<Set<number>> {
+/** The players the team's scouts have reported on this season, the one starting at `seasonStart`. */
+export async function scoutedThisSeason(ctx: QueryCtx, teamId: Id<"teams">, seasonStart: number): Promise<Set<number>> {
   const rows = await takeAllOrThrow(
-    ctx.db.query("scouts").withIndex("by_teamId_and_sentAt", (q) => q.eq("teamId", teamId).gte("sentAt", seasonStartAt(now))),
+    ctx.db.query("scouts").withIndex("by_teamId_and_sentAt", (q) => q.eq("teamId", teamId).gte("sentAt", seasonStart)),
     SEASON_SCOUTS_READ_MOST,
     `Team ${teamId} has sent more than ${SEASON_SCOUTS_READ_MOST} scouts this season`,
   );

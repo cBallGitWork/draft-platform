@@ -6,7 +6,8 @@ import { EVERY_LEAGUE } from "../positions/positionSettings";
 import type { Doc, Id } from "../_generated/dataModel";
 import { scoutedThisSeason } from "../scouting/scouts";
 import { memberOf, refuse } from "../shared/leagueAccess";
-import { seasonStartAt } from "../shared/time";
+import { heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
+import { seasonStartOf } from "../shared/time";
 import { isSquadMove, movedOff, squadMovesSince, squadOf } from "../squads/squadPlace";
 import { ratedRoles } from "./stars";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
@@ -79,41 +80,45 @@ export async function starsLookupIn(
   return mode.showsStars ? starsLookup(ctx, playerCodes) : () => [];
 }
 
-/** The players whose stars the team is shown in the season `now` falls in: its squad, every player
- *  a squad move put on or took off it this season, and every player its scouts reported on this
- *  season. None for no team (a commissioner who runs none), who has no squad or scouts. */
-async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
+/** The players whose stars the team is shown: its squad, and, in the season the server holds (the
+ *  newest gameweeks', never a screen's clock: #2046), every player a squad move put on or took off
+ *  it and every player its scouts reported on. Only the squad while no season is held, as on a
+ *  fresh deployment before the first feed sync. None for no team (a commissioner who runs none),
+ *  who has no squad or scouts. */
+async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined): Promise<Set<number>> {
   if (team === undefined) return new Set();
-  const shown = await scoutedThisSeason(ctx, team._id, now);
-  for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);
-  for (const { event } of await squadMovesSince(ctx, leagueId, seasonStartAt(now))) {
+  const shown = new Set((await squadOf(ctx, team._id)).map(({ playerCode }) => playerCode));
+  const season = await heldGameweeksSeason(ctx);
+  if (season === undefined) return shown;
+  const seasonStart = seasonStartOf(season);
+  for (const playerCode of await scoutedThisSeason(ctx, team._id, seasonStart)) shown.add(playerCode);
+  for (const { event } of await squadMovesSince(ctx, leagueId, seasonStart)) {
     if (!isSquadMove(event)) continue;
     if (event.teamId === team._id || movedOff(event, team._id)) shown.add(event.playerCode);
   }
   return shown;
 }
 
-/** One player's stars, for a member of the league, at `now` (the screen's: a query may not read the
- *  clock); null while they are hidden from the caller. */
+/** One player's stars, for a member of the league; null while they are hidden from the caller. */
 export const ofPlayer = query({
-  args: { leagueId: v.id("leagues"), playerCode: v.number(), now: v.number() },
+  args: { leagueId: v.id("leagues"), playerCode: v.number() },
   returns: v.union(v.array(roleStarsShape), v.null()),
-  handler: async (ctx, { leagueId, playerCode, now }) => {
+  handler: async (ctx, { leagueId, playerCode }) => {
     const { team } = await memberOf(ctx, leagueId);
-    if (!(await starsShownTo(ctx, leagueId, team, now)).has(playerCode)) return null;
+    if (!(await starsShownTo(ctx, leagueId, team)).has(playerCode)) return null;
     return (await starsLookup(ctx, [playerCode]))(playerCode);
   },
 });
 
-/** Many players' stars at once, in the order asked, for a member of the league at `now`; null for
- *  each whose are hidden from the caller. Refused past STARS_READ_MOST. */
+/** Many players' stars at once, in the order asked, for a member of the league; null for each whose
+ *  are hidden from the caller. Refused past STARS_READ_MOST. */
 export const ofPlayers = query({
-  args: { leagueId: v.id("leagues"), playerCodes: v.array(v.number()), now: v.number() },
+  args: { leagueId: v.id("leagues"), playerCodes: v.array(v.number()) },
   returns: v.array(playerStarsShape),
-  handler: async (ctx, { leagueId, playerCodes, now }) => {
+  handler: async (ctx, { leagueId, playerCodes }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (playerCodes.length > STARS_READ_MOST) refuse(starsReadRefusals.tooMany);
-    const shownTo = await starsShownTo(ctx, leagueId, team, now);
+    const shownTo = await starsShownTo(ctx, leagueId, team);
     const stars = await starsOfPlayers(ctx, playerCodes.filter((playerCode) => shownTo.has(playerCode)));
     return playerCodes.map((playerCode) => ({ playerCode, stars: stars.get(playerCode) ?? null }));
   },
