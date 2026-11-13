@@ -35,6 +35,9 @@ import {
 const GAMES_HINT_ID = "settings-games-hint";
 const DEADLINE_HINT_ID = "settings-deadline-hint";
 const TIE_BREAKS_LABEL_ID = "settings-tie-breaks-label";
+/** Up and Down: the secondary action, desk-sized, greyed where a tie-break can't move that way (the
+ *  approved picture). */
+const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
 const FORMATS = ["headToHead", "totalPoints"] as const satisfies readonly LeagueSettings["format"][];
 
 type Edit = { draft: LeagueSettings; edit: (settings: LeagueSettings) => void };
@@ -103,7 +106,7 @@ function TieBreaks({ tieBreaks, reorder }: { tieBreaks: readonly TieBreak[]; reo
     reorder(moved);
   }
   return (
-    <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <span id={TIE_BREAKS_LABEL_ID} className="text-soft">
         {tieBreaksLabel}
       </span>
@@ -112,7 +115,7 @@ function TieBreaks({ tieBreaks, reorder }: { tieBreaks: readonly TieBreak[]; reo
           <li key={tieBreak} className="flex items-center gap-3">
             <span className="w-4 text-right text-figure tabular-nums">{place + 1}</span>
             <span className="w-32">{tieBreakWords[tieBreak]}</span>
-            <button type="button" aria-label={moveUpLabel(tieBreakWords[tieBreak])} disabled={place === 0} onClick={() => move(place, place - 1)} className="secondary-action">
+            <button type="button" aria-label={moveUpLabel(tieBreakWords[tieBreak])} disabled={place === 0} onClick={() => move(place, place - 1)} className={MOVE_ACTION}>
               {moveUpWords}
             </button>
             <button
@@ -120,7 +123,7 @@ function TieBreaks({ tieBreaks, reorder }: { tieBreaks: readonly TieBreak[]; reo
               aria-label={moveDownLabel(tieBreakWords[tieBreak])}
               disabled={place === tieBreaks.length - 1}
               onClick={() => move(place, place + 1)}
-              className="secondary-action"
+              className={MOVE_ACTION}
             >
               {moveDownWords}
             </button>
