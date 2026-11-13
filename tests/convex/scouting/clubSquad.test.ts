@@ -83,6 +83,15 @@ test("his season's starts and minutes, 0 for a player with none", async () => {
   expect(await squadRowOf(ARSENAL_KEEPER.code)).toMatchObject({ starts: 0, minutes: 0 });
 });
 
+test("a row carries FPL's chance he plays, null while it has no doubt about him", async () => {
+  await league.t.run(async (ctx) => {
+    const raya = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", ARSENAL_KEEPER.code)).unique())!;
+    await ctx.db.patch("players", raya._id, { chanceOfPlaying: 50 });
+  });
+  expect((await squadRowOf(ARSENAL_KEEPER.code)).chanceOfPlaying).toBe(50);
+  expect((await squadRowOf(SAKA.code)).chanceOfPlaying).toBeNull();
+});
+
 test("the top scorers are the club's most season points, a player with none left out", async () => {
   const saka = await cardTotalOf(league, SAKA.code);
   expect((await clubSquadOf())!.topScorers).toEqual(

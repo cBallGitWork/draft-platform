@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { positionsNow } from "../positions/playerPositions";
+import { playerPositionsNow } from "../positions/playerPositions";
 import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/values";
@@ -179,7 +179,7 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const { positionsOf: positionsOfNow, minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const begun = await begunGameweeks(ctx, league);
     const lastGameweek = begun.at(-1) ?? null;
@@ -222,7 +222,11 @@ export const ofMyTeam = query({
       unheld,
       squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
-      limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
+      limits: squadLimits(
+        await Promise.all(rows.map(async (row) => ({ ...row, minimumAreas: await minimumAreasOf(row.code) }))),
+        unheld.length,
+        rules?.squad ?? null,
+      ),
     };
   },
 });

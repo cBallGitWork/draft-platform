@@ -1,4 +1,5 @@
-import { AREAS, type Area } from "../lineup/pitch";
+import { AREAS, areasOf, type Area } from "../lineup/pitch";
+import type { Position } from "../positions/positionTables";
 import { matched } from "../shared/matching";
 
 // A squad against the league's minimum per area (spec/03, Squad make-up; #317). A player who can
@@ -11,6 +12,14 @@ interface AreaShort {
   /** How many of the squad fill the area's minimum, with each player counted once. */
   players: number;
   minimum: number;
+}
+
+/** The areas whose minimums a player with these positions can fill: those he plays, or, while no
+ *  feed has placed him and so he has none, the area the admin set for him; none with no area set
+ *  (spec/06 `S06.1`: "admin set that"). */
+export function minimumAreas(positions: readonly Position[], unplacedArea: Area | null): Area[] {
+  if (positions.length > 0) return areasOf(positions);
+  return unplacedArea === null ? [] : [unplacedArea];
 }
 
 /** Each area whose minimum the squad can't fill, back to front, with each player's areas given. */

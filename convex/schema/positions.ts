@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { POSITIONS } from "../positions/positionTables";
+import { areaShape } from "../lineup/pitchShape";
 import { failure, syncTrigger } from "./football";
 
 // Positions (#22). Kept apart from `players`, which the football sync rewrites every six hours, so
@@ -32,7 +33,14 @@ export const positionInputs = v.object({
   removed: v.array(position),
 });
 
-const playerPositionFields = { code: v.number(), ...positionInputs.fields };
+const playerPositionFields = {
+  code: v.number(),
+  ...positionInputs.fields,
+  /** The area the admin set for a player no feed has placed yet: he counts towards its squad
+   *  minimum until a feed places him (spec/06 `S06.1`; `minimumAreas` in areaMinimums.ts). Absent
+   *  until the admin sets one. Only the minimums read it, so Scouting keeps no copy. */
+  unplacedArea: v.optional(areaShape),
+};
 
 export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
 
