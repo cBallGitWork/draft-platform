@@ -107,20 +107,20 @@ describe("the admin's Feedback tab", () => {
     ]);
   });
 
-  it("S15.5: a message marked read says so, and has no Mark read", async () => {
+  it("S15.7: a message marked read says so, and has no Mark read", async () => {
     openList({ entries: [entry(1, "ann@example.com", "Seen it.", true)], more: false });
     const item = within(await screen.findByRole("list", { name: feedbackListTitle })).getByRole("listitem");
     expect(within(item).getByText(feedbackWords.read)).toBeTruthy();
     expect(within(item).queryByRole("button", { name: feedbackWords.markReadLabel("ann@example.com") })).toBeNull();
   });
 
-  it("S15.5: Mark read marks that message read", async () => {
+  it("S15.7: Mark read marks that message read", async () => {
     const app = openList({ entries: [entry(1, "ann@example.com", "Newest."), entry(2, "bob@example.com", "Older.")], more: false });
     await userEvent.click(await screen.findByRole("button", { name: feedbackWords.markReadLabel("bob@example.com") }));
     expect(app.feedback.markRead).toHaveBeenCalledWith("feedback-2");
   });
 
-  it("S15.5: Delete asks first; Keep it deletes nothing, Delete it deletes that message", async () => {
+  it("S15.7: Delete asks first; Keep it deletes nothing, Delete it deletes that message", async () => {
     const app = openList({ entries: [entry(1, "ann@example.com", "Newest.")], more: false });
     await userEvent.click(await screen.findByRole("button", { name: feedbackWords.removeLabel("ann@example.com") }));
     expect(screen.getByText(feedbackWords.confirm("ann@example.com"))).toBeTruthy();

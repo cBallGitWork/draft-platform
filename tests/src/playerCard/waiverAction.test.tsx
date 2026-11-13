@@ -42,6 +42,19 @@ describe("a player in the manager's squad", () => {
     expect(app.playerCard.waiverChanges.drop).toHaveBeenCalledWith(league.leagueId, SAKA.code);
   });
 
+  it("asks again on Drop when he is back in the squad after going (#1437)", async () => {
+    const actions = new Map<number, CardAction>([[RICE.code, { kind: "drop" }]]);
+    openCard(RICE, { ...HELD, actions });
+    await userEvent.click(await screen.findByRole("button", { name: dropWords }));
+    // The card redraws as each change lands, the server's answer moved on by then.
+    actions.set(RICE.code, { kind: "pickUp", squad: [] });
+    await userEvent.click(screen.getByRole("button", { name: dropWords }));
+    actions.set(RICE.code, { kind: "drop" });
+    await userEvent.click(await screen.findByRole("button", { name: pickUpWords }));
+    await screen.findByRole("button", { name: dropWords });
+    expect(screen.queryByText(confirmDropWords(RICE.name))).toBeNull();
+  });
+
   it("says the server's refusal, as in the lock", async () => {
     openCard(SAKA, withAction(SAKA.code, { kind: "drop" }, dropRefusals.locked));
     await userEvent.click(await screen.findByRole("button", { name: dropWords }));

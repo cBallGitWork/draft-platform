@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { refusalOf } from "../shared/refusal";
+import { answerOf, refusalOf } from "../shared/refusal";
 import type { AdminSeam } from "./seam";
 import { useMinute } from "../shared/useMinute";
 import { changeFailedWords } from "../shared/words";
@@ -16,6 +16,12 @@ const useFeeds: AdminSeam["useFeeds"] = () => {
 const useSetByHand: AdminSeam["useSetByHand"] = () => useQuery(api.availability.availability.setByHand, {});
 
 const usePlatformSettings: AdminSeam["usePlatformSettings"] = () => useQuery(api.admin.platformSettings.settings, {});
+
+/** No gameweek asks the server nothing. */
+const useGameweekMatches: AdminSeam["useGameweekMatches"] = (gameweek) =>
+  useQuery(api.gameweeks.matchMoves.gameweekMatches, gameweek === null ? "skip" : { gameweek });
+
+const useMatchMoveLog: AdminSeam["useMatchMoveLog"] = () => useQuery(api.gameweeks.matchMoves.log, {});
 
 /** No player asks the server nothing. */
 const useAvailabilityOf: AdminSeam["useAvailabilityOf"] = (code) => useQuery(api.availability.availability.forAdmin, code === null ? "skip" : { code });
@@ -40,9 +46,12 @@ export function useLiveAdmin(): AdminSeam {
   const setClubColours = useMutation(api.football.clubKits.set);
   const setAvailability = useMutation(api.availability.availability.set);
   const savePlatformSettings = useMutation(api.admin.platformSettings.save);
+  const moveMatch = useMutation(api.gameweeks.matchMoves.move);
   return useMemo(
     () => ({
       useQueue,
+      useGameweekMatches,
+      useMatchMoveLog,
       useFoundPlayers,
       useFeeds,
       useSetByHand,
@@ -58,7 +67,20 @@ export function useLiveAdmin(): AdminSeam {
       setClubColours: (code, colours) => refusalOf(() => setClubColours({ code, ...colours }), "Setting a club's colours", changeFailedWords),
       setAvailability: (code, availability) => refusalOf(() => setAvailability({ code, availability }), "Setting a player's availability", changeFailedWords),
       savePlatformSettings: (settings) => refusalOf(() => savePlatformSettings(settings), "Saving the site's settings", changeFailedWords),
+      moveMatch: (fixtureCode, gameweek) => answerOf(() => moveMatch({ fixtureCode, gameweek }), "Moving a match", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setUnplacedArea, setApproveMode, setChangeThresholds, setClubColours, setAvailability, savePlatformSettings],
+    [
+      approvePlayer,
+      approveClub,
+      setPosition,
+      removePosition,
+      setUnplacedArea,
+      setApproveMode,
+      setChangeThresholds,
+      setClubColours,
+      setAvailability,
+      savePlatformSettings,
+      moveMatch,
+    ],
   );
 }

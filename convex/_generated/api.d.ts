@@ -80,6 +80,7 @@ import type * as football_sportmonks_fplLinksSync from "../football/sportmonks/f
 import type * as football_sportmonks_pointsCompare from "../football/sportmonks/pointsCompare.js";
 import type * as football_sportmonks_pointsCompareReport from "../football/sportmonks/pointsCompareReport.js";
 import type * as football_sportmonks_sportmonks from "../football/sportmonks/sportmonks.js";
+import type * as football_sportmonks_sportmonksCommentary from "../football/sportmonks/sportmonksCommentary.js";
 import type * as football_sportmonks_sportmonksLive from "../football/sportmonks/sportmonksLive.js";
 import type * as football_sportmonks_sportmonksMatch from "../football/sportmonks/sportmonksMatch.js";
 import type * as football_sportmonks_sportmonksPlayerStats from "../football/sportmonks/sportmonksPlayerStats.js";
@@ -89,7 +90,6 @@ import type * as football_sportmonks_sportmonksRaw from "../football/sportmonks/
 import type * as football_sportmonks_sportmonksRecording from "../football/sportmonks/sportmonksRecording.js";
 import type * as football_sportmonks_sportmonksStats from "../football/sportmonks/sportmonksStats.js";
 import type * as football_sportmonks_sportmonksSync from "../football/sportmonks/sportmonksSync.js";
-import type * as football_sportmonksCommentary from "../football/sportmonksCommentary.js";
 import type * as football_tableLines from "../football/tableLines.js";
 import type * as football_tieBreaks from "../football/tieBreaks.js";
 import type * as gameweekScorer_cardPoints from "../gameweekScorer/cardPoints.js";
@@ -145,9 +145,10 @@ import type * as lineup_autoSubs from "../lineup/autoSubs.js";
 import type * as lineup_autoTeam from "../lineup/autoTeam.js";
 import type * as lineup_autoTeamSwitch from "../lineup/autoTeamSwitch.js";
 import type * as lineup_autoTeamWords from "../lineup/autoTeamWords.js";
-import type * as lineup_classics from "../lineup/classics.js";
+import type * as lineup_classicFormations from "../lineup/classicFormations.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
 import type * as lineup_firstLineupBackfill from "../lineup/firstLineupBackfill.js";
+import type * as lineup_highLineDropped from "../lineup/highLineDropped.js";
 import type * as lineup_instructions from "../lineup/instructions.js";
 import type * as lineup_instructionsShape from "../lineup/instructionsShape.js";
 import type * as lineup_instructionsWords from "../lineup/instructionsWords.js";
@@ -482,6 +483,7 @@ declare const fullApi: ApiFromModules<{
   "football/sportmonks/pointsCompare": typeof football_sportmonks_pointsCompare;
   "football/sportmonks/pointsCompareReport": typeof football_sportmonks_pointsCompareReport;
   "football/sportmonks/sportmonks": typeof football_sportmonks_sportmonks;
+  "football/sportmonks/sportmonksCommentary": typeof football_sportmonks_sportmonksCommentary;
   "football/sportmonks/sportmonksLive": typeof football_sportmonks_sportmonksLive;
   "football/sportmonks/sportmonksMatch": typeof football_sportmonks_sportmonksMatch;
   "football/sportmonks/sportmonksPlayerStats": typeof football_sportmonks_sportmonksPlayerStats;
@@ -491,7 +493,6 @@ declare const fullApi: ApiFromModules<{
   "football/sportmonks/sportmonksRecording": typeof football_sportmonks_sportmonksRecording;
   "football/sportmonks/sportmonksStats": typeof football_sportmonks_sportmonksStats;
   "football/sportmonks/sportmonksSync": typeof football_sportmonks_sportmonksSync;
-  "football/sportmonksCommentary": typeof football_sportmonksCommentary;
   "football/tableLines": typeof football_tableLines;
   "football/tieBreaks": typeof football_tieBreaks;
   "gameweekScorer/cardPoints": typeof gameweekScorer_cardPoints;
@@ -547,9 +548,10 @@ declare const fullApi: ApiFromModules<{
   "lineup/autoTeam": typeof lineup_autoTeam;
   "lineup/autoTeamSwitch": typeof lineup_autoTeamSwitch;
   "lineup/autoTeamWords": typeof lineup_autoTeamWords;
-  "lineup/classics": typeof lineup_classics;
+  "lineup/classicFormations": typeof lineup_classicFormations;
   "lineup/firstLineup": typeof lineup_firstLineup;
   "lineup/firstLineupBackfill": typeof lineup_firstLineupBackfill;
+  "lineup/highLineDropped": typeof lineup_highLineDropped;
   "lineup/instructions": typeof lineup_instructions;
   "lineup/instructionsShape": typeof lineup_instructionsShape;
   "lineup/instructionsWords": typeof lineup_instructionsWords;

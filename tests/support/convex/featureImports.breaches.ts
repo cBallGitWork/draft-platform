@@ -144,6 +144,9 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/stats/matchRecordReads",
   "convex/stats/matchRecords",
   "convex/stats/matchStats",
+  // The Squad tab's Season became his card's total (#628), making squads its third user beside
+  // scouting and waivers; it reads stats, scoring and gameweekScorer, so it moves with them (#1581).
+  "convex/stats/seasonPoints",
   "convex/stats/seasonRebuilds",
   "convex/stats/seasonRecords",
   "convex/stats/seasonStats",

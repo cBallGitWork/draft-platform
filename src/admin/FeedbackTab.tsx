@@ -10,7 +10,7 @@ import { feedbackListTitle, feedbackLoadingWords, feedbackWords, moreFeedbackWor
 
 /** The dashboard's Feedback tab (#357; spec/15 The admin): what managers sent from the top bar's
  *  Feedback link, newest first, with who sent it and when; each one marked read or deleted (#395,
- *  S15.5). */
+ *  S15.7). */
 export function FeedbackTab({ seam }: { seam: FeedbackSeam }) {
   const list = seam.useFeedbackList();
   const change = useChange();

@@ -78,7 +78,7 @@ describe("sending", () => {
   });
 });
 
-describe(`S15.5: at most ${FEEDBACK_A_DAY} a day from one person`, () => {
+describe(`S15.7: at most ${FEEDBACK_A_DAY} a day from one person`, () => {
   const sendTimes = async (email: string, times: number) => {
     for (let number = 1; number <= times; number++) await send(email, `Message ${number}`);
   };
@@ -107,7 +107,7 @@ describe(`S15.5: at most ${FEEDBACK_A_DAY} a day from one person`, () => {
   });
 });
 
-describe("S15.5: the admin marks a message read or deletes it", () => {
+describe("S15.7: the admin marks a message read or deletes it", () => {
   const onlyId = async () => (await list(ADMIN)).entries[0].feedbackId;
   const markRead = async (email: string, feedbackId: Id<"feedback">) =>
     (await actingAs(t, email)).mutation(api.feedback.feedback.markRead, { feedbackId });

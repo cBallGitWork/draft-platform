@@ -52,7 +52,8 @@ export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
     "Crosses from both flanks for the strikers to head; a centre-back and both central midfielders attack.",
     "4-4-2",
     ["shotStopper", "overlappingFullBack", "attackingCentreBack", "stopper", "overlappingFullBack", "crosser", "attackingEight", "boxToBox", "crosser", "targetMan", "poacher"],
-    { attacking: "getItWide", defensive: "holdAHighLine" },
+    // Hold a high line went (#1452): its 4-4-2's default instead (Craig, 13 Nov 2026: "Formation's default").
+    { attacking: "getItWide", defensive: "keepItTightEarly" },
   ),
   classicFormation(
     "Barcelona's tiki-taka",
@@ -68,8 +69,8 @@ export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
     "The Mighty Magyars: Hidegkuti dropping off as a false 9, Puskás shooting from anywhere.",
     "4-2-4",
     ["sweeperKeeper", "defensiveFullBack", "stopper", "noNonsenseCentreBack", "defensiveFullBack", "boxToBox", "ballWinner", "winger", "winger", "falseNine", "poacher"],
-    // Its back four holds a line (#990).
-    { attacking: "shootOnSight", defensive: "holdAHighLine" },
+    // Its back four held a line (#990) until Hold a high line went (#1452): its 4-2-4's default.
+    { attacking: "shootOnSight", defensive: "keepItTightEarly" },
   ),
   classicFormation(
     "Man United",
@@ -93,7 +94,8 @@ export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
     "Bergkamp making chances between the lines for Henry running in behind.",
     "4-4-1-1",
     ["shotStopper", "overlappingFullBack", "stopper", "ballPlayingDefender", "defensiveFullBack", "wideMidfieldPlaymaker", "boxToBox", "ballWinner", "wideMidfielder", "numberTen", "inBehindStriker"],
-    { attacking: "playOutFromTheBack", defensive: "holdAHighLine" },
+    // Hold a high line went (#1452): its 4-4-1-1's default instead.
+    { attacking: "playOutFromTheBack", defensive: "keepItTightEarly" },
   ),
   classicFormation(
     "Greece",

@@ -18,7 +18,7 @@ import { gameModeOf } from "../rules/gameMode";
 import { starsLookupIn } from "../stars/playerStars";
 import { heldCell } from "./pitch";
 import { roleIn } from "./roles";
-import { inClassicFormationShape } from "./classics";
+import { inClassicFormationShape } from "./classicFormations";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
 import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";

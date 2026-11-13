@@ -3,7 +3,7 @@ import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { FIRST_PRESETS } from "../lineup/presets";
-import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classicFormations";
 import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
@@ -33,12 +33,12 @@ const FIRST_GAMES_PER_GAMEWEEK = 1;
  *  undrafted players to waivers. */
 const FIRST_DRAFT_RULES: DraftRules = { pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" };
 
-/** Craig's (6 Nov 2026, on #991): eight to start, their text sample (../lineup/classics.ts). */
+/** Craig's (6 Nov 2026, on #991): eight to start, their text sample (../lineup/classicFormations.ts). */
 const firstClassicFormations = (): LeagueClassicFormations =>
   FIRST_CLASSIC_FORMATIONS.map(({ cells, instructions, ...rest }) => ({ ...rest, cells: cells.map((cell) => ({ ...cell })), instructions: { ...instructions } }));
 
 /** A league's classic formations, as its rules hold them under their saved key, `classics`
- *  (../lineup/classics.ts's ClassicFormation). */
+ *  (../lineup/classicFormations.ts's ClassicFormation). */
 type LeagueClassicFormations = NonNullable<LeagueRules["classics"]>;
 
 /** The league's classic formations: the first rules' for rules saved before #991 made them rules. */

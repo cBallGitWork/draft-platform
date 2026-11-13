@@ -10,7 +10,7 @@ import { FEEDBACK_A_DAY, FEEDBACK_MAX, FEEDBACK_SHOWN } from "./feedbackLimits";
 
 // Feedback to the admin (#357; spec/12 The frame, spec/15 The admin): anyone signed in sends one
 // message from the top bar's Feedback link, at most FEEDBACK_A_DAY a day, and the admin reads them
-// all on his dashboard, marking one read or deleting it (#395, S15.5). No email goes with it.
+// all on his dashboard, marking one read or deleting it (#395, S15.7). No email goes with it.
 
 /** Why feedback was refused: sending, as the person who sent it is told it, and the admin's. */
 export const feedbackRefusals = {

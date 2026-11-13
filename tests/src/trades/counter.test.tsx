@@ -57,6 +57,19 @@ describe("a counter", () => {
     expect((await box("Team 2", PALMER.name)).checked).toBe(true);
   });
 
+  it("stays a counter when its offer closes on screen, so it isn't sent as a new offer (#1437)", async () => {
+    const app = openCounter({ view: { ...quietTrades, offers: [screenOffer()] } });
+    await box("Team 1", SAKA.name);
+    app.trades.showView({ ...quietTrades, offers: [] });
+    await userEvent.click(screen.getByRole("button", { name: sendCounterWords }));
+    expect(app.trades.counter).toHaveBeenCalledWith(league.leagueId, "offer-1", {
+      gives: [SAKA.code],
+      gets: [PALMER.code],
+      note: null,
+    });
+    expect(app.trades.offer).not.toHaveBeenCalled();
+  });
+
   describe("to a pick offer (#1471)", () => {
     // Before the draft: Team 2 offers its round 2 pick for Team 1's round 3 pick; each also holds
     // its own round 1 pick.

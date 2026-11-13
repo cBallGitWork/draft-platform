@@ -33,6 +33,46 @@ describe("whether the draft has changed", () => {
   });
 });
 
+describe("an edit typed while a save runs (#1437)", () => {
+  it("is kept once the save lands, over the save's own row, not taken as someone else's", async () => {
+    let land = (_: number) => {};
+    const save = vi.fn(() => Promise.resolve(CHANGES_FROM));
+    save.mockImplementationOnce(() => new Promise<number>((resolve) => (land = resolve)));
+    const { result, rerender } = renderHook(({ view }) => useRulesEdits(view, save), { initialProps: { view: VIEW } });
+    const first = { ...SAVED, limit: 15 };
+    const second = { ...SAVED, limit: 16 };
+    act(() => result.current.edit(first));
+    let saving: Promise<void> = Promise.resolve();
+    act(() => void (saving = result.current.saveDraft()));
+    await vi.waitFor(() => expect(save).toHaveBeenCalled());
+    act(() => result.current.edit(second));
+
+    rerender({ view: { ...VIEW, part: first, revision: "saved" } });
+    await act(async () => {
+      land(CHANGES_FROM);
+      await saving;
+    });
+    expect(result.current.draft).toEqual(second);
+    expect(result.current.overtaken).toBe(false);
+    expect(result.current.unchanged).toBe(false);
+
+    await act(() => result.current.saveDraft());
+    expect(save).toHaveBeenLastCalledWith(second, "saved");
+  });
+
+  it("is let go, the saved part shown, when nothing was typed while it ran", async () => {
+    const { result, rerender } = renderHook(({ view }) => useRulesEdits(view, () => Promise.resolve(CHANGES_FROM)), {
+      initialProps: { view: VIEW },
+    });
+    const edited = { ...SAVED, limit: 15 };
+    act(() => result.current.edit(edited));
+    rerender({ view: { ...VIEW, part: edited, revision: "saved" } });
+    await act(() => result.current.saveDraft());
+    expect(result.current.unchanged).toBe(true);
+    expect(result.current.overtaken).toBe(false);
+  });
+});
+
 describe("where a refusal for a box left without a number is said (#645)", () => {
   it("in the bar, when no blank box is found to say it beside", async () => {
     const words = "A box has no number.";
