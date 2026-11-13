@@ -69,11 +69,15 @@ permissions:
 # One pass at a time. GitHub keeps one pass waiting in a group and drops the one it replaces, so an event the job's
 # `if` drops (a skipped build, any other label) runs in a group of its own: in the lead's group it replaced the real
 # pass waiting behind a running one and then skipped, and on 7 Nov 2026 the builders sat idle from 10:42 to 15:23.
+# A dry run gets its own group too, and runs beside main's pass: it writes nothing, and in the lead's group each new
+# pass replaced it before it started (4 of 6 tries on 13 Nov 2026, #2031).
 concurrency:
   group: >-
     ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'skipped')
          || (github.event_name == 'issues' && !contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name)))
-        && format('lead-dropped-{0}', github.run_id) || 'lead' }}
+        && format('lead-dropped-{0}', github.run_id)
+        || (inputs.dry_run == true && format('lead-dry-{0}', github.run_id))
+        || 'lead' }}
   cancel-in-progress: false
 
 env:
@@ -139,6 +143,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Make the lead's labels
+        if: env.DRY_RUN != 'true'  # a dry run writes nothing, labels included (#2031)
         run: |
           gh label create "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
           gh label create "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
