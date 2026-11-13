@@ -117,7 +117,7 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, lineupOwners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, mine: team?._id ?? null }, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null }, priced, unownedPoints);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -224,7 +224,7 @@ async function menOf(
   leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
-  { owners, lineupOwners, mine }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; mine: Id<"teams"> | null },
+  { owners, lineupOwners, viewerTeam }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
 ): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
@@ -249,7 +249,7 @@ async function menOf(
         started,
         played,
         ownerTeamName: owner?.name ?? null,
-        mine: owner !== undefined && owner._id === mine,
+        mine: owner !== undefined && owner._id === viewerTeam,
         marks: marksOf(stats),
         points: slot?.points ?? null,
         counts: slot?.counts ?? true,

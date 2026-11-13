@@ -91,7 +91,7 @@ describe("the team sheets", () => {
     expect(sheetRows(MOVED_TITLE)).toEqual([["CM", "Isak", freeAgentWords, noFigureWords]]);
   });
 
-  // "the team sheets' column of the league team owning each player is headed Owner" (Craig, 10 Nov 2026, on #1032).
+  // "the team sheets' column of the league team owning each player is headed Owner" (Craig, 10 Nov 2026, on #1032; S10.7).
   it("heads the team each man's points are for Owner", async () => {
     openMatch({ match: matchOf() });
     const sheet = await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
