@@ -139,7 +139,10 @@ done
 for merge in "gh api graphql -f query='mutation{mergePullRequest(input:{pullRequestId:\"x\"}){clientMutationId}}'" \
   "gh api graphql -f 'query=mutation { enablePullRequestAutoMerge(input:{pullRequestId:\"x\"}) { clientMutationId } }'" \
   "cd /x && gh -R o/r api graphql --raw-field=query='mutation{mergePullRequest(input:{}){clientMutationId}}'" \
-  "gh api graphql -F query=@merge.graphql" "gh api graphql --input q.json"; do
+  "gh api graphql -F query=@merge.graphql" "gh api graphql --input q.json" \
+  "gh api /graphql -f query='mutation{mergePullRequest(input:{}){clientMutationId}}'" \
+  "gh api https://api.github.com/graphql/ -f query='mutation{enablePullRequestAutoMerge(input:{}){clientMutationId}}'" \
+  'gh api graphql -f query="$(cat merge.graphql)"' 'gh api graphql -f query=$Q' 'gh api graphql -f query="${Q}"'; do
   check deny guard_bash.py "$(bash_in "$repo" "$merge")"
 done
 says "gh api graphql" guard_bash.py "$(bash_in "$repo" "gh api graphql -f query='mutation{mergePullRequest(input:{}){clientMutationId}}'")"
