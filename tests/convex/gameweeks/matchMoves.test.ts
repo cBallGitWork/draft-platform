@@ -61,6 +61,26 @@ test("the window rule yields to a move: the next sync leaves the match where the
   expect(await gameweekOf(LATER_14)).toBe(14);
 });
 
+test("a moved match the feed then postpones goes to no gameweek once the move is cleared, as the sync would put it", async () => {
+  await move(LATER_14, 15);
+  await t.mutation(internal.football.footballSync.upsertFixtures, {
+    rows: SENT.map((match) => (match.code === LATER_14 ? { ...match, gameweek: null } : match)),
+  });
+  expect(await gameweekOf(LATER_14)).toBe(15);
+
+  await move(LATER_14, null);
+  expect(await gameweekOf(LATER_14)).toBeNull();
+});
+
+test("a match no longer in the feed can't be moved", async () => {
+  await t.run(async (ctx) => {
+    const match = (await ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", LATER_14)).unique())!;
+    await ctx.db.patch("fixtures", match._id, { droppedAt: Date.now() });
+  });
+
+  await expectRefused(move(LATER_14, 15), matchMoveRefusals.dropped);
+});
+
 test("only the admin moves a match or reads his log", async () => {
   const outsider = await actingAs(t, OUTSIDER);
   await expectRefused(outsider.mutation(api.gameweeks.matchMoves.move, { fixtureCode: LATER_14, gameweek: 15 }), refusals.notAdmin);

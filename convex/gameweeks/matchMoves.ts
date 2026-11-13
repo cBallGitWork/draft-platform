@@ -8,7 +8,7 @@ import { followKickoffs } from "../scoring/patchKickoffs";
 import { recordPassedDeadlines } from "./deadlineRecorder";
 import type { ScheduledMatch } from "./deadline";
 import { leagueDeadlinesIn, scheduledMatches } from "./leagueDeadlines";
-import { moveOf, windowGameweekOf } from "./roundStarts";
+import { moveOf } from "./roundStarts";
 import { seasonGameweekCount } from "./seasonGameweeks";
 import { isGameweek, noSuchGameweek } from "./usedGameweeks";
 
@@ -40,7 +40,8 @@ export const matchMoveWarnings = {
 export const MATCH_MOVE_LOG_SHOWN = 100;
 
 /** Moves the match to `gameweek` and keeps it there whatever the feed then says, or, with
- *  `gameweek` null, clears his move, so it goes back to the gameweek its kickoff's window makes.
+ *  `gameweek` null, clears his move, so it goes back to the gameweek the window rule gives it:
+ *  none for a postponed match the feed puts in no round.
  *  Returns any warnings about the deadline the match is now the first kickoff of. */
 export const move = mutation({
   args: { fixtureCode: v.number(), gameweek: v.union(v.number(), v.null()) },
@@ -56,9 +57,13 @@ export const move = mutation({
     // Before any deadline moves, as the football sync does (deadlineRecorder.ts, #150).
     await recordPassedDeadlines(ctx);
     const now = Date.now();
-    const to = gameweek ?? (await windowGameweekOf(ctx, match.kickoff));
+    const held = await moveOf(ctx, fixtureCode);
+    // Unmoved, the match sits where the last sync's window rule put it; moved, his move keeps that.
+    const unmoved = held === null ? match.gameweek : held.unmoved;
+    const to = gameweek ?? unmoved;
     const before = await scheduledMatches(ctx);
-    await keepMove(ctx, fixtureCode, gameweek, now);
+    if (held !== null) await ctx.db.delete("matchMoves", held._id);
+    if (gameweek !== null) await ctx.db.insert("matchMoves", { fixtureCode, gameweek, unmoved, movedAt: now });
     await ctx.db.insert("matchMoveLog", { fixtureCode, from: match.gameweek, to: gameweek, at: now });
     if (to !== match.gameweek) {
       await ctx.db.patch("fixtures", match._id, { gameweek: to });
@@ -84,17 +89,12 @@ export const log = query({
   },
 });
 
-/** Writes, replaces or (with `gameweek` null) deletes the match's move. */
-async function keepMove(ctx: MutationCtx, fixtureCode: number, gameweek: number | null, now: number): Promise<void> {
-  const held = await moveOf(ctx, fixtureCode);
-  if (held !== null) await ctx.db.delete("matchMoves", held._id);
-  if (gameweek !== null) await ctx.db.insert("matchMoves", { fixtureCode, gameweek, movedAt: now });
-}
-
 /** The warnings for `gameweek`'s deadline in each league where the move changed it: now already
  *  past, or before the gameweek before's last kickoff. */
 async function deadlineWarnings(ctx: MutationCtx, gameweek: number, before: readonly ScheduledMatch[], now: number): Promise<string[]> {
   const after = await scheduledMatches(ctx);
+  // -Infinity when the gameweek before has no kickoffs (or for gameweek 1, which has none before
+  // it): no deadline can fall before it ends, so only the "already past" warning applies.
   const lastKickoffBefore = Math.max(...after.flatMap((match) => (match.gameweek === gameweek - 1 && match.kickoff !== null ? [match.kickoff] : [])));
   const past: string[] = [];
   const early: string[] = [];

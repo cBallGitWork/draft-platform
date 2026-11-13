@@ -24509,6 +24509,20 @@
             },
             "optional": false
           },
+          "unmoved": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
           "movedAt": {
             "fieldType": {
               "type": "number"
