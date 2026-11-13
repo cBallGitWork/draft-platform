@@ -26,7 +26,7 @@ export const siteScoringTables = {
      *  announced, for the patch notes; absent on a fix, and until that run is done. */
     lab: v.optional(labReportShape),
     /** A patch announced from a gameweek: that gameweek, whose first kickoff `takesEffectAt`
-     *  follows if it moves later before the patch lands (Craig, 1 Nov 2026, on #901;
+     *  follows if it moves, later or earlier, before the patch lands (Craig, on #901 and #1304;
      *  patchKickoffs.ts). None for a fix, or a patch announced at a moment no gameweek starts at. */
     gameweek: v.optional(v.number()),
   }).index("by_takesEffectAt", ["takesEffectAt"]),

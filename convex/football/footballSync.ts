@@ -129,7 +129,7 @@ export const upsertFixtures = internalMutation({
       if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
     });
     await repriceMatches(ctx, moved);
-    // A waiting patch follows its gameweek's first kickoff later (patchKickoffs.ts, #901).
+    // A waiting patch follows its gameweek's first kickoff, later or earlier (patchKickoffs.ts, #901, #1304).
     await followKickoffs(ctx, Date.now());
     await rebuildIfNoneKept(ctx);
     return upserted;

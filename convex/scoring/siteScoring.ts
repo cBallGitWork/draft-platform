@@ -206,7 +206,7 @@ export const announce = mutation({
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest, zone));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
-    // Announced from a gameweek, it follows that gameweek's deadline if its first kickoff moves later (patchKickoffs.ts).
+    // Announced from a gameweek, it follows that gameweek's deadline if its first kickoff moves (patchKickoffs.ts).
     const gameweek = (await patchGameweeks(ctx, Date.now(), PATCH_NOTICE_MS)).find((offered) => offered.takesEffectAt === takesEffectAt)?.gameweek;
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt, gameweek }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
