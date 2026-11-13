@@ -1827,6 +1827,38 @@
               }
             },
             "optional": false
+          },
+          "unplacedArea": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "goalkeeper"
+                },
+                {
+                  "type": "literal",
+                  "value": "defence"
+                },
+                {
+                  "type": "literal",
+                  "value": "defensiveMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "midfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attackingMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attack"
+                }
+              ]
+            },
+            "optional": true
           }
         }
       }

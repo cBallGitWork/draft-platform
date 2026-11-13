@@ -96,6 +96,10 @@ export const siteSettingsLoadingWords = "Loading the settings…";
 
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
 export const noPositionsWords = "No positions yet.";
+/** A player with no positions counts towards one area's squad minimum, the admin's choice, until a
+ *  feed places him (spec/06 `S06.1`). */
+export const unplacedAreaLabel = (name: string) => `Area ${name} counts towards for the squad minimums until a feed places him`;
+export const noAreaWords = "No area";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
 /** What follows where a held position came from: that it is unconfirmed, or flagged. */
 export const unconfirmedNote = ", unconfirmed";

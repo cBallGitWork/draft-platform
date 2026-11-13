@@ -59,7 +59,7 @@ vi.mock("convex/react", async () => {
             ["joining/invites:send", "joining/invites:resend", "joining/invites:cancel", "leagues/teams:removeManager", "joining/inviteLink:make"],
             ["joining/inviteLink:switchOff", "joining/joinRequests:approve", "joining/joinRequests:refuseRequest", "joining/joinRequests:ask"],
             ["positions/playerPositions:approvePlayer", "positions/playerPositions:approveClub", "positions/playerPositions:setPosition"],
-            ["positions/playerPositions:removePosition", "positions/positionSettings:setApproveMode", "positions/positionSettings:setChangeThresholds"],
+            ["positions/playerPositions:removePosition", "positions/positionSettings:setApproveMode", "positions/positionSettings:setChangeThresholds", "positions/unplacedAreas:setUnplacedArea"],
             ["squads/squads:assign", "squads/squads:move", "squads/squads:release", "lineup/autoTeam:set"],
             ["scoring/siteScoring:fix", "scoring/siteScoring:saveDraft", "scoring/siteScoring:announce", "scoring/siteScoring:withdraw"],
             ["rules/leagueSettings:changeSettings", "draft/draftOrder:setTeamOrder", "draft/draftOrder:drawTeamOrder", "gameweeks/scoringStart:setScoringStart"],

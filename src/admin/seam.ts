@@ -6,6 +6,7 @@ import type { FeedsReport } from "../../convex/admin/feeds";
 import type { PlatformSettings } from "../../convex/admin/platformSettings";
 import type { Availability, AvailabilityRow } from "../../convex/availability/availability";
 import type { Colours } from "../../convex/football/clubColours";
+import type { Area } from "../../convex/lineup/pitch";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode } from "../../convex/positions/positions";
@@ -32,6 +33,9 @@ export type AdminSeam = {
   approveClub(clubCode: number): Change;
   setPosition(code: number, position: Position): Change;
   removePosition(code: number, position: Position): Change;
+  /** Sets the area a player with no positions counts towards the squad minimum of until a feed
+   *  places him, or null for none (spec/06 `S06.1`). */
+  setUnplacedArea(code: number, area: Area | null): Change;
   setApproveMode(approveMode: ApproveMode): Change;
   setChangeThresholds(thresholds: ChangeThresholds): Change;
   /** Sets a club's two colours and its shirt's pattern (spec/15, #838). */

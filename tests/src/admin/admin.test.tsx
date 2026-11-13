@@ -46,7 +46,10 @@ import {
   switchModeWords,
   waitingHint,
   waitingTitle,
+  noAreaWords,
+  unplacedAreaLabel,
 } from "../../../src/admin/words";
+import { AREA_WORDS } from "../../../src/shared/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
 const ARSENAL = { code: 3, name: "Arsenal", colours: { primary: "#E50107", secondary: "#FFFFFF", pattern: "plain" as const } };
@@ -71,6 +74,7 @@ const DATA: AdminData = {
         { position: "ST", source: "starts", confirmed: true, flaggedElsewhere: 4 },
         { position: "CAM", source: "label", confirmed: false, flaggedElsewhere: null },
       ],
+      unplacedArea: null,
     },
   ],
 };
@@ -230,6 +234,21 @@ describe("correcting a player", () => {
     await userEvent.selectOptions(give, "SS");
     await userEvent.click(within(found).getByRole("button", { name: setWords }));
     expect(app.admin.setPosition).toHaveBeenCalledExactlyOnceWith(WOLTEMADE.code, "SS");
+    expect(within(found).queryByRole("combobox", { name: unplacedAreaLabel(WOLTEMADE.name) })).toBeNull();
+  });
+
+  it("#911: sets the area a player no feed has placed counts towards, and clears it", async () => {
+    const unplaced = { code: 9, name: "Okafor", fullName: "Chidi Okafor", clubCode: NEWCASTLE.code, positions: [], unplacedArea: "defence" as const };
+    const app = openDashboard({ ...DATA, found: [unplaced] });
+    await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), unplaced.name);
+    const area = within(screen.getByRole("list", { name: foundListLabel })).getByRole("combobox", { name: unplacedAreaLabel(unplaced.name) });
+    expect((area as HTMLSelectElement).value).toBe("defence");
+    await userEvent.selectOptions(area, AREA_WORDS.midfield);
+    await userEvent.selectOptions(area, noAreaWords);
+    expect(app.admin.setUnplacedArea.mock.calls).toEqual([
+      [unplaced.code, "midfield"],
+      [unplaced.code, null],
+    ]);
   });
 
   it("shows why a change was refused", async () => {
