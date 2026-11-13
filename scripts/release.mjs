@@ -14,6 +14,9 @@
 // so the copy goes with it: the backup that lasts is the one Convex keeps. If the backup fails,
 // nothing is deployed and the release stops, saying why. docs/setup.md says how to restore.
 //
+// Just before deploying, it sets TIMED_JOBS_ON on the live deployment, which runs the timed feed,
+// waiver and trade jobs there and only there (#1997); if it can't, nothing is deployed.
+//
 // Before any of that, it refuses a build that isn't production's, or that has no deploy key, and
 // says why in the build log: a preview (a `vercel deploy` from the CLI, say) must never put its
 // code on the live deployment, and without the key `convex deploy` can't reach it.
