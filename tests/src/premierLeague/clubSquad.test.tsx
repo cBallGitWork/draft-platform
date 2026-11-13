@@ -1,5 +1,5 @@
-// A club page's Squad tab (#1937; spec/18 `S18.8`): the club's players grouped GK, DEF, MID, AM,
-// FWD, no position last, each row with who holds him, his points, his last five gameweeks, his
+// A club page's Squad tab (#1937; spec/18 `S18.8`): the club's players in the server's order,
+// grouped GK, DEF, MID, AM, FWD, no position last, each row with his position chips, who holds him, his points, his last five gameweeks, his
 // starts and minutes, and a greyed doubt chip; a row opens his card. And its header's top three
 // scorers (`S18.7`). The read itself is tested in tests/convex/scouting/clubSquad.test.ts.
 
@@ -12,14 +12,13 @@ import type { ClubPageData, ClubSquad, SquadPlayer } from "../../../src/premierL
 import {
   clubTabWords,
   freeAgentWords,
-  noPositionGroupWords,
   noSeasonPointsWords,
   noSquadWords,
-  squadGroupWords,
   statusNotSettledLabel,
   topScorersHead,
   waiversWords,
 } from "../../../src/premierLeague/words";
+import { POSITION_NAMES } from "../../../src/shared/words";
 import { ARSENAL, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -70,16 +69,14 @@ describe("the Squad tab", () => {
       .getAllByRole("row")
       .slice(1)
       .map((row) => [...row.children].map((cell) => cell.textContent));
+    // The server's order groups them; the position chips mark the groups, with no band rows.
     expect(lines).toEqual([
-      [squadGroupWords.GK],
       ["GK", "Raya", freeAgentWords, "30", "6", "1", "—", "2", "6", "8", "720"],
-      [squadGroupWords.DEF],
-      ["CB CM", "Rice", waiversWords, "25", "—", "—", "—", "—", "—", "0", "0"],
-      [squadGroupWords.AM],
-      ["W ST", "Saka", "Saka Potatoes", "42", "—", "—", "—", "—", "—", "0", "0"],
-      [noPositionGroupWords],
-      ["", "Trialist", freeAgentWords, "—", "—", "—", "—", "—", "—", "0", "0"],
+      ["CBCM", "Rice", waiversWords, "25", "—", "—", "—", "—", "—", "0", "0"],
+      ["WST", "Saka", "Saka Potatoes", "42", "—", "—", "—", "—", "—", "0", "0"],
+      ["—", "Trialist", freeAgentWords, "—", "—", "—", "—", "—", "—", "0", "0"],
     ]);
+    expect(within(panel).getAllByTitle(POSITION_NAMES.CB)).toHaveLength(1);
     expect(within(panel).getByRole("columnheader", { name: /GW4/ })).toBeTruthy();
   });
 
@@ -94,7 +91,7 @@ describe("the Squad tab", () => {
     const app = openClub({ squad });
     const panel = await squadPanel();
     expect(within(panel).queryAllByRole("button")).toHaveLength(0);
-    await userEvent.click(within(panel).getAllByRole("row")[2].querySelectorAll("td")[1]);
+    await userEvent.click(within(panel).getAllByRole("row")[1].querySelectorAll("td")[1]);
     expect(app.path()).toBe(playerCardPath(league.leagueId, 3));
   });
 

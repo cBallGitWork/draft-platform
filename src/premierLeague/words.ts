@@ -156,15 +156,6 @@ export const loadingSquadWords = "Loading the squad…";
 export const noSquadWords = "No players are held at this club.";
 /** In the Team column, a player on the league's waivers. */
 export const waiversWords = "Waivers";
-/** Each group's band over its players: FM's split (Craig, 12 Nov 2026), no position last. */
-export const squadGroupWords = {
-  GK: "Goalkeepers",
-  DEF: "Defenders",
-  MID: "Midfielders",
-  AM: "Attacking midfielders",
-  FWD: "Forwards",
-} as const;
-export const noPositionGroupWords = "No position";
 /** Why his season points are "—", as Scouting says it. */
 export { noSeasonPointsWords } from "../shared/words";
 /** Why a gameweek's cell is "—". */

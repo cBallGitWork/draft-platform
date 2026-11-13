@@ -1,25 +1,22 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Fragment } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { playerCardPath } from "../playerCard/paths";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
-import { PositionCodes } from "../ui/PositionCodes";
-import type { ClubSquad, SquadGroup, SquadPlayer } from "./seam";
+import { PositionChip } from "../ui/PositionChip";
+import type { ClubSquad, SquadPlayer } from "./seam";
 import {
   clubTabWords,
   didNotPlayWords,
   figureWords,
   loadingSquadWords,
   noFigureWords,
-  noPositionGroupWords,
   noSeasonPointsWords,
   noSquadWords,
   openCardLabel,
   squadColumns,
-  squadGroupWords,
   statusNotSettledLabel,
   topScorersHead,
   waiversWords,
@@ -43,12 +40,11 @@ function FigureCell({ value, why, className }: { value: number | null; why: stri
 const LEFT_COLUMNS: readonly string[] = ["positions", "player", "owner"];
 const cellClasses = (column: string) => cellClassOf(LEFT_COLUMNS.includes(column));
 
-/** The groups in their order, no position last (convex/scouting/clubSquad.ts sorts the rows so). */
-const groupWords = (group: SquadGroup | null) => (group === null ? noPositionGroupWords : squadGroupWords[group]);
-
-/** The Squad tab: every current player, grouped GK, DEF, MID, AM, FWD under a band each, with his
- *  positions, his doubt chip's place, who holds him, his season points, his points in each of the
- *  last five finished gameweeks, his starts and his minutes. */
+/** The Squad tab: every current player, grouped GK, DEF, MID, AM, FWD with no position last, as
+ *  convex/scouting/clubSquad.ts sorts them, the position chips marking the groups with no band rows
+ *  (plate.md: "the coloured chips do that work"); each with his doubt chip's place, who holds him,
+ *  his season points, his points in each of the last five finished gameweeks, his starts and his
+ *  minutes. */
 export function SquadTab({ leagueId, squad }: { leagueId: Id<"leagues">; squad: ClubSquad | null | undefined }) {
   const navigate = useNavigate();
   if (squad === undefined || squad === null || squad.players.length === 0) {
@@ -58,26 +54,13 @@ export function SquadTab({ leagueId, squad }: { leagueId: Id<"leagues">; squad: 
       </Panel>
     );
   }
-  const columns = squadColumns(squad.gameweeks, squad.pointsSeason);
-  const shown = Object.keys(columns);
-  const groups = new Map<SquadGroup | null, SquadPlayer[]>();
-  for (const player of squad.players) groups.set(player.group, [...(groups.get(player.group) ?? []), player]);
   return (
     <Panel title={clubTabWords.squad}>
       <table className="w-full border-collapse">
-        <ColumnHeads columns={columns} classOf={cellClasses} />
+        <ColumnHeads columns={squadColumns(squad.gameweeks, squad.pointsSeason)} classOf={cellClasses} />
         <tbody>
-          {[...groups].map(([group, players]) => (
-            <Fragment key={group ?? "none"}>
-              <tr>
-                <th colSpan={shown.length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
-                  {groupWords(group)}
-                </th>
-              </tr>
-              {players.map((player) => (
-                <SquadRow key={player.code} leagueId={leagueId} player={player} squad={squad} open={() => void navigate({ to: playerCardPath(leagueId, player.code) })} />
-              ))}
-            </Fragment>
+          {squad.players.map((player) => (
+            <SquadRow key={player.code} leagueId={leagueId} player={player} squad={squad} open={() => void navigate({ to: playerCardPath(leagueId, player.code) })} />
           ))}
         </tbody>
       </table>
@@ -89,7 +72,15 @@ function SquadRow({ leagueId, player, squad, open }: { leagueId: Id<"leagues">; 
   return (
     <tr onClick={open} className="cursor-pointer border-t border-panel-rule lg:h-row">
       <td className={cellClasses("positions")}>
-        <PositionCodes positions={player.positions} spaced />
+        {player.positions.length === 0 ? (
+          <span className="text-muted">{noFigureWords}</span>
+        ) : (
+          <span className="flex gap-1">
+            {player.positions.map((position) => (
+              <PositionChip key={position} label={position} />
+            ))}
+          </span>
+        )}
       </td>
       <th scope="row" title={player.fullName} className={`${cellClasses("player")} font-normal`}>
         <span className="flex items-center gap-2">
