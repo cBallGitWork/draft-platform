@@ -5,7 +5,7 @@ import { DEFAULT_ROLES } from "../lineup/roles";
 import { PAST_STAT_COLUMNS } from "../pastSeasons/pastStatColumns";
 import { instructionTotal, roleTotal } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
-import { ROLE_TARGET_MARGIN } from "./balanceLabLimits";
+import { NO_POSITION_NAMED, ROLE_TARGET_MARGIN } from "./balanceLabLimits";
 import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
 // The rule balance lab (spec/14, The rule balance lab; #843): a backtest of a patch draft on the
@@ -86,10 +86,12 @@ export function slotOfStart(startingPosition: string): SlotPosition | null {
   return at === null ? null : positionOfSlot(at);
 }
 
-/** One real start in a past season: the year the season starts, the match's kickoff, the club he
- *  started for (absent on a row copied before #1541), where he started, and his stats. */
+/** One real start in a past season: the year the season starts, who started (his FPL code, or for a
+ *  man with no code ai-carling's person id, S14.24), the match's kickoff, the club he started for
+ *  (absent on a row copied before #1541), where he started, and his stats. */
 export interface PastStart {
   season: number;
+  player: number | string;
   kickoff: number;
   club?: string;
   startingPosition: string;
@@ -114,6 +116,15 @@ export function roleStats(set: ScoringSet, role: string): string[] {
 
 /** Those of `stats` the past seasons weren't copied with. */
 const notCopied = (stats: readonly string[]): string[] => stats.filter((stat) => !(stat in PAST_STAT_COLUMNS));
+
+/** The past starters whose match gives a position the pitch has no cell for (S14.23, S14.25; Craig, 13 Nov
+ *  2026, on #1541: "We should just be using the roles per match"): each is given none, so is in no
+ *  slot and no XI, and is flagged. How many, and the first NO_POSITION_NAMED by season and kickoff. */
+export function startersWithNoPosition(starts: readonly PastStart[]): { count: number; first: PastStart[] } {
+  const flagged = starts.filter((start) => cellOfStart(start.startingPosition) === null);
+  const first = flagged.toSorted((a, b) => a.season - b.season || a.kickoff - b.kickoff).slice(0, NO_POSITION_NAMED);
+  return { count: flagged.length, first };
+}
 
 /** In hundredths, so a flag is never one floating point's noise. */
 const hundredths = (points: number): number => Math.round(points * 100);

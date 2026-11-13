@@ -8,7 +8,7 @@ import {
   premierLeagueRows,
   seasonCounts,
   statsIn,
-  withoutFplCode,
+  withNoFplCode,
   type FplPosition,
   type LogRow,
 } from "../../../convex/pastSeasons/pastSeasonRows";
@@ -125,33 +125,45 @@ describe("a past season's rows", () => {
   });
 });
 
-describe("a player with no FPL code is skipped, the rest of the season kept (Craig, 6 Nov 2026, on #842)", () => {
+describe("a player with no FPL code is kept under his person id (S14.24; Craig, 13 Nov 2026, on #1541)", () => {
   const keeper = SAMPLE_LOG.filter((row) => row.person_root_id === "keeper-one");
   const unmatched = keeper.map((row) => ({ ...row, person_root_id: "no-fpl-seven" }));
 
-  test("his rows are left out and he is named, with the matches he played", () => {
-    const { kept, skipped } = withoutFplCode([...SAMPLE_LOG, ...unmatched], codes);
-    expect(kept).toEqual(premierLeagueRows(SAMPLE_LOG));
-    expect(skipped).toEqual([{ root: "no-fpl-seven", rows: unmatched.length, played: unmatched.filter(playedIn).length }]);
+  test("he is named, with the matches he played", () => {
+    expect(withNoFplCode([...SAMPLE_LOG, ...unmatched], codes)).toEqual([
+      { root: "no-fpl-seven", rows: premierLeagueRows(unmatched).length, played: premierLeagueRows(unmatched).filter(playedIn).length },
+    ]);
+  });
+
+  test("each match he played is a row under his person id, with its club and starting position, and no FPL position", () => {
+    const rows = pastSeasonRows(SAMPLE_SEASON, [...SAMPLE_LOG, ...unmatched], codes, positions);
+    const his = premierLeagueRows(unmatched).filter(playedIn);
+    expect(rows.filter((row) => "person" in row)).toEqual(
+      his.map((row) => ({
+        season: SAMPLE_SEASON,
+        person: "no-fpl-seven",
+        match: { kickoff: Date.parse(String(row.kickoff_utc)), club: row.team, startingPosition: row.starting_position, stats: statsIn(row) },
+      })),
+    );
   });
 
   test("everyone else is still found by his FPL code", () => {
-    const { kept } = withoutFplCode([...SAMPLE_LOG, ...unmatched], codes);
-    expect(pastSeasonRows(SAMPLE_SEASON, kept, codes, positions)).toEqual(sampleRows());
+    const rows = pastSeasonRows(SAMPLE_SEASON, [...SAMPLE_LOG, ...unmatched], codes, positions);
+    expect(rows.filter((row) => !("person" in row))).toEqual(sampleRows());
   });
 
-  test("a season where everyone has a code skips no one", () => {
-    expect(withoutFplCode(SAMPLE_LOG, codes).skipped).toEqual([]);
+  test("a season where everyone has a code names no one", () => {
+    expect(withNoFplCode(SAMPLE_LOG, codes)).toEqual([]);
+  });
+
+  test("twice at one kickoff stops the copy, naming him", () => {
+    const [first] = premierLeagueRows(unmatched).filter(playedIn);
+    expect(() => pastSeasonRows(SAMPLE_SEASON, [first!, first!], codes, positions)).toThrow("Person no-fpl-seven plays twice at kickoff");
   });
 });
 
 describe("the copy stops, naming him, rather than guess", () => {
   const playedRow = SAMPLE_LOG.find((row) => row.person_root_id === "keeper-one")!;
-
-  test("a Premier League row whose person has no FPL code", () => {
-    const log = [{ ...playedRow, person_root_id: "no-fpl-seven" }];
-    expect(() => pastSeasonRows(SAMPLE_SEASON, log, codes, positions)).toThrow("Person no-fpl-seven has no FPL code");
-  });
 
   test("a player the season's FPL list lacks", () => {
     const withoutKeeper = new Map([...positions].filter(([code]) => code !== 100001));

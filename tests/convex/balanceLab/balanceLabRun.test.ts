@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
+import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
 import { ADMIN } from "../../support/convex/leagues.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { withShotStopper } from "../../support/convex/scoring.example";
@@ -13,7 +14,8 @@ import { announceAs, as, draftSavedAt, kickoffOf, saveDraftAs, t, useSiteScoring
 useSiteScoringDeployment();
 
 /** Two keepers' starts in 2024/25, one copied with his club and one before clubs were (#1541), a
- *  sub's match, and a start at a position that maps to no slot. */
+ *  sub's match, a start at a position that maps to no slot by a man today's players table still
+ *  holds, and one by a man with no FPL code, kept under his person id (S14.24). */
 const holdPastSeason = () =>
   t.run(async (ctx) => {
     const row = (playerCode: number, kickoff: number, startingPosition: string | null, stats: Record<string, number>, club?: string) =>
@@ -22,7 +24,19 @@ const holdPastSeason = () =>
     await row(2, 1, "GK", { saves: 6, goals_conceded: 1 });
     await row(3, 2, null, { saves: 9, goals_conceded: 0 });
     await row(4, 2, "SW", { saves: 9, goals_conceded: 0 });
+    await insertPlayers(ctx, [{ code: 4, name: "Sweeper", fullName: "Sam Sweeper", clubCode: ARSENAL.code, positions: ["CB"] }]);
+    await ctx.db.insert("pastPlayerMatchStats", { season: 2024, person: "no-code-eight", match: { kickoff: 3, club: "Leeds", startingPosition: "SW", stats: {} } });
   });
+
+/** The two starters flagged with no position: the one today's list holds by his name, the one with
+ *  no FPL code by his person id. */
+const NO_POSITION = {
+  count: 2,
+  first: [
+    { name: "Sam Sweeper", kickoff: 2 },
+    { name: "Person no-code-eight", club: "Leeds", kickoff: 3 },
+  ],
+};
 
 const runAs = async (email: string, savedAt: number) => (await as(email)).action(api.balanceLab.balanceLabRun.run, { draftSavedAt: savedAt });
 const everything = () =>
@@ -37,11 +51,13 @@ describe("the admin's button on the draft patch", () => {
     const report = await runAs(ADMIN, (await draftSavedAt())!);
 
     // +1 and +3 over the two keepers' starts; the sub's match isn't a start. Leeds' keeper alone
-    // makes an XI, short of ten starters.
+    // makes an XI, short of ten starters; the sweeper with no FPL code is in no XI, as the pitch
+    // has no place for his position.
     expect(report).toEqual({
       seasons: [2024],
+      noPosition: NO_POSITION,
       starts: 2,
-      startsSkipped: 1,
+      startsSkipped: 2,
       roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 2, offTarget: true }],
       instructions: [],
       xis: 1,
@@ -75,5 +91,5 @@ test("an announced patch's lab runs by itself on exactly its set, and its report
 
   const [notes] = await (await as(ADMIN)).query(api.scoring.patchNotes.notes, {});
   // 0 and +2 over the two keepers' starts.
-  expect(notes.lab).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [], xis: 1, xisShort: 1 });
+  expect(notes.lab).toEqual({ seasons: [2024], noPosition: NO_POSITION, starts: 2, startsSkipped: 2, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [], xis: 1, xisShort: 1 });
 });

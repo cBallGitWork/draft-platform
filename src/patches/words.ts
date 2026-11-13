@@ -2,10 +2,13 @@
 // request. What each version changed is worked out on the server (convex/scoring/patchChanges.ts),
 // and reaches the screen as is.
 
-import { screenMoment } from "../../convex/shared/moments";
+import { LOCALE, screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
 import { failedWords, seasonShortWords, thousandsWords } from "../shared/words";
+import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import type { VersionNotes } from "./seam";
+
+type PastStarter = NonNullable<LabReport["noPosition"]>["first"][number];
 
 export const PATCH_NOTES_TITLE = "Patch notes";
 /** The banner's link, and Player scoring's, to the notes. */
@@ -44,13 +47,21 @@ export const offTargetWords = "Off target";
 export const notTestedWords = (stats: readonly string[]) => `Not tested: no past ${stats.join(", ")}`;
 export const noStartsWords = "No starts";
 export const noRolesWords = "The set scores no roles.";
+const pastDayFormat = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short", year: "numeric" });
+/** One past starter flagged with no position: his name, his club and the day of the match, e.g.
+ *  "Ben Mee, Brentford, 4 Mar 2023"; a row copied before #1541 has no club. */
+const pastStarterWords = ({ name, club, kickoff }: PastStarter) => [name, ...(club === undefined ? [] : [club]), pastDayFormat.format(kickoff)].join(", ");
+/** Past starters whose match gives no position the pitch has, so each is given none (spec/14
+ *  S14.25; Craig, 13 Nov 2026, on #1541): the count, and the first ones named. */
+export const noPositionWords = (count: number, first: readonly PastStarter[]) =>
+  `Past starters with no position: ${thousandsWords(count)}${first.length === 0 ? "." : `. First ${first.length}: ${first.map(pastStarterWords).join("; ")}.`}`;
 /** The set scores no team instructions (spec/05 Team instructions), so none are checked. */
 export const noTeamInstructionsWords = "The set scores no team instructions.";
 /** How a team instruction is tested (spec/14 S14.9; Craig, 12 Nov 2026, on #1541): over the clubs'
  *  real XIs, "XIs short of a starter" where one starter's position maps to no slot or his row
  *  wasn't copied. */
 export const instructionsHint = (xis: number, short: number) =>
-  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a formation that allows it. XIs: ${xis.toLocaleString(LOCALE)}. Short of a starter, scored on the ones they have: ${short.toLocaleString(LOCALE)}.`;
+  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a formation that allows it. XIs: ${thousandsWords(xis)}. Short of a starter, scored on the ones they have: ${thousandsWords(short)}.`;
 /** A report kept before the averages (#1541): its instructions are each "not tested". */
 export const instructionsUntestedHint = "Team instructions: none was tested when this report was kept.";
 export const instructionColumns = {

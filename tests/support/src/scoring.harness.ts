@@ -46,6 +46,13 @@ export const PATCH_GAMEWEEKS = [
 /** The lab's report the fake server gives: a role off its target and one not tested. */
 export const LAB_REPORT: LabReport = {
   seasons: [2024, 2025],
+  noPosition: {
+    count: 2,
+    first: [
+      { name: "Sam Sweeper", club: "Leeds", kickoff: Date.UTC(2024, 8, 14, 14) },
+      { name: "Person no-code-eight", kickoff: Date.UTC(2025, 0, 4, 15) },
+    ],
+  },
   starts: 1200,
   startsSkipped: 3,
   roles: [

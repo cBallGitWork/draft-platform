@@ -15,6 +15,7 @@ import {
   labSummaryWords,
   noRolesWords,
   noStartsWords,
+  noPositionWords,
   noTeamInstructionsWords,
   noXisWords,
   notTestedWords,
@@ -40,6 +41,7 @@ export function LabReportView({ report }: { report: LabReport }) {
   return (
     <div>
       <PanelNote>{labSummaryWords(report.seasons, report.starts, report.startsSkipped)}</PanelNote>
+      {report.noPosition !== undefined && <PanelNote>{noPositionWords(report.noPosition.count, report.noPosition.first)}</PanelNote>}
       {report.roles.length === 0 ? (
         <PanelNote>{noRolesWords}</PanelNote>
       ) : (
@@ -109,7 +111,7 @@ function LabInstructions({ instructions, xis, xisShort }: { instructions: readon
               ) : (
                 <>
                   <td className={`${instructionCellClasses("average")} text-figure`}>{each.average === null ? noXisWords : signedWords(each.average)}</td>
-                  <td className={`${instructionCellClasses("xis")} text-figure`}>{each.xis.toLocaleString(LOCALE)}</td>
+                  <td className={`${instructionCellClasses("xis")} text-figure`}>{thousandsWords(each.xis)}</td>
                 </>
               )}
             </tr>

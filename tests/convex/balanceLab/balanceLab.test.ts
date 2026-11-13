@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { balanceLab, roleStats, slotOfStart, type PastStart } from "../../../convex/balanceLab/balanceLab";
+import { balanceLab, roleStats, slotOfStart, startersWithNoPosition, type PastStart } from "../../../convex/balanceLab/balanceLab";
+import { NO_POSITION_NAMED } from "../../../convex/balanceLab/balanceLabLimits";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { EXAMPLE_SET, shotStopper } from "../../support/convex/scoring.example";
 
@@ -12,7 +13,7 @@ const side = (bars: number[], ...parts: [string, number][]) => ({ bars, parts: p
 const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["accurate_through_ball", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });
 
-const start = (startingPosition: string, stats: Record<string, number>, season = 2024): PastStart => ({ season, kickoff: 1, startingPosition, stats });
+const start = (startingPosition: string, stats: Record<string, number>, season = 2024): PastStart => ({ season, player: 1, kickoff: 1, startingPosition, stats });
 const KEEPERS = [start("GK", { saves: 2, goals_conceded: 0 }), start("GK", { saves: 4, goals_conceded: 3 }, 2025), start("GK", { saves: 6, goals_conceded: 1 })];
 
 describe("roles on the past seasons", () => {
@@ -71,7 +72,7 @@ describe("team instructions on the past seasons (#1541)", () => {
   const FIVE_FOUR_ONE = ["GK", "DL", "DCL", "DC", "DCR", "DR", "ML", "MC", "MC", "MR", "ST"];
   /** A club's XI at one kickoff, each starter on no goals but the last, on `goals`. */
   const xiOf = (club: string, positions: readonly string[], goals: number, kickoff = 1): PastStart[] =>
-    positions.map((startingPosition, index) => ({ season: 2024, kickoff, club, startingPosition, stats: { goals_scored: index === positions.length - 1 ? goals : 0 } }));
+    positions.map((startingPosition, index) => ({ season: 2024, player: index, kickoff, club, startingPosition, stats: { goals_scored: index === positions.length - 1 ? goals : 0 } }));
 
   test("each instruction's average is for a whole XI, over each club's real XIs in a shape that allows it, in the set's order (S14.9, S14.19)", () => {
     // Leeds' 4-4-2 scores 2; Everton's 5-4-1 scores 1, and is the only one Park the bus's five at
@@ -132,6 +133,33 @@ describe("team instructions on the past seasons (#1541)", () => {
 
   test("a set scoring no instruction lists none", () => {
     expect(balanceLab(EXAMPLE_SET, KEEPERS).instructions).toEqual([]);
+  });
+});
+
+describe("past starters with no position (S14.22, S14.23, S14.25; Craig, 13 Nov 2026, on #1541)", () => {
+  const at = (player: number | string, startingPosition: string, season: number, kickoff: number, club?: string): PastStart => ({
+    season,
+    player,
+    kickoff,
+    ...(club === undefined ? {} : { club }),
+    startingPosition,
+    stats: {},
+  });
+
+  test("each starter whose match gives a position the pitch has none for is flagged, the first ones by season and kickoff", () => {
+    const starts = [at(1, "GK", 2024, 1, "Leeds"), at("no-code", "SW", 2024, 5, "Leeds"), at(2, "SW", 2023, 9, "Everton"), at(3, "", 2024, 2)];
+    expect(startersWithNoPosition(starts)).toEqual({ count: 3, first: [starts[2], starts[3], starts[1]] });
+  });
+
+  test(`only the first ${NO_POSITION_NAMED} are named, and every one counted`, () => {
+    const starts = Array.from({ length: NO_POSITION_NAMED + 2 }, (_, index) => at(index, "SW", 2024, index));
+    const { count, first } = startersWithNoPosition(starts);
+    expect(count).toBe(NO_POSITION_NAMED + 2);
+    expect(first).toEqual(starts.slice(0, NO_POSITION_NAMED));
+  });
+
+  test("a starter the pitch has a position for is never flagged", () => {
+    expect(startersWithNoPosition([at(1, "GK", 2024, 1), at(2, "amcl", 2024, 1)])).toEqual({ count: 0, first: [] });
   });
 });
 

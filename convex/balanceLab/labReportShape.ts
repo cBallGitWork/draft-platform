@@ -37,6 +37,15 @@ export type LabInstruction = Infer<typeof labInstructionShape>;
 export const labReportShape = v.object({
   /** The past seasons it ran on, oldest first, each the year it starts. */
   seasons: v.array(v.number()),
+  /** Past starters whose match gives no position the pitch has (spec/14 S14.25): how many, and the
+   *  first NO_POSITION_NAMED by name, club and kickoff, the club absent on a row copied before
+   *  #1541. Each is given no position, so his club's XI is short. Absent on a report kept before. */
+  noPosition: v.optional(
+    v.object({
+      count: v.number(),
+      first: v.array(v.object({ name: v.string(), club: v.optional(v.string()), kickoff: v.number() })),
+    }),
+  ),
   /** The real starts it counted in a slot. */
   starts: v.number(),
   /** Starts with a position that maps to no slot: left out (Craig, 6 Nov 2026, on #843). */
