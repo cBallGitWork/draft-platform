@@ -27,7 +27,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  issues: write  # the review's Left for later items are filed as issues
+  issues: read  # the file job below alone may write issues
   id-token: write
 
 concurrency:
@@ -102,16 +102,44 @@ jobs:
             exit 1
           fi
           gh pr comment "$PR" --body-file - <<<"$body"
-          # Left for later: each bullet becomes its own issue for Craig, so nothing is left only in a comment (13 Nov 2026:
-          # #2047's GraphQL gap waited on a session to file it). One that starts with an issue's #n is already covered; one
-          # whose title is already an open issue isn't filed twice.
-          awk '/Left for later/ { on = 1; next } on && /^- / { print substr($0, 3); next } on && NF && !/^- / { on = 0 }' <<<"$body" |
-            while IFS= read -r item; do
-              [[ "$item" =~ ^#[0-9]+ ]] && continue
-              title="Craig's call from #$PR's review: $(sed -E 's/^(to-grill|To-grill|To confirm):? *//; s/[*`]//g' <<<"$item" | cut -c1-90)"
-              if gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty' | grep -q .; then
-                echo "Already filed: $title"; continue
-              fi
-              printf '%s\n\nLeft for later in the review of #%s (pr-reviewer). Part of #%s.\n' "$item" "$PR" "$PR" |
-                gh issue create --title "$title" --label lane:craig --body-file - || echo "::warning::couldn't file: $title"
-            done
+
+  # The review's Left for later: each bullet becomes its own issue for Craig, so nothing is left only in a comment (13 Nov
+  # 2026: #2047's GraphQL gap waited on a session to file it). A job of its own, so only it holds issues: write, never the
+  # job whose model reads the pull request's text. It reads the review back from the pull request: the list starts at a
+  # line that opens with its heading, and ends at the first line that is neither a bullet nor blank. A bullet that starts
+  # with an issue's #n is already covered, one whose title is an open issue isn't filed twice, and at most MAX_FILED are
+  # filed, as a build files at most 5 (#2075's review).
+  file:
+    needs: review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number || inputs.pr }}
+      REVIEWER_SIGNATURE: "*Reviewer: pr-reviewer"
+      MAX_FILED: 5
+    steps:
+      - name: File the review's Left for later
+        run: |
+          set -euo pipefail
+          # the last signed review: pages come as one array each, so they are read whole
+          body=$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments" |
+                   jq -rs 'add | map(select(.body | contains(env.REVIEWER_SIGNATURE))) | last | .body // ""')
+          [ -n "$body" ] || { echo "::error::No review comment on #$PR to read the Left for later from"; exit 1; }
+          filed=0
+          while IFS= read -r item; do
+            [[ "$item" =~ ^#[0-9]+ ]] && continue
+            [ "$filed" -lt "$MAX_FILED" ] || { echo "::warning::More than $MAX_FILED left for later: the rest stay in the review"; break; }
+            title="Craig's call from #$PR's review: $(sed -E 's/^(to-grill|To-grill|To confirm):? *//; s/[*`]//g' <<<"$item" | cut -c1-90)"
+            if gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty' | grep -q .; then
+              echo "Already filed: $title"; continue
+            fi
+            printf '%s\n\nLeft for later in the review of #%s (pr-reviewer). Part of #%s.\n' "$item" "$PR" "$PR" |
+              gh issue create --title "$title" --label lane:craig --body-file - || echo "::warning::couldn't file: $title"
+            filed=$((filed + 1))
+          done < <(awk '/^\**Left for later/ { on = 1; next } on && /^- / { print substr($0, 3); next } on && NF { on = 0 }' <<<"$body")
+          echo "Filed $filed issue(s) from #$PR's review."
