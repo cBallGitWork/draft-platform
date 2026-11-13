@@ -372,7 +372,7 @@ From Craig, 1 Nov 2026.
 - A player dropped into a slot starts on the role he has the most stars for. The manager can
   change his slot and his role; the pitch shows
   each starter's role under his name (26 Oct 2026). He changes the role on the role card, opened
-  by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026).
+  by tapping the role on the pitch or in the squad list (Craig, 31 Oct 2026). `S05.45`
 - The role card shows every role for his slot, each with his stars, what it scores more and less
   for, its description, and what he would have scored under it in his recent matches. Each role's
   description is held with the role. Explaining the game's own mechanics is wanted; only the
