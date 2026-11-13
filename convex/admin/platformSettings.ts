@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { adminOf, refuse } from "../shared/leagueAccess";
+import { savedSetting, saveSetting } from "../shared/platformSettingRows";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { FIRST_PLATFORM_SETTINGS, settingRefusals, type PlatformSettings, type SettingName } from "./platformSettingDefaults";
 
@@ -76,22 +77,9 @@ const isWholeAndNotBelowNought = (value: number) => Number.isInteger(value) && v
 async function saveAll(ctx: MutationCtx, values: Partial<PlatformSettings>) {
   const entries = Object.entries(values) as [SettingName, number][];
   for (const [name, value] of entries) if (!isWholeAndNotBelowNought(value)) refuse(settingRefusals[name](value));
-  for (const [name, value] of entries) await setSetting(ctx, name, value);
+  for (const [name, value] of entries) await saveSetting(ctx, name, value);
 }
 
 async function valueOf(ctx: QueryCtx, name: SettingName): Promise<number> {
-  return (await settingRow(ctx, name))?.value ?? FIRST_PLATFORM_SETTINGS[name];
-}
-
-function settingRow(ctx: QueryCtx, name: SettingName) {
-  return ctx.db
-    .query("platformSettings")
-    .withIndex("by_name", (q) => q.eq("name", name))
-    .unique();
-}
-
-async function setSetting(ctx: MutationCtx, name: SettingName, value: number) {
-  const row = await settingRow(ctx, name);
-  if (row === null) await ctx.db.insert("platformSettings", { name, value });
-  else await ctx.db.patch("platformSettings", row._id, { value });
+  return (await savedSetting(ctx, name)) ?? FIRST_PLATFORM_SETTINGS[name];
 }
