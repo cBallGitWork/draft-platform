@@ -9,7 +9,7 @@ import type { HeldMatch } from "../gameweekScorer/heldMatches";
 import { inMatchOf, scoredByMatch } from "../gameweekScorer/teamGameweek";
 import { inTenths } from "../scoring/values";
 import { signedWords } from "../shared/numberWords";
-import { thresholdStepsOf } from "../stats/thresholdSteps";
+import { thresholdStepsOf } from "./thresholdSteps";
 import { vidiprinterTeam } from "./instructionLines";
 import { shownLine, vidiprinter, type PricedLine, type VidiprinterLine, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 

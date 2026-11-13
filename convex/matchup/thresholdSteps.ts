@@ -1,5 +1,5 @@
 import type { Doc } from "../_generated/dataModel";
-import type { StoredStep } from "../matchup/vidiprinter";
+import type { StoredStep } from "./vidiprinter";
 import type { SideMatchOutcome } from "../admin/sideRuns";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
@@ -13,7 +13,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import type { PlayerCode } from "../shared/players";
-import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
+import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "../stats/matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44, #835): "~58' Rice: 3 key passes,
 // +1". Every point movement, up or down, gets a line (Craig, 31 Oct 2026), and only the live reads

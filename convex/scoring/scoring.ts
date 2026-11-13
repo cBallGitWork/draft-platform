@@ -172,7 +172,7 @@ function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: numb
 }
 
 /** One rule's points for a man priced at `cell`, with `actions` of its stat and `minutes` played:
- *  what a threshold line prices its step by (stats/thresholdSteps.ts). A bad cell is the caller's
+ *  what a threshold line prices its step by (matchup/thresholdSteps.ts). A bad cell is the caller's
  *  to check. */
 export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, minutes: number): number {
   return ruleScore(rule, { area: cell.area, position: positionOfSlot(cell) }, actions, minutes).points;

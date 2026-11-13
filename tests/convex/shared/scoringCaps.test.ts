@@ -9,7 +9,7 @@ import { LEAGUE_SQUAD_ROWS_MOST } from "../../../convex/squads/squadPlace";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
-import { thresholdStepsOf, THRESHOLD_STEP_READS_MOST } from "../../../convex/stats/thresholdSteps";
+import { thresholdStepsOf, THRESHOLD_STEP_READS_MOST } from "../../../convex/matchup/thresholdSteps";
 import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { leagueScores } from "../../../convex/gameweekScorer/gameweekScores";
 import { heldFixtures, MATCH_OVERRIDES_MOST } from "../../../convex/gameweekScorer/heldMatches";

@@ -75,7 +75,7 @@ export const commentaryTables = {
 };
 
 // The threshold lines' moments (#44, #835, spec/10): each live read that showed a stat move a man's
-// points, up or down, under some slot's pricing, with the clock then (stats/thresholdSteps.ts).
+// points, up or down, under some slot's pricing, with the clock then (matchup/thresholdSteps.ts).
 
 /** One man's stat as a read showed it move his points. */
 export const thresholdStep = v.object({
