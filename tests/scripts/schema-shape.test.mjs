@@ -1,4 +1,4 @@
-// Whether a new schema could strand saved data (spec/20, Rolling back, S20.8; #1996): a table or field
+// Whether a new schema could strand saved data (spec/20, Rolling back, S20.9; #1996): a table or field
 // removed, or a type narrowed, could; a field or table added, or a type widened, can't. Types are
 // built with Convex's own validators and read in the form the schema exports them.
 
