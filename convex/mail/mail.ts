@@ -6,7 +6,7 @@ import { typedName, typedText } from "../shared/typedText";
 import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
 import { letterAsRead } from "./letterMoments";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
@@ -41,15 +41,33 @@ const listedLetters = (ctx: QueryCtx, email: string) =>
     .order("desc")
     .take(LETTERS_SHOWN);
 
-/** The signed-in person's `listedLetters`. None when signed out. */
+/** The latest LETTERS_SHOWN letters to someone from one league, or from the site (`undefined`). */
+const lettersFrom = (ctx: QueryCtx, email: string, leagueId: Id<"leagues"> | undefined) =>
+  ctx.db
+    .query("letters")
+    .withIndex("by_to_and_leagueId_and_at", (q) => q.eq("to", email).eq("leagueId", leagueId))
+    .order("desc")
+    .take(LETTERS_SHOWN);
+
+/** The letters Mail lists for someone in `leagueId`, the league picked in the top bar (S16.1): the
+ *  league's and the site's to everyone, such as a scoring patch, their latest LETTERS_SHOWN, newest
+ *  first. */
+async function leagueLetters(ctx: QueryCtx, email: string, leagueId: Id<"leagues">) {
+  const [league, site] = await Promise.all([lettersFrom(ctx, email, leagueId), lettersFrom(ctx, email, undefined)]);
+  return [...league, ...site].sort((a, b) => b.at - a.at).slice(0, LETTERS_SHOWN);
+}
+
+/** The signed-in person's letters in `leagueId` (`leagueLetters`), or, with none, every league's
+ *  (`listedLetters`). None when signed out. */
 export const letters = query({
-  args: {},
+  args: { leagueId: v.optional(v.id("leagues")) },
   returns: v.array(letterSummary),
-  handler: async (ctx) => {
+  handler: async (ctx, { leagueId }) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];
     const zone = await zoneOf(ctx, email);
-    return (await listedLetters(ctx, email)).map((row) => summaryOf(row, zone));
+    const rows = leagueId === undefined ? await listedLetters(ctx, email) : await leagueLetters(ctx, email, leagueId);
+    return rows.map((row) => summaryOf(row, zone));
   },
 });
 

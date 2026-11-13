@@ -5,9 +5,9 @@ import { refusalOf } from "../shared/refusal";
 import type { MailSeam } from "./seam";
 import { sendFailedWords } from "./words";
 
-const useLetters: MailSeam["useLetters"] = () => {
+const useLetters: MailSeam["useLetters"] = (leagueId) => {
   const { isAuthenticated } = useConvexAuth();
-  return useQuery(api.mail.mail.letters, isAuthenticated ? {} : "skip");
+  return useQuery(api.mail.mail.letters, isAuthenticated ? (leagueId === null ? {} : { leagueId }) : "skip");
 };
 
 /** The Mail seam filled in by Convex, and the top bar's unread count from it, which Continue goes

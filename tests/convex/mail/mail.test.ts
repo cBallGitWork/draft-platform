@@ -8,6 +8,7 @@ import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
@@ -67,6 +68,22 @@ describe("letters about the league's events", () => {
 
     expect((await (await mailOf(CAT)).letters()).map((letter) => letter.leagueName)).toEqual(["Other"]);
     expect((await (await mailOf(ANN)).letters()).map((letter) => letter.leagueName)).toEqual([LEAGUE_NAME]);
+  });
+
+  test("Mail in one league lists that league's letters and the site's, newest first, never another league's (S16.1)", async () => {
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other");
+    await addManagers(t, leagueId, [ANN]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await addManagers(t, otherLeague, [ANN]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await t.run((ctx) => ctx.db.insert("letters", { to: ANN, at: Date.now(), subject: "Patch 1.4", body: "Clean sheets." }));
+    const ann = await actingAs(t, ANN);
+    const subjectsIn = async (league: Id<"leagues">) => (await ann.query(api.mail.mail.letters, { leagueId: league })).map((letter) => letter.subject);
+
+    expect(await subjectsIn(leagueId)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
+    expect(await subjectsIn(otherLeague)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
+    expect((await ann.query(api.mail.mail.letters, { leagueId })).map((letter) => letter.leagueName)).toEqual([PRODUCT_NAME, LEAGUE_NAME]);
+    expect(await (await mailOf(ANN)).letters()).toHaveLength(3);
   });
 
   test("the copy to whoever did it is filed read, and everyone else's unread", async () => {
