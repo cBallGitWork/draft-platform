@@ -20,9 +20,8 @@ export const signInWords = {
   noInvite: "No invite? Ask your commissioner for the league's invite link, or for an emailed invite.",
 } as const;
 
-/** The reply to asking for a link, one for each of `signIn/signInLinks:askForLink`'s answers. `checkYourEmail`
- *  goes to every email, on the list or not, so nobody can tell which are on it; the sign-in page's
- *  `ask` tells a failed send that too (#2065), so `notSent` reaches only the invite link's page. */
+/** The reply to asking for a link, one for each of `signIn/signInLinks:ask`'s answers. `checkYourEmail`
+ *  goes to every email, on the list or not, so nobody can tell which are on it. */
 export const replyWords = {
   checkYourEmail: `Check your email. If this address can sign in, a link is on its way. ${worksOnceWords}`,
   tryLater: "Too many links have been asked for this email in the last hour. Try again later.",
