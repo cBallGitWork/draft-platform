@@ -30,6 +30,7 @@ import {
   CAT,
   DAN,
   EVE,
+  TEAM_1,
 } from "../../support/convex/leagues.harness";
 import {
   SITE_URL,
@@ -76,7 +77,7 @@ describe("an invite", () => {
     await (await asCommissioner(t)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
 
     await invite(t, leagueId, CAT, annsTeam);
-    expect(lastEmailTo(sent, CAT).text).toContain(`has invited you to run Team 1 in ${LEAGUE_NAME}`);
+    expect(lastEmailTo(sent, CAT).text).toContain(`has invited you to run ${TEAM_1} in ${LEAGUE_NAME}`);
     await openLastLinkTo(t, sent, CAT);
 
     expect(await managersOf(t, leagueId)).toEqual([

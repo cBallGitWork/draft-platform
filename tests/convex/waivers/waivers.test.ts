@@ -5,7 +5,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, TEAM_1 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { NEXT, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -43,8 +43,8 @@ describe("a drop", () => {
     expect(WAIVER_MS).toBe(DAY_MS);
     expect(await lastEvent()).toMatchObject({ kind: "playerDropped", playerCode: DROPPED, teamId: annsTeam, toWaivers: true, by: ANN });
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `Team 1 dropped ${nameOf(DROPPED)}`,
-      body: `${ANN} dropped ${nameOf(DROPPED)} from Team 1. He is on waivers for at least 24 hours.`,
+      subject: `${TEAM_1} dropped ${nameOf(DROPPED)}`,
+      body: `${ANN} dropped ${nameOf(DROPPED)} from ${TEAM_1}. He is on waivers for at least 24 hours.`, // one-home-ok: pins the whole letter a manager reads
     });
     const squad = await t.run((ctx) => ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", annsTeam)).collect());
     expect(squad.map(({ playerCode }) => playerCode)).not.toContain(DROPPED);

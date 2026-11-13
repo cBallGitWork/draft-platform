@@ -6,7 +6,7 @@ import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { actingAs, ADMIN, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, eventsIn, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { ANNS_FIRST_DROP, ANNS_SECOND_DROP, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
@@ -76,7 +76,7 @@ describe("the letters", () => {
     await (await actingAs(w.t, ANN)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: ANNS_FIRST_DROP });
     await w.runWaivers();
 
-    const won = { subject: `Team 2 claimed ${nameOf(SAKA)}`, body: `Team 2 claimed ${nameOf(SAKA)} off waivers, ${BOB}'s claim.` };
+    const won = { subject: `${TEAM_2} claimed ${nameOf(SAKA)}`, body: `${TEAM_2} claimed ${nameOf(SAKA)} off waivers, ${BOB}'s claim.` };
     expect(await w.lettersTo(CAT)).toContainEqual(won);
     expect(await w.lettersTo(ANN)).toContainEqual(won);
     const ahead = claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" });
@@ -128,8 +128,8 @@ describe("the letters", () => {
     await w.runWaivers();
 
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `Team 1 claimed ${nameOf(SAKA)}`,
-      body: `Team 1 claimed ${nameOf(SAKA)} off waivers, ${ANN}'s claim. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
+      subject: `${TEAM_1} claimed ${nameOf(SAKA)}`,
+      body: `${TEAM_1} claimed ${nameOf(SAKA)} off waivers, ${ANN}'s claim. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
     });
     expect((await eventsIn(w.t, w.leagueId)).slice(-2)).toMatchObject([
       { kind: "playerDropped", playerCode: ANNS_FIRST_DROP, teamId: w.annsTeam, toWaivers: true },

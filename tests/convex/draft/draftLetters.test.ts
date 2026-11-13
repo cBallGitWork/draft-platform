@@ -12,7 +12,7 @@ import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
@@ -62,7 +62,7 @@ describe("you're up next", () => {
         to: ANN,
         // Written out here, as in the draft-over letter below, so the subject's wording stays pinned.
         subject: "You're up next in the draft",
-        body: `Team 1 is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
+        body: `${TEAM_1} is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
         read: false,
       },
     ]);
@@ -82,7 +82,7 @@ describe("you're up next", () => {
       {
         to: BOB,
         subject: UP_NEXT,
-        body: `Team 2 is on the clock: round 1, pick 2. Make your pick by ${momentIn(at + PICK_GAP_MS + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
+        body: `${TEAM_2} is on the clock: round 1, pick 2. Make your pick by ${momentIn(at + PICK_GAP_MS + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
         read: false,
       },
     ]);
@@ -148,7 +148,7 @@ describe("the email", () => {
       {
         to: ANN,
         subject: UP_NEXT,
-        text: `Team 1 is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + pickSeconds * SECOND_MS, undefined)}, or the draft picks for you.`,
+        text: `${TEAM_1} is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + pickSeconds * SECOND_MS, undefined)}, or the draft picks for you.`,
       },
     ]);
   });
@@ -228,7 +228,7 @@ describe("a pause", () => {
 
 // Craig, 11 Nov 2026, on #1461: told at once, with no deadline, as his clock starts on resume.
 describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461, S04.14)", () => {
-  const PAUSED_ANN = "Team 1 is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.";
+  const PAUSED_ANN = `${TEAM_1} is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.`;
   const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
   const pickFor = async (teamId: Id<"teams">, playerCode: number) =>
     (await as(COMMISSIONER)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId, playerCode });
@@ -260,7 +260,7 @@ describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461
     await pickFor(teams[0], A1);
 
     expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([
-      { to: BOB, subject: UP_NEXT, body: "Team 2 is up next: round 1, pick 2. The draft is paused; your clock starts when it resumes.", read: false },
+      { to: BOB, subject: UP_NEXT, body: `${TEAM_2} is up next: round 1, pick 2. The draft is paused; your clock starts when it resumes.`, read: false },
     ]);
   });
 });

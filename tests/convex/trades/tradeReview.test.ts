@@ -8,7 +8,7 @@ import { mostAgainst, reviewRefusals } from "../../../convex/trades/tradeReview"
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { DAY_MS } from "../../../convex/shared/time";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3, TEAM_4 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
@@ -52,7 +52,7 @@ describe("with no review", () => {
       expect.objectContaining({ playerCode: ANNS_FIRST_DROP, teamId: w.bobsTeam, fromTeamId: w.annsTeam, by: BOB }),
       expect.objectContaining({ playerCode: SAKA, teamId: w.annsTeam, fromTeamId: w.bobsTeam, by: BOB }),
     ]);
-    const letter = { subject: "Team 1 and Team 2 traded", body: `${nameOf(ANNS_FIRST_DROP)} to Team 2; ${nameOf(SAKA)} to Team 1.` };
+    const letter = { subject: `${TEAM_1} and ${TEAM_2} traded`, body: `${nameOf(ANNS_FIRST_DROP)} to ${TEAM_2}; ${nameOf(SAKA)} to ${TEAM_1}.` };
     expect(await w.lettersTo(CAT)).toContainEqual(letter);
     expect(await w.lettersTo(COMMISSIONER)).toContainEqual(letter);
   });
@@ -61,7 +61,7 @@ describe("with no review", () => {
     const { offerId } = await w.offer(CAT, w.annsTeam, [RICE], []);
     await w.accept(ANN, offerId);
 
-    expect(await w.lettersTo(BOB)).toContainEqual({ subject: "Team 3 and Team 1 traded", body: `${nameOf(RICE)} to Team 1; nobody to Team 3. Team 3 is now outside the league's squad limits.` });
+    expect(await w.lettersTo(BOB)).toContainEqual({ subject: `${TEAM_3} and ${TEAM_1} traded`, body: `${nameOf(RICE)} to ${TEAM_1}; nobody to ${TEAM_3}. ${TEAM_3} is now outside the league's squad limits.` });
   });
 
   test("closes every other open offer holding one of its players, with a letter to both of its managers", async () => {
@@ -70,8 +70,8 @@ describe("with no review", () => {
 
     expect(await w.offers()).toEqual([]);
     expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: "The trade between Team 3 and Team 2 is closed",
-      body: `${nameOf(SAKA)} left Team 2's squad. The offer was: Team 3 give ${nameOf(RICE)}; Team 2 give ${nameOf(SAKA)}.`,
+      subject: `The trade between ${TEAM_3} and ${TEAM_2} is closed`,
+      body: `${nameOf(SAKA)} left ${TEAM_2}'s squad. The offer was: ${TEAM_3} give ${nameOf(RICE)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
     });
   });
 });
@@ -83,14 +83,14 @@ describe("under a commissioner veto, a new league's", () => {
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
     expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
-    expect(await w.subjectsTo(COMMISSIONER)).toContain("Block the trade between Team 1 and Team 2?");
-    expect(await w.subjectsTo(CAT)).not.toContain("Block the trade between Team 1 and Team 2?");
-    expect(await w.subjectsTo(ANN)).toContain("Team 2 accepted Team 1's trade");
+    expect(await w.subjectsTo(COMMISSIONER)).toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(CAT)).not.toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(ANN)).toContain(`${TEAM_2} accepted ${TEAM_1}'s trade`);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toHaveLength(1);
 
     await w.reviewEnds(offerId);
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
-    expect(await w.subjectsTo(CAT)).toContain("Team 1 and Team 2 traded");
+    expect(await w.subjectsTo(CAT)).toContain(`${TEAM_1} and ${TEAM_2} traded`);
   });
 
   test("the commissioner's Block stops it: nobody moves, its timer is cancelled, and the whole league is told", async () => {
@@ -102,8 +102,8 @@ describe("under a commissioner veto, a new league's", () => {
     expect(await w.offers()).toEqual([]);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
     expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: "The trade between Team 1 and Team 2 was blocked",
-      body: `${COMMISSIONER} blocked it, so nobody moves. The trade was: Team 1 give ${nameOf(ANNS_FIRST_DROP)}; Team 2 give ${nameOf(SAKA)}.`,
+      subject: `The trade between ${TEAM_1} and ${TEAM_2} was blocked`,
+      body: `${COMMISSIONER} blocked it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
     });
     await w.reviewEnds(offerId);
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
@@ -115,7 +115,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain("Block the trade between Team 4 and Team 2?");
+    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain(`Block the trade between ${TEAM_4} and ${TEAM_2}?`);
     await expectRefused(w.block(COMMISSIONER, offerId), reviewRefusals.notYourBlock);
     await w.block(CO_COMMISSIONER, offerId);
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
@@ -127,7 +127,7 @@ describe("under a commissioner veto, a new league's", () => {
     await w.accept(BOB, offerId);
 
     expect((await w.mine(BOB))[0].reviewer).toBe("vote");
-    expect(await w.subjectsTo(ANN)).toContain("Vote on the trade between Team 4 and Team 2");
+    expect(await w.subjectsTo(ANN)).toContain(`Vote on the trade between ${TEAM_4} and ${TEAM_2}`);
   });
 });
 
@@ -139,8 +139,8 @@ describe("under a league vote", () => {
 
   test("each other manager gets a letter to vote Against, and the two in it don't", async () => {
     await annTradesForSaka();
-    for (const email of [CAT, DAN]) expect(await w.subjectsTo(email)).toContain("Vote on the trade between Team 1 and Team 2");
-    for (const email of [ANN, BOB, COMMISSIONER]) expect(await w.subjectsTo(email)).not.toContain("Vote on the trade between Team 1 and Team 2");
+    for (const email of [CAT, DAN]) expect(await w.subjectsTo(email)).toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
+    for (const email of [ANN, BOB, COMMISSIONER]) expect(await w.subjectsTo(email)).not.toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
   });
 
   test("it goes through unless most vote against: one of two isn't most", async () => {
@@ -206,7 +206,7 @@ describe("under a league vote", () => {
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
     expect(await w.offers()).toEqual([]);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
-    expect(await w.subjectsTo(ANN)).toContain("Team 1 and Team 2 traded");
+    expect(await w.subjectsTo(ANN)).toContain(`${TEAM_1} and ${TEAM_2} traded`);
   });
 
   test("most is more than half of those who may vote", () => {
@@ -244,7 +244,7 @@ describe("players held in review (Craig, 6 Nov 2026)", () => {
 
     expect(await squadOf(w.catsTeam)).toContain(SAKA);
     expect(await squadOf(w.annsTeam)).toContain(ANNS_FIRST_DROP);
-    expect(await w.subjectsTo(ANN)).toContain("The trade between Team 1 and Team 2 didn't go through");
+    expect(await w.subjectsTo(ANN)).toContain(`The trade between ${TEAM_1} and ${TEAM_2} didn't go through`);
   });
 });
 
@@ -254,7 +254,7 @@ describe("open offers close", () => {
     await (await actingAs(w.t, BOB)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: SAKA });
 
     expect(await w.offers()).toEqual([]);
-    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${nameOf(SAKA)} left Team 2's squad\\.`)) }));
+    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${nameOf(SAKA)} left ${TEAM_2}'s squad\\.`)) }));
   });
 
   test("when a team in it goes on the auto team, but a trade in review finishes it", async () => {
@@ -264,7 +264,7 @@ describe("open offers close", () => {
     await (await actingAs(w.t, BOB)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.bobsTeam, on: true });
 
     expect((await w.offers()).map(({ _id }) => _id)).toEqual([inReview]);
-    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Team 2 went on the auto team/) }));
+    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_2} went on the auto team`)) }));
     await w.reviewEnds(inReview);
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
   });
