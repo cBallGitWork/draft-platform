@@ -107,10 +107,10 @@ describe("the letters", () => {
       subject: "Barnes has lost CB",
       body:
         "From gameweek 9, Barnes no longer plays CB: he has started 6 matches in a row elsewhere. " +
-        "He stays where he stands in your lineup until you move him, and the lineup check shows him out of position.",
+        "He stays where he stands in your line-up until you move him, and the line-up check shows him out of position.",
     });
     expect(positionLetter({ step: "takenByAdmin", playerName: "Barnes", position: "CB", fromGameweek: 9 }).body).toBe(
-      "The admin took CB away from Barnes, from gameweek 9. He stays where he stands in your lineup until you move him, and the lineup check shows him out of position.",
+      "The admin took CB away from Barnes, from gameweek 9. He stays where he stands in your line-up until you move him, and the line-up check shows him out of position.",
     );
   });
 });

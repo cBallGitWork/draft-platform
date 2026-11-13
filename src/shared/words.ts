@@ -239,7 +239,7 @@ export const foundListLabel = "Players found";
  *  the switch's name on My team and Squads. */
 export const autoTeamWords = "Auto team";
 /** What the auto team does (spec/09), as its chip's hover and My team's switch say it. */
-export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
+export const autoTeamWhatWords = "Keeps your last line-up, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
 
 /** A traded draft pick, named by the team whose pick it is: "Pickford Pirates' round 4 pick"
  *  (docs/design/approved/team-transactions/). */

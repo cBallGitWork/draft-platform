@@ -125,7 +125,7 @@ test("overriding a man whose points don't count moves no total, and the letter s
     { teamId: league.bobsTeam, points: EVERTON_POINTS },
   ]);
   const last = (await lettersOf(league)).at(-1)!;
-  expect(last.body).toMatch(new RegExp(`^${adminByline} overrode .*: 0 to 3\\. Why: ${REASON}\\n\\nNo team's total moved: no lineup counted him\\.$`));
+  expect(last.body).toMatch(new RegExp(`^${adminByline} overrode .*: 0 to 3\\. Why: ${REASON}\\n\\nNo team's total moved: no line-up counted him\\.$`));
 });
 
 test("a manager who doesn't run the league is refused, and nothing changes", async () => {

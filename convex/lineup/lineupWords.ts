@@ -13,12 +13,12 @@ const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "are
 
 /** Why a lineup can't be saved, as the manager is told it. */
 export const lineupRefusals = {
-  seasonOver: "Every gameweek this league plays has begun, so there's no gameweek left to set a lineup for.",
-  unplayedGameweek: "Lineups are locked through a gameweek the league doesn't play, until its last match is over.",
+  seasonOver: "Every gameweek this league plays has begun, so there's no gameweek left to set a line-up for.",
+  unplayedGameweek: "Line-ups are locked through a gameweek the league doesn't play, until its last match is over.",
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
-    `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
-  noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your lineup.`,
+    `${andListWords(names)} ${isNot(names)} in the line-up: every player in your squad starts or sits on the bench.`,
+  noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your line-up.`,
   notInClassicFormationShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
 };
 
@@ -38,9 +38,9 @@ export const planRefusals = {
 export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
   switch (problem.kind) {
     case "wrongStarterCount":
-      return `A lineup starts ${STARTER_COUNT} players; this one starts ${problem.starterCount}.`;
+      return `A line-up starts ${STARTER_COUNT} players; this one starts ${problem.starterCount}.`;
     case "playerTwice":
-      return `${nameOf(problem.playerCode)} is in the lineup twice.`;
+      return `${nameOf(problem.playerCode)} is in the line-up twice.`;
     case "noSuchCell":
       return `${nameOf(problem.playerCode)} is placed at "${problem.area}", "${problem.lane}", which isn't a cell on the pitch.`;
     case "cellShared":
@@ -53,13 +53,13 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `${nameOf(problem.playerCode)} ${plays}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
     }
     case "aboveMaximum":
-      return `The league starts at most ${problem.maximum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
+      return `The league starts at most ${problem.maximum} in ${AREA_WORDS[problem.area]}; this line-up starts ${problem.starterCount} there.`;
     case "roleNotOffered":
       return `The ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]} doesn't offer the role "${problem.role}" ${nameOf(problem.playerCode)} was given.`;
     case "belowMinimum":
-      return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
+      return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this line-up starts ${problem.starterCount} there.`;
     case "noBackThree":
-      return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this lineup has ${problem.centreBacks}.`;
+      return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this line-up has ${problem.centreBacks}.`;
     case "roleNotHis":
       return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't play ${roleName(problem.role)}.`;
   }

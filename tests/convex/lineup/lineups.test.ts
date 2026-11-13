@@ -233,7 +233,7 @@ describe("a lineup refused, with the reason", () => {
       (await as(ANN)).save(lineup),
       `${nameOf(keeper.playerCode)} plays GK, so he can't stand in the left cell in Attack. ` +
         `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} share the left-centre cell in Defence: one player a cell. ` +
-        "The league starts at least 1 in Goalkeeper; this lineup starts 0 there.",
+        "The league starts at least 1 in Goalkeeper; this line-up starts 0 there.",
     );
     expect(await lineupRows()).toEqual(before);
   });
@@ -244,6 +244,6 @@ describe("a lineup refused, with the reason", () => {
       rules.areaLimits.attack = { minimum: 3, maximum: 5 };
       await ctx.db.insert("leagueRules", { leagueId, fromGameweek: NEXT, rules });
     });
-    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league starts at least 3 in Attack; this lineup starts 2 there.");
+    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league starts at least 3 in Attack; this line-up starts 2 there.");
   });
 });
