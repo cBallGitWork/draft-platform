@@ -14,7 +14,7 @@ import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFix
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { inBatches, latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { CRON_TRIGGER, scheduleHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
@@ -45,7 +45,7 @@ export const daily = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    if (londonHour(Date.now()) === DAILY_RUN_UK_HOUR) {
+    if (timedJobsOn() && londonHour(Date.now()) === DAILY_RUN_UK_HOUR) {
       await ctx.scheduler.runAfter(0, internal.positions.positionsSync.run, { trigger: CRON_TRIGGER });
     }
     return null;

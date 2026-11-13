@@ -49,7 +49,7 @@ export default defineConfig({
         test: {
           name: "convex",
           ...RESTORED,
-          setupFiles: [...RESTORED.setupFiles, CONSOLE_SETUP],
+          setupFiles: [...RESTORED.setupFiles, CONSOLE_SETUP, "./tests/support/convex.setup.ts"],
           include: ["tests/convex/**/*.test.ts"],
           // convex-test runs functions in Convex's own runtime, which this environment mimics.
           environment: "edge-runtime",

@@ -43,7 +43,8 @@ Nothing in it is a test. Each kind of file:
   `console.error` without calling `silenceConsoleError()`. `app.setup.ts` (app) unmounts whatever a
   test rendered, then puts the address back to `/` (unmount first, so the app never sees the reset),
   and stubs `window.scrollTo` and `Element.prototype.scrollIntoView`, which jsdom lacks and the
-  app calls.
+  app calls. `convex.setup.ts` (convex) turns the timed feed, waiver and trade jobs on, as on the
+  live site (#1997); a test of them off stubs `TIMED_JOBS_ON` empty.
   Every project also puts back stubbed globals, stubbed envs and spies before each test, and the
   app project resets every `vi.fn()` fake too (`mockReset`), so no test file resets them by hand.
 - **`*.harness.ts`** (and `.tsx`), one feature's shared setup: `convex/` for the Convex tests
