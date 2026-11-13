@@ -23,7 +23,7 @@ beforeEach(async () => {
   fakeResend();
   leagueId = await adminCreatesLeague(t, 20);
   const ids = await addManagers(t, leagueId, [ANN, BOB, CAT]);
-  teams = ids.map((teamId, i) => ({ teamId, teamName: `Team ${i + 1}` }));
+  teams = ids.map((teamId, i) => ({ teamId, teamName: teamNumbered(i + 1) }));
 });
 
 type Asked = { before?: LeagueNews["older"]; teamId?: Id<"teams"> | null; kind?: LeagueNews["moves"][number]["kind"] | null };

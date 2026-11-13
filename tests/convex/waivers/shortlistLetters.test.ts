@@ -5,7 +5,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import { CLEARED_READ_ONE_BY_ONE_MOST, SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -37,7 +37,7 @@ describe("a shortlisted player dropped", () => {
     const letter = dropped(true, ANN);
     expect(letter).toEqual({
       subject: `${nameOf(ANNS_FIRST_DROP)}, on your shortlist, was dropped`,
-      body: `${ANN} dropped ${nameOf(ANNS_FIRST_DROP)} from Team 1. He is on waivers for at least 24 hours, and on your shortlist.`,
+      body: `${ANN} dropped ${nameOf(ANNS_FIRST_DROP)} from ${TEAM_1}. He is on waivers for at least 24 hours, and on your shortlist.`,
     });
     expect(await shortlistLettersTo(BOB)).toEqual([letter]);
     expect(await shortlistLettersTo(CAT)).toEqual([letter]);
@@ -50,7 +50,7 @@ describe("a shortlisted player dropped", () => {
     await drop(BOB, SAKA);
 
     const letter = dropped(false, BOB, SAKA, teamNumbered(2));
-    expect(letter.body).toBe(`${BOB} dropped ${nameOf(SAKA)} from Team 2. He is a free agent again, not on waivers, and on your shortlist.`);
+    expect(letter.body).toBe(`${BOB} dropped ${nameOf(SAKA)} from ${TEAM_2}. He is a free agent again, not on waivers, and on your shortlist.`);
     expect(await shortlistLettersTo(CAT)).toEqual([letter]);
   });
 

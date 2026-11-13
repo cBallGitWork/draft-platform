@@ -15,7 +15,7 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -66,7 +66,7 @@ describe("a join request", () => {
     expect(team).toMatchObject({ name: teamNumbered(1), managerEmail: ANN });
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: teamNumbered(1) });
     expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT` });
-    expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
+    expect(lastEmailTo(sent, ANN).text).toContain(`you run ${TEAM_1}`);
     expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 1, maxTeams: 4, standing: "inLeague", teamName: teamNumbered(1) });
     expect(await waitingRequests()).toEqual([]);
   });

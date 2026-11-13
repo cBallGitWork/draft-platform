@@ -6,7 +6,7 @@ import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, WRITING_MODEL } from "../../../conv
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { EVERTON_POINTS, GAMEWEEK, homeAt, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, lettersTo, ANN, BOB } from "../../support/convex/leagues.harness";
+import { actingAs, lettersTo, ANN, BOB, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -38,9 +38,9 @@ test("once the gameweek is final, Claude writes the recap from its facts, and Ma
   const [{ model, system, messages }] = claude.asked;
   expect({ model, system }).toEqual({ model: WRITING_MODEL, system: RECAP_SYSTEM });
   const prompt = messages[0].content;
-  expect(prompt).toContain(`Results:\nTeam 1 ${HULL_POINTS}, Team 2 ${EVERTON_POINTS}`);
+  expect(prompt).toContain(`Results:\n${TEAM_1} ${HULL_POINTS}, ${TEAM_2} ${EVERTON_POINTS}`);
   // Each team, most points first, with what it left on the bench.
-  expect(prompt).toMatch(new RegExp(`Team 2: ${EVERTON_POINTS}, bench \\d+\nTeam 1: ${HULL_POINTS}, bench \\d+`));
+  expect(prompt).toMatch(new RegExp(`${TEAM_2}: ${EVERTON_POINTS}, bench \\d+\n${TEAM_1}: ${HULL_POINTS}, bench \\d+`));
   const section = (heading: string) => prompt.split(`${heading}, points for their team:\n`)[1].split("\n").slice(0, 3);
   expect(section("Top performers")).toHaveLength(3);
   expect(section("Letdowns")).toHaveLength(3);
@@ -155,6 +155,6 @@ test("the bench is added up in tenths: 4.2 and 0.1 left on it give a brief line 
   const bench = [{ counts: false, points: 4.2 }, { counts: true, points: 6 }, { counts: false, points: 0.1 }, { counts: false, points: null }];
   expect(benchPointsOf(bench)).toBe(4.3);
   expect(benchPointsOf([{ counts: false, points: 0.1 }, { counts: false, points: 0.2 }])).toBe(0.3);
-  const prompt = recapPrompt({ gameweek: GAMEWEEK, results: [], teams: [{ team: "Team 1", points: 30, benchPoints: benchPointsOf(bench) }], topPerformers: [], letdowns: [] });
-  expect(prompt.split("\n")).toContain("Team 1: 30, bench 4.3");
+  const prompt = recapPrompt({ gameweek: GAMEWEEK, results: [], teams: [{ team: TEAM_1, points: 30, benchPoints: benchPointsOf(bench) }], topPerformers: [], letdowns: [] });
+  expect(prompt.split("\n")).toContain(`${TEAM_1}: 30, bench 4.3`);
 });
