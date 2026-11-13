@@ -15,6 +15,7 @@ import {
   instructionsHint,
   instructionsUntestedHint,
   labTitle,
+  noPositionWords,
   noTeamInstructionsWords,
   notTestedWords,
   notTestedYetWords,
@@ -80,12 +81,14 @@ describe("an announced patch's notes", () => {
 
   it("count the past starters with no position and name the first ones, with club and match day, and say nothing of them on a report kept before (S14.25; #1541)", async () => {
     await openNotesWith(LAB_REPORT);
-    expect(screen.getByText("Past starters with no position: 2. First 2: Sam Sweeper, Leeds, 14 Sept 2024; Person no-code-eight, 4 Jan 2025.")).toBeTruthy();
+    const { noPosition: flagged, ...before } = LAB_REPORT;
+    const line = noPositionWords(flagged!.count, flagged!.first);
+    expect(screen.getByText(line)).toBeTruthy();
+    expect(line).toContain(": 2. First 2: Sam Sweeper, Leeds, 14 Sept 2024; Person no-code-eight, 4 Jan 2025.");
 
-    const { noPosition: _flagged, ...before } = LAB_REPORT;
     cleanup();
     await openNotesWith(before);
-    expect(screen.queryByText(/Past starters with no position/)).toBeNull();
+    expect(screen.queryByText(line)).toBeNull();
   });
 
   it("list each instruction as not tested on a report kept before the averages", async () => {
