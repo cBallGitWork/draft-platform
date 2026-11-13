@@ -37,7 +37,7 @@ export function LineupCheck({ draft, squad, onSelect }: { draft: EditedLineup; s
         <ul className="p-3">
           {lines.map(({ key, player, words }) => (
             <li key={key}>
-              <button type="button" onClick={() => onSelect(player.playerCode)} className="min-h-tap font-semibold text-event lg:min-h-0">
+              <button type="button" onClick={() => onSelect(player.playerCode)} className="min-h-tap min-w-tap font-semibold text-event lg:min-h-0 lg:min-w-0">
                 {player.name}
               </button>
               {words}

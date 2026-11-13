@@ -8,7 +8,6 @@ import { clubRecord } from "../schema";
 import { byKickoff, gameweekFixtures } from "../shared/fixtures";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "../squads/squadPlace";
-import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { claimsOf } from "../waivers/waiverClaims";
 
 // League home's panels on the reader's own team (#1976; Craig, 13 Nov 2026, on #1976): the deadline
@@ -53,6 +52,8 @@ export const yourGameweek = v.object({
 export type YourGameweek = Infer<typeof yourGameweek>;
 
 type HeldPlayer = Doc<"players">;
+/** This gameweek, and the teams `team` meets in it (a league average or a bye is none). */
+export type ThisGameweek = { gameweek: number; opponents: readonly Id<"teams">[] };
 const flagged = (player: HeldPlayer): FlaggedPlayer[] =>
   player.news ? [{ playerCode: player.code, name: player.name, news: player.news, chanceOfPlaying: player.chanceOfPlaying ?? null }] : [];
 
@@ -66,7 +67,7 @@ export async function yourGameweekOf(
   leagueId: Id<"leagues">,
   rules: LeagueRules,
   team: Doc<"teams">,
-  current: GameweekFixtures<Id<"teams">> | undefined,
+  current: ThisGameweek | undefined,
 ): Promise<YourGameweek> {
   const squad = await heldSquad(ctx, team._id);
   return {
@@ -74,7 +75,7 @@ export async function yourGameweekOf(
     lineup: current === undefined ? null : await lineupOf(ctx, leagueId, team._id, current.gameweek, squad),
     waiverRuns: rules.waivers.runs,
     claims: (await claimsOf(ctx, leagueId, team._id)).length,
-    premierLeague: current === undefined ? [] : await premierLeagueOf(ctx, current, team._id, squad),
+    premierLeague: current === undefined ? [] : await premierLeagueOf(ctx, current, squad),
   };
 }
 
@@ -89,9 +90,8 @@ async function lineupOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"team
   return { set: true, flagged: players.flatMap((player) => (player === null ? [] : flagged(player))) };
 }
 
-async function premierLeagueOf(ctx: QueryCtx, current: GameweekFixtures<Id<"teams">>, teamId: Id<"teams">, squad: readonly HeldPlayer[]) {
-  const opponents = new Set(current.fixtures.flatMap(({ team, opponent }) => (opponent === LEAGUE_AVERAGE ? [] : team === teamId ? [opponent] : opponent === teamId ? [team] : [])));
-  const theirs = (await Promise.all([...opponents].map((opponent) => heldSquad(ctx, opponent)))).flat();
+async function premierLeagueOf(ctx: QueryCtx, current: ThisGameweek, squad: readonly HeldPlayer[]) {
+  const theirs = (await Promise.all(current.opponents.map((opponent) => heldSquad(ctx, opponent)))).flat();
   const clubs = clubsByCode(ctx);
   const playing = (players: readonly HeldPlayer[], fixture: Doc<"fixtures">) =>
     players.filter(({ clubCode }) => clubCode === fixture.homeClubCode || clubCode === fixture.awayClubCode).map(({ name }) => name);

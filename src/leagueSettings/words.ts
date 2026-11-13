@@ -14,7 +14,7 @@ import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -141,7 +141,7 @@ export const scoringStartLabel = "Scoring starts in";
 export const scoringStartHint = "Earlier gameweeks score nothing and have no head-to-heads.";
 export const savesAtOnceWords = "A change saves at once.";
 /** The picker's choice while none is set. */
-export const noScoringStartWords = "Not set";
+export const noScoringStartWords = notSetWords;
 export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
 export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
 export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;

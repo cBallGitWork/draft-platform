@@ -3,7 +3,7 @@
 import { TOP_ROWS } from "../../convex/home/glance";
 import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
+import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
@@ -23,7 +23,7 @@ export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} loc
 /** Your line-up's box: its first flagged starter, by FPL's chance he plays ("doubtful" at 25 to 75%,
  *  "out" at 0), and how many more are flagged; or whether it is set at all. */
 export const lineupSetWords = "Set";
-export const lineupNotSetWords = "Not set";
+export const lineupNotSetWords = notSetWords;
 export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) =>
   chanceOfPlaying === 0 ? `${name} out` : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? `${name} doubtful` : name;
 export const moreFlaggedWords = (more: number) => ` and ${more} more`;
@@ -31,8 +31,7 @@ export const moreFlaggedWords = (more: number) => ` and ${more} more`;
 export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
 /** The Table box: "2nd, 18 pts", then the gap: "1 behind 1st", or "3 ahead of 2nd" on top. */
 export const gapWords = (gap: number, onTop: boolean) => (onTop ? `${gap} ahead of 2nd` : `${gap} behind 1st`);
-export { countdownWords } from "../myTeam/header/words";
-export { noFigureWords, placeWords, versusWords, weekdayTimeWords } from "../shared/words";
+export { countdownWords, noFigureWords, placeWords, versusWords, weekdayTimeWords } from "../shared/words";
 export const pointsShortWords = "pts";
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */

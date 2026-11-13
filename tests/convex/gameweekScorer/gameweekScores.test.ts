@@ -5,8 +5,7 @@ import { positionsNow } from "../../../convex/positions/playerPositions";
 import { DAY_MS } from "../../../convex/shared/time";
 import { positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
-import { actingAs, COMMISSIONER, ANN } from "../../support/convex/leagues.harness";
-import { leagueHomeOf } from "../../support/convex/screenReads.harness";
+import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
@@ -14,6 +13,7 @@ import {
   EVERTON_POINTS,
   EVERTON_STARTERS,
   GAMEWEEK,
+  homeAt,
   HULL_AFTER_SUB,
   HULL_POINTS,
   HULL_SCORER,
@@ -179,7 +179,7 @@ test("league home's table and form read the same scores as the table", async () 
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  const home = await leagueHomeOf(await actingAs(league.t, ANN), league.leagueId, Date.now());
+  const home = await homeAt(league, Date.now());
 
   expect(home!.table.map(({ teamName, played, won, lost, points, form }) => ({ teamName, played, won, lost, points, form }))).toEqual([
     { teamName: teamNumbered(2), played: 1, won: 1, lost: 0, points: 3, form: ["won"] },

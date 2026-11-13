@@ -60,7 +60,7 @@ function previewStars(playerCode: number, positions: readonly Position[]): RoleS
 
 /** FPL's news on two of them, made up: Saka, a starter, doubtful, and Watkins, on the bench, out. */
 const NEWS = new Map([
-  [10, { news: "Knock - 75% chance of playing", chanceOfPlaying: 75 }],
+  [10, { news: "Ankle knock - 75% chance of playing", chanceOfPlaying: 75 }],
   [15, { news: "Hamstring injury - Expected back 22 Nov", chanceOfPlaying: 0 }],
 ]);
 /** The first lineup's starters, in the pitch's order, for League home's preview. */

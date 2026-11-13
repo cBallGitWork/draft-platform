@@ -16,6 +16,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
+import { gamesOf } from "../table/teamGames";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownRows, TICKER_MOST } from "./glance";
 import { heldRecap, homeRecap, shownRecap } from "./recaps";
@@ -168,10 +169,15 @@ export const ofLeague = query({
       squadMoves: await latestSquadMoves(ctx, leagueId),
       pinnedLetter: league.pinnedLetter ?? null,
       recap: await homeRecap(ctx, leagueId, results),
-      yours: team ? await yourGameweekOf(ctx, leagueId, rules, team, current) : null,
+      yours: team ? await yourGameweekOf(ctx, leagueId, rules, team, current && { gameweek: current.gameweek, opponents: opponentsIn(current, team._id) }) : null,
     };
   },
 });
+
+/** The teams `teamId` meets in `drawn`, each once (a league playing two a gameweek can meet one twice). */
+const opponentsIn = (drawn: Parameters<typeof scoredFixtures>[0], teamId: Id<"teams">) => [
+  ...new Set(gamesOf([drawn], teamId).flatMap(({ against }) => (against.kind === "team" ? [against.team] : []))),
+];
 
 /** The Vidiprinter of the matchday open in `gameweek`, of its matches `fixtureCodes`: homeAt.ts's
  *  `clockAt` says which. Its delay is a moment (commentaryAt.ts). */

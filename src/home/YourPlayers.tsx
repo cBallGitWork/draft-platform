@@ -36,7 +36,7 @@ export function PremierLeaguePanel({ gameweek, matches }: { gameweek: number; ma
           {matches.map((match) => (
             <li key={match.fixtureCode} className="flex flex-col border-b border-panel-rule px-3 py-2">
               <span className="flex justify-between gap-3">
-                <Link to={matchPath(match.fixtureCode)} className="font-semibold">
+                <Link to={matchPath(match.fixtureCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
                   {match.home.shortName} {versusWords} {match.away.shortName}
                 </Link>
                 {match.kickoff !== null && <span className="text-soft">{weekdayTimeWords(match.kickoff)}</span>}
@@ -72,7 +72,7 @@ export function SquadNewsPanel({ leagueId, news }: { leagueId: Id<"leagues">; ne
         <ul>
           {news.map((player) => (
             <li key={player.playerCode} className="flex gap-3 border-b border-panel-rule px-3 py-2">
-              <Link to={playerCardPath(leagueId, player.playerCode)} className="w-24 shrink-0 font-semibold">
+              <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap w-24 shrink-0 items-center font-semibold lg:min-h-0">
                 {player.name}
               </Link>
               <span>{player.news}</span>
