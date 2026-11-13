@@ -243,7 +243,9 @@ jobs:
       # credited to github-actions left its `Closes #N` issue open (23 of 23 on 11 Nov 2026, #1643), and the one Craig's
       # account merged closed its issue.
       - name: Turn on auto-merge for the build's pull request
-        if: always() && steps.decide.outcome != 'skipped' && env.MODE != 'rules-only'  # a build that opened its pull request and then ran out of turns ends red, and its pull request still merges
+        # a build that opened its pull request and then ran out of turns ends red, and its pull request still merges; it
+        # keys on the build step, not decide, as the draft step does: the 75-minute timeout skips decide (#2033)
+        if: always() && steps.subscription.outcome != 'skipped' && env.MODE != 'rules-only'
         env:
           GH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
           JOB_TOKEN: ${{ github.token }}  # if the account can't turn it on, the job's token still can, as before
