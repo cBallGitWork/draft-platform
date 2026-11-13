@@ -36,8 +36,8 @@ import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { NO_WAIVERS } from "../../support/src/myTeam.harness";
 import { TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
 import {
-  openedSettings,
-  openSettings,
+  openedOn,
+  openTab,
   save,
   savedSettings,
   SETTINGS_PAGE,
@@ -55,7 +55,7 @@ const radio = (name: string) =>
 
 describe("the waiver settings (#1200)", () => {
   it("opens on a new league's: reverse table order, Wednesday and Thursday at 18:00", async () => {
-    await openedSettings();
+    await openedOn("waivers");
 
     expect(radio(waiverOrderWords.reverseStandings).checked).toBe(true);
     expect([
@@ -69,7 +69,7 @@ describe("the waiver settings (#1200)", () => {
   });
 
   it("saves rotating, a run moved, one removed and one added, with the rest of the settings", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("waivers");
     await userEvent.click(radio(waiverOrderWords.rotating));
     await userEvent.selectOptions(select(runTimeLabel(1)), "9:30");
     await userEvent.click(
@@ -88,7 +88,7 @@ describe("the waiver settings (#1200)", () => {
   });
 
   it("keeps at least one run: the last can't be removed", async () => {
-    await openedSettings();
+    await openedOn("waivers");
     await userEvent.click(
       screen.getByRole("button", { name: removeRunLabel(2) }),
     );
@@ -103,7 +103,7 @@ describe("the waiver settings (#1200)", () => {
   });
 
   it("refuses two runs at the same time itself, and asks the server nothing", async () => {
-    const app = await openedSettings();
+    const app = await openedOn("waivers");
     await userEvent.selectOptions(select(runDayLabel(2)), "wednesday");
     await save();
 
@@ -112,7 +112,7 @@ describe("the waiver settings (#1200)", () => {
   });
 
   it("shows the waiver order beside them, its note following the type chosen", async () => {
-    await openedSettings({ waivers: NO_WAIVERS });
+    await openedOn("waivers", { waivers: NO_WAIVERS });
     const order = () =>
       screen.getByRole("region", { name: WAIVER_ORDER_TITLE });
     expect(
@@ -168,7 +168,7 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
   const claimsPanel = () => screen.getByRole("region", { name: CLAIMS_TITLE });
 
   it("lists them team by team in the waiver order, with no handle to drag, and the teams with none", async () => {
-    await openedSettings({ waivers, claims });
+    await openedOn("waivers", { waivers, claims });
     const rows = within(
       within(claimsPanel()).getByRole("table", { name: everyTeamTableLabel }),
     )
@@ -189,12 +189,12 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
   });
 
   it("says when no team has any", async () => {
-    await openedSettings({ waivers });
+    await openedOn("waivers", { waivers });
     expect(within(claimsPanel()).getByText(noClaimsWords)).toBeTruthy();
   });
 
   it("says so while they load", async () => {
-    openSettings({ waivers, claimsLoading: true });
+    await openedOn("waivers", { waivers, claimsLoading: true });
     expect(
       (await screen.findByText(everyTeamClaimsLoadingWords)).getAttribute(
         "role",
@@ -207,6 +207,8 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
       leagueSettings: { waivers, claims },
     });
     await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
+    await openTab("waivers");
+    await screen.findByRole("region", { name: WAIVER_ORDER_TITLE });
 
     expect(screen.queryByRole("region", { name: CLAIMS_TITLE })).toBeNull();
     expect(app.leagueSettings.usePendingClaims).not.toHaveBeenCalled();

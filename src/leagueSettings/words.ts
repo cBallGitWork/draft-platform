@@ -156,3 +156,17 @@ export const scoringStartFailedWords = failedWords(unchangedStartOutcome);
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the settings didn't change";
 export const saveFailedWords = failedWords(unsavedOutcome);
+
+/** The tabs on the title plate, in the approved pictures' order (docs/design/approved/settings/):
+ *  each holds its own panels, and the edits are kept as they switch. */
+export const SETTINGS_TABS = ["fixtures", "squad", "draft", "waivers", "trades", "draftOrder"] as const;
+export type SettingsTab = (typeof SETTINGS_TABS)[number];
+export const settingsTabsLabel = "League settings' tabs";
+export const settingsTabWords: Record<SettingsTab, string> = {
+  fixtures: fixturesTitle,
+  squad: squadTitle,
+  draft: draftTitle,
+  waivers: waiversTitle,
+  trades: tradesTitle,
+  draftOrder: teamOrderTitle,
+};

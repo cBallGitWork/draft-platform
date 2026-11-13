@@ -3,18 +3,37 @@
 // the reason they weren't; and never over someone else's save. The squad's make-up (#341) is in
 // leagueSettings.squad.test.tsx.
 
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { SETTINGS_DRAFT_HASH } from "../../../src/leagueSettings/paths";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
-import { blankGamesWords, gamesHint, gamesLabel, loadingWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
+import {
+  blankGamesWords,
+  draftTitle,
+  fixturesTitle,
+  gamesHint,
+  gamesLabel,
+  loadingWords,
+  oddTeamOutWords,
+  redrawWords,
+  savedWords,
+  SETTINGS_TABS,
+  SETTINGS_TITLE,
+  settingsTabsLabel,
+  settingsTabWords,
+  squadMaximumLabel,
+  squadTitle,
+  teamOrderTitle,
+} from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { WAIVER_ORDER_TITLE } from "../../../src/myTeam/claims/words";
 import type { Revision } from "../../../src/rules/rulesEdits";
-import { discardWords, gameweekWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
+import { discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { REVISION } from "../../support/src/leagueSettings.harness";
-import { box, fill, FIRST_SETTINGS, openedSettings, openSettings, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
+import { box, fill, FIRST_SETTINGS, openedOn, openedSettings, openSettings, openTab, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { descriptionOf, refusalBeside } from "../../support/src/describedBy";
 import { adminSeeing, coCommissioned, commissioner, expectNotOffered, expectSentToLeagues, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
@@ -41,6 +60,50 @@ describe("reaching it", () => {
   it("a manager isn't offered it, and is sent back to Your leagues if they go there", async () => {
     await expectNotOffered(SETTINGS_TITLE, managerIn(league));
     await expectSentToLeagues(SETTINGS_PAGE, managerIn(league));
+  });
+});
+
+describe("its tabs (#1034, the approved pictures)", () => {
+  const tabs = () => within(screen.getByRole("group", { name: settingsTabsLabel })).getAllByRole("button");
+  const region = (name: string) => screen.queryByRole("region", { name });
+
+  it("shows Fixtures, Squad, Draft, Waivers, Trades and Draft order on the title plate, opening on Fixtures, with the league's name", async () => {
+    await openedSettings();
+
+    expect(tabs().map((tab) => tab.textContent)).toEqual(SETTINGS_TABS.map((tab) => settingsTabWords[tab]));
+    expect(tabs().filter((tab) => tab.getAttribute("aria-pressed") === "true").map((tab) => tab.textContent)).toEqual([settingsTabWords.fixtures]);
+    expect(region(fixturesTitle)).toBeTruthy();
+    expect(region(squadTitle)).toBeNull();
+    expect(within(screen.getByRole("heading", { level: 1 }).parentElement!).getByText(league.name)).toBeTruthy();
+  });
+
+  it("keeps the edits as the tabs switch, and one Save sends them all", async () => {
+    const app = await openedSettings();
+    await setGames("2");
+    await openTab("squad");
+    await fill(squadMaximumLabel, "20");
+    await openTab("fixtures");
+    expect(gamesBox().value).toBe("2");
+    await save();
+
+    expect(app.leagueSettings.save).toHaveBeenCalledExactlyOnceWith(league.leagueId, { ...FIRST_SETTINGS, gamesPerGameweek: 2, squadMaximum: 20 }, REVISION);
+  });
+
+  it("shows the waiver order beside Waivers only, and no Save bar on Draft order, whose moves save at once", async () => {
+    await openedOn("waivers");
+    expect(await screen.findByRole("region", { name: WAIVER_ORDER_TITLE })).toBeTruthy();
+
+    await openTab("draftOrder");
+    expect(region(WAIVER_ORDER_TITLE)).toBeNull();
+    expect(region(teamOrderTitle)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: saveWords })).toBeNull();
+  });
+
+  it("opens on Draft from the draft room's Change the start (#1476)", async () => {
+    openApp(`${SETTINGS_PAGE}#${SETTINGS_DRAFT_HASH}`, commissioner);
+
+    expect(await screen.findByRole("region", { name: draftTitle })).toBeTruthy();
+    expect(region(fixturesTitle)).toBeNull();
   });
 });
 
