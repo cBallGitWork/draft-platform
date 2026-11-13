@@ -110,6 +110,12 @@ export const lastSeasonPointsColumn = (season: number | null) =>
   season === null
     ? { short: "Pts last season", long: `Points last season ${underSiteScoringWords}` }
     : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} ${underSiteScoringWords}` };
+/** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
+ *  wasn't in last season's data (Scouting and a club's Squad tab). */
+export const noPointsYetWords = "No points yet: none of his matches is scored.";
+export const notLastSeasonWords = "No points: he isn't in last season's data.";
+/** Why a player's season points are "—": none priced yet, or not in last season's data. */
+export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 /** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
  *  (spec/14, Own stats; #910). */
 export const ownStatsGroupWords = "The site's own stats";

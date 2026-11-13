@@ -16,4 +16,5 @@ export const livePremierLeague: PremierLeagueSeam = {
   },
   useStandings: () => useQuery(api.football.plStandings.ofSeason, {}),
   useClub: (leagueId, clubCode) => useQuery(api.football.clubPage.ofClub, { leagueId, clubCode }),
+  useClubSquad: (leagueId, clubCode) => useQuery(api.scouting.clubSquad.ofClub, { leagueId, clubCode }),
 };
