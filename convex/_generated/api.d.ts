@@ -28,6 +28,7 @@ import type * as draft_autoPickSwitch from "../draft/autoPickSwitch.js";
 import type * as draft_draftBoard from "../draft/draftBoard.js";
 import type * as draft_draftClock from "../draft/draftClock.js";
 import type * as draft_draftCommissioner from "../draft/draftCommissioner.js";
+import type * as draft_draftLegal from "../draft/draftLegal.js";
 import type * as draft_draftLetters from "../draft/draftLetters.js";
 import type * as draft_draftLimits from "../draft/draftLimits.js";
 import type * as draft_draftLists from "../draft/draftLists.js";
@@ -425,6 +426,7 @@ declare const fullApi: ApiFromModules<{
   "draft/draftBoard": typeof draft_draftBoard;
   "draft/draftClock": typeof draft_draftClock;
   "draft/draftCommissioner": typeof draft_draftCommissioner;
+  "draft/draftLegal": typeof draft_draftLegal;
   "draft/draftLetters": typeof draft_draftLetters;
   "draft/draftLimits": typeof draft_draftLimits;
   "draft/draftLists": typeof draft_draftLists;
