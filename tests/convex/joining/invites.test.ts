@@ -43,6 +43,7 @@ import {
 import { DAY_MS } from "../../../convex/shared/time";
 import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
+import { liveInvitesTo } from "../../../convex/joining/liveInvites";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 
@@ -56,6 +57,7 @@ beforeEach(async () => {
 });
 
 const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagueId))?.invites.find((row) => row.inviteId === inviteId);
+const liveInvitesToAnn = () => t.run((ctx) => liveInvitesTo(ctx, ANN, Date.now()));
 
 describe("an invite", () => {
   test("to a new team is emailed with a sign-in link, and opening it makes them its manager with no approval", async () => {
@@ -142,6 +144,36 @@ describe("how long an invite lasts", () => {
     expect((await inviteRow(inviteId))?.expiresAt).toBe(Date.now() + INVITE_LIFETIME_MS);
     await openLastLinkTo(t, sent, ANN);
     expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+  });
+
+  test("an expired one isn't resent while a newer invite to the same person is live, so one stays live (#2045)", async () => {
+    const expired = await invite(t, leagueId, ANN);
+    vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
+    await invite(t, leagueId, ANN);
+
+    await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId: expired }), joiningRefusals.alreadyInvited(ANN));
+    expect(await liveInvitesToAnn()).toHaveLength(1);
+  });
+
+  test("resent once expired, it is live at once, so a new invite before its email goes is refused (#2045)", async () => {
+    const inviteId = await invite(t, leagueId, ANN);
+    vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
+    await (await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId });
+
+    await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.send, { leagueId, email: ANN }), joiningRefusals.alreadyInvited(ANN));
+    await everyJobRuns(t);
+    expect(await liveInvitesToAnn()).toHaveLength(1);
+  });
+
+  test("Resend pressed twice before the email goes sends one email and files one event (#2045)", async () => {
+    const inviteId = await invite(t, leagueId, ANN);
+    const commissioner = await asCommissioner(t);
+    await commissioner.mutation(api.joining.invites.resend, { inviteId });
+    await commissioner.mutation(api.joining.invites.resend, { inviteId });
+    await everyJobRuns(t);
+
+    expect(emailsTo(sent, ANN)).toHaveLength(2);
+    expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "inviteResent")).toHaveLength(1);
   });
 
   test("cancelled, it lets no one in, is filed for Mail, and leaves the page", async () => {

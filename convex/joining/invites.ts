@@ -66,14 +66,21 @@ export const send = mutation({
 });
 
 /** For the league's commissioners and the admin: sends an invite that hasn't ended again, but not
- *  while it waits for tomorrow's emails. Its lifetime restarts once it goes (recordDelivery). */
+ *  while it waits for tomorrow's emails, and not an expired one while a newer invite to the same
+ *  email is live, so one stays live (#2045). It is live again at once, so `send` refuses a second
+ *  meanwhile, and its lifetime restarts again once it goes (recordDelivery). Pressed again while
+ *  its email is still going, it does nothing, so one email goes (#2045). */
 export const resend = mutation({
   args: { inviteId: v.id("invites") },
   returns: v.null(),
   handler: async (ctx, { inviteId }) => {
     const { by, invite, invitedTo } = await inviteToRun(ctx, inviteId);
     if (invite.delivery === "waiting") refuse(joiningRefusals.inviteWaiting);
-    await ctx.db.patch("invites", inviteId, { delivery: "sending" });
+    if (invite.delivery === "sending") return null;
+    const now = Date.now();
+    const othersLive = (await liveInvitesTo(ctx, invite.email, now)).some((each) => each.leagueId === invite.leagueId && each._id !== inviteId);
+    if (othersLive) refuse(joiningRefusals.alreadyInvited(invite.email));
+    await ctx.db.patch("invites", inviteId, { delivery: "sending", expiresAt: now + INVITE_LIFETIME_MS });
     await recordEvent(ctx, invite.leagueId, by, { kind: "inviteResent", ...invitedTo });
     await ctx.scheduler.runAfter(0, internal.joining.invites.deliver, { inviteId });
     return null;
