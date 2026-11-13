@@ -16,6 +16,7 @@ import {
   pickedWords,
   roundHead,
   roundsShownWords,
+  roundWayGlyph,
   roundWayLabel,
   slotWords,
   theOrderRoundsWords,
@@ -90,8 +91,7 @@ export function DraftBoard({
                 <th scope="row" className="px-2 py-0.5 text-left align-top font-semibold">
                   {round}
                   <span aria-label={roundWayLabel(runsLeftToRight(round))} role="img" className="block text-muted">
-                    {/* The text-presentation selector keeps the arrows from drawing as bright emoji. */}
-                    {runsLeftToRight(round) ? "▶︎" : "◀︎"}
+                    {roundWayGlyph(runsLeftToRight(round))}
                   </span>
                 </th>
                 {order.map(({ teamId, name }, column) => {

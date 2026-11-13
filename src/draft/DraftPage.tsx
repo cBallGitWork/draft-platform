@@ -141,11 +141,15 @@ function LiveFacts({ draft, board, onTheClock }: { draft: Live; board: Board; on
   );
 }
 
+/** How many rounds' picks "You pick" names before the start: "8th, then 13th". */
+const ROUNDS_SHOWN_BEFORE_START = 2;
+
 /** Before the start: how the order was set (not held yet), where the reader picks, the clock, and
  *  when it starts, counted down a minute at a time. */
 function WaitingFacts({ draft, board, now }: { draft: Waiting; board: Board; now: number }) {
   const teamIds = draft.order.map((team) => team.teamId);
-  const [first, second] = board.yourTeamId === null ? [] : picksOf(board.yourTeamId, teamIds, Math.min(draft.rounds ?? 2, 2), board.tradedPicks);
+  const rounds = Math.min(draft.rounds ?? ROUNDS_SHOWN_BEFORE_START, ROUNDS_SHOWN_BEFORE_START);
+  const [first, second] = board.yourTeamId === null ? [] : picksOf(board.yourTeamId, teamIds, rounds, board.tradedPicks);
   return (
     <Facts>
       <Fact head={draftOrderHead}>

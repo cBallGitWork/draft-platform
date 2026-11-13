@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type DragEvent, type KeyboardEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { SCOUTING_PATH } from "../frame/menu";
+import { ARROW_DOWN_KEY, ARROW_UP_KEY } from "../shared/browserEvents";
 import { ClubShort } from "../ui/ClubName";
 import { useChange } from "../shared/useChange";
 import { Loading, Panel, PanelNote, Problem, Status } from "../ui/Panel";
@@ -9,10 +10,13 @@ import { PositionChip } from "../ui/PositionChip";
 import type { DraftList, DraftLists, DraftSeam } from "./seam";
 import {
   addWholeShortlistWords,
+  closeGlyph,
   DO_NOT_DRAFT_TITLE,
   doNotDraftAside,
   doNotDraftListLabel,
+  dragGlyph,
   emptyQueueWords,
+  foldedGlyph,
   fromShortlistWords,
   loadingListsWords,
   moveLabel,
@@ -89,7 +93,7 @@ export function QueuePanel({ leagueId, seam }: { leagueId: Id<"leagues">; seam: 
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-panel-rule px-3 py-1">
             <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center">
-              {fromShortlistWords} ▸
+              {fromShortlistWords} {foldedGlyph}
             </Link>
             <button type="button" disabled={change.busy} onClick={addShortlist} className="secondary-action">
               {addWholeShortlistWords}
@@ -136,15 +140,15 @@ function QueueRow({
     onDragStart();
   };
   const keyMove = (event: KeyboardEvent) => {
-    if (event.key === "ArrowUp" && place > 1) onMove(place - 1);
-    else if (event.key === "ArrowDown" && !last) onMove(place + 1);
+    if (event.key === ARROW_UP_KEY && place > 1) onMove(place - 1);
+    else if (event.key === ARROW_DOWN_KEY && !last) onMove(place + 1);
     else return;
     event.preventDefault();
   };
   return (
     <li draggable={!busy} onDragStart={startDrag} onDragEnd={onDragEnd} onDragOver={allowDrop} onDrop={drop} className="flex items-center gap-2 border-t border-panel-rule pr-1">
       <button type="button" disabled={busy} onKeyDown={keyMove} aria-label={moveLabel(player.name, place)} className="min-h-tap min-w-tap cursor-grab text-muted">
-        ⠿
+        {dragGlyph}
       </button>
       <span className="w-6 text-right text-soft">{place}</span>
       <ListedName player={player} />
@@ -169,7 +173,7 @@ function ListedName({ player }: { player: Listed }) {
 function TakeOff({ name, list, busy, onRemove }: { name: string; list: DraftList; busy: boolean; onRemove: () => void }) {
   return (
     <button type="button" disabled={busy} onClick={onRemove} aria-label={takeOffLabel(name, list)} className="min-h-tap min-w-tap text-soft">
-      ✕
+      {closeGlyph}
     </button>
   );
 }

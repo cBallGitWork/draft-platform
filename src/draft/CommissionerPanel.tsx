@@ -18,6 +18,7 @@ import {
   lastPickWords,
   loadingWords,
   lostPlayerWords,
+  lostTeamWords,
   onlyYouWords,
   pauseWords,
   pickForTeamWords,
@@ -194,7 +195,7 @@ function Action({ disabled, onClick, children }: { disabled: boolean; onClick: (
 function LastPick({ draft, board }: { draft: Live; board: DraftBoard }) {
   const last = board.picks.at(-1);
   if (last === undefined) return null;
-  const team = draft.order.find((each) => each.teamId === last.teamId)?.name ?? "";
+  const team = draft.order.find((each) => each.teamId === last.teamId)?.name ?? lostTeamWords;
   const teams = draft.order.length;
   const player = last.player === null ? lostPlayerWords : `${last.player.name} ${last.player.clubShortName}`;
   return <p className="text-soft">{lastPickWords(team, player, slotWords(roundOf(last.pick, teams), pickInRoundOf(last.pick, teams)))}</p>;

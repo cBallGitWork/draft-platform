@@ -1,4 +1,4 @@
-import { pickOwner, snakeOrder, type TradedPick } from "../../convex/draft/snakeOrder";
+import { pickOwner, roundOf, snakeOrder, type TradedPick } from "../../convex/draft/snakeOrder";
 
 // Where each pick sits on the board (spec/04, The picks and The draft room): a column a team in
 // the draft order, a row a round, each round running the other way from the one before (snake
@@ -6,13 +6,15 @@ import { pickOwner, snakeOrder, type TradedPick } from "../../convex/draft/snake
 
 /** How many rounds the board shows unless the whole board is asked for (Craig, 4 Nov 2026). */
 const BOARD_ROUNDS = 6;
+/** The row, from 1, the round on the clock sits on where the rounds allow (the approved picture). */
+const BOARD_ROW_OF_CURRENT_ROUND = 4;
 
 /** The rounds the board shows: every round for the whole board, otherwise BOARD_ROUNDS of them
- *  around `round`, the one on the clock, which sits as near the fourth row as the rounds allow, as
- *  the approved picture has it (round 4 of 20 shows rounds 1 to 6). */
+ *  around `round`, the one on the clock, which sits as near BOARD_ROW_OF_CURRENT_ROUND as the
+ *  rounds allow, as the approved picture has it (round 4 of 20 shows rounds 1 to 6). */
 export function roundsShown(rounds: number, round: number, whole: boolean): number[] {
   const count = whole ? rounds : Math.min(BOARD_ROUNDS, rounds);
-  const first = whole ? 1 : Math.max(1, Math.min(round - 3, rounds - count + 1));
+  const first = whole ? 1 : Math.max(1, Math.min(round - (BOARD_ROW_OF_CURRENT_ROUND - 1), rounds - count + 1));
   return Array.from({ length: count }, (_, index) => first + index);
 }
 
@@ -28,8 +30,8 @@ export const pickAt = (round: number, column: number, teams: number) => (round -
 /** Which pick of its round pick number `pick` is. */
 export const pickInRoundOf = (pick: number, teams: number) => ((pick - 1) % teams) + 1;
 
-/** The round pick number `pick` falls in. */
-export const roundOf = (pick: number, teams: number) => Math.floor((pick - 1) / teams) + 1;
+/** The round pick number `pick` falls in: the server's sum, so the board and the draft agree. */
+export { roundOf };
 
 /** Who makes each pick, first to last, over `rounds` rounds of `order`: the team whose turn it is,
  *  or the team holding its pick in that round after a trade (#1096). */
