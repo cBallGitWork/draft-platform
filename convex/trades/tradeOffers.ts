@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
+import { checkSoon } from "../leagues/leagueChecks";
 import { offerLetter } from "../mail/tradeLetterWords";
 import { tradePick } from "../schema";
 import { managerOf, ownTeamOrNone, playerOrRefuse, refuse, teamIn } from "../shared/leagueAccess";
@@ -139,6 +140,8 @@ async function makeOffer(
   };
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
+  // The trade cron looks at the league's offers again, so this one closes at its time (#1998).
+  await checkSoon(ctx, league._id, ["offers"]);
   const words = await tradeWordsOf(ctx, offer);
   const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
   const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;

@@ -6,6 +6,7 @@ import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
 import { keepScoutingPlayers } from "../scouting/scoutingPlayers";
 import { followKickoffs } from "../scoring/patchKickoffs";
+import { checkEveryLeagueSoon } from "../leagues/leagueChecks";
 
 // What runs after a football sync writes the site's players, matches and gameweeks: the deadlines,
 // stats, scoring, waivers and Scouting that follow them (ARCHITECTURE.md "Where code lives", the
@@ -41,6 +42,13 @@ export function afterPlayersDropped(ctx: MutationCtx, dropped: readonly number[]
 export async function afterMatchesMoved(ctx: MutationCtx, moved: readonly Fixture[]): Promise<void> {
   await repriceMatches(ctx, moved);
   await followKickoffs(ctx, Date.now());
+  if (moved.length > 0) await afterKickoffsChanged(ctx);
+}
+
+/** A match new, moved, dropped or with a new kickoff can move any league's deadlines: every
+ *  league's waivers and offers are looked at again on the crons' next pass (#1998). */
+export function afterKickoffsChanged(ctx: MutationCtx): Promise<void> {
+  return checkEveryLeagueSoon(ctx);
 }
 
 /** After a batch of matches sent: as afterMatchesMoved, then the season's points rebuilt where

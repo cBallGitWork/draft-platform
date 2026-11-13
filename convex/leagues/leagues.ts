@@ -14,6 +14,7 @@ import {
 } from "../shared/leagueAccess";
 import { typedName } from "../shared/typedText";
 import { recordEvent } from "../mail/letters";
+import { checkSoon } from "./leagueChecks";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS } from "./leagueLimits";
 import { giveDefaultRules, refuseTooFewForGames } from "../rules/leagueRules";
 import { latestRules } from "../rules/rulesHistory";
@@ -52,6 +53,7 @@ export const create = mutation({
     await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
     await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
     await giveDefaultRules(ctx, leagueId, args.maxTeams);
+    await checkSoon(ctx, leagueId);
     await admitCommissioner(ctx, commissionerEmail, leagueId);
     return leagueId;
   },

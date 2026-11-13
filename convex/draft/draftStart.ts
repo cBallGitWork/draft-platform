@@ -9,6 +9,7 @@ import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
+import { checkSoon } from "../leagues/leagueChecks";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
@@ -81,6 +82,8 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
+  // Free agents waiting on the draft go back on waivers once it is over: the waiver cron looks (#1998).
+  await checkSoon(ctx, league._id, ["waivers"]);
   await closePickTrades(ctx, league._id);
   await undoCutTrades(ctx, league, can.rounds);
   const first = await startClock(ctx, league._id, 0, started.at, pickSeconds);

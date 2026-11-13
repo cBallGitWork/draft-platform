@@ -209,5 +209,20 @@ export const leagueTables = {
     .index("by_fromTeamId_and_kind_and_at", ["event.fromTeamId", "event.kind", "at"])
     .index("by_toTeamId_and_kind_and_at", ["event.toTeamId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
+  /** When each league's waivers and trade offers are next worth looking at, one row a league at
+   *  most (#1998, ../leagues/leagueChecks.ts): the 5-minute crons read only the rows due, never
+   *  every league. `NEVER_DUE` where nothing is to come until something wakes it. */
+  leagueChecks: defineTable({
+    leagueId: v.id("leagues"),
+    /** The next moment the waiver cron looks at the league: its next run time, its next deadline
+     *  (free agents back on waivers), or sooner while something started is waiting. */
+    waiversAt: v.number(),
+    /** The next moment the trade cron looks at its open offers: the next deadline, or sooner while
+     *  an offer may close at a moment not known ahead. */
+    offersAt: v.number(),
+  })
+    .index("by_leagueId", ["leagueId"])
+    .index("by_waiversAt", ["waiversAt"])
+    .index("by_offersAt", ["offersAt"]),
   unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
 };

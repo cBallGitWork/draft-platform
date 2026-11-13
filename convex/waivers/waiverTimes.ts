@@ -1,3 +1,5 @@
+import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { NEVER_DUE } from "../leagues/leagueChecks";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { RulesRow } from "../rules/rulesHistory";
 import { londonOffset } from "../shared/moments";
@@ -52,4 +54,13 @@ export function firstRunFrom(runs: readonly WaiverRun[], from: number): number |
   let first: number | null = null;
   for (const at of runsAround(runs, from, 1)) if (at >= from && (first === null || at < first)) first = at;
   return first;
+}
+
+/** When a league with nothing waiting is next worth the waiver cron's look at `now` (#1998): its
+ *  next run time under its latest rules, or its next deadline, when its window shuts and its free
+ *  agents go back on waivers, whichever comes first; `NEVER_DUE` with neither. A rules save or a
+ *  moved kickoff wakes the league sooner (../leagues/leagueChecks.ts). */
+export function nextWaiverCheck(runs: readonly WaiverRun[], deadlines: LeagueDeadlines, now: number): number {
+  const times = [firstRunFrom(runs, now + 1), nextDeadline(deadlines, now)?.at ?? null].filter((at): at is number => at !== null);
+  return times.length === 0 ? NEVER_DUE : Math.min(...times);
 }

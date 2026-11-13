@@ -22,6 +22,7 @@ import { seedColours } from "./clubKits";
 import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
 import {
+  afterKickoffsChanged,
   afterMatchesMoved,
   afterMatchesSent,
   afterPlayersDropped,
@@ -126,10 +127,17 @@ export const upsertFixtures = internalMutation({
     // Each match is held in the gameweek its kickoff falls in, never the feed's round (#1416).
     const rows = await placeInWindows(ctx, sent, Date.now());
     const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
-    const upserted = await upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code), (held, row) => {
-      if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
+    let kickoffsChanged = false;
+    const held = async (row: WithoutSystemFields<Doc<"fixtures">>) => {
+      const fixture = await fixtureByCode(ctx, row.code);
+      if (fixture === null || fixture.kickoff !== row.kickoff) kickoffsChanged = true;
+      return fixture;
+    };
+    const upserted = await upsertEach(ctx, "fixtures", rows, held, (fixture, row) => {
+      if (fixture.gameweek !== row.gameweek || fixture.droppedAt !== undefined) moved.push(row);
     });
     await afterMatchesSent(ctx, moved);
+    if (kickoffsChanged && moved.length === 0) await afterKickoffsChanged(ctx);
     return upserted;
   },
 });
