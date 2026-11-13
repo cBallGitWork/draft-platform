@@ -52,8 +52,9 @@ export function clubFormOf(fixtures: readonly ClubFixture[]): Result[] {
 }
 
 /** A club's page from `matches`, `positionOf` giving a club's table place, null for one not in it:
- *  its place, form, next match with the opponent's place and form, and its matches. */
-export function clubPageOf(club: Club, matches: readonly HeldMatch[], positionOf: (code: number) => number | null) {
+ *  its place, form, next match with the opponent's place and form, and its matches; `club` as the
+ *  header names it, its stadium, capacity and manager where held. */
+export function clubPageOf<C extends Club>(club: C, matches: readonly HeldMatch[], positionOf: (code: number) => number | null) {
   const fixtures = fixturesOf(matches, club.code);
   const next = nextFixtureOf(fixtures);
   return {

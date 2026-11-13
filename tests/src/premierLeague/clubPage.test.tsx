@@ -13,8 +13,11 @@ import { formLabel } from "../../../src/shared/words";
 import { clubPath, matchPath } from "../../../src/premierLeague/paths";
 import type { ClubPageData, ClubPageFixture } from "../../../src/premierLeague/seam";
 import {
+  CLUB_DETAIL_HEADS,
+  CLUB_TITLE,
   clubTabWords,
   daysAwayWords,
+  detailNotHeldLabel,
   kickoffDayWords,
   MATCH_TITLE,
   NEXT_MATCH_TITLE,
@@ -117,6 +120,24 @@ describe("the header", () => {
   it("says so when the club has no match to come", async () => {
     openClub({ club: { ...arsenal, next: null } });
     expect(within(await screen.findByRole("region", { name: NEXT_MATCH_TITLE })).getByText(noNextMatchWords)).toBeTruthy();
+  });
+
+  it("names the club's stadium, its capacity and its manager (#1938)", async () => {
+    openClub({ club: { ...arsenal, club: { ...ARSENAL, stadium: "Emirates Stadium", capacity: 60704, manager: "Mikel Arteta" } } });
+    const header = await screen.findByRole("region", { name: CLUB_TITLE });
+    const facts = within(header).getAllByRole("definition").map((cell) => cell.previousElementSibling?.textContent + ": " + cell.textContent);
+    expect(facts).toEqual(expect.arrayContaining(["Stadium: Emirates Stadium", "Capacity: 60,704", "Manager: Mikel Arteta"]));
+  });
+
+  it("greys each detail the feed hasn't sent in its place, never dropping it", async () => {
+    openClub({ club: { ...arsenal, club: { ...ARSENAL, stadium: "Emirates Stadium" } } });
+    const header = await screen.findByRole("region", { name: CLUB_TITLE });
+    expect(within(header).getByText("Emirates Stadium")).toBeTruthy();
+    for (const detail of ["capacity", "manager"] as const) {
+      expect(within(header).getByText(CLUB_DETAIL_HEADS[detail])).toBeTruthy();
+      expect(within(header).getByRole("img", { name: detailNotHeldLabel(detail) })).toBeTruthy();
+    }
+    expect(within(header).queryByRole("img", { name: detailNotHeldLabel("stadium") })).toBeNull();
   });
 });
 
