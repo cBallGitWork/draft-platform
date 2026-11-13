@@ -57,7 +57,7 @@ type PanelPlace = NonNullable<ReturnType<typeof placeOf>>;
  *  him, his positions, his next fixtures, his points, and what can be done to him: Move, Up and
  *  Down on the bench, and his player card. The cross closes it. Data not held yet is its
  *  placeholder (plate.md, Marks). */
-export function PlayerPanel({
+export function TacticsPlayerPanel({
   leagueId,
   player,
   place,

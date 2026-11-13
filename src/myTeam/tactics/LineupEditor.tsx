@@ -15,7 +15,7 @@ import { useFormationPicks } from "./useFormationPicks";
 import { SelectionTable } from "./SelectionTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
-import { PlayerPanel } from "./widgets/PlayerPanel";
+import { TacticsPlayerPanel } from "./widgets/PlayerPanel";
 import { RoleCardWindow } from "./roleCard/RoleCard";
 import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
@@ -257,7 +257,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (
-            <PlayerPanel
+            <TacticsPlayerPanel
               leagueId={league.leagueId}
               player={selected}
               place={selectedPlace}
