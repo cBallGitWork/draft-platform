@@ -13,6 +13,7 @@ import { LOCALE } from "../../convex/shared/moments";
 import { countInWords } from "../../convex/shared/numberWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../shared/words";
+import { confirmDeleteWords } from "../leagues/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
@@ -191,8 +192,7 @@ export const feedbackWords = {
   remove: "Delete",
   removeLabel: (from: string) => `Delete ${from}'s feedback`,
   confirm: (from: string) => `Delete this feedback from ${from}? It can't be undone.`,
-  yes: "Delete it",
-  no: "Keep it",
+  ...confirmDeleteWords,
 };
 
 /** The Availability tab (#1209, spec/06 Availability; the approved auto-team picture): every player
