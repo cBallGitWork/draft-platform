@@ -4,14 +4,22 @@ import { squadMaximumOf } from "./squadMaximums";
 import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
-// league; players' points are the site's (spec/14, Who owns it). The round robin's two (spec/09),
+// league; players' points are the site's (spec/14, Who owns it). The format, the deadline, the
+// double gameweek rule and the table's tie-breaks (spec/03; #1034), the round robin's two (spec/09),
 // the squad's make-up (spec/03, Squad make-up; #341), how the draft runs (spec/04; #1087), how
 // trades do (spec/08; #383) and how waivers do (spec/08; #1200). Pure, so the screens' previews read it too; leagueSettings.ts reads
 // and saves it.
 
-const squad = leagueRulesShape.fields.squad.fields;
+const rules = leagueRulesShape.fields;
+const squad = rules.squad.fields;
 
 export const leagueSettingsShape = v.object({
+  /** Locked once the league's first scored gameweek begins (formatLock.ts refuses the change). */
+  format: rules.format,
+  deadline: rules.deadline,
+  doubleGameweek: rules.doubleGameweek,
+  /** In the league's order, which the commissioner changes (S03.2). */
+  tieBreaks: rules.tieBreaks,
   oddTeamOut: oddTeamOutShape,
   gamesPerGameweek: v.number(),
   /** The squad size's maximum; null for rules with no squad size limit, which keep none. */
@@ -29,6 +37,10 @@ export type LeagueSettings = Infer<typeof leagueSettingsShape>;
  *  saved before they were rules read as the first rules' values (`drawRulesOf`), and the draft's
  *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`). */
 export const leagueSettingsOf = (rules: LeagueRules): LeagueSettings => ({
+  format: rules.format,
+  deadline: rules.deadline,
+  doubleGameweek: rules.doubleGameweek,
+  tieBreaks: rules.tieBreaks,
   ...drawRulesOf(rules),
   squadMaximum: squadMaximumOf(rules),
   minimumByArea: rules.squad.minimumByArea,

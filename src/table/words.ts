@@ -3,7 +3,7 @@
 import { andListWords } from "../../convex/shared/moments";
 import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
-import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, signedWords, TABLE_TITLE } from "../shared/words";
+import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, pointsAgainstWords, pointsForWords, signedWords, TABLE_TITLE } from "../shared/words";
 
 export { figureWords, gameweekWords, liveWords, scoreWords } from "../shared/words";
 /** The table's title, said while every team has played nothing, beside points a live match still
@@ -23,8 +23,8 @@ export const columns = {
   won: { short: "W", long: "Won" },
   drawn: { short: "D", long: "Drawn" },
   lost: { short: "L", long: "Lost" },
-  pointsFor: { short: "F", long: "Points for" },
-  pointsAgainst: { short: "A", long: "Points against" },
+  pointsFor: { short: "F", long: pointsForWords },
+  pointsAgainst: { short: "A", long: pointsAgainstWords },
   difference: { short: "+/-", long: "Points for less points against" },
   points: { short: "Pts", long: "Points" },
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },

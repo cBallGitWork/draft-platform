@@ -29,6 +29,10 @@ beforeEach(async () => {
 
 /** The first rules' settings, the squad's maximum the site's for a test league's size. */
 const FIRST: LeagueSettings = {
+  format: "headToHead",
+  deadline: HELD_FIRST_RULES.deadline,
+  doubleGameweek: "bothMatches",
+  tieBreaks: HELD_FIRST_RULES.tieBreaks,
   oddTeamOut: "leagueAverage",
   gamesPerGameweek: 1,
   squadMaximum: HELD_FIRST_RULES.squad.size!.maximum,

@@ -8,13 +8,15 @@ import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
-import type { TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
+import type { LeagueRules, TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
+import type { DoubleGameweekRule } from "../../convex/scoring/values";
 import { hoursWords } from "../../convex/shared/time";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
+import type { TieBreak } from "../../convex/table/standings";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -28,6 +30,22 @@ export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer ot
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
 export const redrawWords = "Saving either redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
 export const blankGamesWords = noNumberWords("Games a gameweek");
+/** The format (spec/03, S03.1): its lock, and why, is said again by the server's refusal. */
+export const formatLabel = "Format";
+export const formatWords: Record<LeagueRules["format"], string> = { headToHead: "Head-to-head", totalPoints: "Total points" };
+export const formatHint = "Locked once the league's first scored gameweek begins: one table with one meaning all season.";
+/** spec/03: both matches count by default. */
+export const doubleGameweekLabel = "Double gameweeks";
+export const doubleGameweekWords: Record<DoubleGameweekRule, string> = { bothMatches: "Both matches count", bestMatch: "Best match" };
+/** The deadline (spec/03, S03.3). */
+export const deadlineLabel = "Deadline, in minutes before the gameweek's first kickoff";
+export const deadlineHint = "A whole number, 0 or more.";
+export const blankDeadlineWords = noNumberWords("Deadline");
+
+/** The table's tie-breaks, whose order the commissioner changes (spec/03, S03.2). */
+export const tableTitle = "Table";
+export const tieBreaksLabel = "Tie-breaks, in order";
+export const tieBreakWords: Record<TieBreak, string> = { pointsFor: pointsForWords, headToHead: formatWords.headToHead, pointsAgainst: pointsAgainstWords };
 
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
