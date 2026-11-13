@@ -3,10 +3,8 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AREAS } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
-import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PAGE_STACK, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
-import { Choice } from "../ui/Choice";
 import { SETTINGS_DRAFT_HASH } from "./paths";
 import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
 import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
@@ -14,8 +12,7 @@ import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { DraftPanel } from "./DraftPanel";
-import { NumberRow } from "./NumberRow";
-import { ScoringStartRow } from "./ScoringStartRow";
+import { FixturesPanels } from "./FixturesPanel";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { SquadPanel } from "./SquadPanel";
 import { TeamOrderPanel } from "./TeamOrderPanel";
@@ -29,18 +26,13 @@ import { CLAIMS_TITLE, everyTeamClaimsLoadingWords, noClaimsWords, teamsWithoutC
 import {
   blankAreaMinimumWords,
   blankClubMaximumWords,
+  blankDeadlineWords,
   blankGamesWords,
   blankPickClockWords,
   blankSquadMaximumWords,
   blankTimeoutsWords,
   blankTradeDeadlineWords,
-  fixturesTitle,
-  gamesHint,
-  gamesLabel,
   loadingWords,
-  oddTeamOutLabel,
-  oddTeamOutWords,
-  redrawWords,
   runTwiceWords,
   draftStartSavedWords,
   savedWords,
@@ -51,14 +43,11 @@ import {
   type SettingsTab,
 } from "./words";
 
-/** The games box's hint's id, which the box is described by (#915). */
-const GAMES_HINT_ID = "settings-games-hint";
-const ODD_TEAM_OUT_CHOICE = "odd-team-out";
-
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
  *  to the league, a tab each on the title plate (docs/design/approved/settings/; #1034): the
- *  round robin's two (spec/09), the squad's make-up (spec/03; #341), how the draft runs and when
+ *  format, the deadline, double gameweeks and the table's tie-breaks (spec/03), the round robin's
+ *  two (spec/09), the squad's make-up (spec/03; #341), how the draft runs and when
  *  it starts (spec/04; #1087, #1476), how waivers run, beside the waiver order (spec/08; #1200),
  *  how trades do (spec/08; #383), and the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
@@ -96,7 +85,7 @@ function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: Leag
     <div ref={rulesEdits.area} className="grid items-start gap-2 lg:grid-cols-table">
       <div className={PAGE_STACK}>
         <BoxRefusalContext value={rulesEdits.boxRefusal}>
-          {tab === "fixtures" && <FixturesPanel league={league} seam={seam} draft={draft} edit={edit} />}
+          {tab === "fixtures" && <FixturesPanels league={league} seam={seam} draft={draft} edit={edit} />}
           {tab === "squad" && <SquadPanel draft={draft} edit={edit} />}
           {tab === "draft" && <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} start={start} />}
           {tab === "waivers" && <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />}
@@ -114,30 +103,6 @@ function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: Leag
         </div>
       )}
     </div>
-  );
-}
-
-/** The Fixtures tab's panel: the scoring start (saved at once) and the round robin's two (spec/09). */
-function FixturesPanel({ league, seam, draft, edit }: { league: LeagueSummary; seam: LeagueSettingsSeam; draft: LeagueSettings; edit: (settings: LeagueSettings) => void }) {
-  return (
-    <Panel title={fixturesTitle}>
-      <div className={PANEL_BODY}>
-        <ScoringStartRow leagueId={league.leagueId} seam={seam} />
-        <Choice
-          label={oddTeamOutLabel}
-          name={ODD_TEAM_OUT_CHOICE}
-          options={ODD_TEAM_OUTS}
-          words={oddTeamOutWords}
-          chosen={draft.oddTeamOut}
-          onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
-        />
-        <NumberRow label={gamesLabel} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
-        <p id={GAMES_HINT_ID} className="text-muted">
-          {gamesHint}
-        </p>
-        <p className="text-muted">{redrawWords}</p>
-      </div>
-    </Panel>
   );
 }
 
@@ -197,6 +162,7 @@ function EveryTeamClaims({ leagueId, seam, waivers }: { leagueId: LeagueSummary[
  *  of the wrong shape, never with a reason the commissioner can act on. */
 function blankRefusal(settings: LeagueSettings): string | null {
   if (Number.isNaN(settings.gamesPerGameweek)) return blankGamesWords;
+  if (Number.isNaN(settings.deadline.minutesBeforeFirstKickoff)) return blankDeadlineWords;
   if (Number.isNaN(settings.squadMaximum)) return blankSquadMaximumWords;
   const blankArea = AREAS.find((area) => Number.isNaN(settings.minimumByArea?.[area]));
   if (blankArea !== undefined) return blankAreaMinimumWords(blankArea);
