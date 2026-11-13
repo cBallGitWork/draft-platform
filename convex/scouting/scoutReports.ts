@@ -9,7 +9,7 @@ import { lineupInGameweek } from "../lineup/lineups";
 import { positionOfSlot } from "../lineup/pitch";
 import { roleIn, roleName } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";
-import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
 import { gameModeOf } from "../rules/gameMode";
@@ -18,13 +18,13 @@ import { logFailure } from "../shared/errors";
 import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { starsLookup } from "../stars/playerStars";
-import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
+import { notFiledLetter, playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
 
 // A scout's report (spec/19, The report; #375), written when his 24 hours are up: a few plain
 // sentences by Claude, from the player's figures and the team's shape, dated. Once it lands the
 // scout is free again and Mail tells the manager it is in, and nothing more. A player who left the
 // Premier League while the scout was out gets no report: the scout comes back free, and Mail says
-// so (Craig, 6 Nov 2026, on #375).
+// so (Craig, 6 Nov 2026, on #375). So does one whose report a day of tries couldn't write (#1437).
 
 const briefOrGone = v.union(
   v.null(),
@@ -83,7 +83,8 @@ async function shapeGameweek(ctx: QueryCtx, league: Doc<"leagues">, now: number)
 
 /** Writes the scout's report when his 24 hours are up (scheduled by scouts.ts's `send`): Claude
  *  writes it from `brief`, and it lands; or the player has left, and the scout comes back with none.
- *  A failed write is logged, kept on the scout's row and tried again CLAUDE_RETRY_MS later. */
+ *  A failed write is logged, kept on the scout's row and tried again CLAUDE_RETRY_MS later, up to
+ *  CLAUDE_TRIES_MOST tries. */
 export const write = internalAction({
   args: { scoutId: v.id("scouts") },
   returns: v.null(),
@@ -114,8 +115,7 @@ export const comeBack = internalMutation({
   handler: async (ctx, { scoutId, text }) => {
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
-    const player = await playerByCode(ctx, scout.playerCode);
-    const playerName = player?.name ?? `player ${scout.playerCode}`;
+    const playerName = await scoutedName(ctx, scout);
     if (text === null) await ctx.db.patch("scouts", scoutId, { state: "playerLeft" });
     else await ctx.db.patch("scouts", scoutId, { state: "reported", report: { text, writtenAt: Date.now() } });
     await tellManager(ctx, scout, text === null ? playerLeftLetter(playerName) : reportInLetter(playerName));
@@ -123,18 +123,31 @@ export const comeBack = internalMutation({
   },
 });
 
-/** Keeps a failed write on the scout's row and tries again CLAUDE_RETRY_MS later. */
+/** Keeps a failed write on the scout's row and tries again CLAUDE_RETRY_MS later, while tries are
+ *  left. After the last, the scout comes back free with no report, and Mail tells the manager
+ *  (Craig, 12 Nov 2026, on #1437: "Retry a day, then tell him"). */
 export const failed = internalMutation({
   args: { scoutId: v.id("scouts"), failure: v.string() },
   returns: v.null(),
   handler: async (ctx, { scoutId, failure }) => {
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
-    await ctx.db.patch("scouts", scoutId, { failedTries: (scout.failedTries ?? 0) + 1, lastFailure: failure });
-    await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.scouting.scoutReports.write, { scoutId });
+    const failedTries = (scout.failedTries ?? 0) + 1;
+    if (failedTries < CLAUDE_TRIES_MOST) {
+      await ctx.db.patch("scouts", scoutId, { failedTries, lastFailure: failure });
+      await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.scouting.scoutReports.write, { scoutId });
+      return null;
+    }
+    await ctx.db.patch("scouts", scoutId, { failedTries, lastFailure: failure, state: "notFiled" });
+    await tellManager(ctx, scout, notFiledLetter(await scoutedName(ctx, scout)));
     return null;
   },
 });
+
+/** The scouted player's name for a letter, or his code once the football data no longer holds him. */
+async function scoutedName(ctx: QueryCtx, scout: Doc<"scouts">): Promise<string> {
+  return (await playerByCode(ctx, scout.playerCode))?.name ?? `player ${scout.playerCode}`;
+}
 
 /** Files the letter to the team's manager alone: no other team can tell whom it scouts. A team
  *  with no manager gets none. */

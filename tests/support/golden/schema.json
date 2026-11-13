@@ -6338,6 +6338,12 @@
               "type": "string"
             },
             "optional": true
+          },
+          "joinFailedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -26875,6 +26881,10 @@
                 {
                   "type": "literal",
                   "value": "playerLeft"
+                },
+                {
+                  "type": "literal",
+                  "value": "notFiled"
                 }
               ]
             },

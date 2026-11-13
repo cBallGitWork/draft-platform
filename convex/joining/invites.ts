@@ -14,6 +14,7 @@ import { signInReply } from "../signIn/signInReplies";
 import { checkCanJoin, putOnTeam } from "../leagues/teams";
 import { hasEnded, liveInvitesTo } from "./liveInvites";
 import { draftHasStarted } from "../draft/draftRow";
+import { logFailure } from "../shared/errors";
 
 // Emailed invites (#73, spec/13 Joining): an invite names a vacated team or a new one, carries a
 // sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
@@ -144,9 +145,28 @@ export const emailWords = internalQuery({
 });
 
 /** Takes up every live invite to this email: run when they sign in (auth.ts). One that can't be
- *  taken up (the team was handed on, the league filled) says why, for the commissioner to see. */
+ *  taken up (the team was handed on, the league filled) says why, for the commissioner to see.
+ *  Each is taken up in its own subtransaction, so an unexpected fault rolls back that invite's
+ *  writes alone: it is logged, the person is signed in anyway, and the invite stays live, marked so
+ *  their leagues page can say to open the link again (Craig, 12 Nov 2026, on #1437). */
 export async function joinByInvites(ctx: MutationCtx, email: string): Promise<void> {
   for (const invite of await liveInvitesTo(ctx, email, Date.now())) {
+    try {
+      await ctx.runMutation(internal.joining.invites.takeUp, { inviteId: invite._id, email });
+    } catch (error) {
+      logFailure(`Invite ${invite._id} to league ${invite.leagueId} couldn't be taken up by ${email} at sign-in; it stays live`, error);
+      await ctx.db.patch("invites", invite._id, { joinFailedAt: Date.now() });
+    }
+  }
+}
+
+/** One live invite taken up by `email`: they join its team, or it ends saying why they couldn't. */
+export const takeUp = internalMutation({
+  args: { inviteId: v.id("invites"), email: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { inviteId, email }) => {
+    const invite = await ctx.db.get("invites", inviteId);
+    if (invite === null) throw new Error(`Invite ${inviteId} doesn't exist, so it can't be taken up`);
     let joined;
     try {
       const league = await getLeague(ctx, invite.leagueId);
@@ -154,11 +174,12 @@ export async function joinByInvites(ctx: MutationCtx, email: string): Promise<vo
     } catch (error) {
       if (!(error instanceof ConvexError)) throw error;
       // A league being deleted is frozen: its invite stays as it was, live again if it is undone.
-      if (error.data === refusals.beingDeleted) continue;
-      await ctx.db.patch("invites", invite._id, { couldNotJoin: String(error.data) });
-      continue;
+      if (error.data === refusals.beingDeleted) return null;
+      await ctx.db.patch("invites", inviteId, { couldNotJoin: String(error.data) });
+      return null;
     }
-    await ctx.db.patch("invites", invite._id, { joined });
+    await ctx.db.patch("invites", inviteId, { joined });
     await recordEvent(ctx, invite.leagueId, email, { kind: "joinedByInvite", email, ...joined, invitedBy: invite.invitedBy });
-  }
-}
+    return null;
+  },
+});

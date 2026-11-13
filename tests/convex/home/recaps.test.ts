@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { benchPointsOf, performersOf, RECAP_TRIES_MOST } from "../../../convex/home/recaps";
+import { benchPointsOf, performersOf } from "../../../convex/home/recaps";
 import { RECAP_SYSTEM, recapPrompt, recapUpLetter } from "../../../convex/home/recapWords";
-import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { EVERTON_POINTS, GAMEWEEK, homeAt, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
@@ -132,10 +132,10 @@ test("past the most tries it stops trying", async () => {
   fakeClaude().failing = true;
   await storeLeague(league);
   await elapse(league.t, 0);
-  for (let tries = 1; tries < RECAP_TRIES_MOST; tries++) await elapse(league.t, CLAUDE_RETRY_MS);
+  for (let tries = 1; tries < CLAUDE_TRIES_MOST; tries++) await elapse(league.t, CLAUDE_RETRY_MS);
 
   const [recap] = await league.t.run((ctx) => ctx.db.query("recaps").collect());
-  expect(recap.failedTries).toBe(RECAP_TRIES_MOST);
+  expect(recap.failedTries).toBe(CLAUDE_TRIES_MOST);
   expect(await pendingJobs(league.t, internal.home.recaps.write)).toEqual([]);
 });
 
