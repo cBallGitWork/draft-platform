@@ -53,8 +53,11 @@ describe("an instruction's line", () => {
     expect(scoreMatch({ minutes: 45, clean_sheets: 1 }, SET, LEFT_CENTRE_BACK, undefined, picks("parkTheBus")).instructions?.[0].points).toBe(0);
   });
 
-  test("whole points for each whole `every`, held to its most: Hold a high line's up to 3", () => {
-    const high = (offsides: number) => scoreMatch({ minutes: 90, offside_provoked: offsides, interception: 1 }, SET, LEFT_CENTRE_BACK, undefined, picks("holdAHighLine"));
+  test("whole points for each whole `every`, held to its most: a line of up to 3", () => {
+    // No first instruction has a most since Hold a high line went (#1452), so a set's own line does.
+    const capped = { instruction: "capped", lines: [{ stats: [{ stat: "won_tackle", weight: 1 }, { stat: "interception", weight: 1 }], every: 2, points: 1, most: 3 }] };
+    const withCapped = { ...SET, instructions: [...SET.instructions!, capped] };
+    const high = (tackles: number) => scoreMatch({ minutes: 90, won_tackle: tackles, interception: 1 }, withCapped, LEFT_CENTRE_BACK, undefined, picks("capped"));
     expect(high(2).instructions?.[0].points).toBe(1); // 3 counted, one whole 2
     expect(high(9).instructions?.[0].points).toBe(3); // 10 counted would be 5
   });

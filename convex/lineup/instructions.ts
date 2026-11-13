@@ -36,6 +36,8 @@ export const SHAPE_NEEDS = [
   "threeInARow",
   /** Two or more up front: in attack and attacking midfield together (UP_FRONT_AREAS). */
   "twoUpFront",
+  /** Hold a high line's, which a league's set saved before #1452 dropped it still holds until
+   *  highLineDropped.ts takes it out. */
   "backThreeOrFour",
   "fiveAtTheBack",
 ] as const;
@@ -56,7 +58,8 @@ export interface Instruction {
 export type InstructionPair = Record<Side, string>;
 
 /** The set every league starts with, in spec/05's order. The descriptions are Claude's draft, for
- *  Craig to edit (spec/05: "Claude drafts them and Craig edits them"). */
+ *  Craig to edit (spec/05: "Claude drafts them and Craig edits them"). Hold a high line is gone
+ *  until Sportmonks sends offsides won (spec/05 S05.37); its key, holdAHighLine, is never reused. */
 export const FIRST_INSTRUCTIONS = [
   { key: "playOutFromTheBack", side: "attacking", name: "Play out from the back", needs: "anyShape",
     description: "Rewards the keeper's and defenders' passing; costs errors leading to a shot or goal." },
@@ -70,8 +73,6 @@ export const FIRST_INSTRUCTIONS = [
     description: "Rewards goals and assists; costs goals conceded." },
   { key: "pressHigh", side: "defensive", name: "Press high", needs: "twoUpFront",
     description: "Rewards the forwards' and attacking midfielders' tackles won and interceptions; costs fouls." },
-  { key: "holdAHighLine", side: "defensive", name: "Hold a high line", needs: "backThreeOrFour",
-    description: "Rewards defenders' offsides won and interceptions; costs goals conceded." },
   { key: "clearIt", side: "defensive", name: "Clear it", needs: "anyShape",
     description: "Rewards defenders' clearances and blocks; costs defenders losing the ball." },
   { key: "getStuckIn", side: "defensive", name: "Get stuck in", needs: "anyShape",
