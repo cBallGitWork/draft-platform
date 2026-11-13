@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { FIRST_CLASSIC_FORMATIONS, inClassicFormationShape, standsAsClassicFormation } from "../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS, inClassicFormationShape, standsAsClassicFormation } from "../../../convex/lineup/classicFormations";
 import { FIRST_PRESETS, presetNameOf } from "../../../convex/lineup/presets";
 import { FIRST_INSTRUCTIONS, pairRefusal } from "../../../convex/lineup/instructions";
 import { offersRole } from "../../../convex/lineup/roles";

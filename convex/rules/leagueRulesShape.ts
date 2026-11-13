@@ -34,7 +34,7 @@ const preset = v.object({
  *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
 const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
 
-/** classics.ts's ClassicFormation. */
+/** classicFormations.ts's ClassicFormation. */
 export const classicFormationShape = v.object({
   name: v.string(),
   subtitle: v.string(),

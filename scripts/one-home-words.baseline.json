@@ -228,7 +228,7 @@
     "fixed a mistake in the scoring every league plays on: version"
   ],
   "tests/convex/scoring/patchChanges.test.ts": [
-    "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions"
+    "New own stat: Tackles plus (TP) = Tackles + 0.5 \u00d7 Clearances blocks interceptions"
   ],
   "tests/convex/scoring/siteScoring.test.ts": [
     "Tackles won"
@@ -354,9 +354,6 @@
   ],
   "tests/smoke/smoke.spec.ts": [
     "No one (a bye)"
-  ],
-  "tests/smoke/zz-shoot-1618.spec.ts": [
-    "A trade deadline"
   ],
   "tests/src/admin/admin.test.tsx": [
     "Positions his starts give him,",
@@ -575,7 +572,7 @@
     "Yellow cards"
   ],
   "tests/src/scouting/compare.test.tsx": [
-    "Compare with another…"
+    "Compare with another\u2026"
   ],
   "tests/src/scouting/list.test.tsx": [
     "Shots on target"

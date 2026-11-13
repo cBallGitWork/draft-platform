@@ -59,8 +59,7 @@ function mapProblems(routes: readonly string[], markdown: string): string[] {
 
 /** The route's state, the only thing Status says: whether a screen is spec'd or to grill lives in SPEC.md. */
 function routeState(row: Row): string {
-  if (row.path === null) return "no route";
-  return row.file === "src/frame/PageNotBuilt.tsx" ? "placeholder" : "built";
+  return row.path === null ? "no route" : "built";
 }
 
 /** Rows whose Status isn't their route's state, one line each, naming the screen. */
@@ -76,20 +75,18 @@ describe("the screen map, docs/design/flow.md", () => {
     expect(mapProblems(routerPaths, flow)).toEqual([]);
   });
 
-  it("gives each screen's Status as its route's state alone: built, placeholder or no route", () => {
+  it("gives each screen's Status as its route's state alone: built or no route", () => {
     const rows = screensTable(flow);
     expect(rows.length).toBeGreaterThan(0);
     expect(statusProblems(rows)).toEqual([]);
     expect(
       statusProblems([
-        { screen: "X", path: "/x", file: "src/frame/PageNotBuilt.tsx", status: "built" },
-        { screen: "Y", path: "/y", file: "src/frame/PageNotBuilt.tsx", status: "to grill (placeholder)" },
+        { screen: "Y", path: "/y", file: "src/y/YPage.tsx", status: "to grill" },
         { screen: "Z", path: null, file: "none", status: "spec'd (#45)" },
         { screen: "W", path: "/w", file: "src/w/WPage.tsx", status: "placeholder" },
       ]),
     ).toEqual([
-      `X's Status says "built" but its route is "placeholder"`,
-      `Y's Status says "to grill (placeholder)" but its route is "placeholder"`,
+      `Y's Status says "to grill" but its route is "built"`,
       `Z's Status says "spec'd (#45)" but its route is "no route"`,
       `W's Status says "placeholder" but its route is "built"`,
     ]);

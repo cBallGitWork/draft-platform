@@ -6,7 +6,7 @@ import { Notice, Panel } from "../../ui/Panel";
 import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { formationNameOf } from "./classicLineup";
+import { formationNameOf } from "./classicFormationLineup";
 import { benchedAt, openingLineup, placeOf, positionsIn, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { dropOutcome, reachOf } from "./swaps";
 import { quickPick } from "./quickPick";

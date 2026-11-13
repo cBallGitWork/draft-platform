@@ -28,7 +28,7 @@ export const lineupTables = {
     /** True while it is the team's first lineup, picked from its squad and picked again as the
      *  squad changes (lineups.ts); absent once its manager has saved one. */
     firstLineup: v.optional(v.literal(true)),
-    /** The classic formation its manager picked (lineup/classics.ts), its name, until he picks
+    /** The classic formation its manager picked (lineup/classicFormations.ts), its name, until he picks
      *  another formation; its starters and instructions say whether he has changed it since (#991).
      *  Saved data, so its key stays `classic` (#1620). */
     classic: v.optional(v.string()),

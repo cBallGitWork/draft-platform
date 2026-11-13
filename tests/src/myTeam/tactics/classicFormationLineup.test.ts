@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classicFormations";
 import { sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { FIRST_PRESETS } from "../../../../convex/lineup/presets";
 import { roleIn, takesRole } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
-import { formationNameOf, onClassicFormation } from "../../../../src/myTeam/tactics/classicLineup";
+import { formationNameOf, onClassicFormation } from "../../../../src/myTeam/tactics/classicFormationLineup";
 import type { EditedLineup } from "../../../../src/myTeam/tactics/lineupEdits";
 import { customWords } from "../../../../src/myTeam/tactics/words";
 

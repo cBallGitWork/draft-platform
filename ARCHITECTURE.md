@@ -134,7 +134,7 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   files each played match's lineups once (`sportmonksLineupsRead`) into each man's newest starts
   and Sportmonks' label for him (`sportmonksPlayerStarts`), each run a row in
   `sportmonksPositionsSyncs`. Our commentary lines from a match's events are worded in
-  `convex/football/sportmonksCommentary.ts` (#1418), which nothing calls yet. Its three crons, the
+  `convex/football/sportmonks/sportmonksCommentary.ts` (#1418), which nothing calls yet. Its three crons, the
   six-hourly run, the live tick and the positions read, do nothing where `SPORTMONKS_API_TOKEN`
   isn't set (the live deployment). Calls, per competition that is on, against the plan's 2,000 an entity an hour
   (Sportmonks' plan page and livescores docs, checked 9 Nov 2026, as league 501 was): a six-hourly

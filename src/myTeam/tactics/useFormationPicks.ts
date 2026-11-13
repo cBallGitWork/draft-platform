@@ -1,7 +1,7 @@
 import type { Id } from "../../../convex/_generated/dataModel";
 import { keptOrSwitched, type InstructionPair, type Side } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
-import { onClassicFormation } from "./classicLineup";
+import { onClassicFormation } from "./classicFormationLineup";
 import { withInstruction, type EditedLineup, type MoveRules, type PresetShape, type RatingsOf } from "./lineupEdits";
 import { reshaped } from "./reshape";
 import type { OpenTactics, TacticsSeam } from "./seam";

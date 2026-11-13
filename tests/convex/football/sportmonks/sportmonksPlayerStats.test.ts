@@ -13,7 +13,7 @@ import {
   type SportmonksMatchRead,
 } from "../../../../convex/football/sportmonks/sportmonksPlayerStats";
 import { SM_STATE, type RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
-import { SM_EVENT_TYPE } from "../../../../convex/football/sportmonksCommentary";
+import { SM_EVENT_TYPE } from "../../../../convex/football/sportmonks/sportmonksCommentary";
 import { freshConvex, silenceConsoleError } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead } from "../../../support/recorded/sportmonks.payloads";
 import { sync, ticks, useSportmonks } from "../../../support/convex/sportmonks.harness";
