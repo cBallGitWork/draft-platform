@@ -134,8 +134,10 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   for (const code of codes) {
     // He is read as he stood at the deadline (spec/06, When positions change; #1540), so a position
     // lost or a club changed since never re-works the gameweek's auto-subs; as he is now only where
-    // nothing was kept of him (deadlineStars.ts says when).
-    const { clubCode, positions: hisPositions } = kept?.players.get(code) ?? (await reads.player(code));
+    // nothing was kept of him (deadlineStars.ts says when). There his club is still the one a record
+    // of his in the gameweek names, which keeps the club he played for (#502), so a man who has
+    // since moved never gains his new club's match in it (#2039).
+    const { clubCode, positions: hisPositions } = kept?.players.get(code) ?? asPlayedIn(await reads.player(code), matches, code);
     // One the football sync doesn't hold is data gone wrong: he scores as if he didn't play, with no
     // match, so a starter is subbed and a bench player never comes on (Craig, 31 Oct 2026, #810;
     // spec/05 Auto-subs), but for a match the league has overridden his points in: "we can always
@@ -170,6 +172,14 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     team: scoring,
   });
   return { team, autoSubs: subs, matchesOf, formation, instructions: instructionsOf(rules), scoring };
+}
+
+/** Him as he is now, with the club a record of his in the gameweek's matches says he played for,
+ *  where one names it. One the football sync doesn't hold stays so (#810). */
+function asPlayedIn(now: LineupPlayer, matches: readonly HeldMatch[], code: PlayerCode): LineupPlayer {
+  if (now.clubCode === null) return now;
+  const recorded = matches.map((match) => match.records.get(code)?.clubCode).find((club) => club !== undefined);
+  return { ...now, clubCode: recorded ?? now.clubCode };
 }
 
 /** What the team adds to its men's points (spec/05, Team instructions; #990), from its lineup as it

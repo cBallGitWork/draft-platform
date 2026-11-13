@@ -15,6 +15,7 @@ import {
   scoresLeague,
   slotOf,
 } from "../../support/convex/gameweekScores.harness";
+import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { PHILLIPS } from "../../support/convex/teamPoints.harness";
 
 // A begun gameweek reads each man its lineup named as he stood at the league's deadline (#1540;
@@ -55,26 +56,48 @@ test("with nothing kept at the deadline, a gameweek reads him as he is now: no k
   expect(slotOf(game.team, HULL_KEEPER).autoSub?.kind).not.toBe("on");
 });
 
-test("a man who joins another club after the deadline never gains that club's match in the gameweek", async () => {
-  const league = await scoresLeague();
-  const { t, leagueId, annsTeam } = league;
-  const NEW_CLUB = 9001;
-  const NEW_CLUBS_MATCH = 9_900_001;
-  await keepDeadline(league);
-  await t.run(async (ctx) => {
-    const fixtures = await ctx.db.query("fixtures").collect();
-    const [hull] = fixtures;
+const NEW_CLUB = 9001;
+const NEW_CLUBS_MATCH = 9_900_001;
+
+/** `playerCode` joins NEW_CLUB, which has a match of its own in the gameweek. */
+const joinsNewClub = ({ t }: ScoresLeague, playerCode: number) =>
+  t.run(async (ctx) => {
+    const [hull] = await ctx.db.query("fixtures").collect();
     await ctx.db.insert("fixtures", { code: NEW_CLUBS_MATCH, gameweek: GAMEWEEK, homeClubCode: NEW_CLUB, awayClubCode: NEW_CLUB + 1, kickoff: hull.kickoff });
-    const row = (await ctx.db.query("players").collect()).find((each) => each.code === HULL_STRIKER)!;
+    const row = (await ctx.db.query("players").collect()).find((each) => each.code === playerCode)!;
     await ctx.db.patch("players", row._id, { clubCode: NEW_CLUB });
   });
 
-  const fixtureCodes = await t.run(async (ctx) => {
+/** The codes of `playerCode`'s matches in Ann's gameweek, as the scorer reads them. */
+const matchCodesOf = ({ t, leagueId, annsTeam }: ScoresLeague, playerCode: number) =>
+  t.run(async (ctx) => {
     const held = (await ctx.db.get("leagues", leagueId))!;
     const reads = await leagueReads(ctx, held, (await seasonRules(ctx, leagueId))!);
     const scored = await (await workedOutGameweek(ctx, reads, GAMEWEEK, [annsTeam])).slotsOf(annsTeam);
-    return scored.matchesOf.get(HULL_STRIKER)!.map((match) => match.fixture.code);
+    return scored.matchesOf.get(playerCode)!.map((match) => match.fixture.code);
   });
+
+test("a man who joins another club after the deadline never gains that club's match in the gameweek", async () => {
+  const league = await scoresLeague();
+  await keepDeadline(league);
+  await joinsNewClub(league, HULL_STRIKER);
+
+  const fixtureCodes = await matchCodesOf(league, HULL_STRIKER);
   expect(fixtureCodes).not.toContain(NEW_CLUBS_MATCH);
   expect(fixtureCodes).toHaveLength(1);
+});
+
+test("with nothing kept at the deadline, a man who has since joined another club scores the match he played then, not his new club's (#2039)", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  const scored = async () => {
+    // His shirt's club is his club now; what he scored in the gameweek is all else.
+    const { breakdown, points, provisional, counts, status, autoSub } = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_STRIKER);
+    return { breakdown, points, provisional, counts, status, autoSub };
+  };
+  const before = await scored();
+  await joinsNewClub(league, HULL_STRIKER);
+
+  expect(await scored()).toEqual(before);
+  expect(await matchCodesOf(league, HULL_STRIKER)).toEqual([HULL_EVERTON]);
 });
