@@ -1,12 +1,14 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords } from "../shared/words";
+import { andListWords } from "../../convex/shared/moments";
+import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, gameweekShort, gameweekWords, versusWords, whenWords } from "../shared/words";
-export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
+export { figureWords, foldedGlyph, gameweekShort, openGlyph, scoreWords, tradedNames, whenWords, withTeamWords } from "../shared/words";
+export { andListWords };
+export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../shared/words";
 
 export const loadingWords = "Loading league home…";
 
@@ -19,7 +21,7 @@ export const stripLabel = "This gameweek at a glance";
 export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
-export { MAIL_TITLE } from "../mail/words";
+export { MAIL_TITLE } from "../shared/words";
 export const mailViewLabel = "Show";
 export const mailViews = { needsYou: "Needs you", all: "All" } as const;
 export const needsYouToComeWords = "Which letters need you is still to come.";
@@ -41,7 +43,7 @@ export const premierLeagueTitle = (gameweek: number) => `Premier League, ${gamew
 export const SQUAD_NEWS_TITLE = "Your squad news";
 export const RUN_LEAGUE_TITLE = "Run the league";
 export const runLeagueAside = "commissioner";
-export const runLeagueLink = "Run the league ▸";
+export const runLeagueLink = `${RUN_LEAGUE_TITLE} ${foldedGlyph}`;
 /** The recap's panel before the gameweek is final. */
 export const recapToComeWords = (gameweek: number) => `Lands once every ${gameweekShort(gameweek)} match is final.`;
 /** The ▾ on a right-hand panel: it folds the panel away, and opens it again. */
@@ -61,13 +63,11 @@ export const partTableWords = (teams: number, withMine: boolean) =>
 /** The table screen's columns (form among them), with won, drawn and lost in one. */
 export const columns = { ...tableColumns, record: { short: "W-D-L", long: "Won, drawn, lost" } } as const;
 export const recordWords = ({ won, drawn, lost }: { won: number; drawn: number; lost: number }) => `${won}-${drawn}-${lost}`;
-export { yourTeamWords } from "../table/words";
-export { formLabel, resultWords } from "../shared/words";
-export const noFormWords = "—";
+export { yourTeamWords } from "../shared/words";
 export const wholeTableLink = "Whole table and fixtures";
 
 /** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
-export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../matchup/words";
+export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../shared/words";
 
 /** The chip on the commissioner's latest letter, pinned on top of News. */
 export const LETTER_TITLE = "From the commissioner";
@@ -111,6 +111,7 @@ export const newsKindWords = {
   playerDropped: "Drop",
   playerClaimed: "Claim",
   playerPickedUp: "Free agent",
+  tradeMade: "Trade",
 } as const satisfies Record<NewsMove["kind"], string>;
 export const fromTeamWords = (teamName: string) => `From ${teamName}`;
 /** The selected move's detail: who got whom, who let whom go, and where he went. */
@@ -120,8 +121,13 @@ export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" :
 
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
-/** A squad move in a line: "Saka joined Kroos Control". */
-export function moveWords({ kind, playerName, teamName, fromTeamName }: SquadMove): string {
+/** A squad move in a line: "Saka joined Kroos Control", or a trade as one: "Lions traded Saka to
+ *  Tigers for Palmer and Rice" (#1491). */
+export function moveWords(move: SquadMove): string {
+  if (move.kind === "tradeMade") {
+    return `${move.fromTeamName} traded ${andListWords(tradedNames(move.gives))} to ${move.toTeamName} for ${andListWords(tradedNames(move.gets))}`;
+  }
+  const { kind, playerName, teamName, fromTeamName } = move;
   switch (kind) {
     case "playerAssigned":
       return `${playerName} joined ${teamName}`;

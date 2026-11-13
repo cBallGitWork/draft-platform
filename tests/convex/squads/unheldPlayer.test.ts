@@ -3,10 +3,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { ARSENAL, UNHELD, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A squad row whose player the football sync doesn't hold (#323). Players are never deleted, only
@@ -14,8 +14,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // kept, saying his code, so the fault is easy to spot (Craig, 31 Oct 2026: "b but dont hide the
 // row, mabe an error message. easier to spot/debug"). Moving or releasing him is refused.
 
-const [ANN, BOB] = MANAGERS;
-const SAKA = 1001;
 const PALMER = 1002;
 
 let t: TestConvex;

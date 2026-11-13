@@ -9,12 +9,13 @@ import { HOUR_MS, MINUTE_MS } from "./time";
  *  own: they never stop a match's points (admin/sideRuns.ts). */
 export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const;
 
-/** Sportmonks' reads (#1391): the Scottish Premiership on its free plan, beside FPL's until a later
- *  slice switches the site over (football/sportmonks/). */
+/** Sportmonks' reads run for each competition on its list that is on (#1414), each its own row on
+ *  the feeds page, beside FPL's until a later slice switches the site over (football/sportmonks/). */
 export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive"] as const;
 
-/** The feeds, each a sync or tick with its own run table. */
-export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS] as const;
+/** The feeds, each a sync or tick with its own run table. Sportmonks' positions read (#1419) is
+ *  for the Scottish Premiership alone, so it is one row, as FPL's are. */
+export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS, "sportmonksPositions"] as const;
 export type Feed = (typeof FEEDS)[number];
 /** A feed, as a function's argument or a saved field takes one. */
 export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
@@ -37,8 +38,10 @@ export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
   teamSheets: { name: "Team sheets before kickoff", source: "the Premier League, in the hour before each match" },
   teamStats: { name: "Team stats", source: "the Premier League, during matches and at full time" },
   thresholdSteps: { name: "Threshold lines", source: "worked out from the live stats, during matches" },
-  sportmonks: { name: "Scottish clubs, players and fixtures", source: "Sportmonks" },
-  sportmonksLive: { name: "Scottish live matches", source: "Sportmonks, during matches" },
+  // Each competition's run is its own row, named after this with the competition's name (#1414).
+  sportmonks: { name: "Clubs, players and fixtures", source: "Sportmonks" },
+  sportmonksLive: { name: "Live matches", source: "Sportmonks, during matches" },
+  sportmonksPositions: { name: "Scottish positions", source: "Sportmonks' lineups" },
 };
 
 /** Each feed's run table: one row a run, newest last. */
@@ -52,6 +55,7 @@ export const FEED_RUN_TABLES = {
   thresholdSteps: "thresholdStepsRuns",
   sportmonks: "sportmonksSyncs",
   sportmonksLive: "sportmonksLiveTicks",
+  sportmonksPositions: "sportmonksPositionsSyncs",
 } as const satisfies Record<Feed, string>;
 
 /** A run's interval, as `crons.interval` takes it. */
@@ -65,14 +69,18 @@ export type FeedSchedule = { readonly every: Every; readonly graceMs: number };
  *  while it runs. Its side reads run on it, so they are late by it too. */
 const LIVE_TICK = { every: { minutes: 1 }, graceMs: 4 * MINUTE_MS } as const satisfies FeedSchedule;
 
+/** The football sync's six hours (FPL's and Sportmonks'): a run reads in a minute or two. */
+const SIX_HOURLY = { every: { hours: 6 }, graceMs: 30 * MINUTE_MS } as const satisfies FeedSchedule;
+
+/** Daily at 06:00 UK time (#1194, Craig, 5 Nov 2026), the positions syncs'. crons.ts fires at 05:00
+ *  and 06:00 UTC and only the one at 06:00 UK runs, so across a clock change two runs are 23 or 25
+ *  hours apart; a run takes minutes, and one with matches left carries on at once. */
+const DAILY_AT_SIX = { every: { hours: 24 }, graceMs: 2 * HOUR_MS } as const satisfies FeedSchedule;
+
 /** Null for a feed no cron runs (ARCHITECTURE.md): it can't be late, so the page says so. */
 export const FEED_SCHEDULES = {
-  // A run reads FPL in a minute or two.
-  football: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
-  // Daily at 06:00 UK time (#1194, Craig, 5 Nov 2026). crons.ts fires at 05:00 and 06:00 UTC and
-  // only the one at 06:00 UK runs, so across a clock change two runs are 23 or 25 hours apart; a
-  // run takes minutes, and one with matches left carries on at once.
-  positions: { every: { hours: 24 }, graceMs: 2 * HOUR_MS },
+  football: SIX_HOURLY,
+  positions: DAILY_AT_SIX,
   // Late stats, every 10 minutes (spec/20). A run of ten due matches can take most of Convex's
   // 10-minute action limit, and Convex skips the next while it runs.
   matchStats: { every: { minutes: 10 }, graceMs: 10 * MINUTE_MS },
@@ -80,9 +88,11 @@ export const FEED_SCHEDULES = {
   teamSheets: LIVE_TICK,
   teamStats: LIVE_TICK,
   thresholdSteps: LIVE_TICK,
-  // On the football sync's six hours (#1391); a run is three calls.
-  sportmonks: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
+  // A run is three calls (#1391).
+  sportmonks: SIX_HOURLY,
   sportmonksLive: LIVE_TICK,
+  // As the positions sync (#1419, spec/06).
+  sportmonksPositions: DAILY_AT_SIX,
 } as const satisfies Record<Feed, FeedSchedule | null>;
 
 /** How long a scheduled feed may go without a success before it is late. */
@@ -96,3 +106,10 @@ export const FAILURE_EMAIL_NAMES: Record<FailureEmailKind, { name: string; sourc
   ...FEED_NAMES,
   skippedLeague: { name: "A league's step in the football feed", source: "the league's saved rules" },
 };
+
+/** A feed's name, with its competition's where it reads one (#1414), as the feeds page and the
+ *  admin's failure email both say it. Wording for Craig to change in the pull request. */
+export function feedNameOf(feed: FailureEmailKind, competition: string | null | undefined): { name: string; source: string } {
+  const { name, source } = FAILURE_EMAIL_NAMES[feed];
+  return { name: competition ? `${name}: ${competition}` : name, source };
+}

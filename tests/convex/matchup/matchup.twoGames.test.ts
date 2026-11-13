@@ -1,5 +1,7 @@
 import { expect, test } from "vitest";
-import { ANN, ANNS_TEAM, BOBS_TEAM, GAMEWEEK, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANNS_TEAM, BOBS_TEAM, GAMEWEEK, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
+import { ANN } from "../../support/convex/leagues.harness";
 
 // A league playing two head-to-heads a gameweek (#521; Craig, 6 Nov 2026): the matchup shows one
 // game at a time, the first as drawn unless the address names another, with every game of the
@@ -7,7 +9,7 @@ import { ANN, ANNS_TEAM, BOBS_TEAM, GAMEWEEK, matchupAs, scoresLeague, type Scor
 // score for the gameweek, the same in each game. S10.2
 
 /** Cat's team, as the league names a third team. */
-const CATS_TEAM = "Team 3";
+const CATS_TEAM = teamNumbered(3);
 
 /** Gameweek 6 drawn with two games for Ann: Bob first, then Cat. */
 async function twoGamesLeague(): Promise<ScoresLeague> {

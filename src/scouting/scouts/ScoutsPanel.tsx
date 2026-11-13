@@ -1,16 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { timeLeftWords } from "../../draft/words";
 import { playerCardPath } from "../../playerCard/paths";
 import { ScoutAction } from "../../playerCard/ScoutAction";
-import { closeGlyph, playerCardWords } from "../../shared/words";
-import { Loading, Panel, PANEL_BODY } from "../../ui/Panel";
+import { useMinute } from "../../shared/useMinute";
+import { playerCardWords } from "../../shared/words";
+import { CloseButton, Loading, Panel, PANEL_BODY } from "../../ui/Panel";
 import type { MyScouts, ScoutsSeam } from "./seam";
 import {
   closeReportLabel,
   earlierReportWords,
   freeScoutWords,
   loadingScoutsWords,
+  minutesLeftWords,
   outOnWords,
   readNamedLabel,
   readWords,
@@ -36,6 +37,8 @@ const ROW = "flex min-h-tap items-center gap-3 border-t border-panel-rule px-3";
  *  for someone who runs no team. */
 export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">; seam: ScoutsSeam; read: (report: TeamReport) => void }) {
   const mine = seam.useMyScouts(leagueId);
+  // Read each minute, so a scout's time left counts down (#1567).
+  const now = useMinute();
   if (mine === null) return null;
   if (mine === undefined) {
     return (
@@ -48,7 +51,6 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
   const free = Math.max(0, mine.scouts - mine.out.length);
   const reportsIn = mine.reports.slice(0, free);
   const earlier = mine.reports.slice(free);
-  const now = Date.now();
   return (
     <Panel title={SCOUTS_TITLE} aside={<span className="text-soft">{scoutsOutWords(mine.out.length, mine.scouts)}</span>}>
       <ol aria-label={SCOUTS_TITLE}>
@@ -61,7 +63,7 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
               {out !== undefined ? (
                 <>
                   <span>{outOnWords(out.name)}</span>
-                  <span className="ml-auto text-figure">{reportInSoonWords(timeLeftWords(out.dueAt - now))}</span>
+                  <span className="ml-auto text-figure">{reportInSoonWords(minutesLeftWords(out.dueAt - now))}</span>
                 </>
               ) : report !== undefined ? (
                 <>
@@ -103,11 +105,7 @@ export function OpenReport({ leagueId, report, seam, close }: { leagueId: Id<"le
   return (
     <Panel
       title={reportTitle(report.name)}
-      aside={
-        <button type="button" onClick={close} aria-label={closeReportLabel} className="min-h-tap min-w-tap">
-          {closeGlyph}
-        </button>
-      }
+      aside={<CloseButton label={closeReportLabel} close={close} />}
     >
       <div className={PANEL_BODY}>
         <p className="text-soft">{writtenWords(report.writtenAt)}</p>

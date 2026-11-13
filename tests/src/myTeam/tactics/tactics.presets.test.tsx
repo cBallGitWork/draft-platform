@@ -5,7 +5,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FORMATION_KEYS } from "../../../../src/myTeam/tactics/TacticsControls";
-import { cancelWords } from "../../../../src/myTeam/tactics/formationWindow/words";
+import { backGroupPattern, cancelWords } from "../../../../src/myTeam/tactics/formationWindow/words";
 import {
   allFormationsWords,
   BENCH_TITLE,
@@ -19,8 +19,10 @@ import {
   ARRIZABALAGA,
   HAVERTZ,
   RAYA,
+  REFUSAL,
   RICE,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SAVED_LINE,
   STARTERS,
@@ -47,9 +49,9 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     expect(keys().map((key) => key.parentElement!.textContent)).toEqual(SAVED.presets.slice(0, FORMATION_KEYS).map(({ name }) => name));
     await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
     const tiles: (string | null)[] = [];
-    for (const group of screen.getAllByRole("button", { name: /^Back \d/ })) {
+    for (const group of screen.getAllByRole("button", { name: backGroupPattern() })) {
       await userEvent.click(group);
-      tiles.push(...within(screen.getByRole("radiogroup", { name: /^Back/ })).getAllByRole("radio").map((tile) => tile.getAttribute("aria-label")));
+      tiles.push(...within(screen.getByRole("radiogroup", { name: backGroupPattern() })).getAllByRole("radio").map((tile) => tile.getAttribute("aria-label")));
     }
     expect(tiles.toSorted()).toEqual(SAVED.presets.map(({ name }) => name).toSorted());
     await userEvent.click(screen.getByRole("button", { name: cancelWords }));
@@ -57,7 +59,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     // Saliba, at left-centre of defence, keeps that cell, a 4-4-2 back four's; Rice, centre of
     // midfield, takes the nearest of its flat four's; Havertz takes a strike pair's place.
     expect(blockOf(RAYA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
-    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(SALIBA, SALIBAS_CELL)).toBeTruthy();
     expect(blockOf(RICE, { area: "midfield", lane: "leftCentre" })).toBeTruthy();
     expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
   });
@@ -75,7 +77,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   });
 
   it("marks the shape's empty slots while the lineup can't stand and isn't saved", async () => {
-    await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 5." });
+    await openedPitch({ tactics: SAVED, saveAnswer: REFUSAL });
     await pickFormation("4-4-2");
     const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
     // White, off the bench, fills its left back (Craig, 1 Nov 2026; #1025); the rest stay empty.
@@ -105,8 +107,6 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
 });
 
 describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
-  const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
-
   it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
     await openedPitch();
     expect(roleShown(SALIBA.name)).toBe("Stopper");

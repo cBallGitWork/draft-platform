@@ -6,6 +6,7 @@ import { storeBegunFixtures } from "../../../convex/table/playedFixtures";
 import type { OddTeamOut } from "../../../convex/table/roundRobin";
 import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, readTable, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // SPEC.md row 3's check (League rules): the same week's table differs under two leagues' League
 // settings, and every league scores it by the site's set. Two leagues of three teams play the
@@ -24,7 +25,7 @@ async function playedUnder(oddTeamOut?: OddTeamOut): Promise<ScoresLeague> {
     await league.t.run(async (ctx) => {
       const { leagueId } = league;
       for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, oddTeamOut } });
+        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, oddTeamOut } });
       }
       // The harness stores gameweek 6 with Cat's team on the league's average; draw it again by these rules.
       for (const row of await ctx.db.query("playedFixtures").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
@@ -57,7 +58,7 @@ test("the same week's table differs under two leagues' League settings, and ever
   const onBye = await weekOf(await playedUnder(SECOND_ODD_TEAM_OUT));
 
   // Every player scores the same in both, by the site's set: Cat's team saved no lineup, so 0.
-  const points = { "Team 1": HULL_POINTS, "Team 2": EVERTON_POINTS, "Team 3": 0 };
+  const points = { [teamNumbered(1)]: HULL_POINTS, [teamNumbered(2)]: EVERTON_POINTS, [teamNumbered(3)]: 0 };
   expect(onAverage.points).toEqual(points);
   expect(onBye.points).toEqual(points);
 
@@ -66,14 +67,14 @@ test("the same week's table differs under two leagues' League settings, and ever
   const average = inTenths((HULL_POINTS + EVERTON_POINTS + 0) / 3);
   expect(onAverage.byes).toEqual([]);
   expect(onAverage.table).toEqual([
-    { teamName: "Team 2", played: 1, won: 1, lost: 0, pointsFor: EVERTON_POINTS, pointsAgainst: HULL_POINTS, points: 3 },
-    { teamName: "Team 1", played: 1, won: 0, lost: 1, pointsFor: HULL_POINTS, pointsAgainst: EVERTON_POINTS, points: 0 },
-    { teamName: "Team 3", played: 1, won: 0, lost: 1, pointsFor: 0, pointsAgainst: average, points: 0 },
+    { teamName: teamNumbered(2), played: 1, won: 1, lost: 0, pointsFor: EVERTON_POINTS, pointsAgainst: HULL_POINTS, points: 3 },
+    { teamName: teamNumbered(1), played: 1, won: 0, lost: 1, pointsFor: HULL_POINTS, pointsAgainst: EVERTON_POINTS, points: 0 },
+    { teamName: teamNumbered(3), played: 1, won: 0, lost: 1, pointsFor: 0, pointsAgainst: average, points: 0 },
   ]);
-  expect(onBye.byes).toEqual(["Team 1"]);
+  expect(onBye.byes).toEqual([teamNumbered(1)]);
   expect(onBye.table).toEqual([
-    { teamName: "Team 2", played: 1, won: 1, lost: 0, pointsFor: EVERTON_POINTS, pointsAgainst: 0, points: 3 },
-    { teamName: "Team 1", played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, points: 0 },
-    { teamName: "Team 3", played: 1, won: 0, lost: 1, pointsFor: 0, pointsAgainst: EVERTON_POINTS, points: 0 },
+    { teamName: teamNumbered(2), played: 1, won: 1, lost: 0, pointsFor: EVERTON_POINTS, pointsAgainst: 0, points: 3 },
+    { teamName: teamNumbered(1), played: 0, won: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, points: 0 },
+    { teamName: teamNumbered(3), played: 1, won: 0, lost: 1, pointsFor: 0, pointsAgainst: EVERTON_POINTS, points: 0 },
   ]);
 });

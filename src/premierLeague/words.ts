@@ -1,11 +1,12 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
 import { LOCALE } from "../../convex/shared/moments";
-import { gameweekWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
+import { DAY_MS } from "../../convex/shared/time";
+import { awayWords, gameweekWords, homeWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
 
 export { clockWords, fullTime, gameweekWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
-export { differenceWords as goalDifferenceWords } from "../table/words";
+export { signedWords as goalDifferenceWords } from "../shared/words";
 
 export const PREMIER_LEAGUE_TITLE = "Premier League";
 export const FIXTURES_TITLE = "Fixtures and results";
@@ -53,7 +54,7 @@ export const tableColumns = {
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
-export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../matchup/words";
+export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
  *  "Arsenal 2–1 Chelsea: the match". */
@@ -86,7 +87,7 @@ export const cameOnWords = "On";
 export const unusedLabel = "unused substitute";
 
 export const COMMENTARY_TITLE = "Commentary";
-export const noLinesWords = "No lines yet.";
+export { noCommentaryWords as noLinesWords } from "../shared/words";
 
 export const TEAM_STATS_TITLE = "Team stats";
 export const teamStatsLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: team stats`;
@@ -105,3 +106,39 @@ export const teamStatRows = {
 export const STAT_COLUMN = { short: STAT_WORD, long: "What's counted" };
 /** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
 export const possessionWords = (share: number) => `${Math.round(share)}%`;
+
+// A club's page (#1936; spec/18, Club pages).
+
+export { placeWords } from "../shared/words";
+export const loadingClubWords = "Loading the club…";
+export const noClubWords = "No club with this code is held.";
+/** The club page's tabs on its title plate; the Squad tab comes with #1937. */
+export const CLUB_TABS = ["fixtures"] as const;
+export type ClubTab = (typeof CLUB_TABS)[number];
+export const clubTabWords: Record<ClubTab, string> = { fixtures: "Fixtures" };
+export const clubTabsLabel = "The club's tabs";
+export const CLUB_TITLE = "Club";
+export const NEXT_MATCH_TITLE = "Next match";
+export const kickoffHead = "Kick-off";
+/** Where a club has no match left to play this season. */
+export const noNextMatchWords = "No match to come.";
+export const noClubFixturesWords = "No matches are held for this club.";
+/** Where a club no longer in the table would show its place. */
+export { noFigureWords as notInTableWords } from "../shared/words";
+/** Where a match is played, after the opponent's name: "(H)" or "(A)". */
+export const venueWords = (atHome: boolean) => (atHome ? homeWords : awayWords);
+
+const dayStart = (at: number) => new Date(at).setHours(0, 0, 0, 0);
+/** How many days away a kickoff is, by the viewer's calendar: "Today", "Tomorrow", "In 3 days". */
+export function daysAwayWords(kickoff: number, now: number): string {
+  const days = Math.round((dayStart(kickoff) - dayStart(now)) / DAY_MS);
+  if (days <= 0) return "Today";
+  return days === 1 ? "Tomorrow" : `In ${days} days`;
+}
+
+/** The Fixtures tab's columns: a short head, and what it stands for. */
+export const clubFixtureColumns = {
+  gameweek: { short: "GW", long: "Gameweek" },
+  opponent: { short: "Opponent", long: "Opponent, home or away" },
+  result: { short: "Result", long: "Result or kick-off" },
+} as const;

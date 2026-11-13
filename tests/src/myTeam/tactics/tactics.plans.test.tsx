@@ -19,7 +19,6 @@ import {
   plansLoadingWords,
   replaceQuestion,
   replaceWords,
-  savePresetName,
   saveWords,
   WINDOW_TITLE,
   YOUR_PRESETS,
@@ -64,7 +63,7 @@ describe("saving a plan", () => {
 
   it("under a name he already has, it asks to replace it first", async () => {
     const app = await openedPitch({ ...IN_A_442, plans: [PRESS] });
-    await userEvent.click((await openWindow()).getByRole("button", { name: new RegExp(`^${savePresetName}`) }));
+    await userEvent.click((await openWindow()).getByRole("button", { name: new RegExp(`^${savePresetWords}`) }));
     await saveAs("Press");
     expect(screen.getByText(replaceQuestion("Press"))).toBeTruthy();
     expect(app.myTeam.planChanges.save).not.toHaveBeenCalled();
@@ -74,7 +73,7 @@ describe("saving a plan", () => {
 
   it("a sixth is refused in the server's words", async () => {
     await openedPitch({ ...IN_A_442, plans: [PRESS], planAnswer: planRefusals.full });
-    await userEvent.click((await openWindow()).getByRole("button", { name: new RegExp(`^${savePresetName}`) }));
+    await userEvent.click((await openWindow()).getByRole("button", { name: new RegExp(`^${savePresetWords}`) }));
     await saveAs("Sixth");
     expect(screen.getByRole("alert").textContent).toBe(planRefusals.full);
   });
@@ -83,7 +82,7 @@ describe("saving a plan", () => {
     await openedPitch({ ...IN_A_442, plansLoading: true });
     const window = await openWindow();
     expect(window.getByRole("status").textContent).toBe(plansLoadingWords);
-    expect(window.queryByRole("button", { name: new RegExp(`^${savePresetName}`) })).toBeNull();
+    expect(window.queryByRole("button", { name: new RegExp(`^${savePresetWords}`) })).toBeNull();
   });
 
   it("× deletes one", async () => {

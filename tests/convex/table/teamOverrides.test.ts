@@ -6,7 +6,6 @@ import { TEAM_OVERRIDE_POINTS_MOST } from "../../../convex/table/overrideLimits"
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import { teamOverrideRefusals } from "../../../convex/table/teamOverrides";
 import {
-  ANN,
   annsScoredGame,
   EVERTON_POINTS,
   GAMEWEEK,
@@ -17,8 +16,8 @@ import {
   scoresLeague,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
+import { actingAs, ADMIN, COMMISSIONER, teamName, ANN } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -31,15 +30,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 /** Enough to turn Ann's loss into a win. */
 const SET = 40;
 const REASON = "Two subs the auto-subs missed";
-
-async function storedLeague(): Promise<ScoresLeague> {
-  const league = await scoresLeague();
-  await holdHullAndEverton(league);
-  await fullTimeRecords(league);
-  await lockMatch(league);
-  await storeLeague(league);
-  return league;
-}
 
 type TeamOverride = { gameweek?: number; teamId?: Id<"teams">; points?: number; reason?: string };
 const overridesTeam = async (league: ScoresLeague, by: string, { gameweek = GAMEWEEK, teamId = league.annsTeam, points = SET, reason = REASON }: TeamOverride = {}) =>
@@ -60,7 +50,7 @@ async function everywhere(league: ScoresLeague) {
     matchup: [team.points, opponent.points],
   };
 }
-const teamNameOf = async ({ t, annsTeam }: ScoresLeague) => (await t.run((ctx) => ctx.db.get("teams", annsTeam)))!.name;
+const teamNameOf = ({ t, annsTeam }: ScoresLeague) => teamName(t, annsTeam);
 const lastLetter = async ({ t }: ScoresLeague) => (await t.run((ctx) => ctx.db.query("letters").collect())).at(-1)!;
 
 test("a team's override sets its gameweek total: the head-to-head, the table and the stored score follow, and the league is told why (S14.3)", async () => {

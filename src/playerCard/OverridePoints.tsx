@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
+import { OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
+import { OverrideFields } from "../ui/OverrideFields";
 import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
@@ -17,24 +18,26 @@ import {
   removeOverrideWords,
 } from "./words";
 
-const MATCH_ID = "override-match";
-const POINTS_ID = "override-points";
-const REASON_ID = "override-reason";
+/** The form's boxes are `override-match`, `override-points` and `override-reason`. */
+const ID_PREFIX = "override";
+const MATCH_ID = `${ID_PREFIX}-match`;
 /** The hint, what an override does, describes the points box. */
-const HINT_ID = "override-hint";
-/** Points are kept to a tenth (spec/14). */
-const POINTS_STEP = 0.1;
+const HINT_ID = `${ID_PREFIX}-hint`;
 
 /** The card's override (spec/14, Changes and corrections; #32), for whoever runs the league: one of
  *  his matches this season, his points there and why. Shut until asked for, and again on Cancel;
  *  nothing while he has played no match. A match already overridden offers "Remove override",
- *  which puts his scored points back (#903, spec/14 S14.5). */
-export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues">; card: PlayerCard; seam: PlayerCardSeam }) {
+ *  which puts his scored points back (#903, spec/14 S14.5). It opens on the `selected` match, the
+ *  one whose breakdown it sits in (#1535). */
+export function OverridePoints({ leagueId, card, selected, seam }: { leagueId: Id<"leagues">; card: PlayerCard; selected: number; seam: PlayerCardSeam }) {
   const override = seam.useOverride();
   const removeOverride = seam.useRemoveOverride();
   const change = useChange();
   const [open, setOpen] = useState(false);
-  const [fixtureCode, setFixtureCode] = useChoiceAmong(card.matches.map((match) => match.fixtureCode));
+  const [fixtureCode, setFixtureCode] = useChoiceAmong(
+    card.matches.map((match) => match.fixtureCode),
+    selected,
+  );
   const [points, setPoints] = useState("");
   const [reason, setReason] = useState("");
   const [done, setDone] = useState<string | null>(null);
@@ -93,31 +96,15 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
                 </option>
               ))}
             </select>
-            <label htmlFor={POINTS_ID} className="font-semibold">
-              {overrideLabels.points}
-            </label>
-            <input
-              id={POINTS_ID}
-              type="number"
-              required
-              step={POINTS_STEP}
-              min={-OVERRIDE_POINTS_MOST}
-              max={OVERRIDE_POINTS_MOST}
-              value={points}
-              onChange={(event) => setPoints(event.target.value)}
-              aria-describedby={HINT_ID}
-              className="text-box"
-            />
-            <label htmlFor={REASON_ID} className="font-semibold">
-              {overrideLabels.reason}
-            </label>
-            <input
-              id={REASON_ID}
-              required
-              maxLength={OVERRIDE_REASON_MAX}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              className="text-box"
+            <OverrideFields
+              idPrefix={ID_PREFIX}
+              labels={overrideLabels}
+              most={OVERRIDE_POINTS_MOST}
+              points={points}
+              onPoints={setPoints}
+              reason={reason}
+              onReason={setReason}
+              describedBy={HINT_ID}
             />
             <div className="flex flex-wrap gap-3">
               <button type="submit" disabled={unfilled || change.busy} className={unfilled ? "action-idle" : "action"}>

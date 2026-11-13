@@ -8,22 +8,14 @@ import {
 import { v, type Infer, type Value } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
+import { internalAction, internalMutation, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
-import {
-  clubRecord,
-  fixtureRecord,
-  footballSyncFields,
-  syncTrigger,
-  gameweekRecord,
-  playerRecord,
-  tableWrites,
-} from "../schema";
-import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
+import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
@@ -31,7 +23,8 @@ import { seedColours } from "./clubKits";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
-import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
+import { keepScoutingPlayers } from "../scouting/scoutingPlayers";
+import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
 import { followKickoffs } from "../scoring/patchKickoffs";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
 
@@ -95,7 +88,7 @@ export const run = internalAction({
 });
 
 export const upsertClubs = internalMutation({
-  args: { rows: v.array(clubRecord) },
+  args: { rows: v.array(clubRow) },
   returns: upserted,
   handler: async (ctx, { rows }): Promise<Upserted> => {
     const upserted = await upsertEach(ctx, "clubs", rows, (row) => findClubByCode(ctx, row.code));
@@ -112,11 +105,13 @@ export const upsertPlayers = internalMutation({
     const newcomers: number[] = [];
     const upserted = await upsertEach(ctx, "players", rows, async (row) => {
       const held = await playerByCode(ctx, row.code);
-      if (held === null) newcomers.push(row.code);
+      if (held === null || held.droppedAt !== undefined) newcomers.push(row.code);
       return held;
     });
-    // In the same transaction as his row, so no league sees him as a free agent first (#1197).
+    // New, or sent again after a gap (#1489), in his row's transaction: no league sees a free agent first (#1197).
     await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
+    // Every one sent, changed or not, so a player held from before Scouting's rows gets his (#1559).
+    await keepScoutingPlayers(ctx, rows.map(({ code }) => code));
     return upserted;
   },
 });
@@ -168,11 +163,13 @@ export const markDropped = internalMutation({
     // A gameweek of this season FPL stops sending keeps its last deadline (#202); last season's,
     // left out once FPL sends the new one's, are only marked (#66).
     if (table === "gameweeks") {
-      const season = await heldSeason(ctx);
+      const season = await heldGameweeksSeason(ctx);
       const thisSeason = (dropped as Doc<"gameweeks">[]).filter((held) => held.season === season);
       await keepDroppedDeadlines(ctx, thisSeason.map(({ number }) => number));
     }
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
+    // On the players table, its page holds players: each leaves Scouting's list with his row (#1559).
+    if (table === "players") await keepScoutingPlayers(ctx, (dropped as Doc<"players">[]).map(({ code }) => code));
     // On the fixtures table, its page holds fixtures.
     if (table === "fixtures") {
       await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
@@ -192,11 +189,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("footballSyncs"), _creationTime: v.number(), ...footballSyncFields })),
-  handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("footballSyncs", footballSyncFields);
 
 /** One page of `table`'s rows not yet marked dropped, so a row marked by an earlier sync is never
  *  read again. Paging an index on `droppedAt` while marking is safe: a row this page marks leaves
@@ -241,8 +234,8 @@ async function syncTable<Row extends Keyed>(
   ranAt: number,
 ): Promise<TableWrites> {
   const writes: TableWrites = { received: rows.length, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
-  for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    const batch: Upserted = await ctx.runMutation(upsertBatch, { rows: rows.slice(start, start + BATCH_SIZE) });
+  for (const sent of inBatches(rows)) {
+    const batch: Upserted = await ctx.runMutation(upsertBatch, { rows: sent });
     writes.inserted += batch.inserted;
     writes.updated += batch.updated;
     writes.unmarked += batch.unmarked;

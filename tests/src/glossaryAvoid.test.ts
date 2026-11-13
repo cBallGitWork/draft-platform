@@ -8,13 +8,13 @@
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import spec from "../../SPEC.md?raw";
+import { SOURCE_PREFIX } from "../support/importLines";
 
 const WORDS_FILES = import.meta.glob<string>(["../../src/**/words.ts", "../../convex/**/*Words.ts"], {
   query: "?raw",
   import: "default",
   eager: true,
 });
-const SOURCE_PREFIX = "../../";
 
 /** The Glossary table's cells, row by row: Term, Meaning, Avoid. */
 function glossaryRows(markdown: string): string[][] {
@@ -33,7 +33,8 @@ function glossaryRows(markdown: string): string[][] {
 function avoidedWords(markdown: string): string[] {
   const rows = glossaryRows(markdown);
   const terms = new Set(rows.flatMap(([term = ""]) => term.split(",").map((word) => word.trim().toLowerCase())));
-  const avoid = rows.flatMap(([, , words = ""]) => words.split(/[,;]/).map((word) => word.trim()));
+  // A bracket stays whole, so a quote in it ("classic alone ("…, …", Craig, 11 Nov 2026)") is one word.
+  const avoid = rows.flatMap(([, , words = ""]) => (words.match(/(?:\([^)]*\)|[^,;(])+/g) ?? []).map((word) => word.trim()));
   return [...new Set(avoid.filter((word) => word !== "" && !word.includes("(") && !terms.has(word.toLowerCase())))];
 }
 

@@ -8,7 +8,7 @@ import {
   actingAs,
   COMMISSIONER,
   CO_COMMISSIONER,
-  MANAGERS,
+  ANN,
   addManagers,
   adminCreatesLeague,
   eventsIn,
@@ -19,7 +19,8 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { giveDeadlineRule, moveFplDeadline, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { GAMEWEEKS, isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
+import { isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The gameweeks a league plays (#74; spec/13, Gameweeks), against #21's gameweeks and matches. Each
@@ -47,7 +48,7 @@ beforeEach(async () => {
 /** FPL's gameweeks and one match each, as the football layer holds them, but for `missing`. */
 async function holdGameweeks(missing: number[] = []) {
   await t.run(async (ctx) => {
-    for (let number = 1; number <= GAMEWEEKS; number += 1) {
+    for (let number = 1; number <= PL_GAMEWEEKS; number += 1) {
       if (missing.includes(number)) continue;
       await ctx.db.insert("gameweeks", { number, deadline: deadlineOf(number) });
       await ctx.db.insert("fixtures", { code: number, gameweek: number, homeClubCode: 1, awayClubCode: 2, kickoff: kickoffOf(number) });
@@ -57,7 +58,7 @@ async function holdGameweeks(missing: number[] = []) {
 
 const setUsedBy = (email: string, gameweek: number, used: boolean) => setUsed(t, leagueId, gameweek, used, email);
 
-const used = async (gameweek: number) => isGameweekUsed((await leagueRow(t, leagueId))!, gameweek);
+const used = async (gameweek: number) => isGameweekUsed((await leagueRow(t, leagueId))!, gameweek, PL_GAMEWEEKS);
 const unusedGameweeks = async () => (await leagueRow(t, leagueId))!.unusedGameweeks;
 const gameweekEvents = async () => (await eventsIn(t, leagueId)).filter((event) => event.kind === "gameweekUsed");
 
@@ -66,7 +67,7 @@ describe("a league's gameweeks", () => {
     await holdGameweeks();
     const shown = await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
 
-    expect(shown).toHaveLength(GAMEWEEKS);
+    expect(shown).toHaveLength(PL_GAMEWEEKS);
     expect(shown[16]).toEqual({ gameweek: 17, used: true, deadline: deadlineOf(17) });
     expect(shown.every((each) => each.used)).toBe(true);
     expect(await unusedGameweeks()).toBeUndefined();
@@ -117,10 +118,9 @@ describe("a league's gameweeks", () => {
 
   test("a manager can neither change nor read them", async () => {
     await holdGameweeks();
-    const [ann] = MANAGERS;
-    await addManagers(t, leagueId, [ann]);
-    await expectRefused(setUsedBy(ann, 17, false), refusals.notRunner);
-    await expectRefused((await actingAs(t, ann)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
+    await addManagers(t, leagueId, [ANN]);
+    await expectRefused(setUsedBy(ANN, 17, false), refusals.notRunner);
+    await expectRefused((await actingAs(t, ANN)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }), refusals.notRunner);
   });
 });
 
@@ -189,9 +189,9 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 });
 
 describe("what can't be ticked", () => {
-  test.each([0, GAMEWEEKS + 1, 1.5])("gameweek %s isn't one of the season's", async (gameweek) => {
+  test.each([0, PL_GAMEWEEKS + 1, 1.5])("gameweek %s isn't one of the season's", async (gameweek) => {
     await holdGameweeks();
-    await expectRefused(setUsedBy(COMMISSIONER, gameweek, false), gameweekRefusals.notAGameweek(gameweek));
+    await expectRefused(setUsedBy(COMMISSIONER, gameweek, false), gameweekRefusals.notAGameweek(gameweek, PL_GAMEWEEKS));
   });
 
   test("a gameweek whose deadline the app doesn't have is refused, saying why, and shown with none", async () => {

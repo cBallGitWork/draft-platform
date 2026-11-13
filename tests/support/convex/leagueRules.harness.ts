@@ -1,16 +1,18 @@
 // League rules' tests' shared setup (#25).
 
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { vi } from "vitest";
+import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
-import { seasonRules } from "../../../convex/rules/rulesHistory";
+import { historyOf, seasonRules } from "../../../convex/rules/rulesHistory";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Area } from "../../../convex/lineup/pitch";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "./footballRows.harness";
 
 /** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
  *  maximum for its size (#316). */
@@ -36,19 +38,23 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
   (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 
+/** The commissioner saves the first rules with `change` made (rulesWith) as the league's. */
+export const changeRulesTo = (t: TestConvex, leagueId: Id<"leagues">, change: Partial<LeagueRules>) => changeRules(t, leagueId, rulesWith(change));
+
 /** Every rules row of the league changed by `change`, so the rules in force are, at once: for the
  *  draft's tests, whose rules a save would only change from a later gameweek. */
 export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change: (rules: LeagueRules) => LeagueRules) =>
   t.run(async (ctx) => {
-    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules) });
+    for (const row of await historyOf(ctx, leagueId)) {
+      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules), changes: undefined });
     }
   });
 
-/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), and a started draft's
- *  own too, as a change reaching a live draft writes it (draftPickTime.ts; #1439). */
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), its other draft rules
+ *  kept (#1782), and a started draft's own too, as a change reaching a live draft writes it
+ *  (draftPickTime.ts; #1439). */
 export async function setPickSeconds(t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number): Promise<void> {
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
   await t.run(async (ctx) => {
     const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
     if (draft?.started !== undefined) await ctx.db.patch("drafts", draft._id, { pickSeconds });
@@ -68,6 +74,17 @@ export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, ga
   return season.inGameweek(gameweek);
 }
 
+/** rulesInGameweek, run on the test's deployment. */
+export const rulesIn = (t: TestConvex, leagueId: Id<"leagues">, gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
+
+/** The league's latest rules as `email` (the commissioner unless a test says) reads them. */
+export const latestRules = async (t: TestConvex, leagueId: Id<"leagues">, email = COMMISSIONER) =>
+  (await actingAs(t, email)).query(api.rules.leagueRules.latest, { leagueId });
+
+/** The gameweek next to begin in a rules test, so the one a change takes effect from: what it
+ *  passes holdGameweeks as `next`. */
+export const NEXT = 9;
+
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
@@ -86,7 +103,7 @@ export async function holdGameweeks(
 ): Promise<void> {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
-    for (let number = 1; number <= GAMEWEEKS; number += 1) {
+    for (let number = 1; number <= PL_GAMEWEEKS; number += 1) {
       const kickoff = kickoffOf(number);
       const deadline = kickoff - FPL_DEADLINE_MINUTES * MINUTE_MS;
       await ctx.db.insert("gameweeks", { number, deadline });
@@ -94,6 +111,10 @@ export async function holdGameweeks(
     }
   });
 }
+
+/** Moves the clock on to just after `gameweek` kicks off, holdGameweeks' gameweek 1 kicking off at
+ *  `firstKickoff` and each next a week on: it and every one before have begun, and the next hasn't. */
+export const playUpTo = (firstKickoff: number, gameweek: number) => vi.setSystemTime(firstKickoff + (gameweek - 1) * WEEK_MS);
 
 /** Holds holdGameweeks' one match in the gameweek (coded by its number) at `state`, replacing any
  *  score held for it. */
@@ -104,11 +125,12 @@ export const holdMatchState = (t: TestConvex, gameweek: number, state: "live" | 
     await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
   });
 
-/** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
- *  can pass it, and no read of the season's schedule may stop on one (#831, #832, #872). */
+/** Holds `extra` current gameweek rows past the tests' season of PL_GAMEWEEKS, with no matches:
+ *  each is one more of the season's (#1618), and no read of its schedule may stop on one under
+ *  GAMEWEEKS_MOST (#831, #832, #872). */
 export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>
   t.run(async (ctx) => {
-    for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+    for (let number = PL_GAMEWEEKS + 1; number <= PL_GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
   });
 
 /** Moves FPL's deadline for a gameweek, as its feed might: feed data, so nothing a league decides

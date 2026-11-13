@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { BYE } from "../../convex/table/teamGames";
 import { runs } from "../leagues/access";
 import { PlayerBreakdown } from "./PlayerBreakdown";
 import { TeamOverrides } from "./TeamOverride";
@@ -8,12 +9,11 @@ import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { Fixture, GameSwitch, ScoredHead, Stepper, type HeadToHead } from "./MatchupHead";
-import { sideName, SidePanel } from "./SidePanel";
+import { SidePanel } from "./SidePanel";
 import { Vidiprinter } from "./Vidiprinter";
 import type { MatchupAsked, MatchupSeam } from "./seam";
 import {
   byeWords,
-  leagueAverageWords,
   loadingWords,
   MATCHUP_TITLE,
   noCommentaryWords,
@@ -21,6 +21,7 @@ import {
   noGameWords,
   notBegunWords,
   noTeamWords,
+  sideName,
   totalPointsWords,
   unscoredWords,
   VIDIPRINTER_TITLE,
@@ -38,7 +39,8 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
   // matchup asked for loads afresh.
   const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}/${asked.game}`);
   return (
-    <PageSection title={MATCHUP_TITLE} className="flex flex-col gap-2">
+    // No title plate: the approved picture's score band sits straight under the top bar.
+    <PageSection title={MATCHUP_TITLE} plate={false} className="flex flex-col gap-2">
       {matchup === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : matchup.kind === "totalPoints" ? (
@@ -72,14 +74,14 @@ function HeadToHeadMatchup({ league, seam, matchup }: { league: LeagueSummary; s
       <div className="bg-panel">
         {game.kind === "none" ? (
           <PanelNote>{noGameWords(teamName, gameweek)}</PanelNote>
-        ) : game.kind === "bye" ? (
+        ) : game.kind === BYE ? (
           <>
             {gameSwitch}
             <PanelNote>{byeWords(teamName)}</PanelNote>
           </>
         ) : (
           <>
-            <Fixture teamName={teamName} opponent={game.opponent.kind === "team" ? game.opponent.teamName : leagueAverageWords} />
+            <Fixture teamName={teamName} opponent={sideName(game.opponent)} />
             {gameSwitch}
             <PanelNote>{game.kind === "notBegun" ? notBegunWords(deadline) : unscoredWords(game.reason)}</PanelNote>
           </>

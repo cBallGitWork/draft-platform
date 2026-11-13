@@ -48,7 +48,9 @@ A build gives its own diff one quick pass before its final verify: code written 
 don't match their neighbours, a helper or fixture that already exists elsewhere, fixed in place
 (Craig, 4 Nov 2026: "a little refactor is always good"; the prompt is in `claude-build.yml`).
 No skill and no subagent: the full `/refactor` (`.claude/skills/refactor/`) runs in the weekly
-drift pass, or in a session when Craig asks. `pr-reviewer` reviews every pull request as its own
+drift pass, or in a session when Craig asks. `tests/convex/oneHome.test.ts` fails when a type, a
+function body or a literal object is written in three files of `convex/`, or a test restates a
+harness's export, past its shrink-only lists (#1813). `pr-reviewer` reviews every pull request as its own
 job (`.github/workflows/review.yml`), posting its verdict as a comment; the merge waits for it to land (`review-landed`, `.github/workflows/review-gate.yml`).
 
 ## The drift pass
@@ -70,23 +72,26 @@ fixture), a search of the whole codebase for an older one, since a copy older th
 outside its diff; whether each thing lives in the right place; whether ui-verifier's
 colour-role bullet still matches plate.md; and SPEC.md's status rows and ARCHITECTURE.md brought up
 to what merged in the range (builds no longer edit them per slice). (`tests/src/designNever.test.ts` holds
-`.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.)
+`.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.) And it shrinks
+`scripts/one-home-words.baseline.json` a folder at a time: each phrase written twice there is
+imported from the home `node scripts/one-home-words.mjs` names, or kept with a
+`// one-home-ok: <why>` comment, and `node scripts/one-home-words.mjs --write-baseline` drops
+the fixed ones (#1812).
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
 tidying stays inside the files a task touches.
 
 **How:** the build works the checklist over the range; `review.yml` gives its pull request fresh
-eyes, as every other. Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
+eyes, as every other. Fixes go in on a `refactor/drift-pass` branch, and its pull request title starts `refactor: drift pass`.
 
 **Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
 commit's message, so the line reaches `main`:
 `Self-review: <range>: <what was checked>; <what changed, or "clean, no changes">`, with the
 counts, including what was declined ("3 things written three times: 2 lifted, 1 only similar").
-`git log --grep '^refactor: drift pass' main` lists the passes. Each merged pull request is one
-commit on `main`, so the count since the last pass is
-`git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
-`Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
-PR's checks box.
+The line is how a pass is found, whatever its title: `git log --grep '^Self-review:' main` lists
+the passes (`drift-pass.yml`'s `PASS_MARK`). Each merged pull request is one commit on `main`, so the
+count since the last pass is `git rev-list --count $(git log -1 --format=%H --grep '^Self-review:' main)..main`.
+`Self-review:` is the drift pass's record line only.
 
 ## The architecture pass
 

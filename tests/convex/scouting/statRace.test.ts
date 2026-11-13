@@ -1,16 +1,19 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { mostFirst } from "../../../convex/scouting/raceOrder";
+import { rankAmong } from "../../../convex/shared/ranks";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
+import { actingAs, OUTSIDER, ANN, CAT } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_TEAM, BOBS_TEAM, CAT, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANNS_TEAM, BOBS_TEAM, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Scouting's stat race (#800, spec/19 The stat race): every team in the league with its season
 // totals, ranked by the stat the manager picks. Totals are written here as teamSeasonStats.ts
 // keeps them, so this tests only the read.
 
-const CATS_TEAM = "Team 3";
+const CATS_TEAM = teamNumbered(3);
 
 async function withTotals(league: ScoresLeague) {
   await league.t.run(async (ctx) => {
@@ -46,6 +49,16 @@ test("fewest first when asked, and ties fall back to the team's name", async () 
     [CATS_TEAM, 0],
     [ANNS_TEAM, 1],
   ]);
+});
+
+test("the stats where fewer is better rank the team with fewest 1st, the rest the team with most (#1608, S19.1)", () => {
+  const totals = [3, 0, 0, 1];
+  for (const stat of ["red_cards", "yellow_cards", "own_goals", "goals_conceded", "penalties_missed"]) {
+    expect(mostFirst(stat)).toBe(false);
+    expect(totals.map((total) => rankAmong(total, totals, mostFirst(stat)))).toEqual([4, 1, 1, 3]);
+  }
+  expect(mostFirst("goals_scored")).toBe(true);
+  expect(totals.map((total) => rankAmong(total, totals, mostFirst("goals_scored")))).toEqual([1, 3, 3, 2]);
 });
 
 test("only the catalogue's stats are shown: FPL's own bonus never is", async () => {

@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "../../../convex/lineup/firstLineup";
 import type { RoleStars } from "../../../convex/stars/starsShape";
-import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../convex/lineup/presets";
 import type { Position } from "../../../convex/positions/positionTables";
-import { openLimits, presetNamed } from "../../support/convex/lineup.harness";
+import { KEEPER_CELL, openLimits, presetNamed } from "../../support/convex/lineup.harness";
 
 // A team's first lineup (spec/05, The pitch; #637, #836): each pick goes onto the pitch as it is
 // made, into the deepest open 4-4-2 slot he can play, or onto the bench in pick order; if the
@@ -16,11 +16,10 @@ const picked = (...players: [number, Position[]][]) => ({
 });
 
 /** The league's presets in spec/05's order, under limits that refuse nothing. */
-const RULES: FirstLineupRules = { ...openLimits(), presets: DEFAULT_PRESETS };
+const RULES: FirstLineupRules = { ...openLimits(), presets: FIRST_PRESETS };
 /** A league with no preset to fall back on: only the 4-4-2's own rule is in play. */
 const NO_FALLBACK: FirstLineupRules = { ...openLimits(), presets: [] };
 
-const KEEPER = { area: "goalkeeper", lane: "centre" } as const;
 const BACK_FOUR = (["left", "leftCentre", "rightCentre", "right"] as const).map((lane) => ({ area: "defence", lane }) as const);
 const FLAT_FOUR = (["left", "leftCentre", "rightCentre", "right"] as const).map((lane) => ({ area: "midfield", lane }) as const);
 const STRIKE_PAIR = (["leftCentre", "rightCentre"] as const).map((lane) => ({ area: "attack", lane }) as const);
@@ -37,7 +36,7 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     );
     expect(firstLineup(order, positions, RULES)).toEqual({
       starters: [
-        { playerCode: 2, ...KEEPER },
+        { playerCode: 2, ...KEEPER_CELL },
         ...standing([3, 4, 6, 10], BACK_FOUR),
         ...standing([5, 7, 11, 12], FLAT_FOUR),
         ...standing([1, 8], STRIKE_PAIR),
@@ -116,7 +115,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
     expect(firstLineup(order, positions, NO_FALLBACK).starters).toHaveLength(10);
     expect(firstLineup(order, positions, RULES)).toEqual({
       starters: [
-        { playerCode: 1, ...KEEPER },
+        { playerCode: 1, ...KEEPER_CELL },
         ...standing([3, 4, 5, 6], BACK_FOUR),
         ...standing([2, 7, 8, 9], FLAT_FOUR),
         ...standing([10, 11], STRIKE_PAIR),
@@ -142,7 +141,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
   test("a preset outside the league's area limits is passed over: with none left, the 4-4-2 keeps its gaps", () => {
     const { order, positions } = BACK_THREE_SQUAD;
     // Only three centre backs: every preset the squad fills has a back three.
-    const aBackFour: FirstLineupRules = { ...openLimits({ defence: { minimum: 4, maximum: 5 } }), presets: DEFAULT_PRESETS };
+    const aBackFour: FirstLineupRules = { ...openLimits({ defence: { minimum: 4, maximum: 5 } }), presets: FIRST_PRESETS };
     expect(firstLineup(order, positions, aBackFour)).toEqual(firstLineup(order, positions, NO_FALLBACK));
     // The 4-4-2's one gap is in its back four: its midfield takes the holding men.
     expect(firstLineup(order, positions, aBackFour).starters).toHaveLength(10);
@@ -164,7 +163,7 @@ describe("a pick benched for having no positions stays there once he has some", 
     const kept = keptOnBenchOf(held, after.order, after.positions);
     expect(kept).toEqual(new Set([2]));
     expect(firstLineup(after.order, after.positions, RULES, kept)).toEqual({
-      starters: [{ playerCode: 1, ...KEEPER }, ...standing([3, 4], BACK_FOUR)],
+      starters: [{ playerCode: 1, ...KEEPER_CELL }, ...standing([3, 4], BACK_FOUR)],
       bench: [2],
     });
     // Kept again on the next change, now a later pick holds a slot he could have had.
@@ -196,25 +195,25 @@ describe("a pick benched for having no positions stays there once he has some", 
 });
 
 describe("each pick goes onto the pitch on his best-star role (spec/05 Roles; #11)", () => {
-  const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
+  const KEEPER = { playerCode: 1, ...KEEPER_CELL } as const;
   const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
   const SWEEPING: RoleStars[] = [{ area: "goalkeeper", role: "sweeperKeeper", stars: 4 }];
   const ATTACKING: RoleStars[] = [{ area: "defence", role: "defensiveFullBack", stars: 4 }];
   const ratingsOf = (playerCode: number) => (playerCode === KEEPER.playerCode ? SWEEPING : ATTACKING);
 
   test("placed anew, he is saved on his best role; on the slot's first, none is saved", () => {
-    expect(withDroppedRoles({ starters: [KEEPER, BACK], bench: [3] }, ratingsOf)).toEqual({
+    expect(withDroppedRoles({ starters: [KEEPER, BACK], bench: [3] }, ratingsOf, new Map())).toEqual({
       starters: [{ ...KEEPER, role: "sweeperKeeper" }, { ...BACK, role: "defensiveFullBack" }],
       bench: [3],
     });
-    expect(withDroppedRoles({ starters: [KEEPER], bench: [] }, () => [])).toEqual({ starters: [KEEPER], bench: [] });
+    expect(withDroppedRoles({ starters: [KEEPER], bench: [] }, () => [], new Map())).toEqual({ starters: [KEEPER], bench: [] });
   });
 
   test("still in the cell he held, he keeps the role he had there; moved, he starts on his best role again", () => {
     const held = [KEEPER, { ...BACK, role: "overlappingFullBack" }];
     const picked = { starters: [KEEPER, BACK], bench: [] };
-    expect(withDroppedRoles(picked, ratingsOf, held).starters).toEqual([KEEPER, { ...BACK, role: "overlappingFullBack" }]);
+    expect(withDroppedRoles(picked, ratingsOf, new Map(), held).starters).toEqual([KEEPER, { ...BACK, role: "overlappingFullBack" }]);
     const moved = { starters: [KEEPER, { ...BACK, lane: "right" as const }], bench: [] };
-    expect(withDroppedRoles(moved, ratingsOf, held).starters[1]).toEqual({ ...BACK, lane: "right", role: "defensiveFullBack" });
+    expect(withDroppedRoles(moved, ratingsOf, new Map(), held).starters[1]).toEqual({ ...BACK, lane: "right", role: "defensiveFullBack" });
   });
 });

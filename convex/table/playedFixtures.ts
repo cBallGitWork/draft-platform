@@ -2,9 +2,12 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
 import { deadlineOf } from "../gameweeks/leagueDeadlines";
-import { GAMEWEEKS, isGameweekScored, scoredGameweeksOf } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { GAMEWEEKS_MOST, isGameweekScored, scoredGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
+import { gameModeOf } from "../rules/gameMode";
 import type { SeasonRules } from "../rules/rulesHistory";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 
@@ -51,10 +54,11 @@ const hasNoHeadToHead = ({ fixtures, byes }: TeamsGameweek) => fixtures.length =
 /** The league's stored gameweeks, by number: each it has begun, one row each at most
  *  (`storeBegunFixtures` skips one stored), so a season's gameweeks are all there are. */
 async function storedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Stored> {
-  const rows = await ctx.db
-    .query("playedFixtures")
-    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-    .take(GAMEWEEKS);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("playedFixtures").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} stored gameweeks are held for one league, so its latest begun gameweeks would read as not begun`,
+  );
   return new Map(rows.map(({ gameweek, fixtures, byes }) => [gameweek, { gameweek, fixtures, byes }]));
 }
 
@@ -66,10 +70,11 @@ type Edits = ReadonlyMap<number, Doc<"fixtureEdits">>;
 
 /** The league's edits, one row a gameweek at most (fixtureEdits.ts replaces one). */
 async function editsOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Edits> {
-  const rows = await ctx.db
-    .query("fixtureEdits")
-    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-    .take(GAMEWEEKS);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("fixtureEdits").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} fixture edit rows are held for one league, so its latest edits would be lost`,
+  );
   return new Map(rows.map((row) => [row.gameweek, row]));
 }
 
@@ -126,9 +131,10 @@ async function scheduleAround(
 ): Promise<Schedule> {
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const drawRulesIn = (gameweek: number) => drawRulesOf(rules.inGameweek(gameweek));
-  const gameweeks = scoredGameweeksOf(league).filter((gameweek) => !without.has(gameweek));
+  const count = await seasonGameweekCount(ctx);
+  const gameweeks = scoredGameweeksOf(league, count).filter((gameweek) => !without.has(gameweek));
   const drawn = drawFixtures(teamIds, gameweeks, drawRulesIn, league._id);
-  const begun = [...stored.values()].filter((each) => !hasNoHeadToHead(each) && isGameweekScored(league, each.gameweek));
+  const begun = [...stored.values()].filter((each) => !hasNoHeadToHead(each) && isGameweekScored(league, each.gameweek, count));
   const toCome = drawn.filter(({ gameweek }) => !stored.has(gameweek)).map((each) => asEdited(each, edits.get(each.gameweek)));
   return [...begun, ...toCome].sort((one, other) => one.gameweek - other.gameweek);
 }
@@ -147,7 +153,7 @@ export async function storeBegunFixtures(
 ): Promise<void> {
   const stored = await storedFixturesOf(ctx, league._id);
   const deadlineIn = deadlineOf(deadlines);
-  const toStore = scoredGameweeksOf(league).flatMap((gameweek) => {
+  const toStore = scoredGameweeksOf(league, await seasonGameweekCount(ctx)).flatMap((gameweek) => {
     const deadline = deadlineIn(gameweek);
     return !stored.has(gameweek) && deadline !== null && isLocked(deadline, now) ? [{ gameweek, deadline }] : [];
   });
@@ -155,7 +161,7 @@ export async function storeBegunFixtures(
   // skip the draw.
   if (toStore.length === 0) return;
   const noHeadToHeadIn = toStore.flatMap(({ gameweek, deadline }) =>
-    deadline < league._creationTime || rules.inGameweek(gameweek).format !== "headToHead" ? [gameweek] : [],
+    deadline < league._creationTime || !gameModeOf(rules.inGameweek(gameweek)).hasMatchups ? [gameweek] : [],
   );
   // Left out of the draw, as every read will leave them out once they are stored.
   const without = new Set([...withoutHeadToHead(stored), ...noHeadToHeadIn]);

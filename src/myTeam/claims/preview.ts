@@ -6,8 +6,8 @@
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { previewSays } from "../../shared/preview";
-import { previewIdOf, previewTeams } from "../../table/preview";
+import { previewSays, previewTeamNames } from "../../shared/preview";
+import { previewIdOf } from "../../table/preview";
 import type { ClaimsSeam, PendingClaim, WaiversView } from "./seam";
 
 const unsavedWords = "claims aren't saved";
@@ -29,7 +29,7 @@ const player = (playerCode: number, playerName: string, position: Position, club
   seasonPoints,
 });
 
-const [yourTeam, otherTeam] = previewTeams;
+const [yourTeam, otherTeam] = previewTeamNames;
 const semenyo = player(501, "Semenyo", "W", "BOU", 40);
 const eze = player(502, "Eze", "CAM", "ARS", 33);
 const kudus = player(503, "Kudus", "W", "TOT", 27);
@@ -45,7 +45,7 @@ const claimOf = (id: number, team: string, claim: ReturnType<typeof player>, dro
   yours: team === yourTeam,
   claim,
   drop,
-  runAt,
+  run: { at: runAt, skippedIf: null },
 });
 
 const claims: PendingClaim[] = [
@@ -58,15 +58,16 @@ const claims: PendingClaim[] = [
 const points = [9, 9, 12, 12, 15];
 const waivers: WaiversView = {
   type: "reverseStandings",
-  teams: previewTeams
-    .map((name, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: previewTeams.length - index, points: points[index] ?? 0 }))
+  teams: previewTeamNames
+    .map((name, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: previewTeamNames.length - index, points: points[index] ?? 0 }))
     .toSorted((one, other) => other.tablePlace - one.tablePlace),
   drafted: true,
-  runs: [wednesday, thursday],
+  runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
   locked: false,
   windowOpen: false,
   // Saturday 11:00, the deadline after the runs.
-  nextDeadline: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
+  windowShuts: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
+  resetsAfter: 10,
 };
 
 export const previewWaivers = waivers;

@@ -5,7 +5,10 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { shortlistRefusals } from "../../../../convex/scouting/shortlist";
+import { SHORTLIST_MOST } from "../../../../convex/scouting/shortlist";
+import { shortlistRefusals } from "../../../../convex/scouting/shortlistWords";
+import { previewGameMode } from "../../../../src/shared/preview";
+import { freeAgentWords } from "../../../../src/shared/words";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
 import { crestUrl } from "../../../../src/ui/ClubName";
@@ -16,7 +19,6 @@ import {
   addToShortlistWords,
   queuedWords,
   emptyShortlistWords,
-  freeAgentWords,
   goneWords,
   loadingShortlistWords,
   onShortlistWords,
@@ -32,7 +34,7 @@ import { commissioner, league, manager, openApp } from "../../../support/src/she
 
 const SAKA = shortlisted(1001, "Saka", "Saka Potatoes");
 const RICE = shortlisted(1002, "Rice");
-const REFUSAL = shortlistRefusals.full;
+const REFUSAL = shortlistRefusals.full(SHORTLIST_MOST);
 
 const openScouting = (shortlist: ShortlistData, session = manager) => openApp(SCOUTING_PATH, session, { scouting: { shortlist } });
 const shortlistPanel = () => screen.findByRole("region", { name: SHORTLIST_TITLE });
@@ -107,6 +109,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   name,
   fullName: name,
   club: ARSENAL,
+  clubNumber: null,
   gone,
   positions: ["W"],
   pricedAt: ["W"],
@@ -119,6 +122,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   categories: [],
   lastSeason: null,
   nextFixtures: [],
+  mode: previewGameMode,
 });
 
 const openCard = (cardShown: PlayerCard, shortlist: ShortlistData, session = manager) =>

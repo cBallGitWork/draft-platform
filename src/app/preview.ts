@@ -41,7 +41,7 @@ const commissioner: Session = {
   ],
 };
 
-const previewSessions: Record<string, Session> = {
+const previewSessions = {
   manager,
   commissioner,
   newcomer: { ...manager, inLeague: false, leagues: [], switchableLeagueIds: [], currentLeagueId: null },
@@ -55,7 +55,14 @@ const previewSessions: Record<string, Session> = {
     currentLeagueId: null,
   },
   visitor: { signedIn: false },
-};
+} satisfies Record<string, Session>;
+
+/** A name `?preview=` takes. */
+export type PreviewName = keyof typeof previewSessions;
+
+/** The address's search key naming the preview session; the smoke specs build an address with it
+ *  through tests/support/smoke/previewUrl.ts. */
+export const PREVIEW_KEY = "preview";
 
 /** Each name `?preview=` takes, so a test can check every preview person's leagues against the
  *  server's rule, which this file can't import (#488). */
@@ -64,8 +71,8 @@ export const previewNames = Object.keys(previewSessions);
 /** The session `?preview=` names, on the dev server; otherwise null, and the app signs in for real. */
 export function previewSession(): Session | null {
   if (!import.meta.env.DEV) return null;
-  const name = new URLSearchParams(window.location.search).get("preview");
-  return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name] : null;
+  const name = new URLSearchParams(window.location.search).get(PREVIEW_KEY);
+  return name !== null && Object.hasOwn(previewSessions, name) ? previewSessions[name as PreviewName] : null;
 }
 
 /** Creating or deleting a league, or undoing that, does nothing, and switching or leaving a league

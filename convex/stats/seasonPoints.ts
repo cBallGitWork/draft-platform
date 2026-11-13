@@ -2,17 +2,18 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { basePoints, cardOpensAt } from "../playerCard/cardPoints";
-import { POSITIONS, type Position } from "../positions/positionTables";
+import { basePoints, cardOpensAt, pointsAtEveryPosition } from "../playerCard/cardPoints";
+import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { fixtureByCode, heldSeason } from "../shared/fixtures";
+import { fixtureByCode, heldFixturesSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, PLAYERS_PAGE, SEASON_PLAYERS_MOST, statsIfWhole } from "./matchRecords";
-import { isPlayedThisSeason, seasonRecords, type FixtureReader, type SeasonRecord } from "./seasonRecords";
+import { isWhole, SEASON_PLAYERS_MOST, statsIfWhole } from "./matchRecords";
+import { eachPlayerPage, seasonRowOf } from "./seasonRebuilds";
+import { isPlayedThisSeason, seasonRecords, type FixtureReader } from "./seasonRecords";
 import { seasonOfFixture } from "./seasonStats";
 
 // Each player's season points on Scouting (#525; spec/19, The players list): the total his card
@@ -35,47 +36,27 @@ type SetIn = (gameweek: number) => StoredScoringSet;
 export const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
   basePoints(statsIfWhole(record), set, [position])[0].total;
 
-/** His matches' base points added up at each position, by position: what each would give him at
- *  it. A match whose record isn't whole adds nothing, as it has no points yet. */
-function pointsByPosition(matches: readonly SeasonRecord[], setIn: SetIn): Record<string, number> {
-  const sums: Record<string, number> = {};
-  for (const { record, gameweek } of matches) {
-    for (const position of POSITIONS) {
-      const points = matchPointsAt(record, setIn(gameweek), position);
-      if (points !== null) sums[position] = (sums[position] ?? 0) + points;
-    }
-  }
-  return sums;
-}
-
-/** Sets these players' rows for the season of the matches held (heldSeason) afresh from their
+/** Sets these players' rows for the season of the matches held (heldFixturesSeason) afresh from their
  *  records, each match read once: a row while any of his records there is whole, none before. Only
  *  that season's row is read, so a match that left the feed or moved comes off at the next refresh,
  *  and last season's rows are left as they were. */
-export async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
+async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
-  const season = await heldSeason(ctx);
+  const season = await heldFixturesSeason(ctx);
   if (codes.length === 0 || season === null) return;
   const setIn = await siteScoringByGameweek(ctx);
   const fixtureOf = readOnce((code: number) => fixtureByCode(ctx, code));
   for (const playerCode of codes) {
     const inSeason = (await seasonRecords(ctx, playerCode, fixtureOf)).filter(({ fixture }) => seasonOfFixture(fixture) === season);
-    const row = await rowOf(ctx, season, playerCode);
+    const row = await seasonRowOf(ctx, "playerSeasonPoints", season, playerCode);
     if (!inSeason.some(({ record }) => isWhole(record))) {
       if (row !== null) await ctx.db.delete("playerSeasonPoints", row._id);
       continue;
     }
-    const kept = { season, playerCode, points: pointsByPosition(inSeason, setIn) };
+    const kept = { season, playerCode, points: pointsAtEveryPosition(inSeason.map(({ record, gameweek }) => ({ stats: statsIfWhole(record), set: setIn(gameweek) }))) };
     if (row === null) await ctx.db.insert("playerSeasonPoints", kept);
     else await ctx.db.replace("playerSeasonPoints", row._id, kept);
   }
-}
-
-function rowOf(ctx: QueryCtx, season: number, playerCode: number) {
-  return ctx.db
-    .query("playerSeasonPoints")
-    .withIndex("by_season_and_playerCode", (q) => q.eq("season", season).eq("playerCode", playerCode))
-    .unique();
 }
 
 /** Whether any player has points in `season`: from its first priced match on. */
@@ -96,7 +77,7 @@ export async function seasonPointsIn(
   leagueId: Id<"leagues">,
   only?: readonly number[],
 ): Promise<SeasonPointsOf> {
-  const season = await heldSeason(ctx);
+  const season = await heldFixturesSeason(ctx);
   if (season === null) return () => null;
   const sums = await sumsIn(ctx, season, only);
   const overrides = await overridesIn(ctx, leagueId, season, only);
@@ -119,7 +100,7 @@ async function sumsIn(ctx: QueryCtx, season: number, only: readonly number[] | u
           SEASON_PLAYERS_MOST,
           `More than ${SEASON_PLAYERS_MOST} players have season points for the ${season} season, so they would be cut short`,
         )
-      : (await Promise.all(only.map((code) => rowOf(ctx, season, code)))).filter((row) => row !== null);
+      : (await Promise.all(only.map((code) => seasonRowOf(ctx, "playerSeasonPoints", season, code)))).filter((row) => row !== null);
   return new Map(rows.map((row) => [row.playerCode, row.points]));
 }
 
@@ -134,7 +115,8 @@ async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, season: numbe
     LEAGUE_OVERRIDES_MOST,
     `League ${leagueId} holds more than ${LEAGUE_OVERRIDES_MOST} overrides, so season points would be cut short`,
   );
-  const rows = only === undefined ? held : held.filter((row) => only.includes(row.playerCode));
+  const wanted = only === undefined ? null : new Set(only);
+  const rows = wanted === null ? held : held.filter((row) => wanted.has(row.playerCode));
   if (rows.length === 0) return new Map();
   const setIn = await siteScoringByGameweek(ctx);
   const fixtureOf = readOnce((code: number) => fixtureByCode(ctx, code));
@@ -174,9 +156,7 @@ export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
-    await refreshSeasonPoints(ctx, page.page.map((player) => player.code));
-    if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: page.continueCursor });
+    await eachPlayerPage(ctx, cursor, (playerCodes) => refreshSeasonPoints(ctx, playerCodes), internal.stats.seasonPoints.rebuild);
     return null;
   },
 });

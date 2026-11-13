@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { seasonStartYear } from "../../../convex/shared/time";
@@ -6,7 +6,7 @@ import { TOTALS_REBUILD_COMMAND } from "../../../convex/stats/seasonRebuilds";
 import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { addStats } from "../../../convex/stats/statTotals";
 import { holdStatus } from "../../support/convex/feeds.harness";
-import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import {
   ALL_CODES,
   GW1,
@@ -33,7 +33,7 @@ beforeEach(async () => {
 });
 
 const SEASON = seasonStartYear(KICKOFF);
-const runQueued = () => league.t.finishAllScheduledFunctions(vi.runAllTimers);
+const runQueued = () => everyJobRuns(league.t);
 const totalsRebuilds = () => pendingJobs(league.t, internal.stats.seasonStats.rebuild);
 const pointsJobs = async () => [
   ...(await pendingJobs(league.t, internal.stats.seasonPoints.rebuild)),
@@ -106,8 +106,10 @@ describe("no rebuild while it would write no row", () => {
     await league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: GW3.code, readAt: GW3.kickoff, records: [sakaGw3] });
 
     expect(await totalsRebuilds()).toHaveLength(0);
-    // His record held before the totals were kept sets his from all his records (seasonStats.ts).
-    expect((await totalsKept()).get(SAKA.code)).toEqual(sakaWithGw3);
+    // His GW3 record counted nothing before (not whole), so its write adds its own stats alone rather
+    // than re-reading all his records (#1565, seasonStats.ts); GW1 and GW2, held whole before totals
+    // were kept with no complete match to start a rebuild, wait on TOTALS_REBUILD_COMMAND.
+    expect((await totalsKept()).get(SAKA.code)).toEqual(sakaGw3.stats);
   });
 
   test("only last season's matches whole starts none", async () => {

@@ -5,6 +5,8 @@ import { runnerOf, teamsOf } from "../shared/leagueAccess";
 import { delivery } from "../schema";
 import { takeShown } from "../shared/cappedRead";
 import { ROWS_SHOWN } from "./joiningShared";
+import { draftHasStarted } from "../draft/draftRow";
+import { hasRoomForNewTeam } from "../leagues/teams";
 
 // The page where a league's runners invite people and answer join requests (#73, spec/13
 // Joining). No wall clock here: the screen tells an expired invite by its `expiresAt`.
@@ -17,7 +19,8 @@ const invitesPageData = v.union(
     /** Each team and its manager, null while it is vacated: an invite or an approval can name a
      *  vacated team, and a managed team's manager can be removed. */
     teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), managerEmail: v.union(v.string(), v.null()) })),
-    /** Whether the league is under its maximum, so a new team can be made. */
+    /** Whether a new team can be made (hasRoomForNewTeam), so only a vacated team is offered
+     *  once the league is full or its draft has started. */
     hasRoom: v.boolean(),
     /** The live invite link's token, or null while it has none. */
     linkToken: v.union(v.string(), v.null()),
@@ -82,7 +85,7 @@ export const page = query({
       leagueId,
       leagueName: league.name,
       teams: teams.map((team) => ({ teamId: team._id, name: team.name, managerEmail: team.managerEmail ?? null })),
-      hasRoom: teams.length < league.maxTeams,
+      hasRoom: hasRoomForNewTeam(teams, league, await draftHasStarted(ctx, leagueId)),
       linkToken: (await linkOf(ctx, leagueId))?.token ?? null,
       invites: invites.map((invite) => ({
         inviteId: invite._id,

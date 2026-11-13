@@ -39,7 +39,8 @@ export const previewJoining: JoiningSeam = {
   useEndedInvite: () => ({ leagueName: miniBeta.name, ended: "expired", reason: null }),
   useJoinPage: (token) => {
     if (token === "gone") return null;
-    return { leagueName: invitesPage.leagueName, standing: token === "waiting" ? "waiting" : "mayAsk" };
+    const league = { leagueName: miniBeta.name, commissionerEmail: miniBeta.commissionerEmail, teams: invitesPage.teams.length, maxTeams: miniBeta.maxTeams };
+    return { ...league, standing: token === "waiting" ? "waiting" : "mayAsk" };
   },
   invite: nothingChanged,
   resendInvite: nothingChanged,

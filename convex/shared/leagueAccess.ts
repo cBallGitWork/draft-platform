@@ -5,6 +5,7 @@ import type { QueryCtx } from "../_generated/server";
 import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
+import { playerByCode } from "./players";
 
 // Who may do what in a league (spec/13, Who runs it), checked on the server for every change.
 // The admin may do anything anywhere; the commissioner runs one league; the co-commissioner has
@@ -48,7 +49,15 @@ export function refuse(reason: string): never {
   throw new ConvexError(reason);
 }
 
-/** A typed email, as every email is stored (`normaliseEmail`), or a refusal. */
+/** The player with `code` a manager or commissioner asked for, or the refusal that there is no such
+ *  player: here a missing one is a request gone wrong, not data. It lives here, not in players.ts,
+ *  because the browser reads players.ts's words and must not load this file's server code. */
+export async function playerOrRefuse(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
+  return (await playerByCode(ctx, code)) ?? refuse(refusals.noPlayer);
+}
+
+/** A typed email, as every email is stored (`normaliseEmail`), or a refusal when it is no address
+ *  (`isEmailAddress`, which every door in asks). */
 export function namedEmail(typed: string): string {
   const email = normaliseEmail(typed);
   if (!isEmailAddress(email)) refuse(refusals.notEmail(typed));
@@ -165,6 +174,24 @@ export async function managerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   const league = await getLeague(ctx, leagueId);
   const team = (await teamOf(ctx, leagueId, email)) ?? refuse(refusals.runsNoTeam);
   return { email, league, team };
+}
+
+/** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
+ *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
+ *  commissioner, say) is told they run none: the refusals a manager's own lists have always given. */
+export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
+  return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
+}
+
+/** `managerOf`'s quiet twin, for what the frame asks on every page: the caller, the league and
+ *  his team, or null, never a refusal, when he is signed out, the league is gone or frozen for
+ *  deletion, or he runs no team in it. */
+export async function ownTeamOrNone(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await signedInEmail(ctx);
+  const league = await ctx.db.get("leagues", leagueId);
+  if (email === null || league === null || !leagueOpens(league)) return null;
+  const team = await teamOf(ctx, leagueId, email);
+  return team === undefined ? null : { email, league, team };
 }
 
 /** The caller and the league, if the caller may delete it (spec/13, Deleting). */

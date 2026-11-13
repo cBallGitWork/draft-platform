@@ -12,6 +12,7 @@ import {
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
+import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { elapse, freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
@@ -44,6 +45,43 @@ test("a match's lock asks for its players' stars to be worked out again (#11)", 
   await t.finishInProgressScheduledFunctions();
 
   expect((await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).map((job) => job.args[0])).toEqual([{ fixtureCode: HULL_EVERTON }]);
+});
+
+/** Another match in Hull v Everton's gameweek, locked or still to play: added after the full-time
+ *  read, which would otherwise try to read it from the recorded feeds that don't hold it. */
+const OTHER_MATCH = 999_002;
+async function withOtherMatch(t: TestConvex, locked: boolean) {
+  await t.run(async (ctx) => {
+    await ctx.db.insert("fixtures", { code: OTHER_MATCH, gameweek: GAMEWEEK, homeClubCode: 901, awayClubCode: 902, kickoff: KICKOFF });
+    if (locked) await insertLockedStatus(ctx, OTHER_MATCH, KICKOFF);
+  });
+}
+
+// #1547: a Saturday's earlier locks would only have every league walk its season for nothing.
+test("a lock with another match in its gameweek still to lock asks no league to store, though its stars are still asked for", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await withOtherMatch(t, false);
+
+  vi.advanceTimersByTime(HOUR_MS);
+  await t.finishInProgressScheduledFunctions();
+
+  expect((await heldMatch(t)).status).toMatchObject({ state: "locked" });
+  expect(await pendingJobs(t, internal.table.finalScores.storeEveryLeague)).toHaveLength(0);
+  expect(await pendingJobs(t, internal.stats.teamSeasonStats.storeEveryLeague)).toHaveLength(0);
+  expect(await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).toHaveLength(1);
+});
+
+test("the gameweek's last match to lock asks the table and the stat race to store, once each", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await withOtherMatch(t, true);
+
+  vi.advanceTimersByTime(HOUR_MS);
+  await t.finishInProgressScheduledFunctions();
+
+  expect(await pendingJobs(t, internal.table.finalScores.storeEveryLeague)).toHaveLength(1);
+  expect(await pendingJobs(t, internal.stats.teamSeasonStats.storeEveryLeague)).toHaveLength(1);
 });
 
 test("a match read every ten minutes still locks an hour after the first read found full time", async () => {
@@ -105,7 +143,7 @@ test("a match whose record goes missing again before the lock is provisional aga
 
 test("the window is the admin's setting", async () => {
   const t = await withHullEverton();
-  await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: 30 });
+  await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: 30 });
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
   await elapse(t, 30 * MINUTE_MS);
@@ -116,7 +154,7 @@ test("the window is the admin's setting", async () => {
 test("a window changed after the lock was scheduled is read again when the lock fires", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: 90 });
+  await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: 90 });
 
   await elapse(t, HOUR_MS);
   expect(await stateOf(t)).toMatchObject({ match: "complete" });

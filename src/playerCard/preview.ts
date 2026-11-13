@@ -4,14 +4,14 @@
 // override on one match.
 
 import type { SlotPosition } from "../../convex/lineup/pitch";
-import { basePoints, cardPositions, logCategories, placeOf } from "../../convex/playerCard/cardPoints";
+import { basePoints, cardPositions, logCategories, rankOfPlayer } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
-import { previewSays, proLeague } from "../shared/preview";
+import { previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import { seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
@@ -33,7 +33,7 @@ const RECORDS: readonly (MatchStats | null)[] = [
 /** Each match's score, home side first, in RECORDS' order. */
 const SCORES = [{ home: 0, away: 0 }, { home: 1, away: 2 }, { home: 3, away: 0 }, { home: 2, away: 2 }, { home: 1, away: 0 }, null];
 /** The gameweek his club's postponed match was in. */
-const POSTPONED_GAMEWEEK = 7;
+const POSTPONED_GAMEWEEK = previewGameweek - 2;
 
 /** One match the league overrode, so the card shows how an override reads (#32). */
 const PREVIEW_OVERRIDDEN = "Saka";
@@ -56,7 +56,7 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
     const weeksAgo = index < 2 ? index : index + 1;
     return {
       fixtureCode: player.code * 100 + index,
-      gameweek: 9 - weeksAgo,
+      gameweek: previewGameweek - weeksAgo,
       kickoff: lastSaturday - weeksAgo * WEEK_MS,
       home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
@@ -99,6 +99,8 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     name: player.name,
     fullName: player.fullName,
     club: player.club,
+    // A made-up club number, a different one each.
+    clubNumber: player.code + 6,
     gone: false,
     positions: player.positions,
     pricedAt: cardPositions(player.positions),
@@ -120,11 +122,12 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     lastSeason: lastSeasonOf(player),
     nextFixtures: [1, 2, 3, 4, 5].map((weeksOn) => ({
       fixtureCode: player.code * 100 + 50 + weeksOn,
-      gameweek: 9 + weeksOn,
+      gameweek: previewGameweek + weeksOn,
       kickoff: lastSaturday + weeksOn * WEEK_MS,
       home: weeksOn % 2 === 0 ? player.club : opponentOf(player.club.code, weeksOn),
       away: weeksOn % 2 === 0 ? opponentOf(player.club.code, weeksOn) : player.club,
     })),
+    mode: previewGameMode,
   };
 }
 
@@ -135,16 +138,21 @@ const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player
 function rankOf(playerCode: number, position: SlotPosition): PositionRank {
   const holding = [...cards.values()].filter((card) => card.pricedAt.includes(position));
   const points = holding.map((card) => ({ code: card.code, points: seasonFigures(card.matches, card.pricedAt.indexOf(position)).seasonPoints }));
-  return { place: placeOf(points, playerCode), of: holding.length };
+  return { place: rankOfPlayer(points, playerCode), of: holding.length };
 }
 
 /** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
  *  says so. */
 const overrideNothing = () => Promise.resolve(null);
+export const previewWaiverOutcomes = {
+  drop: "nobody was dropped",
+  claim: "no claim was put in",
+  pickUp: "nobody was picked up",
+} as const;
 const waiverChanges: WaiverChanges = {
-  drop: previewSays("nobody was dropped"),
-  claim: previewSays("no claim was put in"),
-  pickUp: previewSays("nobody was picked up"),
+  drop: previewSays(previewWaiverOutcomes.drop),
+  claim: previewSays(previewWaiverOutcomes.claim),
+  pickUp: previewSays(previewWaiverOutcomes.pickUp),
 };
 
 /** The preview manager's own team, which holds Saka. */
@@ -158,7 +166,7 @@ function cardActionOf(playerCode: number): CardAction {
   const player = previewPlayers.find(({ code }) => code === playerCode);
   if (player === undefined) return { kind: "none" };
   if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
-  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRunAt: player.onWaivers.firstRunAt, squad: PREVIEW_SQUAD };
+  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD };
 }
 
 export const previewPlayerCard: PlayerCardSeam = {

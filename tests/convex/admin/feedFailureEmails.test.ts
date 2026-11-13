@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FAILURE_EMAIL_GAP_MS, emailsNow } from "../../../convex/admin/feedFailureEmails";
 import { EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
@@ -6,7 +6,7 @@ import { FEED_NAMES, FEEDS, SIDE_FEEDS, type Feed } from "../../../convex/shared
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { ADMIN, fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { silenceConsoleError, type TestConvex, everyJobRuns } from "../../support/convex/test.harness";
 
 // The email the admin gets when a feed or sync fails, at most once a day for each feed (#319,
 // spec/15). Each run is recorded through its feed's own mutation, as the syncs and the tick do.
@@ -33,13 +33,13 @@ async function tick(ranAt: number, ran: "ok" | "failed" | "matchFailed" = "faile
       ? { ok: false as const, error: ERROR }
       : { ok: true as const, matches: ran === "ok" ? [] : [{ fixtureCode: 1, ok: false as const, error: MATCH_ERROR }] };
   await t.mutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 }
 
 /** A football sync at `ranAt` that failed. */
 async function footballFails(ranAt: number) {
   await t.mutation(internal.football.footballSync.record, { trigger: "cron", ranAt, outcome: { ok: false, error: ERROR } });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 }
 
 describe("a feed that fails", () => {
@@ -69,7 +69,8 @@ describe("a feed that fails", () => {
     for (const feed of SIDE_FEEDS) await t.mutation(internal.admin.sideRuns.record, { feed, ranAt: now, outcome: failed });
     await t.mutation(internal.football.sportmonks.sportmonksSync.record, { trigger: "manual", ranAt: now, outcome: failed });
     await t.mutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt: now, outcome: failed });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await t.mutation(internal.football.sportmonks.sportmonksPositionsSync.record, { trigger: "manual", ranAt: now, outcome: failed });
+    await everyJobRuns(t);
     expect(sent.map((email) => email.subject)).toEqual(FEEDS.map(subjectOf));
   });
 
@@ -101,6 +102,18 @@ describe("at most once a day for each feed", () => {
     expect(sent.map((email) => email.subject)).toEqual([subjectOf("liveStats"), subjectOf("football")]);
   });
 
+  test("each Sportmonks competition counts on its own, its email naming it (#1414)", async () => {
+    const failed = { ok: false as const, error: ERROR };
+    for (const competition of [8, 501, 8]) {
+      await t.mutation(internal.football.sportmonks.sportmonksSync.record, { competition, trigger: "cron", ranAt: now, outcome: failed });
+    }
+    await everyJobRuns(t);
+    expect(sent.map((email) => email.subject)).toEqual([
+      `${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Premier League failed`,
+      `${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Scottish Premiership failed`,
+    ]);
+  });
+
   test("a day is the gap since the last email, to the millisecond", () => {
     expect(emailsNow(null, now)).toBe(true);
     expect(emailsNow(now, now + FAILURE_EMAIL_GAP_MS - 1)).toBe(false);
@@ -123,7 +136,7 @@ describe("a failure that can't be emailed", () => {
     expect(sent).toHaveLength(1);
   });
 
-  test("when the email service refuses it, is logged, and still counts as the day's email for that feed", async () => {
+  test("when the email service refuses it, is logged, and the next failure tries again (#1569)", async () => {
     fakeResend(500);
     const logged = silenceConsoleError();
     await tick(now);
@@ -131,6 +144,25 @@ describe("a failure that can't be emailed", () => {
 
     sent = fakeResend();
     await tick(now + HOUR_MS);
-    expect(sent).toEqual([]);
+    expect(sent.map((email) => email.subject)).toEqual([subjectOf("liveStats")]);
+    await tick(now + 2 * HOUR_MS);
+    expect(sent).toHaveLength(1);
+  });
+
+  test("a refused email for one Sportmonks competition never frees another's (#1569)", async () => {
+    const failed = { ok: false as const, error: ERROR };
+    const sportmonksFails = async (competition: number, ranAt: number) => {
+      await t.mutation(internal.football.sportmonks.sportmonksSync.record, { competition, trigger: "cron", ranAt, outcome: failed });
+      await everyJobRuns(t);
+    };
+    await sportmonksFails(501, now);
+    fakeResend(500);
+    silenceConsoleError();
+    await sportmonksFails(8, now);
+
+    sent = fakeResend();
+    await sportmonksFails(501, now + HOUR_MS);
+    await sportmonksFails(8, now + HOUR_MS);
+    expect(sent.map((email) => email.subject)).toEqual([`${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Premier League failed`]);
   });
 });

@@ -2,17 +2,17 @@
 // admin alone; the queue of new signings and starts waiting; approving a club; how starts count;
 // and correcting any player's positions.
 
-import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { admin, commissioner, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, expectNotOffered, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import { ADMIN_PATH } from "../../../src/admin/paths";
 import { thresholdRefusals } from "../../../convex/positions/positionSettings";
+import { STARTS_FOR_A_POSITION } from "../../../convex/positions/positions";
 import {
   ADMIN_TITLE,
   approveClubWords,
@@ -44,6 +44,7 @@ import {
   setLabel,
   setWords,
   switchModeWords,
+  waitingHint,
   waitingTitle,
 } from "../../../src/admin/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -84,14 +85,8 @@ describe("reaching the dashboard", () => {
   });
 
   it("anyone else isn't offered it, and is sent back to Your leagues if they go there", async () => {
-    openApp(LEAGUES_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: ADMIN_TITLE })).toBeNull();
-
-    cleanup();
-    const app = openApp(ADMIN_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectNotOffered(ADMIN_TITLE, commissioner);
+    await expectSentToLeagues(ADMIN_PATH, commissioner);
   });
 });
 
@@ -114,6 +109,11 @@ describe("the queue", () => {
     expect(within(waiting).getByText(proposalsWords(BARNES.proposals))).toBeTruthy();
     await userEvent.click(within(waiting).getByRole("button", { name: approveLabel("Barnes") }));
     expect(app.admin.approvePlayer).toHaveBeenCalledExactlyOnceWith(BARNES.code);
+  });
+
+  it("the starts-waiting hint names the server's starts at a place, in words", () => {
+    expect(STARTS_FOR_A_POSITION).toBe(3);
+    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them.");
   });
 
   it("says so when nothing waits", async () => {

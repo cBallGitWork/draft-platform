@@ -1,5 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { AVAILABILITIES } from "../availability/availabilities";
+import { SHIRT_PATTERNS } from "../football/clubColours";
 
 // The real Premier League, as the football layer hands it over (#21). Each row is keyed on a
 // season-stable code, never FPL's per-season id, and names its clubs by their codes too, so a
@@ -14,8 +16,16 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
+/** A club as its row holds it: with its home ground, the ground's capacity and its manager, from
+ *  Sportmonks (spec/18 `S18.7`, #1938), each absent where the feed sends none, as FPL never does. */
+export const clubRow = clubRecord.extend({
+  stadium: v.optional(v.string()),
+  capacity: v.optional(v.number()),
+  manager: v.optional(v.string()),
+});
+
 /** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
-export const shirtPattern = v.union(v.literal("plain"), v.literal("stripes"));
+export const shirtPattern = v.union(...SHIRT_PATTERNS.map((pattern) => v.literal(pattern)));
 
 /** A club's two colours, `#rrggbb` (the shirt a fan would name first, and its trim), and its
  *  shirt's pattern: the admin's (spec/15, The admin), seeded from convex/football/clubColours.ts. */
@@ -23,7 +33,7 @@ export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.st
 
 /** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
  *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
-export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
+export const availability = v.union(...AVAILABILITIES.map((name) => v.literal(name)));
 
 export const playerRecord = v.object({
   code: v.number(),
@@ -38,6 +48,9 @@ export const playerRecord = v.object({
   chanceOfPlaying: v.optional(v.union(v.number(), v.null())),
   /** Whether the feed says he can play (spec/06, Availability); absent on rows from before it. */
   availability: v.optional(availability),
+  /** His date of birth, "2001-09-05", where the feed sends one (#1421): what tells two men of one
+   *  name at a club apart when Sportmonks' players are linked to FPL's. */
+  birthDate: v.optional(v.string()),
 });
 
 export const fixtureRecord = v.object({
@@ -138,7 +151,7 @@ export const footballSyncFields = {
 };
 
 export const footballTables = {
-  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
+  clubs: defineTable(clubRow.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
     .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])
@@ -170,6 +183,11 @@ export const footballTables = {
    *  sets them on his dashboard (spec/15). No row while none are set: the club's shirt and mark
    *  are white, and it waits in the dashboard's queue. */
   clubColours: defineTable(clubColoursRecord.extend({ code: v.number() })).index("by_code", ["code"]),
-  /** Each match's newest score, which feed gave it and when that read was made. */
-  matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
+  /** Each match's newest score, which feed gave it and when that read was made. `fullTimeAt`: when it
+   *  was first read at full time, kept while it stays there, so when a gameweek's last match ended
+   *  can be told afterwards (#1470); none for a match not at full time, or one already there before
+   *  it was kept. */
+  matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number(), fullTimeAt: v.optional(v.number()) })).index("by_fixtureCode", [
+    "fixtureCode",
+  ]),
 };

@@ -1,11 +1,12 @@
 // My team's tabs' tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { AutoTeamChanges, MyAutoTeam, MyTeamSeam, OtherSquad, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
+import { serverStore } from "./serverStore";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 
@@ -13,7 +14,7 @@ import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTea
  *  transactions and squad, and its tactics (tactics.harness.ts), or nothing yet while they load. A
  *  team with no games, transactions or players by default. */
 /** The fake server's team for the manager, as src/table/drawnTable.ts names Team 1's. */
-export const MY_TEAM_ID = idOf("Team 1");
+export const MY_TEAM_ID = idOf(MY_TEAM_NAME);
 
 export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures;
@@ -32,21 +33,21 @@ export type MyTeamData = TacticsData & {
   waivers?: WaiversView;
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
-  /** The team's auto team: off by default. */
-  autoTeam?: Omit<MyAutoTeam, "teamId">;
+  /** The team's auto team: off by default, with no gameweek to end after unless named. */
+  autoTeam?: Omit<MyAutoTeam, "teamId" | "endGameweeks"> & { endGameweeks?: number[] };
   /** What switching it answers: null once made, or the words why not. */
   autoTeamAnswer?: string | null;
   loading?: boolean;
 };
 
 /** A league's waivers with nobody's claims open to doubt: drafted, out of the lock, no runs. */
-export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, nextDeadline: null };
+export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, windowShuts: null, resetsAfter: null };
 
 export function fakeMyTeam({
-  fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
+  fixtures = { teamId: MY_TEAM_ID, teamName: MY_TEAM_NAME, format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
-  squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
-  otherSquad = { teamName: "Team 2", players: [] },
+  squad = { teamName: MY_TEAM_NAME, lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
+  otherSquad = { teamName: THEIR_TEAM_NAME, players: [] },
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
   leagueTable = undefined,
@@ -65,24 +66,15 @@ export function fakeMyTeam({
     withdraw: vi.fn<ClaimChanges["withdraw"]>(async () => claimAnswer),
     changeDrop: vi.fn<ClaimChanges["changeDrop"]>(async () => claimAnswer),
   };
-  // A store, so a test can change the squad under an open screen, as Convex would.
-  let heldSquad = squad;
-  const listeners = new Set<() => void>();
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => void listeners.delete(listener);
-  };
+  const heldSquad = serverStore(squad);
   return {
     ...fakeTactics(tactics, loading),
     useTeamFixtures: vi.fn<MyTeamSeam["useTeamFixtures"]>(() => (loading ? undefined : fixtures)),
     useTeamTransactions: vi.fn<MyTeamSeam["useTeamTransactions"]>(() => (loading ? undefined : transactions)),
     useOtherSquad: vi.fn<MyTeamSeam["useOtherSquad"]>(() => (loading ? undefined : otherSquad)),
-    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : heldSquad))),
-    /** The squad the server holds from now on (inside act). */
-    serverHoldsSquad: (next: TeamSquad) => {
-      heldSquad = next;
-      for (const listener of listeners) listener();
-    },
+    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => heldSquad.use((held) => (loading ? undefined : held))),
+    /** The squad the server holds from now on. */
+    serverHoldsSquad: heldSquad.set,
     useSquadNumbers: () => numbers,
     useLatestMail: vi.fn<MyTeamSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueTable: vi.fn<MyTeamSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)),
@@ -90,7 +82,7 @@ export function fakeMyTeam({
     useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
     useClaimChanges: () => claimChanges,
     claimChanges,
-    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam })),
+    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, endGameweeks: [], ...autoTeam })),
     useAutoTeamChanges: () => autoTeamChanges,
     autoTeamChanges,
   };

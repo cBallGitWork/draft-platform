@@ -1,11 +1,10 @@
-import type { Infer } from "convex/values";
 import type { Words } from "../mail/letterShape";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 
 // What the auto team's refusals and letters say (spec/09, The auto team; #1207), in one place for
 // Craig to change. Mail's letterWords.ts reads the switch's letter from here.
 
-type Switched = Extract<Infer<typeof leagueEvent>, { kind: "autoTeamSwitched" }>;
+type Switched = Extract<LeagueEvent,{ kind: "autoTeamSwitched" }>;
 
 /** Why a switch was refused, as the caller is told it. */
 export const autoTeamRefusals = {
@@ -15,7 +14,7 @@ export const autoTeamRefusals = {
   noManager: "A team with no manager is on the auto team until it is handed on.",
   endsAfterOnlyManager: "Only the team's own manager can name a gameweek its auto team ends after.",
   noGameweekToEnd: "There is no gameweek left to come for the auto team to end after.",
-  endsAfterOutOfRange: (first: number, last: number) => `Name a gameweek from ${first} to ${last} for the auto team to end after.`,
+  endsAfterOutOfRange: (first: number, last: number) => `Name a gameweek your league plays, from ${first} to ${last}, for the auto team to end after.`,
 } as const;
 
 /** What the auto team does, as its letters say. */

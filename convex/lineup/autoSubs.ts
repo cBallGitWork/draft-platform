@@ -5,6 +5,7 @@
 
 import type { Position } from "../positions/positionTables";
 import {
+  OUT_OF_POSITION,
   STARTER_COUNT,
   lineupProblems,
   type Lineup,
@@ -13,16 +14,12 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, heldCell, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
+import type { PlayerCode } from "../shared/players";
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
-
-/** Only a keeper plays in goal and he plays only there, so he is replaced only by a keeper and
- *  never comes on for anyone else (spec/05). */
-const GOALKEEPER: Area = "goalkeeper";
 
 /** Whether a player played in the gameweek. Known only once he has: until his last match ends on
  *  0 minutes, he is still to play. */
@@ -45,7 +42,7 @@ export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   return matches.every((match) => match.finished || match.postponed) ? "didNotPlay" : "stillToPlay";
 }
 
-export interface AutoSub {
+interface AutoSub {
   /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;
@@ -123,7 +120,7 @@ export function autoSubs(
     positionsOf(weighed, playerCode);
   }
 
-  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(cellOf(one), cellOf(other)));
+  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(heldCell(one), heldCell(other)));
   let current = asSaved;
   const substitutions: AutoSub[] = [];
   const unfilled: PlayerCode[] = [];
@@ -154,22 +151,30 @@ function firstLegalSub(
   rules: LineupRules,
   ratingsOf: DeadlineRatings,
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
-  const slot = cellOf(absentee);
+  const slot = heldCell(absentee);
   // The hard rule (spec/05): a wing back plays only the wide lanes of a midfield row, so "can play
   // the slot's area" means can stand in the slot's own cell.
+  const formationNow = lineup.starters.map(heldCell);
   for (const playerCode of available) {
-    if (!playsCell(positionsOf(positions, playerCode), slot)) continue;
-    const tried = legalSubstitution(lineup, absentee, { playerCode, ...slot, ...(absentee.role !== undefined && { role: absentee.role }) }, "theSlot", positions, rules);
+    const playerPositions = positionsOf(positions, playerCode);
+    if (!playsCell(playerPositions, slot)) continue;
+    // He takes the slot's role, or, one he can't take (a striker's for a CAM, spec/05 `S05.29`), the one he'd be dropped on.
+    const sub = takesRole(playerPositions, roleIn(slot, absentee.role).key)
+      ? { playerCode, ...slot, ...(absentee.role !== undefined && { role: absentee.role }) }
+      : droppedStarter(playerCode, slot, formationNow, ratingsOf(playerCode), playerPositions);
+    const tried = legalSubstitution(lineup, absentee, sub, "theSlot", positions, rules);
     if (tried) return tried;
   }
-  if (slot.area === GOALKEEPER) return undefined;
+  // Only a keeper plays in goal and he plays only there, so he is replaced only by a keeper and
+  // never comes on for anyone else (spec/05).
+  if (slot.area === GOALKEEPER_AREA) return undefined;
 
   const freeCells = freeCellsNearest(lineup, absentee);
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
-      const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(cellOf), cell];
-      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode)), "hisOwnArea", positions, rules);
+      const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(heldCell), cell];
+      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), playerPositions), "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
   }
@@ -198,13 +203,13 @@ function legalSubstitution(
 /** Every outfield cell no other starter stands in, nearest the absentee's first: the fewest areas away,
  *  then the fewest lanes, then the further back and the further left. */
 function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
-  const [slotArea, slotLane] = pitchOrder(cellOf(absentee));
-  const taken = new Set(lineup.starters.filter((starter) => starter !== absentee).map(cellOf).map(cellKey));
+  const [slotArea, slotLane] = pitchOrder(heldCell(absentee));
+  const taken = new Set(lineup.starters.filter((starter) => starter !== absentee).map(heldCell).map(cellKey));
   const distance = (cell: Cell): number[] => {
     const [area, lane] = pitchOrder(cell);
     return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
   };
-  return ALL_CELLS.filter((cell) => cell.area !== GOALKEEPER && !taken.has(cellKey(cell)))
+  return ALL_CELLS.filter((cell) => cell.area !== GOALKEEPER_AREA && !taken.has(cellKey(cell)))
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
 
@@ -241,21 +246,21 @@ function shortfall(problem: LineupProblem): number {
   }
 }
 
-/** A lineup that may stand, minus a starter outside his areas: one who lost a position after he
- *  was placed stays in his slot for the gameweek (spec/06), and lineup.ts reports it alone so a
- *  caller can set it aside. A sub is only ever put where he plays. A sweeper or libero left with
+/** A sweeper or libero short of a back three: standing for auto-subs, never set aside by a save. */
+const NO_BACK_THREE: LineupProblem["kind"] = "noBackThree";
+
+/** The kinds a lineup may stand with: a starter out of position, as a save sets aside, and a back
+ *  three a sub left short. */
+const STANDING_KINDS: readonly LineupProblem["kind"][] = [...OUT_OF_POSITION, NO_BACK_THREE];
+
+/** A lineup that may stand, minus a starter outside his areas or on a role his positions no longer
+ *  take: one who lost a position after he was placed stays in his slot, on his role, for the
+ *  gameweek (spec/06), and lineup.ts reports it alone so a caller can set it aside. A sub is only
+ *  ever put where he plays, on a role he takes. A sweeper or libero left with
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => problem.kind !== "outsideHisAreas" && problem.kind !== "noBackThree");
-}
-
-/** A starter's cell, once standingProblems has refused any cell that doesn't exist. */
-function cellOf(placement: Placement): Cell {
-  const area = AREAS.find((known) => known === placement.area);
-  const lane = LANES.find((known) => known === placement.lane);
-  if (area === undefined || lane === undefined) throw new Error(`No cell ${placement.area}, ${placement.lane}`);
-  return { area, lane };
+  return lineupProblems(lineup, positions, rules).filter((problem) => !STANDING_KINDS.includes(problem.kind));
 }
 
 function positionsOf(positions: PlayerPositions, playerCode: PlayerCode) {

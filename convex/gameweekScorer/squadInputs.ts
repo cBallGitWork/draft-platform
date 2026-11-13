@@ -5,7 +5,8 @@ import { lineupsInGameweek } from "../lineup/lineups";
 import { statusOf } from "../stats/matchStats";
 import { teamOverridesIn } from "./heldMatches";
 import { rulesIn, type GameweekInputs, type LeagueReads } from "./teamGameweek";
-import { deadlineStarsIn } from "../stars/deadlineStars";
+import { keptAtDeadline } from "../stars/deadlineStars";
+import type { MovesSinceOf } from "../squads/squadPlace";
 
 // One team's gameweek inputs from reads the size of its squad rather than of every match: what a
 // season of a player's card or the Squad tab can afford (#577). The league's scorer
@@ -27,9 +28,10 @@ export async function squadInputs(
   fixtures: readonly Doc<"fixtures">[],
   teamId: Id<"teams">,
   rowsOf: (code: number) => Promise<PlayerRows>,
+  movesSinceOf?: MovesSinceOf,
 ): Promise<GameweekInputs> {
   const ruled = rulesIn(reads, gameweek);
-  const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek);
+  const lineups = await lineupsInGameweek(ctx, reads.leagueId, [teamId], gameweek, movesSinceOf);
   const lineup = lineups.get(teamId)!;
   const codes = namedCodes(lineup);
   const rows = await Promise.all(codes.map(async (code) => [code, await rowsOf(code)] as const));
@@ -47,7 +49,7 @@ export async function squadInputs(
     ...ruled,
     matches,
     lineups,
-    deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek, teamId),
+    kept: await keptAtDeadline(ctx, reads.leagueId, gameweek, teamId),
     teamOverrides: await teamOverridesIn(ctx, reads.leagueId, gameweek),
   };
 }

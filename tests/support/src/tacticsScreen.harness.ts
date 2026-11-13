@@ -9,9 +9,10 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
 import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, roleLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
-import { applyWords } from "../../../src/myTeam/tactics/formationWindow/words";
+import { applyWords, backGroupPattern } from "../../../src/myTeam/tactics/formationWindow/words";
 import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { problemWords } from "../../../convex/lineup/lineupWords";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
@@ -40,12 +41,16 @@ export const WHITE = member(6, "White", ["FB", "WB"]);
 export const SQUAD = [RAYA, SALIBA, RICE, HAVERTZ, ARRIZABALAGA, WHITE];
 
 export const at = (player: Member, cell: Cell) => ({ playerCode: player.playerCode, ...cell });
+/** Saliba's cell in the saved lineup, left-centre of defence. */
+export const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const satisfies Cell;
+/** Havertz's cell in the saved lineup, centre of attack. */
+export const HAVERTZS_CELL = { area: "attack", lane: "centre" } as const satisfies Cell;
 /** Four starters and two on the bench: the screen never judges whether eleven stand. */
 export const STARTERS = [
   at(RAYA, { area: "goalkeeper", lane: "centre" }),
-  at(SALIBA, { area: "defence", lane: "leftCentre" }),
+  at(SALIBA, SALIBAS_CELL),
   at(RICE, { area: "midfield", lane: "centre" }),
-  at(HAVERTZ, { area: "attack", lane: "centre" }),
+  at(HAVERTZ, HAVERTZS_CELL),
 ];
 export const SAVED = openTactics({
   squad: SQUAD,
@@ -87,7 +92,7 @@ export async function pickFormation(name: string) {
   const key = screen.queryByRole("radio", { name });
   if (key !== null) return userEvent.click(key);
   await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
-  for (const group of screen.getAllByRole("button", { name: /^Back \d/ })) {
+  for (const group of screen.getAllByRole("button", { name: backGroupPattern() })) {
     await userEvent.click(group);
     const tile = screen.queryByRole("radio", { name });
     if (tile === null) continue;
@@ -137,6 +142,9 @@ export async function pickRole(name: string, role: string) {
   await userEvent.click(within(roleCard(name)).getByRole("button", { name: role, pressed: false }));
   await userEvent.click(within(roleCard(name)).getByRole("button", { name: playAsWords(role) }));
 }
+/** The server's refusal of a lineup starting five, in its own words: what a save answers in a
+ *  refused-save test. */
+export const REFUSAL = problemWords({ kind: "wrongStarterCount", starterCount: 5 }, String);
 /** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
 export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */

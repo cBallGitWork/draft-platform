@@ -6,6 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The commissioner's draft order (spec/04, Starting it; #1087): it starts as the order the teams
 // joined in, he reorders it, and a team that joins later goes to the bottom (Craig, 4 Nov 2026).
@@ -29,9 +30,9 @@ const set = async (teamIds: Id<"teams">[], email = COMMISSIONER) =>
 describe("the commissioner's draft order", () => {
   test("starts as the order the teams joined in, with their names", async () => {
     expect(await read()).toEqual([
-      { teamId: teams[0], name: "Team 1" },
-      { teamId: teams[1], name: "Team 2" },
-      { teamId: teams[2], name: "Team 3" },
+      { teamId: teams[0], name: teamNumbered(1) },
+      { teamId: teams[1], name: teamNumbered(2) },
+      { teamId: teams[2], name: teamNumbered(3) },
     ]);
   });
 
@@ -71,5 +72,38 @@ describe("the commissioner's draft order", () => {
     await expectRefused(read(MANAGERS[0]), refusals.notRunner);
     await expectRefused(set([teams[2], teams[1], teams[0]], MANAGERS[0]), refusals.notRunner);
     expect(await order()).toEqual(teams);
+  });
+});
+
+describe("the order drawn at random", () => {
+  const draw = async () => (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftOrder.drawTeamOrder, { leagueId });
+  /** The order the draft shows, waiting or started (draftStart.ts). */
+  const orderOf = async () => (await (await actingAs(t, COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId })).order.map(({ teamId }) => teamId);
+
+  test("holds every team once, stays as drawn, and is the order the draft starts in", async () => {
+    await draw();
+    const drawn = await orderOf();
+
+    expect([...drawn].sort()).toEqual([...teams].sort());
+    expect(await orderOf()).toEqual(drawn);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
+    expect(await orderOf()).toEqual(drawn);
+  });
+
+  test("puts a team that joins after the draw at the bottom, and isn't drawn again on its own", async () => {
+    await draw();
+    const drawn = await orderOf();
+    const [joined] = await addManagers(t, leagueId, [MANAGERS[3]]);
+
+    expect(await orderOf()).toEqual([...drawn, joined]);
+  });
+
+  test("can be drawn again, or moved by hand, as often as the commissioner likes before the start", async () => {
+    await draw();
+    await draw();
+    await set([teams[1], teams[2], teams[0]]);
+    expect(await orderOf()).toEqual([teams[1], teams[2], teams[0]]);
+    await draw();
+    expect([...(await orderOf())].sort()).toEqual([...teams].sort());
   });
 });

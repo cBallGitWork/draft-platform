@@ -7,9 +7,11 @@ import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
-import { FormChips } from "../myTeam/header/FormChips";
+import { FormChips } from "../ui/FormChips";
 import { MailWidget } from "../myTeam/squad/MailWidget";
 import type { LatestMail } from "../myTeam/squad/seam";
+import { useLastLoaded } from "../shared/useLastLoaded";
+import { TOTAL_POINTS_COLUMNS } from "../table/words";
 import { useMinute } from "../shared/useMinute";
 import { NewsPanel } from "./NewsPanel";
 import { PanelLink } from "./PanelLink";
@@ -46,10 +48,10 @@ const HEAD_TO_HEAD_COLUMNS = ["position", "team", "record", "points", "form"] as
 type Column = (typeof HEAD_TO_HEAD_COLUMNS)[number] | "played";
 type Row = LeagueHome["table"][number];
 
-/** The columns of each format's table: total points has no matchups to win, draw or lose. */
+/** The columns of each format's table, total points' as the Table page has them. */
 const COLUMNS_OF: Record<LeagueHome["format"], readonly Column[]> = {
   headToHead: HEAD_TO_HEAD_COLUMNS,
-  totalPoints: ["position", "team", "played", "points"],
+  totalPoints: TOTAL_POINTS_COLUMNS,
 };
 /** Columns a phone leaves out, for room: points and form say what they would. */
 const DESK_ONLY: readonly Column[] = ["record"];
@@ -64,7 +66,9 @@ const cellClasses = (column: Column) =>
  *  centre; and on the right, the Vidiprinter while a matchday is open (1440-locked.png), the
  *  latest recap, and the panels still to come, each in its place. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
-  const home = seam.useLeagueHome(league.leagueId, useMinute());
+  // The minute is in the query's arguments, and league home mustn't blank every minute (nor its
+  // Mail panel's choice reset); another league's loads afresh.
+  const home = useLastLoaded(seam.useLeagueHome(league.leagueId, useMinute()), league.leagueId);
   const mail = seam.useLatestMail();
   const gameweek = home?.thisGameweek?.gameweek ?? null;
   const title = (

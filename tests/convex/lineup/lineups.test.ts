@@ -5,15 +5,16 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { holdGameweeks, holdGameweeksPastTheSeason, holdMatchState, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, EVE } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, REVERSED_BENCH, saved, sent, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEdits";
 
@@ -21,13 +22,6 @@ import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEd
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that
 // gameweek or before, and the squad decides who is still in it: as it is now for a gameweek not
 // begun, as it stood at the deadline for one begun (#415).
-
-const [ANN, BOB, , , EVE] = MANAGERS;
-const NEXT = 9;
-/** A player in the Premier League on no team in the league. */
-const FREE_AGENT = 999;
-/** Bob's player. */
-const BOBS = 998;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -44,9 +38,6 @@ beforeEach(async () => {
   await holdPlayers(t, [FREE_AGENT]);
 });
 
-/** The lineup as a browser sends it. */
-const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
-
 const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
@@ -60,16 +51,6 @@ const teamOf = (email: string): Id<"teams"> => {
   if (email === BOB) return bobsTeam;
   throw new Error(`${email} runs no team in the league`);
 };
-const saved = (lineup: Lineup, fromGameweek: number | null) => ({
-  fromGameweek,
-  starters: lineup.starters,
-  bench: lineup.bench,
-  leftSquad: [],
-  joinedBench: [],
-  vacated: [],
-});
-/** The lineup with its bench reversed: another lineup of the same squad. */
-const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
 /** Ann's team's lineup rows. */
 const lineupRows = () => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === annsTeam));
 
@@ -125,24 +106,27 @@ describe("a saved lineup", () => {
   test("is from gameweek 1 before the season's gameweeks have arrived", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+      // Their matches are held, and count their gameweeks among the season's (#1618), but none has
+      // kicked off: a save follows the league's deadlines, as its screens do (#1764).
+      for (const row of await ctx.db.query("fixtures").collect()) await ctx.db.patch("fixtures", row._id, { kickoff: row.kickoff! + NEXT * WEEK_MS });
     });
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
   });
 
-  test(`is saved from the next gameweek not begun with ${GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
+  test(`is saved from the next gameweek not begun with ${PL_GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
     await holdGameweeksPastTheSeason(t, 1);
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(NEXT);
   });
 
   test("is refused once every gameweek has begun", async () => {
-    vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
+    vi.advanceTimersByTime((PL_GAMEWEEKS - NEXT + 1) * WEEK_MS);
     await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), lineupRefusals.seasonOver);
   });
 
   test("is refused once the last gameweek of a league that ends early has begun (spec/13)", async () => {
-    const last = GAMEWEEKS - 2;
-    await setUsed(t, leagueId, GAMEWEEKS - 1, false);
-    await setUsed(t, leagueId, GAMEWEEKS, false);
+    const last = PL_GAMEWEEKS - 2;
+    await setUsed(t, leagueId, PL_GAMEWEEKS - 1, false);
+    await setUsed(t, leagueId, PL_GAMEWEEKS, false);
     vi.advanceTimersByTime((last - NEXT) * WEEK_MS);
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(last);
 
@@ -194,7 +178,7 @@ describe("read against the squad as it is now", () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);
     // The screen holds the lineup it opened on while the squad changes under it.
-    const opened = openingLineup({ lineup: await ann.mine(NEXT), classics: [] });
+    const opened = openingLineup({ lineup: await ann.mine(NEXT), classicFormations: [] });
     const [goneStarter] = STARTERS;
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("squadPlayers").collect()) {

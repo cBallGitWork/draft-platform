@@ -5,8 +5,8 @@ import type { RoleCard as RoleCardData } from "../../../../convex/lineup/roleCar
 import { roleIn, type Formation } from "../../../../convex/lineup/roles";
 import { starsIn } from "../../../../convex/stars/bestRole";
 import { NO_DATA, UNSURE } from "../../../../convex/stars/starsShape";
-import { closeGlyph, POSITION_NAMES } from "../../../shared/words";
-import { Loading } from "../../../ui/Panel";
+import { POSITION_NAMES } from "../../../shared/words";
+import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
@@ -16,7 +16,7 @@ import { PITCH_SIZE } from "../pitch/pitchMarkings";
 import { RoleRuns } from "../pitch/RoleRuns";
 import { EVEN_ROWS } from "../pitch/rowLayout";
 import type { TacticsSeam } from "../seam";
-import { baseOf, signedOrNothing, sumsOf } from "./cardSums";
+import { baseOf, sumsOf } from "./cardSums";
 import { RoleMatches } from "./RoleMatches";
 import {
   againstInUseWords,
@@ -26,6 +26,7 @@ import {
   closeCardLabel,
   figureWords,
   inUseWords,
+  notTestedWords,
   loadingCardWords,
   noFigureWords,
   playAsWords,
@@ -35,6 +36,7 @@ import {
   roleLimitWords,
   ROLES_TITLE,
   seasonStatsPlaceholder,
+  signedWords,
   starWords,
   whereHeMovesWords,
 } from "./words";
@@ -80,9 +82,7 @@ export function RoleCard({ player, starter, card, onPlay, onClose }: Shown & { c
         </h2>
         <PositionChip label={position} />
         <span className="text-soft">{POSITION_NAMES[position]}</span>
-        <button type="button" aria-label={closeCardLabel(player.name)} onClick={onClose} className="ml-auto flex min-h-tap min-w-tap items-center justify-center text-lead font-bold">
-          <span aria-hidden="true">{closeGlyph}</span>
-        </button>
+        <CloseButton label={closeCardLabel(player.name)} close={onClose} className="ml-auto flex items-center justify-center text-lead font-bold" />
       </div>
       {card === undefined || role === undefined ? (
         <Loading className="px-3 py-2">{loadingCardWords}</Loading>
@@ -174,13 +174,14 @@ function RolesTable({
                     {role.name}
                   </button>
                   {role.key === inUse && <span className="ml-2 bg-fact px-1 text-ground">{inUseWords}</span>}
+                  {role.notTested && <span className="ml-2 text-muted">{notTestedWords}</span>}
                 </th>
                 <td className="px-2">
                   <Stars player={player} starter={starter} role={role} />
                 </td>
                 <td className="px-2">{rewardsWords(role.rewards)}</td>
                 <td className="px-2">{rewardsWords(role.punishes)}</td>
-                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedOrNothing(sums.points)}</td>
+                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedWords(sums.points)}</td>
                 <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : figureWords(sums.total)}</td>
               </tr>
             );

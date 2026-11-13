@@ -60,7 +60,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
-- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
+- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
+  date can still be set while squads hold players; if they still do when it comes, the draft
+  doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams
+  (Craig, 11 Nov 2026, on #1459: "Accept all"). `S04.13`
 - The rounds are the squad maximum in the latest rules, counting a change waiting for next
   gameweek: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on #1130,
   replacing his 4 Nov answer on #1090). The squad rules the draft starts under are that waiting
@@ -94,8 +97,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A pick trade still in review when the draft starts closes without going through, and both
   managers get a letter saying why; any pick offer still open closes the same way (Craig, 8 Nov
   2026, on #1096). `S04.4`
+- When the squad maximum is cut below a round that holds a traded pick, both picks in that trade go
+  back to their old owners when the draft starts (the trade is undone), with the two managers told
+  in Mail (Craig, 11 Nov 2026, on #1457: "Accept all"). `S04.11`
 - Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
-  Claude's recommendation).
+  Claude's recommendation). Done: waivers were built (5 Nov 2026, #1197), so the answer below
+  holds. `S04.16 withdrawn`
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by
   default (Craig, 2 Nov 2026).
 
@@ -131,7 +138,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   and takes the best legal player by the usual order. Players level on last season's points go A
   to Z by the name the site shows (Palmer before Saka) (Craig, 5 Nov 2026, on #1094).
 - Until last season's points are priced (#1114), the fallback reads dummy staging data: "just make
-  a dummy csv for this, its just staging data currently" (Craig, 5 Nov 2026, on #1094).
+  a dummy csv for this, its just staging data currently" (Craig, 5 Nov 2026, on #1094). Done: last
+  season's points were priced (5 Nov 2026, #1114), and the fallback reads them. `S04.17 withdrawn`
 
 ## The queue and the ranking
 
@@ -142,6 +150,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The queue and do-not-draft list are the team's, not one draft's: "teams" (Craig, 4 Nov 2026, on
   #1092). No player is on both: adding him to one takes him off the other ("ok"). Each holds at
   most 250 players: "250 limit for bigger drafts".
+- When a manager leaves or is removed, auto-pick keeps using both lists while the team has no
+  manager; a new manager taking the team starts with both empty and never sees the old ones
+  (Craig, 11 Nov 2026, on #1606: "Auto-pick only, then wiped"). `S04.15`
 - A manager can change his queue and do-not-draft list between picks once the draft has started. A
   drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
 - The shortlist feeds the queue both ways: a shortlisted player added one at a time, and an "add my
@@ -195,6 +206,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - "The commissioner's pause, undo and pick-for each send a letter to the whole league. Resume
     sends none."
   - "When a start date comes and the draft can't start, the commissioner gets a letter."
+  - An undo or pick-for while the draft is paused sends the next manager's "you're up next" at
+    once, with no deadline: "You're up next. The draft is paused; your clock starts when it
+    resumes." Resume still sends none (Craig, 11 Nov 2026, on #1461: "Accept all"). `S04.14`
 
 ## The commissioner
 
@@ -248,6 +262,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - A league with no start set scores every ticked gameweek, as before, so no score moves; the
     rule applies once a league sets it, or when a draft ends after it ships: "No start = every
     ticked GW".
+  - A league with no start set that has already scored a gameweek can't set one: its start is
+    fixed, the same way a set start is fixed once its deadline passes: "Refuse it. Once a league
+    has scored a gameweek its scoring start is fixed" (Craig, 11 Nov 2026, on #1588). `S04.12`
 
 - In keeper and dynasty leagues, next season's draft is every player who was not kept, in the
   league's draft order.

@@ -1,10 +1,10 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { MINUTE_MS, HOUR_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { FULL_TIME_READ, GAMEWEEK, heldMatch } from "../../support/convex/matchStats.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { elapse, everyJobRuns } from "../../support/convex/test.harness";
 import { DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague } from "../../support/convex/miniBeta.harness";
 
 // The whole-gameweek golden (#527): recorded gameweek 6, played by the mini beta's league of four
@@ -30,13 +30,13 @@ test("recorded gameweek 6, every fielded player's points and every head-to-head 
   await footballSyncAt(t, DEADLINE + MINUTE_MS, beforeKickoff());
   await liveTickAt(t, FULL_TIME_READ, leagueWorld(recordedGw6()));
   await elapse(t, HOUR_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect((await heldMatch(t)).status?.state).toBe("locked");
 
   const results = [];
   const players = [];
   for (const email of Object.keys(ELEVENS)) {
-    const read = await (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), gameweek: GAMEWEEK });
+    const read = await (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, gameweek: GAMEWEEK });
     if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`${email}'s matchup isn't scored: ${JSON.stringify(read)}`);
     const { team, opponent } = read.game;
     if (team.kind !== "team" || opponent.kind !== "team") throw new Error(`${email}'s matchup isn't against a team: ${JSON.stringify(read.game)}`);

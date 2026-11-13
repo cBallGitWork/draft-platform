@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWords";
-import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
+import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
+import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist (#374, spec/19 The shortlist): a manager's own list of players for the season, per
 // league, private to the team; and the Mail letter to each manager whose shortlist holds a player
 // when he is released (spec/16).
 
-const [ANN, BOB, CAT] = MANAGERS;
 const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
 const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
-const NO_SUCH_PLAYER = 9999;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -24,7 +24,7 @@ let teams: Id<"teams">[];
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
@@ -55,7 +55,7 @@ describe("a manager's own shortlist", () => {
     await ann.add(SAKA.code);
     await ann.add(PALMER.code);
     expect(await ann.mine()).toEqual([
-      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false },
+      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: teamNumbered(2), gone: false },
       { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false },
     ]);
   });
@@ -95,11 +95,11 @@ describe("a manager's own shortlist", () => {
         await ctx.db.insert("shortlistPlayers", { leagueId, teamId: teams[0], playerCode: code });
       }
     });
-    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full);
+    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full(SHORTLIST_MOST));
   });
 
   test.each([
-    ["no such player", NO_SUCH_PLAYER, refusals.noPlayer],
+    ["no such player", UNHELD, refusals.noPlayer],
     ["a player who has left the Premier League", GONE.code, shortlistRefusals.playerGone("Gone")],
   ])("refuses %s", async (_what, code, refusal) => {
     await expectRefused((await as(ANN)).add(code), refusal);
@@ -124,7 +124,7 @@ describe("private to the team", () => {
   });
 
   test("it is per league: Ann's in another league is a different list", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another League");
     await addManagers(t, otherLeague, [ANN]);
     await (await as(ANN)).add(SAKA.code);
     expect(await namesOn(ANN, otherLeague)).toEqual([]);
@@ -148,7 +148,7 @@ describe("a shortlisted player released", () => {
     await (await actingAs(t, COMMISSIONER)).mutation(api.squads.squads.assign, { leagueId, playerCode: SAKA.code, teamId: teams[2] });
     await (await actingAs(t, by)).mutation(api.squads.squads.release, { leagueId, playerCode: SAKA.code });
   };
-  const subject = shortlistedReleasedLetter("Saka", "Team 3", COMMISSIONER).subject;
+  const subject = shortlistedReleasedLetter("Saka", teamNumbered(3), COMMISSIONER).subject;
   const shortlistLetters = async (email: string) => (await (await as(email)).letters()).filter((letter) => letter.subject === subject);
 
   test("files a letter to each manager whose shortlist holds him, and to no one else", async () => {
@@ -156,7 +156,7 @@ describe("a shortlisted player released", () => {
     await (await as(BOB)).add(SAKA.code);
     await release();
     expect(await shortlistLetters(ANN)).toEqual([
-      expect.objectContaining({ ...shortlistedReleasedLetter("Saka", "Team 3", COMMISSIONER), leagueName: expect.any(String), read: false }),
+      expect.objectContaining({ ...shortlistedReleasedLetter("Saka", teamNumbered(3), COMMISSIONER), leagueName: expect.any(String), read: false }),
     ]);
     expect(await shortlistLetters(BOB)).toHaveLength(1);
     expect(await shortlistLetters(CAT)).toEqual([]);
@@ -166,7 +166,7 @@ describe("a shortlisted player released", () => {
   test("names the admin as the admin", async () => {
     await (await as(ANN)).add(SAKA.code);
     await release(ADMIN);
-    const adminSubject = shortlistedReleasedLetter("Saka", "Team 3", "The admin");
+    const adminSubject = shortlistedReleasedLetter("Saka", teamNumbered(3), "The admin");
     expect((await (await as(ANN)).letters()).find((letter) => letter.subject === adminSubject.subject)).toMatchObject(adminSubject);
   });
 

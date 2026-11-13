@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HOME_NEWS_PATH, HOME_PATH, MAIL_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
+import { menuWords } from "../../../src/shared/words";
 import type { LeagueNews } from "../../../src/home/seam";
 import {
   everyKindWords,
@@ -23,6 +23,7 @@ import {
   noNewsWords,
   olderMovesWords,
   teamFilterLabel,
+  withTeamWords,
 } from "../../../src/home/words";
 import { newsMove, quietNews, type HomeData } from "../../support/src/home.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
@@ -96,6 +97,37 @@ describe("the detail", () => {
     expect(within(movedDetail).getByText(gotWords("Team 2"))).toBeTruthy();
     expect(within(movedDetail).getByText(fromTeamWords("Team 1"), { exact: false })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Team 2" }).getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
+describe("a trade (#1491)", () => {
+  const trade: LeagueNews["moves"][number] = {
+    at: 4_000,
+    filed: 4_000,
+    kind: "tradeMade",
+    teamId: "team-Team 1" as Id<"teams">,
+    teamName: "Team 1",
+    otherTeamId: "team-Team 2" as Id<"teams">,
+    otherTeamName: "Team 2",
+    gives: { players: [{ playerCode: 5, playerName: "Saka" }], picks: [] },
+    gets: { players: [{ playerCode: 6, playerName: "Palmer" }, { playerCode: 7, playerName: "Rice" }], picks: [] },
+  };
+
+  it("is one row: what the offering team got under In, what it gave under Out, one line each, and the other team", async () => {
+    openNews({ news: () => ({ ...quietNews, moves: [trade] }) });
+    const [row] = await rows();
+    const cells = within(row).getAllByRole("cell").slice(1);
+    expect(cells.map((cell) => cell.textContent)).toEqual([newsKindWords.tradeMade, "PalmerRice", "Saka", withTeamWords("Team 2")]);
+    expect(Array.from(cells[1].children, (line) => line.textContent)).toEqual(["Palmer", "Rice"]);
+  });
+
+  it("opens to what each side got", async () => {
+    openNews({ news: () => ({ ...quietNews, moves: [trade] }) });
+    const detail = await screen.findByRole("region", { name: newsKindWords.tradeMade });
+    expect(within(detail).getByText(gotWords("Team 1"))).toBeTruthy();
+    expect(within(detail).getByText("Palmer and Rice")).toBeTruthy();
+    expect(within(detail).getByText(gotWords("Team 2"))).toBeTruthy();
+    expect(within(detail).getByText("Saka")).toBeTruthy();
   });
 });
 

@@ -13,6 +13,8 @@ export type { TestConvex };
 export const COMMISSIONER = "commish@example.com";
 export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
+/** The five managers by name, so no test picks them out of MANAGERS by place. */
+export const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 /** Someone signed in who has no part in any league. */
 export const OUTSIDER = "outsider@example.com";
 
@@ -33,8 +35,17 @@ export async function actingAs(t: TestConvex, email: string) {
   return t.withIdentity({ subject: `${userId}|session` });
 }
 
+/** What signIn/account:signedInAs tells the screens for `email`. */
+export const accountOf = async (t: TestConvex, email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
+
 /** What the team `teamId` is called now. */
 export const teamName = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
+
+/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
+export const lettersTo = (t: TestConvex, email: string) =>
+  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
+/** How many letters the deployment holds. */
+export const lettersCount = (t: TestConvex) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;
@@ -69,6 +80,9 @@ export function teamsIn(t: TestConvex, leagueId: Id<"leagues">) {
       .collect(),
   );
 }
+
+/** Each of the league's teams' name and manager's email, in team order. */
+export const managersOf = async (t: TestConvex, leagueId: Id<"leagues">) => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 
 /** What the league's events say happened, oldest first, for Mail (#26). */
 export async function eventsIn(t: TestConvex, leagueId: Id<"leagues">) {

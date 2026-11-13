@@ -13,18 +13,18 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { pathToFileURL } from "node:url";
-import { branchCheck } from "./branchCheck.mjs";
+import { BASE, branchCheck, TEST_FILE as CHECK_FILE, TESTS_ROOT } from "./branchCheck.mjs";
+import { ranDirectly } from "./thisScript.mjs";
 
 const ID = /\bS(\d{2})\.\d+\b/g;
 /** An answer's own ID, at the end of its line; any other mention of an ID is a reference. */
 const GIVEN = /`(S(\d{2})\.\d+)( withdrawn)?`\s*$/;
+const SPEC_ROOT = "spec/";
 const SPEC_FILE = /^(\d{2})-.*\.md$/;
-const TEST_FILE = /\.(ts|tsx|mjs)$/;
-/** A check of its own, as tests-kept counts one; files in tests/support/ only help. */
-const CHECK_FILE = /\.(test|spec)\.(ts|tsx|mjs)$/;
+/** Any file under tests/ that may cite an answer, helpers included; a check of its own is a CHECK_FILE. */
+const SOURCE_FILE = /\.(ts|tsx|mjs)$/;
 /** This checker's own test, whose made-up IDs are its fixtures, not citations. */
-const OWN_TEST = "tests/scripts/spec-ids.test.mjs";
+const OWN_TEST = `${TESTS_ROOT}scripts/spec-ids.test.mjs`;
 
 /** What the spec files give and mention, and what's wrong in them. `specs` maps a file's name to its text. */
 function readSpecs(specs) {
@@ -105,7 +105,7 @@ export function checkBranch(before, after) {
       changedIds.push(answer.id);
   }
   for (const id of wasById.keys()) {
-    if (!nowIds.has(id)) problems.push(`${id} is on origin/main but gone here: keep its answer, marked \`${id} withdrawn\``);
+    if (!nowIds.has(id)) problems.push(`${id} is on ${BASE} but gone here: keep its answer, marked \`${id} withdrawn\``);
   }
   const cites = (text, id) => [...text.matchAll(ID)].some(([cited]) => cited === id);
   const changed = changedIds.map((id) => ({
@@ -131,23 +131,23 @@ function onBase() {
   const { git, base: baseOf } = branchCheck("spec IDs");
   const base = baseOf();
   const paths = (dir) => git("ls-tree", "-r", "--name-only", base, "--", dir).split("\n").filter(Boolean);
-  const specs = paths("spec/")
-    .filter((path) => SPEC_FILE.test(path.slice("spec/".length)))
-    .map((path) => [relative("spec", path), git("show", `${base}:${path}`)]);
-  return { specs, tests: paths("tests/").map((path) => [path, ""]) };
+  const specs = paths(SPEC_ROOT)
+    .filter(isSpecFile)
+    .map((path) => [relative(SPEC_ROOT, path), git("show", `${base}:${path}`)]);
+  return { specs, tests: paths(TESTS_ROOT).map((path) => [path, ""]) };
 }
+
+/** Whether a repo path, such as spec/05-draft.md, is a spec file. */
+const isSpecFile = (path) => SPEC_FILE.test(path.slice(SPEC_ROOT.length));
 
 /** The repo's spec files and tests under `root`, as `checkIds` and `checkBranch` take them. */
 export function repoFiles(root) {
-  const specs = filesUnder(root, "spec", (path) => SPEC_FILE.test(path.slice("spec/".length))).map(([path, text]) => [
-    relative("spec", path),
-    text,
-  ]);
-  const tests = filesUnder(root, "tests", (path) => TEST_FILE.test(path) && path !== OWN_TEST);
+  const specs = filesUnder(root, SPEC_ROOT, isSpecFile).map(([path, text]) => [relative(SPEC_ROOT, path), text]);
+  const tests = filesUnder(root, TESTS_ROOT, (path) => SOURCE_FILE.test(path) && path !== OWN_TEST);
   return { specs, tests };
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   const { specs, tests } = repoFiles(process.cwd());
   const { answers, problems, uncited } = checkIds(specs, tests);
   const branch = checkBranch(onBase(), { specs, tests });

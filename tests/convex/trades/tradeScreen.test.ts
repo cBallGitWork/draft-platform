@@ -1,19 +1,18 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { nextDeadline } from "../../../convex/gameweeks/deadline";
 import { missingPlayerLog } from "../../../convex/trades/tradeScreen";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import {
-  ANN,
   ANNS_FIRST_DROP,
-  BOB,
-  CAT,
   SAKA,
   tradeLeague,
   type TradeLeague,
 } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Trades screen's read (#383; docs/design/approved/trades): the offers to and from the
 // manager's team, each with when it closes, who it waits on and the limits it breaks for him, and
@@ -50,7 +49,7 @@ describe("the Trades screen", () => {
     expect(view.myTeamId).toBe(w.bobsTeam);
     expect(view.teams[0]).toMatchObject({
       teamId: w.bobsTeam,
-      teamName: "Team 2",
+      teamName: teamNumbered(2),
       onAutoTeam: false,
     });
     expect(view.teams[0].players.map(({ code }) => code).sort()).toEqual(
@@ -68,11 +67,10 @@ describe("the Trades screen", () => {
         .unique();
       await ctx.db.delete(player!._id);
     });
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     const view = await viewOf(BOB);
     expect(view.teams[0].players.map(({ code }) => code)).toEqual([SAKA]);
-    expect(warn).toHaveBeenCalledWith(missingPlayerLog("Team 2", 9002));
-    warn.mockRestore();
+    expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), 9002));
   });
 
   test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {
@@ -87,8 +85,8 @@ describe("the Trades screen", () => {
       const [offer] = (await viewOf(email)).offers;
       expect(offer).toMatchObject({
         offerId,
-        fromTeamName: "Team 1",
-        toTeamName: "Team 2",
+        fromTeamName: teamNumbered(1),
+        toTeamName: teamNumbered(2),
         gives: [
           expect.objectContaining({
             code: ANNS_FIRST_DROP,
@@ -130,6 +128,23 @@ describe("the Trades screen", () => {
     const [offer] = (await viewOf(ANN)).offers;
     expect(offer.closes).toBeNull();
     expect(offer.reviewEndsAt).toBeGreaterThan(Date.now());
+  });
+
+  test("an offer made in the trade deadline's gameweek closes after its last match, not at the next deadline, on the screen and in the letter (#1492, S08.9)", async () => {
+    await w.matchIs(NEXT - 1, "live");
+    await w.tradesAre({ review: "veto", deadline: NEXT - 1 });
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    const [offer] = (await viewOf(BOB)).offers;
+    expect(offer.closes).toEqual({ gameweek: NEXT - 1, at: null });
+    const bodies = (await w.lettersTo(BOB)).map(({ body }) => body);
+    expect(bodies).toContainEqual(expect.stringMatching(new RegExp(`unanswered, it closes after GW${NEXT - 1}'s last match\\.$`)));
+  });
+
+  test("an offer made before the trade deadline's gameweek still closes at the next deadline", async () => {
+    await w.tradesAre({ review: "veto", deadline: NEXT });
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    const [offer] = (await viewOf(BOB)).offers;
+    expect(offer.closes).toMatchObject({ gameweek: NEXT, at: expect.any(Number) });
   });
 
   test("says why trades are shut", async () => {

@@ -1,10 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
-import { OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
+import { TEAM_OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
+import { OverrideFields } from "../ui/OverrideFields";
 import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { MatchupSeam } from "./seam";
+import type { TeamSide } from "./SidePitch";
 import {
   cancelOverrideWords,
   OVERRIDE_TOTAL_TITLE,
@@ -18,14 +20,10 @@ import {
   totalOverrideRemovedWords,
 } from "./words";
 
-const POINTS_ID = "team-override-points";
-const REASON_ID = "team-override-reason";
+/** The form's boxes are `team-override-points` and `team-override-reason`. */
+const ID_PREFIX = "team-override";
 /** The hint, what an override does, describes the points box. */
-const HINT_ID = "team-override-hint";
-/** Points are kept to a tenth (spec/14). */
-const POINTS_STEP = 0.1;
-
-type TeamSide = Extract<MatchupSide, { kind: "team" }>;
+const HINT_ID = `${ID_PREFIX}-hint`;
 
 /** The team override (spec/14 S14.3 to S14.6; #903), for whoever runs the league: under each team's
  *  name, "Override total" opens a form for its total in the gameweek and why; once its total is
@@ -111,25 +109,16 @@ export function TeamOverrides({
           <p id={HINT_ID} className="text-muted">
             {overrideHint}
           </p>
-          <label htmlFor={POINTS_ID} className="font-semibold">
-            {overrideTotalLabels.points}
-          </label>
-          <input
-            id={POINTS_ID}
-            type="number"
-            required
-            step={POINTS_STEP}
-            min={-TEAM_OVERRIDE_POINTS_MOST}
-            max={TEAM_OVERRIDE_POINTS_MOST}
-            value={points}
-            onChange={(event) => setPoints(event.target.value)}
-            aria-describedby={HINT_ID}
-            className="text-box"
+          <OverrideFields
+            idPrefix={ID_PREFIX}
+            labels={overrideTotalLabels}
+            most={TEAM_OVERRIDE_POINTS_MOST}
+            points={points}
+            onPoints={setPoints}
+            reason={reason}
+            onReason={setReason}
+            describedBy={HINT_ID}
           />
-          <label htmlFor={REASON_ID} className="font-semibold">
-            {overrideTotalLabels.reason}
-          </label>
-          <input id={REASON_ID} required maxLength={OVERRIDE_REASON_MAX} value={reason} onChange={(event) => setReason(event.target.value)} className="text-box" />
           <div className="flex flex-wrap gap-3">
             <button type="submit" disabled={unfilled || change.busy} className={unfilled ? "action-idle" : "action"}>
               {overrideWords}

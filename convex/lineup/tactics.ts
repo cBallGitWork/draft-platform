@@ -1,8 +1,9 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { classicShape, leagueRulesShape } from "../rules/leagueRulesShape";
-import { classicsOf, instructionsOf } from "../rules/firstRules";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { classicFormationShape, leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
+import { gameModeOf, gameModeShape } from "../rules/gameMode";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { workedOutNow } from "../positions/playerPositions";
@@ -12,8 +13,9 @@ import { availabilityOf } from "../availability/availability";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
-import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
-import { starsOfPlayers } from "../stars/playerStars";
+import { heldLineupShape, lineupInGameweek } from "./lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
+import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
@@ -58,9 +60,9 @@ const tacticsShape = v.union(
     deadline: shownDeadline,
     areaLimits: leagueRulesShape.fields.areaLimits,
     presets: leagueRulesShape.fields.presets,
-    /** The league's classics in force, the first rules' for rules saved before #991 (firstRules.ts
-     *  `classicsOf`). */
-    classics: v.array(classicShape),
+    /** The league's classic formations in force, the first rules' for rules saved before #991
+     *  (firstRules.ts `classicFormationsOf`). */
+    classicFormations: v.array(classicFormationShape),
     /** The league's team instructions, in its order (#990). */
     instructions: v.array(instructionShape),
     /** The lineup's two picks in force: its own where its shape still offers them, else the
@@ -69,6 +71,8 @@ const tacticsShape = v.union(
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
+    /** What the league plays in the gameweek, for the role parts (#1582). */
+    mode: gameModeShape,
   }),
 );
 export type Tactics = Infer<typeof tacticsShape>;
@@ -87,7 +91,7 @@ export const ofMyTeam = query({
 
     const how = await howPositionsCount(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
-    const starsOf = await starsOfPlayers(
+    const starsOf = await starsLookup(
       ctx,
       members.map(({ playerCode }) => playerCode),
     );
@@ -106,7 +110,7 @@ export const ofMyTeam = query({
           positions: positions.map(({ position }) => position),
           flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
           number: await shirtNumber(ctx, member),
-          stars: starsOf.get(playerCode)!,
+          stars: starsOf(playerCode),
           availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
         };
       }),
@@ -118,14 +122,15 @@ export const ofMyTeam = query({
     return {
       kind: "open" as const,
       gameweek,
-      deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
+      deadline: (await leagueDeadlineOf(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
-      classics: classicsOf(rules),
+      classicFormations: classicFormationsOf(rules),
       instructions,
       picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,
       lineup,
+      mode: gameModeOf(rules),
     };
   },
 });

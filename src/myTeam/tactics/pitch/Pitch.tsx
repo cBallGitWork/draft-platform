@@ -1,5 +1,5 @@
 import { useId, type CSSProperties, type DragEvent } from "react";
-import { cellKey, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { cellKey, GOALKEEPER_AREA, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
 import { useClubColours } from "../../../shared/clubColours";
 import { chipColoursOf } from "../../../ui/PositionChip";
@@ -12,7 +12,7 @@ import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
 import { StarRating } from "../../../ui/StarRating";
-import { landingOf, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
+import { landingOf, positionsIn, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
 import type { DropTarget, Reach } from "../swaps";
 import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
@@ -88,7 +88,7 @@ export function Pitch({
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   /** The swap a lit player shows; null on one who isn't lit. */
   const landingOn = (playerCode: number) =>
-    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf);
+    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf, positionsIn(squad));
   const rows = rowLayoutOf([...draft.starters, ...slots]);
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
@@ -165,7 +165,7 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
-      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} size="size-pitch-shirt" />
+      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === GOALKEEPER_AREA} size="size-pitch-shirt" />
       <RoleChip chip={chip} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>
         <span data-slot-label>{positionOfSlot(cell)}</span> {player.name}

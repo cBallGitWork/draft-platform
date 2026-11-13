@@ -1,18 +1,23 @@
+import type { Indexes, NamedTableInfo } from "convex/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import type { Doc, Id, TableNames } from "../_generated/dataModel";
+import type { DataModel, Doc, Id, TableNames } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../shared/leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
 import { recordEvent, wholeLeague } from "../mail/letters";
 import { HOUR_MS } from "../shared/time";
+import { pauseForDeletion } from "../draft/draftPause";
+import { pauseReviews, resumeReviews } from "../trades/reviewPause";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
 // in it but its commissioner (myLeagues.ts), and nobody is emailed. Its Mail letters, that it is
 // being deleted and that it no longer is, go only to its commissioner and whoever deleted or undid
 // it, as "an undone deletion tells no one" (spec/13; Claude's call on #897, Craig's "your call").
-// Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
+// A live draft pauses as it is deleted, and an undo leaves it paused for its commissioner to resume
+// (draft/draftPause.ts; Craig, 11 Nov 2026, on #1486). A trade in review stops its clock too, and an
+// undo gives it back the time it had left (trades/reviewPause.ts; Craig, 11 Nov 2026, on #1493). Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
 // gone is everyone with a part in it but whoever deleted it emailed (deletionNotices.ts, #320).
 
 /** How long after it is deleted a league is gone for good. */
@@ -21,190 +26,79 @@ export const UNDO_MS = DELETION_UNDO_HOURS * HOUR_MS;
  *  outgrow a mutation: a full batch hands on to another run. */
 const ROWS_PER_RUN = 500;
 
-type LeagueRowsBatch<Table extends TableNames> = (ctx: QueryCtx, leagueId: Id<"leagues">) => Promise<Doc<Table>[]>;
+/** A table's index names, as its schema defines them. */
+type IndexOf<Table extends TableNames> = keyof Indexes<NamedTableInfo<DataModel, Table>>;
 
-/** Each table with rows keyed to a league, and a batch of the league's rows in it. A table that
+/** Each table with rows keyed to a league, and its index that starts with `leagueId`. A table that
  *  gains a `leagueId` belongs here: leagueDeletion.test.ts fails until it is. */
-const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
-  teams: (ctx, leagueId) =>
-    ctx.db
-      .query("teams")
-      .withIndex("by_leagueId_and_number", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  leagueEvents: (ctx, leagueId) =>
-    ctx.db
-      .query("leagueEvents")
-      .withIndex("by_leagueId_and_at", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  invites: (ctx, leagueId) =>
-    ctx.db
-      .query("invites")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  inviteLinks: (ctx, leagueId) =>
-    ctx.db
-      .query("inviteLinks")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  joinRequests: (ctx, leagueId) =>
-    ctx.db
-      .query("joinRequests")
-      .withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  leagueRules: (ctx, leagueId) =>
-    ctx.db
-      .query("leagueRules")
-      .withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  passedDeadlines: (ctx, leagueId) =>
-    ctx.db
-      .query("passedDeadlines")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  keptDeadlines: (ctx, leagueId) =>
-    ctx.db
-      .query("keptDeadlines")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  playedFixtures: (ctx, leagueId) =>
-    ctx.db
-      .query("playedFixtures")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  fixtureEdits: (ctx, leagueId) =>
-    ctx.db
-      .query("fixtureEdits")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  finalScores: (ctx, leagueId) =>
-    ctx.db
-      .query("finalScores")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  pointsOverrides: (ctx, leagueId) =>
-    ctx.db
-      .query("pointsOverrides")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  teamOverrides: (ctx, leagueId) =>
-    ctx.db
-      .query("teamOverrides")
-      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  lastLeagues: (ctx, leagueId) =>
-    ctx.db
-      .query("lastLeagues")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  squadPlayers: (ctx, leagueId) =>
-    ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  waiverPlayers: (ctx, leagueId) =>
-    ctx.db
-      .query("waiverPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  waiverClaims: (ctx, leagueId) =>
-    ctx.db
-      .query("waiverClaims")
-      .withIndex("by_leagueId_and_teamId_and_rank", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  waiverOrders: (ctx, leagueId) =>
-    ctx.db
-      .query("waiverOrders")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  waiverStarts: (ctx, leagueId) =>
-    ctx.db
-      .query("waiverStarts")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
+const leagueIndexes: { [Table in TableNames]?: IndexOf<Table> } = {
+  teams: "by_leagueId_and_number",
+  leagueEvents: "by_leagueId_and_at",
+  invites: "by_leagueId",
+  inviteLinks: "by_leagueId",
+  joinRequests: "by_leagueId_and_decision",
+  leagueRules: "by_leagueId_and_fromGameweek",
+  passedDeadlines: "by_leagueId_and_gameweek",
+  keptDeadlines: "by_leagueId_and_gameweek",
+  playedFixtures: "by_leagueId_and_gameweek",
+  fixtureEdits: "by_leagueId_and_gameweek",
+  finalScores: "by_leagueId_and_gameweek",
+  pointsOverrides: "by_leagueId_and_playerCode",
+  teamOverrides: "by_leagueId_and_gameweek_and_teamId",
+  lastLeagues: "by_leagueId",
+  squadPlayers: "by_leagueId_and_playerCode",
+  waiverPlayers: "by_leagueId_and_playerCode",
+  waiverClaims: "by_leagueId_and_teamId_and_rank",
+  waiverOrders: "by_leagueId",
+  waiverStarts: "by_leagueId",
   // A trade in review's timer finds no offer once it is gone, and does nothing.
-  tradeOffers: (ctx, leagueId) =>
-    ctx.db
-      .query("tradeOffers")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  closedTradeOffers: (ctx, leagueId) =>
-    ctx.db
-      .query("closedTradeOffers")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  recaps: (ctx, leagueId) =>
-    ctx.db
-      .query("recaps")
-      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  scouts: (ctx, leagueId) =>
-    ctx.db
-      .query("scouts")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  shortlistPlayers: (ctx, leagueId) =>
-    ctx.db
-      .query("shortlistPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  lineups: (ctx, leagueId) =>
-    ctx.db
-      .query("lineups")
-      .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  savedPlans: (ctx, leagueId) =>
-    ctx.db
-      .query("savedPlans")
-      .withIndex("by_leagueId_and_teamId_and_name", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  deadlineStars: (ctx, leagueId) =>
-    ctx.db
-      .query("deadlineStars")
-      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  teamGameweekStats: (ctx, leagueId) =>
-    ctx.db
-      .query("teamGameweekStats")
-      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  teamSeasonStats: (ctx, leagueId) =>
-    ctx.db
-      .query("teamSeasonStats")
-      .withIndex("by_leagueId_and_teamId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  letters: (ctx, leagueId) =>
-    ctx.db
-      .query("letters")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
+  tradeOffers: "by_leagueId",
+  closedTradeOffers: "by_leagueId",
+  recaps: "by_leagueId_and_gameweek",
+  scouts: "by_leagueId",
+  shortlistPlayers: "by_leagueId_and_playerCode",
+  lineups: "by_leagueId_and_teamId_and_fromGameweek",
+  savedPlans: "by_leagueId_and_teamId_and_name",
+  deadlineStars: "by_leagueId_and_gameweek_and_teamId",
+  teamGameweekStats: "by_leagueId_and_gameweek_and_teamId",
+  teamSeasonStats: "by_leagueId_and_teamId",
+  letters: "by_leagueId",
   // Its scheduled start, if any, finds no row and does nothing (draft/draftStart.ts).
-  drafts: (ctx, leagueId) =>
-    ctx.db
-      .query("drafts")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  draftLists: (ctx, leagueId) =>
-    ctx.db
-      .query("draftLists")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
-  draftPicks: (ctx, leagueId) =>
-    ctx.db
-      .query("draftPicks")
-      .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
-      .take(ROWS_PER_RUN),
+  drafts: "by_leagueId",
+  draftLists: "by_leagueId",
+  draftPicks: "by_leagueId_and_pick",
 };
 
-export const tablesKeyedToLeague = Object.keys(leagueRows);
+/** A table's query as leagueBatch uses it: TypeScript can't match a generic table's index to its
+ *  `leagueId` field, so leagueBatch casts to this. */
+type ByLeagueQuery<Table extends TableNames> = {
+  withIndex: (
+    index: IndexOf<Table>,
+    range: (q: { eq: (field: "leagueId", value: Id<"leagues">) => unknown }) => unknown,
+  ) => { take: (n: number) => Promise<Doc<Table>[]> };
+};
+
+/** A batch of the league's rows in `table`, by its index in leagueIndexes. */
+function leagueBatch<Table extends TableNames>(
+  ctx: QueryCtx,
+  table: Table,
+  index: IndexOf<Table>,
+  leagueId: Id<"leagues">,
+): Promise<Doc<Table>[]> {
+  const query = ctx.db.query(table) as unknown as ByLeagueQuery<Table>;
+  return query.withIndex(index, (q) => q.eq("leagueId", leagueId)).take(ROWS_PER_RUN);
+}
+
+export const tablesKeyedToLeague = Object.keys(leagueIndexes);
 
 /** Deletes a batch of the league's rows in `table`: whether it was a full one, so more may be left. */
 async function deleteBatch<Table extends TableNames>(
   ctx: MutationCtx,
   table: Table,
-  batchOf: LeagueRowsBatch<Table>,
+  index: IndexOf<Table>,
   leagueId: Id<"leagues">,
 ): Promise<boolean> {
-  const rows = await batchOf(ctx, leagueId);
+  const rows = await leagueBatch(ctx, table, index, leagueId);
   for (const row of rows) await ctx.db.delete(table, row._id);
   return rows.length === ROWS_PER_RUN;
 }
@@ -214,7 +108,8 @@ async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Prom
   return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
 
-/** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS. */
+/** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS, its live
+ *  draft paused and its trades in review on hold. */
 export const deleteLeague = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
@@ -223,13 +118,16 @@ export const deleteLeague = mutation({
     const deletesAt = Date.now() + UNDO_MS;
     const scheduledId = await ctx.scheduler.runAt(deletesAt, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
     await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId } });
+    await pauseForDeletion(ctx, leagueId);
+    await pauseReviews(ctx, leagueId);
     await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt }, { only: [league.commissionerEmail, by] });
     return null;
   },
 });
 
 /** The league's commissioner or the admin, whichever deleted it, undoes it before it is gone, and
- *  it is as it was. */
+ *  it is as it was, but for a draft its deletion paused, which stays paused until he resumes it,
+ *  and its trades in review, which end as much later as it was frozen. */
 export const undo = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
@@ -242,6 +140,7 @@ export const undo = mutation({
     if (Date.now() >= deletion.deletesAt) refuse(refusals.tooLateToUndo);
     await ctx.scheduler.cancel(deletion.scheduledId);
     await ctx.db.patch("leagues", leagueId, { deletion: undefined });
+    await resumeReviews(ctx, leagueId, Date.now() - (deletion.deletesAt - UNDO_MS));
     await recordEvent(
       ctx,
       leagueId,
@@ -269,10 +168,10 @@ export const deleteForGood = internalMutation({
     if (!league?.deletion) throw new Error(`League ${leagueId} isn't being deleted, so it wasn't deleted for good`);
     const tell = handedOn ?? (await othersIn(ctx, league, league.deletion.by));
     let more = false;
-    // Object.entries loses which batch goes with which table; leagueRows' type pairs them.
-    for (const [table, batchOf] of Object.entries(leagueRows) as [TableNames, LeagueRowsBatch<TableNames>][]) {
+    // Object.entries loses which index goes with which table; leagueIndexes' type pairs them.
+    for (const [table, index] of Object.entries(leagueIndexes) as [TableNames, IndexOf<TableNames>][]) {
       // Not `more ||= await deleteBatch(...)`: that would skip every table after a full batch.
-      const full = await deleteBatch(ctx, table, batchOf, leagueId);
+      const full = await deleteBatch(ctx, table, index, leagueId);
       more ||= full;
     }
     // The league goes last: joining/endedInvite.ts reads an invite's league as always there.

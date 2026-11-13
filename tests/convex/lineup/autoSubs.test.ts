@@ -111,7 +111,8 @@ describe("when no one on the bench can play the slot", () => {
   });
 
   test("he takes the slot's lane in his own area when it is free", () => {
-    const { lineup, positions } = withBench(["CAM"]);
+    // A winger never plays up front (spec/05 `S05.29`), so he can't take the striker's slot.
+    const { lineup, positions } = withBench(["W"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
 
     expect(result.substitutions).toEqual([
@@ -136,7 +137,7 @@ describe("when no one on the bench can play the slot", () => {
   test("the nearest area before the nearest lane", () => {
     // The other striker drops into the hole behind: a sub who plays the area in front of the
     // midfield, or the one behind it, takes the nearer, though only the other has a free lane.
-    const { lineup, positions } = withBench(["CAM", "CDM"]);
+    const { lineup, positions } = withBench(["W", "CDM"]);
     const supportStriker = withPositions(positions, OTHER_STRIKER, ["SS"]);
     const strikerInTheHole = {
       ...lineup,

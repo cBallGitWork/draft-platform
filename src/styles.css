@@ -93,10 +93,13 @@
   /* A control in a panel's title bar on the desk, as the approved draft room picture draws its
      players list's tabs, Find and stats; a phone keeps the 44px tap size */
   --spacing-bar-control: 26px;
+  /* New offer's team picker in Their squad's title bar, as the approved trades picture draws it */
+  --spacing-partner-picker: 170px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-vidiprinter-column: 56px; /* a team's points column in it ("Saka P", "+4") */
+  --spacing-vidiprinter-minute: 48px; /* the matchup's minute column in it ("Min", "~45+2'", "KO") */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
   /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
      approved Tactics picture's 340px and the room a player's block needs, so each stays in his
@@ -113,6 +116,8 @@
      tile: "Our shirt too small", Craig, 8 Nov 2026) */
   --spacing-tile: 84px;
   --spacing-shirt-tile: 44px;
+  /* the small shirt in the player card's club line, as its approved picture draws it */
+  --spacing-shirt-inline: 20px;
   /* a club's mark before its code or name: its crest, or its two colours (plate.md, Marks) */
   --spacing-club-mark: 16px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
@@ -146,6 +151,8 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1fr);
   --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
+  /* Sign in beside its Invite only panel (approved/sign-in/1440.png) */
+  --grid-template-columns-sign-in: minmax(0, 1fr) 21.25rem;
   /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */

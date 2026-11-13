@@ -2,18 +2,19 @@
 // refused a change is in convex/rules/ (`rulesRefusals`, and leagueRulesCheck.ts's reasons), and
 // reaches the screen as is.
 
-import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
+import { DRAFT_FEWEST_TEAMS, PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
 import type { UndraftedGoTo } from "../../convex/draft/draftRules";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
-import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
+import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
+import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
 import { hoursWords } from "../../convex/shared/time";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
+import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, failedWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -23,7 +24,7 @@ export const fixturesTitle = "Fixtures";
 export const oddTeamOutLabel = "With an odd number of teams, the team left over plays";
 export const oddTeamOutWords: Record<OddTeamOut, string> = { leagueAverage: "The league's average", bye: "No one (a bye)" };
 export const gamesLabel = "Head-to-head games each team plays a gameweek";
-export const gamesHint = "A whole number, 1 or more. With fewer other teams than that, each team plays every other once a gameweek.";
+export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer other teams than that, each team plays every other once a gameweek.`;
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
 export const redrawWords = "Saving either redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
 export const blankGamesWords = noNumberWords("Games a gameweek");
@@ -42,10 +43,22 @@ export const areaMinimumsHint = "Whole numbers, 0 for none, adding up to no more
 export const blankAreaMinimumWords = (area: Area) => noNumberWords(areaMinimumLabel(area), "put 0");
 export const clubMaximumWords = "A limit on players from one club";
 export const clubMaximumLabel = "Most players from one club";
-export const clubMaximumHint = "A whole number, 1 or more.";
+export const clubMaximumHint = `A whole number, ${MAX_PER_CLUB_FEWEST} or more.`;
 export const blankClubMaximumWords = noNumberWords(clubMaximumLabel, "turn the limit off");
 
 export const draftTitle = "Draft";
+/** The draft's start date (spec/04, Starting it; Craig, 11 Nov 2026, on #1476), saved with the
+ *  rest of the settings. */
+export const draftStartLabel = "Starts";
+export const clearDraftStartWords = "Clear";
+export const draftStartHint = `The draft starts itself then. With no date it waits for you to press start in the draft room. A date has to be in the future, with at least ${DRAFT_FEWEST_TEAMS} teams in the league.`;
+export const draftStartedFixedWords = "The draft has started.";
+export const draftStartLoadingWords = "Loading the draft's start…";
+/** The bar once the date alone is saved (#1780): the settings' words name a gameweek, which a date has none of. */
+export const draftStartSavedWords = "Saved.";
+/** What a failed change leaves, live or in the preview. */
+export const unchangedDraftStartOutcome = "the draft's start didn't change";
+export const draftStartFailedWords = failedWords(unchangedDraftStartOutcome);
 export const pickClockLabel = "Time for each pick";
 export const pickClockUnitLabel = "Time for each pick, in";
 export const pickClockUnitWords: Record<PickClockUnit, string> = { seconds: "Seconds", minutes: "Minutes", hours: "Hours" };
@@ -59,23 +72,22 @@ export const neverAutoPickWords = "Never: the clock runs for every pick.";
 export const blankTimeoutsWords = noNumberWords(timeoutsLabel, "turn auto-pick after timeouts off");
 export const undraftedLabel = "Players nobody drafts go to";
 export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Waivers", freeAgents: "Free agents" };
-/** Craig, 4 Nov 2026, on #1087. */
-export const undraftedHint = "Until waivers are built, they go to free agents.";
 
 export const tradesTitle = "Trades";
 export const tradeReviewLabel = "An accepted trade is reviewed by";
 export const tradeReviewWords: Record<TradeReview, string> = {
   none: "No one",
-  veto: "Commissioner veto",
-  vote: "League vote",
+  veto: commissionerVetoWords,
+  vote: leagueVoteWords,
 };
 /** spec/08, Trades, and Craig's answers on #383 (31 Oct and 6 Nov 2026). */
 export const tradeReviewHint =
   `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
 export const tradeDeadlineLabel = "No trades after gameweek";
-/** Craig, 6 Nov 2026, on #383. */
-export const tradeDeadlineHint = `A gameweek, ${FIRST_GAMEWEEK} to ${GAMEWEEKS}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
+/** Craig, 6 Nov 2026, on #383; the season's last gameweek is however many it has (#1618). */
+export const tradeDeadlineHint = (seasonGameweeks: number) =>
+  `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
 export const blankTradeDeadlineWords = noNumberWords(tradeDeadlineLabel, "turn the trade deadline off");
 
 /** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */
@@ -90,9 +102,9 @@ export const runTimeLabel = (run: number) => `Run ${run}'s time`;
 export const removeRunWords = "Remove";
 export const removeRunLabel = (run: number) => `Remove run ${run}`;
 export const addRunWords = "Add a run";
-export const runsHint = "Each run takes every player whose 24 hours on waivers are up. A run between a deadline and the gameweek's last match is skipped.";
+export const runsHint = `Each run takes every player whose ${hoursWords(WAIVER_MS)} on waivers are up. A run between a deadline and the gameweek's last match is skipped.`;
 export const runTwiceWords = "Two runs are at the same time: change one or remove it.";
-export const dayWords: Record<(typeof WEEKDAYS)[number], string> = {
+export const weekdayNames: Record<(typeof WEEKDAYS)[number], string> = {
   monday: "Monday",
   tuesday: "Tuesday",
   wednesday: "Wednesday",
@@ -133,6 +145,8 @@ export const noScoringStartWords = "Not set";
 export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
 export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
 export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;
+/** None set in a league that has already scored a gameweek, so none set is fixed (#1588). */
+export const seasonBegunStartHint = "Fixed: the league has already scored a gameweek, so every ticked gameweek scores.";
 export const noScoringStartChoicesWords = "No ticked gameweek with a known deadline is still to begin, so scoring can't start in one.";
 export const scoringStartLoadingWords = "Loading the scoring start…";
 /** What a failed change leaves, live or in the preview. */

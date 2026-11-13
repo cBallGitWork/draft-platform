@@ -4,8 +4,7 @@ import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import type { Side } from "../../../convex/lineup/instructions";
 import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
-import { menuWords } from "../../frame/words";
-import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
+import { failedWords, listSeparator, menuWords, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
 import { benchShort, nextMatchesShort } from "../words";
 import type { MoveRefusal } from "./swaps";
@@ -19,10 +18,10 @@ export const seasonOverWords = "Every gameweek this league plays has begun, so t
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
 /** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset or a
- *  classic. */
+ *  classic formation. */
 export const pitchTitle = (formation: string | null) => (formation === null ? "Pitch" : `Pitch ${formation}`);
-/** A classic once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
-export const customWords = (classic: string) => `${classic} (custom)`;
+/** A classic formation once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
+export const customWords = (classicFormation: string) => `${classicFormation} (custom)`;
 /** The pitch, named for screen readers, and its cells. */
 export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
@@ -56,6 +55,7 @@ export const instructionLabel = (side: Side) => `${SIDE_WORDS[side]} instruction
 export const instructionsTitle = (formation: string | null) => (formation === null ? "Team instructions" : `${formation} unlocks`);
 export const pickedWords = "Picked";
 export const presetsWords = "Presets";
+/** The toolbar's button and the formation window's tile that both save a preset. */
 export const savePresetWords = "Save preset…";
 /** Fills the formation with the best eleven by stars (spec/05, Moving players; #849). */
 export const quickPickWords = "Quick Pick";
@@ -92,11 +92,14 @@ export const SELECTION_TITLE = "Selection";
 export const startingWords = (starting: number) => `${starting} starting`;
 export const onTheBenchWords = (bench: number) => `${bench} on the bench`;
 export const selectionTableLabel = "Your squad: the eleven, then the bench in order";
+/** What a row's stars rate, named on them: "Role fit 4 of 5" (plate.md, Marks: Stars); also the
+ *  Selection table's and the role card's column head. */
+export const ROLE_FIT_SUBJECT = "Role fit";
 export const selectionColumns = {
   position: { short: "Pos", long: "The slot's position; on the bench, his place and his main position" },
   player: { short: "Player", long: "Player" },
   next: { short: "Next", long: "Next fixture" },
-  roleFit: { short: "Role fit", long: "His stars for the role" },
+  roleFit: { short: ROLE_FIT_SUBJECT, long: "His stars for the role" },
   role: { short: "Role", long: "The role he plays in his slot" },
 } as const;
 /** Over the bench's Role column: the role each has the most stars for at his main position. */
@@ -107,8 +110,6 @@ export const benchPlaceLong = (index: number) => `Substitute ${index + 1}`;
 /** A starter's role picker, for screen readers (spec/05 Roles). */
 export const roleLabel = (name: string) => `${name}'s role`;
 export const emptyBenchWords = "Nobody on the bench.";
-/** What a row's stars rate, named on them: "Role fit 4 of 5" (plate.md, Marks: Stars). */
-export const ROLE_FIT_SUBJECT = "Role fit";
 
 /** The selected player's panel, on top of the right-hand column (plate.md, Tables and panels). */
 export const startingWhereWords = (club: string | null, slot: string) => (club === null ? slot : `${club}, ${slot}`);
@@ -123,7 +124,10 @@ export const playsHead = "Plays";
 export const nextThreeHead = nextMatchesShort;
 export const lastFiveHead = "Last 5 in role";
 export const lastFivePlaceholder = "His points in the role in one of his last five gameweeks: not held yet";
+/** His points, in the selected player's panel and on the role card. */
 export const pointsHead = "Points";
+/** Marks the formation or the role in use now (the formation window, the role card). */
+export const inUseWords = "In use";
 export const lastShort = "Last";
 export const seasonShort = "Season";
 export const moveWords = "Move";
@@ -136,7 +140,6 @@ export const upLabel = (name: string) => `Move ${name} up the bench`;
 export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const playerCardLabel = (name: string) => `${name}'s player card`;
 
-/** The left column's widget under the pitch, and the right column's. */
 /** The mark after a player's name while one of his positions is at stake (#23; Craig, 6 Nov 2026),
  *  read on hover and by screen readers. */
 export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;

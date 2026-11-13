@@ -5,16 +5,14 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import type { GameweekMatch } from "../../../src/premierLeague/seam";
 import {
   dayWords,
   FIXTURES_TITLE,
   fullTime,
-  gameweekWords,
   halfTime,
   kickoffWords,
   liveWords,
@@ -27,11 +25,10 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
-import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
-import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS, type PremierLeagueData } from "../../support/src/premierLeague.harness";
+import { gameweekShort, menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS } from "../../support/src/premierLeague.harness";
+import { openSection } from "../../support/src/premierLeagueScreen.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
-
-const openSection = (premierLeague: PremierLeagueData = {}) => openApp(PREMIER_LEAGUE_PATH, manager, { premierLeague });
 
 /** Gameweeks 8 and 9 kicked off (9 an hour ago); 10 kicks off in a week. */
 const begun = Date.now() - HOUR_MS;
@@ -45,12 +42,12 @@ const stepperHeading = () => screen.findByRole("heading", { level: 3 });
 const button = (name: string) => screen.getByRole("button", { name }) as HTMLButtonElement;
 
 /** Each match row of the gameweek shown as its four cells: where it stands, the home club, the
- *  score or "v", and the away club (each club by its full name, the desk's). */
+ *  score or "v", and the away club (each club by its full name, the desk's, in its link). */
 async function matchLines(gameweek: number) {
   const group = await screen.findByRole("group", { name: matchesListLabel(gameweek) });
   return within(group)
     .getAllByRole("listitem")
-    .map((row) => [...row.children].map((cell, index) => (index === 1 || index === 3 ? cell.firstElementChild!.textContent : cell.textContent)));
+    .map((row) => [...row.children].map((cell, index) => (index === 1 || index === 3 ? cell.firstElementChild!.firstElementChild!.textContent : cell.textContent)));
 }
 
 describe("reaching it", () => {
@@ -78,23 +75,23 @@ describe("reaching it", () => {
 describe("which gameweek it opens on", () => {
   it("opens on the current gameweek: the latest kicked off", async () => {
     const app = openSection({ firstKickoffs: kickoffsTo10 });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(9));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(9));
     expect(app.premierLeague.useGameweekMatches).toHaveBeenLastCalledWith(9);
   });
 
   it("before any gameweek has kicked off, opens on the first to come", async () => {
     openSection({ firstKickoffs: [{ gameweek: 1, firstKickoff: Date.now() + DAY_MS }, { gameweek: 2, firstKickoff: Date.now() + WEEK_MS }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(1));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(1));
   });
 
   it("with no kickoff times held, opens on the season's first", async () => {
     openSection();
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(1));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(1));
   });
 
   it("once the last gameweek has kicked off, stays on it", async () => {
-    openSection({ firstKickoffs: [{ gameweek: GAMEWEEKS, firstKickoff: begun }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(GAMEWEEKS));
+    openSection({ firstKickoffs: [{ gameweek: PL_GAMEWEEKS, firstKickoff: begun }] });
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
   });
 });
 
@@ -111,12 +108,12 @@ describe("the stepper", () => {
     expect(await matchLines(9)).toEqual([[fullTime.short, "Arsenal", scoreWords(1, 0), "Chelsea"]]);
 
     await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(10));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(10));
     expect(await matchLines(10)).toEqual([[kickoffWords(saturday), "Spurs", versusWords, "Nottingham Forest"]]);
 
     await userEvent.click(button(previousGameweekLabel));
     await userEvent.click(button(previousGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(8));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(8));
     expect(screen.getByText(noMatchesWords(8))).toBeTruthy();
   });
 
@@ -125,10 +122,18 @@ describe("the stepper", () => {
     await stepperHeading();
     expect(button(previousGameweekLabel).disabled).toBe(true);
 
-    for (let gameweek = 1; gameweek < GAMEWEEKS; gameweek += 1) await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(GAMEWEEKS));
+    for (let gameweek = 1; gameweek < PL_GAMEWEEKS; gameweek += 1) await userEvent.click(button(nextGameweekLabel));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
     expect(button(nextGameweekLabel).disabled).toBe(true);
     expect(button(previousGameweekLabel).disabled).toBe(false);
+  });
+
+  it("stops at the season's own last gameweek, however many it has (#1618)", async () => {
+    openSection({ seasonGameweeks: 34, firstKickoffs: [{ gameweek: 33, firstKickoff: begun }] });
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(33));
+    await userEvent.click(button(nextGameweekLabel));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(34));
+    expect(button(nextGameweekLabel).disabled).toBe(true);
   });
 });
 
@@ -188,7 +193,8 @@ describe("a gameweek's matches", () => {
   it("name each club in full on the desk and by its three letters on a phone", async () => {
     openSection({ firstKickoffs: kickoffsTo10, matches: { 9: [plMatch(1, FOREST, SPURS, saturday)] } });
     const [row] = within(await screen.findByRole("group", { name: matchesListLabel(9) })).getAllByRole("listitem");
-    const home = row.children[1];
+    // The name is a link to the club's page (#1936).
+    const home = row.children[1].firstElementChild!;
     expect(home.firstElementChild!.className).toContain("hidden sm:inline");
     expect(home.lastElementChild!.className).toContain("sm:hidden");
     expect(home.lastElementChild!.textContent).toBe("NFO");

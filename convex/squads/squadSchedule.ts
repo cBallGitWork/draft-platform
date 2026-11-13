@@ -1,19 +1,20 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
-import { saveGameweekOf } from "../lineup/lineups";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { clubRecord } from "../schema";
-import { gameweekFixtures } from "../shared/fixtures";
+import { byKickoffOrder, gameweekFixtures } from "../shared/fixtures";
 import type { Clubs } from "../shared/players";
+import { SCHEDULE_GAMEWEEKS } from "./squadLimits";
 
 // The Squad tab's Schedule view (#1006; spec/12, My team's tabs: "his next 6 fixtures"): the next
 // 6 gameweeks, from the one a lineup is being set for, because lineups are set per gameweek (Craig,
-// 6 Nov 2026). A blank week's cell is empty and a double week's holds both matches; near the
-// season's end the gameweeks stop at 38.
+// 6 Nov 2026). A blank week's cell is empty and a double week's holds both matches. Only gameweeks
+// the league plays of its season's own count are shown, so they skip one it unticked and stop at
+// its last (spec/13, Gameweeks; #1561, #1618).
 
-/** How many gameweeks the view holds. */
-export const SCHEDULE_GAMEWEEKS = 6;
 
 export const scheduledMatch = v.object({
   gameweek: v.number(),
@@ -24,7 +25,7 @@ export const scheduledMatch = v.object({
 });
 export type ScheduledMatch = Infer<typeof scheduledMatch>;
 
-/** The gameweeks shown, from the one being set, and each of these clubs' matches in them by club
+/** The gameweeks shown, the next six the league plays from the one being set, and each of these clubs' matches in them by club
  *  code, kickoff order, those with no kickoff time last. No gameweeks once the season is over or
  *  while the league has no rules to date a deadline by. */
 export async function squadSchedule(
@@ -36,9 +37,11 @@ export async function squadSchedule(
 ): Promise<{ gameweeks: number[]; byClub: Map<number, ScheduledMatch[]> }> {
   const byClub = new Map<number, ScheduledMatch[]>();
   const save = await saveGameweekOf(ctx, leagueId, now);
-  if (save.kind !== "open") return { gameweeks: [], byClub };
-  const last = Math.min(save.gameweek + SCHEDULE_GAMEWEEKS - 1, GAMEWEEKS);
-  const gameweeks = Array.from({ length: last - save.gameweek + 1 }, (_, index) => save.gameweek + index);
+  const league = await ctx.db.get("leagues", leagueId);
+  if (save.kind !== "open" || league === null) return { gameweeks: [], byClub };
+  const gameweeks = usedGameweeksOf(league, await seasonGameweekCount(ctx))
+    .filter((gameweek) => gameweek >= save.gameweek)
+    .slice(0, SCHEDULE_GAMEWEEKS);
   for (const gameweek of gameweeks) {
     for (const fixture of await gameweekFixtures(ctx, gameweek, "the Squad tab's schedule would be cut short")) {
       for (const [clubCode, opponentCode, home] of sidesOf(fixture)) {
@@ -47,7 +50,7 @@ export async function squadSchedule(
       }
     }
   }
-  for (const matches of byClub.values()) matches.sort((one, other) => one.gameweek - other.gameweek || (one.kickoff ?? Infinity) - (other.kickoff ?? Infinity));
+  for (const matches of byClub.values()) matches.sort((one, other) => one.gameweek - other.gameweek || byKickoffOrder(one, other));
   return { gameweeks, byClub };
 }
 

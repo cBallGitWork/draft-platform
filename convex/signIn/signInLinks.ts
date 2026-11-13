@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { EMAIL_MAX, isAllowed, isEmailAddress, normaliseEmail } from "./allowedEmails";
+import { isAllowed, isEmailAddress, normaliseEmail } from "./allowedEmails";
 import { signInReply, type SignInReply } from "./signInReplies";
 import { anEmailLeftToday, countTodaysEmail } from "../outbound/emailLimit";
 import { logFailure } from "../shared/errors";
@@ -84,7 +84,7 @@ export const recordAsk = internalMutation({
     if (!(await anEmailLeftToday(ctx))) return { outcome: "paused" as const };
 
     // Told the same as an unlisted email, but not stored: anyone can call `ask` with any string.
-    if (!isEmailAddress(email) || email.length > EMAIL_MAX) return { outcome: "unlisted" as const };
+    if (!isEmailAddress(email)) return { outcome: "unlisted" as const };
 
     const listed = await isAllowed(ctx, email);
     const askId = await ctx.db.insert("signInAsks", { email, askedAt: now, listed });

@@ -25,7 +25,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   indivoduals cells is just getting in the way"; "no limits" (Craig, 4 Nov 2026). It replaces the
   sweeper's cell of 31 Oct 2026, and the role stays: "it's a real role, esp with classic
   formations".
-- Presets only: the shape always comes from a preset or a classic, and no player moves into an
+- Presets only: the shape always comes from a preset or a classic formation, and no player moves into an
   empty cell. "we dont allow users to move the individual pieces around, we have lots of
   formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
   just sort all this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is
@@ -33,7 +33,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   5-3-2, 5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3,
   5-3-1-1, 3-6-1, all editable as league rules. Ten of them Craig added (28 Oct 2026): "no basics
   like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
-  ("also formations with 2 at the back"): 2-3-5 and 2-3-2-3.
+  ("also formations with 2 at the back"): 2-3-5 and 2-3-2-3. `S05.38`
 - There are no sweeper or libero presets, and a preset sets no player's role: sweeper and libero
   are centre-back roles only (above). "we made sweeper a role and liberio, ditched sweeper
   formations" (Craig, 5 Nov 2026), dropping the 5(SW)-3-2 and 3(L)-5-2 of 4 Nov 2026.
@@ -43,14 +43,14 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A starter leaves the pitch only by swapping with a bench player, so the eleven stay eleven. A
   refused move says why in the line under the toolbar where "Lineup saved" shows (Craig,
   4 Nov 2026, "yes" to Claude's recommendation).
-- Classics are famous sides' formations, each a league rule like a preset, which the ready-made
-  rules carry. A classic sets its shape, every slot's role and its team instructions, which
+- Classic formations are famous sides' formations, each a league rule like a preset, which the ready-made
+  rules carry. A classic formation sets its shape, every slot's role and its team instructions, which
   Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
   ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
-  Barcelona's tiki-taka and Hungary in the 50s.
-- A manager can change a classic's roles or instructions, never its shape. Once he does, it
+  Barcelona's tiki-taka and Hungary in the 50s. `S05.39`
+- A manager can change a classic formation's roles or instructions, never its shape. Once he does, it
   becomes custom (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be
-  saved"; then "only preset formations ,but we can still save the strategy").
+  saved"; then "only preset formations ,but we can still save the strategy"). `S05.40`
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   (Craig, 26 Oct 2026; #14).
@@ -168,23 +168,23 @@ and how they score from Craig, 4 Nov 2026.
   | attacking | Play out from the back | the keeper's and defenders' passing | errors leading to a shot or goal | any shape |
   | | Boot it to the big man | headed goals, forwards' aerials won | the back line's failed long balls | one up top, no wingers |
   | | Get it wide | crosses | failed crosses | wide players or wing-backs on both flanks |
-  | | Shoot on sight | goals and shots on target from outside the box | long shots off target or blocked | any shape |
+  | | Shoot on sight | shots, any range | shots off target | any shape |
   | | Gung-ho | goals and assists | goals conceded | two at the back |
-  | defensive | Press high | possession won high and in midfield | fouls | three or more in midfield or attack |
-  | | Hold a high line | defenders' offsides won and interceptions | goals conceded | a back three or four |
+  | defensive | Press high | the front three's tackles won and interceptions | fouls | three up front |
   | | Clear it | defenders' clearances and blocks | defenders losing the ball | any shape |
   | | Get stuck in | tackles and duels won | cards and fouls | any shape |
   | | Keep it tight early | a clean sheet at half-time | goals let in before half-time | any shape |
   | | Park the bus | the keeper's and defenders' clean sheets | goals and assists | five at the back |
 
+- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the front three's tackles won and interceptions, in a shape with three up front ("press high could just be the front 3", 9 Nov 2026, on #1196); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
 - A formation offers every instruction its shape allows, so the shape decides the list: "we have
   to block it from certain formations". Each formation has a default attacking and a default
   defensive instruction.
 - Changing formation keeps an instruction the new shape allows. One it blocks switches to the new
   formation's default for that side, and the line under the toolbar says so ("Park the bus needs 5
   at the back: switched to Keep it tight early"): "if you change formation, yuour invlaid tactic
-  auto gets changed to a vlaid one". Loading a plan or picking a classic sets both instructions
-  itself.
+  auto gets changed to a vlaid one". Loading a plan or picking a classic formation sets both instructions
+  itself. `S05.41`
 - An instruction is scored player by player, on each player's own club's real match, for every
   starter and every bench player who comes on. A clean sheet or a goal conceded is his club's
   while he was on the pitch, as in base scoring. It shows as its own line under his role's line on

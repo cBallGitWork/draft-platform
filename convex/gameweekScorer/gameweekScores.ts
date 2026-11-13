@@ -1,11 +1,13 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { isGameweekScored } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { isGameweekScored, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
+import type { MovesSinceOf } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
 import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
@@ -67,14 +69,32 @@ interface LeagueScores {
   finalUnstored: FinalUnstored[];
 }
 
+/** Whether the league scores `gameweek` of its season of `count` and that gameweek's `deadline`
+ *  fell on or after the league was made: the gameweek begins for the league once the deadline
+ *  passes. The one test both scoring (`begunGameweeks`) and the format lock (../rules/formatLock.ts)
+ *  ask, each reading deadlines its own way, so a league made after a gameweek's deadline neither
+ *  scores it nor locks its format by it. */
+export const scoredSinceMade = (
+  league: Pick<Doc<"leagues">, "_creationTime"> & WithUnusedGameweeks,
+  gameweek: number,
+  deadline: number,
+  count: number,
+) => deadline >= league._creationTime && isGameweekScored(league, gameweek, count);
+
 /** The gameweeks the league plays that have begun since it was made, by its recorded deadlines,
  *  from its scoring start on: the gameweeks it scores. */
 export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<number[]> {
   const passed = await passedDeadlinesOf(ctx, league._id);
+  const count = await seasonGameweekCount(ctx);
   return [...passed]
-    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek))
+    .filter(([gameweek, deadline]) => scoredSinceMade(league, gameweek, deadline, count))
     .map(([gameweek]) => gameweek)
     .sort((one, other) => one - other);
+}
+
+/** Whether `gameweek` is one of the league's `begunGameweeks`: begun, and one it scores. */
+export async function hasBegun(ctx: QueryCtx, league: Doc<"leagues">, gameweek: number): Promise<boolean> {
+  return (await begunGameweeks(ctx, league)).includes(gameweek);
 }
 
 /** Every team's points in each gameweek the league has begun, each from the league's scorer. */
@@ -94,7 +114,7 @@ export async function leagueScores(
       result.scores.set(gameweek, scores);
       if (toStore !== null) result.finalUnstored.push({ gameweek, ...toStore });
     } catch (error) {
-      const reason = logFailure(`League ${league._id} (${league.name}) can't score gameweek ${gameweek}`, error);
+      const reason = logFailure(`${leagueLabel(league)} can't score gameweek ${gameweek}`, error);
       result.unscored.push({ gameweek, reason });
     }
   }
@@ -110,7 +130,7 @@ export interface ScoredGameweek {
 }
 
 /** Scores one gameweek of the league for the `teamIds`. */
-export type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
+type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
 
 /** The league's scorer: what any gameweek's scoring reads (the site's sets, the players, the
  *  stored final scores) is read once, however many gameweeks it scores. A gameweek's stored
@@ -180,16 +200,18 @@ export async function workedOutGameweek(
 }
 
 /** One team's gameweek worked out from reads the size of its squad (squadInputs.ts), for a
- *  player's card and the Squad tab (#577): his rows are `rowsOf` his code. */
+ *  player's card and the Squad tab (#577): his rows are `rowsOf` his code, and the league's squad
+ *  moves since a deadline `movesSinceOf` it, where many gameweeks share one read (#1542). */
 export async function squadGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
   teamId: TeamId,
   rowsOf: (code: number) => Promise<PlayerRows>,
+  movesSinceOf?: MovesSinceOf,
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
-  return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf), new Map());
+  return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf, movesSinceOf), new Map());
 }
 
 /** The gameweek team by team from its inputs. A team's points are the league's override of its

@@ -1,11 +1,14 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { mutation, query, type MutationCtx } from "../_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { begunGameweeks } from "../gameweekScorer/gameweekScores";
+import { recordEvent } from "../mail/letters";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
-import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
+import { leagueDeadlineOf } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
-import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
+import { seasonGameweekCount } from "./seasonGameweeks";
+import { begunRefusal, isGameweek, isGameweekUsed, noKickoffRefusal, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's scoring start (spec/04, After the draft; #1097): "scoring starts in gameweek N", set
 // by the commissioner, defaulting to the next gameweek after the draft ends; squads and lineups
@@ -15,27 +18,36 @@ import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweek
 // deadline, to any ticked gameweek not begun, and once its deadline passes it's fixed. Unticking
 // it moves it to the next ticked gameweek. A draft still running at its deadline moves it to the
 // next gameweek after the draft ends, and the commissioner is told. A league with none set scores
-// every ticked gameweek, as every league did before the rule, so no score moves.
+// every ticked gameweek, as every league did before the rule, so no score moves; once it has scored
+// one, none set is fixed too, so a start can't wipe the gameweeks it has played (Craig, 11 Nov 2026,
+// on #1588).
 
 /** Why a change to the scoring start was refused, as the commissioner is told it. */
 export const scoringStartRefusals = {
   notAGameweek: noSuchGameweek,
   unticked: (gameweek: number) => `Gameweek ${gameweek} isn't one the league plays, so scoring can't start in it. Tick it first.`,
-  begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so scoring can't start in it.`,
+  begun: (gameweek: number) => begunRefusal(gameweek, "scoring can't start in it"),
   fixed: (gameweek: number) => `Scoring started in gameweek ${gameweek}, whose deadline has passed, so it can't move.`,
-  noDeadline: (gameweek: number) =>
-    `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell whether it has begun. Try again once the season's matches have arrived.`,
+  seasonBegun: "The league has already scored a gameweek, so its season has started and every ticked gameweek scores: scoring can't start later now.",
+  noDeadline: (gameweek: number) => noKickoffRefusal(gameweek, "whether it has begun"),
 } as const;
 
 /** Whether the league's scoring start has passed its deadline, so it's fixed. */
 const isFixed = (league: Doc<"leagues">, deadlineIn: DeadlineOf, now: number) =>
   league.scoringStart !== undefined && isLocked(deadlineIn(league.scoringStart), now);
 
+/** Whether the league, with no scoring start set, has already scored a gameweek, so none set is
+ *  fixed (#1588): a start now would drop the gameweeks it has played from its table. */
+const scoredWithNone = async (ctx: QueryCtx, league: Doc<"leagues">) =>
+  league.scoringStart === undefined && (await begunGameweeks(ctx, league)).length > 0;
+
 const scoringStartView = v.object({
   /** The gameweek scoring starts in, or null for none set: every ticked gameweek scores. */
   start: v.union(v.number(), v.null()),
   /** The league's ticked gameweeks, each with its deadline (null while its kickoff isn't known). */
   ticked: v.array(v.object({ gameweek: v.number(), deadline: shownDeadline })),
+  /** With none set, whether the league has already scored a gameweek, so none set is fixed. */
+  seasonBegun: v.boolean(),
 });
 export type ScoringStartView = Infer<typeof scoringStartView>;
 
@@ -47,39 +59,45 @@ export const ofLeague = query({
   returns: scoringStartView,
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return {
       start: league.scoringStart ?? null,
-      ticked: usedGameweeksOf(league).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
+      ticked: usedGameweeksOf(league, await seasonGameweekCount(ctx)).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
+      seasonBegun: await scoredWithNone(ctx, league),
     };
   },
 });
 
 /** Sets the gameweek the league's scoring starts in: a ticked one not begun, while the start
- *  already set hasn't passed its deadline. */
+ *  already set hasn't passed its deadline, or, with none set, the league hasn't scored a gameweek. */
 export const setScoringStart = mutation({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek }) => {
-    const { league } = await runnerOf(ctx, leagueId);
-    if (!isGameweek(gameweek)) refuse(scoringStartRefusals.notAGameweek(gameweek));
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const { email, league } = await runnerOf(ctx, leagueId);
+    const count = await seasonGameweekCount(ctx);
+    if (!isGameweek(gameweek, count)) refuse(scoringStartRefusals.notAGameweek(gameweek, count));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     const now = Date.now();
     if (isFixed(league, deadlineIn, now)) refuse(scoringStartRefusals.fixed(league.scoringStart!));
-    if (!isGameweekUsed(league, gameweek)) refuse(scoringStartRefusals.unticked(gameweek));
+    if (await scoredWithNone(ctx, league)) refuse(scoringStartRefusals.seasonBegun);
+    if (!isGameweekUsed(league, gameweek, count)) refuse(scoringStartRefusals.unticked(gameweek));
     const deadline = deadlineIn(gameweek);
     if (deadline === null) refuse(scoringStartRefusals.noDeadline(gameweek));
     if (isLocked(deadline, now)) refuse(scoringStartRefusals.begun(gameweek));
-    if (league.scoringStart !== gameweek) await ctx.db.patch("leagues", leagueId, { scoringStart: gameweek });
+    if (league.scoringStart === gameweek) return null;
+    await ctx.db.patch("leagues", leagueId, { scoringStart: gameweek });
+    await recordEvent(ctx, leagueId, email, { kind: "scoringStartSet", from: league.scoringStart ?? null, to: gameweek });
     return null;
   },
 });
 
-/** The scoring start once `gameweek` is unticked: the next ticked gameweek when it was the start,
- *  else the start as it is. With no ticked gameweek after it, it stays: nothing is scored either way. */
-export function startAfterUntick(league: Pick<Doc<"leagues">, "unusedGameweeks" | "scoringStart">, gameweek: number): number | undefined {
+/** The scoring start once `gameweek` is unticked, in a season of `count`: the next ticked gameweek
+ *  when it was the start, else the start as it is. With no ticked gameweek after it, it stays:
+ *  nothing is scored either way. */
+export function startAfterUntick(league: Pick<Doc<"leagues">, "unusedGameweeks" | "scoringStart">, gameweek: number, count: number): number | undefined {
   if (league.scoringStart !== gameweek) return league.scoringStart;
-  return usedGameweeksOf(league).find((each) => each > gameweek) ?? gameweek;
+  return usedGameweeksOf(league, count).find((each) => each > gameweek) ?? gameweek;
 }
 
 /** A scoring start the draft's end moved, because the draft was still running at its deadline. */
@@ -89,9 +107,9 @@ export type MovedStart = { from: number; to: number };
  *  else the next ticked gameweek after the draft, as is one never set. Says when it moved one set,
  *  so the commissioner can be told; nothing moves once every ticked gameweek has begun. */
 export async function startAfterDraft(ctx: MutationCtx, league: Doc<"leagues">, now: number): Promise<MovedStart | null> {
-  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
+  const deadlineIn = await leagueDeadlineOf(ctx, league._id);
   if (league.scoringStart !== undefined && !isFixed(league, deadlineIn, now)) return null;
-  const next = nextByDeadlines(usedGameweeksOf(league), deadlineIn, now);
+  const next = nextByDeadlines(usedGameweeksOf(league, await seasonGameweekCount(ctx)), deadlineIn, now);
   if (next === undefined) return null;
   await ctx.db.patch("leagues", league._id, { scoringStart: next });
   return league.scoringStart === undefined ? null : { from: league.scoringStart, to: next };

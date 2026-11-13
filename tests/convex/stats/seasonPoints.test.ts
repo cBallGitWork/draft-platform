@@ -1,16 +1,16 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
+import { siteDeadline } from "../../../convex/scoring/siteVersions";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
-import { COMMISSIONER, actingAs, adminCreatesLeague } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, adminCreatesLeague, ANN } from "../../support/convex/leagues.harness";
 import { CHELSEA } from "../../support/convex/footballRows.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import {
-  ANN,
   GW1,
   GW2,
   KICKOFF,
@@ -23,6 +23,7 @@ import {
   SAKA_GW1,
   SAKA_GW2,
   at,
+  cardTotalOf,
   fixture,
   list,
   pointsListed,
@@ -31,6 +32,7 @@ import {
   type PointsLeague,
 } from "../../support/convex/seasonPoints.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // Each player's season points on Scouting (#525; spec/19, The players list: "with season points
 // under the site's scoring"): his card's matches this season added up in the league, at his main
@@ -42,12 +44,7 @@ beforeEach(async () => {
   league = await seasonPointsLeague();
 });
 
-/** His card's matches added up as Scouting adds them: each at the card's first position, or the
- *  league's override. */
-async function cardTotal(playerCode: number) {
-  const card = (await (await actingAs(league.t, ANN)).query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: KICKOFF }))!;
-  return inTenths(card.matches.reduce((total, match) => total + (match.override?.points ?? match.points[0].total ?? 0), 0));
-}
+const cardTotal = (playerCode: number) => cardTotalOf(league, playerCode);
 
 const overrides = (playerCode: number, { code: fixtureCode, gameweek }: { code: number; gameweek: number | null }, points: number, leagueId = league.leagueId) =>
   league.t.run(async (ctx) => {
@@ -119,7 +116,7 @@ test("each match is priced under the site's set in force in its gameweek: a patc
     ...EXAMPLE_SET,
     rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 9 } } : rule)),
   } as ScoringSet;
-  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", season: 2026, number: 1, at: GW2.kickoff }));
+  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", at: siteDeadline(GW2.kickoff) }));
   await refresh(league);
 
   expect(at(SAKA_GW2, "W", PATCHED)).not.toBe(at(SAKA_GW2, "W"));
@@ -145,7 +142,7 @@ test("rebuild sets every player's row afresh, however wrong, paging through, and
 
   for (let run = 0; run < 2; run += 1) {
     await t.mutation(internal.stats.seasonPoints.rebuild, { cursor: null });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(await pointsListed(league)).toEqual(right);
   }
 });

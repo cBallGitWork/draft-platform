@@ -26,7 +26,7 @@ flowchart TD
   ROOT -.->|"in a league"| TEAM
   SIGNIN -.->|"signed in, with ?join"| JOIN
   SIGNIN -.->|"signed in"| ROOT
-  SIGNIN -- "Send the link, then the emailed link" --> ROOT
+  SIGNIN -- "Email me a link, then the emailed link" --> ROOT
 
   subgraph LP["League pages: anyone signed in"]
     LEAGUES["Your leagues<br/>/leagues<br/>manager, commissioner, admin"]
@@ -86,6 +86,7 @@ flowchart TD
     NEWOFFER["Trades, tab New offer<br/>/trades/new<br/>manager"]
     PL["Premier League<br/>/premier-league<br/>manager"]
     MATCH["Match<br/>/premier-league/match/$fixtureCode<br/>manager"]
+    CLUB["Club<br/>/premier-league/club/$clubCode<br/>manager"]
   end
   FR -.->|"signed out"| SIGNIN
   FR -.->|"in no league"| LEAGUES
@@ -128,13 +129,11 @@ flowchart TD
   CARD -- "the owner's name" --> OTEAM
   OTEAM -- "a player's name" --> CARD
 
-  subgraph PLAN["Named in the spec, no route yet"]
-    CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
-  end
-  class CLUBS planned
   MATCHUP -- "a player's status" --> MATCH
   PL -- "a fixture's score or v" --> MATCH
   MATCH -.->|"its code isn't a number"| PL
+  PL -- "a club's name" --> CLUB
+  MATCH & CARD -- "a club's name" --> CLUB
 ```
 
 ## Screens
@@ -180,11 +179,9 @@ Features table (feature 12), the one home for screen status.
 | Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Another team's squad, read-only | `/leagues/$leagueId/teams/$teamId` | src/myTeam/OtherTeamPage.tsx | spec/12 The player card | built |
-| Club pages | none | none | spec/18:22 | no route |
+| Club | `/premier-league/club/$clubCode` | src/premierLeague/ClubPage.tsx | spec/18 Club pages | built |
 
 ## Gaps
 
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
-- Continue leads to Mail for an unread letter, then to Tactics from 24 hours before the deadline
-  until he opens it that gameweek (#526); an offer to him doesn't lead there yet.

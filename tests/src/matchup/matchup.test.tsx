@@ -19,6 +19,7 @@ import {
   offWords,
   sidePitchLabel,
   finalWords,
+  gameweekShort,
   gameweekWords,
   leagueAverageWords,
   loadingWords,
@@ -41,10 +42,9 @@ import {
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
-import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, subbed, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
-
-const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
 
 const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 
@@ -64,8 +64,8 @@ const stages = {
     kind: "scored",
     team: teamSide(
       "Team 1",
-      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "off", playerName: "Pandur" } }), slot("Coyle", { points: 6, status: { kind: "finished", fixtureCode: SLOT_MATCH } })],
-      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "on", playerName: "Phillips" } })],
+      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: subbed("off", "Pandur") }), slot("Coyle", { points: 6, status: { kind: "finished", fixtureCode: SLOT_MATCH } })],
+      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: subbed("on", "Phillips") })],
       9,
     ),
     opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 7, status: { kind: "finished", fixtureCode: SLOT_MATCH } })], [], 7),
@@ -198,6 +198,13 @@ describe("the gameweek stepper", () => {
     openMatchup({ matchup: headToHead({ kind: "bye" }, { gameweek: 5, gameweeks: [5] }) });
     const stepper = await screen.findByRole("navigation", { name: gameweekWords(5) });
     expect(within(stepper).queryAllByRole("link")).toEqual([]);
+  });
+
+  it("shows the gameweek short, as the approved picture's \"GW9\", read out in full", async () => {
+    openMatchup({ matchup: stages.live });
+    const stepper = await screen.findByRole("navigation", { name: gameweekWords(6) });
+    expect(within(stepper).getByRole("heading", { level: 2, name: gameweekWords(6) })).toBeTruthy();
+    expect(within(stepper).getByText(gameweekShort(6))).toBeTruthy();
   });
 });
 

@@ -34,8 +34,6 @@ Each with the questions its grill starts from. The questions are Claude's.
 - "One booking from a ban" needs the competition's yellow-card thresholds, held per competition as
   data, and a count of each player's bookings. Wanted now, or after the beta?
 
-**Premier League club pages**: `spec/18`, *After the mini beta*.
-
 **Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a
 competition, not the design plate (`docs/design/plate.md`).
 - Who plays the plate: everyone knocked out of the cup, or the bottom of the table.
@@ -158,7 +156,7 @@ places these; none says yet what it holds or does, and each is a placeholder unt
 Table).
 - Which boxes, and whether they change with the season's state (the pictures change them).
 - What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
-- Claims close needs waivers (`spec/08`), not built yet.
+- Claims close needs waivers (`spec/08`).
 
 **Mail's Needs you and Continue**: which letters need you is settled (`spec/16`). Is it the same
 list Continue walks through (`spec/12`, The frame)?
@@ -260,14 +258,6 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   - The rates checked again against Sportmonks' stats, and whether it sends recoveries and
     blocked shots in all five leagues.
 
-**Team instructions whose stats Sportmonks lacks**: team instructions (`spec/05`). Press high
-counts possession won in the attacking third and midfield, Shoot on sight long-range shots, and
-Hold a high line offsides won; Sportmonks sends none of them per player.
-- Press high: "press high could just be the front 3 in a free (or other formations where its
-  sutiable" (Craig, 9 Nov 2026, on #1196). Which players it scores, in which shapes, and on which
-  stats.
-- Shoot on sight and Hold a high line: what each scores in place of its missing stat.
-
 ## Suggested, not yet picked
 
 | What | Why |
@@ -304,12 +294,11 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Page | Why |
 |---|---|
 | Import from Fantrax | The league moves from Fantrax: its squads and its history come with it |
-| Draft board and draft results | The pick grid during the draft, and the record after it, by round and by team |
+| Draft results | The record after the draft, by round and by team |
 | Matchup preview | The week's head-to-head before the deadline: both lineups, fixtures, doubts |
 | Every squad on one page | For scouting rivals |
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
-| Waiver order and the can't-drop list, on show | Makes the waiver rules visible. Waiver priority "can be in its section, or a sub header" (Craig, 1 Nov 2026), so not on Home's deadline strip |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Commissioner fixes | Block one team from trading or claiming; adjust the standings |
 | Polls | A league vote on a rule change. Check it isn't the chat that's out of scope |

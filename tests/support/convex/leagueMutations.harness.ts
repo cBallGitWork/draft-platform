@@ -9,10 +9,11 @@ import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { DAY_MS } from "../../../convex/shared/time";
+import { PL_GAMEWEEKS } from "./footballRows.harness";
 import { askToJoin, invite, makeLink } from "./joining.harness";
-import { ANN, CAT, DAN } from "./leagueDeletion.harness";
+
 import { rulesRevision } from "./leagueRules.harness";
-import { teamsIn } from "./leagues.harness";
+import { teamsIn, ANN, CAT, DAN } from "./leagues.harness";
 import { publicFunctions, type TestConvex } from "./test.harness";
 
 /** Someone in no league, whom `changesTo` adds as a manager and invites. */
@@ -69,8 +70,8 @@ export function changesTo(
     "joining/inviteLink:switchOff": () => admin.mutation(api.joining.inviteLink.switchOff, { leagueId }),
     "joining/joinRequests:approve": () => admin.mutation(api.joining.joinRequests.approve, { requestId }),
     "joining/joinRequests:refuseRequest": () => admin.mutation(api.joining.joinRequests.refuseRequest, { requestId }),
-    "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: 38, used: false }),
-    "gameweeks/scoringStart:setScoringStart": () => admin.mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId, gameweek: 38 }),
+    "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: PL_GAMEWEEKS, used: false }),
+    "gameweeks/scoringStart:setScoringStart": () => admin.mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId, gameweek: PL_GAMEWEEKS }),
     "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
     "rules/leagueSettings:changeSettings": () =>
       admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
@@ -83,7 +84,8 @@ export function changesTo(
     "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
     "draft/autoPickSwitch:takeControlBack": () => ann.mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId }),
     "draft/autoPickSwitch:turnOn": () => ann.mutation(api.draft.autoPickSwitch.turnOn, { leagueId }),
-    "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, playerCode: 1 }),
+    "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: annsTeam._id, playerCode: 1 }),
+    "draft/pickWindow:undoMyPick": () => ann.mutation(api.draft.pickWindow.undoMyPick, { leagueId }),
     "draft/draftCommissioner:undoPick": () => admin.mutation(api.draft.draftCommissioner.undoPick, { leagueId }),
     "draft/draftCommissioner:setPickTime": () => admin.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }),
     "draft/draftCommissioner:markForCommissioner": () =>

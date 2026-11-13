@@ -26,6 +26,8 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
 - Last season's, shown before the new season's first match, are priced under the site's scoring as
   it stands now (Craig, 1 Nov 2026).
 - Two players side by side, to compare.
+- A player's percentile in red cards, yellow cards, own goals, goals conceded and penalties missed
+  is highest for the fewest, as the stat race ranks them (Craig, 11 Nov 2026, on #1787). `S19.3`
 - By the mini beta.
 
 ## The stat race
@@ -34,6 +36,8 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   the one the manager picks to sort by (Craig, 31 Oct 2026: "yeah that's fine in stats").
 - It counts only what counted: a team's starters, and the bench players who came on.
 - Raw stats ("7 clean sheets"), not points. A table only, with no trophy.
+- Fewest is 1st for red cards, yellow cards, own goals, goals conceded and penalties missed (Craig,
+  11 Nov 2026, on #1608). `S19.1`
 
 ## The shortlist
 
@@ -49,13 +53,16 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   24 hours after the scout is sent.
 - Who a manager scouts is hidden from the other teams.
 - Mail says when a report is in, and nothing more.
-- After the mini beta.
+- After the mini beta. Since built (#375). `S19.2 withdrawn`
 
 ## The report
 
 - A few plain sentences, written by AI, judging: his fit with the manager's shape and roles under
   the site's scoring; his form trend; his job security (will he keep starting); his fixtures ahead.
 - It keeps the date it was written; sending a scout to him again writes a new one.
+- A report that fails to be written, or is cut off part-way, is tried again for a day. Then the
+  scout comes back free with no report, and Mail tells the manager the report couldn't be filed
+  (Craig, 12 Nov 2026, on #1437: "Retry a day, then tell him"). `S19.4`
 
 ## Role stars
 

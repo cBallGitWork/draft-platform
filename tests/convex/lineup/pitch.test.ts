@@ -2,13 +2,16 @@ import { expect, test } from "vitest";
 import {
   ALL_CELLS,
   AREAS,
+  backOf,
   byPitchOrder,
   cellKey,
-  isOnPitch,
+  cellOf,
+  heldCell,
   LANES,
   playsCell,
   positionOfSlot,
   sameCell,
+  sameShape,
   SLOT_POSITIONS,
   type Area,
   type Cell,
@@ -27,7 +30,8 @@ const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
   // "Every CDM can play CM" (Craig, 1 Nov 2026).
   CDM: ["defensiveMidfield", "midfield"],
   CM: ["midfield"],
-  CAM: ["attackingMidfield"],
+  // Up front as false 9 only (`S06.6`; roles.ts's takesRole): "any AM" (Craig, 9 Nov 2026, on #1196).
+  CAM: ["attackingMidfield", "attack"],
   SS: ["attackingMidfield", "attack"],
   ST: ["attack"],
 };
@@ -97,9 +101,14 @@ test("a cell's key is its area and lane, so a message naming it reads the same a
 });
 
 test("a cell is on the pitch only when both its area and its lane are", () => {
-  expect(isOnPitch({ area: "midfield", lane: "centre" })).toBe(true);
-  expect(isOnPitch({ area: "wingBack", lane: "centre" } as unknown as Cell)).toBe(false);
-  expect(isOnPitch({ area: "midfield", lane: "middle" } as unknown as Cell)).toBe(false);
+  expect(cellOf({ area: "midfield", lane: "centre" })).toEqual({ area: "midfield", lane: "centre" });
+  expect(cellOf({ area: "wingBack", lane: "centre" })).toBeNull();
+  expect(cellOf({ area: "midfield", lane: "middle" })).toBeNull();
+});
+
+test("a placement already checked gives its cell, and one off the pitch is a bug that throws, naming it", () => {
+  expect(heldCell({ area: "attack", lane: "left" })).toEqual({ area: "attack", lane: "left" });
+  expect(() => heldCell({ area: "wingBack", lane: "left" })).toThrow("No cell wingBack, left");
 });
 
 test("two cells are the same only when both their area and their lane are, and a placement compares too", () => {
@@ -112,4 +121,27 @@ test("two cells are the same only when both their area and their lane are, and a
 
 test("the pitch's order sorts the cells back to front, then left to right, as ALL_CELLS lists them", () => {
   expect(ALL_CELLS.toReversed().sort(byPitchOrder)).toEqual(ALL_CELLS);
+});
+
+test("two sets of cells make the same shape when they hold the same cells in any order, and no other", () => {
+  const shape: Cell[] = [
+    { area: "goalkeeper", lane: "centre" },
+    { area: "defence", lane: "left" },
+    { area: "attack", lane: "centre" },
+  ];
+  expect(sameShape(shape, shape.toReversed())).toBe(true);
+  expect(sameShape(shape, shape.slice(1))).toBe(false);
+  expect(sameShape(shape, [...shape.slice(1), { area: "midfield", lane: "centre" }])).toBe(false);
+});
+
+test("the back counts the defence row's cells only: a wing back in a midfield row isn't one", () => {
+  const shape: Cell[] = [
+    { area: "goalkeeper", lane: "centre" },
+    { area: "defence", lane: "leftCentre" },
+    { area: "defence", lane: "rightCentre" },
+    { area: "defensiveMidfield", lane: "left" },
+    { area: "midfield", lane: "right" },
+  ];
+  expect(backOf(shape)).toBe(2);
+  expect(backOf([])).toBe(0);
 });

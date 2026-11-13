@@ -7,14 +7,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
-import type { TableData } from "../../support/src/table.harness";
+import { openTable } from "../../support/src/tableScreen.harness";
 import {
   byeWords,
   columns,
@@ -41,7 +40,6 @@ import {
 import { autoTeamWhatWords, autoTeamWords, formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
-const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
 const fixtureLines = (gameweek: number) =>
   within(screen.getByRole("list", { name: fixturesListLabel(gameweek) }))
     .getAllByRole("listitem")
@@ -76,7 +74,8 @@ describe("the table", () => {
     openTable({ leagueTable: leagueTableOf(FIVE) });
     await screen.findByText(noResultsWords);
     const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1).map((row) => [within(row).getByRole("rowheader").textContent, within(row).getAllByRole("cell").map((cell) => cell.textContent)]);
-    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0", "0", "0", "0", noFigureWords]]));
+    // F and A in tenths, always (the approved picture): 0.0, not 0.
+    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0.0", "0.0", "0", "0", noFigureWords]]));
   });
 
   it("heads a head-to-head table with played, won, drawn, lost, for, against, the difference and points", async () => {

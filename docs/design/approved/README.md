@@ -43,6 +43,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`team-squad`](team-squad/README.md): My team's Squad tab (1 Nov 2026).
 - [`team-fixtures`](team-fixtures/README.md): My team's Fixtures tab, Fixtures and Results with
   any cups (10 Nov 2026).
+- [`team-transactions`](team-transactions/README.md): My team's Transactions tab, trades in
+  History, its Show keys and the claim panel's In and Out (10 Nov 2026).
 - [`home`](home/README.md): League home's Overview, with the season's other states as the plan for
   later (1 Nov 2026).
 - [`sign-in`](sign-in/README.md): Sign in (1 Nov 2026).
@@ -58,6 +60,10 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
 - [`table`](table/README.md): Table and fixtures, live, a total-points league and a placeholder cup
   (8 Nov 2026).
+- [`premier-league`](premier-league/README.md): Football's fixtures and table, live, with a tab per
+  competition (10 Nov 2026).
+- [`premier-league-match`](premier-league-match/README.md): The match page, live: Overview as a list
+  or a pitch, Player stats with its shot map, and Highlights (10 Nov 2026).
 - [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
   every team, and League settings' Waivers tab (8 Nov 2026).
 - [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new

@@ -2,36 +2,61 @@
 // player card's Offer a trade, with his owner chosen and him asked for (#1027).
 
 import type { Id } from "../../convex/_generated/dataModel";
+import { samePick } from "../../convex/draft/snakeOrder";
 import { sidesOf } from "./offerSides";
-import type { TradesView } from "./seam";
+import type { TradePick, TradesView } from "./seam";
+
+/** The manager's own team: the read puts it first (convex/trades/tradeScreen.ts). */
+export const myTeamOf = (view: TradesView) => view.teams[0];
+
+/** The teams he can trade with: every other team, but the one on the auto team. */
+export const partnersOf = (view: TradesView) => view.teams.slice(1).filter((team) => !team.onAutoTeam);
 
 /** From a player card: the team to trade with, and their player asked for. */
 export type Asked = { team?: Id<"teams">; player?: number };
 
-/** How the offer starts: the team to trade with, and the codes ticked on each side. */
-export type Start = { teamId: Id<"teams">; gives: number[]; gets: number[] };
+/** How the offer starts: the team to trade with, the codes ticked on each side, and a pick ticked
+ *  each way for a counter to a pick offer (#1471). */
+export type Start = {
+  teamId: Id<"teams">;
+  gives: number[];
+  gets: number[];
+  givePick?: TradePick | null;
+  getPick?: TradePick | null;
+};
 
 /** The offer to the manager that a counter answers, from his side, as the offer starts. */
 export type Countered = Start & { offerId: Id<"tradeOffers"> };
 
-/** The offer `offerId` as a counter starts, or null for a new offer, or one he can't counter. */
+/** The offer `offerId` as a counter starts, or null for a new offer, or one he can't counter. A
+ *  player or pick held in a trade under review is left out, as from a card (#1483). A pick offer
+ *  starts with its picks ticked from his side (#1471). */
 export function counterOf(view: TradesView, offerId: Id<"tradeOffers"> | undefined): Countered | null {
   const offer = view.offers.find((each) => each.offerId === offerId);
   if (offer === undefined) return null;
   const sides = sidesOf(offer, view.myTeamId);
-  if (sides.group !== "toYou" || offer.picks !== null) return null;
+  if (sides.group !== "toYou") return null;
+  const held = new Set(view.teams.flatMap((team) => team.players.filter((each) => each.held).map(({ code }) => code)));
+  const free = (players: { code: number }[]) => players.map(({ code }) => code).filter((code) => !held.has(code));
+  const freePick = (pick: TradePick | undefined) =>
+    pick !== undefined &&
+    view.teams.some((team) => team.picks.some((each) => samePick(each, pick) && !each.held))
+      ? { round: pick.round, teamId: pick.teamId }
+      : null;
   return {
     offerId: offer.offerId,
     teamId: sides.otherTeamId,
-    gives: sides.youGive.map(({ code }) => code),
-    gets: sides.youGet.map(({ code }) => code),
+    gives: free(sides.youGive),
+    gets: free(sides.youGet),
+    givePick: freePick(offer.pickTerms?.gets),
+    getPick: freePick(offer.pickTerms?.gives),
   };
 }
 
 /** A card's Offer a trade as the offer starts: the team, when it can be traded with, and their
  *  player ticked, when he is still theirs and not held in a trade under review. Null otherwise. */
 export function askedOf(view: TradesView, { team, player }: Asked): Start | null {
-  const partner = view.teams.slice(1).find((each) => each.teamId === team && !each.onAutoTeam);
+  const partner = partnersOf(view).find((each) => each.teamId === team);
   if (partner === undefined) return null;
   const his = partner.players.find((each) => each.code === player && !each.held);
   return { teamId: partner.teamId, gives: [], gets: his === undefined ? [] : [his.code] };

@@ -6,11 +6,12 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PATCH_NOTICE_DAYS, siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { versionName } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { changeRules, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { HOUR_MS, MINUTE_MS, seasonStartYear } from "../../../convex/shared/time";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
+import { changeRules, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
+import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import { centreOf } from "../../support/convex/scoring.example";
 import {
   announceAs,
@@ -25,6 +26,7 @@ import {
   NOTICE,
   patch,
   saveDraftAs,
+  siteDeadlineOf,
   siteRevision,
   t,
   TODAY,
@@ -45,7 +47,7 @@ describe("a draft patch", () => {
     await holdGameweeks(t, { next: 9 });
 
     expect(await saveDraftAs(ADMIN, EDITED)).toBe(TODAY);
-    for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
+    for (const gameweek of seasonGameweeks(PL_GAMEWEEKS)) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
     expect(await versions()).toBe(0);
     expect(await viewAs(ADMIN)).toMatchObject({ part: FIRST_SCORING, revision: null, draft: { part: EDITED, savedAt: TODAY } });
     expect(await viewAs(COMMISSIONER)).toMatchObject({ draft: null });
@@ -113,13 +115,27 @@ describe("announcing a patch", () => {
     expect(await patch(EDITED, deadline)).toEqual({ name: "26_27.1", fromGameweek: 10 });
     expect(await inGameweek(9)).toEqual(FIRST_SCORING);
     expect(await inGameweek(10)).toEqual(EDITED);
-    expect(await inGameweek(38)).toEqual(EDITED);
+    expect(await inGameweek(PL_GAMEWEEKS)).toEqual(EDITED);
     expect(await draftSavedAt()).toBeNull();
     expect(await viewAs(COMMISSIONER)).toMatchObject({
-      part: EDITED,
+      part: FIRST_SCORING,
       revision: await siteRevision(),
       versions: [{ name: "26_27.1", kind: "patch", takesEffectAt: deadline }],
     });
+  });
+
+  test("#1591 Done: while it waits, Player scoring shows a manager the values in force, and the admin the patch; once in effect, everyone the patch", async () => {
+    const takesEffectAt = TODAY + NOTICE;
+    await patch(EDITED, takesEffectAt);
+
+    expect(await viewAs(COMMISSIONER)).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(MANAGERS[0])).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(ADMIN)).toMatchObject({ part: EDITED, canEdit: true });
+
+    vi.setSystemTime(takesEffectAt - 1);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(FIRST_SCORING);
+    vi.setSystemTime(takesEffectAt);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(EDITED);
   });
 
   test("rates every player's stars again the moment it takes effect, as stars price under today's scoring (#11)", async () => {
@@ -138,10 +154,27 @@ describe("announcing a patch", () => {
     ]);
   });
 
-  test("a deadline at a gameweek's first kickoff reaches that gameweek", async () => {
+  test("#902 Done: a patch at a gameweek's site deadline, 15 minutes before its first kickoff, reaches that gameweek (S14.1)", async () => {
     await holdGameweeks(t, { next: 9 });
 
-    expect(await patch(EDITED, kickoffOf(10))).toMatchObject({ fromGameweek: 10 });
+    expect(await patch(EDITED, siteDeadlineOf(10))).toMatchObject({ fromGameweek: 10 });
+    expect(await inGameweek(10)).toEqual(EDITED);
+  });
+
+  test("#902 Done: a patch after a gameweek's site deadline, though before its first kickoff, waits for the next (S14.1)", async () => {
+    await holdGameweeks(t, { next: 9 });
+
+    expect(await patch(EDITED, siteDeadlineOf(10) + MINUTE_MS)).toMatchObject({ fromGameweek: 11 });
+    expect(await inGameweek(10)).toEqual(FIRST_SCORING);
+    expect(await inGameweek(11)).toEqual(EDITED);
+  });
+
+  test("#902 Done: one site deadline, whatever a league's: a patch in by it reaches the gameweek in a league that locks earlier too (S14.18)", async () => {
+    await holdGameweeks(t, { next: 9 });
+    const leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Early");
+    await changeRules(t, leagueId, rulesWith({ deadline: { minutesBeforeFirstKickoff: 90 } }));
+
+    expect(await patch(EDITED, kickoffOf(10) - 60 * MINUTE_MS)).toMatchObject({ fromGameweek: 10 });
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 
@@ -156,8 +189,8 @@ describe("announcing a patch", () => {
 
   test("two leagues with their own rules hold no scoring set, so a match is priced by the site's version in force in that gameweek (their tables: twoLeagues.test.ts)", async () => {
     await holdGameweeks(t, { next: 9 });
-    const first = await adminCreatesLeague(t, 4, "First");
-    const second = await adminCreatesLeague(t, 4, "Second");
+    const first = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
+    const second = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
     await changeRules(t, second, TOTAL_POINTS);
     await patch(EDITED, TODAY + NOTICE);
     const assistIn = (gameweek: number) => async (leagueId: Id<"leagues">) => {

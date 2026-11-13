@@ -3,8 +3,7 @@ import { createRoute, redirect } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { CurrentLeague } from "./CurrentLeague";
 import { DraftPage } from "../draft/DraftPage";
-import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH, TRADES_NEW_PATH, TRADES_PATH } from "../frame/menu";
-import { PageNotBuilt } from "../frame/PageNotBuilt";
+import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH, TRADES_NEW_PATH, TRADES_PATH } from "../frame/menu";
 import { HomePage } from "../home/HomePage";
 import { NewsPage } from "../home/NewsPage";
 import { recapSearchOf, RECAP_PATH } from "../home/paths";
@@ -17,7 +16,8 @@ import { tacticsSearchOf } from "../myTeam/tactics/paths";
 import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
 import { MatchPage } from "../premierLeague/MatchPage";
-import { MATCH_ROUTE } from "../premierLeague/paths";
+import { ClubPage } from "../premierLeague/ClubPage";
+import { CLUB_ROUTE, MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
@@ -26,9 +26,9 @@ import { OffersPage } from "../trades/OffersPage";
 import { newOfferSearchOf, offersSearchOf } from "../trades/paths";
 import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
-// The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
-// each menu page not built yet. Each league page is the current league's (CurrentLeague.tsx),
-// so a switch to another league starts it afresh.
+// The pages under root.tsx's frameRoute, for anyone in a league, in its frame: every menu page but
+// Mail, whose route is with the league pages (leaguePages.tsx). Each league page is the current
+// league's (CurrentLeague.tsx), so a switch to another league starts it afresh.
 
 // A signed-in manager lands on My team (spec/12).
 const landingRoute = createRoute({
@@ -144,6 +144,28 @@ const matchRoute = createRoute({
   },
 });
 
+// A real club's page (#1936; spec/18, Club pages), for anyone in a league, opened from a club's name
+// wherever it shows. A code that isn't a number names no club, so it goes to Football.
+const clubRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: CLUB_ROUTE,
+  beforeLoad: ({ params }) => {
+    if (!CODE_DIGITS.test(params.clubCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
+  },
+  component: function Club() {
+    const { session, premierLeague } = clubRoute.useRouteContext();
+    const code = Number(clubRoute.useParams().clubCode);
+    return (
+      <CurrentLeague
+        session={session}
+        page={(league) => <ClubPage league={league} seam={premierLeague} clubCode={code} />}
+        // Keyed by the club as well as the league, so going to another club starts afresh too.
+        keyOf={(league) => `${league.leagueId}/${code}`}
+      />
+    );
+  },
+});
+
 // Trades (#383; docs/design/approved/trades): the Offers tab, with the offer or trade in review the
 // address names selected, as a Mail letter's link opens it; and New offer, which a counter opens
 // filled with the offer it answers, and a player card's Offer a trade with him asked for (#1027).
@@ -170,17 +192,22 @@ const newOfferRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, tradesRoute, newOfferRoute];
-
-/** Every address with its own screen: each route above, and Mail, whose route is with the league
- *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */
-const built: ReadonlySet<string | undefined> = new Set([...builtRoutes.map((route) => ("path" in route.options ? route.options.path : undefined)), MAIL_PATH]);
-const pageRoutes = pages.filter((page) => !built.has(page.path)).map((page) =>
-  createRoute({
-    getParentRoute: () => frameRoute,
-    path: page.path,
-    component: () => <PageNotBuilt title={page.label} />,
-  }),
-);
-
-export const frameChildren = [...builtRoutes, ...pageRoutes];
+export const frameChildren = [
+  landingRoute,
+  homeRoute,
+  homeNewsRoute,
+  recapRoute,
+  tableRoute,
+  scoutingRoute,
+  draftRoute,
+  myTeamTacticsRoute,
+  myTeamSquadRoute,
+  myTeamFixturesRoute,
+  myTeamTransactionsRoute,
+  matchupRoute,
+  premierLeagueRoute,
+  matchRoute,
+  clubRoute,
+  tradesRoute,
+  newOfferRoute,
+];

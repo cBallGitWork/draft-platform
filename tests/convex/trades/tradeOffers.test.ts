@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
-import { NOTE_MOST } from "../../../convex/trades/tradeLimits";
+import { api, internal } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "../../../convex/trades/tradeLimits";
+import { OFFERS_READ_MOST } from "../../../convex/trades/tradeClose";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A trade's offer (#383, spec/08 Trades): any mix of players on either side with a one-line note;
 // the other manager accepts, rejects or counters, which closes the old offer; the one who made it
@@ -30,13 +34,13 @@ describe("an offer", () => {
           offerId,
           fromTeamId: w.annsTeam,
           toTeamId: w.bobsTeam,
-          gives: [{ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }],
+          gives: [expect.objectContaining({ code: ANNS_FIRST_DROP, name: nameOf(ANNS_FIRST_DROP) })],
           gets: [
-            { playerCode: SAKA, playerName: nameOf(SAKA) },
-            { playerCode: PALMER, playerName: nameOf(PALMER) },
+            expect.objectContaining({ code: SAKA, name: nameOf(SAKA) }),
+            expect.objectContaining({ code: PALMER, name: nameOf(PALMER) }),
           ],
           note: "Fancy a swap?",
-          review: null,
+          reviewEndsAt: null,
         }),
       ]);
     }
@@ -56,8 +60,8 @@ describe("an offer", () => {
   test.each([
     ["no players", [], [], offerRefusals.noPlayers],
     ["a player twice", [ANNS_FIRST_DROP, ANNS_FIRST_DROP], [], offerRefusals.twice],
-    ["a player of theirs as his own", [SAKA], [], offerRefusals.notOnTeam(nameOf(SAKA), "Team 1")],
-    ["a player not on their team", [], [RICE], offerRefusals.notOnTeam(nameOf(RICE), "Team 2")],
+    ["a player of theirs as his own", [SAKA], [], offerRefusals.notOnTeam(nameOf(SAKA), teamNumbered(1))],
+    ["a player not on their team", [], [RICE], offerRefusals.notOnTeam(nameOf(RICE), teamNumbered(2))],
   ])("is refused with %s", async (_, gives, gets, reason) => {
     await expectRefused(w.offer(ANN, w.bobsTeam, gives, gets), reason);
     expect(await w.offers()).toEqual([]);
@@ -78,16 +82,53 @@ describe("an offer", () => {
   test("warns only of a limit it would push a squad past, newly or further, but is made", async () => {
     const { warnings } = await w.offer(ANN, w.catsTeam, [], [RICE]);
     expect(warnings).toEqual([
-      { teamId: w.annsTeam, teamName: "Team 1", warnings: [] },
-      { teamId: w.catsTeam, teamName: "Team 3", warnings: [{ kind: "underMinimum", players: 0, minimum: 11 }] },
+      { teamId: w.annsTeam, teamName: teamNumbered(1), warnings: [] },
+      { teamId: w.catsTeam, teamName: teamNumbered(3), warnings: [{ kind: "underMinimum", players: 0, minimum: 11 }] },
     ]);
     expect(await w.offers()).toHaveLength(1);
   });
 
+  test("is refused while the same trade between the same teams is open, whatever its order or note (#1539)", async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA, PALMER], "First go");
+    await expectRefused(w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [PALMER, SAKA], "Second go"), offerRefusals.alreadyOffered(teamNumbered(2)));
+    expect(await w.offers()).toHaveLength(1);
+
+    // A different trade, or the same one the other way, is an offer of its own.
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.offer(BOB, w.annsTeam, [SAKA, PALMER], [ANNS_FIRST_DROP]);
+    expect(await w.offers()).toHaveLength(3);
+  });
+
+  test("can be made again once the same one is closed", async () => {
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.withdraw(ANN, offerId);
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    expect(await w.offers()).toHaveLength(1);
+  });
+
+  test(`is refused while his team has ${OFFERS_PER_TEAM_MOST} open, until he withdraws one or a deadline closes them (S08.16)`, async () => {
+    // Ann's team holds one short of the ceiling, each offering Cat's team the same trade.
+    await w.t.run(async (ctx) => {
+      for (let each = 1; each < OFFERS_PER_TEAM_MOST; each++) {
+        await ctx.db.insert("tradeOffers", { leagueId: w.leagueId, fromTeamId: w.annsTeam, toTeamId: w.catsTeam, gives: [], gets: [RICE], by: ANN, madeAt: Date.now() });
+      }
+    });
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await expectRefused(w.offer(ANN, w.bobsTeam, [], [PALMER]), offerRefusals.tooMany);
+    // The ceiling is each team's own: Bob still offers Ann's team a trade.
+    await w.offer(BOB, w.annsTeam, [PALMER], []);
+    await w.withdraw(ANN, offerId);
+    await w.offer(ANN, w.bobsTeam, [], [PALMER]);
+    await expectRefused(w.offer(ANN, w.bobsTeam, [], [SAKA]), offerRefusals.tooMany);
+    // Past a deadline nobody answered them by, they no longer count, the cron yet to close them.
+    await w.gameweekEnds(5);
+    await w.offer(ANN, w.bobsTeam, [], [SAKA]);
+  });
+
   test("goes to no team on the auto team, nor from one (spec/09)", async () => {
     await (await actingAs(w.t, CAT)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.catsTeam, on: true });
-    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.autoTeam("Team 3"));
-    await expectRefused(w.offer(CAT, w.annsTeam, [RICE], []), offerRefusals.autoTeam("Team 3"));
+    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.autoTeam(teamNumbered(3)));
+    await expectRefused(w.offer(CAT, w.annsTeam, [RICE], []), offerRefusals.autoTeam(teamNumbered(3)));
   });
 });
 
@@ -103,6 +144,16 @@ describe("answering an offer", () => {
         body: `Team 2 rejected it. The offer was: Team 1 give ${nameOf(ANNS_FIRST_DROP)}; Team 2 give ${nameOf(SAKA)}.`,
       });
     }
+  });
+
+  test("Continue counts the open offers waiting for his answer, not his own nor one accepted (#1553)", async () => {
+    const waiting = async (email: string) => (await actingAs(w.t, email)).query(api.trades.tradeOffers.countWaitingForMe, { leagueId: w.leagueId });
+    const toBob = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.offer(CAT, w.bobsTeam, [RICE], [PALMER]);
+    expect([await waiting(ANN), await waiting(BOB), await waiting(CAT), await waiting(COMMISSIONER)]).toEqual([0, 2, 0, 0]);
+
+    await w.accept(BOB, toBob.offerId);
+    expect(await waiting(BOB)).toBe(1);
   });
 
   test("only the team it's to answers it", async () => {
@@ -149,6 +200,51 @@ describe("answering an offer", () => {
     expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Nobody answered it by the deadline\./) }));
   });
 
+  test(`closes at the deadline however many offers other leagues hold, past ${OFFERS_READ_MOST} between them (#1539)`, async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    // Another league's offers, the platform's count past the cap; the league is gone, so none is due.
+    await w.t.run(async (ctx) => {
+      const [{ leagueId, fromTeamId, toTeamId, gives, gets, by, madeAt }] = await ctx.db.query("tradeOffers").collect();
+      const { name, maxTeams, commissionerEmail } = (await ctx.db.get("leagues", leagueId))!;
+      const other = await ctx.db.insert("leagues", { name, maxTeams, commissionerEmail });
+      for (let each = 0; each < OFFERS_READ_MOST; each++) {
+        await ctx.db.insert("tradeOffers", { leagueId: other, fromTeamId, toTeamId, gives, gets, by, madeAt });
+      }
+      await ctx.db.delete("leagues", other);
+    });
+    await w.gameweekEnds(5);
+    await w.closeDue();
+    expect((await w.offers()).filter((offer) => offer.leagueId === w.leagueId)).toEqual([]);
+  });
+
+  test("each league's due offers close in its own transaction, so one league's that can't close holds up no other (#1558)", async () => {
+    const other = await adminCreatesLeague(w.t, TEST_LEAGUE_TEAMS, "Another league");
+    const [fromTeamId, toTeamId] = await addManagers(w.t, other, ["gone@example.com", "kept@example.com"]);
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    // The other league's offer, due at the same deadline, names a team since gone, so it can't be lettered.
+    await w.t.run(async (ctx) => {
+      const [{ gives, gets, by, madeAt }] = await ctx.db.query("tradeOffers").collect();
+      await ctx.db.insert("tradeOffers", { leagueId: other, fromTeamId, toTeamId, gives, gets, by, madeAt });
+      await ctx.db.delete("teams", fromTeamId);
+    });
+    await w.gameweekEnds(5);
+    await w.t.mutation(internal.trades.tradeClose.closeDue, {});
+    const asked = (await pendingJobs(w.t, internal.trades.tradeClose.closeLeagueDue)).map((job) => job.args[0] as { leagueId: Id<"leagues"> });
+    expect(asked.map(({ leagueId }) => leagueId).sort()).toEqual([w.leagueId, other].sort());
+
+    for (const args of asked) {
+      const closing = w.t.mutation(internal.trades.tradeClose.closeLeagueDue, args);
+      if (args.leagueId === other) await expect(closing).rejects.toThrow("names a team that no longer exists");
+      else await closing;
+    }
+    expect((await w.offers()).map(({ leagueId }) => leagueId)).toEqual([other]);
+  });
+
+  test("a league holding no offer isn't asked to close any (#1558)", async () => {
+    await w.t.mutation(internal.trades.tradeClose.closeDue, {});
+    expect(await pendingJobs(w.t, internal.trades.tradeClose.closeLeagueDue)).toEqual([]);
+  });
+
   test("an offer made a day before a deadline still closes at it", async () => {
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await w.t.run(async (ctx) => {
@@ -157,5 +253,39 @@ describe("answering an offer", () => {
     await w.gameweekEnds(5);
     await w.closeDue();
     expect(await w.offers()).toEqual([]);
+  });
+});
+
+describe("while the draft is live (#1482, S08.7)", () => {
+  /** The league's draft given `rounds`: two leave a pick on the clock, none is a draft over. */
+  const draftRounds = (rounds: number) =>
+    w.t.run(async (ctx) => {
+      const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", w.leagueId)).unique();
+      await ctx.db.patch("drafts", draft!._id, { started: { ...draft!.started!, rounds } });
+    });
+
+  test("a player offer is refused, and an offer made before it can't be accepted, until the last pick", async () => {
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await draftRounds(2);
+    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.draftLive);
+    await expectRefused(w.accept(BOB, offerId), offerRefusals.draftLive);
+
+    await draftRounds(0);
+    await w.offer(ANN, w.catsTeam, [], [RICE]);
+    expect(await w.offers()).toHaveLength(2);
+  });
+});
+
+describe("the churn rule (#1479, S08.6)", () => {
+  test("a free agent Ann just picked up, traded to Bob and dropped by him before the deadline, goes on waivers", async () => {
+    await w.tradesAre({ review: "none", deadline: null });
+    await w.t.run(async (ctx) => {
+      const place = await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", w.leagueId).eq("playerCode", ANNS_FIRST_DROP)).unique();
+      await ctx.db.patch("squadPlayers", place!._id, { pickedUpAt: Date.now() });
+    });
+    await w.accept(BOB, (await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [])).offerId);
+    await (await actingAs(w.t, BOB)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: ANNS_FIRST_DROP });
+
+    expect(await w.stateOf(ANNS_FIRST_DROP)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() + WAIVER_MS });
   });
 });

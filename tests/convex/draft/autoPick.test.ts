@@ -7,9 +7,10 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps, FIRST_PICK_MS } from "../../support/convex/draft.harness";
+import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
 // draft takes the best legal player left in the team's queue, then the admin's ranking, then by
@@ -39,8 +40,6 @@ const PLAYERS = [
   player(103, "Carr", CHELSEA),
   player(104, "Dunne", CHELSEA),
 ];
-const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
-const [ANN, BOB] = MANAGERS;
 
 const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
   changeEveryRules(t, leagueId, (rules) => ({
@@ -48,17 +47,14 @@ const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
     squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad },
     draft: { ...HELD_FIRST_RULES.draft!, timeoutsBeforeAutoPick: timeouts },
   }));
-const as = (email: string) => actingAs(t, email);
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+const { as, start, pick: pickNow, pickAndWait: pick, pass } = draftSteps(() => ({ t, leagueId }));
+/** `email` picks, and the pick's 10 seconds to undo it pass. */
 const takeBack = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
 const lists = (team: Id<"teams">, queue: number[], doNotDraft: number[] = []) => t.run((ctx) => ctx.db.insert("draftLists", { leagueId, teamId: team, queue, doNotDraft }));
 const ranking = (codes: number[]) =>
   t.run((ctx) => ctx.db.insert("draftRanking", { players: codes.map((code, index) => ({ code, rank: index + 1 })), uploadedAt: Date.now() }));
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -84,7 +80,7 @@ describe("auto-pick takes", () => {
     await lists(teams[0], [ZOLA, THIRD]);
     await ranking([TOP]);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
 
     expect(await picked()).toEqual([ZOLA]);
   });
@@ -94,14 +90,14 @@ describe("auto-pick takes", () => {
     await ranking([ZOLA, THIRD]);
     await start();
     await pick(ANN, TOP);
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
 
     expect(await picked()).toEqual([TOP, ZOLA]);
   });
 
   test("with no ranking uploaded, the most points last season", async () => {
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
 
     expect(await picked()).toEqual([TOP]);
   });
@@ -110,11 +106,11 @@ describe("auto-pick takes", () => {
     await setRules({ size: { minimum: 1, maximum: 4 } });
     await ranking([ZOLA]);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     await pick(BOB, TOP);
     await pick(BOB, SECOND);
-    await pass(PICK_GAP_MS + PICK_MS);
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
 
     expect(await picked()).toEqual([ZOLA, TOP, SECOND, THIRD, ABBOTT]);
   });
@@ -122,7 +118,7 @@ describe("auto-pick takes", () => {
   test("no one on the do-not-draft list", async () => {
     await lists(teams[0], [], [TOP]);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
 
     expect(await picked()).toEqual([SECOND]);
   });
@@ -132,11 +128,11 @@ describe("auto-pick takes", () => {
     await lists(teams[0], [TOP, ARTETA, ZOLA]);
     await start();
     await pick(ANN, TOP);
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
     await pick(BOB, THIRD);
     expect(await picked()).toEqual([TOP, SECOND, THIRD]);
 
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
     expect(await picked()).toEqual([TOP, SECOND, THIRD, ZOLA]);
   });
 
@@ -148,7 +144,7 @@ describe("auto-pick takes", () => {
       PLAYERS.map(({ code }) => code),
     );
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
 
     expect(await picked()).toEqual([TOP]);
   });
@@ -158,7 +154,7 @@ describe("taking control back", () => {
   test("takes the team off auto-pick and its timeouts back to 0", async () => {
     await setRules({}, 1);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 1, autoPick: "fullClock" }]);
 
     await takeBack(ANN);
@@ -168,14 +164,14 @@ describe("taking control back", () => {
   test("gives his pick on the clock its full time again, not made at once", async () => {
     await setRules({ size: { minimum: 1, maximum: 4 } }, 1);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     await pick(BOB, ZOLA);
     await pick(BOB, ABBOTT);
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "atOnce" }]);
 
     await takeBack(ANN);
-    await pass(PICK_GAP_MS + PICK_MS - 1);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS - 1);
     expect(await picked()).toHaveLength(4);
     await pass(1);
     expect(await picked()).toHaveLength(5);
@@ -184,15 +180,15 @@ describe("taking control back", () => {
 
   test("is refused to a manager who isn't on auto-pick", async () => {
     await start();
-    await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
-    await pass(PICK_MS);
-    await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
+    await expectRefused(takeBack(ANN), pickRefusals.notOnAutoPick);
+    await pass(FIRST_PICK_MS);
+    await expectRefused(takeBack(ANN), pickRefusals.notOnAutoPick);
   });
 });
 
 describe("turning auto-pick on himself", () => {
   const turnOn = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
-  const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() });
+  const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId });
 
   test("before the draft starts: his first pick is made at once, and his count stays 0", async () => {
     await lists(teams[0], [ZOLA]);
@@ -207,7 +203,7 @@ describe("turning auto-pick on himself", () => {
   test("with his pick on the clock: that pick and every later one are made at once, his timeout count as it was", async () => {
     await setRules({ size: { minimum: 1, maximum: 4 } }, 2);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     await pick(BOB, ZOLA);
     await pick(BOB, ABBOTT);
     await pass(PICK_GAP_MS + SECOND_MS);
@@ -229,7 +225,7 @@ describe("turning auto-pick on himself", () => {
     await start();
     await pick(ANN, TOP);
     await pick(BOB, SECOND);
-    await pick(BOB, THIRD);
+    await pickNow(BOB, THIRD);
     await turnOn(ANN);
     await pass(PICK_GAP_MS - 1);
     expect(await picked()).toHaveLength(3);
@@ -241,24 +237,24 @@ describe("turning auto-pick on himself", () => {
     await turnOn(ANN);
     await takeBack(ANN);
     await start();
-    await pass(PICK_MS - 1);
+    await pass(FIRST_PICK_MS - 1);
     expect(await picked()).toEqual([]);
   });
 
   test("is refused to a manager already on auto-pick, and once the draft is over", async () => {
     await turnOn(ANN);
-    await expect(turnOn(ANN)).rejects.toThrow(pickRefusals.onAutoPick);
+    await expectRefused(turnOn(ANN), pickRefusals.onAutoPick);
     await setRules({ size: { minimum: 1, maximum: 1 } });
     await start();
     await pass(0);
     await pick(BOB, SECOND);
-    await expect(turnOn(BOB)).rejects.toThrow(pickRefusals.over);
+    await expectRefused(turnOn(BOB), pickRefusals.over);
   });
 
   test("the board marks every pick the draft made 'auto' for the whole league, and tells him he is on it", async () => {
     await setRules({}, 1);
     await start();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     await pick(BOB, ZOLA);
 
     expect((await board(BOB)).picks.map(({ auto }) => auto)).toEqual([true, false]);
@@ -282,12 +278,12 @@ describe("a team with no manager", () => {
     await t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: undefined }));
     await setRules({ size: { minimum: 1, maximum: 3 } });
     await start();
-    await pick(ANN, TOP);
+    await pickNow(ANN, TOP);
     await pass(PICK_GAP_MS);
     expect(await picked()).toHaveLength(2);
 
     await t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: BOB }));
-    await pass(PICK_GAP_MS + PICK_MS - 1);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS - 1);
     expect(await picked()).toHaveLength(2);
     await pass(1);
     expect(await picked()).toHaveLength(3);

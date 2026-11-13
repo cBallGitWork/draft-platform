@@ -1,7 +1,7 @@
 import { Choice } from "../../ui/Choice";
+import { NextGlyph } from "../../ui/MoreLink";
 import { Problem, Status } from "../../ui/Panel";
 import { TickBox } from "../../ui/TickBox";
-import { nextGlyph } from "../../shared/words";
 import type { OpenTactics } from "./seam";
 import {
   allFormationsWords,
@@ -22,8 +22,8 @@ import type { Cell } from "../../../convex/lineup/pitch";
 // The Tactics tab's controls (#14; spec/05; the approved Tactics picture): the toolbar over the
 // pitch and the table, with the Formation keys, All formations, the attacking and defensive
 // instruction, Presets, Undo and Quick Pick, and what the last save and formation change said; and
-// the desk's switch for the roles' runs. The lineup they
-// change is kept in ./TacticsPage.tsx.
+// the desk's switch for the roles' runs. The lineup they change is kept in ./useLineupEdits.ts,
+// called from ./LineupEditor.tsx.
 
 /** How many of the league's presets the Formation keys show, in its order: the rest are in the
  *  formation window (the approved picture draws five). */
@@ -92,7 +92,8 @@ export function TacticsToolbar({
       <div role="toolbar" aria-label={toolbarLabel} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2">
         <Choice label={presetLabel} name={FORMATION_KEYS_NAME} options={keyed} words={(name) => name} chosen={inUse} onChoose={onPreset} />
         <button type="button" aria-expanded={windowOpen} onClick={onAllFormations} className="secondary-action gap-1">
-          {allFormationsWords} <span aria-hidden="true">{nextGlyph}</span>
+          {allFormationsWords}
+          <NextGlyph />
         </button>
         {SIDES.map((side) => (
           <InstructionPicker key={side} side={side} offered={offeredOn(side, cells, instructions)} picked={picked[side]} onPick={onInstruction} />

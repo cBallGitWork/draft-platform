@@ -1,22 +1,21 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
-import { playerLeftLetter, REPORT_SYSTEM, reportInLetter, scoutRefusals } from "../../../convex/scouting/scoutWords";
+import { gameModeOf } from "../../../convex/rules/gameMode";
+import { notFiledLetter, playerLeftLetter, REPORT_SYSTEM, reportInLetter, reportPrompt, scoutRefusals, type ScoutBrief } from "../../../convex/scouting/scoutWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { GONE, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { GONE, UNHELD, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ADMIN, COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport, type FakeClaude } from "../../support/convex/scouts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { BLANK, CAMEO, SCORER, STEADY, holdStarsPlayers } from "../../support/convex/stars.harness";
-import { elapse, expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, expectRefused, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Scouts (#375; spec/19, Scouts and The report): each team's 3, sent to any player, each report
 // written by AI 24 hours on, dated; Mail says it is in; no other team can tell.
-
-const [ANN, BOB] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -27,7 +26,7 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   claude = fakeClaude();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   [, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await holdStarsPlayers(t);
 });
@@ -61,7 +60,7 @@ describe("sending a scout", () => {
   });
 
   test("the site's number of scouts is the cap", async () => {
-    await t.mutation(internal.admin.platformSettings.setScoutsPerTeam, { scouts: 1 });
+    await t.mutation(internal.admin.platformSettings.setSettings, { scoutsPerTeam: 1 });
     const ann = await as(ANN);
     await ann.send(SCORER.code);
     await expectRefused(ann.send(STEADY.code), scoutRefusals.allOut(1));
@@ -77,7 +76,7 @@ describe("sending a scout", () => {
     await t.run((ctx) => insertDroppedPlayer(ctx, GONE, Date.now()));
     const ann = await as(ANN);
     await expectRefused(ann.send(GONE.code), scoutRefusals.playerGone(GONE.name));
-    await expectRefused(ann.send(9999), scoutRefusals.noSuchPlayer);
+    await expectRefused(ann.send(UNHELD), refusals.noPlayer);
   });
 
   test("another team's player can be scouted", async () => {
@@ -166,6 +165,21 @@ describe("the report", () => {
     await elapse(t, CLAUDE_RETRY_MS);
     expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
   });
+  test("after a day of failed tries the scout is back with no report, free, and Mail says so (#1437, S19.4)", async () => {
+    silenceConsoleError();
+    claude.failing = true;
+    const ann = await as(ANN);
+    await ann.send(SCORER.code);
+    await dayPasses();
+    for (let tries = 1; tries < CLAUDE_TRIES_MOST; tries++) await elapse(t, CLAUDE_RETRY_MS);
+
+    expect(claude.asked).toHaveLength(CLAUDE_TRIES_MOST);
+    expect(await ann.mine()).toMatchObject({ out: [], reports: [] });
+    expect((await ann.onPlayer(SCORER.code))?.map((trip) => trip.state)).toEqual(["notFiled"]);
+    expect(await scoutLetters(ANN, notFiledLetter("Scorer").subject)).toHaveLength(1);
+    expect(await pendingJobs(t, internal.scouting.scoutReports.write)).toEqual([]);
+  });
+
   test("a brief that can't be read is a failed write too: the scout stays out with the failure kept, and is tried again", async () => {
     silenceConsoleError();
     const ann = await as(ANN);
@@ -185,6 +199,33 @@ describe("the report", () => {
     await t.run((ctx) => ctx.db.insert("clubs", club));
     await elapse(t, CLAUDE_RETRY_MS);
     expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
+  });
+});
+
+describe("the brief in a league that plays no stars or roles (forced: none can be yet, #1582)", () => {
+  const brief: ScoutBrief = {
+    playerName: "Scorer",
+    clubName: "Arsenal",
+    positions: ["ST"],
+    news: null,
+    chanceOfPlaying: null,
+    stars: [{ area: "Forward", role: "Poacher", stars: 4 }],
+    shape: [{ position: "ST", role: "Poacher" }],
+    matches: [],
+    fixtures: [],
+  };
+  const PLAYED = gameModeOf({ format: "headToHead" });
+
+  test("every league today: his role stars, and each slot with its role", () => {
+    const prompt = reportPrompt(brief, PLAYED);
+    expect(prompt).toContain("Role stars: Poacher (Forward) 4 stars.");
+    expect(prompt).toContain("Manager's formation: ST as Poacher.");
+  });
+
+  test("no stars shown: no role stars line; no roles scored: each slot its position alone", () => {
+    const prompt = reportPrompt(brief, { ...PLAYED, showsStars: false, scoresRoles: false });
+    expect(prompt).not.toContain("Role stars");
+    expect(prompt).toContain("Manager's formation: ST.");
   });
 });
 

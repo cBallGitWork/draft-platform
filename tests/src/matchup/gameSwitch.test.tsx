@@ -5,15 +5,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { MATCHUP_PATH } from "../../../src/frame/menu";
 import type { Matchup } from "../../../src/matchup/seam";
 import { GAME_SWITCH_LABEL, gameSwitchWords, SCORE_LABEL } from "../../../src/matchup/words";
-import { headToHead, teamSide, type MatchupData } from "../../support/src/matchup.harness";
-import { league, manager, openApp } from "../../support/src/shell.harness";
+import { headToHead, teamSide } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
+import { league } from "../../support/src/shell.harness";
 
 type HeadToHead = Extract<Matchup, { kind: "headToHead" }>;
-
-const openMatchup = (matchup: MatchupData) => openApp(MATCHUP_PATH, manager, { matchup });
 
 const TWO_GAMES: HeadToHead["games"] = [
   { kind: "team", teamName: "Team 2" },
@@ -29,6 +27,13 @@ describe("the game switch", () => {
     expect(within(gameSwitch).getByText(gameSwitchWords(1, "Team 2")).getAttribute("aria-current")).toBe("page");
     await userEvent.click(within(gameSwitch).getByRole("link", { name: gameSwitchWords(2, "Team 3") }));
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Team 1", gameweek: 6, game: 2 });
+  });
+
+  it("links to the first game with no game in the address, as every other link to it (#1771)", async () => {
+    openMatchup({ matchup: headToHead(scored, { games: TWO_GAMES, gameNumber: 2 }) });
+    const gameSwitch = await screen.findByRole("navigation", { name: GAME_SWITCH_LABEL });
+    const href = within(gameSwitch).getByRole("link", { name: gameSwitchWords(1, "Team 2") }).getAttribute("href") ?? "";
+    expect(new URL(href, "http://localhost").searchParams.has("game")).toBe(false);
   });
 
   it("shows before the deadline too, and names a bye", async () => {

@@ -76,6 +76,9 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   2026; #895).
 - Losing a position never makes a squad illegal. The player stays in his slot for the gameweek
   and the manager is warned.
+- Left where he stands, he doesn't stop the manager saving other changes: "Other changes still
+  save, for that gameweek only: he can change bench order, roles and other swaps until the next
+  deadline; after that the player must be moved" (Craig, 11 Nov 2026, on #1589). `S06.7`
 
 ## Availability
 

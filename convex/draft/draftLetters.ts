@@ -11,7 +11,7 @@ import {
   scoringStartMovedLetter,
   upNextLetter,
   type PickNews,
-} from "../mail/letterWords";
+} from "../mail/draftLetterWords";
 import type { MovedStart } from "../gameweeks/scoringStart";
 import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
 import { tellIn } from "../mail/letterMoments";
@@ -36,11 +36,14 @@ import type { Clocked } from "./draftClock";
  *  "over 10 minutes"). */
 export const UP_NEXT_EMAIL_OVER_MS = 10 * MINUTE_MS;
 
-/** Tells the manager of the team on `clocked`'s clock that he is up next. */
+/** Tells the manager of the team on `clocked`'s clock that he is up next, unless the draft picks for
+ *  him as it starts: then there is nothing for him to do, so no letter and no email (Craig, 11 Nov
+ *  2026, on #1485). While the draft is paused he is told at once with no deadline, as his clock
+ *  starts only when the commissioner resumes, and resuming tells no one (Craig, 11 Nov 2026, on #1461). */
 export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clocked: Clocked): Promise<void> {
   const to = clocked.team.managerEmail;
-  if (to === undefined) return;
-  const news = { round: clocked.round, pick: clocked.pick, teamName: clocked.team.name, endsAt: clocked.endsAt };
+  if (to === undefined || clocked.atOnce) return;
+  const news = { round: clocked.round, pick: clocked.pick, teamName: clocked.team.name, endsAt: clocked.paused ? null : clocked.endsAt };
   await fileLetter(ctx, league, [to], (tell) => upNextLetter(news, tell));
   if (clocked.endsAt - clocked.startsAt <= UP_NEXT_EMAIL_OVER_MS) return;
   if (!(await takeTodaysEmail(ctx))) {

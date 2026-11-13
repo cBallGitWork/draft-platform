@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { Position } from "../positions/positionTables";
 import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
 
 // A league's draft row (../schema/draft.ts's `drafts`; spec/04, Starting it; #1089), read: by the
@@ -8,6 +9,13 @@ import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
 // draftPlayers.ts); whether it is live, while the commissioner's assign, move and release are refused
 // (../squads/squads.ts); and whether it is over, before which free agency and waivers are shut
 // (../waivers/).
+
+/** What a draft row from before #1610 lacking a field it now keeps says to do: here, not in
+ *  oldDraftsBackfill.ts, which imports this file. */
+export const OLD_DRAFTS_BACKFILL_HINT = "run draft/oldDraftsBackfill once (#1610)";
+
+/** A draft's pick clock, as its row holds it. */
+export type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
 /** The league's draft row, or null while it has none: its commissioner has set no start yet. */
 export function draftOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"drafts"> | null> {
@@ -26,9 +34,39 @@ export function lastPickIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<
     .first();
 }
 
+/** Whether the draft's last pick, `last`, is one its manager made himself whose 10 seconds to undo
+ *  still run at `now` (pickWindow.ts; #1458): they end as the next clock starts, or the draft ends,
+ *  and a pause freezes them (Craig, 4 Nov 2026, on #1091). */
+export function undoWindowOpen(draft: Doc<"drafts">, last: Doc<"draftPicks"> | null, now: number): boolean {
+  const clock = draft.clock;
+  return last?.own !== undefined && clock !== undefined && (clock.paused?.at ?? now) < clock.startsAt;
+}
+
 /** How many picks the league's draft has made (draftPicks.ts): its last pick's number, or 0. */
 export async function picksMadeIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
   return (await lastPickIn(ctx, leagueId))?.pick ?? 0;
+}
+
+/** The positions each player the league's draft has taken had when he was drafted, by his code: the
+ *  rest of the draft counts him at them, so a position he loses since can't leave his team with no
+ *  legal pick (Craig, 11 Nov 2026, on #1484). */
+export async function draftedPositionsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, Position[]>> {
+  const picks = await ctx.db
+    .query("draftPicks")
+    .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
+    .collect();
+  return new Map(
+    picks.map(({ pick, playerCode, positions }) => {
+      if (positions === undefined) throw new Error(`League ${leagueId}'s pick ${pick} kept no positions: ${OLD_DRAFTS_BACKFILL_HINT}`);
+      return [playerCode, positions] as const;
+    }),
+  );
+}
+
+/** The clock of `draft`, live with a pick on it, which always has one (draftClock.ts). */
+export function liveClockOf(draft: Doc<"drafts">): NonNullable<Doc<"drafts">["clock"]> {
+  if (draft.clock === undefined) throw new Error(`League ${draft.leagueId}'s live draft has no clock: ${OLD_DRAFTS_BACKFILL_HINT}`);
+  return draft.clock;
 }
 
 /** Whether the league's draft has started. */
@@ -42,11 +80,19 @@ export type StartedDraft = NonNullable<Doc<"drafts">["started"]>;
 /** A pick on a draft's clock (snakeOrder.ts). */
 export type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
-/** The pick on the draft's clock now, after any trade, or null before it starts and once it is over. */
-export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn | null> {
+/** The pick on the draft's clock once `picksMade` picks are made, after any trade (snakeOrder.ts),
+ *  or null before it starts and once every pick is made: the one place that works out whose pick
+ *  it is from the draft's row (#1735). Pure. */
+export function turnAfter(draft: Doc<"drafts">, picksMade: number): Turn | null {
   const started = draft.started;
   if (started === undefined) return null;
-  return pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+  return pickOnTheClock(started.teamIds, started.rounds, picksMade, draft.tradedPicks);
+}
+
+/** The pick on the draft's clock now, after any trade, or null before it starts and once it is over. */
+export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn | null> {
+  if (draft.started === undefined) return null;
+  return turnAfter(draft, await picksMadeIn(ctx, draft.leagueId));
 }
 
 /** How many picks `teamId` has left in the started draft, counting one on the clock (snakeOrder.ts's
@@ -55,11 +101,12 @@ export async function picksLeftOf(ctx: QueryCtx, draft: Doc<"drafts">, started: 
   return picksLeftFor(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks ?? [], teamId);
 }
 
-/** Whether the league's draft is live: started, with a pick still on the clock (snakeOrder.ts).
- *  Before it starts and once it is over, it isn't. */
+/** Whether the league's draft is live: started, with a pick still on the clock (snakeOrder.ts) or
+ *  its last pick's 10 seconds still running (draftClock.ts; #1458). Before it starts and once it is
+ *  over, it isn't. */
 export async function draftIsLive(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
   const draft = await draftOf(ctx, leagueId);
-  return draft !== null && (await turnNow(ctx, draft)) !== null;
+  return draft !== null && (draft.clock?.closing === true || (await turnNow(ctx, draft)) !== null);
 }
 
 /** Whether the league's draft is over: started, with no pick left on the clock. Free agency and

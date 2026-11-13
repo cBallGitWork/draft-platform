@@ -20,6 +20,19 @@ export const CLUB_PLAYERS_MOST = 100;
 /** The most players a search returns: enough to pick from, few enough to read. */
 const FOUND_MOST = 20;
 
+/** A player's code: the key every table holds him by, as `players.code`. */
+export type PlayerCode = number;
+
+/** Whether the player has left the Premier League: the feed no longer sends him. */
+export const hasLeft = (player: Pick<Doc<"players">, "droppedAt">) => player.droppedAt !== undefined;
+
+/** His number at his club, as the Premier League's squad list last gave it, or null: the number
+ *  his shirt wears until his manager gives him one (squadNumbers.ts), and the one on his card. */
+export async function clubNumberOf(ctx: QueryCtx, playerCode: PlayerCode): Promise<number | null> {
+  const held = await ctx.db.query("clubNumbers").withIndex("by_code", (q) => q.eq("code", playerCode)).unique();
+  return held?.number ?? null;
+}
+
 /** The clubs in the Premier League now, the ones the feed has dropped left out. */
 export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
   return takeAllOrThrow(
@@ -74,8 +87,12 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
  *  (Craig, 31 Oct 2026, #323; spec/15 Assigning players). */
 export const unheldPlayerWords = (code: number) => `Error: player ${code} isn't in the football data.`;
 
+/** How a letter, a recap or a lineup's refusal names a man the football data has lost, who has no
+ *  name left to give. A screen's row for him shows `unheldPlayerWords` instead. */
+export const lostPlayerName = (code: number) => `Player ${code}`;
+
 /** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
- *  `missing`, which each caller words to say where the fault was met (the match, the shortlist).
+ *  `missing`, which each caller words to say where the fault was met (the shortlist, a trade).
  *  It goes to the log, never to a manager: a failed read shows the screen's own words
  *  (src/frame/ReadFailed.tsx). A screen that keeps such a player shows `unheldPlayerWords`. */
 export async function heldPlayerByCode(ctx: QueryCtx, code: number, missing: string): Promise<Doc<"players">> {

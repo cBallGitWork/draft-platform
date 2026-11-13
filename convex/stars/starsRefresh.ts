@@ -2,20 +2,21 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "../stats/matchRecordReads";
 import { positionsNow } from "../positions/playerPositions";
 import { EVERY_LEAGUE } from "../positions/positionSettings";
 import { siteScoringAt } from "../scoring/siteVersions";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { sortedJson } from "../shared/sortedJson";
+import { placeOf } from "../squads/squadPlace";
 import { PLAYERS_PAGE, SEASON_PLAYERS_MOST } from "../stats/matchRecords";
 import { playerRecords } from "../stats/seasonRecords";
 import { starsRow } from "./playerStars";
-import { countedMatches, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
+import { perMatchUnder, ratedMatches, ratedRoles, starsFor, type RatedRecord } from "./stars";
 import { LEAST_MATCHES_RATED, UNSURE } from "./starsShape";
 
 // Stars kept up to date (#11; spec/05 Roles), stored in playerRoleStars so no read prices every
@@ -152,13 +153,7 @@ async function isGone(ctx: QueryCtx, playerCode: number): Promise<boolean> {
 
 /** Whether a squad in any of `leagues` holds him. */
 async function isOnASquad(ctx: QueryCtx, leagues: readonly Doc<"leagues">[], playerCode: number): Promise<boolean> {
-  for (const league of leagues) {
-    const held = await ctx.db
-      .query("squadPlayers")
-      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id).eq("playerCode", playerCode))
-      .first();
-    if (held !== null) return true;
-  }
+  for (const league of leagues) if ((await placeOf(ctx, league._id, playerCode)) !== null) return true;
   return false;
 }
 
@@ -169,7 +164,7 @@ function starsKeeper(ctx: QueryCtx): (playerCode: number) => Promise<boolean> {
   let leagues: Promise<Doc<"leagues">[]> | undefined;
   return async (playerCode) => {
     if (!(await isGone(ctx, playerCode))) return true;
-    leagues ??= takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so a squad holding a player could be missed`);
+    leagues ??= everyLeague(ctx, "so a squad holding a player could be missed");
     return isOnASquad(ctx, await leagues, playerCode);
   };
 }
@@ -197,7 +192,7 @@ async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]):
         const kickoff = await kickoffOf(record.fixtureCode);
         if (kickoff !== null) dated.push({ ...record, kickoff });
       }
-      const matches = countedMatches(dated);
+      const matches = ratedMatches(dated);
       const roles = (await keepsStars(playerCode)) ? ratedRoles(await positionsOf(playerCode)) : [];
       const heldStars = (area: string, role: string) => row?.ratings.find((each) => each.area === area && each.role === role)?.stars ?? UNSURE;
       fields =

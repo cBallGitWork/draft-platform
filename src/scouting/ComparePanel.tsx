@@ -1,14 +1,15 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { mainArea } from "../../convex/scouting/per90Figures";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
-import { claimedDoneWords } from "../playerCard/words";
+import { WaiverAction } from "../playerCard/WaiverAction";
 import { statFigure } from "../shared/figures";
-import { useChange } from "../shared/useChange";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { OwnerName } from "../ui/OwnerName";
-import { Loading, Panel, PanelNote, Problem, Status } from "../ui/Panel";
+import { CloseButton, Loading, Panel, PanelNote } from "../ui/Panel";
 import { PercentileBar, per90StatName } from "./Per90Figures";
+import { PointsFigure } from "./PointsFigure";
 import type { ComparedPlayer, Comparison, Period, ScoutingSeam } from "./seam";
 import {
   clearComparisonWords,
@@ -20,9 +21,8 @@ import {
   comparingWords,
   figureWords,
   noFigureWords,
-  noPointsYetWords,
   noRoleFitYetWords,
-  notLastSeasonWords,
+  noSeasonPointsWords,
   panelMinutesWords,
   perNinetyWords,
   seasonPointsColumn,
@@ -60,13 +60,8 @@ export function ComparePanel({
   seam: ScoutingSeam;
   clear: () => void;
 }) {
-  const closeButton = (
-    <button type="button" aria-label={clearComparisonWords} onClick={clear} className="min-h-tap min-w-tap font-bold lg:min-h-0">
-      ✕
-    </button>
-  );
   return (
-    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={closeButton}>
+    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={<CloseButton label={clearComparisonWords} close={clear} className="font-bold lg:min-h-0" />}>
       {comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
@@ -80,18 +75,6 @@ export function ComparePanel({
 }
 
 const CELL = "whitespace-nowrap px-2 text-right";
-
-/** The points' cell: "—", saying why on hover, while none is priced. */
-function PointsCell({ points, pointsSeason }: { points: number | null; pointsSeason: number | null }) {
-  if (points === null) {
-    return (
-      <span title={pointsSeason === null ? noPointsYetWords : notLastSeasonWords} className="text-muted">
-        {noFigureWords}
-      </span>
-    );
-  }
-  return <span className="font-bold text-figure">{figureWords(points)}</span>;
-}
 
 function SideBySide({
   comparison,
@@ -152,8 +135,8 @@ function SideBySide({
         </thead>
         <tbody>
           {row(columns.roleFit.long, noRoleFitYetWords, (_player, at) => totalOnly(<span className="text-muted">{noFigureWords}</span>, at))}
-          {row(pointsHead.short, pointsHead.long, (player, at) => totalOnly(<PointsCell points={player.seasonPoints} pointsSeason={pointsSeason} />, at))}
-          {row(panelMinutesWords(period), undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
+          {row(pointsHead.short, pointsHead.long, (player, at) => totalOnly(<PointsFigure points={player.seasonPoints} why={noSeasonPointsWords(pointsSeason)} />, at))}
+          {row(panelMinutesWords(period, pointsSeason), undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
           {area !== null &&
             comparison[0].figures.map(({ stat: each }, index) =>
               row(nameOf(each), undefined, (player) => {
@@ -182,27 +165,15 @@ function SideBySide({
  *  dropping the second ("Pick up X, drop Y") only when he is in the manager's squad and the squad is
  *  full (Craig, 9 Nov 2026, on #1028, answer 4). Nothing when the first is no one's to take. */
 function TakeFirst({ leagueId, first, second, seam }: { leagueId: Id<"leagues">; first: ComparedPlayer; second: ComparedPlayer; seam: ScoutingSeam }) {
-  const action = seam.useCardAction(leagueId, first.code);
-  const squadFull = seam.useYourPlayer(leagueId, first.code, useMinute())?.squadFull ?? false;
-  const changes = seam.useWaiverChanges();
-  const change = useChange();
-  const [claimed, setClaimed] = useState(false);
-  if (action === undefined || (action.kind !== "pickUp" && action.kind !== "claim")) return null;
-  const kind = action.kind;
-  const drops = squadFull && action.squad.some(({ playerCode }) => playerCode === second.code) ? second : null;
-  async function take() {
-    setClaimed(false);
-    setClaimed((await change.run(() => changes[kind](leagueId, first.code, drops?.code ?? null))) && kind === "claim");
-  }
+  // Held as the minute turns, so "drop Y" never falls off the button for a moment (#1777).
+  const squadFull = useLastLoaded(seam.useYourPlayer(leagueId, first.code, useMinute()), `${leagueId}/${first.code}`)?.squadFull ?? false;
   return (
-    <div className="flex flex-col gap-1 border-t border-panel-rule p-3">
-      <Problem problem={change.problem} />
-      <Status words={claimed ? claimedDoneWords : null} className="text-derived" />
-      <div>
-        <button type="button" disabled={change.busy} onClick={() => void take()} className="action">
-          {compareTakeWords(kind, first.name, drops?.name ?? null)}
-        </button>
-      </div>
-    </div>
+    <WaiverAction
+      leagueId={leagueId}
+      card={first}
+      seam={seam}
+      fixed={{ drops: squadFull ? second : null, label: (kind, dropName) => compareTakeWords(kind, first.name, dropName) }}
+      className="border-t border-panel-rule p-3"
+    />
   );
 }

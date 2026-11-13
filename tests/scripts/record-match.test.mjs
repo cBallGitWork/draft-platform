@@ -2,16 +2,16 @@
 // What one read saves, and how the recorder starts, are tested in record-match-reads.test.mjs;
 // how a saved poll sums up, in record-match-summary.test.mjs.
 import { spawn } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
 import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.ts";
-import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
+import { LIVE_WINDOW_MS } from "../../convex/shared/dueMatches.ts";
 import { doneLine, phase, pollReads, record } from "../../scripts/record-match.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 // Pinned here, not imported, so a change to the recorder's timings fails a test.
 const MINUTE = 60_000;
@@ -75,17 +75,13 @@ async function recordAgainst(startAt, statusAt, earlierPolls = 0) {
       return answer({ id: IPSWICH_FOREST, kickoff: { millis: KICKOFF }, status: statusAt(Date.now()) });
     }),
   );
-  const dir = mkdtempSync(join(tmpdir(), "record-match-"));
-  try {
-    for (let index = 0; index < earlierPolls; index += 1) writeFileSync(join(dir, `earlier-${index}.json`), "{}");
-    let done = false;
-    const recording = record(IPSWICH_FOREST, dir).finally(() => (done = true));
-    while (!done) await vi.advanceTimersByTimeAsync(MINUTE);
-    await recording;
-    return { asked, polls: readdirSync(dir).length, logged };
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  const dir = scratchDir("record-match-");
+  for (let index = 0; index < earlierPolls; index += 1) writeFileSync(join(dir, `earlier-${index}.json`), "{}");
+  let done = false;
+  const recording = record(IPSWICH_FOREST, dir).finally(() => (done = true));
+  while (!done) await vi.advanceTimersByTimeAsync(MINUTE);
+  await recording;
+  return { asked, polls: readdirSync(dir).length, logged };
 }
 
 const gapsOf = (times) => times.slice(1).map((time, index) => time - times[index]);

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
+import { SHIRT_PATTERNS, UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { PANEL_BODY, Panel, PanelNote } from "../ui/Panel";
+import { ClubSelect, LabelledField } from "./fields";
 import type { PanelProps } from "./panelProps";
 import type { PositionsQueue } from "./seam";
 import {
@@ -24,7 +25,6 @@ type Club = PositionsQueue["clubs"][number];
 
 const CLUB_ID = "colours-club";
 const PATTERN_ID = "colours-pattern";
-const PATTERNS: readonly Pattern[] = ["plain", "stripes"];
 
 /** The clubs with no colours held, whose shirts and marks are white until he sets them. */
 export function Uncoloured({ queue }: Pick<PanelProps, "queue">) {
@@ -58,18 +58,7 @@ export function ClubColours({ queue, seam, change }: PanelProps) {
   return (
     <Panel title={coloursTitle}>
       <div className={PANEL_BODY}>
-        <span className="flex flex-col gap-1">
-          <label htmlFor={CLUB_ID} className="font-semibold">
-            {coloursClubLabel}
-          </label>
-          <select id={CLUB_ID} value={clubCode} onChange={(event) => choose(Number(event.target.value))} className="text-box">
-            {queue.clubs.map((each) => (
-              <option key={each.code} value={each.code}>
-                {each.name}
-              </option>
-            ))}
-          </select>
-        </span>
+        <ClubSelect id={CLUB_ID} label={coloursClubLabel} clubs={queue.clubs} value={clubCode} choose={choose} />
         {/* Keyed on the club, so choosing another starts from its colours. */}
         {club !== undefined && <ColoursForm key={club.code} club={club} seam={seam} change={change} />}
       </div>
@@ -91,10 +80,7 @@ function ColoursForm({ club, seam, change }: { club: Club } & Pick<PanelProps, "
     <form onSubmit={save} className="flex flex-col gap-2">
       <span className="flex flex-wrap gap-4">
         {fields.map((field) => (
-          <span key={field.id} className="flex flex-col gap-1">
-            <label htmlFor={field.id} className="font-semibold">
-              {field.label}
-            </label>
+          <LabelledField key={field.id} id={field.id} label={field.label}>
             <input
               id={field.id}
               type="color"
@@ -102,25 +88,22 @@ function ColoursForm({ club, seam, change }: { club: Club } & Pick<PanelProps, "
               onChange={(event) => setColours({ ...colours, [field.key]: event.target.value })}
               className="min-h-tap min-w-tap"
             />
-          </span>
+          </LabelledField>
         ))}
-        <span className="flex flex-col gap-1">
-          <label htmlFor={PATTERN_ID} className="font-semibold">
-            {patternLabel}
-          </label>
+        <LabelledField id={PATTERN_ID} label={patternLabel}>
           <select
             id={PATTERN_ID}
             value={colours.pattern}
             onChange={(event) => setColours({ ...colours, pattern: event.target.value as Pattern })}
             className="text-box"
           >
-            {PATTERNS.map((pattern) => (
+            {SHIRT_PATTERNS.map((pattern) => (
               <option key={pattern} value={pattern}>
                 {patternWords[pattern]}
               </option>
             ))}
           </select>
-        </span>
+        </LabelledField>
       </span>
       <button type="submit" disabled={change.busy} className="secondary-action self-start">
         {saveColoursWords}

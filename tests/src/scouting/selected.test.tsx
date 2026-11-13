@@ -4,13 +4,15 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import { pickUpWords } from "../../../src/playerCard/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
+import { freeAgentWords } from "../../../src/shared/words";
 import {
   closePanelLabel,
+  compareWithYourWords,
   noFigureWords,
   noPointsYetWords,
   notRankedWords,
@@ -19,6 +21,8 @@ import {
   PER90_STAT_NAMES,
   per90Words,
   percentileLabel,
+  periodLabel,
+  periodWords,
   playerCardLinkWords,
   scoutingTabWords,
   selectPlayerLabel,
@@ -32,7 +36,8 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
-import { HELD, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
+import { fakeScouting } from "../../support/src/scouting.harness";
+import { HELD, lastAsk, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA, turnTheMinute } from "../../support/src/scoutingScreen.harness";
 import { shortlisted } from "../../support/src/shortlist.harness";
 import { league } from "../../support/src/shell.harness";
 
@@ -48,8 +53,15 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Rice")).toBeTruthy();
     expect(factIn(panel, panelSeasonPointsWords).textContent).toBe("42");
-    expect(factIn(panel, panelMinutesWords("season")).textContent).toBe("540");
+    expect(factIn(panel, panelMinutesWords("season", null)).textContent).toBe("540");
     expect(rowOf("Rice").getAttribute("aria-current")).toBe("true");
+  });
+
+  it("before the new season's first match, names his minutes by last season, as the list does (#1566)", async () => {
+    openScouting({ ...WITH_FIGURES, pointsSeason: 2025 });
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    expect(panelMinutesWords("season", 2025)).toBe("Minutes in 25/26");
+    expect(factIn(panelOf("CDM"), panelMinutesWords("season", 2025)).textContent).toBe("540");
   });
 
   it("a player with no points yet reads '—', saying why", async () => {
@@ -79,6 +91,46 @@ describe("selecting a player", () => {
     await userEvent.click(within(panelOf("CDM")).getByRole("button", { name: closePanelLabel }));
     expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
     expect(app.path()).not.toBe(playerCardPath(league.leagueId, RICE.code));
+  });
+
+  it("a pickup that takes him out of the free agents still shows on his panel, with the period's minutes (#1551)", async () => {
+    const app = openScouting(WITH_FIGURES);
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    expect(lastAsk(app)[5]).toBe(RICE.code);
+    expect(within(panelOf("CDM")).getByText(freeAgentWords)).toBeTruthy();
+
+    // The server now has Rice on Saka Potatoes, with 90 minutes over the last 4: the free agents list drops him.
+    const pickedUp = WITH_FIGURES.players!.map((player) => (player.code === RICE.code ? { ...player, ownerTeamName: "Saka Potatoes", figures: { ...NO_FIGURES, minutes: 90 } } : player));
+    app.scouting.usePlayersList.mockImplementation(fakeScouting({ ...WITH_FIGURES, players: pickedUp }).usePlayersList);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
+    expect(screen.queryByRole("button", { name: selectPlayerLabel("Rice") })).toBeNull();
+    const panel = panelOf("CDM");
+    expect(within(panel).getByText("Saka Potatoes")).toBeTruthy();
+    expect(within(panel).queryByText(freeAgentWords)).toBeNull();
+    expect(factIn(panel, panelMinutesWords("last4", null)).textContent).toBe("90");
+  });
+
+  it("after one who has left, the next selected shows while his list loads", async () => {
+    const app = await openOnAll(WITH_FIGURES);
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    // Rice leaves the Premier League: the server keeps nobody and the list drops him.
+    const gone = fakeScouting({ ...WITH_FIGURES, players: WITH_FIGURES.players!.filter(({ code }) => code !== RICE.code) }).usePlayersList;
+    app.scouting.usePlayersList.mockImplementation(gone);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
+    expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
+
+    // Saka's list is still loading, so the last one, kept null for Rice, stays up.
+    app.scouting.usePlayersList.mockImplementation((...args) => (args[5] === SAKA.code ? undefined : gone(...args)));
+    await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka") }));
+    expect(panelOf("W")).toBeTruthy();
+  });
+
+  it("Compare with your player stays as the minute turns and his answer reloads (#1777)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const app = await openOnAll({ ...HELD, yours: { player: { position: "CM", code: SAKA.code, name: "Saka" }, squadFull: false } });
+    await userEvent.click(rowOf("Rice"));
+    turnTheMinute(app);
+    expect(screen.getByRole("button", { name: compareWithYourWords("CM", "Saka") })).toBeTruthy();
   });
 
   it("his name in the list opens his card, not his panel", async () => {
@@ -132,24 +184,25 @@ describe("his figures per 90", () => {
 describe("a pending claim on him", () => {
   const WED = Date.parse("2026-11-11T18:00:00Z");
   const THU = WED + 24 * 60 * 60 * 1000;
-  const claimOn = (id: string, { code, name, positions, club }: ListedPlayer, runAt: number, yours = true): PendingClaim => ({
+  const claimOn = (id: string, { code, name, positions, club }: ListedPlayer, at: number, yours = true): PendingClaim => ({
     claimId: id as Id<"waiverClaims">,
     teamId: id as unknown as Id<"teams">,
     teamName: yours ? "Kroos Control" : "Saka Potatoes",
     yours,
     claim: { playerCode: code, playerName: name, positions, club, seasonPoints: null },
     drop: null,
-    runAt,
+    run: { at, skippedIf: null },
   });
 
   it("says where it stands in its run, linking to My team's Transactions; another team's claim says nothing", async () => {
     const claims = [claimOn("c1", SAKA, THU), claimOn("c2", PALMER, WED), claimOn("c3", RICE, WED), claimOn("c4", SAKA, WED, false)];
     const app = await openOnAll({ ...HELD, claims });
     await userEvent.click(rowOf("Rice"));
-    expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, WED) })).toBeTruthy();
-    expect(yourClaimWords(2, WED)).toBe("Your claim 2, Wed run");
+    expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, { at: WED, skippedIf: null }) })).toBeTruthy();
+    expect(yourClaimWords(2, { at: WED, skippedIf: null })).toBe("Your claim 2, Wed run");
+    expect(yourClaimWords(2, { at: WED, skippedIf: 12 })).toBe("Your claim 2, run after GW12's last match");
     await userEvent.click(rowOf("Saka"));
-    await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, THU) }));
+    await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, { at: THU, skippedIf: null }) }));
     expect(app.path()).toBe(MY_TEAM_TRANSACTIONS_PATH);
   });
 

@@ -5,12 +5,14 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
 import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn } from "../scoring/scoring";
+import { ANY_BACK_LINE, rulesAt, withBackLine, type TeamScoring } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
-import { validateScoringSet, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
+import { checkedOnce, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
+import type { PlayerCode } from "../shared/players";
 import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44, #835): "~58' Rice: 3 key passes,
@@ -27,28 +29,22 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // or his team's instructions move it is the matchup's to work out too (#868, #990). A read at full time stores none: its records are the sync's
 // (matchStats.ts), and the live reads have shown the match by then.
 
-type PlayerCode = number;
 
 /** One man's total of one stat moving his points under some slot's pricing, as a read showed it.
  *  `from` and `to` are equal where only his minutes moved: they passed a rule's minimum, as a
  *  clean sheet's (stepPoints). */
-export interface ThresholdStep {
+interface ThresholdStep {
   stat: string;
   from: number;
   to: number;
 }
-
-/** The most steps one match held a row a step, as stored before #871 (thresholdSteps): enough for
- *  the first set, about 260 a busy match measured (thresholdSteps.test.ts). Those rows are only
- *  read now. More throws, never a silent cut. Claude's choice. */
-export const THRESHOLD_STEPS_MOST = 1000;
 
 /** The most steps one row holds: well under Convex's 8192 values an array, which a read pricing
  *  every catalogue stat for 40 men would pass. A read showing more takes more rows. */
 export const THRESHOLD_STEPS_A_ROW = 1000;
 
 /** The most rows of steps one match holds (#871). A row is a live read's, and the live tick reads a
- *  match once a minute for at most LIVE_WINDOW_MS (4 hours, liveStats.ts) from kick-off: 240 reads,
+ *  match once a minute for at most LIVE_WINDOW_MS (4 hours, shared/dueMatches.ts) from kick-off: 240 reads,
  *  and only one that showed a step stores a row. Doubled for runs by hand and a read past
  *  THRESHOLD_STEPS_A_ROW. Measured over the recorded team stats (thresholdSteps.test.ts): a busy
  *  match's steps under the roles' first values, about 3,550, fit these rows, and a double
@@ -78,11 +74,11 @@ function statPoints(rules: readonly ScoringRule[], cell: Cell, actions: number, 
 }
 
 /** Each stat whose points from `before` to `after` change, up or down, at some cell or in some
- *  role: one step a stat, however many rules price it. A role's adjustment is flat per action with
- *  no minimum minutes (scoring.ts), so any move in the count of a stat some role or team
- *  instruction in the set adjusts is a step, though no rule prices it or its rule's minimum minutes
- *  aren't yet met (#868, #990). His
- *  minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
+ *  role: one step a stat, however many rules price it. A role scores by bars of a weighed count
+ *  (scoring.ts) and a team instruction by each whole `every` (teamScoring.ts), neither of which a
+ *  single cell's rule pricing can see, so any move in the count of a stat some role or team
+ *  instruction in the set adjusts is a step, stored and priced on read, though no rule prices it
+ *  or its rule's minimum minutes aren't yet met (#868, #990). His minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
  *  step though its count stayed 1. A step whose count stayed put while his minutes fell (a feed's
  *  correction) isn't stored: priced on read, it would show the wrong way round. */
 export function thresholdSteps(before: MatchStats, after: MatchStats, set: ScoringSet): ThresholdStep[] {
@@ -100,7 +96,11 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
     const to = statIn(now, stat);
     if (from === to && minutesNow < minutesWere) continue;
     const adjustedMoves = from !== to && adjusted.has(stat);
-    if (adjustedMoves || ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) {
+    // A back line reprices a clean sheet and each goal conceded (teamScoring.ts), so a goal
+    // conceded the set's own rule leaves unpriced is a step too (#1754).
+    const pricings = [rules, rules.map((rule) => withBackLine(rule, ANY_BACK_LINE))];
+    const moves = (priced: readonly ScoringRule[]) => ALL_CELLS.some((cell) => statPoints(priced, cell, from, minutesWere) !== statPoints(priced, cell, to, minutesNow));
+    if (adjustedMoves || pricings.some(moves)) {
       steps.push({ stat, from, to });
     }
   }
@@ -115,11 +115,17 @@ function adjustedStats(set: ScoringSet): Set<string> {
   return new Set([...roleStats, ...instructionStats]);
 }
 
-/** What a stored step is worth at `cell` under the rules for its stat, before any role: what its
- *  line shows (vidiprinter.ts). Both totals are priced at his minutes then, but the before of one
- *  whose total didn't move, which was stored because his minutes passed a rule's minimum. */
-export function stepPoints(step: Pick<Doc<"thresholdSteps">, "stat" | "from" | "to" | "minutes">, set: ScoringSet, cell: Cell): number {
-  const rules = set.rules.filter((rule) => rule.stat === step.stat);
+/** What a stored step is worth at `cell` under the rules for its stat, as `team`'s back line
+ *  prices them there, before any role: what its line shows (vidiprinter.ts). Both totals are priced
+ *  at his minutes then, but the before of one whose total didn't move, which was stored because his
+ *  minutes passed a rule's minimum. `team` is undefined for a man in no lineup. */
+export function stepPoints(
+  step: Pick<StoredStep, "stat" | "from" | "to" | "minutes">,
+  set: ScoringSet,
+  cell: Cell,
+  team: TeamScoring | undefined,
+): number {
+  const rules = rulesAt(set.rules, team, cell.area).filter((rule) => rule.stat === step.stat);
   const minutesBefore = step.from === step.to ? NO_MINUTES : step.minutes;
   return inTenths(statPoints(rules, cell, step.to, step.minutes) - statPoints(rules, cell, step.from, minutesBefore));
 }
@@ -149,7 +155,7 @@ export async function storeThresholdSteps(
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
     if (fixture === null || fixture.gameweek === null) return { fixtureCode, ok: true };
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);
-    validateScoringSet(set);
+    checkedOnce(set);
     steps = records
       .filter((record) => isWhole(record))
       .flatMap((record) =>
@@ -168,17 +174,12 @@ export async function storeThresholdSteps(
   return { fixtureCode, ok: true };
 }
 
-/** One match's stored steps, oldest first: those stored a row a step before #871, then the reads'. */
+/** One match's stored steps, oldest first. */
 export async function thresholdStepsOf(ctx: QueryCtx, fixtureCode: number): Promise<StoredStep[]> {
-  const before = await takeAllOrThrow(
-    ctx.db.query("thresholdSteps").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
-    THRESHOLD_STEPS_MOST,
-    `Match ${fixtureCode} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
-  );
   const reads = await takeAllOrThrow(
     ctx.db.query("thresholdStepReads").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
     THRESHOLD_STEP_READS_MOST,
     `Match ${fixtureCode} holds more than ${THRESHOLD_STEP_READS_MOST} reads' threshold steps, so some would be left out`,
   );
-  return [...before, ...reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })))];
+  return reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })));
 }

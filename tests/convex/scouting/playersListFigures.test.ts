@@ -1,18 +1,17 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { playersListed } from "../../support/convex/playersList.harness";
 
 // Every row of Scouting's list shows his season's minutes, goals, assists and shots on target (the
 // approved picture, #1028), with no stat chosen, and each sorts the list. A stat chosen is
 // tests/convex/scouting/playersList.test.ts's.
 
-const [ANN] = MANAGERS;
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 
@@ -22,7 +21,7 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
@@ -37,12 +36,7 @@ beforeEach(async () => {
 });
 
 const listAs = async (sort: PlayersSort) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort,
-    stat: null,
-  });
+  playersListed(await actingAs(t, ANN), leagueId, { sort });
 
 test("each row has his season's minutes, goals, assists and shots on target, all 0 for one who hasn't played", async () => {
   const { players } = await listAs({ by: "name", descending: false });

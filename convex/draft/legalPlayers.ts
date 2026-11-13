@@ -1,3 +1,4 @@
+import { v, type Infer } from "convex/values";
 import { AREAS, type Area } from "../lineup/pitch";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { areasShort } from "../squads/areaMinimums";
@@ -133,7 +134,8 @@ function canFinish(squad: readonly DraftPlayer[], picks: number, left: readonly 
 /** Why a team may not pick a player: its squad has no picks left, it is at the league's maximum
  *  for his club, his pick would leave too few picks to reach an area's minimum, or it would leave
  *  no legal finish from the players still undrafted. The draft room's list says which. */
-export type NotLegal = "squadFull" | "clubFull" | "areasShort" | "noFinish";
+export const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.literal("areasShort"), v.literal("noFinish"));
+export type NotLegal = Infer<typeof notLegal>;
 
 /** Why the team holding `squad`, with `picksLeft` picks still to make counting this one, may not
  *  pick a player, under the league's squad rules and from the players still `undrafted`; null when
@@ -175,16 +177,4 @@ export function whyNotLegal(
     anyFinish ??= [...left.values()].some((group) => bySquad(group.player) && finishes(group.player));
     return anyFinish ? "noFinish" : null;
   };
-}
-
-/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
- *  pick a player, under the league's squad rules and from the players still `undrafted`. */
-export function legalPlayers(
-  squad: readonly DraftPlayer[],
-  picksLeft: number,
-  rules: SquadRules,
-  undrafted: readonly DraftPlayer[],
-): (player: DraftPlayer) => boolean {
-  const why = whyNotLegal(squad, picksLeft, rules, undrafted);
-  return (player) => why(player) === null;
 }

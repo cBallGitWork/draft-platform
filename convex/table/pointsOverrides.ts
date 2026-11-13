@@ -7,13 +7,13 @@ import { seasonRules } from "../rules/rulesHistory";
 import { inTenths } from "../scoring/values";
 import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
+import { clubByCode, lostPlayerName, playerByCode } from "../shared/players";
 import { figureWords } from "../shared/numberWords";
 import { typedText } from "../shared/typedText";
 import { rescoreGameweek } from "./finalScores";
-import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
+import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "./overrideLimits";
-import { playsIn } from "../gameweekScorer/heldMatches";
+import { overrideOf, playsIn } from "../gameweekScorer/heldMatches";
 import { leagueReads, pointsInMatch, type LeagueReads } from "../gameweekScorer/teamGameweek";
 
 // A commissioner overrides one player's points for one match, with a reason (spec/14, Changes and
@@ -57,9 +57,6 @@ export function checkPoints(points: number, most: number, outOfRange: string, wh
   if (wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
 }
 
-/** How a letter names a man the football data has lost, who has no name left to give. */
-export const lostPlayerName = (code: number) => `Player ${code}`;
-
 /** The league's commissioner, co-commissioner or the admin sets the player's points in the match. */
 export const override = mutation({
   args: { leagueId: v.id("leagues"), fixtureCode: v.number(), playerCode: v.number(), points: v.number(), reason: v.string() },
@@ -69,7 +66,7 @@ export const override = mutation({
     const reason = overrideReason(typed);
     checkPoints(points, OVERRIDE_POINTS_MOST, overrideRefusals.outOfRange, match.reads.setIn(match.gameweek).wholePointsOnly);
 
-    const held = await heldOverride(ctx, leagueId, fixtureCode, playerCode);
+    const held = await overrideOf(ctx,leagueId, fixtureCode, playerCode);
     const row = { leagueId, gameweek: match.gameweek, fixtureCode, playerCode, points, reason, by, at: Date.now() };
     const { before, after } = await rescored(ctx, match, async () => {
       if (held === null) await ctx.db.insert("pointsOverrides", row);
@@ -93,7 +90,7 @@ export const removeOverride = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, fixtureCode, playerCode }) => {
     const { by, match } = await overridable(ctx, leagueId, fixtureCode, playerCode);
-    const held = (await heldOverride(ctx, leagueId, fixtureCode, playerCode)) ?? refuse(overrideRefusals.noOverride(match.named.playerName));
+    const held = (await overrideOf(ctx,leagueId, fixtureCode, playerCode)) ?? refuse(overrideRefusals.noOverride(match.named.playerName));
     const { after, before } = await rescored(ctx, match, () => ctx.db.delete("pointsOverrides", held._id));
     await recordEvent(ctx, leagueId, by, {
       kind: "pointsOverrideRemoved",
@@ -126,7 +123,7 @@ async function overridable(ctx: MutationCtx, leagueId: Id<"leagues">, fixtureCod
   const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) refuse(overrideRefusals.noMatch);
   const { gameweek } = fixture;
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
+  if (!(await hasBegun(ctx, league, gameweek))) refuse(overrideRefusals.notBegun(gameweek));
   const playerName = await nameInMatch(ctx, fixture, playerCode);
   const [home, away] = await Promise.all([clubByCode(ctx, fixture.homeClubCode), clubByCode(ctx, fixture.awayClubCode)]);
   const match: OverriddenMatch = {
@@ -152,13 +149,6 @@ async function nameInMatch(ctx: MutationCtx, fixture: Doc<"fixtures">, playerCod
   if (player === null) return record === null ? refuse(refusals.noPlayer) : lostPlayerName(playerCode);
   if (record === null && !playsIn(fixture, player.clubCode)) refuse(overrideRefusals.notInMatch(player.name));
   return player.name;
-}
-
-function heldOverride(ctx: MutationCtx, leagueId: Id<"leagues">, fixtureCode: number, playerCode: number) {
-  return ctx.db
-    .query("pointsOverrides")
-    .withIndex("by_leagueId_and_fixtureCode_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("fixtureCode", fixtureCode).eq("playerCode", playerCode))
-    .unique();
 }
 
 /** The gameweek worked out before and after `change`, which then re-scores its stored scores. */

@@ -4,25 +4,26 @@
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
+import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { proLeague } from "../shared/preview";
+import { previewClub, previewGameMode, previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
-import { raceOrder } from "../../convex/scouting/raceOrder";
+import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
-import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
-import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
+import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortlisted } from "../draft/previewLists";
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import { previewIdOf, previewTeams } from "../table/preview";
+import { previewIdOf } from "../table/preview";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
-export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
-export const LIVERPOOL = { code: 14, name: "Liverpool", shortName: "LIV" };
+export const ARSENAL = previewClub("ARS");
+export const CHELSEA = previewClub("CHE");
+export const LIVERPOOL = previewClub("LIV");
 
 const player = (code: number, name: string, fullName: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null = null): ListedPlayer => ({
   code,
@@ -40,7 +41,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
 
 /** One player on waivers, so the filter and the player card's claim show: a run two days off first
  *  takes him. */
-const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRunAt: Date.now() + 2 * DAY_MS } });
+const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRun: { at: Date.now() + 2 * DAY_MS, skippedIf: null } } });
 
 export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
@@ -84,7 +85,7 @@ const previewRecentTotals: Record<Exclude<Period, "season">, Record<number, Stat
   },
 };
 /** The preview's totals over `period`. */
-const totalsOver = (period: Period = "season") => (period === "season" ? previewTotals : previewRecentTotals[period]);
+const totalsOver = (period: Period = DEFAULT_PERIOD) => (period === "season" ? previewTotals : previewRecentTotals[period]);
 /** The gameweeks each period counts in the preview: 9 have finished. */
 const PREVIEW_PERIOD_GAMEWEEKS: Record<Period, number[]> = { season: [], last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
 
@@ -102,10 +103,11 @@ const weigher = (period: Period) => (player: ListedPlayer) => ({ area: mainArea(
 const SHORTLISTED = [2, 6];
 export const previewShortlist = previewShortlistOf(previewPlayers, SHORTLISTED);
 setPreviewShortlisted(previewPlayers.filter(({ code }) => SHORTLISTED.includes(code)));
+setPreviewPlayers(previewPlayers);
 
 /** "Add to queue" on a shortlisted player: into the preview's draft queue (../draft/previewLists.ts). */
 const addToQueue = async (_leagueId: unknown, playerCode: number) => {
-  queueInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
+  listInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
   return null;
 };
 
@@ -118,11 +120,11 @@ const previewRace = (stat: string): StatRace => ({
   categories: RACE_CATEGORIES,
   since: null,
   teams: raceOrder(
-    previewTeams.map((name, index) => {
+    previewTeamNames.map((name, index) => {
       const stats = raceTotals(index);
       return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
     }),
-    true,
+    mostFirst(stat),
   ),
 });
 
@@ -150,19 +152,20 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
     return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
   },
-  usePlayersList: (_leagueId, filters, sort, stat, period = "season") => ({
-    clubs: [ARSENAL, CHELSEA, LIVERPOOL],
-    ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
-    players: listOf(
-      previewPlayers.map((player) => {
-        const totals = totalsOver(period)[player.code];
-        return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
-      }),
-      filters,
-      sort,
-    ),
-    pointsSeason: null,
-    periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
-  }),
+  usePlayersList: (_leagueId, filters, sort, stat, period = DEFAULT_PERIOD, keep) => {
+    const rows = previewPlayers.map((player) => {
+      const totals = totalsOver(period)[player.code];
+      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
+    });
+    return {
+      clubs: [ARSENAL, CHELSEA, LIVERPOOL],
+      ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
+      players: listOf(rows, filters, sort),
+      pointsSeason: null,
+      periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
+      mode: previewGameMode,
+      ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
+    };
+  },
   useStatRace: (_leagueId, stat) => previewRace(stat),
 };

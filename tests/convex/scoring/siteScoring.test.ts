@@ -7,7 +7,8 @@ import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { setOf, SITE_SCORING_VERSIONS_MOST } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { GAMEWEEKS, SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
@@ -20,6 +21,7 @@ import {
   fixAs,
   inGameweek,
   kickoffOf,
+  siteDeadlineOf,
   names,
   NOTICE,
   patch,
@@ -52,21 +54,21 @@ describe("reading it", () => {
       versions: [],
       draft: null,
       // From 10, 7 days away (siteScoringDraftPatch.test.ts).
-      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: kickoffOf(10) }]),
+      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: siteDeadlineOf(10) }]),
     });
-    for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
+    for (const gameweek of seasonGameweeks(PL_GAMEWEEKS)) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
   });
 
-  test(`a gameweek's set reads only the held matches, so more than ${GAMEWEEKS} gameweeks held never stops it`, async () => {
+  test(`a gameweek's set reads only the held matches, so more than ${PL_GAMEWEEKS} gameweeks held never stops it`, async () => {
     await holdGameweeks(t, { next: 9 });
     await holdGameweeksPastTheSeason(t, 2);
-    await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY }));
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", at: TODAY }));
 
     expect(await inGameweek(8)).toEqual(FIRST_SCORING);
     expect(await inGameweek(9)).toEqual(EDITED);
   });
 
-  test(`with ${GAMEWEEKS + 1} gameweeks held, Player scoring, a fix and an announced patch still name the gameweek they reach (#832)`, async () => {
+  test(`with ${PL_GAMEWEEKS + 1} gameweeks held, Player scoring, a fix and an announced patch still name the gameweek they reach (#832)`, async () => {
     await holdGameweeks(t, { next: 9 });
     await holdGameweeksPastTheSeason(t, 1);
 

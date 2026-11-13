@@ -36,7 +36,7 @@ test("the football sync stores each match's score and minutes from FPL's fixture
   const fromFpl = { feed: "fpl", readAt: run.ranAt, clockLabel: null };
   expect(await heldScores(t)).toEqual(
     new Map([
-      [FINISHED, { fixtureCode: FINISHED, state: "fullTime", homeGoals: 3, awayGoals: 0, minutes: 90, ...fromFpl }],
+      [FINISHED, { fixtureCode: FINISHED, state: "fullTime", homeGoals: 3, awayGoals: 0, minutes: 90, ...fromFpl, fullTimeAt: run.ranAt }],
       [LIVE, { fixtureCode: LIVE, state: "live", homeGoals: 2, awayGoals: 1, minutes: 72, ...fromFpl }],
       [UPCOMING, { fixtureCode: UPCOMING, state: "upcoming", homeGoals: null, awayGoals: null, minutes: null, ...fromFpl }],
     ]),
@@ -116,7 +116,7 @@ test("a feed lagging behind never moves the other feed's full time back to live"
   await write(t, "pl", AT, fullTime);
 
   expect(await write(t, "fpl", AT + MINUTE_MS, live(2, 1, 90))).toBe(0);
-  expect(await heldLive(t)).toEqual({ ...fullTime, feed: "pl", readAt: AT });
+  expect(await heldLive(t)).toEqual({ ...fullTime, feed: "pl", readAt: AT, fullTimeAt: AT });
 });
 
 test("a feed may move its own read back: a match abandoned and reset", async () => {
@@ -125,6 +125,19 @@ test("a feed may move its own read back: a match abandoned and reset", async () 
 
   expect(await write(t, "pl", AT + MINUTE_MS, upcoming)).toBe(1);
   expect(await heldLive(t)).toEqual({ ...upcoming, feed: "pl", readAt: AT + MINUTE_MS });
+});
+
+test("keeps when a match was first read at full time while it stays there, and drops it once a feed moves it back (#1470)", async () => {
+  const t = freshConvex();
+  await write(t, "pl", AT, live(2, 1, 90));
+  await write(t, "pl", AT + MINUTE_MS, fullTime);
+  await write(t, "fpl", AT + 5 * MINUTE_MS, { ...fullTime, clockLabel: null });
+  expect(await heldLive(t)).toMatchObject({ feed: "fpl", readAt: AT + 5 * MINUTE_MS, fullTimeAt: AT + MINUTE_MS });
+
+  await write(t, "fpl", AT + 6 * MINUTE_MS, live(2, 1, 91));
+  expect((await heldLive(t))?.fullTimeAt).toBeUndefined();
+  await write(t, "fpl", AT + 9 * MINUTE_MS, fullTime);
+  expect(await heldLive(t)).toMatchObject({ fullTimeAt: AT + 9 * MINUTE_MS });
 });
 
 // The read a screen makes.

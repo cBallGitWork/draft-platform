@@ -28,8 +28,8 @@ describe("a sweeper in a back three", () => {
   test("picked again into a back four, the first lineup's sweeper starts on his best centre-back role instead", () => {
     const held = [{ playerCode: 3, area: "defence", lane: "centre", role: "sweeper" }] as const;
     const picked = { starters: [{ playerCode: 3, area: "defence", lane: "centre" } as const, { playerCode: 4, area: "defence", lane: "leftCentre" } as const], bench: [] };
-    expect(withDroppedRoles(picked, () => [], [...held]).starters[0]).toEqual({ playerCode: 3, area: "defence", lane: "centre" });
+    expect(withDroppedRoles(picked, () => [], new Map(), [...held]).starters[0]).toEqual({ playerCode: 3, area: "defence", lane: "centre" });
     const three = { ...picked, starters: [...picked.starters, { playerCode: 5, area: "defence", lane: "rightCentre" } as const] };
-    expect(withDroppedRoles(three, () => [], [...held]).starters[0]).toEqual(held[0]);
+    expect(withDroppedRoles(three, () => [], new Map(), [...held]).starters[0]).toEqual(held[0]);
   });
 });

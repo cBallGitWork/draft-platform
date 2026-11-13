@@ -5,14 +5,13 @@ import type { TileMan } from "./PlayerTile";
 import { CategoryLines, RoleWords } from "../playerCard/Breakdown";
 import { playerCardPath } from "../playerCard/paths";
 import { matchPath } from "../premierLeague/paths";
-import { Panel, PanelNote } from "../ui/Panel";
+import { MoreLink } from "../ui/MoreLink";
+import { CloseButton, Panel, PanelNote } from "../ui/Panel";
 import {
   breakdownMatchWords,
   breakdownRoleWords,
   closeBreakdownLabel,
-  closeGlyph,
   figureWords,
-  nextGlyph,
   noFigureWords,
   noMatchBreakdownWords,
   notArrivedWords,
@@ -38,11 +37,7 @@ export function PlayerBreakdown({ leagueId, slot, teamName, version, close }: { 
           <span className="text-data font-normal text-soft">{breakdownRoleWords(slot.role?.name ?? null, teamName)}</span>
         </span>
       }
-      aside={
-        <button type="button" aria-label={closeBreakdownLabel} onClick={close} className="min-h-tap min-w-tap text-title leading-none">
-          {closeGlyph}
-        </button>
-      }
+      aside={<CloseButton label={closeBreakdownLabel} close={close} className="text-title leading-none" />}
     >
       {slot.breakdown.length === 0 ? (
         <PanelNote>{noMatchBreakdownWords}</PanelNote>
@@ -50,9 +45,7 @@ export function PlayerBreakdown({ leagueId, slot, teamName, version, close }: { 
         slot.breakdown.map((match) => <MatchLines key={match.fixtureCode} match={match} version={version} />)
       )}
       <div className="flex justify-end px-3 pb-2">
-        <Link to={playerCardPath(leagueId, slot.playerCode)} className="flex min-h-tap items-center font-semibold">
-          {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
-        </Link>
+        <MoreLink to={playerCardPath(leagueId, slot.playerCode)}>{playerCardWords}</MoreLink>
       </div>
     </Panel>
   );

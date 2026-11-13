@@ -6,13 +6,12 @@ import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, EVE } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): "Your invite
 // to <league> expired / was cancelled / couldn't be used: <reason>" (Craig, 22 Oct 2026).
-
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -20,7 +19,7 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
 });
 
 /** What `email`'s leagues page is told of their newest invite, at the minute it is now. */
@@ -55,7 +54,7 @@ describe("an invite that ended without them joining", () => {
   test("only the newest invite is told of", async () => {
     const inviteId = await invite(t, leagueId, ANN);
     await (await asCommissioner(t)).mutation(api.joining.invites.cancel, { inviteId });
-    const other = await adminCreatesLeague(t, 4, "Other league");
+    const other = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other league");
     await invite(t, other, ANN);
     vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
 
@@ -91,7 +90,7 @@ describe("nothing to tell", () => {
   });
 
   test("reading as many invites as it reads at once says so, so the older ones aren't ignored silently", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     await t.run(async (ctx) => {
       for (let i = 0; i < INVITES_TO_ONE_EMAIL_READ; i += 1) {
         await ctx.db.insert("invites", { leagueId, email: ANN, invitedBy: COMMISSIONER, expiresAt: Date.now() + i, delivery: "sent" });

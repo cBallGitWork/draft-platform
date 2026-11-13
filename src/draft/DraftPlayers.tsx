@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { Position } from "../../convex/positions/positionTables";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ClubShort } from "../ui/ClubName";
@@ -8,6 +9,7 @@ import { statFigure } from "../shared/figures";
 import type { ListedPlayer, PlayersFilters, PlayersSort } from "../scouting/seam";
 import { columns, figureWords, noFigureWords, noneMatchWords, statLabel } from "../scouting/words";
 import { useLastLoaded } from "../shared/useLastLoaded";
+import { useListSort } from "../shared/useListSort";
 import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
@@ -19,7 +21,6 @@ import {
   sortedPlayers,
   withFigures,
   type RoomPlayer,
-  type RoomSort,
   type RoomSortColumn,
 } from "./playersView";
 import { PositionTabs } from "./PositionTabs";
@@ -82,16 +83,9 @@ export function DraftPlayers({
 }) {
   const [position, setPosition] = useState<Position | null>(null);
   const [find, setFind] = useState("");
-  const [sort, setSort] = useState<RoomSort>(OPENING_SORT);
-  const [stat, setStat] = useState<CatalogueStat | null>(null);
+  const { sort, sortBy, stat, show } = useListSort<RoomSortColumn>(OPENING_SORT, FIRST_DESCENDING);
   // While a changed stat loads, the last list stays up.
   const list = useLastLoaded(usePlayersList(leagueId, UNDRAFTED, BY_NAME, stat?.stat ?? null));
-  const sortBy = (by: RoomSortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
-  const show = (chosen: CatalogueStat | null) => {
-    setStat(chosen);
-    if (chosen !== null) setSort({ by: "stat", descending: FIRST_DESCENDING.stat });
-    else if (sort.by === "stat") setSort(OPENING_SORT);
-  };
   const shown: readonly Column[] = ["positions", "name", "rank", "lastSeasonPoints", ...(stat === null ? OVERVIEW_COLUMNS : (["stat"] as const))];
   const sortable = shown.filter((column): column is RoomSortColumn => column !== "positions");
   const queuePlace = new Map(queue.map((code, index) => [code, index + 1]));
@@ -189,8 +183,10 @@ function PlayerRow({
       {shown.map((column) => {
         const className = cellClasses(column);
         switch (column) {
-          case "positions":
-            return <td key={column} className={className}>{player.positions[0] !== undefined && <PositionChip label={player.positions[0]} dimmed={greyed} />}</td>;
+          case "positions": {
+            const main = cardOpensAt(player.positions);
+            return <td key={column} className={className}>{main !== null && <PositionChip label={main} dimmed={greyed} />}</td>;
+          }
           case "name":
             return (
               <th key={column} scope="row" title={player.fullName} className={`${className} font-normal whitespace-nowrap`}>

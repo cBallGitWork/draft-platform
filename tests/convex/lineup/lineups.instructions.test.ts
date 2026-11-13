@@ -5,15 +5,12 @@ import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { FOUR_FOUR_TWO, holdSquad, SQUAD_CLUB } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.harness";
 
 // A lineup's two team instructions, saved with it (spec/05, Team instructions; #990): only ones its
 // formation offers, and until its manager picks, the formation's defaults.
-
-const [ANN] = MANAGERS;
-const NEXT = 9;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
@@ -6,10 +6,11 @@ import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import schema from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange, type Caller } from "../../support/convex/leagueMutations.harness";
-import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // Every public mutation given a league refuses a signed-out caller and a signed-in outsider, and
 // changes nothing (#141; spec/13, Who runs it). Queries are left out: what an outsider may read
@@ -46,7 +47,7 @@ beforeEach(async () => {
   // Opening a letter needs one to ANN, and undoing a deletion a league being deleted: deleted
   // last, as running every timer would delete it for good.
   await (await actingAs(t, COMMISSIONER)).mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Welcome", body: "Season starts soon." });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   const annsLetter = await t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", ANN)).first());
   if (!annsLetter) throw new Error(`writing to the league filed no letter to ${ANN}`);
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");

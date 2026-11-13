@@ -5,7 +5,7 @@ import { clubRecord, position } from "../schema";
 import { memberOf, teamIn } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "./squadPlace";
-import { positionOrder, pricer, squadPoints } from "./teamSquad";
+import { bySquadOrder, pricer, squadPoints } from "./teamSquad";
 
 // Another team's squad, read-only, opened from its name on a player's card (Craig, 9 Nov 2026,
 // #1027: "a read-only page of that team, its Squad table (players, positions, club, season
@@ -23,7 +23,6 @@ const otherSquadRow = v.object({
    *  null ("—") while none of his matches has been priced. */
   seasonPoints: v.union(v.number(), v.null()),
 });
-export type OtherSquadRow = Infer<typeof otherSquadRow>;
 
 const otherSquad = v.object({ teamName: v.string(), players: v.array(otherSquadRow) });
 export type OtherSquad = Infer<typeof otherSquad>;
@@ -54,7 +53,7 @@ export const ofTeam = query({
         };
       }),
     );
-    players.sort((one, other) => positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
+    players.sort(bySquadOrder);
     return { teamName: team.name, players };
   },
 });

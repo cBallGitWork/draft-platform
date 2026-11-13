@@ -20,10 +20,10 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { pathToFileURL } from "node:url";
 import { PAST_ROWS_ADDED_MOST } from "../convex/pastSeasons/pastSeasonLimits.ts";
 import { SOURCE_COLUMNS, fplCodesByRoot, fplPositionsByCode, pastSeasonRows, seasonCounts, withoutFplCode } from "../convex/pastSeasons/pastSeasonRows.ts";
-import { captured } from "./live-setup/tools.mjs";
+import { bin, captured, cli } from "./live-setup/tools.mjs";
+import { ranDirectly } from "./thisScript.mjs";
 
 /** A season's log in ai-carling, by the year it starts (2021 → season=21-22). */
 const logOf = (start) => {
@@ -74,15 +74,14 @@ json.dump([{key: clean(value) for key, value in row.items()} for row in rows], s
 `;
 
 const LOAD = "pastSeasons/pastSeasonLoad";
+/** The load's two writes: a page of a season's old rows cleared, then a batch of its rows added. */
+export const CLEAR_SEASON = `${LOAD}:clearSeason`;
+export const ADD_ROWS = `${LOAD}:addRows`;
 /** The job that prices last season under today's set, started once the rows are in. */
 export const REPRICE = "pastSeasons/pastSeasonPoints:reprice";
 
-/** Runs a command, resolving with its stdout, or throwing with what it said when it fails. */
-async function run(exec, command, args, cwd) {
-  const { code, stdout, stderr } = await exec(command, args, { cwd });
-  if (code !== 0) throw new Error(`\`${command} ${args[0]}\` failed (exit ${code}): ${(stderr || stdout).trim()}`);
-  return stdout;
-}
+/** Runs a command, resolving with its stdout, or throwing with what it said, by its full path, when it fails. */
+const run = (exec, command, args, cwd) => cli(exec, command, command, args, { cwd });
 
 /** A bare NaN as a value, as Python's json writes a missing number: the older seasons' FPL lists
  *  (`data/raw/fpl_history/<season>/players_raw.json`) have them, and JSON has no NaN. */
@@ -134,17 +133,17 @@ export async function loadPastSeason({ season, from, players, prod = false, cwd 
   }
   const rows = pastSeasonRows(season, kept, codes, positions);
 
-  const convex = join(cwd, "node_modules", ".bin", "convex");
+  const convex = bin(cwd, "convex");
   const target = prod ? ["--prod"] : [];
-  const call = async (fn, args) => JSON.parse(await run(exec, convex, ["run", `${LOAD}:${fn}`, JSON.stringify(args), ...target], cwd));
+  const call = async (fn, args) => JSON.parse(await run(exec, convex, ["run", fn, JSON.stringify(args), ...target], cwd));
   let cleared = 0;
   for (let more = true; more; ) {
-    const page = await call("clearSeason", { season });
+    const page = await call(CLEAR_SEASON, { season });
     cleared += page.deleted;
     more = page.more;
   }
   let added = 0;
-  for (const batch of batches(rows, PAST_ROWS_ADDED_MOST)) added += await call("addRows", { rows: batch });
+  for (const batch of batches(rows, PAST_ROWS_ADDED_MOST)) added += await call(ADD_ROWS, { rows: batch });
   await run(exec, convex, ["run", REPRICE, JSON.stringify({ cursor: null }), ...target], cwd);
   print(
     `${season}: ${counts.matches} matches, ${counts.playedRows} played rows, ${counts.played} who played and ${counts.named} named; ` +
@@ -153,7 +152,7 @@ export async function loadPastSeason({ season, from, players, prod = false, cwd 
   return { counts, cleared, added, skipped };
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+if (ranDirectly(import.meta.url)) {
   try {
     const { values } = parseArgs({
       options: { season: { type: "string" }, from: { type: "string" }, players: { type: "string" }, prod: { type: "boolean", default: false } },

@@ -1,4 +1,5 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/values";
@@ -7,11 +8,9 @@ import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { EVERTON_POINTS, HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { FULL_TIME_READ, GAMEWEEK, heldMatch, HULL_EVERTON } from "../../support/convex/matchStats.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { elapse, everyJobRuns } from "../../support/convex/test.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
 import {
-  ANN,
-  BOB,
   DEADLINE,
   ELEVENS,
   footballSyncAt,
@@ -21,6 +20,7 @@ import {
   tableOf,
   type MiniBeta,
 } from "../../support/convex/miniBeta.harness";
+import { ANN, BOB } from "../../support/convex/leagues.harness";
 
 // The mini beta closes "when the four-team league plays a real gameweek end to end" (#36): "a quick
 // league of about four, with players assigned to teams rather than drafted" (SPEC.md). Here it does,
@@ -58,7 +58,10 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
   const league = await miniBetaLeague(beforeKickoff());
   const { t, teams } = league;
   const emailOf = new Map([...teams].map(([email, teamId]) => [teamId, email]));
-  expect(league.savedFrom).toEqual([GAMEWEEK, GAMEWEEK, GAMEWEEK, GAMEWEEK]);
+  // Each save goes to the gameweek the league's deadlines mark as next (#1764). This world holds no
+  // match before gameweek 6, so gameweeks 1 to 5 have no deadline and none has begun: that is
+  // gameweek 1, and each lineup holds from there into gameweek 6.
+  expect(league.savedFrom).toEqual([FIRST_GAMEWEEK, FIRST_GAMEWEEK, FIRST_GAMEWEEK, FIRST_GAMEWEEK]);
 
   // The deadline passes, and the football sync's next run records it and fixes the fixtures.
   const passed = await footballSyncAt(t, DEADLINE + MINUTE_MS, beforeKickoff());
@@ -104,7 +107,7 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
 
   // The hour is up: the match locks, and the lock stores each team's final score.
   await elapse(t, MINUTE_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect((await heldMatch(t)).status?.state).toBe("locked");
   const stored = await t.run((ctx) => ctx.db.query("finalScores").collect());
   expect(new Map(stored.map((row) => [emailOf.get(row.teamId)!, row.points]))).toEqual(expected);

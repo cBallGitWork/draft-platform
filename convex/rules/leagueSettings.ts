@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { refuse } from "../shared/leagueAccess";
-import { draftRulesOf, tradeRulesOf } from "./firstRules";
-import { sortedJson } from "../shared/sortedJson";
 import { changeLatest, editorView, editorViewOf, revisionShape } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
 import { leagueSettingsOf, leagueSettingsShape, type LeagueSettings } from "./leagueSettingsPart";
@@ -16,11 +15,15 @@ export const settingsRefusals = {
   squadSizeFixed: "League settings changes the squad's maximum size; it can't add a squad size limit or take one away.",
 };
 
-/** The league's settings as League settings edits them, as `editorView` reads them. */
+/** The league's settings as League settings edits them, as `editorView` reads them, with how many
+ *  gameweeks the season has, the latest a trade deadline can be (#1618). */
 export const settings = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: editorViewOf(leagueSettingsShape),
-  handler: (ctx, { leagueId, now }) => editorView(ctx, leagueId, now, leagueSettingsOf),
+  returns: v.object({ ...editorViewOf(leagueSettingsShape).fields, seasonGameweeks: v.number() }),
+  handler: async (ctx, { leagueId, now }) => ({
+    ...(await editorView(ctx, leagueId, now, leagueSettingsOf)),
+    seasonGameweeks: await seasonGameweekCount(ctx),
+  }),
 });
 
 /** League settings' change: the latest rules with these settings, as `changeLatest` saves them.
@@ -35,9 +38,9 @@ export const changeSettings = mutation({
   handler: (ctx, { leagueId, settings, revision }) => changeLatest(ctx, leagueId, revision, (latest) => withLeagueSettings(latest, settings)),
 });
 
-/** The rules with these settings. The draft's or the trades' is written only if it differs from
- *  what the league plays by, so rules saved before it was a rule don't read as changing it.
- *  Refused if the settings would add or take away the squad size limit. */
+/** The rules with these settings. Rules saved before the draft or the trades were rules don't read
+ *  as changing them, as `changeRules` reads each side as it plays. Refused if the settings would
+ *  add or take away the squad size limit. */
 function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): LeagueRules {
   const { size } = rules.squad;
   if ((size === null) !== (settings.squadMaximum === null)) refuse(settingsRefusals.squadSizeFixed);
@@ -45,8 +48,8 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     ...rules,
     oddTeamOut: settings.oddTeamOut,
     gamesPerGameweek: settings.gamesPerGameweek,
-    ...(sortedJson(settings.draft) !== sortedJson(draftRulesOf(rules)) && { draft: settings.draft }),
-    ...(sortedJson(settings.trades) !== sortedJson(tradeRulesOf(rules)) && { trades: settings.trades }),
+    draft: settings.draft,
+    trades: settings.trades,
     waivers: settings.waivers,
     squad: {
       size: size === null || settings.squadMaximum === null ? null : { ...size, maximum: settings.squadMaximum },

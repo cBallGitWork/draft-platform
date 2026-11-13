@@ -70,6 +70,25 @@ export function isLocked(deadline: number | null, now: number): boolean {
   return deadline !== null && now >= deadline;
 }
 
+/** The gameweeks the league has begun by `now`: those whose deadline has passed. Pure. */
+export const begunBy = (deadlines: LeagueDeadlines, now: number) =>
+  [...deadlines].flatMap(([gameweek, deadline]) => (isLocked(deadline, now) ? [gameweek] : []));
+
+/** The highest of `values`, or null with none. Pure. */
+export const latestOf = (values: readonly number[]) => (values.length === 0 ? null : Math.max(...values));
+
+/** The latest gameweek the league has begun by `now`, or null before its first deadline. Pure. */
+export function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
+  return latestOf(begunBy(deadlines, now));
+}
+
+/** Whether a deadline of the league's passed after `from` and by `now`: once one has, a free agent
+ *  picked up at `from` has been in the squad for a deadline (spec/08, the churn rule), and an
+ *  offer made at `from` closes unanswered. Pure. */
+export function deadlinePassedSince(deadlines: LeagueDeadlines, from: number, now: number): boolean {
+  return [...deadlines.values()].some((deadline) => deadline !== null && deadline > from && deadline <= now);
+}
+
 /** The first deadline after `from`, with its gameweek, or null with none set: when an offer made
  *  then closes unanswered, and the waiver window's next deadline. Pure. */
 export function nextDeadline(deadlines: LeagueDeadlines, from: number): { gameweek: number; at: number } | null {

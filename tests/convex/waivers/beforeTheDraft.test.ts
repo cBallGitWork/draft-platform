@@ -3,11 +3,12 @@ import { api } from "../../../convex/_generated/api";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { dropRefusals } from "../../../convex/waivers/waivers";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, ANN, BOB } from "../../support/convex/leagues.harness";
 import { holdPlayers } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, noDraft, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, noDraft, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // Free agency and waivers wait for the draft (#1326, spec/08 Waivers and free agency, S08.1; Craig, 8 Nov
 // 2026: "refused until drafted"): before the league's draft has run, and while it is live, no
@@ -22,12 +23,11 @@ beforeEach(async () => {
 /** The league's draft row as `started` says: none, or one started with picks still to make. */
 const draftIs = async (state: "notStarted" | "live") => {
   await noDraft(w.t, w.leagueId);
-  if (state === "live") await w.t.run((ctx) => ctx.db.insert("drafts", { leagueId: w.leagueId, started: { at: Date.now(), teamIds: w.teams, rounds: 15 } }));
+  if (state === "live") await draftStarted(w.t, w.leagueId, w.teams, LIVE_DRAFT_ROUNDS);
 };
 
-const pickUp = async (email: string, playerCode: number) =>
-  (await actingAs(w.t, email)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode, dropCode: null });
-const drop = async (email: string, playerCode: number) => (await actingAs(w.t, email)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode });
+const pickUp = (email: string, playerCode: number) => w.pickUp(email, playerCode);
+const drop = (email: string, playerCode: number) => w.drop(email, playerCode);
 
 describe.each(["notStarted", "live"] as const)("with the draft %s", (state) => {
   beforeEach(() => draftIs(state));

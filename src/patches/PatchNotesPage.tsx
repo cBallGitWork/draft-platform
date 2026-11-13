@@ -1,6 +1,7 @@
 import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import type { PatchesSeam, VersionNotes } from "./seam";
 import { LabReportView } from "./LabReport";
+import { versionAnchor } from "./paths";
 import { fromWords, KIND_WORDS, labTitle, loadingWords, noVersionsWords, notesHint, nothingScoresDifferentlyWords, PATCH_NOTES_TITLE } from "./words";
 
 /** The patch notes (spec/14, Changes and corrections): every version of the site's scoring, newest
@@ -25,7 +26,7 @@ export function PatchNotesPage({ seam }: { seam: PatchesSeam }) {
 
 /** One version: its name, whether a patch or a fix, when it is in force from, and its changes. */
 function Version({ version: { name, kind, takesEffectAt, changes, lab } }: { version: VersionNotes }) {
-  const headingId = `version-${name}`;
+  const headingId = versionAnchor(name);
   return (
     <li aria-labelledby={headingId} className="border-t border-panel-rule">
       <h2 id={headingId} className="flex flex-wrap items-baseline gap-x-3 bg-plate px-3 py-1 shadow-bevel-plate">

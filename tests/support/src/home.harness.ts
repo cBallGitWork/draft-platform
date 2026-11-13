@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 type Row = LeagueHome["table"][number];
 
@@ -23,22 +24,28 @@ export const homeRow = (position: number, teamName: string, rest: Partial<Row> =
 });
 
 /** A head-to-head of `team` against `opponent`, null for the league's average, unscored unless
- *  `points` says, and the team's first game in the gameweek unless `game` says. */
-export const homeFixture = (team: string, opponent: string | null, points: { team: number; opponent: number } | null = null, game = 1) => ({
+ *  `points` says (final unless it says live), and the team's first game in the gameweek unless
+ *  `game` says. */
+export const homeFixture = (
+  team: string,
+  opponent: string | null,
+  points: { team: number; opponent: number; provisional?: boolean } | null = null,
+  game = 1,
+) => ({
   teamId: `team-${team}` as Id<"teams">,
   game,
   team,
   opponent,
-  points,
+  points: points && { provisional: false, ...points },
 });
 
 /** Two teams in gameweek 1, nothing scored, moved or written, no matchday open: what league home
  *  holds by default. */
 export const quietHome: LeagueHome = {
   format: "headToHead",
-  thisGameweek: { gameweek: 1, fixtures: [homeFixture("Team 1", "Team 2")], byes: [] },
+  thisGameweek: { gameweek: 1, fixtures: [homeFixture(MY_TEAM_NAME, THEIR_TEAM_NAME)], byes: [] },
   matchday: null,
-  table: [homeRow(1, "Team 1", { mine: true }), homeRow(2, "Team 2")],
+  table: [homeRow(1, MY_TEAM_NAME, { mine: true }), homeRow(2, THEIR_TEAM_NAME)],
   teams: 2,
   squadMoves: [],
   pinnedLetter: null,
@@ -46,10 +53,10 @@ export const quietHome: LeagueHome = {
 };
 
 /** Gameweek 1's recap, written, no score changed since. */
-export const gameweekOneRecap: Recap = { gameweek: 1, text: "Team 1 beat Team 2.\nSaka scored 15.", writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
+export const gameweekOneRecap: Recap = { gameweek: 1, text: `${MY_TEAM_NAME} beat ${THEIR_TEAM_NAME}.\nSaka scored 15.`, writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
 
 /** A move on the News tab, at `at`, of `team`: Saka joining it unless `rest` says otherwise. */
-export const newsMove = (at: number, teamName: string, rest: Partial<NewsMove> = {}): NewsMove => ({
+export const newsMove = (at: number, teamName: string, rest: Partial<Exclude<NewsMove, { kind: "tradeMade" }>> = {}): NewsMove => ({
   at,
   filed: at,
   kind: "playerAssigned",
@@ -67,10 +74,7 @@ export const newsMove = (at: number, teamName: string, rest: Partial<NewsMove> =
 export const quietNews: LeagueNews = {
   moves: [],
   older: null,
-  teams: [
-    { teamId: "team-Team 1" as Id<"teams">, teamName: "Team 1" },
-    { teamId: "team-Team 2" as Id<"teams">, teamName: "Team 2" },
-  ],
+  teams: [MY_TEAM_NAME, THEIR_TEAM_NAME].map((teamName) => ({ teamId: `team-${teamName}` as Id<"teams">, teamName })),
   pinnedLetter: null,
 };
 

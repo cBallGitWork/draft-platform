@@ -18,7 +18,7 @@ import { MINUTE_MS } from "../shared/time";
 // lines whole, so a reworded line is rewritten and a deleted one goes; once the match is no longer
 // polled they stay as written. A failed read, a stream behind the clock or an unworded line marks
 // the commentary delayed, logged, while the points carry on; should the tick itself stop, the
-// screens judge the held lines against the clock (`delayedAt`). The full-time line carries the score
+// screens judge the held lines against the clock (`delayedFrom`). The full-time line carries the score
 // alone: each league scores its own way (#421), so its points are the matchup's to add.
 
 type CommentaryLineRow = Infer<typeof commentaryLine>;
@@ -126,7 +126,7 @@ export async function readCommentary(
 /** Why the stream counts as behind: its newest timed line trails the clock of a match in play by
  *  more than `COMMENTARY_BEHIND_MINUTES`. Not judged before kickoff, at half-time, when the clock
  *  stops, or at full time. */
-function behind(stream: readonly CommentaryLine[], score: ScoreRead): string | null {
+export function behind(stream: readonly TimedLine[], score: ScoreRead): string | null {
   if (score.state !== "live" || score.minutes === null) return null;
   // The same words each minute it trails, so the row is not rewritten each tick.
   return trails(stream, score.minutes) ? STREAM_BEHIND : null;
@@ -137,24 +137,41 @@ type TimedLine = Pick<CommentaryLineRow, "minute" | "addedMinute" | "type">;
 /** Whether the newest timed line trails the match clock's `minutes` by more than
  *  `COMMENTARY_BEHIND_MINUTES`. A line's minute and the clock count alike, the second half from 45. */
 function trails(lines: readonly TimedLine[], minutes: number): boolean {
-  const newest = lines.find((line) => line.minute != null && line.type !== FEED_TYPE.matchEnds);
-  const newestMinute = (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
-  return minutes - newestMinute > COMMENTARY_BEHIND_MINUTES;
+  return minutes - newestMinuteOf(lines) > COMMENTARY_BEHIND_MINUTES;
 }
 
-/** Whether the held commentary shows as delayed at `now`, the screen's minute: the tick marked it,
- *  or the match is in play and its newest held line trails the clock, run on from the held score's
- *  read to `now`, by more than `COMMENTARY_BEHIND_MINUTES`. The second says so when the tick itself
- *  has stopped, as nothing then reads the stream to mark it (#917). */
-export function delayedAt(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null, now: number): boolean {
-  if (held.delayed !== null) return true;
-  if (score === null || score.state !== "live" || score.minutes === null) return false;
-  const clock = score.minutes + Math.max(0, Math.floor((now - score.readAt) / MINUTE_MS));
-  return trails(held.lines, clock);
+/** The newest timed line's minute, its added time on; 0 with none. */
+function newestMinuteOf(lines: readonly TimedLine[]): number {
+  const newest = lines.find((line) => line.minute != null && line.type !== FEED_TYPE.matchEnds);
+  return (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
 }
+
+/** The moment the held commentary shows as delayed from, so a query can say it without the clock
+ *  (#1550; the screen judges it at its minute, commentaryAt.ts): always (0) once the tick marked it
+ *  or the newest held line already trails the held score's clock; else, in play, the whole minute
+ *  after the read at which the clock, run on from the read, first trails the newest held line by
+ *  more than `COMMENTARY_BEHIND_MINUTES`, which says so when the tick itself has stopped, as nothing
+ *  then reads the stream to mark it (#917); never (null) while the match isn't in play. */
+export function delayedFrom(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null): number | null {
+  if (held.delayed !== null) return ALWAYS;
+  if (score === null || score.state !== "live" || score.minutes === null) return null;
+  if (trails(held.lines, score.minutes)) return ALWAYS;
+  // The run-on minutes are whole, so the fewest that trail are the next whole number past the gap.
+  const minutesOn = Math.floor(COMMENTARY_BEHIND_MINUTES + newestMinuteOf(held.lines) - score.minutes) + 1;
+  return score.readAt + minutesOn * MINUTE_MS;
+}
+
+/** The earliest of `delayedFrom`'s moments: commentary over several matches is delayed once any is. */
+export function earliestDelay(moments: readonly (number | null)[]): number | null {
+  const given = moments.filter((moment) => moment !== null);
+  return given.length === 0 ? null : Math.min(...given);
+}
+
+/** `delayedFrom`'s "always". */
+const ALWAYS = 0;
 
 /** Each reason a commentary is delayed, as one; null with none. */
-function joinedReasons(reasons: (string | null)[]): string | null {
+export function joinedReasons(reasons: (string | null)[]): string | null {
   const given = reasons.filter((reason) => reason !== null);
   return given.length === 0 ? null : given.join("; ");
 }

@@ -3,21 +3,19 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Period } from "../../../convex/scouting/periods";
-import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertLockedStatus, insertPlayers } from "../../support/convex/footballRows.harness";
+import { playersListed } from "../../support/convex/playersList.harness";
 import { at } from "../../support/convex/seasonPoints.harness";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Scouting's period (#1028, story 3; Craig, 9 Nov 2026, on #1028, answer 5): the list, his per-90
 // panel and Compare over the last 4 or 6 finished Premier League gameweeks, a match he missed
 // counting 0 minutes, and before the season's first match, last season's final 4 or 6.
 
-const [ANN] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 const KICKOFF = Date.parse("2026-08-15T14:00:00Z");
 
@@ -31,7 +29,7 @@ const match = (gameweek: number, first = KICKOFF, droppedAt?: number) => ({
   ...(droppedAt === undefined ? {} : { droppedAt }),
 });
 /** A match read at full time. */
-const fullTime = (ctx: MutationCtx, fixtureCode: number) => ctx.db.insert("matchStatsStatus", { fixtureCode, state: "locked", fullTimeAt: KICKOFF, lastReadAt: KICKOFF });
+const fullTime = (ctx: MutationCtx, fixtureCode: number) => insertLockedStatus(ctx, fixtureCode, KICKOFF);
 /** Saka's stats in a gameweek: a goal in each from the third. */
 const sakaIn = (gameweek: number): Record<string, number> => (gameweek >= 3 ?{ minutes: 90, goals_scored: 1 } : { minutes: 90 });
 
@@ -40,12 +38,12 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER]);
-    await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
+    await holdExampleScoring(ctx);
   });
 });
 
@@ -62,13 +60,7 @@ const thisSeason = () =>
   });
 
 const listOver = async (period: Period) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort: { by: "name", descending: false },
-    stat: null,
-    period,
-  });
+  playersListed(await actingAs(t, ANN), leagueId, { period });
 const rowOf = async (period: Period, code: number) => (await listOver(period)).players.find((player) => player.code === code)!;
 
 test("over the last 4 finished gameweeks, the list adds up those matches only, a gameweek still being played left out", async () => {
@@ -110,13 +102,7 @@ test("the list sorts by the period's figures", async () => {
   await thisSeason();
   const names = async (period: Period) =>
     (
-      await (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-        leagueId,
-        filters: { availability: "all", position: null, clubCode: null },
-        sort: { by: "minutes", descending: true },
-        stat: "goals_scored",
-        period,
-      })
+      await playersListed(await actingAs(t, ANN), leagueId, { sort: { by: "minutes", descending: true }, stat: "goals_scored", period })
     ).players.map((player) => [player.name, player.stat]);
   expect(await names("last4")).toEqual([["Saka", 4], ["Palmer", 0]]);
 });

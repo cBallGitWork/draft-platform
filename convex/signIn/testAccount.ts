@@ -6,7 +6,7 @@ import { internalMutation } from "../_generated/server";
 import { recordEvent } from "../mail/letters";
 import { putOnTeam } from "../leagues/teams";
 import { TEST_ACCOUNT_EMAIL_SETTING, TEST_ACCOUNT_SECRET_SETTING } from "../outbound/deploymentSettings";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { adminEmail, normaliseEmail } from "./allowedEmails";
 
@@ -77,8 +77,7 @@ export const setUp = internalMutation({
   handler: async (ctx, { leagueName, teamNumber }) => {
     const account = testAccount();
     if (account === null) throw new Error(`${TEST_ACCOUNT_EMAIL_SETTING} and ${TEST_ACCOUNT_SECRET_SETTING} must both be set first`);
-    const everyLeague = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so "${leagueName}" could be missed`);
-    const leagues = everyLeague.filter((league) => league.name === leagueName);
+    const leagues = (await everyLeague(ctx, `so "${leagueName}" could be missed`)).filter((league) => league.name === leagueName);
     if (leagues.length !== 1) throw new Error(`${leagues.length} leagues are named "${leagueName}": one must be`);
     const [league] = leagues;
     const team = (await teamsOf(ctx, league._id)).find((each) => each.number === teamNumber);

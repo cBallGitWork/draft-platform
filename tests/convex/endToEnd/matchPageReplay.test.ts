@@ -1,14 +1,15 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { MatchPageData } from "../../../convex/match/matchPage";
+import { matchPageAt } from "../../../convex/matchup/commentaryAt";
 import { inTenths } from "../../../convex/scoring/values";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { BOTH_ELEVENS, FULL_TIME_READ, HULL_EVERTON, KICKOFF } from "../../support/convex/matchStats.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
-import { actingAs, teamName as teamNameOf } from "../../support/convex/leagues.harness";
-import { ANN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
+import { actingAs, teamName as teamNameOf, ANN } from "../../support/convex/leagues.harness";
+import { DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLeague, type MiniBeta } from "../../support/convex/miniBeta.harness";
 
 // #45's done: "A replayed match plays out on the page from its lineups to full time, the owned
 // players carrying their teams and points." The four-team league's Hull v Everton, gameweek 6 as
@@ -19,9 +20,9 @@ const HALF_AN_HOUR_BEFORE = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS / 2;
 const FIRST_HALF = 30;
 
 async function pageAs(league: MiniBeta, email: string): Promise<MatchPageData> {
-  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, now: Date.now(), fixtureCode: HULL_EVERTON });
+  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode: HULL_EVERTON });
   if (page === null) throw new Error("the match page found no match");
-  return page;
+  return matchPageAt(page, Date.now());
 }
 
 /** Ann's eleven as the page has them: each with her team's name, and the points that count. */

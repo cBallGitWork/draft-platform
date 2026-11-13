@@ -2,13 +2,10 @@
 // and how one is worked out from a player's record before the site's scoring set scores it.
 
 import type { ScoringSet } from "./scoringSet";
-import { CATALOGUE_STATS, OWN_STAT_PREFIX } from "./statCatalogue";
+import { CATALOGUE_STATS } from "./statCatalogue";
 import { STAT_CATALOGUE } from "./statCatalogueList";
-import { isObject, requireNumber, showValue, statIn, UnsoundScoring, type MatchStats } from "./values";
-
-/** What an own stat is rounded to before it counts: a millionth, far finer than any weight, so
- *  only floating point's noise goes. */
-const ACTIONS_PRECISION = 1e6;
+import { OWN_STAT_PREFIX } from "./statKeys";
+import { isObject, requireNumber, showValue, UnsoundScoring, weighedCount, type MatchStats, type WeighedStat } from "./values";
 
 /** A stat of the site's own (spec/14, Own stats): catalogue stats added up, each with a weight,
  *  which can be negative: tackles + 0.5 × clearances. A rule scores it by `stat`, as any category. */
@@ -16,7 +13,7 @@ export interface OwnStat {
   stat: string;
   name: string;
   shortCode: string;
-  parts: readonly { stat: string; weight: number }[];
+  parts: readonly WeighedStat[];
 }
 
 /** How a reason names an own stat's name and short code. */
@@ -83,7 +80,7 @@ export function withOwnStats(record: MatchStats, set: ScoringSet): MatchStats {
   const own: Record<string, number> = {};
   for (const { stat, parts } of set.ownStats) {
     // Floating point's noise goes first, so 0.1 × 30 is 3 and never just under it.
-    const actions = Math.round(parts.reduce((total, part) => total + part.weight * statIn(record, part.stat), 0) * ACTIONS_PRECISION) / ACTIONS_PRECISION;
+    const actions = weighedCount(record, parts);
     own[stat] = set.wholePointsOnly ? Math.floor(actions) : actions;
   }
   return { ...record, ...own };

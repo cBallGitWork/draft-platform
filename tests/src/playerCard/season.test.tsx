@@ -64,7 +64,7 @@ describe("this season", () => {
     expectColumnHeads(panel, [columns.gameweek, columns.opponent, columns.score, columns.minutes, ...SCORING_HEADS, columns.points]);
     // His goal, his assist, no yellow card, then his points.
     expect(cellsOf(season)).toEqual(["2", "2–1", "90", "1", "1", "0", "11"]);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 4 each for W 4", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("a player priced at one position has no switch", async () => {
@@ -82,7 +82,7 @@ describe("this season", () => {
     expect(keys.map((key) => (key as HTMLInputElement).checked)).toEqual([true, false]);
     expect(cellsOf(season, 1)).toEqual(["2", "2–1", "90", "1", "1", "0", "12"]);
     await selectMatch(PRICED_OPPONENT, 1);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 5 (1 at 5 each for CAM)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 5 each for CAM 5", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("choosing another position re-prices every match there", async () => {
@@ -93,7 +93,7 @@ describe("this season", () => {
     expect((season.getByRole("radio", { name: "W" }) as HTMLInputElement).checked).toBe(true);
     expect(cellsOf(season, 1)).toEqual(["2", "2–1", "90", "1", "1", "0", "11"]);
     await selectMatch(PRICED_OPPONENT, 1);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 4 each for W 4", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("the arrow keys move the switch, as a radio group", async () => {
@@ -151,15 +151,15 @@ describe("this season", () => {
     const { season } = await seasonOf();
 
     expect(cellsOf(season).at(-1)).toBe("−2");
-    expect(breakdownLines(2).slice(0, 2)).toEqual(["Minutes 1 (1 at 1 each)", "Yellow cards −3 (3 at −1 each)"]);
+    expect(breakdownLines(2).slice(0, 2)).toEqual(["Minutes 1 at 1 each 1", "Yellow cards 3 at −1 each −3"]);
     expect(screen.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward: −1 (−1: 1 big chance missed)");
   });
 
   it("a match whose points may still move is marked live, and the card says why (#577)", async () => {
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [{ ...AT_W, provisional: true }] }] });
     const { season } = await seasonOf();
-    expect(cellsOf(season).at(-1)).toBe(`11${liveWords}`);
-    // "Live" after the points, in the log and the breakdown alike, says why on hover.
+    expect(cellsOf(season).at(-1)).toBe(`${liveWords}11`);
+    // "Live" before the points, in the log and the breakdown alike, says why on hover.
     expect(screen.getAllByText(liveWords).map((live) => live.title)).toEqual([provisionalWords, provisionalWords]);
   });
 
@@ -218,15 +218,25 @@ describe("the game log (#1027)", () => {
     expect(cellsOf(season)).toEqual(["2", "2–1", "90", "1", "1", "54", "11"]);
   });
 
-  it("a postponed match keeps its row by its gameweek, saying so", async () => {
+  it("a postponed match keeps its row by its gameweek, saying so and naming the side he'd have met (#1496)", async () => {
     const postponed = { fixtureCode: 70, gameweek: 3, kickoff: null, home: CHELSEA, away: ARSENAL };
     const later = { ...PRICED, fixtureCode: 8, gameweek: 4 };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [later, AT_W], postponed: [postponed] }] });
     const { season } = await seasonOf();
 
     const rows = season.getAllByRole("rowheader").map((head) => head.closest("tr")!.textContent);
-    expect(rows[1]).toBe(`3${CHELSEA.shortName} (A)${postponedWords}`);
+    expect(rows[1]).toBe(`3${CHELSEA.shortName} (A)${postponedWords}: ${CHELSEA.name}`);
     expect(rows).toHaveLength(3);
+  });
+
+  it("a postponed match from before he moved, his club on neither side, says only that it was postponed (#1496)", async () => {
+    const postponed = { fixtureCode: 70, gameweek: 3, kickoff: null, home: CHELSEA, away: COVENTRY };
+    openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [AT_W], postponed: [postponed] }] });
+    const { season } = await seasonOf();
+
+    const row = season.getAllByRole("rowheader").map((head) => head.closest("tr")!.textContent).find((text) => text!.startsWith("3"));
+    expect(row!.endsWith(postponedWords)).toBe(true);
+    expect(row).not.toContain(`${postponedWords}:`);
   });
 
   it("the newest match is selected as the card opens, and selecting another shows its breakdown instead", async () => {

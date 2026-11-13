@@ -19,12 +19,12 @@ import re
 
 from parsing import MARKED
 from screen_routes import screens_changed
-from where import options, runs_at
+from where import TEXT_FILE_OPTS, arguments, runs_at, text_files
 
 PR_CALLS = (["pr", "create"], ["pr", "edit"])
 BODY_OPTS = {"-b", "--body"}
-BODY_FILE_OPTS = {"-F", "--body-file"}
 TITLE_OPTS = {"-t", "--title"}
+TEXT_OPTS = BODY_OPTS | TITLE_OPTS | TEXT_FILE_OPTS  # the options read here that take a value
 TITLE_SOFT, TITLE_HARD = 100, 120  # characters
 REQUIRED = ("## What",)  # the template's headings
 ISSUE_LINE = re.compile(r"^(Part of|Closes) #\d+", re.M)  # the template's last line, filled in
@@ -63,28 +63,20 @@ def pr_call(words):
 
 def bodies(args, cwd):
     """Each body these gh args give, as text; raises ValueError saying why one can't be read."""
-    out, i = [], 0
-    while i < len(args):
-        found, i = options(args, i, BODY_OPTS | BODY_FILE_OPTS)
-        for opt, value in found:
-            if opt in BODY_OPTS:
-                if MARKED.search(value):
-                    raise ValueError("its --body is filled in by the shell ($(…) or backticks). " + USE_A_FILE)
-                out.append(value)
-            elif opt in BODY_FILE_OPTS:
-                out.append(_read(value, cwd))
-        i += 1
-    return out
+    found, _ = arguments(args, TEXT_OPTS)
+    out = []
+    for opt, value in found:
+        if opt in BODY_OPTS:
+            if MARKED.search(value):
+                raise ValueError("its --body is filled in by the shell ($(…) or backticks). " + USE_A_FILE)
+            out.append(value)
+    return out + [_read(path, cwd) for path in text_files(args, TEXT_OPTS)]
 
 
 def titles(args):
     """Each title these gh args give; one the shell fills in ($(…)) can't be measured, so is skipped."""
-    out, i = [], 0
-    while i < len(args):
-        found, i = options(args, i, TITLE_OPTS | BODY_OPTS | BODY_FILE_OPTS)
-        out += [value for opt, value in found if opt in TITLE_OPTS and not MARKED.search(value)]
-        i += 1
-    return out
+    found, _ = arguments(args, TEXT_OPTS)
+    return [value for opt, value in found if opt in TITLE_OPTS and not MARKED.search(value)]
 
 
 def long_titles(cmds, limit):

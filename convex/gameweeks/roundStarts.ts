@@ -1,6 +1,10 @@
+import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { takeAllOrThrow } from "../shared/cappedRead";
+import { byKickoff } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
+import { GAMEWEEKS_MOST } from "./usedGameweeks";
 import { firstKickoffs } from "./gameweekStarts";
 
 // A gameweek is a date window (spec/05 S05.22, spec/07 S07.9; Craig, #1196): gameweek N runs from
@@ -13,9 +17,6 @@ import { firstKickoffs } from "./gameweekStarts";
 //
 // The deadline still follows the gameweek's first kickoff as it stands (spec/03, deadline.ts): only
 // the windows' dates stay as first scheduled.
-
-/** More rounds than any season has, so a read never cuts one off. */
-const ROUNDS_READ_MOST = 100;
 
 /** Matches by the season their kickoff falls in; one with no kickoff time is in none. */
 function bySeason<Match extends ScheduledMatch>(matches: readonly Match[]): Map<number, Match[]> {
@@ -30,10 +31,11 @@ function bySeason<Match extends ScheduledMatch>(matches: readonly Match[]): Map<
 
 /** Each recorded round's first kickoff in `season`, by round. */
 export async function roundStartsOf(ctx: QueryCtx, season: number): Promise<Map<number, number>> {
-  const rows = await ctx.db
-    .query("roundStarts")
-    .withIndex("by_season_and_round", (q) => q.eq("season", season))
-    .take(ROUNDS_READ_MOST);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("roundStarts").withIndex("by_season_and_round", (q) => q.eq("season", season)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} round starts are held for one season, so its latest rounds' first kickoffs would be lost`,
+  );
   return new Map(rows.map((row) => [row.round, row.firstKickoff]));
 }
 
@@ -62,11 +64,25 @@ export function windowGameweek(kickoff: number | null, starts: ReadonlyMap<numbe
   return found?.round ?? null;
 }
 
+/** The admin's move of the match to another gameweek (matchMoves.ts, #1417), or null while he
+ *  hasn't moved it. */
+export function moveOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchMoves"> | null> {
+  return ctx.db
+    .query("matchMoves")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+}
+
+/** The most moves one sync reads at once: a season's 380 matches. */
+export const MATCH_MOVES_READ_MOST = 380;
+
 /** `matches` with each one's `gameweek` the window its kickoff falls in, in place of the feed's
  *  round, once each round new to the record has its start recorded. A match with no kickoff time
  *  is in no gameweek until it gets one, nor is one the feed puts in no round: its way of saying a
- *  postponed match waits for a new date, whatever kickoff it still names. */
-export async function placeInWindows<Match extends ScheduledMatch>(
+ *  postponed match waits for a new date, whatever kickoff it still names. A match the admin has
+ *  moved stays in the gameweek he moved it to: the window rule yields to him (#1417), and where the
+ *  rule would put it is kept on his move, for when he clears it. His moves are read once a sync. */
+export async function placeInWindows<Match extends ScheduledMatch & { code: number }>(
   ctx: MutationCtx,
   matches: readonly Match[],
   now: number,
@@ -74,14 +90,24 @@ export async function placeInWindows<Match extends ScheduledMatch>(
   await recordRoundStarts(ctx, matches, now);
   const starts = new Map<number, Map<number, number>>();
   for (const season of bySeason(matches).keys()) starts.set(season, await roundStartsOf(ctx, season));
-  return matches.map((match) => ({
-    ...match,
-    gameweek: match.kickoff === null || match.gameweek === null ? null : windowGameweek(match.kickoff, starts.get(seasonStartYear(match.kickoff))!),
-  }));
+  const held = await takeAllOrThrow(
+    ctx.db.query("matchMoves"),
+    MATCH_MOVES_READ_MOST,
+    `More than ${MATCH_MOVES_READ_MOST} matches are moved, so a sync would leave some of the admin's moves unread`,
+  );
+  const moves = new Map(held.map((move) => [move.fixtureCode, move]));
+  const placed: Match[] = [];
+  for (const match of matches) {
+    const unmoved = match.kickoff === null || match.gameweek === null ? null : windowGameweek(match.kickoff, starts.get(seasonStartYear(match.kickoff))!);
+    const move = moves.get(match.code);
+    if (move !== undefined && move.unmoved !== unmoved) await ctx.db.patch("matchMoves", move._id, { unmoved });
+    placed.push({ ...match, gameweek: move?.gameweek ?? unmoved });
+  }
+  return placed;
 }
 
 /** `matches` earliest kickoff first, those with no kickoff time last, so each round's first
  *  kickoff reaches `recordRoundStarts` in the first batch that names the round. Pure. */
 export function inKickoffOrder<Match extends ScheduledMatch>(matches: readonly Match[]): Match[] {
-  return matches.toSorted((one, other) => (one.kickoff ?? Infinity) - (other.kickoff ?? Infinity));
+  return byKickoff(matches);
 }

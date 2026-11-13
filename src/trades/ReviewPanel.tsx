@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useChange } from "../shared/useChange";
 import { Confirm } from "../ui/Confirm";
 import { Panel, Problem } from "../ui/Panel";
 import { Fact, OfferSide } from "./OfferParts";
@@ -33,14 +34,8 @@ export function ReviewPanel({
   trade: TradeToReview;
   changes: TradeChanges;
 }) {
-  const [problem, setProblem] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const { busy, problem, run } = useChange();
   const [blocking, setBlocking] = useState(false);
-  const run = async (change: () => Promise<string | null>) => {
-    setBusy(true);
-    setProblem(await change());
-    setBusy(false);
-  };
   const { fromTeamName: from, toTeamName: to } = trade;
   return (
     <Panel title={tradeBetweenTitle(from, to)}>

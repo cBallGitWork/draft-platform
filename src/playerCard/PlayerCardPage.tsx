@@ -73,7 +73,8 @@ function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boole
         <div className="flex flex-col gap-2">
           {selected !== undefined && (
             <MatchBreakdown match={selected} shown={pricedAt.shown} clubCode={card.club.code}>
-              {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
+              {/* Keyed on the match, so the form opens afresh on each match pressed (#1535). */}
+              {runs && <OverridePoints key={selected.fixtureCode} leagueId={league.leagueId} card={card} selected={selected.fixtureCode} seam={seam} />}
             </MatchBreakdown>
           )}
           <ScoutReport leagueId={league.leagueId} playerCode={card.code} seam={seam} />

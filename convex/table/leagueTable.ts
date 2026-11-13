@@ -2,14 +2,16 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { scheduleOf } from "./playedFixtures";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { onAutoTeam } from "../trades/tradeShut";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
+import { heldFixturesSeason } from "../shared/fixtures";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
@@ -33,8 +35,10 @@ export const fixture = v.object({
 /** A fixture on the table's screen and league home, with its score. */
 export const scoredFixture = v.object({
   ...fixture.fields,
-  /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
-  points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
+  /** Each side's points, the average's for the league's average, and whether either may still move
+   *  (teamGames.ts's gameScore: the average while any team drawn in the gameweek may); null until
+   *  the gameweek is scored. */
+  points: v.union(v.object({ team: v.number(), opponent: v.number(), provisional: v.boolean() }), v.null()),
 });
 export type ScoredFixture = Infer<typeof scoredFixture>;
 
@@ -75,6 +79,10 @@ const tableRow = v.object({
 
 export const leagueTable = v.object({
   format: leagueRulesShape.fields.format,
+  /** The year the season the table's matches belong to starts (shared/fixtures.ts's heldFixturesSeason):
+   *  it follows FPL's season, not the clock (Craig, 6 Nov 2026, plSeasons.ts). Null while no match
+   *  is held with a kickoff time. */
+  season: v.union(v.number(), v.null()),
   /** Each gameweek the league plays head-to-head, with its fixtures: none in total points, with
    *  fewer than two teams, nor one begun with no head-to-head (playedFixtures.ts). */
   gameweeks: v.array(gameweekFixtures),
@@ -98,7 +106,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const nameOf = new Map(teams.map((team) => [team._id, team.name]));
   const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
-  const headToHead = rules.format === "headToHead";
+  const headToHead = gameModeOf(rules).hasMatchups;
   const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
   const scores = pointsOf(results);
@@ -115,7 +123,7 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
-    return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
+    return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },
 });

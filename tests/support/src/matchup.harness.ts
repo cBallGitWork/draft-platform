@@ -1,15 +1,18 @@
 // The matchup's tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { act, screen, within } from "@testing-library/react";
-import { useSyncExternalStore } from "react";
+import { screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
+import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { centreSlotOf } from "../../../src/matchup/preview";
+import { previewGameMode } from "../../../src/shared/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
+import { serverStore } from "./serverStore";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 /** Each tile of a team's lineup on screen, as it is read out: the pitch's top to bottom, then the
  *  bench's in order. */
@@ -22,19 +25,8 @@ export const lineupRows = (teamName: string) =>
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
 export function liveMatchup(first: Matchup | undefined) {
-  let current = first;
-  const listeners = new Set<() => void>();
-  return {
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    get: () => current,
-    play: (next: Matchup | undefined) => {
-      current = next;
-      act(() => listeners.forEach((listener) => listener()));
-    },
-  };
+  const store = serverStore(first);
+  return { use: () => store.use((held) => held), play: store.set };
 }
 
 /** What the fake server holds: the matchup, null for a league with no rules, nothing yet while it
@@ -52,7 +44,7 @@ export function fakeMatchup({ matchup = { kind: "totalPoints" }, loading = false
     useRemoveTeamOverride: () => removeTeamOverride,
     useMatchup: vi.fn<MatchupSeam["useMatchup"]>(() =>
       // `live` is fixed for the fake's life, so each render calls the same hooks.
-      live === undefined ? (loading ? undefined : matchup) : useSyncExternalStore(live.subscribe, live.get),
+      live === undefined ? (loading ? undefined : matchup) : live.use(),
     ),
   };
 }
@@ -73,10 +65,19 @@ export const playing = (minute: number | null, clockLabel: string | null = null,
   minute,
   clockLabel,
 });
+/** A man's match over. */
+export const finished = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
+
+/** A made-up man's code, from his name. */
+const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
+
+/** A made-up man's auto-sub: off for, or on for, the man named `name`, or the man `code` when two
+ *  share that name. */
+export const subbed = <Kind extends "off" | "on">(kind: Kind, name: string, code = codeOf(name)) => ({ kind, playerCode: code, playerName: name });
 
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
-  playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
+  playerCode: codeOf(name),
   name,
   area: "midfield",
   clubCode: null,
@@ -93,6 +94,9 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
 /** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
  *  made-up men stand in areas, not cells. */
 export const roleOf = (area: Area) => centreSlotOf(area).role;
+/** A striker's slot, and its poacher role as a lineup names it. */
+export const STRIKER_SLOT = { area: "attack", lane: "centre" } as const;
+export const poacher = namedRole(roleIn(STRIKER_SLOT, "poacher"));
 
 /** A team's side: its starters, each in his area's centre slot and role (roleOf) unless he has
  *  one, and bench, none with a role or place unless he has one, its total and whether that is
@@ -142,16 +146,17 @@ export const headToHead = (
     gameweeks = [5, 6, 7],
     deadline = null as number | null,
     gameNumber = 1,
-    games = [{ kind: "team", teamName: "Team 2" }] as HeadToHead["games"],
+    games = [{ kind: "team", teamName: THEIR_TEAM_NAME }] as HeadToHead["games"],
   } = {},
 ): HeadToHead => ({
   kind: "headToHead",
-  teamId: "team-Team 1" as Id<"teams">,
-  teamName: "Team 1",
+  teamId: `team-${MY_TEAM_NAME}` as Id<"teams">,
+  teamName: MY_TEAM_NAME,
   gameweeks,
   gameweek,
   deadline,
   gameNumber,
   games,
   game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
+  mode: previewGameMode,
 });

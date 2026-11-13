@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from "react";
+import { closeGlyph } from "../shared/words";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 
@@ -10,21 +11,31 @@ const PANEL_PLATE = "bg-plate px-3 py-1 shadow-bevel-plate";
 const PAGE_TITLE_ID = "page-title";
 
 /** A page's section, labelled by its title plate; `aside`, such as Mail's unread count, sits at the
- *  plate's far end, and `className` is the caller's own (a single panel passes `bg-panel`). */
+ *  plate's far end, and `className` is the caller's own (a single panel passes `bg-panel`).
+ *  `plate={false}` keeps the title for screen readers only, on a page whose approved picture
+ *  draws no title plate (the matchup's: its score band sits straight under the top bar). */
 export function PageSection({
   title,
   aside,
+  plate = true,
   className,
   children,
 }: {
   title: ReactNode;
   aside?: ReactNode;
+  plate?: boolean;
   className?: string;
   children?: ReactNode;
 }) {
   return (
     <section aria-labelledby={PAGE_TITLE_ID} className={className}>
-      <PageTitle aside={aside}>{title}</PageTitle>
+      {plate ? (
+        <PageTitle aside={aside}>{title}</PageTitle>
+      ) : (
+        <h1 id={PAGE_TITLE_ID} className="sr-only">
+          {title}
+        </h1>
+      )}
       {children}
     </section>
   );
@@ -84,24 +95,28 @@ export function Status({ words, className }: { words: string | null; className: 
 
 /** A panel, labelled by its title plate; `aside`, such as how many are starting, sits at the plate's
  *  far end, `className` is the caller's own, such as its share of a row, and `namesTeam` sets a
- *  title that is a team's name in the second face (plate.md, Type). */
+ *  title that is a team's name in the second face (plate.md, Type). `pageTitle` makes its title the
+ *  page's heading, on a page whose approved picture draws its title in a panel's plate (Create a
+ *  league's). */
 export function Panel({
   title,
   aside,
   className,
   children,
   namesTeam = false,
+  pageTitle = false,
 }: {
   title: ReactNode;
   aside?: ReactNode;
   className?: string;
   children?: ReactNode;
   namesTeam?: boolean;
+  pageTitle?: boolean;
 }) {
   const titleId = useId();
   return (
     <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
-      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"}>
+      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"} pageTitle={pageTitle}>
         {title}
       </PanelTitle>
       {children}
@@ -109,22 +124,45 @@ export function Panel({
   );
 }
 
-/** A panel's title plate (plate.md, Shape). */
-function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: ReactNode }) {
+/** A panel's title plate (plate.md, Shape): the page's heading when `pageTitle`, else the panel's. */
+function PanelTitle({
+  id,
+  aside,
+  titleClasses,
+  pageTitle,
+  children,
+}: {
+  id: string;
+  aside?: ReactNode;
+  titleClasses: string;
+  pageTitle: boolean;
+  children: ReactNode;
+}) {
+  const Heading = pageTitle ? "h1" : "h2";
   if (aside === undefined) {
     return (
-      <h2 id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
+      <Heading id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
         {children}
-      </h2>
+      </Heading>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${PANEL_PLATE}`}>
-      <h2 id={id} className={`text-lead ${titleClasses}`}>
+      <Heading id={id} className={`text-lead ${titleClasses}`}>
         {children}
-      </h2>
+      </Heading>
       {aside}
     </div>
+  );
+}
+
+/** The cross that closes a panel or drops a row, its full tap area and its label saying what it
+ *  closes; `className` is the caller's own, such as its place on the plate or a smaller desktop size. */
+export function CloseButton({ label, close, className }: { label: string; close: () => void; className?: string }) {
+  return (
+    <button type="button" aria-label={label} onClick={close} className={className ? `min-h-tap min-w-tap ${className}` : "min-h-tap min-w-tap"}>
+      <span aria-hidden="true">{closeGlyph}</span>
+    </button>
   );
 }
 
@@ -134,9 +172,9 @@ export const PANEL_BODY = "flex flex-col gap-2 p-3";
 /** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
 export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
 
-/** A page's panels stacked at the page width every multi-panel page shares (#296), and two panels
- *  side by side from `lg` up. */
-export const PAGE_STACK = "flex max-w-6xl flex-col gap-2";
+/** A page's panels stacked across the page's full width, as the 1440 pictures fill it (#296; Craig,
+ *  11 Nov 2026, #1499: "Fill 1440"), and two panels side by side from `lg` up. */
+export const PAGE_STACK = "flex flex-col gap-2";
 export const PANEL_COLUMNS = "grid items-start gap-2 lg:grid-cols-2";
 
 /** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,

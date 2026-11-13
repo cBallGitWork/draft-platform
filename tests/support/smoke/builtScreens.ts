@@ -4,6 +4,7 @@
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { ADMIN_TITLE } from "../../../src/admin/words";
+import type { PreviewName } from "../../../src/app/preview";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { FEEDBACK_TITLE } from "../../../src/feedback/words";
 import { DRAFT_TITLE, stateWords } from "../../../src/draft/words";
@@ -42,14 +43,14 @@ import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import { PATCH_NOTES_TITLE } from "../../../src/patches/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { previewMatch } from "../../../src/premierLeague/matchPreview";
-import { matchPath } from "../../../src/premierLeague/paths";
+import { clubPath, matchPath } from "../../../src/premierLeague/paths";
 import { MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../../../src/premierLeague/words";
-import { miniBeta, proLeague } from "../../../src/shared/preview";
+import { miniBeta, previewTeamNames, proLeague } from "../../../src/shared/preview";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { previewPlayers } from "../../../src/scouting/preview";
 import { SCOUTING_TITLE } from "../../../src/scouting/words";
-import { previewIdOf, previewTeams } from "../../../src/table/preview";
+import { previewIdOf } from "../../../src/table/preview";
 import { squadsPath } from "../../../src/squads/paths";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../../src/table/words";
@@ -57,12 +58,12 @@ import { TRADES_TITLE } from "../../../src/trades/words";
 
 /** One built screen: the preview session that reaches it (src/app/preview.ts), its address, and its
  *  page's title. */
-export type BuiltScreen = readonly [session: string, path: string, title: string];
+export type BuiltScreen = readonly [session: PreviewName, path: string, title: string];
 
 /** The player whose card the run opens: Scouting's first preview player, in the manager's league. */
 const [cardPlayer] = previewPlayers;
 /** The team whose squad the run opens read-only: a preview team that isn't the manager's. */
-const otherTeam = previewTeams[2];
+const otherTeam = previewTeamNames[2];
 
 /** Built screens past the landing page. The invite link's tokens are joining/preview.ts's: one to
  *  ask with, one asked, one switched off. */
@@ -87,6 +88,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", TRADES_NEW_PATH, TRADES_TITLE],
   ["manager", PREMIER_LEAGUE_PATH, PREMIER_LEAGUE_TITLE],
   ["manager", matchPath(previewMatch.fixtureCode), MATCH_TITLE],
+  // A club's page is titled with its name: the preview's Arsenal (src/premierLeague/preview.ts).
+  ["manager", clubPath(3), "Arsenal"],
   ["manager", MAIL_PATH, MAIL_TITLE],
   ["manager", LEAGUES_PATH, LEAGUES_TITLE],
   // A card is titled with the player's full name.
@@ -102,8 +105,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["commissioner", settingsPath(miniBeta.leagueId), SETTINGS_TITLE],
   // The admin's alone: a commissioner is sent back to Your leagues.
   ["admin", NEW_LEAGUE_PATH, NEW_LEAGUE_TITLE],
-  ["newcomer", joinPath("preview"), miniBeta.name],
-  ["newcomer", joinPath("waiting"), miniBeta.name],
+  ["newcomer", joinPath("preview"), joinPageWords.title],
+  ["newcomer", joinPath("waiting"), joinPageWords.title],
   ["newcomer", joinPath("gone"), joinPageWords.title],
   // The dashboard's tabs keep its title.
   ["admin", ADMIN_PATH, ADMIN_TITLE],

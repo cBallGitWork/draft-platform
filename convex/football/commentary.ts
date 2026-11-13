@@ -153,7 +153,7 @@ export function withFullTimePoints(score: string, points: readonly { name: strin
 }
 
 /** "62'", "45+2'". */
-function minuteOf(minute: number, addedMinute: number | null): string {
+export function minuteOf(minute: number, addedMinute: number | null): string {
   return addedMinute ? `${minute}+${addedMinute}'` : `${minute}'`;
 }
 

@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { PlayerCode } from "../shared/players";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
@@ -7,22 +8,20 @@ import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
 import { keptOrSwitched, type Instruction } from "../lineup/instructions";
 import { backLineOf, presetNameOf } from "../lineup/presets";
 import { instructionsOf } from "../rules/firstRules";
+import { gameModeOf, playedSet } from "../rules/gameMode";
 import type { TeamScoring } from "../scoring/scoring";
-import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
-import { validateScoringSet } from "../scoring/scoringSet";
+import { checkedOnce } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
-import { playerByCode } from "../shared/players";
-import { readOnce } from "../shared/readOnce";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
-import { deadlineStarsIn } from "../stars/deadlineStars";
-import type { RoleStars } from "../stars/starsShape";
+import { keptAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } from "../stars/deadlineStars";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
@@ -31,7 +30,6 @@ import type { RoleStars } from "../stars/starsShape";
 // Squad tab (#577), so none of them disagree.
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 
 /** What every gameweek's scoring reads, read once for the league. */
 export interface LeagueReads {
@@ -39,13 +37,6 @@ export interface LeagueReads {
   season: SeasonRules;
   setIn: (gameweek: number) => StoredScoringSet;
   player: (code: PlayerCode) => Promise<LineupPlayer>;
-}
-
-/** A man a lineup names, as scoring reads him: his club, null for one the football sync doesn't
- *  hold, and his positions. */
-interface LineupPlayer {
-  clubCode: number | null;
-  positions: Position[];
 }
 
 /** What scoring any of the league's gameweeks reads, read once. A caller that has read the site's
@@ -64,14 +55,6 @@ export async function leagueReads(
   };
 }
 
-/** Each player's club and positions, read once however many gameweeks ask. */
-function playerReader(ctx: QueryCtx, positionsOfNow: PositionsNow) {
-  return readOnce(async (code: PlayerCode): Promise<LineupPlayer> => {
-    const held = await playerByCode(ctx, code);
-    return { clubCode: held?.clubCode ?? null, positions: await positionsOfNow(code) };
-  });
-}
-
 /** What scoring the `teamIds` in one gameweek reads: the site's set in force then, checked, the
  *  league's rules in force then, the matches of its `fixtures` with the league's overrides in
  *  them, and each team's lineup. */
@@ -80,8 +63,9 @@ export interface GameweekInputs {
   rules: ReturnType<SeasonRules["inGameweek"]>;
   matches: HeldMatch[];
   lineups: ReadonlyMap<TeamId, HeldLineup>;
-  /** Each team's bench players' stars kept at the deadline, which pick an auto-sub's role. */
-  deadlineStars: ReadonlyMap<TeamId, ReadonlyMap<PlayerCode, RoleStars[]>>;
+  /** What each team's row kept at the deadline: its bench players' stars, which pick an auto-sub's
+   *  role, and each man its lineup named, with his club and positions then. */
+  kept: ReadonlyMap<TeamId, KeptAtDeadline>;
   /** The league's overrides of teams' totals in the gameweek (#903): each its team's total. */
   teamOverrides: ReadonlyMap<TeamId, Doc<"teamOverrides">>;
 }
@@ -101,16 +85,18 @@ export async function gameweekInputs(
     ...rulesIn(reads, gameweek),
     matches: await heldMatches(ctx, reads.leagueId, fixtures),
     lineups: lineups ?? (await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek)),
-    deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek),
+    kept: await keptAtDeadline(ctx, reads.leagueId, gameweek),
     teamOverrides: await teamOverridesIn(ctx, reads.leagueId, gameweek),
   };
 }
 
-/** The site's set in force in the gameweek, checked, and the league's rules then. */
+/** The site's set in force in the gameweek, checked, as the league plays it then, and the
+ *  league's rules then. */
 export function rulesIn(reads: LeagueReads, gameweek: number) {
   const set = reads.setIn(gameweek);
-  validateScoringSet(set);
-  return { set, rules: reads.season.inGameweek(gameweek) };
+  checkedOnce(set);
+  const rules = reads.season.inGameweek(gameweek);
+  return { set: playedSet(set, gameModeOf(rules)), rules };
 }
 
 /** A team's gameweek, slot by slot, for a screen that shows it so (the matchup, #34) as well as
@@ -144,8 +130,12 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   const playerMatches = new Map<PlayerCode, PlayerMatch[]>();
   const plays = new Map<PlayerCode, GameweekPlay>();
   const matchesOf = new Map<PlayerCode, HeldMatch[]>();
+  const kept = inputs.kept.get(teamId);
   for (const code of codes) {
-    const { clubCode, positions: hisPositions } = await reads.player(code);
+    // He is read as he stood at the deadline (spec/06, When positions change; #1540), so a position
+    // lost or a club changed since never re-works the gameweek's auto-subs; as he is now only where
+    // nothing was kept of him (deadlineStars.ts says when).
+    const { clubCode, positions: hisPositions } = kept?.players.get(code) ?? (await reads.player(code));
     // One the football sync doesn't hold is data gone wrong: he scores as if he didn't play, with no
     // match, so a starter is subbed and a bench player never comes on (Craig, 31 Oct 2026, #810;
     // spec/05 Auto-subs), but for a match the league has overridden his points in: "we can always
@@ -159,8 +149,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
     plays.set(code, gameweekPlay(hisMatches.map((match) => forPlay(match, code))));
   }
-  const keptStars = inputs.deadlineStars.get(teamId);
-  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => keptStars?.get(code) ?? []);
+  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => kept?.stars.get(code) ?? []);
   const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
   const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
   const scoring = teamScoring(held, inputs, formation);
@@ -201,7 +190,7 @@ function teamScoring(held: HeldLineup, { set, rules }: Pick<GameweekInputs, "set
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points
  *  count it, not his other match in a double gameweek that counts only his best (scoring.ts's
  *  countedMatches). */
-export interface ScoredInMatch {
+interface ScoredInMatch {
   match: HeldMatch;
   points: MatchPoints;
   counted: boolean;

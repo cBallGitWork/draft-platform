@@ -2,8 +2,9 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { mutation } from "../_generated/server";
 import { isLocked } from "../gameweeks/deadline";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { recordEvent } from "../mail/letters";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { drawnGameweek, scheduleOf } from "./playedFixtures";
@@ -78,10 +79,10 @@ export const swap = mutation({
     const { email: by, league } = await runnerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const now = Date.now();
-    if (isLocked(deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek), now)) refuse(fixtureEditRefusals.begun(gameweek));
+    if (isLocked((await leagueDeadlineOf(ctx, leagueId))(gameweek), now)) refuse(fixtureEditRefusals.begun(gameweek));
     const drawn = await drawnGameweek(ctx, league, season, gameweek);
     const current = (await scheduleOf(ctx, league, season)).find((each) => each.gameweek === gameweek);
-    if (drawn === undefined || current === undefined || season.inGameweek(gameweek).format !== "headToHead") {
+    if (drawn === undefined || current === undefined || !gameModeOf(season.inGameweek(gameweek)).hasMatchups) {
       refuse(fixtureEditRefusals.notHeadToHead(gameweek));
     }
     const result = swapSides(current.fixtures, one, other);

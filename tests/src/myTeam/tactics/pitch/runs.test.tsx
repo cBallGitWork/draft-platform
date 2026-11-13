@@ -83,8 +83,8 @@ describe("where a run goes, in the pitch's metres", () => {
 
   it("stops short of the goal line, from a slot further up than its usual one", () => {
     const striker = { area: "attack", lane: "centre" } as const;
-    const lateRunner = roleIn({ area: "midfield", lane: "centre" }, "lateRunner").run!;
-    const end = runPath(lateRunner, striker).at(-1)!;
+    const attackingEight = roleIn({ area: "midfield", lane: "centre" }, "attackingEight").run!;
+    const end = runPath(attackingEight, striker).at(-1)!;
     expect(end.y).toBe(RUN_MARGIN);
   });
 

@@ -4,7 +4,8 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { formLabel, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { formLabel } from "../../../../src/shared/words";
 import { opponentTitle } from "../../../../src/myTeam/tactics/words";
 import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myTeam/words";
 import { gamesIn } from "../../../../src/myTeam/header/teamStanding";
@@ -73,6 +74,9 @@ describe("the Tactics tab's GW opponent widget", () => {
     for (const links of [within(widget).getAllByRole("link"), within(meter(versusWords) as HTMLElement).getAllByRole("link")]) {
       expect(links.map((link) => link.textContent)).toEqual(names.map((name) => expect.stringContaining(name)));
       for (const link of links) expect(link.getAttribute("href")).toContain(MATCHUP_PATH);
+      const [first, second] = links.map((link) => link.getAttribute("href")!);
+      expect(second).not.toBe(first);
+      expect(new URLSearchParams(second.split("?")[1]).get("game")).toBe("2");
     }
     expect(within(widget).getAllByText(formHead)).toHaveLength(2);
   });

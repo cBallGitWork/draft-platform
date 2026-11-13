@@ -13,13 +13,14 @@ import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
-import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { previewGameMode } from "../../shared/preview";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
-const PREVIEW_GAMEWEEK = 9;
+export const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 
 /** A club's FPL code by its short name, for its shirt's colours. */
@@ -76,13 +77,13 @@ const nameOf = (playerCode: number) => squad.find((member) => member.playerCode 
 
 const instructions = [...instructionsOf(FIRST_RULES)];
 
-const tacticsWith = ({ starters, bench, classic, instructions: picked }: EditedLineup): Tactics => ({
+const tacticsWith = ({ starters, bench, classicFormation, instructions: picked }: EditedLineup): Tactics => ({
   kind: "open",
   gameweek: PREVIEW_GAMEWEEK,
   deadline: PREVIEW_DEADLINE,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
-  classics: classicsOf(FIRST_RULES),
+  classicFormations: classicFormationsOf(FIRST_RULES),
   instructions,
   picked: keptOrSwitched(picked, starters, FIRST_RULES.presets, instructions).pair,
   squad,
@@ -93,9 +94,10 @@ const tacticsWith = ({ starters, bench, classic, instructions: picked }: EditedL
     leftSquad: [],
     joinedBench: [],
     vacated: [],
-    ...(classic && { classic }),
+    ...(classicFormation && { classic: classicFormation }),
     ...(picked && { instructions: picked }),
   },
+  mode: previewGameMode,
 });
 
 // A new object only when it changes, as useSyncExternalStore needs.
@@ -122,10 +124,11 @@ const changes = {
 /** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
 let plans: readonly Plan[] = [];
 const planChanges: PlanChanges = {
-  save: async (_leagueId, name, slots) => {
+  save: async (_leagueId, name, slots, instructions) => {
     const kept = plans.some((plan) => plan.name === name);
     if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
-    plans = kept ? plans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...plans, { name, slots }];
+    const saved = { name, slots, instructions };
+    plans = kept ? plans.map((plan) => (plan.name === name ? saved : plan)) : [...plans, saved];
     for (const listener of listeners) listener();
     return null;
   },
@@ -157,7 +160,8 @@ export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
   useRoleCard: (_leagueId, playerCode, cell, formation) =>
     useMemo(() => {
-      const roles = cardRolesOf(cell, formation, ROLE_SET);
+      const positions = squad.find((member) => member.playerCode === playerCode)?.positions ?? [];
+      const roles = cardRolesOf(cell, formation, positions, ROLE_SET);
       return { roles, matches: previewMatches(playerCode).map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
       // A cell and a formation are new objects each render: their contents say whether the card changes.
       // eslint-disable-next-line react-hooks/exhaustive-deps

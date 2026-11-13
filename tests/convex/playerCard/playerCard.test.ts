@@ -6,9 +6,9 @@ import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
-import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
-import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { holdExampleScoring, holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -17,8 +17,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // news, this season's matches at his base points under the site's scoring, at each position he has
 // (Craig, 31 Oct 2026), with his role's line apart where his team started him, and his club's next
 // fixtures. The site plays EXAMPLE_SET throughout.
-
-const [ANN, BOB] = MANAGERS;
 
 const SAKA = {
   code: 1001,
@@ -69,8 +67,9 @@ beforeEach(async () => {
     await insertPlayers(ctx, [SAKA, MOVER, FORWARD, SUPPORT]);
     await insertDroppedPlayer(ctx, GONE, NOW);
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
-    await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
-    await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
+    await holdExampleScoring(ctx);
+    await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code, number: 4 });
+    await ctx.db.insert("clubNumbers", { code: SAKA.code, number: 7 });
     for (const each of [
       completeRecord(SAKA.code, ARS_COV.code, GOAL_AND_ASSIST),
       completeRecord(FORWARD.code, ARS_COV.code, GOAL_AND_ASSIST),
@@ -89,12 +88,13 @@ beforeEach(async () => {
 
 const cardAs = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.playerCard.playerCard.card, { leagueId, playerCode, now: NOW });
 
-test("the card names him, his club, his positions, his owner in the league and FPL's news", async () => {
+test("the card names him, his club, his club number (never his owner's squad number, #1496), his positions, his owner in the league and FPL's news", async () => {
   expect(await cardAs(BOB, SAKA.code)).toMatchObject({
     code: SAKA.code,
     name: "Saka",
     fullName: "Bukayo Saka",
     club: ARSENAL,
+    clubNumber: 7,
     gone: false,
     positions: ["W"],
     ownerTeamName: await teamName(t, teams[0]),
@@ -103,8 +103,8 @@ test("the card names him, his club, his positions, his owner in the league and F
   });
 });
 
-test("a free agent with no news has no owner, no news and no chance of playing", async () => {
-  expect(await cardAs(ANN, MOVER.code)).toMatchObject({ ownerTeamName: null, news: null, chanceOfPlaying: null });
+test("a free agent with no news or club number has no owner, no news, no chance of playing and no number", async () => {
+  expect(await cardAs(ANN, MOVER.code)).toMatchObject({ ownerTeamName: null, news: null, chanceOfPlaying: null, clubNumber: null });
 });
 
 test("this season's matches are newest first, at his base points, by category", async () => {
@@ -166,7 +166,7 @@ test("his club's matches postponed with no new date keep their rows in the game 
 test("each match names the version it was scored under: a later version reaches only the gameweeks after it (spec/14)", async () => {
   // Takes effect between gameweek 1's kickoff and gameweek 2's.
   const between = ARS_COV.kickoff! + DAY_MS;
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "patch", season: 2026, number: 1, at: between }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "patch", at: between }));
   const { matches } = (await cardAs(ANN, SAKA.code))!;
 
   expect(matches.map(({ gameweek, version }) => [gameweek, version])).toEqual([
@@ -289,7 +289,7 @@ test("last season's line totals every match he played, at each of the card's pos
 
   // A later version makes a goal worth 10: the line is priced under it at once.
   const goalsAtTen = { ...EXAMPLE_SET, rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 10 } } : rule)) };
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(goalsAtTen) as StoredScoringSet, kind: "patch", season: 2026, number: 1, at: NOW - DAY_MS }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(goalsAtTen) as StoredScoringSet, kind: "patch", at: NOW - DAY_MS }));
   expect((await cardAs(ANN, FORWARD.code))!.lastSeason!.played!.points).toEqual([17, 16]);
 });
 

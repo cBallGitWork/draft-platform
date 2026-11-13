@@ -5,13 +5,15 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
 import { byRun } from "../myTeam/claims/claimGroups";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { Per90Figures } from "./Per90Figures";
+import { PointsFigure } from "./PointsFigure";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubMark, ClubShort } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
-import { Panel } from "../ui/Panel";
+import { CloseButton, Panel } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { ShortlistStar } from "../ui/StarRating";
 import type { ListedPlayer, Period, ScoutingSeam } from "./seam";
@@ -20,10 +22,8 @@ import {
   compareWithAnotherWords,
   compareWithYourWords,
   figureWords,
-  noFigureWords,
-  noPointsYetWords,
   noRoleFitYetWords,
-  notLastSeasonWords,
+  noSeasonPointsWords,
   onWaiversWords,
   panelMinutesWords,
   panelSeasonPointsWords,
@@ -43,13 +43,14 @@ function YourClaim({ leagueId, playerCode, seam }: { leagueId: Id<"leagues">; pl
   const rank = group.claims.findIndex(({ claim }) => claim.playerCode === playerCode) + 1;
   return (
     <Link to={MY_TEAM_TRANSACTIONS_PATH} className="inline-flex min-h-tap items-center text-event lg:min-h-0">
-      {yourClaimWords(rank, group.runAt)}
+      {yourClaimWords(rank, group.run)}
     </Link>
   );
 }
 
 /** Compare with your [position], [player]: the manager's own player at his main position (Craig,
- *  9 Nov 2026, on #1028, answer 1); nothing with none, nor while it loads. */
+ *  9 Nov 2026, on #1028, answer 1); nothing with none, nor while it first loads. The last answer
+ *  holds as the minute turns, so the button doesn't blink out (#1777). */
 function CompareWithYours({
   leagueId,
   playerCode,
@@ -61,7 +62,7 @@ function CompareWithYours({
   seam: ScoutingSeam;
   compareWith: (playerCode: number) => void;
 }) {
-  const yours = seam.useYourPlayer(leagueId, playerCode, useMinute())?.player;
+  const yours = useLastLoaded(seam.useYourPlayer(leagueId, playerCode, useMinute()), `${leagueId}/${playerCode}`)?.player;
   if (yours === undefined || yours === null) return null;
   return (
     <button type="button" onClick={() => compareWith(yours.code)} className="secondary-action">
@@ -116,29 +117,18 @@ export function SelectedPlayer({
         <ClubMark code={player.club.code} />
         <ClubShort club={player.club} />
       </span>
-      <span className="font-normal">{player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}</span>
+      <span className="font-normal">{player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRun)}</span>
     </span>
   );
-  const closeButton = (
-    <button type="button" aria-label={closePanelLabel} onClick={close} className="min-h-tap min-w-tap font-bold lg:min-h-0">
-      ✕
-    </button>
-  );
   return (
-    <Panel title={title} aside={closeButton}>
+    <Panel title={title} aside={<CloseButton label={closePanelLabel} close={close} className="font-bold lg:min-h-0" />}>
       <dl>
         <div className={FACT_ROW}>
           <dt className="text-soft">{panelSeasonPointsWords}</dt>
-          {player.seasonPoints === null ? (
-            <dd title={pointsSeason === null ? noPointsYetWords : notLastSeasonWords} className="text-muted">
-              {noFigureWords}
-            </dd>
-          ) : (
-            <dd className="font-bold text-figure">{figureWords(player.seasonPoints)}</dd>
-          )}
+          <PointsFigure as="dd" points={player.seasonPoints} why={noSeasonPointsWords(pointsSeason)} />
         </div>
         <div className={FACT_ROW}>
-          <dt className="text-soft">{panelMinutesWords(period)}</dt>
+          <dt className="text-soft">{panelMinutesWords(period, pointsSeason)}</dt>
           <dd className="font-bold text-figure">{figureWords(player.figures.minutes)}</dd>
         </div>
         <div className={FACT_ROW}>

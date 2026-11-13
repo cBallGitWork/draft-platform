@@ -6,7 +6,8 @@ settings' Waivers tab (`/leagues/$leagueId/settings`, checked on
 
 ## The pictures
 
-- `1440.png`: Saka Potatoes' Transactions tab, with Pending claims grouped by run and History
+- `1440.png`: superseded on 10 Nov 2026 by [`team-transactions`](../team-transactions/README.md),
+  which binds the manager's Transactions tab. Kept as history: Saka Potatoes' Transactions tab, with Pending claims grouped by run and History
   below. Wednesday's claim 2 (Eze) is selected, and its panel is at the top of the right column.
 - `1440-commissioner.png`: the same tab as the commissioner sees it, switched from Mine to Every
   team: each team with claims, in waiver order.
@@ -76,5 +77,6 @@ player panel in `approved/scouting/`).
 ## Not drawn
 
 - Claims closed: after the deadline until the gameweek's last match, and before the draft ends
-  (`spec/08`, S08.1). The Pending claims panel says so in a word, and the drag handles and buttons
-  go.
+  (`spec/08`, S08.1). The Pending claims panel says so in a word. In the lock the Drop picker is
+  shut, but the drag handles, Move up, Move down and Withdraw stay: only new claims are shut (Craig,
+  11 Nov 2026, on #1590). Before the draft ends the handles and buttons go.

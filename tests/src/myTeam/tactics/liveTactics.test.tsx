@@ -8,6 +8,7 @@ import { liveTactics } from "../../../../src/myTeam/tactics/liveTactics";
 import { saveFailedWords } from "../../../../src/myTeam/tactics/words";
 import { silenceConsoleError } from "../../../support/console.setup";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
+import { REFUSAL } from "../../../support/src/tacticsScreen.harness";
 
 const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), save: vi.fn(), openedTactics: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -18,7 +19,6 @@ vi.mock("convex/react", async () =>
 );
 
 beforeEach(() => {
-  convex.openedTactics.mockReset();
   convex.openedTactics.mockResolvedValue(null);
 });
 
@@ -40,8 +40,8 @@ test("a save asks lineup/lineups:save with the league and the lineup, and hands 
 });
 
 test("a refusal comes back as the server's words; any other failure is said plainly", async () => {
-  convex.save.mockRejectedValue(new ConvexError("A lineup starts 11 players; this one starts 1."));
-  expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe("A lineup starts 11 players; this one starts 1.");
+  convex.save.mockRejectedValue(new ConvexError(REFUSAL));
+  expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe(REFUSAL);
   convex.save.mockRejectedValue(new Error("offline"));
   const logged = silenceConsoleError();
   expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe(saveFailedWords);

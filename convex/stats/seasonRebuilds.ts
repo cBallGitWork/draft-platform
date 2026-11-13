@@ -1,8 +1,11 @@
+import type { FunctionReference } from "convex/server";
 import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
-import { fixtureByCode, heldSeason } from "../shared/fixtures";
+import { fixtureByCode, heldFixturesSeason } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
+import { PLAYERS_PAGE } from "./matchRecords";
 
 // The season rows' self-starts (#525, #959): a deployment holding match records from before the
 // season totals (playerSeasonStats, seasonStats.ts) or season points (playerSeasonPoints,
@@ -10,6 +13,8 @@ import { seasonStartYear } from "../shared/time";
 // run it. Totals come first: season points start once totals show someone played, and a totals
 // rebuild starts the points rebuild when it finishes. Each check starts one rebuild at most, and
 // a check that can't be read is logged, naming the repair, and never stops the write it runs in.
+// The season rows' one-row lookup and paged rebuild live here too, shared with last season's
+// points (pastSeasons/pastSeasonPoints.ts).
 
 /** How season totals are put right by hand: its last page puts season points right too. */
 export const TOTALS_REBUILD_COMMAND = `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`;
@@ -22,6 +27,35 @@ const WHOLE_STATES = ["complete", "locked"] as const;
 const NEWEST_AND_ONE_BEFORE = 2;
 
 type SeasonTable = "playerSeasonStats" | "playerSeasonPoints";
+
+/** A table of one row a player and season, by_season_and_playerCode: this season's totals and
+ *  points, and last season's points (pastSeasonPoints.ts). */
+type PlayerSeasonTable = SeasonTable | "pastSeasonPoints";
+
+/** His row in `table` for `season`, or null with none. One read. */
+export async function seasonRowOf<T extends PlayerSeasonTable>(ctx: QueryCtx, table: T, season: number, playerCode: number): Promise<Doc<T> | null> {
+  return (await ctx.db
+    .query<PlayerSeasonTable>(table)
+    .withIndex("by_season_and_playerCode", (q) => q.eq("season", season).eq("playerCode", playerCode))
+    .unique()) as Doc<T> | null;
+}
+
+/** A paged rebuild's next page: the same mutation, from where this page ended. */
+type NextPage = FunctionReference<"mutation", "internal", { cursor: string | null }, null>;
+
+/** Runs `work` on a page of PLAYERS_PAGE players' codes, from `cursor` (null for the first), then
+ *  schedules `next` from where the page ended, until every player is done. True on the last page. */
+export async function eachPlayerPage(
+  ctx: MutationCtx,
+  cursor: string | null,
+  work: (playerCodes: number[]) => Promise<void>,
+  next: NextPage,
+): Promise<boolean> {
+  const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
+  await work(page.page.map(({ code }) => code));
+  if (!page.isDone) await ctx.scheduler.runAfter(0, next, { cursor: page.continueCursor });
+  return page.isDone;
+}
 
 /** Whether `table` holds a row for `season`. One read. */
 async function keptIn(ctx: QueryCtx, table: SeasonTable, season: number): Promise<boolean> {
@@ -57,7 +91,7 @@ async function wholeRecordsIn(ctx: QueryCtx, season: number, writing: number | n
 /** Runs one self-start check: true when it started a rebuild. A failure is logged, naming `repair`. */
 async function checked(ctx: MutationCtx, repair: string, check: (season: number) => Promise<boolean>): Promise<boolean> {
   try {
-    const season = await heldSeason(ctx);
+    const season = await heldFixturesSeason(ctx);
     return season !== null && (await check(season));
   } catch (error) {
     logFailure(`the season rows weren't checked for a rebuild; run ${repair}`, error);

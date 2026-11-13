@@ -45,6 +45,8 @@ export const KEEPER: Cell = centreOf("goalkeeper");
 export const MIDFIELD: Cell = centreOf("midfield");
 export const ATTACK: Cell = centreOf("attack");
 export const RIGHT_BACK: Cell = { area: "defence", lane: "right" };
+export const LEFT_BACK: Cell = { area: "defence", lane: "left" };
+export const LEFT_CENTRE_BACK: Cell = { area: "defence", lane: "leftCentre" };
 
 /** A final match with his recorded FPL line. */
 export const finalMatch = (playerCode: number): PlayerMatch => ({

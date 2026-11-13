@@ -14,7 +14,7 @@ import {
   correctionsTitle,
   moreCorrectionsWords,
   feedColumns,
-  feedNames,
+  feedNameWords,
   feedsHint,
   feedsLoadingWords,
   feedStateWords,
@@ -73,15 +73,16 @@ function Feeds({ report }: { report: FeedsReport }) {
       <PanelNote>{feedsHint}</PanelNote>
       <table className="w-full border-collapse">
         <ColumnHeads columns={feedColumns} classOf={() => cellClasses} />
-        {report.feeds.map(({ feed, state, lastSuccessAt, lastError }) => {
+        {report.feeds.map(({ feed, competition, state, lastSuccessAt, lastError }) => {
           const edge = NEEDS_YOU.includes(state) ? "shadow-event-edge" : "";
+          const { name, source } = feedNameWords(feed, competition);
           return (
             // A body per feed, so its error's row sits under it and is read with it.
-            <tbody key={feed} className="border-t border-panel-rule">
+            <tbody key={`${feed}-${competition ?? ""}`} className="border-t border-panel-rule">
               <tr className={edge}>
                 <th scope="row" className={`${cellClasses} font-normal`}>
-                  <span className="block font-semibold">{feedNames[feed].name}</span>
-                  <span className="text-muted">{feedNames[feed].source}</span>
+                  <span className="block font-semibold">{name}</span>
+                  <span className="text-muted">{source}</span>
                 </th>
                 <td className={cellClasses}>
                   {lastSuccessAt === null ? (

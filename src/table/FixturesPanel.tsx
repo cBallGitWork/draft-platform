@@ -3,6 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { isLocked } from "../../convex/gameweeks/deadline";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { FEWEST_TO_DRAW, LEAGUE_AVERAGE } from "../../convex/table/roundRobin";
+import { useChange } from "../shared/useChange";
 import { useMinute } from "../shared/useMinute";
 import { GameweekStepper } from "../ui/GameweekStepper";
 import { Panel, PANEL_BODY, PanelNote, Problem } from "../ui/Panel";
@@ -15,6 +16,7 @@ import {
   FIXTURES_TITLE,
   fixturesListLabel,
   leagueAverageWords,
+  leagueGamesHead,
   liveWords,
   noGameweeksWords,
   pickAnotherWords,
@@ -52,16 +54,16 @@ function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
 /** A side picked to swap: the game it is in, by its place in the gameweek's list, and the side. */
 type Pick = { game: number } & PickedSide;
 
-/** One gameweek's fixtures, the stepper over the gameweeks the league plays, and Live on the plate
- *  while any of the gameweek's points may still move. The commissioner edits a gameweek not yet
- *  begun (spec/09, Fixture edits; the approved auto-team picture): each side is a button, a side
- *  picked then one in another game, and Save swap moves them between their games. */
+/** One gameweek's fixtures under their League head, the stepper over the gameweeks the league
+ *  plays, and Live on the plate while any of the gameweek's points may still move. The
+ *  commissioner edits a gameweek not yet begun (spec/09, Fixture edits; the approved auto-team
+ *  picture): each side is a button, a side picked then one in another game, and Save swap moves
+ *  them between their games. */
 function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }: { league: LeagueSummary; seam: TableScreenSeam; leagueTable: LeagueTable }) {
   const now = useMinute();
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));
   const [picks, setPicks] = useState<Pick[]>([]);
-  const [problem, setProblem] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const change = useChange();
   const fixtureSwap = seam.useFixtureSwap();
   // The list is live: unticking a gameweek can shorten it under the stepper, so the chosen index is held inside it (it keeps a place in the list, not a gameweek number).
   const index = Math.min(chosen, gameweeks.length - 1);
@@ -73,7 +75,7 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
 
   const cancel = () => {
     setPicks([]);
-    setProblem(null);
+    change.clear();
   };
   const step = (to: number) => {
     cancel();
@@ -81,18 +83,14 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
   };
   /** A side tapped: picked, or unpicked if it was; one in the first pick's game takes its place. */
   const tap = (pick: Pick) => {
-    setProblem(null);
+    change.clear();
     const held = picks.filter((each) => each.game !== pick.game);
     const again = picks.some((each) => each.game === pick.game && each.moves === pick.moves);
     setPicks(again ? held : [...held, pick].slice(-2));
   };
   const save = async () => {
     const [one, other] = picks;
-    setBusy(true);
-    const refused = await fixtureSwap.swap(league.leagueId, gameweek, { moves: one.moves, against: one.against }, { moves: other.moves, against: other.against });
-    setBusy(false);
-    if (refused === null) setPicks([]);
-    setProblem(refused);
+    if (await change.run(() => fixtureSwap.swap(league.leagueId, gameweek, { moves: one.moves, against: one.against }, { moves: other.moves, against: other.against }))) setPicks([]);
   };
 
   const aside = (
@@ -115,6 +113,7 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
   );
   return (
     <Panel title={title} aside={aside}>
+      <h4 className="bg-head px-3 font-semibold text-ground">{leagueGamesHead}</h4>
       <ul aria-label={fixturesListLabel(gameweek)}>
         {fixtures.map((fixture, game) => {
           const { team, opponent } = fixture;
@@ -126,7 +125,7 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
             ) : null;
           return (
             <li
-              key={`${team} v ${opponent ?? leagueAverageWords}`}
+              key={game}
               aria-current={ours || undefined}
               className="grid grid-cols-fixture-row items-center gap-3 border-b border-panel-rule px-3 py-1 text-lead aria-current:shadow-current-edge"
             >
@@ -145,12 +144,12 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
       {editing && (
         <div className={PANEL_BODY}>
           <p className="text-soft">{pickAnotherWords}</p>
-          <Problem problem={problem} />
+          <Problem problem={change.problem} />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={cancel} className="secondary-action">
               {cancelWords}
             </button>
-            <button type="button" disabled={picks.length < 2 || busy} onClick={() => void save()} className={picks.length < 2 ? "action-idle" : "action"}>
+            <button type="button" disabled={picks.length < 2 || change.busy} onClick={() => void save()} className={picks.length < 2 ? "action-idle" : "action"}>
               {saveSwapWords}
             </button>
           </div>

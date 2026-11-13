@@ -41,6 +41,7 @@ const draft: DraftState = {
   rounds: ROUNDS,
   order,
   picksMade: picks.length,
+  ownPickBy: null,
   onTheClock: { pick: 33, round: 4, teamId: YOURS, name: NAMES[7] },
   clock: { startsAt: startedAt - 42 * SECOND_MS, endsAt: startedAt + 48 * SECOND_MS, pausedAt: undefined },
 };
@@ -56,14 +57,14 @@ const isBefore = () => new URLSearchParams(window.location.search).get("draft") 
 
 /** The preview changes nothing, and says nothing went wrong. */
 const done = () => Promise.resolve(null);
-const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done };
+const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done, pickFor: done };
 
 const GREYED: readonly GreyedPlayer[] = [
   { code: 2, reason: "clubFull" },
   { code: 3, reason: "clubFull" },
 ];
 /** The preview's pick is made at once, and changes nothing. */
-const PREVIEW_CHANGES: DraftChanges = { makePick: done };
+const PREVIEW_CHANGES: DraftChanges = { makePick: done, undoMyPick: done };
 
 /** Scouting's preview players' figures, by code: rank, 25/26's points, and MP, G, A and CS. */
 const FIGURES: readonly [number, number, number | null, number, number, number, number][] = [
@@ -84,12 +85,11 @@ const figures: RoomFigures = {
   })),
   lastSeason: 2025,
   statsSeason: 2025,
-  maxPerClub: 2,
 };
 
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED, maxPerClub: 2 }),
   useInMenu: () => true,
   // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
   usePlayersList: previewScouting.usePlayersList,
@@ -99,5 +99,7 @@ export const previewDraft: DraftSeam = {
   ...previewLists,
   // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
   useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
+  // Saka Potatoes is on the clock, so Pick for is greyed by its Arsenal maximum too.
+  useGreyedOnTheClock: () => (isBefore() ? [] : GREYED),
   useCommissionerChanges: () => COMMISSIONER_CHANGES,
 };

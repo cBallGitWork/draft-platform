@@ -14,7 +14,9 @@ import { OPEN_PICKED, TACTICS_GAMEWEEK, openTactics } from "../../../support/src
 import {
   ARRIZABALAGA,
   RAYA,
+  REFUSAL,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SAVED_LINE,
   SQUAD,
@@ -33,9 +35,6 @@ import {
   undo,
 } from "../../../support/src/tacticsScreen.harness";
 
-const REFUSAL = "A lineup starts 11 players; this one starts 5.";
-/** Saliba's cell, left-centre of defence, which White swaps into. */
-const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
 /** White, on the bench, swapped in for Saliba, once the tab is up. */
 const whiteForSaliba = () => swap(WHITE, SALIBA);
@@ -183,10 +182,26 @@ describe("the squad changing under an edit", () => {
     await whiteForSaliba();
 
     const SAKA = member(7, "Saka", ["W"]);
-    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] })));
+    app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] }));
 
     expect(await screen.findByText(startingWords(STARTERS.length - 1))).toBeTruthy();
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
     expect(benchOrder()).toEqual([ARRIZABALAGA.name, SALIBA.name, SAKA.name]);
+  });
+
+  it("saves an Undo back past the change as the pitch shows it, never naming a player who left (#1562)", async () => {
+    const app = await openedPitch();
+    await whiteForSaliba();
+    await swap(ARRIZABALAGA, RAYA);
+
+    const SAKA = member(7, "Saka", ["W"]);
+    app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] }));
+    await userEvent.click(undo());
+
+    const sent = app.myTeam.lineupChanges.save.mock.lastCall?.[1];
+    const named = [...(sent?.starters.map((starter) => starter.playerCode) ?? []), ...(sent?.bench ?? [])];
+    expect(named).not.toContain(WHITE.playerCode);
+    expect(sent?.bench.at(-1)).toBe(SAKA.playerCode);
+    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
   });
 });

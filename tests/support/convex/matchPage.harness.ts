@@ -5,9 +5,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { MatchMan } from "../../../convex/match/matchPage";
+import { matchPageAt } from "../../../convex/matchup/commentaryAt";
 import { holdHullAndEverton, HULL_SCORER, LEAGUE_KICKOFF, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
 import { fullTimeRecords } from "./gameweekScoresMatch.harness";
-import { actingAs } from "./leagues.harness";
+import { actingAs, ANN } from "./leagues.harness";
 import { HULL_EVERTON } from "./matchStats.harness";
 
 /** The scores league, with both clubs held, as the football sync holds them. */
@@ -17,8 +18,18 @@ export async function matchLeague(): Promise<ScoresLeague> {
   return league;
 }
 
+/** The match page as `email` sees it now, its commentary judged at the clock as the screen does. */
 export async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
-  return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, now: Date.now(), fixtureCode });
+  const held = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
+  return held === null ? null : matchPageAt(held, Date.now());
+}
+
+/** The points the player card opens on for `playerCode` in this match, as Ann opens it: the
+ *  league's override where it holds one, else his base points at the switch's first position. */
+export async function pointsOnCard(league: ScoresLeague, playerCode: number) {
+  const card = (await (await actingAs(league.t, ANN)).query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: Date.now() }))!;
+  const match = card.matches.find((each) => each.fixtureCode === HULL_EVERTON)!;
+  return { opening: card.pricedAt[0] ?? null, position: match.points[0].position, total: match.override?.points ?? match.points[0].total };
 }
 
 /** One commentary line naming `playerCodes`, as the live tick stores it. */

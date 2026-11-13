@@ -1,11 +1,51 @@
-// Sportmonks' v3 payloads (#1391), as much of each as football/sportmonks/ reads, checked against
-// real reads on 10 Nov 2026. Types only: a body of another shape throws where it is read.
+// Sportmonks' v3 payloads (#1391), as much of each as football/sportmonks/ reads: the league,
+// squads, schedule and live reads checked against real reads on 10 Nov 2026, the venue, coaches,
+// sidelined and positions includes as Sportmonks' docs give them. Types only: a body of another
+// shape throws where it is read.
 
 export interface RawSeason { id: number; name: string }
-export interface RawLeague { id: number; currentseason?: RawSeason | null }
-export interface RawPlayer { id: number; name: string; display_name?: string | null; common_name?: string | null }
+export interface RawLeague { id: number; currentseason?: RawSeason | null; seasons?: RawSeason[] }
+/** A position as Sportmonks names it: its broad one ("Defender") or its detailed one ("Centre Back"). */
+export interface RawPosition { id: number; name: string }
+export interface RawPlayer {
+  id: number;
+  name: string;
+  display_name?: string | null;
+  common_name?: string | null;
+  /** "2001-09-05"; null for a man Sportmonks has none for. */
+  date_of_birth?: string | null;
+  /** Asked for only by the positions read (`players.player.position;players.player.detailedPosition`). */
+  position?: RawPosition | null;
+  detailedposition?: RawPosition | null;
+}
 export interface RawSquadMan { player_id: number; player?: RawPlayer | null }
-export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[] }
+/** What keeps a man out (#1420): an injury or a suspension, its `type` naming it ("Hamstring
+ *  Injury", "Red Card Suspension"). `end_date` is the expected return where Sportmonks sends one;
+ *  `completed` is true once he is back. */
+export interface RawSideline {
+  id: number;
+  player_id: number;
+  /** "injury" or "suspension", as Sportmonks' docs give it. */
+  category?: string | null;
+  /** "2026-11-22". */
+  end_date?: string | null;
+  completed?: boolean | null;
+  type?: { id: number; name: string } | null;
+}
+/** A club's home ground (`venue`). */
+export interface RawVenue { id: number; name: string; capacity?: number | null }
+export interface RawCoach { id: number; name: string; display_name?: string | null; common_name?: string | null }
+/** A spell of a coach at a club (`coaches.coach`): `active` while he is there, `start` "2026-06-01". */
+export interface RawTeamCoach { id: number; coach_id: number; active?: boolean | null; start?: string | null; coach?: RawCoach | null }
+export interface RawTeam {
+  id: number;
+  name: string;
+  short_code: string | null;
+  players?: RawSquadMan[];
+  sidelined?: RawSideline[];
+  venue?: RawVenue | null;
+  coaches?: RawTeamCoach[];
+}
 export interface RawParticipant { id: number; meta?: { location?: string } }
 export interface RawScore { description: string; score: { goals: number; participant: string } }
 export interface RawPeriod { ticking?: boolean; minutes?: number | null }
@@ -18,7 +58,11 @@ export interface RawLineup {
   formation_field: string | null;
   formation_position: number | null;
   details?: RawDetail[];
+  /** Asked for only by the positions read (`lineups.detailedPosition`). */
+  detailedposition?: RawPosition | null;
 }
+/** A side's formation in a match, "4-2-3-1". */
+export interface RawFormation { participant_id: number; formation: string }
 export interface RawEvent {
   id: number;
   type_id: number;
@@ -45,6 +89,7 @@ export interface RawFixture {
   periods?: RawPeriod[];
   lineups?: RawLineup[];
   events?: RawEvent[];
+  formations?: RawFormation[];
 }
 export interface RawRound { id: number; name: string; fixtures?: RawFixture[] }
 export interface RawStage { id: number; rounds?: RawRound[] }
@@ -56,6 +101,30 @@ export interface SportmonksPayloads {
   teams: RawTeam[];
   schedule: RawStage[];
 }
+
+/** How Sportmonks names a match's sides: a participant's `meta.location`, and a score's `participant`. */
+export const HOME = "home";
+export const AWAY = "away";
+
+/** Sportmonks' match state ids (a fixture's `state_id`), by their v3 names. */
+export const SM_STATE = {
+  notStarted: 1, // NS
+  firstHalf: 2, // INPLAY_1ST_HALF
+  halfTime: 3, // HT
+  breakBeforeExtraTime: 4, // BREAK
+  fullTime: 5, // FT
+  extraTime: 6, // INPLAY_ET
+  afterExtraTime: 7, // AET
+  afterPenalties: 8, // FT_PEN
+  penalties: 9, // INPLAY_PENALTIES
+  postponed: 10, // POSTPONED
+  toBeAnnounced: 13, // TBA
+  delayed: 16, // DELAYED
+  awarded: 17, // AWARDED
+  extraTimeBreak: 21, // EXTRA_TIME_BREAK
+  secondHalf: 22, // INPLAY_2ND_HALF
+  penaltyBreak: 25, // PEN_BREAK
+} as const;
 
 /** What a problem names the feed as. */
 export const SPORTMONKS = "Sportmonks";

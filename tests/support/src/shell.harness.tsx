@@ -3,8 +3,10 @@
 // asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
-import { render } from "@testing-library/react";
-import { vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { expect, vi } from "vitest";
+import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
@@ -32,6 +34,7 @@ import { fakeTrades } from "./trades.harness";
 import { fakeHome } from "./home.harness";
 import { fakePremierLeague } from "./premierLeague.harness";
 import { fakeTable } from "./table.harness";
+import { MY_TEAM_NAME } from "./teams.harness";
 
 export const visitor: Session = { signedIn: false };
 
@@ -52,7 +55,7 @@ export const league: LeagueSummary = {
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
   powers: powersOf(["manager"], false),
-  teamName: "Team 1",
+  teamName: MY_TEAM_NAME,
   teams: 3,
   maxTeams: 4,
   unsentCommissionerLink: null,
@@ -216,4 +219,23 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     search: () => history.location.search,
     becomes: (next: Session) => view.rerender(app(next)),
   };
+}
+
+/** A panel on the open screen, found by its title. */
+export const panel = (title: string | RegExp) => screen.findByRole("region", { name: title });
+
+/** Opens `path` for `session` and expects to land on Your leagues; the app, for what else to check. */
+export async function expectSentToLeagues(path: string, session: Session) {
+  const app = openApp(path, session);
+  await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+  expect(app.path()).toBe(LEAGUES_PATH);
+  return app;
+}
+
+/** Your leagues, opened for `session`, offers no link named `linkTitle`; the page is closed after. */
+export async function expectNotOffered(linkTitle: string, session: Session) {
+  openApp(LEAGUES_PATH, session);
+  await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+  expect(screen.queryByRole("link", { name: linkTitle })).toBeNull();
+  cleanup();
 }

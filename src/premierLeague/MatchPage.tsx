@@ -2,6 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
 import { ClubMark } from "../ui/ClubName";
+import { ClubLink } from "./ClubLink";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
@@ -9,16 +10,13 @@ import { OwnerName } from "../ui/OwnerName";
 import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
+import { MatchState } from "./MatchState";
 import {
   cameOnWords,
-  clockWords,
   COMMENTARY_TITLE,
   figureWords,
-  fullTime,
   goalsWords,
-  halfTime,
   inGameweekWords,
-  kickoffDayWords,
   loadingMatchWords,
   MATCH_TITLE,
   matchColumns,
@@ -93,7 +91,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
         <ScoreboardSide club={away} className="justify-self-start" />
       </p>
       <p aria-live="polite" className="px-3 pb-2 text-center">
-        <MatchState score={score} kickoff={kickoff} />
+        <MatchState score={score} kickoff={kickoff} long />
         {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
     </section>
@@ -110,22 +108,11 @@ function ScoreboardSide({ club, className }: { club: Club; className: string }) 
   return (
     <span data-club-side={club.shortName} className={`display-face inline-flex items-center px-2 ${SIDE_INKS[inkOn(primary)]} ${className}`} style={{ backgroundColor: primary }}>
       <ClubMark code={club.code} />
-      {club.name}
+      <ClubLink club={club} className="text-inherit">
+        {club.name}
+      </ClubLink>
     </span>
   );
-}
-
-function MatchState({ score, kickoff }: Pick<MatchPageData, "score" | "kickoff">) {
-  switch (score?.state) {
-    case "live":
-      return <span className="font-semibold text-derived">{clockWords(score.state, score.clockLabel, score.minutes)}</span>;
-    case "halfTime":
-      return <span className="font-semibold text-derived">{halfTime.long}</span>;
-    case "fullTime":
-      return <span className="text-muted">{fullTime.long}</span>;
-    default:
-      return <span className="text-muted">{kickoff === null ? "" : kickoffDayWords(kickoff)}</span>;
-  }
 }
 
 type SideStats = NonNullable<MatchPageData["teamStats"]>["home"];

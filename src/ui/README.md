@@ -12,11 +12,14 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `Panel.tsx`, `Notice`: a standing warning in the alert strip (Colour roles: alert, event).
 - `Panel.tsx`, `Status`: a live region for a passing word (Colour roles).
 - `Panel.tsx`, `Loading`, `PanelNote`, `LiveNote`: a muted line: loading, a hint, live points (Colour roles: muted).
+- `Panel.tsx`, `CloseButton`: the cross that closes a panel, its full tap area (Shape).
 - `Panel.tsx`, `PANEL_BODY`, `PANEL_LIST_ROW`, `PAGE_STACK`, `PANEL_COLUMNS`: panels' insides and their 8px gaps (Shape).
 - `Panel.tsx`, `TOP_BAR`, `TOP_BAR_ROW`: the top bar's plate and row (Colour roles: bar; Shape).
+- `FindPlayerPanel.tsx`: the "Find a player" panel, a name box and the players found, each its caller's row (Shape; Controls), on the admin's dashboard and Squads.
 - `ColumnHeads.tsx`: a data table's head band, short words with long ones as tooltips (Colour roles: column head).
 - `TickBox.tsx`: a tick box, the sunken well and drawn tick (Controls: Tick box).
 - `Choice.tsx`: one of a few options, butted keys (Controls: Keys).
+- `SectionTabs.tsx`: a section's butted tabs under the top bar, on the frame, the admin's dashboard and Scoring (`sectionTabClasses`, `SectionTab`), and the count after a tab's name (`CountBadge`), on Mail and Transactions (Shape; Colour roles: event).
 - `PlateTabs.tsx`: a page's tabs on its title plate after the title, the chosen one pressed (Shape), on Table and Scouting.
 - `Confirm.tsx`: a confirm whose yes is the danger action (Colour roles: danger action; Decided: Destructive confirms).
 - `GameweekStepper.tsx`: CM's `◄ GW ►` stepper (Colour roles: stepper).
@@ -26,7 +29,10 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `StarRating.tsx`: a player's stars for a role, in half-star steps, or "?" and "—" unrated (Marks: Stars).
 - `ClubName.tsx`: a club's name, or its three letters (`ClubShort`), and its mark (`ClubMark`): its crest, or its two colours where that won't load (Marks: A club's mark).
 - `StatBox.tsx`: the stat box, every stat of the catalogue and the site's own, as a box or a title-bar button (Controls), on Scouting and the draft room.
+- `FormChips.tsx`: a team's or a club's form, its last results as square chips (`FormChips`), and one result's chip (`ResultChip`) (Marks: form), on My team, League home, the table and a club's page.
 - `AutoTeamChip.tsx`: a team on the auto team, the event chip after its name, its hover saying what it does (Colour roles: event), on the table and the matchup.
+- `MoreLink.tsx`: a panel's way on, "All mail ›", "Player card ›", its words then the hidden glyph at one spacing; `NextGlyph` gives a button or other link the same glyph.
+- `OverrideFields.tsx`: an override form's points box, to a tenth, and its reason (Controls), on the player card's override and the matchup's team override.
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css
@@ -39,6 +45,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `text-box`: a box to type in (Controls).
 - `number-box`: a box for one number of a rule, in the figure colour (Colour roles: figure).
 - `tick-well`: the tick box's well (Controls: Tick box).
+- `radio-well`: a radio whose lines each hold more than a word, the tick well round (the auto team's switch).
 - `key`: one of a row of butted keys, the chosen one pressed in (Controls: Keys).
 - `text-align-inherit`: a button's words keep its cell's side (Tables and panels).
 

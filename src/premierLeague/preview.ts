@@ -5,38 +5,16 @@
 
 import { plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
+import { previewClubs, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
-import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
+import type { ClubPageData, FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
+import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
-/** Each club by its real FPL `code`, so its crest and colours are its own (#840). */
-const CLUBS = (
-  [
-    [3, "Arsenal", "ARS"],
-    [7, "Aston Villa", "AVL"],
-    [91, "Bournemouth", "BOU"],
-    [94, "Brentford", "BRE"],
-    [36, "Brighton", "BHA"],
-    [8, "Chelsea", "CHE"],
-    [9, "Coventry City", "COV"],
-    [31, "Crystal Palace", "CRY"],
-    [11, "Everton", "EVE"],
-    [54, "Fulham", "FUL"],
-    [40, "Ipswich Town", "IPS"],
-    [2, "Leeds United", "LEE"],
-    [14, "Liverpool", "LIV"],
-    [43, "Man City", "MCI"],
-    [1, "Man Utd", "MUN"],
-    [4, "Newcastle", "NEW"],
-    [17, "Nottingham Forest", "NFO"],
-    [6, "Spurs", "TOT"],
-    [21, "West Ham", "WHU"],
-    [39, "Wolves", "WOL"],
-  ] as const
-).map(([code, name, shortName]) => ({ code, name, shortName }));
+const CLUBS = previewClubs;
 
-const CURRENT = 9;
+const CURRENT = previewGameweek;
 /** The current gameweek's first kickoff: 12:30 today, or yesterday before 14:30, so its first
  *  match is always under way or over; each gameweek a week apart. */
 const today = new Date();
@@ -82,11 +60,12 @@ function matchesOf(gameweek: number): GameweekMatch[] {
   });
 }
 
-const firstKickoffs: FirstKickoff[] = SEASON_GAMEWEEKS.map((gameweek) => ({
+const SEASON = seasonGameweeks(previewSeasonGameweeks);
+const firstKickoffs: FirstKickoff[] = SEASON.map((gameweek) => ({
   gameweek,
   firstKickoff: startOf(gameweek),
 }));
-const matches = new Map(SEASON_GAMEWEEKS.map((gameweek) => [gameweek, matchesOf(gameweek)]));
+const matches = new Map(SEASON.map((gameweek) => [gameweek, matchesOf(gameweek)]));
 
 /** The table from the made-up results by the server's own rules (plTable.ts): the current
  *  gameweek's live and half-time matches count as they stand, so it is provisional. */
@@ -109,9 +88,18 @@ const standings = {
 };
 
 export const previewPremierLeague: PremierLeagueSeam = {
-  useFirstKickoffs: () => firstKickoffs,
+  useGameweeks: () => ({ seasonGameweeks: previewSeasonGameweeks, firstKickoffs }),
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
   // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
   useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
   useStandings: () => standings,
+  useClub: (_leagueId, clubCode) => previewClub(clubCode),
 };
+
+/** A club's page from the made-up season, by the server's own rules (clubFixtures.ts). */
+const heldMatches: HeldMatch[] = [...matches].flatMap(([gameweek, gameweekMatches]) => gameweekMatches.map((match) => ({ ...match, gameweek })));
+const positionOf = (code: number) => standings.rows.find(({ club }) => club.code === code)?.position ?? null;
+function previewClub(clubCode: number): ClubPageData | null {
+  const club = CLUBS.find(({ code }) => code === clubCode);
+  return club === undefined ? null : clubPageOf(club, heldMatches, positionOf);
+}

@@ -1,0 +1,15 @@
+{
+  "studio": "11ff97d14490e8492e7f32e9e927e21e140bf582",
+  "hash": "sha256",
+  "files": {
+    ".claude/hooks/commands.py": "65bdbd6324e8552acd09620c836afe87dbafb6e32f4af8f949eef9538faaa906",
+    ".claude/hooks/hook_payload.py": "4c76985a32629a6420f363d46f4d3c8339ecd02a1b6cfd1b4191ca0ba0c49216",
+    ".claude/hooks/parsing.py": "96d64cd8b82a93ef7b22cd214806700492e23842c63180472deea9e5ffd9b7d3",
+    ".claude/hooks/stdin_reading.py": "524f3893cfcbbadba15c67bb852a68178945b6cc70f91f3a211864c2ab8e0728",
+    ".claude/hooks/test.sh": "6b7ab35c238ae0e944dbbc1513c43dceb82e56796054011c39029b55d995d5ae",
+    ".claude/hooks/tests/context_size.sh": "37debb2973df186edc67a5766eb2687e486c9c89be0fc126987be3b40af016ac",
+    ".claude/hooks/tests/guard_bash_reading.sh": "9ca953d5cfc12d80d926b544d7c2fd55daa119c1da8708467907515afbb6ee13",
+    ".claude/hooks/tests/line_ceiling.sh": "3d458d4b072ece4eac372f0c5c91dc747ead427ac9fc2b111b0a71ba31bf387f",
+    "scripts/studio-kit.mjs": "c97f44dd0aa8db209720a80046cdc27378a3f2d7a8bf3cb4721e50b80cd2ae5d"
+  }
+}

@@ -25,7 +25,12 @@ export interface Cell {
   lane: Lane;
 }
 
-const WIDE_LANES: readonly Lane[] = ["left", "right"];
+/** The two flanks, in every area. */
+export const WIDE_LANES: readonly Lane[] = ["left", "right"];
+
+/** The keeper's area of the pitch, and the position that plays it. */
+export const GOALKEEPER_AREA = "goalkeeper" satisfies Area;
+export const KEEPER_POSITION = "GK" satisfies Position;
 
 /** The area's cells in these lanes. */
 export const cellsOf = (area: Area, lanes: readonly Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
@@ -40,12 +45,39 @@ export const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
 export const sameCell = (one: { area: string; lane: string }, other: { area: string; lane: string }): boolean =>
   one.area === other.area && one.lane === other.lane;
 
+/** Whether two sets of cells make the same formation: as many cells, each of one in the other, in
+ *  any order. The one test a preset's name, its default instructions, a classic formation's shape and the
+ *  Formation key all read. */
+export const sameShape = (one: readonly Cell[], other: readonly Cell[]): boolean =>
+  one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
+
 /** The pitch's order for a sort, ALL_CELLS's: back to front, then left to right. */
 export const byPitchOrder = (one: Cell, other: Cell): number =>
   AREAS.indexOf(one.area) - AREAS.indexOf(other.area) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane);
 
-/** Whether a cell held as data names one of the pitch's areas and one of its lanes. */
-export const isOnPitch = ({ area, lane }: Cell): boolean => AREAS.includes(area) && LANES.includes(lane);
+/** How many of these cells stand in the defence row: the back, as the team instructions and a
+ *  shape's back line count it (Craig, 6 Nov 2026, on #990). A wing back in a midfield row isn't one. */
+export const backOf = (cells: readonly Cell[]): number => cells.filter((cell) => cell.area === "defence").length;
+
+/** The backs two at the back and five at the back stand: Gung-ho's and two at the back's back line,
+ *  and Park the bus's (spec/05, Team instructions). */
+export const TWO_AT_THE_BACK_COUNT = 2;
+export const FIVE_AT_THE_BACK_COUNT = 5;
+
+/** The cell a placement held as data names, or null when its area or its lane isn't one of the
+ *  pitch's: the one check every saved or sent spot goes through. */
+export function cellOf(placement: { area: string; lane: string }): Cell | null {
+  const area = AREAS.find((known) => known === placement.area);
+  const lane = LANES.find((known) => known === placement.lane);
+  return area === undefined || lane === undefined ? null : { area, lane };
+}
+
+/** The cell of a placement an earlier check has already found on the pitch; one that isn't is a bug. */
+export function heldCell(placement: { area: string; lane: string }): Cell {
+  const cell = cellOf(placement);
+  if (cell === null) throw new Error(`No cell ${placement.area}, ${placement.lane}`);
+  return cell;
+}
 
 /** The usual case: anyone who plays an area fills any of its cells. */
 const wholeArea = (area: Area): Cell[] => cellsOf(area, LANES);
@@ -65,7 +97,8 @@ const PLAYABLE_CELLS: Record<Position, readonly Cell[]> = {
   CM: wholeArea("midfield"),
   // The two wide midfield rows share their wide men: "yes" (Craig, 1 Nov 2026; #1025).
   WM: [...wholeArea("midfield"), ...cellsOf("attackingMidfield", WIDE_LANES)],
-  CAM: wholeArea("attackingMidfield"),
+  // Up front as false 9 only (spec/06 `S06.6`; roles.ts's takesRole): "any AM" (Craig, 9 Nov 2026, on #1196).
+  CAM: [...wholeArea("attackingMidfield"), ...wholeArea("attack")],
   W: [...cellsOf("midfield", WIDE_LANES), ...wholeArea("attackingMidfield")],
   SS: [...wholeArea("attackingMidfield"), ...wholeArea("attack")],
   ST: wholeArea("attack"),
@@ -91,6 +124,11 @@ const SLOT_POSITION_BY_AREA: Record<Area, { wide: SlotPosition; centre: SlotPosi
 export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }
+
+/** The area each slot position plays in: each is in exactly one (spec/14's table). */
+export const AREA_OF_POSITION: Readonly<Record<SlotPosition, Area>> = Object.fromEntries(
+  AREAS.flatMap((area) => Object.values(SLOT_POSITION_BY_AREA[area]).map((position) => [position, area])),
+) as Record<SlotPosition, Area>;
 
 /** The areas a player with these positions plays any cell of, back to front: a wing back's are
  *  defence and both midfield rows his wide lanes reach. */

@@ -1,7 +1,9 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { scoredGameweeksOf } from "../gameweeks/usedGameweeks";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { seasonGameweeks } from "../gameweeks/usedGameweeks";
+import { scoredSinceMade } from "../gameweekScorer/gameweekScores";
 import { refuse } from "../shared/leagueAccess";
 import type { LeagueRules } from "./leagueRulesShape";
 
@@ -18,14 +20,16 @@ export const formatLocked = (format: LeagueRules["format"]) =>
   "one table with one meaning all season.";
 
 /** Whether the league's season has begun by the time a change takes effect from `fromGameweek`: a
- *  gameweek it scores, before that one, began after the league was made, as its scores count only
- *  those (../gameweekScorer/gameweekScores.ts's `begunGameweeks`). So a league made mid-season, or
- *  scoring from a later start, begins at its own first gameweek, not FPL's. */
+ *  gameweek before that one passes scoring's own test (../gameweekScorer/gameweekScores.ts's
+ *  `scoredSinceMade`). So a league made mid-season, or scoring from a later start, begins at its
+ *  own first gameweek, not FPL's. It reads every deadline, not only the recorded passed ones
+ *  scoring reads, so no format change slips through between a deadline passing and its record. */
 async function seasonBegun(ctx: QueryCtx, league: Doc<"leagues">, fromGameweek: number): Promise<boolean> {
-  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
-  return scoredGameweeksOf(league).some((gameweek) => {
+  const deadlineIn = await leagueDeadlineOf(ctx, league._id);
+  const count = await seasonGameweekCount(ctx);
+  return seasonGameweeks(count).some((gameweek) => {
     const deadline = deadlineIn(gameweek);
-    return gameweek < fromGameweek && deadline !== null && deadline >= league._creationTime;
+    return gameweek < fromGameweek && deadline !== null && scoredSinceMade(league, gameweek, deadline, count);
   });
 }
 

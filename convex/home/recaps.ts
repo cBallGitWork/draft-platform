@@ -5,17 +5,20 @@ import { internalAction, internalMutation, internalQuery, query, type MutationCt
 import { matchdayMargins } from "../admin/platformSettings";
 import { tableGameweek, type TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
-import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, writeWithClaude } from "../outbound/claude";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
-import { recapTeamPoints } from "../schema/recaps";
+import type { SlotPoints } from "../scoring/teamPoints";
+import { inTenths } from "../scoring/values";
+import { recapTeamPoints } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
@@ -28,10 +31,6 @@ import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLett
 // bench. Mail tells the whole league it is up. League home shows it until the next gameweek's first
 // matchday mode begins, and Read the recap opens it whole. It is written once and never rewritten:
 // a score that changes after puts a line under it, linking to that matchup (Craig, 6 Nov 2026).
-
-/** The most tries at writing a recap, a day's worth at CLAUDE_RETRY_MS apart: each failure is
- *  logged and kept on the recap's row, so a lasting one (no API key, say) shows. */
-export const RECAP_TRIES_MOST = 48;
 
 type TeamId = Id<"teams">;
 
@@ -65,7 +64,7 @@ export const brief = internalQuery({
     const { rules, teamIds, schedule, results, named } = await standingsOf(ctx, league, season);
     const scored = results.get(gameweek);
     if (scored === undefined) throw new Error(`League ${league._id} has no score for gameweek ${gameweek}`);
-    const drawn = rules.format === "headToHead" ? schedule.find((each) => each.gameweek === gameweek) : undefined;
+    const drawn = gameModeOf(rules).hasMatchups ? schedule.find((each) => each.gameweek === gameweek) : undefined;
     const headToHeads = drawn === undefined ? [] : scoredFixtures(drawn, results, named);
 
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
@@ -73,12 +72,11 @@ export const brief = internalQuery({
     const teams = [];
     for (const teamId of teamIds) {
       const { team } = await inGameweek.slotsOf(teamId);
-      const benchPoints = team.bench.filter((slot) => !slot.counts).reduce((sum, slot) => sum + (slot.points ?? 0), 0);
-      teams.push({ team: named(teamId), points: scored.get(teamId)!.points, benchPoints });
+      teams.push({ team: named(teamId), points: scored.get(teamId)!.points, benchPoints: benchPointsOf(team.bench) });
       for (const slot of team.starters) {
         if (!slot.counts || slot.points === null) continue;
         const player = await playerByCode(ctx, slot.playerCode);
-        starters.push({ player: player?.name ?? `Player ${slot.playerCode}`, team: named(teamId), points: slot.points });
+        starters.push({ player: player?.name ?? lostPlayerName(slot.playerCode), team: named(teamId), points: slot.points });
       }
     }
     const { topPerformers, letdowns } = performersOf(starters);
@@ -95,6 +93,11 @@ export const brief = internalQuery({
   },
 });
 
+/** The points a team left on its bench: its bench men who didn't come on, added up in tenths, so
+ *  floating point's noise (4.2 and 0.1 adding to 4.300000000000001) never reaches the brief. */
+export const benchPointsOf = (bench: readonly Pick<SlotPoints, "counts" | "points">[]): number =>
+  inTenths(bench.filter((slot) => !slot.counts).reduce((sum, slot) => sum + (slot.points ?? 0), 0));
+
 /** The RECAP_PLAYERS starters who scored most for their team, and the RECAP_PLAYERS who scored least
  *  among the rest; ties by name, so the same facts always pick the same men. */
 export function performersOf(starters: readonly RecapPlayer[]): { topPerformers: RecapPlayer[]; letdowns: RecapPlayer[] } {
@@ -106,7 +109,7 @@ export function performersOf(starters: readonly RecapPlayer[]): { topPerformers:
 
 /** Writes the recap (scheduled by `startRecap`): Claude writes it from `brief`, and it lands. A
  *  failed write is logged, kept on the recap's row and tried again CLAUDE_RETRY_MS later, up to
- *  RECAP_TRIES_MOST tries. */
+ *  CLAUDE_TRIES_MOST tries, each kept so a lasting failure (no API key, say) shows. */
 export const write = internalAction({
   args: { recapId: v.id("recaps") },
   returns: v.null(),
@@ -151,7 +154,7 @@ export const failed = internalMutation({
     if (recap === null || recap.state !== "writing") return null;
     const failedTries = (recap.failedTries ?? 0) + 1;
     await ctx.db.patch("recaps", recapId, { failedTries, lastFailure: failure });
-    if (failedTries < RECAP_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
+    if (failedTries < CLAUDE_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
     return null;
   },
 });
@@ -178,14 +181,17 @@ function shown(recap: Doc<"recaps">, changedTeamId: TeamId | null) {
   return { gameweek: recap.gameweek, text: recap.text!, writtenAt: recap.writtenAt!, changedTeamId };
 }
 
-/** The recap League home shows at `now`: the league's latest written, until the next gameweek's
- *  first matchday mode begins; null with none. `results` are the league's scores, the table's. */
+/** League home's recap as `ofLeague` sends it, which reads no clock (#1550): with the moment it
+ *  leaves, null for never, for the screen to drop it at (home/homeAt.ts). */
+export const heldRecap = shownRecap.extend({ until: v.union(v.number(), v.null()) });
+
+/** The recap League home shows: the league's latest written, until the next gameweek's first
+ *  matchday mode begins; null with none. `results` are the league's scores, the table's. */
 export async function homeRecap(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   results: ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>,
-  now: number,
-): Promise<ReturnType<typeof shown> | null> {
+): Promise<Infer<typeof heldRecap> | null> {
   let latest: Doc<"recaps"> | null = null;
   for await (const recap of ctx.db.query("recaps").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).order("desc")) {
     if (recap.state === "written") {
@@ -193,14 +199,17 @@ export async function homeRecap(
       break;
     }
   }
-  if (latest === null || now >= (await nextMatchdayStart(ctx, latest.gameweek))) return null;
-  return shown(latest, await changedTeam(latest, async (teamId) => results.get(latest.gameweek)?.get(teamId)));
+  if (latest === null) return null;
+  const until = await nextMatchdayStart(ctx, latest.gameweek);
+  const recap = shown(latest, await changedTeam(latest, async (teamId) => results.get(latest.gameweek)?.get(teamId)));
+  return { ...recap, until: until === Infinity ? null : until };
 }
 
 /** When the first matchday mode of the next gameweek after `gameweek` with a match on begins:
  *  `beforeMs` before its first kickoff (matchday.ts). Never, with none. */
 async function nextMatchdayStart(ctx: QueryCtx, gameweek: number): Promise<number> {
-  for (let next = gameweek + 1; next <= GAMEWEEKS; next++) {
+  const count = await seasonGameweekCount(ctx);
+  for (let next = gameweek + 1; next <= count; next++) {
     const fixtures = await takeAllOrThrow(
       ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", next).eq("droppedAt", undefined)),
       GAMEWEEK_MATCHES_MOST,

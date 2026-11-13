@@ -1,7 +1,9 @@
 import { useId, useState } from "react";
 import type { Availability } from "../../convex/availability/availability";
+import { AVAILABILITIES } from "../../convex/availability/availabilities";
 import { Choice } from "../ui/Choice";
 import { ColumnHeads } from "../ui/ColumnHeads";
+import { FindPlayerPanel } from "../ui/FindPlayerPanel";
 import { Loading, PAGE_STACK, PANEL_BODY, Panel, PanelNote } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { PositionCodes } from "../ui/PositionCodes";
@@ -17,17 +19,13 @@ import {
   availabilityColumns,
   availabilityLoadingWords,
   feedSaysWords,
-  findLabel,
-  findTitle,
-  foundListLabel,
-  noneFoundWords,
   noneSetByHandWords,
   pickPlayerLabel,
   searchingWords,
   setByHandTitle,
 } from "./words";
 
-const CHOICES = [FEED_CHOICE, "out", "doubtful", "available"] as const;
+const CHOICES = [FEED_CHOICE, ...AVAILABILITIES] as const;
 /** Every column is words, so every head sits on the left. */
 const LEFT = () => "px-2 text-left";
 
@@ -64,32 +62,16 @@ export function AvailabilityTab({ seam }: { seam: AdminSeam }) {
 function FindPlayer({ seam, picked, pick }: { seam: AdminSeam; picked: number | null; pick: (code: number) => void }) {
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(text);
-  const inputId = useId();
   return (
-    <Panel title={findTitle}>
-      <div className={PANEL_BODY}>
-        <label htmlFor={inputId} className="sr-only">
-          {findLabel}
-        </label>
-        <input id={inputId} type="search" value={text} onChange={(event) => setText(event.target.value)} className="text-box max-w-sm" />
-      </div>
-      {text.trim() !== "" &&
-        (found === undefined ? (
-          <Loading className="px-3 pb-2">{searchingWords}</Loading>
-        ) : found.length === 0 ? (
-          <PanelNote edge="b">{noneFoundWords}</PanelNote>
-        ) : (
-          <ul aria-label={foundListLabel} className="border-t border-panel-rule">
-            {found.map((player) => (
-              <li key={player.code} className="border-b border-panel-rule px-3">
-                <button type="button" aria-pressed={picked === player.code} onClick={() => pick(player.code)} className="min-h-tap text-left font-semibold lg:min-h-row">
-                  {player.fullName}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ))}
-    </Panel>
+    <FindPlayerPanel text={text} onText={setText} found={found}>
+      {(player) => (
+        <li key={player.code} className="border-b border-panel-rule px-3">
+          <button type="button" aria-pressed={picked === player.code} onClick={() => pick(player.code)} className="min-h-tap text-left font-semibold lg:min-h-row">
+            {player.fullName}
+          </button>
+        </li>
+      )}
+    </FindPlayerPanel>
   );
 }
 

@@ -1,21 +1,15 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { pickFirstLineupAgain } from "../lineup/lineups";
-import { fileEvent } from "../mail/letters";
 import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
 import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { heldPlayerByCode } from "../shared/players";
-import { placeOf } from "../squads/squadPlace";
-import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
-import { pickSecondsNow } from "./draftPicks";
-import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
-import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
-import { rulesInForceAt } from "./draftStart";
+import { draftIsPaused, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
+import { draftHasStarted, draftIsLive, draftIsOver, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
+import { putBackOnClock, takeBackPick } from "./pickWindow";
 
 // The commissioner running the draft (spec/04, The commissioner and Auto-pick; #1095), besides
 // pausing it (draftPause.ts) and picking for a team (draftPicks.ts `pickFor`):
@@ -51,23 +45,11 @@ export const undoPick = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, clock } = await liveClock(ctx, leagueId);
     const last = (await lastPickIn(ctx, leagueId)) ?? refuse(commissionerRefusals.noPick);
-    const team = await teamIn(ctx, leagueId, last.teamId);
-    const player = await heldPlayerByCode(ctx, last.playerCode, `Player ${last.playerCode}, drafted at pick ${last.pick}, isn't in the football data`);
-    const place = await placeOf(ctx, leagueId, last.playerCode);
-    if (place?.teamId !== last.teamId) throw new Error(`League ${leagueId}'s pick ${last.pick} put player ${last.playerCode} on team ${last.teamId}, but he isn't in its squad`);
-
-    await ctx.db.delete("squadPlayers", place._id);
-    await ctx.db.delete("draftPicks", last._id);
-    await fileEvent(ctx, leagueId, email, { kind: "playerReleased", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
-    await pickFirstLineupAgain(ctx, leagueId, team._id);
+    const { team, player } = await takeBackPick(ctx, leagueId, last, email);
     if (last.timeout !== undefined) {
-      await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout.putOnAutoPick) });
+      await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout) });
     }
-    if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const now = Date.now();
-    const pausedAt = clock.paused === undefined ? undefined : now;
-    const clocked = await startClock(ctx, leagueId, last.pick - 1, now, await pickSecondsNow(ctx, leagueId), { fullClock: true, pausedAt });
-    if (clocked === null) throw new Error(`League ${leagueId}'s pick ${last.pick} was undone, but it can't be put back on the clock`);
+    const clocked = await putBackOnClock(ctx, leagueId, clock, last, Date.now(), { fullClock: true });
     await tellUpNext(ctx, league, clocked);
     await tellUndone(ctx, league, email, { pick: last.pick, playerName: player.name, teamName: team.name });
     return null;
@@ -86,7 +68,7 @@ export const setPickTime = mutation({
     await runnerOf(ctx, leagueId);
     const live = await draftIsLive(ctx, leagueId);
     if (live && !(await draftIsPaused(ctx, leagueId))) refuse(pickTimeRefusals.notPaused);
-    if (!live && (await draftHasStarted(ctx, leagueId))) refuse(commissionerRefusals.over);
+    if (await draftIsOver(ctx, leagueId)) refuse(commissionerRefusals.over);
     const revision = (await historyOf(ctx, leagueId)).at(-1)?._id ?? null;
     await changeLatest(ctx, leagueId, revision, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
     // League settings may already hold this time, waiting for a gameweek: the draft takes it anyway.
@@ -114,26 +96,25 @@ export const markForCommissioner = mutation({
 
 const commissionerView = v.object({
   /** The pick time the room's box shows, in seconds: once the draft has started, the draft's own;
-   *  before the start, League settings' latest, a change waiting for a gameweek among it; null for
-   *  a league with no rules (before #25). */
-  pickSeconds: v.union(v.number(), v.null()),
+   *  before the start, League settings' latest, a change waiting for a gameweek among it. */
+  pickSeconds: v.number(),
   /** The teams with no manager, by name, each with whether the commissioner picks for it. */
   unmanaged: v.array(v.object({ teamId: v.id("teams"), name: v.string(), marked: v.boolean() })),
 });
 export type CommissionerView = Infer<typeof commissionerView>;
 
 /** What the draft room's commissioner panel reads (#1101), for whoever runs the league: the pick
- *  time its box shows and the teams with no manager. `now` is the screen's minute, as a query must
- *  not read the clock. */
+ *  time its box shows and the teams with no manager. It takes no minute, as the box shows the
+ *  draft's own pick time (#1572), so the panel doesn't reload as the minute turns (#1531). */
 export const panel = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: commissionerView,
-  handler: async (ctx, { leagueId, now }) => {
+  handler: async (ctx, { leagueId }) => {
     await runnerOf(ctx, leagueId);
     const [draft, teams, history] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId), historyOf(ctx, leagueId)]);
-    const started = draft?.started !== undefined;
-    const rules = started ? await rulesInForceAt(ctx, leagueId, now) : newestRow(history, leagueId).rules;
-    const pickSeconds = (started ? draft.pickSeconds : undefined) ?? draftRulesOf(rules).pickSeconds;
+    // The draft's pick time once it has started, as its clock runs on (draftPickTime.ts; #1572).
+    const started = draft?.started !== undefined ? draft : null;
+    const pickSeconds = pickSecondsOf(started, draftRulesOf(newestRow(history, leagueId).rules));
     const unmanaged = teams
       .filter((team) => team.managerEmail === undefined)
       .map((team) => ({ teamId: team._id, name: team.name, marked: team.commissionerPicks === true }))

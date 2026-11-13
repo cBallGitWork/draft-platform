@@ -1,6 +1,7 @@
-"""The private-word check, for guard_bash.py: denies a commit, pull request or issue that names
-a word on Craig's private list, in the command (message, body, heredoc), a body or message file
-it reads, or a commit's staged lines; guard_github.py asks it about the GitHub tools' text too.
+"""The private-word check, for guard_bash.py: denies a commit, a tag or a gh write (any gh call but a
+read) that names a word on Craig's private list, in the command (message, body, heredoc), a body, notes
+or message file it reads (where.text_files), or a commit's staged lines and the unstaged lines of any
+path it names; guard_github.py asks it about the GitHub tools' text too.
 The list lives outside the repo (PRIVATE_WORDS, one per line), so this file never names them; a
 cloud environment, with no home folder of Craig's, holds the words themselves in
 DRAFT_PRIVATE_WORDS_LIST instead (one per line or comma-separated). With neither (a fresh clone),
@@ -13,7 +14,7 @@ from __future__ import annotations
 
 import os
 
-from where import git_call, git_dir, git_output, runs_at
+from where import TEXT_FILE_OPTS, arguments, git_call, git_dir, git_output, runs_at, text_files
 
 LIST_OVERRIDE_ENV = "DRAFT_PRIVATE_WORDS"  # names another list; the hook tests use it
 LIST_ENV = "DRAFT_PRIVATE_WORDS_LIST"  # the words themselves, set in a cloud environment's settings
@@ -22,11 +23,17 @@ PRIVATE_WORDS = os.environ.get(LIST_OVERRIDE_ENV) or os.path.expanduser(DEFAULT_
 NO_LIST = (f"No private-word list at {DEFAULT_LIST} on this machine, "
            "so this wasn't checked for private words. "
            f"In a cloud environment, set {LIST_ENV} in its settings.")
-GH_PUBLISHING = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("pr", "merge"), ("pr", "review"),
-                 ("issue", "create"), ("issue", "edit"), ("issue", "comment"),
-                 ("release", "create"), ("release", "edit")}
+# gh publishes unless it is a known read, as guard_github.py treats its tools, so a write gh adds
+# or a flag like `close --comment` is checked too; a read is left alone, so a search term isn't denied
+GH_READ_COMMANDS = {"search", "status", "browse", "help", "version", "--version", "--help"}  # gh <command>
+GH_READ_VERBS = {"view", "list", "status", "checks", "diff", "watch"}  # gh <noun> <verb>
 GIT_PUBLISHING = {"commit", "tag"}
-FILE_OPTS = {"-F", "--file", "--body-file"}  # options whose value is a file the text comes from
+# the options that take a value, besides where.TEXT_FILE_OPTS, so a value is never read as an option
+GIT_VALUE_OPTS = {"-m", "--message", "-c", "-C", "--reuse-message", "--reedit-message", "-t", "--template",
+                  "--author", "--date", "--fixup", "--squash", "--cleanup", "--trailer", "--pathspec-from-file"}
+GH_VALUE_OPTS = {"-b", "--body", "-t", "--title", "-n", "--notes", "-R", "--repo", "-B", "--base", "-H", "--head",
+                 "-a", "--assignee", "-l", "--label", "-r", "--reviewer", "-m", "--milestone", "-p", "--project",
+                 "-T", "--template", "--target", "-f", "--raw-field", "-X", "--method", "--jq", "-q"}
 
 
 def private_words():
@@ -45,28 +52,45 @@ def private_words():
 
 
 def publishes(words):
-    """True if this simple command writes text Craig shares: a commit, a PR or an issue."""
+    """True if this simple command may write text Craig shares: a commit, a tag, or any gh call
+    but a known read (gh api always counts)."""
     call = git_call(words)
     if call:
         return call[0] in GIT_PUBLISHING
     i = runs_at(words, "gh")
     if i is None:
         return False
-    return words[i + 1 : i + 2] == ["api"] or tuple(words[i + 1 : i + 3]) in GH_PUBLISHING
+    command, verb = (words[i + 1 : i + 3] + [None, None])[:2]
+    return command not in GH_READ_COMMANDS and verb not in GH_READ_VERBS
+
+
+def publishing_args(words):
+    """The args a publishing git or gh call takes its text from, and their options that take a value."""
+    call = git_call(words)
+    if call:
+        return call[1], GIT_VALUE_OPTS
+    i = runs_at(words, "gh")
+    return words[i + 1 :], GH_VALUE_OPTS
 
 
 def files_read(words, cwd):
-    """The text of every file a -F/--file/--body-file option points at."""
+    """The text of every file a publishing call's -F, --file, --body-file or --notes-file names."""
     out = []
-    pairs = list(zip(words, words[1:])) + [tuple(w.split("=", 1)) for w in words if "=" in w]
-    for opt, val in pairs:
-        if opt in FILE_OPTS and val != "-":
-            try:
-                with open(os.path.join(cwd, val), encoding="utf-8") as f:
-                    out.append(f.read())
-            except OSError:
-                pass  # git and gh can't read it either, so nothing is published from it
+    for path in text_files(*publishing_args(words)):
+        if path == "-":
+            continue
+        try:
+            with open(os.path.join(cwd, path), encoding="utf-8") as f:
+                out.append(f.read())
+        except OSError:
+            pass  # git and gh can't read it either, so nothing is published from it
     return out
+
+
+def committed_paths(args):
+    """The paths a git commit names: their working copy is committed, staged or not. git commit -a
+    would commit every tracked file's, but guard_bash.py denies it before this check runs."""
+    return arguments(args, TEXT_FILE_OPTS | GIT_VALUE_OPTS)[1]
 
 
 def added_lines(diff):
@@ -109,9 +133,13 @@ def private_word_problem(cmd, cmds, cwd):
         texts += files_read(words, here or cwd)
         call, folder = git_call(words), git_dir(words, here)
         if call and call[0] == "commit" and folder:  # an unknown folder is refused by the guard
-            staged = git_output(folder, "diff", "--cached", "-U0")
-            if staged is None:
-                return (f"Can't read the staged lines in {folder}, "
+            # the staged lines, and the unstaged ones of any path it names (git commit path/one)
+            paths = committed_paths(call[1])
+            diffs = [git_output(folder, "diff", "--cached", "-U0")]
+            if paths:
+                diffs.append(git_output(folder, "diff", "-U0", "--", *paths))
+            if None in diffs:
+                return (f"Can't read the lines to be committed in {folder}, "
                         "so they couldn't be checked for private words.")
-            texts.append(added_lines(staged))
+            texts += [added_lines(diff) for diff in diffs]
     return text_problem(texts)

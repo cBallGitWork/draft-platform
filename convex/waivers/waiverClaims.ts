@@ -1,21 +1,18 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, query, type QueryCtx } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
-import { latestRules } from "../rules/rulesHistory";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { leagueOpens } from "../leagues/leagueOpens";
-import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
+import { MOST_TEAMS } from "../leagues/leagueLimits";
+import { managerOf, memberOf, ownTeamOrNone, playerOrRefuse, powersIn, refuse, teamsOf } from "../shared/leagueAccess";
+import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
-import { inWaiverLock } from "./waiverLock";
+import { firstRunsIn, outOfLockFor, runAhead, waiversOpenFor } from "./waiverLock";
+import { CLAIMS_PER_TEAM_MOST } from "./waiverLimits";
 import { waiverRowOf } from "./waiverPlayers";
-import { firstRunFrom } from "./waiverTimes";
 import { dropRefusals } from "./waivers";
 
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,
@@ -32,13 +29,14 @@ export const claimRefusals = {
   playerGone: squadRefusals.playerGone,
   dropNotYours: dropRefusals.notYours,
   twice: "You have that claim in already.",
+  tooMany: `You have ${CLAIMS_PER_TEAM_MOST} claims in, the most a team can: withdraw one before putting in another.`,
   notYours: "That claim isn't one of your pending claims.",
   claimsChanged: "Your claims changed since you opened them, so their order wasn't saved.",
 };
 
-/** The most claims a league holds that one read takes: Claude's sizing, far above the players on
- *  waivers at once times the teams. Past it a read throws rather than leave claims out. */
-export const CLAIMS_READ_MOST = 2000;
+/** The most claims a league holds that one read takes: every team at its ceiling (#1609), so the
+ *  run never meets it. Past it a read throws rather than leave claims out. */
+const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
 
 /** The team's pending claims, first first. */
 export function claimsOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"waiverClaims">[]> {
@@ -58,6 +56,12 @@ export function leagueClaims(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
   );
 }
 
+/** Withdraws every pending claim of the team whose manager has just been removed or left, so none
+ *  is tried for a team nobody runs and the next manager starts with none (Craig, 11 Nov 2026, on #1464). */
+export async function withdrawClaimsOfTeam(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
+  for (const claim of await claimsOf(ctx, team.leagueId, team._id)) await ctx.db.delete("waiverClaims", claim._id);
+}
+
 /** The log line for a claim naming a player the football sync doesn't hold. */
 const unheldClaimWords = (playerCode: number) => `A waiver claim names player ${playerCode}, whom the football sync doesn't hold`;
 
@@ -68,20 +72,20 @@ export async function claimedName(ctx: QueryCtx, playerCode: number): Promise<st
 }
 
 /** The manager claims a player on waivers, last of his claims, naming who he drops if it succeeds,
- *  if anyone. Its id. */
+ *  if anyone. Its id. Refused while his team has CLAIMS_PER_TEAM_MOST in (Craig, 11 Nov 2026, #1609). */
 export const putIn = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number(), dropCode: v.union(v.number(), v.null()) },
   returns: v.id("waiverClaims"),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(claimRefusals.notDrafted);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    await waiversOpenFor(ctx, leagueId, claimRefusals);
+    const player = await playerOrRefuse(ctx, playerCode);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
     if (player.droppedAt !== undefined) refuse(claimRefusals.playerGone(player.name));
     await checkDrop(ctx, leagueId, team._id, dropCode);
     const claims = await claimsOf(ctx, leagueId, team._id);
     if (claims.some((claim) => claim.playerCode === playerCode && claim.dropCode === dropCode)) refuse(claimRefusals.twice);
+    if (claims.length >= CLAIMS_PER_TEAM_MOST) refuse(claimRefusals.tooMany);
     const rank = (claims.at(-1)?.rank ?? -1) + 1;
     return await ctx.db.insert("waiverClaims", { leagueId, teamId: team._id, playerCode, dropCode, rank, by: email });
   },
@@ -90,7 +94,7 @@ export const putIn = mutation({
 /** Refused unless a claim's drop, if anyone, is in the team's squad. */
 async function checkDrop(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, dropCode: number | null): Promise<void> {
   if (dropCode === null) return;
-  const drop = (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer);
+  const drop = await playerOrRefuse(ctx, dropCode);
   if ((await placeOf(ctx, leagueId, dropCode))?.teamId !== teamId) refuse(claimRefusals.dropNotYours(drop.name));
 }
 
@@ -102,7 +106,8 @@ async function ownClaim(ctx: QueryCtx, leagueId: Id<"leagues">, claimId: Id<"wai
   return claim;
 }
 
-/** The manager withdraws one of his pending claims. */
+/** The manager withdraws one of his pending claims: in the lock too, only new claims being shut
+ *  there (Craig, 11 Nov 2026, on #1590), as for `rank`. */
 export const withdraw = mutation({
   args: { leagueId: v.id("leagues"), claimId: v.id("waiverClaims") },
   returns: v.null(),
@@ -120,7 +125,7 @@ export const changeDrop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, claimId, dropCode }) => {
     const claim = await ownClaim(ctx, leagueId, claimId);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
+    await outOfLockFor(ctx, leagueId, claimRefusals.locked);
     await checkDrop(ctx, leagueId, claim.teamId, dropCode);
     const others = (await claimsOf(ctx, leagueId, claim.teamId)).filter(({ _id }) => _id !== claimId);
     if (others.some((other) => other.playerCode === claim.playerCode && other.dropCode === dropCode)) refuse(claimRefusals.twice);
@@ -152,11 +157,8 @@ export const countMine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.number(),
   handler: async (ctx, { leagueId }) => {
-    const email = await signedInEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    if (email === null || league === null || !leagueOpens(league)) return 0;
-    const team = await teamOf(ctx, leagueId, email);
-    return team === undefined ? 0 : (await claimsOf(ctx, leagueId, team._id)).length;
+    const own = await ownTeamOrNone(ctx, leagueId);
+    return own === null ? 0 : (await claimsOf(ctx, leagueId, own.team._id)).length;
   },
 });
 
@@ -179,18 +181,19 @@ const pendingClaim = v.object({
   claim: claimedPlayer,
   /** Who goes if it succeeds, or null for nobody. */
   drop: v.union(claimedPlayer, v.null()),
-  /** The run that can first take the player (waiverTimes.ts): null with no run times set, or once he
-   *  is no longer on waivers, when the next run fails the claim. */
-  runAt: v.union(v.number(), v.null()),
+  /** The run that can first take the player, still to come, and the gameweek whose lock it may fall
+   *  in (waiverLock.ts `firstRunTaking`): null with no run times set, or once he is no longer on
+   *  waivers, when the next run fails the claim. */
+  run: v.union(runAhead, v.null()),
 });
 export type PendingClaim = Infer<typeof pendingClaim>;
 
-/** Pending claims, team by team in the order the teams were made, each team's first first: the
- *  caller's own team's, or every team's for whoever runs the league. */
+/** Pending claims at `now`, team by team in the order the teams were made, each team's first
+ *  first: the caller's own team's, or every team's for whoever runs the league. */
 export const pending = query({
-  args: { leagueId: v.id("leagues") },
+  args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.array(pendingClaim),
-  handler: async (ctx, { leagueId }): Promise<PendingClaim[]> => {
+  handler: async (ctx, { leagueId, now }): Promise<PendingClaim[]> => {
     const { email, league, team } = await memberOf(ctx, leagueId);
     const teams = await teamsOf(ctx, leagueId);
     const shown = powersIn(league, email).runs ? teams : teams.filter(({ _id }) => _id === team?._id);
@@ -198,7 +201,7 @@ export const pending = query({
     const codes = [...new Set(claims.flatMap(({ claim }) => (claim.dropCode === null ? [claim.playerCode] : [claim.playerCode, claim.dropCode])))];
     const positionsOf = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
-    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+    const firstRunOf = await firstRunsIn(ctx, leagueId, now);
     const described = async (playerCode: number) => {
       const player = await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode));
       const positions = await positionsOf(playerCode);
@@ -214,7 +217,7 @@ export const pending = query({
           yours: owner._id === team?._id,
           claim: await described(claim.playerCode),
           drop: claim.dropCode === null ? null : await described(claim.dropCode),
-          runAt: onWaivers === null ? null : firstRunFrom(runs, onWaivers.claimableFrom),
+          run: onWaivers === null ? null : firstRunOf(onWaivers.claimableFrom),
         };
       }),
     );

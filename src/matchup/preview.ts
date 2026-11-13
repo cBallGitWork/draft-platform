@@ -11,7 +11,8 @@ import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
-import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
+import { previewClub, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewIdOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** How long a man's match runs, stoppage time in, and when the second match kicks off. */
@@ -21,13 +22,12 @@ const SECOND_KICKOFF = 30;
 const LAST_MINUTE = SECOND_KICKOFF + MATCH_MINUTES;
 const FINAL_MINUTE = LAST_MINUTE + 2;
 const TICK_MS = 500;
-const GAMEWEEK = 8;
 const startedAt = Date.now();
 
 /** A made-up man: where he stands, his name, which match he plays (0 first, 1 second), and his
  *  points at full time; a keeper with no match minutes didn't play. */
 type Man = [Area, string, 0 | 1, number];
-const [MINE, OPPONENT] = [previewTeams[0], previewTeams[2]];
+const [MINE, OPPONENT] = previewTeamNames;
 const SAKA_POTATOES: { starters: Man[]; bench: Man[] } = {
   starters: [
     ["goalkeeper", "Raya", 0, 0],
@@ -70,8 +70,9 @@ const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
     ["attack", "Thiago", 1, 2],
   ],
 };
-/** Each side's clubs by match, as the made-up lines name them: ARS v LIV, then CHE v MCI. */
-const CLUBS: Record<string, readonly [number, number]> = { [MINE]: [3, 8], [OPPONENT]: [14, 43] };
+/** A side's club in match `match`, as the made-up lines name it (MATCHES): mine at home, the
+ *  opponent away. */
+const clubCodeOf = (teamName: string, match: 0 | 1) => previewClub(MATCHES[match][teamName === MINE ? "home" : "away"]).code;
 
 /** Saka Potatoes' keeper and the bench keeper who comes on for him. */
 const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
@@ -82,7 +83,7 @@ const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + 
 function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: boolean): MatchupSlot {
   const played = minute - match * SECOND_KICKOFF;
   // The Premier League preview's code for the match, whose page every fixture there opens.
-  const fixtureCode = previewFixtureCode(GAMEWEEK, match);
+  const fixtureCode = previewFixtureCode(previewGameweek, match);
   const kickoff = startedAt + match * SECOND_KICKOFF * MINUTE_MS;
   const status: MatchupSlot["status"] =
     played < 0
@@ -91,7 +92,7 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
         ? { kind: "playing", fixtureCode, state: "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
-  const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
+  const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerCode: codeOf(BENCH_KEEPER), playerName: BENCH_KEEPER } : null;
   // His shirt is the side's to dress (sideAt).
   return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points, namedAt(match, played))] };
 }
@@ -161,12 +162,12 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
   const slots = [...starters, ...bench];
   // Each man in his match's club's shirt, numbered in squad order.
-  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: CLUBS[teamName][match], number: index + 1 }));
+  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: clubCodeOf(teamName, match), number: index + 1 }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
     const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
-    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
+    Object.assign(on, { counts: true, autoSub: { kind: "on", playerCode: off.playerCode, playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const final = minute >= FINAL_MINUTE;
   const counting = slots.filter((slot) => slot.counts);
@@ -235,6 +236,7 @@ function matchupAt(minute: number, gameweek: number): Matchup {
       commentary: commentaryAt(minute),
       version: null,
     },
+    mode: previewGameMode,
   };
 }
 
@@ -268,7 +270,7 @@ function usePreviewMatchup(gameweek: number): Matchup {
 const overrideNothing = () => Promise.resolve(null);
 
 export const previewMatchup: MatchupSeam = {
-  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? GAMEWEEK),
+  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? previewGameweek),
   useOverrideTeam: () => overrideNothing,
   useRemoveTeamOverride: () => overrideNothing,
 };

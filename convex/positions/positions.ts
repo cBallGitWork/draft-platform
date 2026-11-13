@@ -5,13 +5,13 @@
 
 import type { Infer } from "convex/values";
 import { startsElsewhere, type ChangeThresholds } from "./positionChanges";
-import { labelPositions, placePosition, POSITIONS, type Position } from "./positionTables";
+import { formationPosition, isDrawn, labelPositions, POSITIONS, type Position } from "./positionTables";
 import type { approveMode, startRecord } from "../schema";
 
 /** How many of his newest starts count, last season's and this (spec/06). */
 export const START_WINDOW = 38;
 /** Starts at a position, within the window, that give it to him (spec/06). */
-const STARTS_FOR_A_POSITION = 3;
+export const STARTS_FOR_A_POSITION = 3;
 
 /** One match he started and where he lined up (`MatchSlot`, in plMatch.ts); a formation, line and
  *  place are null for a sheet that drew none. A substitute's appearance is never a start. */
@@ -72,16 +72,19 @@ export interface WorkedOutPositions {
 }
 
 /** The positions his newest `START_WINDOW` starts give him: each place he started at
- *  `STARTS_FOR_A_POSITION` times or more, and the formations that placed no one. */
-export function positionsFromStarts(starts: Start[]): { positions: Position[]; unknownFormations: string[] } {
+ *  `STARTS_FOR_A_POSITION` times or more, and the formations that placed no one. `positionOf`
+ *  says where a start puts him; by default his formation place alone. */
+export function positionsFromStarts<S extends Start>(
+  starts: S[],
+  positionOf: (start: S) => Position | null = formationPosition,
+): { positions: Position[]; unknownFormations: string[] } {
   const window = [...starts].sort((a, b) => b.kickoff - a.kickoff).slice(0, START_WINDOW);
   const startsAt = new Map<Position, number>();
   const unknownFormations = new Set<string>();
-  for (const { formation, line, place } of window) {
-    if (formation === null || line === null || place === null) continue;
-    const position = placePosition(formation, line, place);
-    if (position === null) unknownFormations.add(formation);
-    else startsAt.set(position, (startsAt.get(position) ?? 0) + 1);
+  for (const start of window) {
+    if (isDrawn(start) && formationPosition(start) === null) unknownFormations.add(start.formation);
+    const position = positionOf(start);
+    if (position !== null) startsAt.set(position, (startsAt.get(position) ?? 0) + 1);
   }
   const positions = POSITIONS.filter((position) => (startsAt.get(position) ?? 0) >= STARTS_FOR_A_POSITION);
   return { positions, unknownFormations: [...unknownFormations].sort() };

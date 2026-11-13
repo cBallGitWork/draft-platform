@@ -1,9 +1,10 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
-import { actingAs } from "../../support/convex/leagues.harness";
-import { CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { actingAs, CAT } from "../../support/convex/leagues.harness";
+import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The league's average in a gameweek begun is over the teams in its stored fixtures (spec/09: "games
 // played in past are done"), so a team joining later leaves it as it was, alike on the matchup,
@@ -14,7 +15,7 @@ test("a team that joins after a gameweek began is no part of its league average,
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   await lockMatch(league);
-  await league.t.run((ctx) => ctx.db.insert("teams", { leagueId: league.leagueId, number: 4, name: "Team 4", managerEmail: "dan@example.com" }));
+  await league.t.run((ctx) => ctx.db.insert("teams", { leagueId: league.leagueId, number: 4, name: teamNumbered(4), managerEmail: "dan@example.com" }));
 
   // (26 + 38 + 0) / 3 = 21.3, Cat's own 0 counted; the new team's 0 too would make it 16.
   const average = inTenths((HULL_POINTS + EVERTON_POINTS) / 3);
@@ -23,7 +24,7 @@ test("a team that joins after a gameweek began is no part of its league average,
 
   const table = (await readTable(league))!;
   const catsFixture = table.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures.find((each) => each.teamId === league.catsTeam)!;
-  expect(catsFixture.points).toEqual({ team: 0, opponent: average });
+  expect(catsFixture.points).toEqual({ team: 0, opponent: average, provisional: false });
   expect(table.table.find((row) => row.teamId === league.catsTeam)).toMatchObject({ played: 1, lost: 1, pointsAgainst: average });
 
   const catsGames = (await (await actingAs(league.t, CAT)).query(api.table.teamFixtures.ofMyTeam, { leagueId: league.leagueId }))!.games;

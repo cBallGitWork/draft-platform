@@ -17,6 +17,7 @@ import {
   fixAs,
   inGameweek,
   kickoffOf,
+  siteDeadlineOf,
   NOTICE,
   patch,
   saveDraftAs,
@@ -43,6 +44,7 @@ const withPenaltiesSaved = (set: StoredScoringSet, points: number): StoredScorin
   rules: set.rules.map((rule): Rule => (rule.stat === "penalties_saved" ? { shape: "perAction", stat: "penalties_saved", values: { all: points } } : structuredClone(rule))),
 });
 const withdrawAs = async (email: string, versionId: Id<"siteScoring">) => (await as(email)).mutation(api.scoring.siteScoring.withdraw, { versionId });
+const dismissAs = async (email: string, versionId: Id<"siteScoring">) => (await as(email)).mutation(api.scoring.patchNotes.dismissBanner, { versionId });
 const latestId = async () => (await viewAs(ADMIN)).versions.at(-1)!.id;
 const subjects = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map((row) => [row.to, row.subject] as const));
 
@@ -82,12 +84,12 @@ describe("a fix while a draft patch is saved", () => {
 });
 
 describe("the gameweeks a patch can take effect from", () => {
-  test(`are those kicking off at least 7 days away, each at its first kickoff`, async () => {
+  test(`are those whose deadline is at least 7 days away, each at its site deadline, 15 minutes before its first kickoff`, async () => {
     // Gameweek 9 kicks off in 6 days, 10 in 13.
     await holdGameweeks(t, { next: 9 });
 
     const offered = (await viewAs(ADMIN)).patchGameweeks;
-    expect(offered[0]).toEqual({ gameweek: 10, takesEffectAt: kickoffOf(10) });
+    expect(offered[0]).toEqual({ gameweek: 10, takesEffectAt: siteDeadlineOf(10) });
     expect(offered.map((each) => each.gameweek)).toEqual(Array.from({ length: 29 }, (_, index) => 10 + index));
   });
 
@@ -102,9 +104,9 @@ describe("the gameweeks a patch can take effect from", () => {
 
   test("never one before a patch already announced", async () => {
     await holdGameweeks(t, { next: 9 });
-    await patch(EDITED, kickoffOf(12));
+    await patch(EDITED, siteDeadlineOf(12));
 
-    expect((await viewAs(ADMIN)).patchGameweeks[0]).toEqual({ gameweek: 12, takesEffectAt: kickoffOf(12) });
+    expect((await viewAs(ADMIN)).patchGameweeks[0]).toEqual({ gameweek: 12, takesEffectAt: siteDeadlineOf(12) });
   });
 
   test("are the admin's alone", async () => {
@@ -118,11 +120,11 @@ test("every version has a row: its name, patch or fix, announced on, and the gam
   await holdGameweeks(t, { next: 9 });
   await fixAs(ADMIN, EDITED);
   vi.setSystemTime(TODAY + HOUR_MS);
-  await patch(withAssists(EDITED, 5), kickoffOf(11));
+  await patch(withAssists(EDITED, 5), siteDeadlineOf(11));
 
   expect((await viewAs(COMMISSIONER)).versions).toEqual([
     { id: expect.any(String), name: "26_27.1", kind: "fix", announcedAt: TODAY, takesEffectAt: TODAY, fromGameweek: 9 },
-    { id: expect.any(String), name: "26_27.2", kind: "patch", announcedAt: TODAY + HOUR_MS, takesEffectAt: kickoffOf(11), fromGameweek: 11 },
+    { id: expect.any(String), name: "26_27.2", kind: "patch", announcedAt: TODAY + HOUR_MS, takesEffectAt: siteDeadlineOf(11), fromGameweek: 11 },
   ]);
 });
 
@@ -138,6 +140,19 @@ describe("withdrawing an announced patch", () => {
     expect(await inGameweek(10)).toEqual(FIRST_SCORING);
     expect(await viewAs(ADMIN)).toMatchObject({ part: FIRST_SCORING, revision: null, draft: { part: EDITED, savedAt: TODAY + DAY_MS } });
     expect(await (await as(COMMISSIONER)).query(api.scoring.patchNotes.banner, { now: Date.now() })).toBeNull();
+  });
+
+  test("deletes who dismissed its banner with it, and only its own", async () => {
+    await holdGameweeks(t, { next: 9 });
+    await fixAs(ADMIN, EDITED);
+    const kept = await latestId();
+    await patch(withAssists(EDITED, 5), kickoffOf(10));
+    const withdrawn = await latestId();
+    for (const versionId of [kept, withdrawn]) await dismissAs(COMMISSIONER, versionId);
+
+    await withdrawAs(ADMIN, withdrawn);
+
+    expect(await t.run(async (ctx) => (await ctx.db.query("patchBannerDismissals").collect()).map((row) => row.versionId))).toEqual([kept]);
   });
 
   test("tells every manager by a Mail letter", async () => {
@@ -162,7 +177,7 @@ describe("withdrawing an announced patch", () => {
 
     // A week after the first announcement, but not after the second.
     await expectRefused(announceAs(ADMIN, TODAY + 8 * DAY_MS), siteScoringRefusals.tooSoon(TODAY + 2 * DAY_MS + NOTICE, undefined));
-    expect(await announceAs(ADMIN, kickoffOf(11))).toEqual({ name: "26_27.1", fromGameweek: 11 });
+    expect(await announceAs(ADMIN, siteDeadlineOf(11))).toEqual({ name: "26_27.1", fromGameweek: 11 });
   });
 
   test("keeps a draft already made from it, which holds it, so it can be announced", async () => {

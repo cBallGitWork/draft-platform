@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { draftIsLive } from "../draft/draftRow";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { memberOf, powersIn, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { memberOf, playerOrRefuse, powersIn, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
@@ -12,13 +12,14 @@ import { areaShape } from "../lineup/pitchShape";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { areasOf, type Area } from "../lineup/pitch";
 import { positionsNow } from "../positions/playerPositions";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
 import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { closeOffersHolding } from "../trades/tradeClose";
-import { onAutoTeam } from "../trades/tradeShut";
+import { switchOf } from "../lineup/autoTeam";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -31,7 +32,7 @@ import { onAutoTeam } from "../trades/tradeShut";
 // a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`), a manager's drop
 // (../waivers/waivers.ts, `playerDropped`), a waiver run's claim (../waivers/waiverRun.ts,
 // `playerClaimed` and `playerDropped`) and a free agent pickup (../waivers/freeAgents.ts,
-// `playerPickedUp` and `playerDropped`) and a trade (../trades/tradeReview.ts, `playerMoved`) writes squadPlayers, so the events say what every squad was
+// `playerPickedUp` and `playerDropped`) and a trade (../trades/tradeReview.ts, `playerTraded`) writes squadPlayers, so the events say what every squad was
 // at any moment (squadPlace.ts `squadAt`, #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
@@ -55,11 +56,6 @@ async function squadChangerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return runner;
 }
 
-/** The player with `code`, or the refusal that there is none. */
-async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
-  return (await playerByCode(ctx, code)) ?? refuse(squadRefusals.noPlayer);
-}
-
 
 /** Refuses a team already holding the platform's most, whatever the league's own limits say. */
 async function roomOn(ctx: QueryCtx, team: Doc<"teams">): Promise<void> {
@@ -74,13 +70,14 @@ export const assign = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
     const team = await teamIn(ctx, leagueId, teamId);
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    await knownOnJoining(ctx, leagueId, teamId, playerCode);
     await offWaivers(ctx, leagueId, playerCode);
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
     await pickFirstLineupAgain(ctx, leagueId, teamId);
@@ -94,14 +91,16 @@ export const move = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     const team = await teamIn(ctx, leagueId, teamId);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
     await roomOn(ctx, team);
     const from = await teamIn(ctx, leagueId, place.teamId);
-    // A new team starts him afresh, on no number of its own (spec/05 Squad numbers).
-    await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined });
+    // A new team starts him afresh: on no number of its own (spec/05 Squad numbers), and never its
+    // free-agent pickup, so its drop sends him to waivers (#1479).
+    await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined, pickedUpAt: undefined });
+    await knownOnJoining(ctx, leagueId, teamId, playerCode);
     await recordEvent(ctx, leagueId, by, {
       kind: "playerMoved",
       playerCode,
@@ -124,7 +123,7 @@ export const release = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email: by, league } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);
@@ -192,7 +191,7 @@ export const squads = query({
         players.sort((one, other) => one.name.localeCompare(other.name));
         const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
         const byManager = team.managerEmail !== undefined && team.autoTeam?.by === team.managerEmail;
-        const autoTeam = { on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null, byManager };
+        const autoTeam = { ...switchOf(team), byManager };
         const managerEmail = seesEmails ? (team.managerEmail ?? null) : null;
         return { teamId: team._id, teamName: team.name, players, unheld, warnings, managerEmail, autoTeam };
       }),
@@ -208,14 +207,30 @@ export async function limitsBroken(
   playerCodes: readonly number[],
   squad: LeagueRules["squad"] | null,
 ): Promise<SquadWarning[]> {
-  if (squad === null) return [];
+  return (await limitsReader(ctx, leagueId, squad))(playerCodes);
+}
+
+/** The squad limits a squad of these players would break, `limitsBroken` for many squads. */
+export type LimitsBroken = (playerCodes: readonly number[]) => Promise<SquadWarning[]>;
+
+/** `limitsBroken` kept for many squads: each player's club and positions read once, however many
+ *  squads ask after him (#1538), so a waiver run trying every claim stays clear of Convex's read
+ *  limit. A caller that changes a player's club or positions takes a new reader to read them again. */
+export async function limitsReader(ctx: QueryCtx, leagueId: Id<"leagues">, squad: LeagueRules["squad"] | null): Promise<LimitsBroken> {
+  if (squad === null) return async () => [];
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
-  // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
-  const players = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
-  const clubs = await Promise.all(players.map(async ({ clubCode }) => ({ clubShortName: await shortNameOf(clubCode) })));
-  const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
-  return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+  // A player the football sync doesn't hold has no club.
+  const clubOf = readOnce(async (code: number) => {
+    const player = await playerByCode(ctx, code);
+    return player === null ? null : { clubShortName: await shortNameOf(player.clubCode) };
+  });
+  return async (playerCodes) => {
+    // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
+    const clubs = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map(clubOf))).filter((club) => club !== null);
+    const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
+    return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+  };
 }
 
 /** The league's squad limits a squad of `playerCount` players breaks (spec/03, Squad make-up),

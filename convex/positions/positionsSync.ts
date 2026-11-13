@@ -5,16 +5,16 @@ import { errorMessage, outcomeOf } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
 import { fplSeason, readFplBootstrap } from "../football/fpl/fpl";
 import { readPlSeasons } from "../football/premierLeague/plSeasons";
-import { heldRow } from "./playerPositions";
+import { heldRow, patchRow } from "./playerPositions";
 import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
-import { labelPositions, placePosition } from "./positionTables";
+import { formationPosition, isDrawn, labelPositions } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
-import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { inBatches, latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { CRON_TRIGGER } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
@@ -35,6 +35,9 @@ export const DAILY_RUN_UK_HOUR = 6;
 
 /** The UTC hours crons.ts fires `daily` at: 06:00 UK is one of them in winter and the other in summer. */
 export const DAILY_RUN_UTC_HOURS = [DAILY_RUN_UK_HOUR - 1, DAILY_RUN_UK_HOUR] as const;
+
+/** Those hours as crons.ts's cron string, for the positions sync and Sportmonks' (#1419). */
+export const DAILY_RUN_CRON = `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`;
 
 /** The cron's: starts a run when it is `DAILY_RUN_UK_HOUR` in the UK, and does nothing the hour the
  *  clocks put it at the other. */
@@ -69,9 +72,13 @@ export const run = internalAction({
       return { ok: true as const, ...synced };
     });
     await ctx.runMutation(internal.positions.positionsSync.record, { trigger, ranAt, outcome });
+    if (trigger !== CRON_TRIGGER) return null;
     // A run that filed nothing new (every match it read refused) would only read the same again.
-    if (trigger === CRON_TRIGGER && outcome.ok && outcome.matchesLeft > 0 && outcome.matchesRead > outcome.matchesRefused.length) {
+    if (outcome.ok && outcome.matchesLeft > 0 && outcome.matchesRead > outcome.matchesRefused.length) {
       await ctx.scheduler.runAfter(0, internal.positions.positionsSync.run, { trigger });
+    } else {
+      // The cron's last run: the daily sync's heartbeat.
+      await scheduleHeartbeat(ctx, "positionsSync");
     }
     return null;
   },
@@ -101,7 +108,7 @@ export const recordStarts = internalMutation({
     if (read !== null) return 0;
     for (const { playerCode, start } of starts) {
       const row = await heldRow(ctx, playerCode);
-      await ctx.db.patch("playerPositions", row._id, { starts: withStart(row.starts, start) });
+      await patchRow(ctx, row, { starts: withStart(row.starts, start) });
     }
     await ctx.db.insert("positionSheets", { fixtureCode });
     return starts.length;
@@ -136,7 +143,7 @@ export const recordLabels = internalMutation({
     for (const { code, plLabel } of labels) {
       const row = await heldRow(ctx, code);
       if (row.plLabel === plLabel) continue;
-      await ctx.db.patch("playerPositions", row._id, { plLabel });
+      await patchRow(ctx, row, { plLabel });
       changed += 1;
     }
     return changed;
@@ -155,11 +162,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("positionsSyncs"), _creationTime: v.number(), ...positionsSyncFields })),
-  handler: async (ctx) => ctx.db.query("positionsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("positionsSyncs", positionsSyncFields);
 
 /** His newest `START_WINDOW` starts with `start` among them, newest first. */
 function withStart(starts: Start[], start: Start): Start[] {
@@ -198,13 +201,12 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   }
   const rows = [...found.labels].map(([code, plLabel]) => ({ code, plLabel }));
   let labelsChanged = 0;
-  for (let start = 0; start < rows.length; start += BATCH_SIZE) {
-    labelsChanged += await ctx.runMutation(internal.positions.positionsSync.recordLabels, { labels: rows.slice(start, start + BATCH_SIZE) });
+  for (const labels of inBatches(rows)) {
+    labelsChanged += await ctx.runMutation(internal.positions.positionsSync.recordLabels, { labels });
   }
-  const numbers = [...clubNumbers].map(([code, number]) => ({ code, number }));
   let clubNumbersChanged = 0;
-  for (let start = 0; start < numbers.length; start += BATCH_SIZE) {
-    clubNumbersChanged += await ctx.runMutation(internal.positions.positionsSync.recordClubNumbers, { numbers: numbers.slice(start, start + BATCH_SIZE) });
+  for (const numbers of inBatches([...clubNumbers].map(([code, number]) => ({ code, number })))) {
+    clubNumbersChanged += await ctx.runMutation(internal.positions.positionsSync.recordClubNumbers, { numbers });
   }
   return {
     matchesRead: Math.min(toRead.length, MATCHES_PER_RUN),
@@ -244,9 +246,10 @@ function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, numb
   }
   noteLabels(namedMen(sheet), codeByOpta, found);
   const kickoff = kickoffOf(sheet);
-  return slots.flatMap(({ started, playerCode, fixtureCode, formation, line, place }) => {
-    if (!started) return [];
-    if (formation !== null && placePosition(formation, line!, place!) === null) found.unknownFormations.add(formation);
+  return slots.flatMap((slot) => {
+    if (!slot.started) return [];
+    if (isDrawn(slot) && formationPosition(slot) === null) found.unknownFormations.add(slot.formation);
+    const { playerCode, fixtureCode, formation, line, place } = slot;
     return [{ playerCode, start: { fixtureCode, kickoff, formation, line, place } }];
   });
 }

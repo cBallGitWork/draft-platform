@@ -7,10 +7,12 @@ import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { scoreOf } from "../football/matchScores";
 import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../scoring/breakdownShape";
+import { gameModeOf, gameModeShape } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
-import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
+import { clubNumberOf, clubsByCode, hasLeft, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
@@ -99,6 +101,10 @@ const playerCard = v.object({
   name: v.string(),
   fullName: v.string(),
   club: clubRecord,
+  /** His number at his club, which his shirt on the card carries, or null while no squad list gives
+   *  him one: the card shows his club's number, never his owner's squad number (Craig, 12 Nov 2026,
+   *  on #1496). */
+  clubNumber: v.union(v.number(), v.null()),
   /** The feed no longer sends him: he has left the Premier League. */
   gone: v.boolean(),
   positions: v.array(position),
@@ -126,6 +132,8 @@ const playerCard = v.object({
   lastSeason: v.union(lastSeason, v.null()),
   /** His club's next matches, soonest first, at most NEXT_FIXTURES_SHOWN. */
   nextFixtures: v.array(match),
+  /** What the league plays by its latest rules, for the role parts (#1582). */
+  mode: gameModeShape,
 });
 export type PlayerCard = Infer<typeof playerCard>;
 
@@ -147,7 +155,8 @@ export const card = query({
       name: player.name,
       fullName: player.fullName,
       club: await clubs(player.clubCode),
-      gone: player.droppedAt !== undefined,
+      clubNumber: await clubNumberOf(ctx, player.code),
+      gone: hasLeft(player),
       positions,
       pricedAt,
       ownerTeamName: owner?.name ?? null,
@@ -159,6 +168,7 @@ export const card = query({
       categories: logCategories(await siteScoringAt(ctx, now), pricedAt),
       lastSeason: await lastSeasonLine(ctx, playerCode, positions, now),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
+      mode: gameModeOf((await seasonRules(ctx, leagueId)).latest),
     };
   },
 });

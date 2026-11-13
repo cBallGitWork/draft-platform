@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
-import { addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { draftStarted } from "../../support/convex/draft.harness";
+import { addManager, COMMISSIONER, MANAGERS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
-import { draftOver, noDraft } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { noDraft } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Offers tab's To review group (#383; Craig, 10 Nov 2026; S08.2, S08.4): the trades in review the caller
 // reviews, what he may do to each, and only his own vote, never the count.
@@ -15,12 +17,7 @@ beforeEach(async () => {
   w = await tradeLeague();
 });
 
-/** Ann's first drop for Bob's Saka, accepted by Bob. */
-const annTradesForSaka = async () => {
-  const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA], "Fancy it?");
-  await w.accept(BOB, offerId);
-  return offerId;
-};
+const annTradesForSaka = () => w.annTradesForSaka("Fancy it?");
 
 describe("under a commissioner veto", () => {
   test("the commissioner, with no team of his own, sees the trade to Block, both sides and when the review ends", async () => {
@@ -29,8 +26,8 @@ describe("under a commissioner veto", () => {
     expect(await w.toReview(COMMISSIONER)).toEqual([
       expect.objectContaining({
         offerId,
-        fromTeamName: "Team 1",
-        toTeamName: "Team 2",
+        fromTeamName: teamNumbered(1),
+        toTeamName: teamNumbered(2),
         gives: [expect.objectContaining({ code: ANNS_FIRST_DROP, name: nameOf(ANNS_FIRST_DROP) })],
         gets: [expect.objectContaining({ code: SAKA })],
         picks: null,
@@ -57,7 +54,7 @@ describe("under a league vote", () => {
     await w.tradesAre({ review: "vote", deadline: null });
     await noDraft(w.t, w.leagueId);
     await addManager(w.t, w.leagueId, DAN);
-    await draftOver(w.t, w.leagueId, w.teams);
+    await draftStarted(w.t, w.leagueId, w.teams);
   });
 
   test("each voter sees Against, then Take back once he has voted, and never anyone else's vote", async () => {

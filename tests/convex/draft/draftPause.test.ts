@@ -6,11 +6,11 @@ import { pauseRefusals } from "../../../convex/draft/draftPause";
 import { pickRefusals } from "../../../convex/draft/draftPicks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
 // the 10 seconds before the next clock freeze too, a paused clock never fires, and a pick time
@@ -20,23 +20,11 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
-const MIDS = [101, 102, 103, 104].map(player);
+const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1] = MIDS.map(({ code }) => code);
-const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
-const [ANN, BOB] = MANAGERS;
 
-const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
-
-const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pause = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.pause, { leagueId });
-const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.resume, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+const { as, read, start, pause, resume, pick, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -47,27 +35,27 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);
   });
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null } }));
+  await setSquadSize(2);
 });
 
 describe("a pause", () => {
   test("freezes the time left, and the paused clock never fires", async () => {
     const startedAt = Date.now();
     await start();
-    await pass(PICK_MS - 30 * SECOND_MS);
+    await pass(FIRST_PICK_MS - 30 * SECOND_MS);
     const pausedAt = Date.now();
     await pause();
-    await pass(PICK_MS * 100);
+    await pass(FIRST_PICK_MS * 100);
 
     expect(await pickCount()).toBe(0);
-    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: startedAt, endsAt: startedAt + PICK_MS, pausedAt } });
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: startedAt, endsAt: startedAt + FIRST_PICK_MS, pausedAt } });
   });
 
   test("refuses the manager's pick until the draft resumes", async () => {
     await start();
     await pause();
 
-    await expect(pick(ANN, A1)).rejects.toThrow(pickRefusals.paused);
+    await expectRefused(pick(ANN, A1), pickRefusals.paused);
     await resume();
     await pick(ANN, A1);
     expect(await pickCount()).toBe(1);
@@ -76,27 +64,28 @@ describe("a pause", () => {
   test("can be made only by someone who runs the league", async () => {
     await start();
 
-    await expect(pause(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(pause(ANN), refusals.notRunner);
     await pause();
-    await expect(resume(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(resume(ANN), refusals.notRunner);
   });
 
   test("is refused before the draft starts, twice over, and once it is over", async () => {
-    await expect(pause()).rejects.toThrow(pauseRefusals.notStarted);
+    await expectRefused(pause(), pauseRefusals.notStarted);
     await start();
-    await expect(resume()).rejects.toThrow(pauseRefusals.notPaused);
+    await expectRefused(resume(), pauseRefusals.notPaused);
     await pause();
-    await expect(pause()).rejects.toThrow(pauseRefusals.alreadyPaused);
+    await expectRefused(pause(), pauseRefusals.alreadyPaused);
     await resume();
-    for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
-    await expect(pause()).rejects.toThrow(pauseRefusals.over);
+    for (let made = 0; made < 4; made++) await pass(FIRST_PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
+    await expectRefused(pause(), pauseRefusals.over);
   });
 });
 
 describe("resuming", () => {
   test("gives the pick on the clock back the time it had left, however long the pause", async () => {
     await start();
-    await pass(PICK_MS - 30 * SECOND_MS);
+    await pass(FIRST_PICK_MS - 30 * SECOND_MS);
     await pause();
     await pass(60 * 60 * SECOND_MS);
     await resume();
@@ -119,7 +108,7 @@ describe("resuming", () => {
       await resume();
     }
 
-    expect(await read()).toMatchObject({ clock: { endsAt: Date.now() + PICK_MS - 50 * SECOND_MS } });
+    expect(await read()).toMatchObject({ clock: { endsAt: Date.now() + FIRST_PICK_MS - 50 * SECOND_MS } });
   });
 
   test("keeps what is left of the 10 seconds before the next clock", async () => {
@@ -131,7 +120,7 @@ describe("resuming", () => {
     await resume();
     const resumedAt = Date.now();
 
-    expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] }, clock: { startsAt: resumedAt + 6 * SECOND_MS, endsAt: resumedAt + 6 * SECOND_MS + PICK_MS } });
+    expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] }, clock: { startsAt: resumedAt + 6 * SECOND_MS, endsAt: resumedAt + 6 * SECOND_MS + FIRST_PICK_MS } });
   });
 
   test("restarts the pick on the clock on the full new pick time, if it changed during the pause", async () => {
@@ -173,5 +162,64 @@ describe("resuming", () => {
     await resume();
     await pass(PICK_GAP_MS);
     expect(await pickCount()).toBe(2);
+  });
+});
+
+// Deleting the league pauses its live draft, and an undo leaves it paused for the commissioner to
+// resume (Craig, 11 Nov 2026, on #1486: "Accept all").
+describe("when its league is deleted", () => {
+  const deleteLeague = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
+  const undo = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+  const lettersCountTo = async (email: string) => (await lettersTo(t, email)).length;
+
+  test("the draft pauses, keeps its time left, picks nothing and tells no manager", async () => {
+    const startedAt = Date.now();
+    await start();
+    await pass(FIRST_PICK_MS - 30 * SECOND_MS);
+    const [annLetters, bobLetters] = [await lettersCountTo(ANN), await lettersCountTo(BOB)];
+    await deleteLeague();
+    await pass(FIRST_PICK_MS * 100);
+
+    expect(await pickCount()).toBe(0);
+    await undo();
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: startedAt, endsAt: startedAt + FIRST_PICK_MS } });
+    expect(await read()).toHaveProperty("clock.pausedAt");
+    expect([await lettersCountTo(ANN), await lettersCountTo(BOB)]).toEqual([annLetters, bobLetters]);
+  });
+
+  test("an undo leaves it paused until the commissioner resumes, on the time it had left", async () => {
+    await start();
+    await pass(FIRST_PICK_MS - 30 * SECOND_MS);
+    await deleteLeague();
+    await undo();
+    await pass(FIRST_PICK_MS * 10);
+    expect(await pickCount()).toBe(0);
+
+    await resume();
+    await pass(30 * SECOND_MS);
+    expect(await pickCount()).toBe(1);
+  });
+
+  test("a draft already paused stays paused as it was", async () => {
+    await start();
+    await pause();
+    const before = await read();
+    await deleteLeague();
+    await undo();
+
+    expect(await read()).toEqual(before);
+  });
+
+  test("a draft not yet started, or over, is left alone", async () => {
+    await deleteLeague();
+    await undo();
+    await start();
+    for (let made = 0; made < 4; made++) await pass(FIRST_PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
+    await deleteLeague();
+    await undo();
+
+    expect(await pickCount()).toBe(4);
+    expect(await read()).not.toHaveProperty("clock.pausedAt");
   });
 });

@@ -1,20 +1,20 @@
-import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
-import { everyRoleOf, roleIn, rolesOfSlot } from "../../../../convex/lineup/roles";
+import { everyRoleOf, roleIn, rolesFor, takesRole } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
-import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
+import { playerCardWords } from "../../../shared/words";
+import { MoreLink } from "../../../ui/MoreLink";
+import { CloseButton } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
 import { starsIn } from "../../../../convex/stars/bestRole";
-import { figureWords, noFigureWords, statusNotSettledLabel } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupEdits";
 import type { Moving } from "../pitch/Pitch";
 import type { SeasonOf } from "../SelectionTable";
-import { NextMatches } from "../../SquadCells";
+import { Figure, inDoubt, NextMatches, StatusMark } from "../../SquadCells";
 import {
   benchWhereWords,
   closeSelectedLabel,
@@ -79,8 +79,9 @@ export function PlayerPanel({
   const starter = "starter" in place ? place.starter : null;
   const slot = starter === null ? (benchBestRole(player)?.cell ?? null) : starter;
   const label = slot === null ? null : positionOfSlot(slot);
-  // A bench player stands in no formation, so his main position's every role shows.
-  const roles = slot === null ? [] : "starter" in place ? rolesOfSlot(slot, place.formation) : everyRoleOf(slot);
+  // A bench player stands in no formation, so his main position's every role he may take shows.
+  const roles =
+    slot === null ? [] : "starter" in place ? rolesFor(slot, place.formation, player.positions) : everyRoleOf(slot).filter(({ key }) => takesRole(player.positions, key));
   const playing = starter === null ? null : roleIn(starter, starter.role).key;
   const row = season?.get(player.playerCode);
   const where = "starter" in place ? startingWhereWords(player.clubShortName, positionOfSlot(place.starter)) : benchWhereWords(player.clubShortName, place.benchIndex);
@@ -91,14 +92,12 @@ export function PlayerPanel({
           {player.name}
         </h2>
         <span className="grow text-soft">{where}</span>
-        <button type="button" aria-label={closeSelectedLabel(player.name)} onClick={onClose} className="flex min-h-tap min-w-tap items-center justify-center text-lead font-bold lg:min-h-0">
-          <span aria-hidden="true">{closeGlyph}</span>
-        </button>
+        <CloseButton label={closeSelectedLabel(player.name)} close={onClose} className="flex items-center justify-center text-lead font-bold lg:min-h-0" />
       </div>
       {/* As on the Squad tab: only a player FPL holds news on has a status, until its data is settled. */}
-      {row?.chanceOfPlaying != null && (
+      {inDoubt(row) && (
         <p className="px-3 py-2">
-          <Placeholder label={statusNotSettledLabel} className="h-5 w-full" />
+          <StatusMark player={row} className="h-5 w-full" />
         </p>
       )}
       {label !== null && slot !== null && (
@@ -187,16 +186,12 @@ export function PlayerPanel({
         )}
         {/* One the football sync doesn't hold has no card to open (#323). */}
         {!player.unheld && (
-          <Link to={playerCardPath(leagueId, player.playerCode)} aria-label={playerCardLabel(player.name)} className="ml-auto flex min-h-tap items-center gap-1 font-semibold lg:min-h-0">
-            {playerCardWords} <span aria-hidden="true">{nextGlyph}</span>
-          </Link>
+          <MoreLink to={playerCardPath(leagueId, player.playerCode)} aria-label={playerCardLabel(player.name)} className="ml-auto lg:min-h-0">
+            {playerCardWords}
+          </MoreLink>
         )}
       </div>
     </section>
   );
 }
 
-function Figure({ points }: { points: number | null | undefined }) {
-  if (points === undefined) return null;
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
-}

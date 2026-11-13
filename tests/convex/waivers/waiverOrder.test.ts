@@ -1,8 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { winnersNow, withWinnersLast, wonBy } from "../../../convex/waivers/waiverOrder";
-import { breaksLimits } from "../../../convex/waivers/waiverRun";
+import { startingFrom, winnersNow, withWinnersLast, wonBy } from "../../../convex/waivers/waiverOrder";
 
-// The waiver order's rules (#1198, spec/08) and a claim against the squad's limits, pure.
+// The waiver order's rules (#1198, spec/08), pure.
 
 describe("the waiver order", () => {
   test("each winner goes to the bottom, the latest last", () => {
@@ -15,7 +14,7 @@ describe("the waiver order", () => {
     expect(withWinnersLast(["A", "B"], ["Gone", "A"])).toEqual(["B", "A"]);
   });
 
-  test("under reverse table order the winners go back up once a later gameweek has begun", () => {
+  test("under reverse table order the winners go back up once a later gameweek has ended", () => {
     const held = { winners: ["A"], gameweek: 5 };
     expect(winnersNow("reverseStandings", held, 5)).toEqual(["A"]);
     expect(winnersNow("reverseStandings", held, 6)).toEqual([]);
@@ -30,31 +29,19 @@ describe("the waiver order", () => {
   });
 });
 
-describe("a claim against the squad's limits", () => {
-  const over = (players: number) => ({ kind: "overMaximum" as const, players, maximum: 15 });
-  const club = (players: number) => ({ kind: "overClubMaximum" as const, clubShortName: "ARS", players, maximum: 3 });
-  const area = (players: number) => ({ kind: "underAreaMinimum" as const, area: "goalkeeper" as const, players, minimum: 2 });
-  const under = (players: number) => ({ kind: "underMinimum" as const, players, minimum: 13 });
+describe("the order a switch of type left", () => {
+  const start = { teams: ["C", "A", "Gone"], gameweek: 5 };
 
-  test("breaks them by a limit newly broken", () => {
-    expect(breaksLimits([], [over(16)])).toBe(true);
-    expect(breaksLimits([], [club(4)])).toBe(true);
-    expect(breaksLimits([], [area(1)])).toBe(true);
+  test("under rotating it stands for good", () => {
+    expect(startingFrom("rotating", start, 9, ["A", "B", "C"])).toEqual(["C", "A", "B"]);
   });
 
-  test("breaks them by going further past one already broken", () => {
-    expect(breaksLimits([over(16)], [over(17)])).toBe(true);
-    expect(breaksLimits([club(4)], [club(5)])).toBe(true);
-    expect(breaksLimits([area(1)], [area(0)])).toBe(true);
+  test("under reverse table order it stands until a later gameweek ends", () => {
+    expect(startingFrom("reverseStandings", start, 5, ["A", "B", "C"])).toEqual(["C", "A", "B"]);
+    expect(startingFrom("reverseStandings", start, 6, ["A", "B", "C"])).toBeNull();
   });
 
-  test("doesn't by leaving one already broken as it was, or better", () => {
-    expect(breaksLimits([over(16)], [over(16)])).toBe(false);
-    expect(breaksLimits([area(0)], [area(1)])).toBe(false);
-    expect(breaksLimits([club(4)], [])).toBe(false);
-  });
-
-  test("a squad under its minimum size is never the claim's doing", () => {
-    expect(breaksLimits([under(11)], [under(12)])).toBe(false);
+  test("with no switch there is none", () => {
+    expect(startingFrom("rotating", null, 5, ["A", "B"])).toBeNull();
   });
 });

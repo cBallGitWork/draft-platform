@@ -16,7 +16,7 @@ import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 export type { Comparison, Per90Panel, Period, PlayersFilters, PlayersList, PlayersSort, StatRace, YourPlayer };
 export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
-export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
+export type { HeldByFilter, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
 /** The player card's pickup, claim and drop, which the selected player's panel offers too. */
 export type WaiverActionSeam = Pick<PlayerCardSeam, "useCardAction" | "useWaiverChanges">;
@@ -39,9 +39,9 @@ export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & Wai
   /** The players the filters keep, in the sort's order, each with his figures over `period` (the
    *  season when left out, as the draft room asks) and his total there of the shown stat (a
    *  catalogue key, an own stat's of the site's set, or null for none), every club for the club
-   *  filter and the site set's own stats for the stat box, live (a hook): undefined while they
-   *  load. */
-  usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null, period?: Period): PlayersList | undefined;
+   *  filter and the site set's own stats for the stat box, and with a `keep` code that player's
+   *  row whatever the filters keep (`kept`), live (a hook): undefined while they load. */
+  usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null, period?: Period, keep?: number): PlayersList | undefined;
   /** The stat race (#800): every team's season totals, most of `stat` (a catalogue key) first, the
    *  scoring categories and where a mid-season league's totals start, live (a hook): undefined
    *  while it loads. */

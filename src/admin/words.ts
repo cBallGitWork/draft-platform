@@ -2,13 +2,15 @@
 // server refused a change reaches the screen as is.
 
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
-import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
+import { STARTS_FOR_A_POSITION, type ApproveMode, type PositionSource } from "../../convex/positions/positions";
 import type { Availability } from "../../convex/availability/availability";
 import type { FeedState } from "../../convex/admin/feedState";
+import type { PlatformSettings } from "../../convex/admin/platformSettings";
 import type { Pattern } from "../../convex/football/clubColours";
-import { FEED_NAMES } from "../../convex/shared/feedSchedule";
+import { feedNameOf } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
+import { countInWords } from "../../convex/shared/numberWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../shared/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
@@ -33,7 +35,7 @@ export const confirmWords = "Confirm";
 export const confirmLabel = (name: string) => `Confirm ${name}'s label`;
 
 export const waitingTitle = "Starts waiting for you";
-export const waitingHint = "Positions his starts give him, three at a place, which count once you approve them.";
+export const waitingHint = `Positions his starts give him, ${countInWords(STARTS_FOR_A_POSITION)} at a place, which count once you approve them.`;
 export const noWaitingWords = "No starts wait for you.";
 export const proposalsWords = (positions: readonly string[]) => `From his starts: ${positions.join(", ")}`;
 export const approveWords = "Approve";
@@ -82,6 +84,16 @@ export const flagAfterLabel = `Flag after this many ${IN_A_ROW_ELSEWHERE}`;
 export const removeAfterLabel = `Remove after this many ${IN_A_ROW_ELSEWHERE}`;
 export const saveThresholdsWords = "Save";
 
+export const siteSettingsTitle = "Site settings";
+export const siteSettingLabels: Record<keyof PlatformSettings, string> = {
+  statCorrectionWindowMinutes: "Minutes after full time a match's stats take corrections",
+  scoutsPerTeam: "Scouts each team has",
+  matchdayHoursBefore: "Hours matchday mode starts before the first kickoff",
+  matchdayHoursAfter: "Hours it runs on after the last final whistle",
+};
+export const saveSiteSettingsWords = "Save the settings";
+export const siteSettingsLoadingWords = "Loading the settings…";
+
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
 export const noPositionsWords = "No positions yet.";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
@@ -111,8 +123,8 @@ export const feedColumns = {
   arrived: { short: "Last arrived", long: "When it last brought data" },
   state: { short: "State", long: "Whether it's on time" },
 } as const;
-/** Kept with the feeds themselves, as the admin's failure email names them too. */
-export const feedNames = FEED_NAMES;
+/** A feed's row's name and source: a Sportmonks feed's with its competition's name (#1414). */
+export const feedNameWords = feedNameOf;
 export const feedStateWords: Record<FeedState, string> = {
   fine: "On time",
   betweenSeasons: "Between seasons",
@@ -173,10 +185,11 @@ export const moreFeedbackWords = moreCorrectionsWords;
 export const availabilityLoadingWords = "Loading who is set by hand…";
 export const setByHandTitle = "Set by hand";
 export const noneSetByHandWords = "No player is set by hand.";
+export const feedSaysWords = "The feed says";
 export const availabilityColumns = {
   position: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
-  feed: { short: "The feed says", long: "The feed says" },
+  feed: { short: feedSaysWords, long: feedSaysWords },
   set: { short: "Set to", long: "Set to" },
 } as const;
 export const AVAILABILITY_WORDS: Record<Availability, string> = { out: "Out", doubtful: "Doubtful", available: "Available" };
@@ -184,7 +197,6 @@ export const AVAILABILITY_WORDS: Record<Availability, string> = { out: "Out", do
 export const FEED_CHOICE = "feed";
 export const availabilityChoiceLabel = "Availability";
 export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOICE) => (choice === FEED_CHOICE ? "The feed" : AVAILABILITY_WORDS[choice]);
-export const feedSaysWords = "The feed says";
 /** What it changes (spec/06, spec/09): our own availability, the same in every league. */
 export const autoTeamReadsWords = "The auto team reads this in every league.";
 export const pickPlayerLabel = (name: string) => `Open ${name}'s availability`;

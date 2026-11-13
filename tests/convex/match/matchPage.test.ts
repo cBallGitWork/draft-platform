@@ -4,10 +4,8 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
-  ANN,
   ANNS_TEAM,
   annsScoredGame,
-  BOB,
   BOBS_TEAM,
   EVERTON_BENCH,
   EVERTON_STARTERS,
@@ -21,8 +19,8 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole, MIDFIELD_GOAL, holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
-import { ADMIN, OUTSIDER, actingAs } from "../../support/convex/leagues.harness";
-import { holdLines, manOf, matchAs, matchLeague, notYetBegun, scorerFreeLeague, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
+import { ADMIN, OUTSIDER, actingAs, ANN, BOB } from "../../support/convex/leagues.harness";
+import { holdLines, manOf, matchAs, matchLeague, notYetBegun, pointsOnCard, scorerFreeLeague, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON, HULL_EVERTON_TEAM_STATS, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -116,7 +114,7 @@ test("before the league's gameweek begins, a man moved shows the team that owns 
   await fullTimeRecords(league);
   await notYetBegun(league);
   await (await actingAs(league.t, ADMIN)).mutation(api.squads.squads.move, { leagueId: league.leagueId, playerCode: HULL_SCORER, teamId: league.bobsTeam });
-  expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: BOBS_TEAM, points: null });
+  expect(manOf((await matchAs(league, ANN))!.men, HULL_SCORER)).toMatchObject({ ownerTeamName: BOBS_TEAM, points: expect.any(Number) });
 });
 
 test("before kickoff, the men the team sheets name show as the sheets have them, each owned man with his team, none yet played", async () => {
@@ -246,14 +244,19 @@ test("the five team stats show each side's, home and away, as the live poller la
   expect((await matchAs(league, BOB))!.teamStats).toEqual(HULL_EVERTON_TEAM_STATS);
 });
 
-test("before the league's gameweek begins, the men show their owners but no points, and the lines are unpriced", async () => {
+// #1533; spec/10, The match page: "Every player shows his live points ... His points are the ones
+// his player card opens on", so a league made after this gameweek's deadline still shows them.
+test("before the league's gameweek begins, every man shows his owner and the points his card opens on, counted for no team, and the lines are priced there", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
   await notYetBegun(league);
   await holdScorersGoal(league);
   const page = (await matchAs(league, ANN))!;
-  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: ANNS_TEAM, points: null });
-  expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(null)], delayed: false });
+  const { total } = await pointsOnCard(league, HULL_SCORER);
+  expect(total).toEqual(expect.any(Number));
+  expect(manOf(page.men, HULL_SCORER)).toMatchObject({ ownerTeamName: ANNS_TEAM, points: total, counts: false });
+  expect(page.men.filter((man) => man.played !== false).every((man) => man.points !== null)).toBe(true);
+  expect(page.commentary).toEqual({ kind: "read", lines: [shownGoal(expect.stringMatching(/^\+/))], delayed: false });
 });
 
 test("a set that can't be priced says why, while the men and lines still show, every man's points, a free agent's too, unknown", async () => {

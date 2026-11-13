@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LONDON_ZONE } from "../../../convex/shared/moments";
-import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, rowsToChange } from "../../support/convex/leagueMutations.harness";
-import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
-import { publicFunctions } from "../../support/convex/test.harness";
+import { publicFunctions, everyJobRuns } from "../../support/convex/test.harness";
 import { ANSWERS_NOTHING, GATES, GATE_REFUSALS, LET_IN, gates, notCalled } from "../../support/convex/publicGates.harness";
 
 // Every public query, mutation and action names who it lets in, and a signed-out caller and a
@@ -37,7 +37,7 @@ beforeEach(async () => {
 
   // Opening a letter needs one to ANN, and undoing a deletion a league being deleted.
   await (await actingAs(t, COMMISSIONER)).mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Welcome", body: "Season starts soon." });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   const annsLetter = await t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", ANN)).first());
   if (!annsLetter) throw new Error(`writing to the league filed no letter to ${ANN}`);
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
@@ -50,6 +50,9 @@ beforeEach(async () => {
     return {
       ...changesTo({ admin: caller, ann: caller, commissioner: caller }, rows),
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
+      "admin/platformSettings:save": () =>
+        caller.mutation(api.admin.platformSettings.save, { statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 }),
+      "admin/platformSettings:settings": () => caller.query(api.admin.platformSettings.settings, {}),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
       "availability/availability:forAdmin": () => caller.query(api.availability.availability.forAdmin, { code: SOME_CODE }),
       "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
@@ -58,26 +61,32 @@ beforeEach(async () => {
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
       "balanceLab/balanceLabRun:run": () => caller.action(api.balanceLab.balanceLabRun.run, { draftSavedAt: now }),
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
-      "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
+      "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
-      "draft/draftCommissioner:panel": () => caller.query(api.draft.draftCommissioner.panel, { leagueId, now }),
+      "draft/draftCommissioner:panel": () => caller.query(api.draft.draftCommissioner.panel, { leagueId }),
       "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
-      "draft/draftPlayers:figures": () => caller.query(api.draft.draftPlayers.figures, { leagueId, now }),
+      "draft/draftPlayers:figures": () => caller.query(api.draft.draftPlayers.figures, { leagueId }),
+      "draft/draftPlayers:greyedOnTheClock": () => caller.query(api.draft.draftPlayers.greyedOnTheClock, { leagueId }),
       "draft/draftPlayers:greyedOut": () => caller.query(api.draft.draftPlayers.greyedOut, { leagueId }),
       "draft/draftRanking:upload": () => caller.mutation(api.draft.draftRanking.upload, { file: "1001,1" }),
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
-      "draft/draftStart:ofLeague": () => caller.query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() }),
+      "draft/draftStart:ofLeague": () => caller.query(api.draft.draftStart.ofLeague, { leagueId }),
       "feedback/feedback:list": () => caller.query(api.feedback.feedback.list, {}),
       "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
       "football/clubKits:all": () => caller.query(api.football.clubKits.all, {}),
       "football/clubKits:set": () => caller.mutation(api.football.clubKits.set, { code: SOME_CODE, primary: "#000000", secondary: "#FFFFFF", pattern: "plain" }),
+      "football/clubPage:ofClub": () => caller.query(api.football.clubPage.ofClub, { leagueId, clubCode: SOME_CODE }),
       "football/matchScores:ofGameweek": () => caller.query(api.football.matchScores.ofGameweek, { gameweek: SOME_CODE }),
       "football/plGameweeks:firstKickoffs": () => caller.query(api.football.plGameweeks.firstKickoffs, {}),
       "football/plPointsOverrides:set": () => caller.mutation(api.football.plPointsOverrides.set, { clubCode: SOME_CODE, points: null }),
       "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
       "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
+      "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
+      "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
-      "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, now }),
+      "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, now }),
+      "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),
+      "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: null }),
       "home/leagueNews:ofLeague": () => caller.query(api.home.leagueNews.ofLeague, { leagueId, before: null, teamId: null, kind: null }),
       "home/recaps:ofGameweek": () => caller.query(api.home.recaps.ofGameweek, { leagueId, gameweek: 1 }),
       "joining/endedInvite:mine": () => caller.query(api.joining.endedInvite.mine, { now }),
@@ -99,8 +108,9 @@ beforeEach(async () => {
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
       "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
       "mail/mail:unreadCount": () => caller.query(api.mail.mail.unreadCount, {}),
-      "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, now, fixtureCode: SOME_CODE }),
-      "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, now }),
+      "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, fixtureCode: SOME_CODE }),
+      "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, gameweek: null }),
+      "matchup/matchupGameweek:thisGameweek": () => caller.query(api.matchup.matchupGameweek.thisGameweek, { leagueId, now }),
       "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
       "playerCard/positionRank:atPosition": () => caller.query(api.playerCard.positionRank.atPosition, { leagueId, playerCode: SOME_CODE, position: "CB" }),
       "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
@@ -126,15 +136,11 @@ beforeEach(async () => {
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
       "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
+      "scouting/clubSquad:ofClub": () => caller.query(api.scouting.clubSquad.ofClub, { leagueId, clubCode: SOME_CODE }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE], stat: null }),
       "scouting/per90:figures": () => caller.query(api.scouting.per90.figures, { leagueId, playerCode: SOME_CODE, stat: null }),
-      "scouting/playersList:list": () =>
-        caller.query(api.scouting.playersList.list, {
-          leagueId,
-          filters: { availability: "all", position: null, clubCode: null },
-          sort: { by: "name", descending: false },
-          stat: null,
-        }),
+      "scouting/playersList:firstRuns": () => caller.query(api.scouting.playersList.firstRuns, { leagueId, now }),
+      "scouting/playersList:list": () => caller.query(api.scouting.playersList.list, { leagueId, clubCode: null, stat: null }),
       "scouting/scouts:mine": () => caller.query(api.scouting.scouts.mine, { leagueId }),
       "scouting/scouts:onPlayer": () => caller.query(api.scouting.scouts.onPlayer, { leagueId, playerCode: SOME_CODE }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
@@ -153,12 +159,12 @@ beforeEach(async () => {
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "trades/reviewScreen:toReview": () => caller.query(api.trades.reviewScreen.toReview, { leagueId }),
-      "trades/tradeOffers:mine": () => caller.query(api.trades.tradeOffers.mine, { leagueId }),
+      "trades/tradeOffers:countWaitingForMe": () => caller.query(api.trades.tradeOffers.countWaitingForMe, { leagueId }),
       "trades/tradeScreen:ofMyTeam": () => caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, now }),
       "waivers/waiverClaims:countMine": () => caller.query(api.waivers.waiverClaims.countMine, { leagueId }),
-      "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId, now }),
       "waivers/waiverOrder:ofLeague": () => caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, now }),
-      "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
+      "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE, now }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };

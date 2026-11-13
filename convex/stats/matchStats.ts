@@ -1,16 +1,18 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
-import { LATEST_RUNS } from "../shared/syncRuns";
+import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
+import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
+import { matchRecordsOf } from "./matchRecordReads";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -34,7 +36,7 @@ export const upsertMatch = internalMutation({
   returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
-    const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
+    const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its records' write")).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
       // A man held not whole at the lock (a live tick's record the full-time read left out) whose
@@ -47,7 +49,7 @@ export const upsertMatch = internalMutation({
       const lateCorrections = await recordLateCorrections(ctx, records.filter((record) => !fillsGap(record)), held, readAt);
       if (filled.length === 0) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
       const writes = await writeRecords(ctx, filled, held, status.state);
-      await askToStoreFinal(ctx, fixtureCode);
+      await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: false });
       return { state: status.state, ...writes, lateCorrections };
     }
     const complete = isMatchComplete(records);
@@ -66,7 +68,7 @@ export const upsertMatch = internalMutation({
 });
 
 /** Locks a complete match once its window has passed, reading the window again in case the admin
- *  changed it, and asks every league to store the scores it made final; too early, it reschedules
+ *  changed it, and, its gameweek's last to lock, asks every league to store the scores it made final; too early, it reschedules
  *  itself. A match provisional again has its lock scheduled
  *  anew when it is next complete, and one already locked stays as it is. */
 export const lock = internalMutation({
@@ -83,23 +85,45 @@ export const lock = internalMutation({
       return null;
     }
     await ctx.db.patch("matchStatsStatus", status._id, { state: "locked", lockedAt: now });
-    for (const row of await recordsOf(ctx, fixtureCode)) {
+    for (const row of await matchRecordsOf(ctx, fixtureCode, "its lock")) {
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
-    await askToStoreFinal(ctx, fixtureCode);
+    await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: true });
     return null;
   },
 });
 
-/** A locked match's records now count, at its lock or when a gap in them fills after it. */
-async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number) {
-  // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
-  // never undoes the lock (finalScores.ts, #418).
-  await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
-  // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
-  await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
+/** A locked match's records now count, at its lock or when a gap in them fills after it. At its
+ *  lock the leagues are asked to store only when it was its gameweek's last match to lock, since
+ *  nothing is stored before every match in it is (#1547): a Saturday's other locks would only have
+ *  every league walk its season for nothing, colliding with one another. A gap filling asks always. */
+async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGameweekFinal }: { onlyIfGameweekFinal: boolean }) {
+  if (!onlyIfGameweekFinal || (await gameweekFinalWith(ctx, fixtureCode))) {
+    // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
+    // never undoes the lock (finalScores.ts, #418).
+    await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
+    // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
+    await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
+  }
   // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
+}
+
+/** Whether every match held in the locked match's gameweek is locked. A match the football sync
+ *  holds no gameweek for can't be told, so it reads as final and the leagues are asked, as before. */
+async function gameweekFinalWith(ctx: QueryCtx, fixtureCode: number): Promise<boolean> {
+  const gameweek = (await fixtureByCode(ctx, fixtureCode))?.gameweek ?? null;
+  if (gameweek === null) return true;
+  const fixtures = await gameweekFixtures(ctx, gameweek, "the leagues might never be asked to store it");
+  return allLocked(ctx, fixtures.map((fixture) => fixture.code));
+}
+
+/** Whether the matches hold one and every one is locked: a gameweek with none held (each postponed,
+ *  say) is never final, as the table has it (gameweekScores.ts). */
+export async function allLocked(ctx: QueryCtx, fixtureCodes: readonly number[]): Promise<boolean> {
+  if (fixtureCodes.length === 0) return false;
+  for (const code of fixtureCodes) if ((await statusOf(ctx, code))?.state !== "locked") return false;
+  return true;
 }
 
 /** The run's row, and every match it tried marked tried then, whether it read, waited or failed;
@@ -129,11 +153,7 @@ async function storeUnseenFrom(ctx: MutationCtx, kickoff: number) {
   else if (kickoff > held.kickoff) await ctx.db.patch("matchStatsUnseenFrom", held._id, { kickoff });
 }
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("matchStatsSyncs"), _creationTime: v.number(), ...matchStatsSyncFields })),
-  handler: async (ctx) => ctx.db.query("matchStatsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("matchStatsSyncs", matchStatsSyncFields);
 
 export function statusOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db
@@ -147,14 +167,6 @@ export function triedOf(ctx: QueryCtx, fixtureCode: number) {
     .query("matchStatsTries")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
-}
-
-/** A match's held records: one per man named, so a few dozen. */
-export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
-  return ctx.db
-    .query("playerMatchStats")
-    .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode))
-    .collect();
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,

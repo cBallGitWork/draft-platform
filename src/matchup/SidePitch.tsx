@@ -31,8 +31,8 @@ export function onPitch({ lineup: { starters, bench } }: TeamSide): OnPitch[] {
 function offPitch({ lineup: { starters, bench } }: TeamSide): TileMan[] {
   return bench.map((slot) => {
     if (slot.autoSub?.kind !== "on") return slot;
-    const { playerName } = slot.autoSub;
-    return starters.find((starter) => starter.autoSub?.kind === "off" && starter.name === playerName) ?? slot;
+    const { playerCode } = slot.autoSub;
+    return starters.find((starter) => starter.playerCode === playerCode && starter.autoSub?.kind === "off") ?? slot;
   });
 }
 
@@ -57,7 +57,7 @@ export function SidePitch({ side, picking, runsShown }: { side: TeamSide; pickin
                 const cell = { area, lane };
                 const at = starters.findIndex((starter) => sameCell(starter, cell));
                 if (at === -1) return <li key={cellKey(cell)} aria-hidden="true" />;
-                return <PlayerTile key={cellKey(cell)} man={players[at]} picking={picking} strip className="items-center justify-center p-0.5" />;
+                return <PlayerTile key={cellKey(cell)} man={players[at]} picking={picking} strip className="items-center justify-center p-1" />;
               }),
             )}
           </ul>

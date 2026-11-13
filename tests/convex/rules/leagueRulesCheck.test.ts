@@ -3,6 +3,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
@@ -17,22 +18,37 @@ const limits = FIRST_RULES.areaLimits;
 const keegans = FIRST_RULES.classics!.find(({ name }) => name === "Keegan's Newcastle")!;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 
+/** The rules checked in the tests' Premier League season. */
+const check = (rules: LeagueRules, maxTeams?: number) => checkLeagueRules(rules, PL_GAMEWEEKS, maxTeams);
+
+test("a trade deadline is one of the season's gameweeks, however many it has (#1618)", () => {
+  const deadlineIn = (deadline: number) => rulesWith({ trades: { review: "veto", deadline } });
+  expect(() => checkLeagueRules(deadlineIn(34), 34)).not.toThrow();
+  expect(() => checkLeagueRules(deadlineIn(35), 34)).toThrow(new Error("The trade deadline's gameweek must be a whole number from 1 to 34, not 35."));
+  expect(() => check(deadlineIn(38))).not.toThrow();
+});
+
 test("the first rules are sound", () => {
-  expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
+  expect(() => check(FIRST_RULES)).not.toThrow();
 });
 
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
-  // With no presets, no classic has one to stand in, so there are none.
+  // With no presets, no classic formation has one to stand in, so there are none.
   const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
-  expect(() => checkLeagueRules(free)).not.toThrow();
+  expect(() => check(free)).not.toThrow();
+});
+
+test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {
+  const oneEach = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 20 }, maxPerClub: 1 } });
+  expect(() => check(oneEach)).not.toThrow();
 });
 
 test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
-  expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
+  expect(() => check(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
 test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
-  expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek }))).not.toThrow();
+  expect(() => check(rulesWith({ gamesPerGameweek }))).not.toThrow();
 });
 
 describe.each<[string, Partial<LeagueRules>, string]>([
@@ -69,6 +85,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "The most players from one club must be a whole number, 1 or more, not 0.",
   ],
   [
+    "a squad the club maximum can't fill (#1462)",
+    { squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 21 }, maxPerClub: 1 } },
+    "The squad's maximum, 21, is more than 1 from each of the 20 clubs can fill, 20.",
+  ],
+  [
     "an area whose minimum on the pitch is above its maximum",
     { areaLimits: { ...limits, attack: { minimum: 3, maximum: 2 } } },
     "On the pitch, attack's minimum, 3, is above its maximum, 2.",
@@ -77,6 +98,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a negative area limit",
     { areaLimits: { ...limits, midfield: { minimum: -1, maximum: 4 } } },
     "On the pitch, midfield's minimum must be a whole number, 0 or more, not -1.",
+  ],
+  [
+    "an area of two words, named as the screens name it (#1785)",
+    { areaLimits: { ...limits, defensiveMidfield: { minimum: 2, maximum: 1 } } },
+    "On the pitch, defensive midfield's minimum, 2, is above its maximum, 1.",
   ],
   [
     "minimums on the pitch adding up to more than eleven",
@@ -124,33 +150,33 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     { presets: [{ ...firstPreset, backLine: { cleanSheet: 3, goalConceded: 1 } }, ...FIRST_RULES.presets.slice(1)] },
     "The preset 4-4-2's goal conceded must be a whole number, 0 or less, not 1.",
   ],
-  // A classic stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
-  ["a classic with no name", { classics: [{ ...keegans, name: " " }] }, "A classic needs a name."],
-  ["two classics of one name", { classics: [keegans, { ...keegans }] }, `Two classics are called "Keegan's Newcastle".`],
+  // A classic formation stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
+  ["a classic formation with no name", { classics: [{ ...keegans, name: " " }] }, "A classic formation needs a name."],
+  ["two classic formations of one name", { classics: [keegans, { ...keegans }] }, `Two classic formations are called "Keegan's Newcastle".`],
   [
-    "a classic whose formation the league has dropped",
+    "a classic formation whose formation the league has dropped",
     { presets: FIRST_RULES.presets.filter(({ name }) => name !== "4-4-2") },
-    "The classic Keegan's Newcastle stands in no formation of the league's.",
+    "The classic formation Keegan's Newcastle stands in no formation of the league's.",
   ],
   [
-    "a classic giving a slot a role it doesn't offer",
+    "a classic formation giving a slot a role it doesn't offer",
     { classics: [{ ...keegans, cells: [{ ...keegans.cells[0], role: "poacher" }, ...keegans.cells.slice(1)] }] },
-    "The classic Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
   ],
   [
-    "a classic giving a sweeper to a back four",
+    "a classic formation giving a sweeper to a back four",
     { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
-    "The classic Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its defence left-centre slot the role sweeper, which that slot doesn't offer.",
   ],
   [
-    "a classic whose defensive instruction is an attacking one",
+    "a classic formation whose defensive instruction is an attacking one",
     { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "gungHo" } }] },
-    "The classic Keegan's Newcastle's defensive instruction, gungHo, isn't one its shape offers.",
+    "The classic formation Keegan's Newcastle's defensive instruction, gungHo, isn't one its shape offers.",
   ],
   [
-    "a classic whose instruction its shape blocks (#990)",
+    "a classic formation whose instruction its shape blocks (#990)",
     { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "parkTheBus" } }] },
-    "The classic Keegan's Newcastle's defensive instruction, parkTheBus, isn't one its shape offers.",
+    "The classic formation Keegan's Newcastle's defensive instruction, parkTheBus, isn't one its shape offers.",
   ],
   [
     "a preset whose default instruction its shape blocks (#990)",
@@ -182,12 +208,17 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a waiver run at hour 24",
     { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 24, minute: 0 }] } },
-    "A waiver run's hour is a whole number from 0 to 23, not 24.",
+    "A waiver run's hour must be a whole number from 0 to 23, not 24.",
+  ],
+  [
+    "a waiver run at hour 1.5 (#1743)",
+    { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 1.5, minute: 0 }] } },
+    "A waiver run's hour must be a whole number from 0 to 23, not 1.5.",
   ],
   [
     "a waiver run at minute 60",
     { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 9, minute: 60 }] } },
-    "A waiver run's minute is a whole number from 0 to 59, not 60.",
+    "A waiver run's minute must be a whole number from 0 to 59, not 60.",
   ],
   [
     "two waiver runs at one time",
@@ -201,13 +232,17 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   ],
 ])("%s", (_name, change, reason) => {
   test("is refused with the reason", () => {
-    expect(() => checkLeagueRules(rulesWith(change))).toThrow(new Error(reason));
+    expect(() => check(rulesWith(change))).toThrow(new Error(reason));
   });
+});
+
+test("a waiver run at 23:59 is sound (#1743)", () => {
+  expect(() => check(rulesWith({ waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 23, minute: 59 }] } }))).not.toThrow();
 });
 
 test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => {
   expect(MOST_IN_SQUAD).toBe(25);
-  expect(() => checkLeagueRules(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
+  expect(() => check(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
 });
 
 describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
@@ -220,13 +255,13 @@ describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", 
     [20, "at most 19 games a gameweek, not 20: one against each of the other 19."],
   ])("with %i teams, a team can play %s", (maxTeams, reason) => {
     const most = maxTeams % 2 === 0 ? maxTeams - 1 : maxTeams;
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
+    expect(() => check(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
+    expect(() => check(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
       new Error(`With ${maxTeams} teams, a team can play ${reason}`),
     );
   });
 
   test("the admin's defaults, for no league, aren't checked against one", () => {
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
+    expect(() => check(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
   });
 });

@@ -1,21 +1,22 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { TICKER_MOST, TOP_ROWS, WHOLE_TABLE_MOST } from "../../../convex/home/glance";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { leagueHomeOf } from "../../support/convex/screenReads.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's first slice (#387; spec/12, League home): this gameweek's head-to-heads, the table
 // (whole up to WHOLE_TABLE_MOST teams, else the top TOP_ROWS and the reader's row) with each team's
 // form, the latest squad moves from the league's events, and the commissioner's latest letter.
 
-const [ANN, BOB, CAT] = MANAGERS;
 const SAKA = 1001;
 const RICE = 1002;
 
@@ -27,7 +28,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 20);
 });
 
-const read = async (email = ANN) => (await actingAs(t, email)).query(api.home.leagueHome.ofLeague, { leagueId, now: Date.now() });
+const read = async (email = ANN) => leagueHomeOf(await actingAs(t, email), leagueId, Date.now());
 const managersNamed = (count: number) => Array.from({ length: count }, (_, i) => `manager${i + 1}@example.com`);
 
 describe("who may read it", () => {
@@ -51,6 +52,7 @@ describe("who may read it", () => {
 
 describe("the glance", () => {
   test("before any gameweek has begun, it shows the first's head-to-heads, the same as the table's fixtures", async () => {
+    await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const home = (await read())!;
     const fixtures = (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId }))!.gameweeks[0];
@@ -125,10 +127,10 @@ describe("the latest claims, drops and trades", () => {
     vi.advanceTimersByTime(MINUTE_MS);
     await commish.release(SAKA);
 
-    expect((await read())?.squadMoves.map(({ kind, playerName, teamName, fromTeamName }) => ({ kind, playerName, teamName, fromTeamName }))).toEqual([
-      { kind: "playerReleased", playerName: "Saka", teamName: "Team 2", fromTeamName: null },
-      { kind: "playerMoved", playerName: "Saka", teamName: "Team 2", fromTeamName: "Team 1" },
-      { kind: "playerAssigned", playerName: "Saka", teamName: "Team 1", fromTeamName: null },
+    expect((await read())?.squadMoves).toMatchObject([
+      { kind: "playerReleased", playerName: "Saka", teamName: teamNumbered(2), fromTeamName: null },
+      { kind: "playerMoved", playerName: "Saka", teamName: teamNumbered(2), fromTeamName: teamNumbered(1) },
+      { kind: "playerAssigned", playerName: "Saka", teamName: teamNumbered(1), fromTeamName: null },
     ]);
   });
 
@@ -155,6 +157,19 @@ describe("the latest claims, drops and trades", () => {
     const moves = (await read())!.squadMoves;
     expect(moves.map((move) => move.kind)).toEqual(["playerReleased", "playerAssigned", "playerReleased", "playerAssigned", "playerReleased"]);
     expect(moves.map((move) => move.at)).toEqual(moves.map((move) => move.at).toSorted((one, other) => other - one));
+  });
+
+  test("lists a trade that went through as one line with both its sides, never its players' moves (#1491)", async () => {
+    const gives = { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] };
+    const gets = { players: [{ playerCode: RICE, playerName: "Rice" }], picks: [] };
+    await t.run(async (ctx) => {
+      const filed = (event: Doc<"leagueEvents">["event"]) => ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by: BOB, event });
+      await filed({ kind: "tradeMade", fromTeamId: teams[0], fromTeamName: teamNumbered(1), toTeamId: teams[1], toTeamName: teamNumbered(2), gives, gets });
+      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: teams[1], teamName: teamNumbered(2), fromTeamId: teams[0], fromTeamName: teamNumbered(1) });
+      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: teams[0], teamName: teamNumbered(1), fromTeamId: teams[1], fromTeamName: teamNumbered(2) });
+    });
+
+    expect((await read())!.squadMoves).toEqual([{ at: Date.now(), kind: "tradeMade", fromTeamName: teamNumbered(1), toTeamName: teamNumbered(2), gives, gets }]);
   });
 });
 

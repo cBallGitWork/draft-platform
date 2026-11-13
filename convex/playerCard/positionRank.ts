@@ -1,9 +1,11 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { slotPosition } from "../lineup/pitchShape";
-import { positionsNow } from "../positions/playerPositions";
-import { placeOf } from "./cardPoints";
-import { currentPlayersOf } from "../scouting/playersList";
+import { positionListFrom } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
+import { rankOfPlayer } from "./cardPoints";
+import { currentScoutingPlayersOf } from "../scouting/playersList";
+import { checkScoutingPlayersHeld } from "../scouting/scoutingPlayers";
 import { shownSeasonPoints } from "../scouting/shownSeasonPoints";
 import { memberOf } from "../shared/leagueAccess";
 import { currentClubs } from "../shared/players";
@@ -11,7 +13,8 @@ import { currentClubs } from "../shared/players";
 // His rank at the position the card's switch is on (spec/12 S12.1; Craig, 9 Nov 2026, on #1027:
 // "ranked by base points this season against every player holding that position (owned or free),
 // as Scouting totals them, ties sharing a place", "4th of 112 MID"). Each player is totalled at
-// that position, so a two-position player is ranked on what the card's figure shows there. Its own
+// that position, so a two-position player is ranked on what the card's figure shows there. Each
+// player is read from his one Scouting row, as the list reads him (scoutingPlayers.ts). Its own
 // query, apart from the card's, so the card doesn't re-run whenever any player's points move.
 
 const positionRank = v.object({
@@ -31,11 +34,13 @@ export const atPosition = query({
   returns: positionRank,
   handler: async (ctx, { leagueId, playerCode, position }) => {
     await memberOf(ctx, leagueId);
-    const players = await currentPlayersOf(ctx, await currentClubs(ctx));
-    const positionsOf = await positionsNow(ctx, leagueId);
+    const players = await currentScoutingPlayersOf(ctx, await currentClubs(ctx));
+    if (players.length === 0) await checkScoutingPlayersHeld(ctx);
+    const how = await howPositionsCount(ctx, leagueId);
     const { pointsOf } = await shownSeasonPoints(ctx, leagueId);
-    const holding = await Promise.all(players.map(async ({ code }) => ({ code, holds: (await positionsOf(code)).includes(position) })));
-    const points = holding.filter(({ holds }) => holds).map(({ code }) => ({ code, points: pointsOf(code, [position]) }));
-    return { place: placeOf(points, playerCode), of: points.length };
+    const points = players
+      .filter((player) => positionListFrom(player.positions, how).includes(position))
+      .map(({ code }) => ({ code, points: pointsOf(code, [position]) }));
+    return { place: rankOfPlayer(points, playerCode), of: points.length };
   },
 });

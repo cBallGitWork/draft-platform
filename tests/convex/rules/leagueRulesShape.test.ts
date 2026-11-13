@@ -5,7 +5,7 @@ import { lineupProblems, type LineupRules } from "../../../convex/lineup/lineup"
 import { heldRules, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS, type Preset } from "../../../convex/lineup/presets";
 import type { DrawRules, OddTeamOut } from "../../../convex/table/roundRobin";
 import { scoreGameweek, scoreMatch } from "../../../convex/scoring/scoring";
 import type { DoubleGameweekRule } from "../../../convex/scoring/values";
@@ -82,7 +82,7 @@ test("rules saved with a preset's dropped centre role (#988 to #1159) are held w
 });
 
 test("the first rules' presets are the ones every league starts with", () => {
-  expect(FIRST_RULES.presets).toEqual(DEFAULT_PRESETS);
+  expect(FIRST_RULES.presets).toEqual(FIRST_PRESETS);
 });
 
 test("stored rules pass straight into scoring and the lineup check", () => {

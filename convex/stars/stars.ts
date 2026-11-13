@@ -5,7 +5,7 @@
 // starts on when he is dropped into a slot (spec/05), and never price a match.
 
 import { areasOf, cellsOf, LANES, type Area, type Cell } from "../lineup/pitch";
-import { everyRoleOf } from "../lineup/roles";
+import { everyRoleOf, takesRole } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -36,13 +36,13 @@ export const STAR_CUTS: readonly { stars: number; fewerAbove: number }[] = [
 export const LOWEST_STARS = 0.5;
 
 /** A role to rate in an area, and the cell it is priced in there. */
-export interface RatedRole {
+interface RatedRole {
   area: Area;
   role: string;
   cell: Cell;
 }
 
-/** Every role in every area these positions play (Craig, 1 Nov 2026), each priced in the first
+/** Every role they may take (roles.ts's takesRole) in every area these positions play (Craig, 1 Nov 2026), each priced in the first
  *  cell of the area, left to right, that offers it. A rule prices by area and position alone, so
  *  any cell offering the role prices it the same. */
 export function ratedRoles(positions: readonly Position[]): RatedRole[] {
@@ -50,7 +50,7 @@ export function ratedRoles(positions: readonly Position[]): RatedRole[] {
   for (const area of areasOf(positions)) {
     for (const cell of cellsOf(area, LANES)) {
       for (const { key } of everyRoleOf(cell)) {
-        if (!rated.some((each) => each.area === area && each.role === key)) rated.push({ area, role: key, cell });
+        if (takesRole(positions, key) && !rated.some((each) => each.area === area && each.role === key)) rated.push({ area, role: key, cell });
       }
     }
   }
@@ -63,7 +63,7 @@ export type RatedRecord = Pick<Doc<"playerMatchStats">, "state" | "played" | "ar
 
 /** The matches he is rated on (Craig, 1 Nov 2026): each final one he got on the pitch for, cameos
  *  included, his newest STARS_WINDOW, newest first. */
-export function countedMatches(records: readonly RatedRecord[]): MatchStats[] {
+export function ratedMatches(records: readonly RatedRecord[]): MatchStats[] {
   return records
     .filter((record) => record.state === "locked" && isWhole(record) && statIn(record.stats, MINUTES_STAT) > 0)
     .toSorted((one, other) => other.kickoff - one.kickoff)

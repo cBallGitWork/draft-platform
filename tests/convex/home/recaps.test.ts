@@ -1,14 +1,15 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { performersOf, RECAP_TRIES_MOST } from "../../../convex/home/recaps";
-import { RECAP_SYSTEM, recapUpLetter } from "../../../convex/home/recapWords";
-import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
+import { benchPointsOf, performersOf } from "../../../convex/home/recaps";
+import { RECAP_SYSTEM, recapPrompt, recapUpLetter } from "../../../convex/home/recapWords";
+import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ANN, BOB, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { EVERTON_POINTS, GAMEWEEK, homeAt, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, lettersTo, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's weekly recap (#387; spec/12, League home): once every match of the gameweek is
 // final, Claude writes one recap for the league from facts only, Mail says it is up, and League
@@ -27,9 +28,7 @@ async function finalLeague() {
   return { league, claude };
 }
 
-const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => (await actingAs(t, ANN)).query(api.home.leagueHome.ofLeague, { leagueId, now });
 const recapOf = async ({ t, leagueId }: ScoresLeague, gameweek = GAMEWEEK) => (await actingAs(t, BOB)).query(api.home.recaps.ofGameweek, { leagueId, gameweek });
-const lettersTo = ({ t }: ScoresLeague, email: string) => t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect());
 const AFTER = LEAGUE_FULL_TIME_READ + 3 * HOUR_MS;
 
 test("once the gameweek is final, Claude writes the recap from its facts, and Mail tells the whole league it is up", async () => {
@@ -49,7 +48,7 @@ test("once the gameweek is final, Claude writes the recap from its facts, and Ma
   const recap = { gameweek: GAMEWEEK, text: fakeReport(prompt), changedTeamId: null };
   expect(await recapOf(league)).toMatchObject(recap);
   expect((await homeAt(league, AFTER))!.recap).toMatchObject(recap);
-  for (const email of [ANN, BOB]) expect((await lettersTo(league, email)).map(({ subject, body }) => ({ subject, body }))).toContainEqual(recapUpLetter(GAMEWEEK));
+  for (const email of [ANN, BOB]) expect(await lettersTo(league.t, email)).toContainEqual(recapUpLetter(GAMEWEEK));
 });
 
 test("it is written once: the gameweek stored again writes no second recap", async () => {
@@ -133,15 +132,15 @@ test("past the most tries it stops trying", async () => {
   fakeClaude().failing = true;
   await storeLeague(league);
   await elapse(league.t, 0);
-  for (let tries = 1; tries < RECAP_TRIES_MOST; tries++) await elapse(league.t, CLAUDE_RETRY_MS);
+  for (let tries = 1; tries < CLAUDE_TRIES_MOST; tries++) await elapse(league.t, CLAUDE_RETRY_MS);
 
   const [recap] = await league.t.run((ctx) => ctx.db.query("recaps").collect());
-  expect(recap.failedTries).toBe(RECAP_TRIES_MOST);
+  expect(recap.failedTries).toBe(CLAUDE_TRIES_MOST);
   expect(await pendingJobs(league.t, internal.home.recaps.write)).toEqual([]);
 });
 
 test("the top performers are the three starters who scored most for their team; the letdowns the three who scored least of the rest", () => {
-  const man = (player: string, points: number) => ({ player, team: "Team 1", points });
+  const man = (player: string, points: number) => ({ player, team: teamNumbered(1), points });
   const starters = [man("A", 2), man("B", 12), man("C", 9), man("D", -1), man("E", 9), man("F", 6), man("G", 1)];
   expect(performersOf(starters)).toEqual({
     topPerformers: [man("B", 12), man("C", 9), man("E", 9)],
@@ -149,4 +148,13 @@ test("the top performers are the three starters who scored most for their team; 
   });
   // With fewer than six, no man is both.
   expect(performersOf(starters.slice(0, 4))).toEqual({ topPerformers: [man("B", 12), man("C", 9), man("A", 2)], letdowns: [man("D", -1)] });
+});
+
+test("the bench is added up in tenths: 4.2 and 0.1 left on it give a brief line ending bench 4.3", () => {
+  // A bench man who came on counts for the team, so isn't left on the bench; one with no points yet adds none.
+  const bench = [{ counts: false, points: 4.2 }, { counts: true, points: 6 }, { counts: false, points: 0.1 }, { counts: false, points: null }];
+  expect(benchPointsOf(bench)).toBe(4.3);
+  expect(benchPointsOf([{ counts: false, points: 0.1 }, { counts: false, points: 0.2 }])).toBe(0.3);
+  const prompt = recapPrompt({ gameweek: GAMEWEEK, results: [], teams: [{ team: "Team 1", points: 30, benchPoints: benchPointsOf(bench) }], topPerformers: [], letdowns: [] });
+  expect(prompt.split("\n")).toContain("Team 1: 30, bench 4.3");
 });

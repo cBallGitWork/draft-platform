@@ -1,11 +1,10 @@
-import { positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
+import { cellKey, positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
-import { standingIn, type EditedLineup, type MoveRules, type RatingsOf } from "../lineupEdits";
+import { standingIn, type EditedLineup, type MoveRules, type PresetShape as Shape, type RatingsOf } from "../lineupEdits";
 import { reshaped } from "../reshape";
 import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
-import type { Shape } from "./formationGroups";
 import { cellsDrawn } from "./FormationTile";
 import {
   appliesHead,
@@ -24,12 +23,13 @@ import {
 // The formation window's preview (the approved formation window): the picked formation on a pitch,
 // each slot's chip over the role it would play once used, and its lines in the picture's order:
 // Applies, Gains, Loses, Unlocks, Costs. Gains and Loses wait on Craig's words (to-grill: Formation
-// descriptions), Unlocks and Costs on team tactics (to-grill: Team tactic per formation), so each
-// shows as its placeholder (plate.md, Marks).
+// descriptions), Unlocks and Costs on the preview reading the team instructions a formation offers
+// (spec/05, Team instructions; #990), so each shows as its placeholder (plate.md, Marks).
 
 /** The lineup reshaped to `shape`, as Use this would leave it (spec/05, The pitch): `after`, or the
- *  lineup reshaped to it as a plain formation. A saved plan or a classic says the formation it
- *  stands in under its name (`subtitle`) and what using it applies; a classic, what it did
+ *  lineup reshaped to it as a plain formation. A saved plan or a classic formation says the
+ *  formation it stands in under its name (`subtitle`) and what using it applies; a classic
+ *  formation, what it did
  *  (`description`). */
 export function FormationPreview({
   shape,
@@ -68,7 +68,7 @@ export function FormationPreview({
             const inShape = shape.cells.some((each) => sameCell(each, cell));
             const standing = standingIn(after, cell);
             return (
-              <span key={`${cell.area}-${cell.lane}`} className="flex min-w-0 flex-col items-center justify-center">
+              <span key={cellKey(cell)} className="flex min-w-0 flex-col items-center justify-center">
                 {inShape && (
                   <>
                     <PositionChip label={positionOfSlot(cell)} />

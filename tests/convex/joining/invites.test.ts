@@ -16,15 +16,20 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   COMMISSIONER,
   LEAGUE_NAME,
-  MANAGERS,
   actingAs,
   addManager,
   addManagers,
   adminCreatesLeague,
   eventsIn,
   onTheList,
+  managersOf,
   teamsIn,
   type TestConvex,
+  ANN,
+  BOB,
+  CAT,
+  DAN,
+  EVE,
 } from "../../support/convex/leagues.harness";
 import {
   SITE_URL,
@@ -35,11 +40,10 @@ import {
   type SentEmail,
 } from "../../support/convex/signIn.harness";
 import { DAY_MS } from "../../../convex/shared/time";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
-
-const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -47,10 +51,9 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
 });
 
-const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagueId))?.invites.find((row) => row.inviteId === inviteId);
 
 describe("an invite", () => {
@@ -64,8 +67,8 @@ describe("an invite", () => {
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
 
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: ANN }]);
-    expect((await inviteRow(inviteId))?.joinedTeamName).toBe("Team 1");
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+    expect((await inviteRow(inviteId))?.joinedTeamName).toBe(teamNumbered(1));
   });
 
   test("to a vacated team names it, and hands them that team", async () => {
@@ -76,9 +79,9 @@ describe("an invite", () => {
     expect(lastEmailTo(sent, CAT).text).toContain(`has invited you to run Team 1 in ${LEAGUE_NAME}`);
     await openLastLinkTo(t, sent, CAT);
 
-    expect(await managers()).toEqual([
-      { name: "Team 1", managerEmail: CAT },
-      { name: "Team 2", managerEmail: BOB },
+    expect(await managersOf(t, leagueId)).toEqual([
+      { name: teamNumbered(1), managerEmail: CAT },
+      { name: teamNumbered(2), managerEmail: BOB },
     ]);
   });
 
@@ -89,7 +92,7 @@ describe("an invite", () => {
     vi.advanceTimersByTime(2 * DAY_MS);
     expect(await ask(t, ANN)).toBe("checkYourEmail");
     await openLastLinkTo(t, sent, ANN);
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("is taken up once: removed later, signing in again doesn't bring them back", async () => {
@@ -100,21 +103,21 @@ describe("an invite", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: undefined }]);
-    expect(await inviteRow(inviteId)).toMatchObject({ joinedTeamName: "Team 1", couldNotJoin: null });
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
+    expect(await inviteRow(inviteId)).toMatchObject({ joinedTeamName: teamNumbered(1), couldNotJoin: null });
   });
 
   test("files for Mail who invited whom to which team, and who joined it", async () => {
     const inviteId = await invite(t, leagueId, ANN);
     await (await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     await openLastLinkTo(t, sent, ANN);
     const teamId = (await teamsIn(t, leagueId))[0]._id;
 
     expect((await eventsIn(t, leagueId)).slice(2)).toEqual([
       { by: COMMISSIONER, kind: "invited", email: ANN, teamId: null, teamName: null },
       { by: COMMISSIONER, kind: "inviteResent", email: ANN, teamId: null, teamName: null },
-      { by: ANN, kind: "joinedByInvite", email: ANN, teamId, teamName: "Team 1", invitedBy: COMMISSIONER },
+      { by: ANN, kind: "joinedByInvite", email: ANN, teamId, teamName: teamNumbered(1), invitedBy: COMMISSIONER },
     ]);
   });
 });
@@ -125,19 +128,19 @@ describe("how long an invite lasts", () => {
     vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
     await ask(t, ANN);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
-    expect(await managers()).toEqual([]);
+    expect(await managersOf(t, leagueId)).toEqual([]);
   });
 
   test("resending sends it again, for seven more days from then", async () => {
     const inviteId = await invite(t, leagueId, ANN);
     vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
     await (await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(emailsTo(sent, ANN)).toHaveLength(2);
     expect((await inviteRow(inviteId))?.expiresAt).toBe(Date.now() + INVITE_LIFETIME_MS);
     await openLastLinkTo(t, sent, ANN);
-    expect(await managers()).toEqual([{ name: "Team 1", managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("cancelled, it lets no one in, is filed for Mail, and leaves the page", async () => {
@@ -145,7 +148,7 @@ describe("how long an invite lasts", () => {
     await (await asCommissioner(t)).mutation(api.joining.invites.cancel, { inviteId });
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([]);
+    expect(await managersOf(t, leagueId)).toEqual([]);
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "inviteCancelled", email: ANN, teamId: null, teamName: null });
     expect(await inviteRow(inviteId)).toBeUndefined();
     await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteEnded);
@@ -250,7 +253,7 @@ describe("past the day's emails (spec/13)", () => {
     expect(emailsTo(sent, ANN)).toEqual([]);
     await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteWaiting);
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(new Date(Date.now()).toISOString()).toBe("2026-10-21T00:00:00.000Z");
     expect((await inviteRow(inviteId))?.delivery).toBe("sent");
     expect(emailsTo(sent, ANN)).toHaveLength(1);

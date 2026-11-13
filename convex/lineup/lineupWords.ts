@@ -7,10 +7,7 @@ import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
 
 /** A player's name, by his code. */
-export type NameOf = (playerCode: number) => string;
-
-/** A player the app holds no row for, which only one who left long ago can be. */
-export const unknownPlayerWords = (playerCode: number) => `Player ${playerCode}`;
+type NameOf = (playerCode: number) => string;
 
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
@@ -21,8 +18,8 @@ export const lineupRefusals = {
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
     `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
-  noSuchClassic: (name: string) => `This league has no classic called ${name} any more: pick a formation to save your lineup.`,
-  notInClassicShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
+  noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your lineup.`,
+  notInClassicFormationShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
 };
 
 /** How many plans a manager keeps, and how long a plan's name may be (spec/05, Saved plans;
@@ -50,8 +47,11 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `${andListWords(problem.playerCodes.map(nameOf))} share the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}: one player a cell.`;
     case "positionsUnknown":
       return `${nameOf(problem.playerCode)} has no positions yet, so he can't start.`;
-    case "outsideHisAreas":
-      return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
+    case "outsideHisAreas": {
+      // A starter with no positions row is held with none (heldPositionsOf), so he is refused here.
+      const plays = problem.positions.length === 0 ? "has no positions" : `plays ${problem.positions.join(", ")}`;
+      return `${nameOf(problem.playerCode)} ${plays}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
+    }
     case "aboveMaximum":
       return `The league starts at most ${problem.maximum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
     case "roleNotOffered":
@@ -60,5 +60,7 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
     case "noBackThree":
       return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this lineup has ${problem.centreBacks}.`;
+    case "roleNotHis":
+      return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't play ${roleName(problem.role)}.`;
   }
 }

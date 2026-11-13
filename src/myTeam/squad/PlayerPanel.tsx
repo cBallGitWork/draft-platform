@@ -4,31 +4,28 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
-import { Panel, Problem } from "../../ui/Panel";
+import { MoreLink } from "../../ui/MoreLink";
+import { CloseButton, Panel, Problem } from "../../ui/Panel";
 import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
-import { benchBestRole } from "../tactics/lineupEdits";
+import { benchBestRole, placeOf } from "../tactics/lineupEdits";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
 import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { PositionCodes } from "../../ui/PositionCodes";
-import { NextMatches } from "../SquadCells";
+import { Figure, inDoubt, NextMatches, StatusMark } from "../SquadCells";
 import type { Row } from "./SquadTable";
 import {
   benchedInWords,
   bestRoleNotRatedLabel,
-  closeGlyph,
   closePanelLabel,
-  figureWords,
   formLabel,
+  gameweekShort,
   gameweekWords,
-  gameweekRowWords,
   lastWords,
-  nextGlyph,
-  noFigureWords,
   panelPlateWords,
   panelRows,
   playerCardWords,
@@ -37,7 +34,6 @@ import {
   setRoleWords,
   signedWords,
   startingInWords,
-  statusNotSettledLabel,
   THIS_SEASON,
 } from "./words";
 
@@ -68,16 +64,14 @@ export function PlayerPanel({
       aside={
         <span className="flex items-center gap-2">
           <span className="text-soft">{panelPlateWords(player.club.shortName, player.number)}</span>
-          <button type="button" aria-label={closePanelLabel(player.name)} onClick={onClose} className="min-h-tap min-w-tap text-lead font-bold lg:min-h-0 lg:min-w-0">
-            <span aria-hidden="true">{closeGlyph}</span>
-          </button>
+          <CloseButton label={closePanelLabel(player.name)} close={onClose} className="text-lead font-bold lg:min-h-0 lg:min-w-0" />
         </span>
       }
     >
       {/* His doubt line: the chip where FPL holds a doubt, as his row has it, and FPL's news. */}
-      {(player.chanceOfPlaying !== null || player.news !== null) && (
+      {(inDoubt(player) || player.news !== null) && (
         <p className="flex items-center gap-2 px-3 py-1">
-          {player.chanceOfPlaying !== null && <Placeholder label={statusNotSettledLabel} className="h-5 w-10 shrink-0" />}
+          <StatusMark player={player} className="h-5 w-10 shrink-0" />
           {player.news !== null && <span>{player.news}</span>}
         </p>
       )}
@@ -125,9 +119,7 @@ export function PlayerPanel({
         <Link {...tacticsLink(player.code)} className="secondary-action lg:min-h-0 lg:py-1">
           {setRoleWords}
         </Link>
-        <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
-          {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
-        </Link>
+        <MoreLink to={playerCardPath(leagueId, player.code)}>{playerCardWords}</MoreLink>
       </div>
     </Panel>
   );
@@ -140,11 +132,6 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
       <dd>{children}</dd>
     </>
   );
-}
-
-/** A figure, "—" while there is none; `words` writes it, signed for an adjustment. */
-function Figure({ points, words = figureWords }: { points: number | null; words?: (value: number) => string }) {
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
 }
 
 /** The role he has the most stars for at his main position's slot, with his stars for it, as the
@@ -166,16 +153,14 @@ function BestRole({ tactics, code }: { tactics: Tactics | undefined; code: numbe
  *  no lineup is open to set. */
 function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: number }) {
   if (tactics?.kind !== "open") return null;
-  const { starters, bench } = tactics.lineup;
-  const starter = starters.find((each) => each.playerCode === code);
-  const benchIndex = bench.indexOf(code);
-  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchedInWords(benchIndex + 1) : null;
-  if (where === null) return null;
+  const place = placeOf(tactics.lineup, code);
+  if (place === null) return null;
+  const where = "starter" in place ? startingInWords(positionOfSlot(place.starter), place.starter.lane) : benchedInWords(place.benchIndex + 1);
   return (
     <>
       <dt className="text-soft">
         <abbr title={gameweekWords(tactics.gameweek)} className="no-underline">
-          {gameweekRowWords(tactics.gameweek)}
+          {gameweekShort(tactics.gameweek)}
         </abbr>
       </dt>
       <dd>{where}</dd>

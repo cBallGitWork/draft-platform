@@ -3,8 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { begunGameweeks } from "../../../convex/gameweekScorer/gameweekScores";
-import { ANN, annsScoredGame, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { annsScoredGame, DEADLINE, GAMEWEEK, HULL_SCORER, HULL_STARTERS, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { actingAs, COMMISSIONER, ANN } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
 // A gameweek counts as begun at its deadline, not hours later at the next football sync: the

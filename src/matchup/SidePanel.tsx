@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { LEAGUE_AVERAGE } from "../../convex/table/roundRobin";
 import { RunsSwitch } from "../myTeam/tactics/TacticsControls";
 import { AutoTeamChip } from "../ui/AutoTeamChip";
 import { Panel, PanelNote } from "../ui/Panel";
@@ -11,17 +12,12 @@ import { averageWords, customFormationWords, leagueAverageWords, LINEUP_TITLE } 
 // draws it: a "Lineup" panel, its team's "Auto team" tag beside the title while nobody runs it,
 // then its Runs switch and formation, its pitch and bench; or the league's average.
 
-export type { Picking } from "./PlayerTile";
-
-/** A side's name: its team's, or the league's average. */
-export const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : leagueAverageWords);
-
 /** A side's panel, named by its team for screen readers: tapping a man opens his breakdown (#798).
  *  Its pitch's runs show until its own switch hides them, one on each side (spec/05 Runs; Craig,
  *  6 Nov 2026, #850). */
 export function SidePanel({ side, picking }: { side: MatchupSide; picking: Picking }) {
   const [runsShown, setRunsShown] = useState(true);
-  if (side.kind === "leagueAverage") {
+  if (side.kind === LEAGUE_AVERAGE) {
     return (
       <Panel title={leagueAverageWords} namesTeam>
         <PanelNote>{averageWords}</PanelNote>

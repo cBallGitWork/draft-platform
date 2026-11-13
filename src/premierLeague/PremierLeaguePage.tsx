@@ -1,21 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
-import { ClubName } from "../ui/ClubName";
+import { ClubLink } from "./ClubLink";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";
 import type { GameweekMatch, PremierLeagueSeam } from "./seam";
+import { MatchState } from "./MatchState";
 import {
-  clockWords,
   dayWords,
   FIXTURES_TITLE,
-  fullTime,
   goalsWords,
-  halfTime,
-  kickoffWords,
   loadingGameweekWords,
   loadingWords,
   matchesListLabel,
@@ -30,15 +27,15 @@ import {
  *  gameweek at a time, beside its table. No fixture difficulty and no count of owned players here
  *  (spec/18). */
 export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
-  const firstKickoffs = seam.useFirstKickoffs();
+  const gameweeks = seam.useGameweeks();
   return (
     <PageSection title={PREMIER_LEAGUE_TITLE} className={PAGE_STACK}>
       <div className={PANEL_COLUMNS}>
         <Panel title={FIXTURES_TITLE}>
-          {firstKickoffs === undefined ? (
+          {gameweeks === undefined ? (
             <Loading className="px-3 py-2">{loadingWords}</Loading>
           ) : (
-            <GameweekMatches seam={seam} opening={openingGameweek(firstKickoffs, Date.now())} />
+            <GameweekMatches seam={seam} opening={openingGameweek(gameweeks.firstKickoffs, Date.now())} last={gameweeks.seasonGameweeks} />
           )}
         </Panel>
         <TablePanel seam={seam} />
@@ -47,9 +44,9 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
   );
 }
 
-/** One gameweek's matches under the ◄ GW ► stepper, over the season's gameweeks, opening on
- *  `opening`; live, so a score moves as the feeds read it. */
-function GameweekMatches({ seam, opening }: { seam: PremierLeagueSeam; opening: number }) {
+/** One gameweek's matches under the ◄ GW ► stepper, over the season's gameweeks to its `last`,
+ *  opening on `opening`; live, so a score moves as the feeds read it. */
+function GameweekMatches({ seam, opening, last }: { seam: PremierLeagueSeam; opening: number; last: number }) {
   const [gameweek, choose] = useState(opening);
   const matches = seam.useGameweekMatches(gameweek);
   return (
@@ -57,7 +54,7 @@ function GameweekMatches({ seam, opening }: { seam: PremierLeagueSeam; opening: 
       <GameweekStepper
         gameweek={gameweek}
         hasPrevious={gameweek > FIRST_GAMEWEEK}
-        hasNext={gameweek < GAMEWEEKS}
+        hasNext={gameweek < last}
         onPrevious={() => choose(gameweek - 1)}
         onNext={() => choose(gameweek + 1)}
       />
@@ -102,9 +99,9 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
   const goals = goalsWords(score);
   return (
     <li className="grid grid-cols-match-row items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
-      <MatchState kickoff={kickoff} score={score} />
+      <MatchState kickoff={kickoff} score={score} long={false} />
       <span className="text-right font-semibold">
-        <ClubName club={home} />
+        <ClubLink club={home} />
       </span>
       <Link
         to={matchPath(fixtureCode)}
@@ -114,29 +111,8 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
         {goals ?? versusWords}
       </Link>
       <span className="text-left font-semibold">
-        <ClubName club={away} />
+        <ClubLink club={away} />
       </span>
     </li>
   );
-}
-
-function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">) {
-  switch (score?.state) {
-    case "live":
-      return <span className="font-semibold text-derived">{clockWords(score.state, score.clockLabel, score.minutes)}</span>;
-    case "halfTime":
-      return (
-        <abbr title={halfTime.long} className="font-semibold text-derived no-underline">
-          {clockWords(score.state, score.clockLabel, score.minutes)}
-        </abbr>
-      );
-    case "fullTime":
-      return (
-        <abbr title={fullTime.long} className="text-muted no-underline">
-          {fullTime.short}
-        </abbr>
-      );
-    default:
-      return <span className="text-muted">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
-  }
 }

@@ -6,20 +6,18 @@ import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, ROWS_SHOWN, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
-import { dateWords } from "../shared/words";
+import { capitalised } from "../../convex/shared/moments";
+import { dateWords, noManagerWords } from "../shared/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const INVITES_TITLE = "Invites and join requests";
 
 /** The team an invite or an approval is for, when it isn't a vacated one. */
-export const newTeamWords = "A new team";
+export const newTeamWords = capitalised(aNewTeamWords);
 export const noTeamWords = "The league is full, with no vacated team to hand on.";
 export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNewTeamWords}`;
 
 export const inviteHint = `No approval needed. An invite lasts ${INVITE_DAYS} days.`;
-
-/** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
-export const dayWords = dateWords;
 
 /** Why an invite waits for tomorrow (spec/13). */
 const dayIsSpent = "today's emails have all gone";
@@ -27,7 +25,7 @@ const dayIsSpent = "today's emails have all gone";
 /** Where a live invite's email stands. */
 export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
   sending: () => "Sending…",
-  sent: (expiresAt) => `Sent. It lasts until ${dayWords(expiresAt)}.`,
+  sent: (expiresAt) => `Sent. It lasts until ${dateWords(expiresAt)}.`,
   waiting: () => `Waits for tomorrow: ${dayIsSpent}. It goes by itself.`,
   tryLater: () => `Not sent: ${unsentLinkWords.tryLater}. Resend it later.`,
   notSent: () => `Not sent: ${unsentLinkWords.notSent}. Resend it.`,
@@ -39,8 +37,14 @@ const thenReason = (reason: string | null) => (reason === null ? "" : ` ${reason
 
 export const couldNotJoinWords = (reason: string | null) => `Signed in, but couldn't join.${thenReason(reason)}`;
 
-/** "Your leagues" for someone in none, when their newest invite ended without them joining. */
+/** "Your leagues" for someone in none, when their newest invite is live but a sign-in's fault kept
+ *  them from joining (Craig, 12 Nov 2026, on #1437). */
+export const joinFailedWords = "We couldn't add you to the league just now; open your invite link again.";
+
+/** "Your leagues" for someone in none, when their newest invite ended without them joining, or a
+ *  fault kept them from joining by it. */
 export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): string {
+  if (ended === "joinFailed") return joinFailedWords;
   const how = { expired: "expired.", cancelled: "was cancelled.", couldNotJoin: `couldn't be used.${thenReason(reason)}` }[ended];
   return `Your invite to ${leagueName} ${how} Ask the commissioner for a new one.`;
 }
@@ -82,7 +86,7 @@ export const linkHint = "Opening it only asks to join: you approve each request.
 /** The join requests the link made, each approved to a team or refused. */
 export const requestsWords = {
   title: "Join requests",
-  asked: (askedAt: number) => `Asked ${dayWords(askedAt)}`,
+  asked: (askedAt: number) => `Asked ${dateWords(askedAt)}`,
   teamLabel: (email: string) => `Team for ${email}`,
   approve: "Approve",
   approveLabel: (email: string) => `Approve ${email}`,
@@ -94,7 +98,7 @@ export const noRequestsWords = "No one is waiting.";
 /** The league's teams, each with its manager, who can be removed (spec/13, Leaving). */
 export const teamsWords = {
   title: "Teams",
-  noManager: "No manager",
+  noManager: noManagerWords,
   remove: "Remove",
   removeLabel: (email: string, teamName: string) => `Remove ${email} from ${teamName}`,
   confirm: (email: string, teamName: string) =>
@@ -110,8 +114,14 @@ export const signInToJoinWords = "Sign in to ask to join.";
 export const joinPageWords = {
   title: "Join a league",
   loading: loadingWords,
-  mayAsk: (leagueName: string) => `Ask to join ${leagueName}. Its commissioner approves each request.`,
+  commissioner: "Commissioner",
+  teams: "Teams",
+  /** Follows the "3 of 8" figures, as Your leagues sets them. */
+  teamsAfter: " teams",
   ask: "Ask to join",
+  /** The side panel saying how joining goes, as the approved picture words it. */
+  joiningTitle: "Joining",
+  joining: "The commissioner approves each request. You get an email once you are in.",
   waiting: (leagueName: string) =>
     `Your request to join ${leagueName} is waiting for the commissioner. You'll get an email once it's approved.`,
   inLeague: (leagueName: string, teamName: string) => `You're in ${leagueName}, running ${teamName}.`,

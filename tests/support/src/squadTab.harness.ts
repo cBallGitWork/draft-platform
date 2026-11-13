@@ -11,6 +11,7 @@ import { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
 import { openTactics } from "./tactics.harness";
+import { MY_TEAM_NAME } from "./teams.harness";
 
 export type Row = TeamSquad["players"][number];
 
@@ -18,7 +19,7 @@ export const openSquad = (myTeam: MyTeamData = {}, session = manager) => openApp
 
 /** The table's rows under its head, and a row's cells' words. */
 export const rows = () =>
-  within(screen.getByRole("table", { name: squadTableLabel("Team 1") }))
+  within(screen.getByRole("table", { name: squadTableLabel(MY_TEAM_NAME) }))
     .getAllByRole<HTMLTableRowElement>("row")
     .slice(1);
 export const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell.textContent);
@@ -62,7 +63,7 @@ export const PALMER: Row = {
 export const RAYA: Row = { ...SAKA, code: 1003, name: "Raya", fullName: "David Raya", positions: ["GK"], number: 1, stats: { ...NO_STATS, appearances: 8, minutes: 720, saves: 24 } };
 
 export const squadOf = (players: Row[], lastGameweek: number | null = 9, unheld: number[] = [], squadMaximum: number | null = null): TeamSquad => ({
-  teamName: "Team 1",
+  teamName: MY_TEAM_NAME,
   lastGameweek,
   players,
   unheld,

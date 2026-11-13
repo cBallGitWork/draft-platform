@@ -1,28 +1,26 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { OWN_STAT_PREFIX } from "../../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../../convex/scoring/statKeys";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { BY_NAME, playersListed } from "../../support/convex/playersList.harness";
 
 // Scouting's stat box offers the site set's own stats as well as the feeds' (spec/19, The players
 // list; #910): the list says which, and one shown is each player's season total, worked out from
 // his season totals as a match's own stat is from its record (spec/14, Own stats). The catalogue's
 // stats are tests/convex/scouting/playersList.test.ts's.
 
-const [ANN] = MANAGERS;
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 
 const INVOLVEMENTS = { stat: `${OWN_STAT_PREFIX}involvements`, name: "Involvements", shortCode: "INV" };
 const HALF_XG = { stat: `${OWN_STAT_PREFIX}half_xg`, name: "Half xG", shortCode: "HXG" };
 const MOST_FIRST: PlayersSort = { by: "stat", descending: true };
-const BY_NAME: PlayersSort = { by: "name", descending: false };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -30,7 +28,7 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
@@ -41,13 +39,7 @@ beforeEach(async () => {
 });
 
 /** The list as Ann reads it, by `stat` the most first, or by name with none shown. */
-const listAs = async (stat: string | null = null) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort: stat === null ? BY_NAME : MOST_FIRST,
-    stat,
-  });
+const listAs = async (stat: string | null = null) => playersListed(await actingAs(t, ANN), leagueId, { sort: stat === null ? BY_NAME : MOST_FIRST, stat });
 
 /** The site's latest set: the first one with goals less half the xG, and half the xG alone. */
 const holdOwnStats = () =>

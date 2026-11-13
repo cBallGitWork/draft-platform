@@ -1,15 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { balanceLab, roleStats, slotOfStart, type PastStart } from "../../../convex/balanceLab/balanceLab";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, shotStopper } from "../../support/convex/scoring.example";
 
 // The rule balance lab (spec/14; #843): each role's average a start over its slot's real past
 // starts against the slot's target, "not tested" where the past seasons lack a stat it scores.
 
 type RoleScoring = NonNullable<ScoringSet["roles"]>[number];
 const side = (bars: number[], ...parts: [string, number][]) => ({ bars, parts: parts.map(([stat, weight]) => ({ stat, weight })) });
-/** A shot-stopper on saves alone (copied), costing for goals conceded (copied). */
-const shotStopper = (bars: number[]): RoleScoring => ({ role: "shotStopper", bonus: side(bars, ["saves", 1]), cost: side([3, 4, 5], ["goals_conceded", 1]) });
 /** A number 10 on through balls and open-play key passes, neither copied. */
 const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["accurate_through_ball", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });
@@ -58,6 +56,34 @@ describe("roles on the past seasons", () => {
 
   test("a role the set doesn't score isn't listed", () => {
     expect(balanceLab(EXAMPLE_SET, KEEPERS).roles).toEqual([]);
+  });
+});
+
+describe("team instructions on the past seasons (#1541)", () => {
+  type InstructionScoring = NonNullable<ScoringSet["instructions"]>[number];
+  const line = (...stats: string[]) => ({ stats: stats.map((stat) => ({ stat, weight: 1 })), every: 1, points: 1 });
+  const gungHo: InstructionScoring = { instruction: "gungHo", lines: [line("goals_scored", "assists"), line("goals_conceded")] };
+  const shootOnSight: InstructionScoring = { instruction: "shootOnSight", lines: [line("att_obox_goal"), line("att_obox_miss", "ontarget_scoring_att")] };
+
+  test("each instruction the set scores is listed in its order, not tested, naming the stats the past seasons lack", () => {
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [shootOnSight, gungHo] }, KEEPERS);
+    expect(report.instructions).toEqual([
+      { instruction: "shootOnSight", missing: ["att_obox_goal", "att_obox_miss"] },
+      { instruction: "gungHo", missing: [] },
+    ]);
+  });
+
+  test("an own stat in a line counts as the stats it adds up", () => {
+    const set: ScoringSet = {
+      ...EXAMPLE_SET,
+      ownStats: [{ stat: "league:failed_crosses", name: "Failed crosses", shortCode: "FCR", parts: [{ stat: "total_cross", weight: 1 }, { stat: "accurate_cross", weight: -1 }] }],
+      instructions: [{ instruction: "getItWide", lines: [line("league:failed_crosses")] }],
+    };
+    expect(balanceLab(set, []).instructions).toEqual([{ instruction: "getItWide", missing: [] }]);
+  });
+
+  test("a set scoring no instruction lists none", () => {
+    expect(balanceLab(EXAMPLE_SET, KEEPERS).instructions).toEqual([]);
   });
 });
 

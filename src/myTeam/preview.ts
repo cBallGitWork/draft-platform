@@ -1,28 +1,51 @@
 // My team's tabs in the preview (src/app/preview.ts): the preview manager's team in the table
 // preview's league, so the Fixtures tab and the table and fixtures screen show the same draw and
-// scores, a few of the commissioner's squad changes on its Transactions tab, and on its Squad tab
+// scores, the approved picture's history on its Transactions tab, and on its Squad tab
 // the Tactics tab's squad, with made-up seasons, and Mail's preview letters.
 
 import { CLUB_COLOURS } from "../../convex/football/clubColours";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
-import { squadLimits } from "../../convex/squads/squadLimits";
+import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadLimits";
+import { squadLimits } from "../../convex/squads/squadRulesView";
 import { previewLatestMail } from "../mail/preview";
+import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
-import { previewIdOf, previewScored, previewTable, previewTeams } from "../table/preview";
-import { previewSquad, previewTactics } from "./tactics/preview";
+import { previewIdOf, previewScored, previewTable } from "../table/preview";
+import { PREVIEW_GAMEWEEK, previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
-const [previewTeam, otherTeam] = previewTeams;
-const fixtures = teamFixturesOf(previewTeams, previewTeam, previewScored);
+const [previewTeam, otherTeam] = previewTeamNames;
+const fixtures = teamFixturesOf(previewTeamNames, previewTeam, previewScored);
 
 const commissioner = "commish@example.com";
 const transactions: TeamTransactions = {
   transactions: [
-    { at: Date.now() - 2 * HOUR_MS, kind: "released", playerCode: 3, playerName: "Martinelli", otherTeamName: null, by: commissioner },
-    { at: Date.now() - 26 * HOUR_MS, kind: "movedIn", playerCode: 2, playerName: "Gabriel", otherTeamName: otherTeam, by: commissioner },
-    { at: Date.now() - 50 * HOUR_MS, kind: "assigned", playerCode: 3, playerName: "Martinelli", otherTeamName: null, by: adminByline },
+    {
+      at: Date.now() - 2 * HOUR_MS,
+      kind: "traded",
+      in: { players: [{ playerCode: 6, playerName: "Palmer" }], picks: [] },
+      out: { players: [{ playerCode: 7, playerName: "Watkins" }, { playerCode: 8, playerName: "Gvardiol" }], picks: [] },
+      otherTeamName: otherTeam,
+      by: commissioner,
+      yours: false,
+    },
+    { at: Date.now() - 26 * HOUR_MS, kind: "movedOut", playerCode: 8, playerName: "Gvardiol", otherTeamName: otherTeam, dropped: null, by: commissioner, yours: false },
+    { at: Date.now() - 50 * HOUR_MS, kind: "claimed", playerCode: 5, playerName: "Mbeumo", otherTeamName: null, dropped: { playerCode: 9, playerName: "Livramento" }, by: commissioner, yours: true },
+    { at: Date.now() - 4 * DAY_MS, kind: "dropped", playerCode: 10, playerName: "Konsa", otherTeamName: null, dropped: null, by: commissioner, yours: true },
+    { at: Date.now() - 6 * DAY_MS, kind: "pickedUp", playerCode: 4, playerName: "Calvert-Lewin", otherTeamName: null, dropped: { playerCode: 11, playerName: "Kamara" }, by: commissioner, yours: true },
+    { at: Date.now() - 8 * DAY_MS, kind: "assigned", playerCode: 3, playerName: "Martinelli", otherTeamName: null, dropped: null, by: adminByline, yours: false },
+    {
+      at: Date.now() - 10 * DAY_MS,
+      kind: "traded",
+      in: { players: [], picks: [{ round: 4, teamId: previewIdOf(otherTeam), teamName: otherTeam }] },
+      out: { players: [], picks: [{ round: 6, teamId: previewIdOf(previewTeam), teamName: previewTeam }] },
+      otherTeamName: otherTeam,
+      by: commissioner,
+      yours: false,
+    },
   ],
   cut: false,
 };
@@ -33,10 +56,10 @@ const CLUBS = Object.entries(CLUB_COLOURS).map(([code, { shortName }]) => ({ cod
 const FIRST_KICKOFF = Date.now() + 2 * DAY_MS;
 /** Three matches ahead for a player's club, its opponents taken in turn from the clubs. */
 const nextMatches = (seed: number) =>
-  [0, 1, 2].map((week) => ({ gameweek: 9 + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
+  Array.from({ length: NEXT_MATCHES_SHOWN }, (_, week) => ({ gameweek: PREVIEW_GAMEWEEK + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
 
 /** The Schedule view's gameweeks, from the one being set (squadSchedule.ts's six). */
-const scheduleGameweeks = [9, 10, 11, 12, 13, 14];
+const scheduleGameweeks = Array.from({ length: SCHEDULE_GAMEWEEKS }, (_, week) => PREVIEW_GAMEWEEK + week);
 /** His club's matches in those gameweeks, one a week from its next three's opponents on: one in
  *  three clubs has a blank week, the gameweek after it a double. */
 const scheduleOf = (seed: number) =>
@@ -78,7 +101,7 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
       schedule: scheduleOf(code),
       seasonPoints: unplayed ? null : 20 + ((code * 17) % 60),
       lastGameweekPoints: unplayed ? null : (code * 7) % 14,
-      form: unplayed ? [null, null, null, null, null] : [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
+      form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => (unplayed ? null : (code * 5 + week * 3) % 13)),
       started: unplayed ? 0 : 3 + (code % 5),
       rolePoints: unplayed ? null : (code % 7) - 2,
       // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
@@ -98,7 +121,7 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
   });
 const squad: TeamSquad = {
   teamName: previewTeam,
-  lastGameweek: 8,
+  lastGameweek: PREVIEW_GAMEWEEK - 1,
   unheld: [],
   squadMaximum: PREVIEW_SQUAD_RULES.size.maximum,
   players,
@@ -108,7 +131,12 @@ const squad: TeamSquad = {
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
-const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null };
+const previewAutoTeam: MyAutoTeam = {
+  teamId: previewIdOf(previewTeam),
+  on: false,
+  endsAfter: null,
+  endGameweeks: seasonGameweeks(previewSeasonGameweeks).filter((gameweek) => gameweek >= scheduleGameweeks[0]!),
+};
 const previewAutoTeamChanges = { set: async () => null };
 
 export const previewMyTeam: MyTeamSeam = {
@@ -120,7 +148,7 @@ export const previewMyTeam: MyTeamSeam = {
   useTeamSquad: () => squad,
   // Any team's squad, read-only, is the preview manager's own players under the asked team's name.
   useOtherSquad: (_leagueId, teamId) => ({
-    teamName: previewTeams.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
+    teamName: previewTeamNames.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
     players: players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })),
   }),
   useSquadNumbers: () => previewNumbers,

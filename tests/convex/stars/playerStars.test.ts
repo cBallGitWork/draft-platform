@@ -4,9 +4,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { JULY, seasonStartYear } from "../../../convex/shared/time";
-import { STARS_READ_MOST, starsReadRefusals } from "../../../convex/stars/playerStars";
+import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsLookupIn, starsReadRefusals } from "../../../convex/stars/playerStars";
 import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
@@ -16,7 +16,6 @@ import { BLANK, NEWCOMER, SCORER, STEADY, UNUSED, holdStarsPlayers, refreshEvery
 // now scouts exist, only for the manager's own squad, those his team held this season, and those
 // his scouts reported on this season (spec/19, Role stars; #375).
 
-const [ANN, BOB] = MANAGERS;
 const STRIKER_ROLES = DEFAULT_ROLES.ST.map((role) => role.key);
 const everyStrikerRole = (stars: Stars) => STRIKER_ROLES.map((role) => ({ area: "attack", role, stars }));
 
@@ -67,6 +66,21 @@ test("many players at once, in the order asked", async () => {
 test(`more than ${STARS_READ_MOST} at once is refused, never cut short`, async () => {
   const tooMany = Array.from({ length: STARS_READ_MOST + 1 }, (_, index) => 5000 + index);
   await expectRefused(ofPlayers(tooMany), starsReadRefusals.tooMany);
+});
+
+test("the stars lookup gives an asked player's stars and throws for one it was not asked for (#1732)", async () => {
+  await t.run(async (ctx) => {
+    const starsOf = await starsLookup(ctx, [SCORER.code]);
+    expect(starsOf(SCORER.code)).toEqual(everyStrikerRole(5));
+    expect(() => starsOf(STEADY.code)).toThrow(starsLookupErrors.notAsked(STEADY.code));
+  });
+});
+
+test("a league that shows no stars reads none, so the auto team and a first lineup drop each man on the slot's first role (#1582)", async () => {
+  await t.run(async (ctx) => {
+    expect((await starsLookupIn(ctx, [SCORER.code], { showsStars: true }))(SCORER.code)).toEqual(everyStrikerRole(5));
+    expect((await starsLookupIn(ctx, [SCORER.code], { showsStars: false }))(SCORER.code)).toEqual([]);
+  });
 });
 
 describe("who is shown whose stars (spec/19, Role stars)", () => {

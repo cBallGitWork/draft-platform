@@ -7,7 +7,7 @@ import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
 import { formationNameOf } from "./classicLineup";
-import { benchedAt, openingLineup, placeOf, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { benchedAt, openingLineup, placeOf, positionsIn, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { dropOutcome, reachOf } from "./swaps";
 import { quickPick } from "./quickPick";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
@@ -53,22 +53,22 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
   const { draft } = edits;
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
   const rules: MoveRules = useMemo(
-    () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
+    () => ({ areaLimits: tactics.areaLimits, positionsOf: positionsIn(squad) }),
     [tactics.areaLimits, squad],
   );
   /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const instructions = draft.instructions ?? tactics.picked;
-  // The formation in use, by name: a classic's, or the preset's the eleven stand in (#991).
-  const inUse = formationNameOf({ ...draft, instructions }, tactics.presets, tactics.classics);
-  // The Formation key pressed, and the preset a saved plan is matched to: none while on a classic,
-  // which no key is.
-  const presetKey = draft.classic === undefined ? (presetInUse(draft, tactics.presets)?.name ?? null) : null;
-  // The preset or classic last picked, until the lineup saves in it: its empty slots are marked, and
-  // its own cells decide the instructions offered. Saved, the eleven stand in it, as the server
-  // judges them.
-  const shapePicked = [...tactics.presets, ...tactics.classics].find(({ name }) => name === edits.shape)?.cells;
+  // The formation in use, by name: a classic formation's, or the preset's the eleven stand in (#991).
+  const inUse = formationNameOf({ ...draft, instructions }, tactics.presets, tactics.classicFormations);
+  // The Formation key pressed, and the preset a saved plan is matched to: none while on a classic
+  // formation, which no key is.
+  const presetKey = draft.classicFormation === undefined ? (presetInUse(draft, tactics.presets)?.name ?? null) : null;
+  // The preset or classic formation last picked, until the lineup saves in it: its empty slots are
+  // marked, and its own cells decide the instructions offered. Saved, the eleven stand in it, as the
+  // server judges them.
+  const shapePicked = [...tactics.presets, ...tactics.classicFormations].find(({ name }) => name === edits.shape)?.cells;
   const shape = shapePicked ?? draft.starters;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
@@ -108,13 +108,13 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
     onGrab: setPickedCode,
     onSwap: (playerCode) => {
-      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf), picked.playerCode);
+      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf, rules.positionsOf), picked.playerCode);
     },
     // A refused drop says why in the line under the toolbar (spec/05; Craig, 4 Nov 2026).
     onDrop: (target) => {
       if (picked === null) return;
       const outcome = dropOutcome(draft, picked.playerCode, target, rules);
-      if ("swapWith" in outcome) change(swapped(draft, picked.playerCode, outcome.swapWith, ratingsOf), picked.playerCode);
+      if ("swapWith" in outcome) change(swapped(draft, picked.playerCode, outcome.swapWith, ratingsOf, rules.positionsOf), picked.playerCode);
       else edits.refuse(refusalWords(outcome.refusal, (playerCode) => squad.get(playerCode)!.name));
     },
     onDragEnd: () => setPickedCode(null),
@@ -132,7 +132,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
     if (role === undefined) setFocusOn([markedBy("role", playerCode)]);
     else change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
   };
-  const { pickPreset, pickClassic, pickInstruction, plans } = useFormationPicks({
+  const { pickPreset, pickClassicFormation, pickInstruction, plans } = useFormationPicks({
     leagueId: league.leagueId,
     seam,
     tactics,
@@ -204,7 +204,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
           onSavePlan={plans.save}
           onDeletePlan={plans.remove}
           presets={tactics.presets}
-          classics={tactics.classics}
+          classicFormations={tactics.classicFormations}
           inUse={inUse}
           draft={draft}
           rules={rules}
@@ -213,9 +213,9 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
             setWindowOpen(null);
             pickPreset(name);
           }}
-          onUseClassic={(name) => {
+          onUseClassicFormation={(name) => {
             setWindowOpen(null);
-            pickClassic(name);
+            pickClassicFormation(name);
           }}
           onClose={() => setWindowOpen(null)}
         />

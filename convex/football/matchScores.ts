@@ -3,10 +3,10 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
-import { gameweekFixtures } from "../shared/fixtures";
+import { byKickoff, gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubByCode, clubOf } from "../shared/players";
-import { BATCH_SIZE } from "../shared/syncRuns";
+import { inBatches } from "../shared/syncRuns";
 import type { ScoreRead, ScoreReads } from "./scoreReads";
 
 // Each match's score and clock, stored (#49, #50; spec/18). Two feeds write it: the football sync
@@ -35,12 +35,8 @@ const STATE_ORDER: Record<State, number> = { upcoming: 0, live: 1, halfTime: 1, 
 /** One read's scores written in batches of `BATCH_SIZE`, and its problems kept for the run row. */
 export async function writeScores(ctx: ActionCtx, feed: ScoreFeed, readAt: number, { reads, problems }: ScoreReads): Promise<ScoreWrites> {
   let written = 0;
-  for (let start = 0; start < reads.length; start += BATCH_SIZE) {
-    written += await ctx.runMutation(internal.football.matchScores.upsertScores, {
-      feed,
-      readAt,
-      reads: reads.slice(start, start + BATCH_SIZE),
-    });
+  for (const batch of inBatches(reads)) {
+    written += await ctx.runMutation(internal.football.matchScores.upsertScores, { feed, readAt, reads: batch });
   }
   return { received: reads.length + problems.length, written, problems };
 }
@@ -69,18 +65,30 @@ export function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchS
 async function upsertScore(ctx: MutationCtx, sent: HeldScore): Promise<boolean> {
   const held = await scoreOf(ctx, sent.fixtureCode);
   if (held === null) {
-    await ctx.db.insert("matchScores", sent);
+    await ctx.db.insert("matchScores", { ...sent, fullTimeAt: sent.state === "fullTime" ? sent.readAt : undefined });
     return true;
   }
   if (!wins(sent, held) || sameScore(sent, held)) return false;
-  await ctx.db.patch("matchScores", held._id, sent);
+  await ctx.db.patch("matchScores", held._id, { ...sent, fullTimeAt: fullTimeAt(sent, held) });
   return true;
 }
 
-/** The read is no older than the held one, and does not move the other feed's state back. */
-function wins(sent: HeldScore, held: HeldScore): boolean {
+/** When the match was first read at full time, the read `sent` written over `held`: kept while it
+ *  stays there, and gone once a feed moves it back (#1470). Pure. */
+function fullTimeAt(sent: HeldScore, held: HeldScore): number | undefined {
+  if (sent.state !== "fullTime") return undefined;
+  return held.state === "fullTime" ? held.fullTimeAt : sent.readAt;
+}
+
+/** A read of a match's state, when, and by which feed; none for a score held before its feed was kept. */
+type StateRead = { state: State; readAt: number; feed?: string };
+
+/** The read is no older than the held one, and does not move the other feed's state back. Shared
+ *  with Sportmonks' two readers (sportmonks/sportmonksSync.ts writeScore). */
+export function wins(sent: StateRead, held: StateRead): boolean {
   if (sent.readAt < held.readAt) return false;
-  return sent.feed === held.feed || STATE_ORDER[sent.state] >= STATE_ORDER[held.state];
+  const sameFeed = sent.feed !== undefined && sent.feed === held.feed;
+  return sameFeed || STATE_ORDER[sent.state] >= STATE_ORDER[held.state];
 }
 
 function sameScore(sent: ScoreRead, held: ScoreRead): boolean {
@@ -111,7 +119,7 @@ export const ofGameweek = query({
   handler: async (ctx, { gameweek }) => {
     await callerEmail(ctx);
     const fixtures = await gameweekFixtures(ctx, gameweek, "they would be cut short");
-    const inOrder = fixtures.toSorted((a, b) => (a.kickoff ?? Infinity) - (b.kickoff ?? Infinity));
+    const inOrder = byKickoff(fixtures);
     return Promise.all(
       inOrder.map(async ({ code, kickoff, homeClubCode, awayClubCode }) => {
         const held = await scoreOf(ctx, code);
@@ -128,7 +136,7 @@ export const ofGameweek = query({
 });
 
 /** The held row less which feed gave it, when, and Convex's own fields: as a screen shows it. */
-export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...score }: Doc<"matchScores">) {
+export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, fullTimeAt, ...score }: Doc<"matchScores">) {
   return score;
 }
 

@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { scheduleEveryLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { startRecap } from "../home/recaps";
@@ -11,13 +11,14 @@ import { startRecap } from "../home/recaps";
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has
 // locked: after the lock "a correction doesn't change points" (spec/07). A match moved into or out
-// of it later reopens it (gameweekScores.ts says how). Each match's lock (matchStats.ts) asks every
-// league to store what is newly final, in its own transaction, so a league that can't be scored
+// of it later reopens it (gameweekScores.ts says how). The lock of a gameweek's last match
+// (matchStats.ts, #1547) asks every league to store what is newly final, in its own transaction, so a league that can't be scored
 // never holds up a lock or another league.
 //
 // A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say),
-// the admin corrects a player's positions after the gameweek (auto-subs read positions as they are
-// when it is stored), or a commissioner overrides a player's points for a match (spec/14, #32).
+// or a commissioner overrides a player's points for a match (spec/14, #32). A player's positions or
+// club changed after the deadline never reach it: auto-subs read him as he stood then
+// (deadlineStars.ts, #1540), save in a gameweek kept before that, which reads him as he is now.
 // `rescore` is that path: it drops a gameweek's stored scores and stores them again from the
 // records; an override calls `rescoreGameweek` itself, in its own transaction.
 
@@ -26,12 +27,7 @@ export const storeEveryLeague = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their final scores unstored`,
-    );
-    for (const league of leagues) await ctx.scheduler.runAfter(0, internal.table.finalScores.storeLeague, { leagueId: league._id });
+    await scheduleEveryLeague(ctx, internal.table.finalScores.storeLeague, "so some would have their final scores unstored");
     return null;
   },
 });

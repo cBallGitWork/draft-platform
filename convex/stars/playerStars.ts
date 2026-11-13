@@ -1,12 +1,13 @@
 import { v } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
+import type { GameMode } from "../rules/gameMode";
 import { EVERY_LEAGUE } from "../positions/positionSettings";
 import type { Doc, Id } from "../_generated/dataModel";
 import { scoutedThisSeason } from "../scouting/scouts";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { seasonStartAt } from "../shared/time";
-import { isSquadMove, squadMovesSince, squadOf } from "../squads/squadPlace";
+import { isSquadMove, movedOff, squadMovesSince, squadOf } from "../squads/squadPlace";
 import { ratedRoles } from "./stars";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 
@@ -15,6 +16,8 @@ import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 // shown them only for his own squad and the players his scouts have reported on, for the season
 // (spec/19, Role stars), and for any player his team has held this season, who stays shown once
 // he has left it (Craig, 6 Nov 2026, on #375). Everyone else's are hidden: null.
+// No screen calls ofPlayer or ofPlayers yet (the 11 Nov review, #1574): they stay for #375's hiding
+// to wire in, not removed.
 
 /** The most players one read asks for: a squad's, or a page of Scouting's list, with room. More is
  *  refused, never a silent cut. */
@@ -51,16 +54,41 @@ export async function starsOfPlayers(ctx: QueryCtx, playerCodes: readonly number
   return stars;
 }
 
+export const starsLookupErrors = {
+  notAsked: (playerCode: number) => `Stars were not read for player ${playerCode}: ask starsLookup for him first.`,
+};
+
+/** starsOfPlayers as a lookup: each asked player's stars by his code. Asking after a player it was
+ *  not given throws, never a silent "no stars" (#1732). */
+export async function starsLookup(ctx: QueryCtx, playerCodes: readonly number[]): Promise<(playerCode: number) => RoleStars[]> {
+  const stars = await starsOfPlayers(ctx, playerCodes);
+  return (playerCode) => {
+    const his = stars.get(playerCode);
+    if (his === undefined) throw new Error(starsLookupErrors.notAsked(playerCode));
+    return his;
+  };
+}
+
+/** starsLookup as a league in `mode` reads stars: in one that shows none (`showsStars`, #1582) no
+ *  player has any and nothing is read, so a dropped man plays the slot's first role. */
+export async function starsLookupIn(
+  ctx: QueryCtx,
+  playerCodes: readonly number[],
+  mode: Pick<GameMode, "showsStars">,
+): Promise<(playerCode: number) => RoleStars[]> {
+  return mode.showsStars ? starsLookup(ctx, playerCodes) : () => [];
+}
+
 /** The players whose stars the team is shown in the season `now` falls in: its squad, every player
  *  a squad move put on or took off it this season, and every player its scouts reported on this
  *  season. None for no team (a commissioner who runs none), who has no squad or scouts. */
-export async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
+async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
   if (team === undefined) return new Set();
   const shown = await scoutedThisSeason(ctx, team._id, now);
   for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);
   for (const { event } of await squadMovesSince(ctx, leagueId, seasonStartAt(now))) {
     if (!isSquadMove(event)) continue;
-    if (event.teamId === team._id || (event.kind === "playerMoved" && event.fromTeamId === team._id)) shown.add(event.playerCode);
+    if (event.teamId === team._id || movedOff(event, team._id)) shown.add(event.playerCode);
   }
   return shown;
 }
@@ -73,7 +101,7 @@ export const ofPlayer = query({
   handler: async (ctx, { leagueId, playerCode, now }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!(await starsShownTo(ctx, leagueId, team, now)).has(playerCode)) return null;
-    return (await starsOfPlayers(ctx, [playerCode])).get(playerCode)!;
+    return (await starsLookup(ctx, [playerCode]))(playerCode);
   },
 });
 

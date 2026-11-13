@@ -10,13 +10,13 @@ import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
-import { versionLetter, withdrawnLetter } from "../mail/letterWords";
+import { versionLetter, withdrawnLetter } from "../mail/scoringLetterWords";
 import { carryFix } from "./carryFix";
 import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
-import { firstGameweekFrom, firstGameweekFromAny, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
+import { firstGameweekFrom, firstGameweekFromAny, inForceAt, isWaiting, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
 import { UnsoundScoring } from "./values";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
@@ -26,9 +26,10 @@ import { UnsoundScoring } from "./values";
 // - a patch: saved as a draft, which changes nothing, then announced with the moment it takes
 //   effect from, at least PATCH_NOTICE_DAYS after;
 // - a fix: a mistake corrected at once, taking effect from the moment it is made.
-// A gameweek plays the newest version to take effect at or before its first kickoff (once passed,
-// the one recorded: gameweekStarts.ts, #414), so a version never reaches a gameweek already begun,
-// nor a re-score of a played one; before any, the first set (firstScoring.ts). Scoring a league's
+// A gameweek plays the newest version to take effect at or before its site deadline, 15 minutes
+// before its first kickoff whatever a league's deadline (siteVersions.ts's `siteDeadline`, #902;
+// once passed, from the kickoff recorded: gameweekStarts.ts, #414), so a version never reaches a
+// gameweek already locked, nor a re-score of a played one; before any, the first set (firstScoring.ts). Scoring a league's
 // match reads `siteScoringInGameweek` (siteVersions.ts, which reads which version is in force),
 // never the league's rules. Versions take effect in the order they are announced, so a newer one
 // never lands before an older one it was made from. A fix is carried into the draft patch, and a
@@ -64,8 +65,9 @@ export const siteScoringRefusals = {
 const siteRevisionShape = v.union(v.null(), v.id("siteScoring"));
 
 /** Refuses, with the reason, a set that would score wrong or an own stat named as a catalogue
- *  stat is. Anything else the checks throw is the bug it is, never a refusal. */
-function checkScoringSet(scoring: StoredScoringSet, refusal = siteScoringRefusals.unsound): void {
+ *  stat is. Anything else the checks throw is the bug it is, never a refusal. The one-offs that
+ *  put the first roles and instructions in check theirs with it too. */
+export function checkScoringSet(scoring: StoredScoringSet, refusal = siteScoringRefusals.unsound): void {
   try {
     validateScoringSet(scoring);
     // On saving only: ownStats.ts's validateOwnStats says why.
@@ -116,8 +118,11 @@ const versionSummary = v.object({
 const patchGameweek = v.object({ gameweek: v.number(), takesEffectAt: v.number() });
 const draftShape = v.object({ part: scoringSetShape, savedAt: v.number() });
 
-/** Player scoring's read: the site's latest set, a waiting patch's among them; the version it is
- *  (for a change to carry); the gameweek a fix made at `now` would first reach; whether the reader
+/** Player scoring's read: the set it shows, for the admin the site's latest, a waiting patch's
+ *  among them, as the Live tab edits it, and for everyone else the set in force at `now`, so a
+ *  manager never reads a waiting patch's values as if they scored (Craig, 11 Nov 2026, on #1591:
+ *  "dont confuse player, just show the values that are live"; the coming values are in the patch
+ *  notes); the site's latest version (for a change to carry); the gameweek a fix made at `now` would first reach; whether the reader
  *  may change it, which only the admin may; every version, oldest first, with the first gameweek
  *  each reaches; and, for the admin alone, the draft patch and the gameweeks a patch announced at
  *  `now` can take effect from (siteVersions.ts's `patchGameweeks`). `now` is the screen's, moved on each minute, as a query must not read the clock
@@ -140,7 +145,7 @@ export const view = query({
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     const reachedFrom = await firstGameweekFromAny(ctx);
     return {
-      part: setOf(latest),
+      part: setOf(canEdit ? latest : inForceAt(history, now)),
       revision: latest?._id ?? null,
       changesFrom: reachedFrom(now),
       canEdit,
@@ -201,7 +206,7 @@ export const announce = mutation({
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest, zone));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
-    // Announced from a gameweek, it follows that gameweek's first kickoff if it moves later (patchKickoffs.ts).
+    // Announced from a gameweek, it follows that gameweek's deadline if its first kickoff moves later (patchKickoffs.ts).
     const gameweek = (await patchGameweeks(ctx, Date.now(), PATCH_NOTICE_MS)).find((offered) => offered.takesEffectAt === takesEffectAt)?.gameweek;
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt, gameweek }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
@@ -229,7 +234,7 @@ export const fix = mutation({
     checkScoringSet(scoring);
     const now = Date.now();
     if (sortedJson(setOf(latest)) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
-    if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
+    if (latest !== undefined && isWaiting(latest, now)) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
     // A draft made from an older version is refused when announced anyway (`draftOvertaken`).
     const draft = await ctx.db.query("siteScoringDraft").unique();
     const carrying = draft !== null && draft.madeFrom === (latest?._id ?? null) ? draft : null;
@@ -246,7 +251,8 @@ export const fix = mutation({
  *  so"; announced again, it has a fresh 7 days). Its set becomes the draft patch, made from the
  *  version before it; a draft already made from the patch holds it, so is kept, made from that
  *  version too; one made before the patch could never be announced (`draftOvertaken`), so the patch
- *  replaces it. The banner goes with the version (patchNotes.ts reads the versions); the stars and
+ *  replaces it. The banner goes with the version (patchNotes.ts reads the versions), and who
+ *  dismissed it goes too (#1574): announced again it is a new version, its banner shown afresh. The stars and
  *  last season's prices it scheduled are worked out again under the set then in force, which is no
  *  harm. Returns when the draft was saved. Refused, with the reason, for anyone but the admin, or
  *  for a version that isn't a patch still waiting. */
@@ -257,7 +263,7 @@ export const withdraw = mutation({
     const admin = await adminOf(ctx);
     const history = await siteVersions(ctx);
     const patch = history.at(-1);
-    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || patch.takesEffectAt <= Date.now()) refuse(siteScoringRefusals.notWaiting);
+    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || !isWaiting(patch, Date.now())) refuse(siteScoringRefusals.notWaiting);
     const madeFrom = history.at(-2)?._id ?? null;
     const held = await ctx.db.query("siteScoringDraft").unique();
     const savedAt = Date.now();
@@ -265,6 +271,10 @@ export const withdraw = mutation({
     if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
     else await ctx.db.insert("siteScoringDraft", draft);
     await ctx.db.delete("siteScoring", patch._id);
+    // One row a person at most, the same reach as the letter filed below.
+    for await (const row of ctx.db.query("patchBannerDismissals").withIndex("by_versionId", (q) => q.eq("versionId", patch._id))) {
+      await ctx.db.delete("patchBannerDismissals", row._id);
+    }
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
     await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;

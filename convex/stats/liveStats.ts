@@ -1,10 +1,10 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
-import { dueMatch, type DueMatch } from "../shared/dueMatches";
-import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
+import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
+import { matchWrites, statusOf, writeRecords } from "./matchStats";
+import { matchRecordsOf } from "./matchRecordReads";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
-import { LATEST_RUNS } from "../shared/syncRuns";
-import { HOUR_MS } from "../shared/time";
+import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "./thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
@@ -12,12 +12,6 @@ import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCo
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
 // time on it goes to `matchStats.upsertMatch`, as the sync's reads do. Each tick is a row.
-
-/** The longest a match is polled after kickoff: 105 minutes of play and half-time, stoppage time,
- *  a delayed kickoff and the minutes after full time while records still arrive. One the Premier
- *  League has not called full time by then is abandoned or its status is stuck, and is left to
- *  `matchStatsSync`. Claude's choice, as long as `scripts/record-match.mjs` records for. */
-export const LIVE_WINDOW_MS = 4 * HOUR_MS;
 
 /** The matches being played at `now`: kicked off within the window, and not yet complete. A match
  *  provisional after full time is still polled, so its last records land within the minute; and
@@ -67,7 +61,7 @@ export const upsertLive = internalMutation({
   handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
-    const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
+    const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its live records' write")).map((row) => [row.playerCode, row]));
     const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
     const state = "provisional" as const;
     return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0, thresholdSteps };
@@ -84,8 +78,4 @@ export const recordTick = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("liveStatsTicks"), _creationTime: v.number(), ...liveStatsTickFields })),
-  handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("liveStatsTicks", liveStatsTickFields);

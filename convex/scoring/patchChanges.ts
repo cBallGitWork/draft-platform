@@ -1,18 +1,22 @@
-import { FIRST_INSTRUCTIONS } from "../lineup/instructions";
+import { instructionName } from "../lineup/instructions";
 import { roleName } from "../lineup/roles";
-import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
+import { AREA_OF_POSITION, SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
 import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
-import { groupedBy } from "../shared/groupedBy";
+import type { WeighedStat } from "./values";
+import { groupedBy, keyedByCount } from "../shared/groupedBy";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
 // the patch notes list every version's changes; #356), worked out from the stored sets, never typed
 // by hand: one line a change, in the words the patch notes and the patch's Mail letter say, in one
 // place for Craig to change. A rule is compared position by position, so a value set by area that
-// becomes one for all names only the positions whose points moved.
+// becomes one for all names only the positions whose points moved. The notes and the letter are
+// the site's, read by every league, so they list every line; what one league plays changes is the
+// same lines between its played sets (rules/gameMode.ts's `playedSet`), roles and instructions
+// apart (#1582).
 
 /** What the notes and the letter say for a version with no change to list: only reordering the
  *  categories makes one. */
@@ -22,17 +26,12 @@ type Rule = StoredScoringSet["rules"][number];
 type OwnStat = NonNullable<StoredScoringSet["ownStats"]>[number];
 type PositionWords = ReadonlyMap<SlotPosition, string>;
 
-/** The area each slot position is played in (spec/14's table), for `priceFor`. */
-const AREA_OF: ReadonlyMap<SlotPosition, Area> = new Map(
-  ALL_CELLS.map((cell) => [positionOfSlot(cell), cell.area] as const),
-);
-
 /** An optional setting not set, such as no points limit. */
 const NONE = "none";
 
 /** What a priced setting gives each position, as words; an optional one not set is NONE. */
 function wordsByPosition<Value>(priced: Priced<Value> | undefined, words: (value: Value) => string): PositionWords {
-  return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF.get(position)!, position))]));
+  return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF_POSITION[position], position))]));
 }
 
 const bandWords = (bands: readonly Band[]) =>
@@ -124,16 +123,7 @@ function ownStatChanges(before: readonly OwnStat[], after: readonly OwnStat[]): 
 }
 
 /** Each rule by its category, a second rule for one category told apart by its count. */
-function rulesByKey(rules: readonly Rule[]): Map<string, Rule> {
-  const seen = new Map<string, number>();
-  return new Map(
-    rules.map((rule) => {
-      const count = (seen.get(rule.stat) ?? 0) + 1;
-      seen.set(rule.stat, count);
-      return [count === 1 ? rule.stat : `${rule.stat}#${count}`, rule] as const;
-    }),
-  );
-}
+const rulesByKey = (rules: readonly Rule[]) => keyedByCount(rules, (rule) => rule.stat);
 
 /** Every change from `before` to `after`, one line each: the rules in the new set's order, those
  *  no longer scored, whole points, own stats, roles, then team instructions. None when the two
@@ -157,7 +147,7 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
 
 /** Weighed stats added up, as a role's side and an instruction's line count them: "2 × Goals in
  *  box + Shots on target in box". */
-const partsWords = (parts: readonly { stat: string; weight: number }[], set: StoredScoringSet) =>
+const partsWords = (parts: readonly WeighedStat[], set: StoredScoringSet) =>
   parts.map(({ stat, weight }) => `${weight === 1 ? "" : `${figureWords(weight)} × `}${categoryName(stat, set.ownStats)}`).join(" + ");
 
 /** One line for each role whose scoring changed, named as managers say it, each side's bars and
@@ -181,9 +171,6 @@ function roleChanges(before: StoredScoringSet, after: StoredScoringSet): string[
   }
   return lines;
 }
-
-/** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
-const instructionName = (key: string) => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
 
 /** One line for each team instruction whose scoring changed, each of its lines in words (spec/05
  *  Team instructions): "Park the bus: now +1 per 1 of Clean sheets (GK, FB, CB, WB), after 60

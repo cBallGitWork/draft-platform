@@ -4,7 +4,7 @@ import { labReportShape } from "../balanceLab/labReportShape";
 import { siteScoringKind } from "../schema";
 import { callerEmail, refuse, signedInEmail } from "../shared/leagueAccess";
 import { scoringChanges } from "./patchChanges";
-import { setOf, siteVersions, versionName } from "./siteVersions";
+import { setOf, siteVersions, versionName, versionsWaitingAt } from "./siteVersions";
 
 // The patch notes and the banner (spec/14, Changes and corrections; #356): a page listing every
 // version of the site's scoring with what it changed, worked out from the stored versions
@@ -59,8 +59,7 @@ export const banner = query({
   handler: async (ctx, { now }) => {
     const email = await signedInEmail(ctx);
     if (email === null) return null;
-    for (const row of await siteVersions(ctx)) {
-      if (row.takesEffectAt <= now) continue;
+    for await (const row of versionsWaitingAt(ctx, now)) {
       const dismissed = await ctx.db
         .query("patchBannerDismissals")
         .withIndex("by_email_and_versionId", (q) => q.eq("email", email).eq("versionId", row._id))

@@ -5,13 +5,11 @@ import type { Id, TableNames } from "../../../convex/_generated/dataModel";
 import { UNDO_MS, tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { askToJoin, invite, makeLink } from "./joining.harness";
 import { elapse } from "./test.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, type TestConvex } from "./leagues.harness";
-
-export const [ANN, BOB, CAT, DAN] = MANAGERS;
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "./leagues.harness";
 
 /** A league with a commissioner who runs no team, a co-commissioner, and ANN and BOB managing. */
 export async function leagueWithPeople(t: TestConvex, name?: string): Promise<Id<"leagues">> {
-  const leagueId = await adminCreatesLeague(t, 4, name);
+  const leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, name);
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
   await addManagers(t, leagueId, [ANN, BOB]);
   return leagueId;
@@ -37,10 +35,6 @@ export const moreEventsThanOneRun = (t: TestConvex, leagueId: Id<"leagues">) =>
       await ctx.db.insert("leagueEvents", { leagueId, at, by: ADMIN, event: { kind: "maxTeamsChanged", from: 4, to: 5 } });
     }
   });
-
-/** What signIn/account:signedInAs tells the screens for `email`. */
-export const accountOf = async (t: TestConvex, email: string) =>
-  (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
 
 /** The player, match and gameweek `aRowInEveryTable`'s rows name. */
 const A_PLAYER = 1;

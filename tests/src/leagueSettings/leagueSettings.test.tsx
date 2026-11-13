@@ -3,21 +3,21 @@
 // the reason they weren't; and never over someone else's save. The squad's make-up (#341) is in
 // leagueSettings.squad.test.tsx.
 
-import { cleanup, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
 import { blankGamesWords, gamesHint, gamesLabel, loadingWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesEdits";
 import { discardWords, gameweekWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { REVISION } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedSettings, openSettings, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 import { descriptionOf, refusalBeside } from "../../support/src/describedBy";
-import { adminSeeing, coCommissioned, commissioner, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
+import { adminSeeing, coCommissioned, commissioner, expectNotOffered, expectSentToLeagues, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 
 const gamesBox = () => box(gamesLabel);
 const option = (oddTeamOut: keyof typeof oddTeamOutWords) => screen.getByRole("radio", { name: oddTeamOutWords[oddTeamOut] }) as HTMLInputElement;
@@ -39,14 +39,8 @@ describe("reaching it", () => {
   });
 
   it("a manager isn't offered it, and is sent back to Your leagues if they go there", async () => {
-    openApp(LEAGUES_PATH, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: SETTINGS_TITLE })).toBeNull();
-
-    cleanup();
-    const app = openApp(SETTINGS_PAGE, managerIn(league));
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectNotOffered(SETTINGS_TITLE, managerIn(league));
+    await expectSentToLeagues(SETTINGS_PAGE, managerIn(league));
   });
 });
 
@@ -125,7 +119,7 @@ describe("editing them", () => {
 it("keeps the edits when someone else saves, says so, and loads the latest on asking", async () => {
   const app = await openedSettings();
   await setGames("2");
-  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM };
+  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM, seasonGameweeks: PL_GAMEWEEKS };
   app.leagueSettings.useSettings.mockReturnValue(theirs);
   app.becomes({ ...commissioner });
   await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(theirs));
@@ -141,5 +135,17 @@ describe("while the server answers, or has nothing", () => {
   it("says the settings are loading, to screen readers too", async () => {
     await openedSettings({ loading: true });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
+  });
+
+  it("keeps an unsaved edit while the next minute's settings load (#1534)", async () => {
+    const app = await openedSettings();
+    await setGames("2");
+    app.leagueSettings.useSettings.mockReturnValue(undefined);
+    app.becomes({ ...commissioner });
+    await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(undefined));
+
+    expect(screen.queryByText(loadingWords)).toBeNull();
+    expect(gamesBox().value).toBe("2");
+    expect(saveButton().disabled).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import { breakdownLabel } from "../../../src/playerCard/words";
+import { previewGameMode } from "../../../src/shared/preview";
 import { ARSENAL, COVENTRY } from "../convex/footballRows.harness";
 import type { PlayerCardData } from "./playerCard.harness";
 import { league, manager, openApp } from "./shell.harness";
@@ -82,6 +83,7 @@ export const SAKA: PlayerCard = {
   name: "Saka",
   fullName: "Bukayo Saka",
   club: ARSENAL,
+  clubNumber: 7,
   gone: false,
   positions: ["W", "CAM"],
   pricedAt: ["CAM", "W"],
@@ -95,6 +97,7 @@ export const SAKA: PlayerCard = {
   // At CAM, then at W, as each match's points.
   lastSeason: { season: 2025, played: { appearances: 34, minutes: 2810, points: [212, 198] } },
   nextFixtures: [{ fixtureCode: 9, gameweek: 10, kickoff: Date.parse("2026-11-07T15:00:00Z"), home: COVENTRY, away: ARSENAL }],
+  mode: previewGameMode,
 };
 /** Saka priced at one position, so with no switch. */
 export const AT_ONE: PlayerCard = { ...SAKA, pricedAt: ["W"] };

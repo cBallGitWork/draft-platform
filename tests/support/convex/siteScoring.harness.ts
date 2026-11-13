@@ -8,10 +8,12 @@ import type { MutationCtx } from "../../../convex/_generated/server";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTICE_DAYS } from "../../../convex/scoring/siteScoring";
-import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
+import { siteDeadline, siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
+import { FPL_SEASON } from "../recorded/plSeasons.payloads";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { ADMIN, actingAs, type TestConvex } from "./leagues.harness";
+import { EXAMPLE_SET } from "./scoring.example";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
 type Rule = StoredScoringSet["rules"][number];
@@ -56,6 +58,10 @@ export const patch = async (scoring: StoredScoringSet, takesEffectAt: number) =>
 export const inGameweek = (gameweek: number) => t.run((ctx) => siteScoringInGameweek(ctx, gameweek));
 export const versions = () => t.run(async (ctx) => (await ctx.db.query("siteScoring").collect()).length);
 export const names = async () => (await viewAs(ADMIN)).versions.map((version) => version.name);
+export { lettersCount } from "./leagues.harness";
+
+/** A bare scoring set of `rules`, counting tenths. */
+export const setOf = <Rule = never>(...rules: Rule[]) => ({ rules, wholePointsOnly: false });
 
 /** The first scoring set with assists paying 4 and one more category, tackles at 1. */
 export const EDITED: StoredScoringSet = {
@@ -73,10 +79,24 @@ export const EDITED_AGAIN: StoredScoringSet = {
 
 /** When holdGameweeks' gameweek kicks off, held from TODAY: 9 KICKS_OFF_IN later, each a week apart. */
 export const kickoffOf = (gameweek: number) => TODAY + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;
+/** The site's deadline for that gameweek, which a version must be in by to reach it (#902). */
+export const siteDeadlineOf = (gameweek: number) => siteDeadline(kickoffOf(gameweek));
 
 /** Writes a version of the site's scoring straight in, announced and in force from `at`, and
- *  returns its id. `scoring` is held as given: a caller that changes it later passes a copy. */
+ *  returns its id: the season's first, in force from time 0, unless the caller says. `scoring`
+ *  is held as given: a caller that changes it later passes a copy. */
 export const holdSiteScoring = (
   ctx: MutationCtx,
-  { scoring, kind, season, number, at }: Pick<Doc<"siteScoring">, "scoring" | "kind" | "season" | "number"> & { at: number },
+  {
+    scoring,
+    kind,
+    season = FPL_SEASON,
+    number = 1,
+    at = 0,
+  }: Pick<Doc<"siteScoring">, "scoring" | "kind"> & Partial<Pick<Doc<"siteScoring">, "season" | "number">> & { at?: number },
 ) => ctx.db.insert("siteScoring", { scoring, kind, season, number, announcedAt: at, takesEffectAt: at });
+
+/** The site plays the example set, a fix from time 0. Its season is the one before FPL_SEASON, as
+ *  the tests holding it have always written it. */
+export const holdExampleScoring = (ctx: MutationCtx) =>
+  holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: FPL_SEASON - 1 });

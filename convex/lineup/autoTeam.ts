@@ -1,22 +1,25 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
-import { internalMutation, mutation, query, type MutationCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { availabilityOf } from "../availability/availability";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
+import { gameModeOf, type GameMode } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookupIn } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
-import { onAutoTeam } from "../trades/tradeShut";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
 import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
-import { heldPositionsOf, lineupsInGameweek, saveGameweekOf, storeAutoTeamLineup, type HeldLineup } from "./lineups";
-import type { Area, Lane } from "./pitch";
+import { heldPositionsOf, lineupsInGameweek, storeAutoTeamLineup, type HeldLineup } from "./lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
+import { heldCell } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
+import { onAutoTeam } from "./autoTeamSwitch";
 
 // The auto team (spec/09, The auto team; #1207), for a manager who stops playing: it sets the
 // lineup only, never dropping or adding a player. At each league deadline (deadlineRecorder.ts
@@ -27,14 +30,16 @@ import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 // A team is on it while a person has switched it on (`set`), until switched off or, if its manager
 // named one, until the gameweek it ends after has begun; while it has no manager, until it is
 // handed on (leagues/teams.ts clears the switch); and, for one gameweek, when its lineup can't
-// stand at the deadline. Fixing that lineup takes the auto-subs' way first, and if it still can't
-// stand, the lineup is picked from the squad as a first lineup is (firstLineup.ts), anyone out kept
-// on the bench. Switching on or off files a Mail letter to the whole league (spec/16).
+// stand at the deadline. Fixing that lineup takes the auto-subs' way, and a slot left by one who
+// left the squad that no bench player fits stays empty (#1437). Only a lineup that couldn't stand
+// as saved, and still can't, is picked from the squad as a first lineup is (firstLineup.ts),
+// anyone out kept on the bench. Switching on or off files a Mail letter to the whole league (spec/16).
 
 /** The auto team's lineup for the gameweek: `held` with each starter who is out, and each slot
- *  `vacated` by one who left the squad, filled as auto-subs fill them; and when that still can't
- *  stand, the squad's first lineup with anyone out kept on the bench. Pure. */
-export function autoTeamLineup(
+ *  `vacated` by one who left the squad, filled as auto-subs fill them, a slot no one fits left
+ *  empty; only when the lineup as saved couldn't stand either, and the subs don't make it, the
+ *  squad's first lineup with anyone out kept on the bench. Pure. */
+function autoTeamLineup(
   held: Pick<HeldLineup, "starters" | "bench" | "vacated">,
   positions: PlayerPositions,
   isOut: (playerCode: number) => boolean,
@@ -44,17 +49,28 @@ export function autoTeamLineup(
   const squad = namedCodes(held);
   const plays = new Map<number, GameweekPlay>(squad.map((playerCode) => [playerCode, isOut(playerCode) ? "didNotPlay" : "played"]));
   const subbed = autoSubs(held, positions, plays, rules, held.vacated, ratingsOf).lineup;
-  if (standingProblems(subbed, positions, rules).length === 0) return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
+  // A slot no bench player can fill is left empty, as auto-subs leave it, and the rest of the
+  // lineup stays (spec/05, Auto-subs; Craig, 12 Nov 2026, on #1437: "Leave the slot empty").
+  if (savedStood(held, positions, rules) || standingProblems(subbed, positions, rules).length === 0) {
+    return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
+  }
   const outs = new Set(squad.filter(isOut));
-  return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, held.starters);
+  return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, positions, held.starters);
+}
+
+/** Whether the lineup as saved could stand, each who left the squad back in the slot he left, as
+ *  auto-subs weigh it: then only a gap no bench player fits keeps it from standing now. */
+function savedStood(held: Pick<HeldLineup, "starters" | "bench" | "vacated">, positions: PlayerPositions, rules: FirstLineupRules): boolean {
+  const asSaved = { starters: [...held.starters, ...held.vacated], bench: held.bench };
+  const weighed: PlayerPositions = new Map([...positions, ...held.vacated.map(({ playerCode }) => [playerCode, []] as const)]);
+  return standingProblems(asSaved, weighed, rules).length === 0;
 }
 
 /** A starter auto-subs placed: every cell they hand back is on the pitch (lineupProblems refused
  *  any other before a sub). */
 const onThePitch = ({ playerCode, area, lane, role }: Placement) => ({
   playerCode,
-  area: area as Area,
-  lane: lane as Lane,
+  ...heldCell({ area, lane }),
   ...(role === undefined ? {} : { role }),
 });
 
@@ -62,9 +78,15 @@ const onThePitch = ({ playerCode, area, lane, role }: Placement) => ({
 const sameLineup = (one: FirstLineup, other: Pick<HeldLineup, "starters" | "bench">) =>
   JSON.stringify([one.starters.map(onThePitch), one.bench]) === JSON.stringify([other.starters.map(onThePitch), other.bench]);
 
+/** What the log says when one team's step at the deadline throws. A throw while working it out
+ *  leaves the team as it was; one from a write (a letter's insert, say) can leave its new lineup
+ *  saved or its switch off, so the log names both to check. */
+export const autoTeamFailedLog = (teamName: string, teamId: string, gameweek: number) =>
+  `The auto team's step for ${teamName} (team ${teamId}) at gameweek ${gameweek}'s deadline failed, maybe part-way; check its lineup and switch`;
+
 /** Each team on the auto team at the league's deadline for `gameweek` has its lineup set, and a
- *  manager's switch that ends after this gameweek, or one before, goes off. One team whose lineup
- *  can't be worked out is logged and left as it was; the others carry on. */
+ *  manager's switch that ends after this gameweek, or one before, goes off. One team whose step
+ *  throws is logged and the others carry on. */
 export const atDeadline = internalMutation({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
@@ -77,18 +99,27 @@ export const atDeadline = internalMutation({
     const lineups = await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek);
     for (const team of teams) {
       try {
-        await runTeam(ctx, league, team, lineups.get(team._id)!, rules, gameweek);
+        await runTeam(ctx, league, team, lineups.get(team._id)!, rules, gameModeOf(rules), gameweek);
       } catch (error: unknown) {
-        logFailure(`The auto team couldn't set ${team.name}'s lineup (team ${team._id}) for gameweek ${gameweek}, so it stands as saved`, error);
+        logFailure(autoTeamFailedLog(team.name, team._id, gameweek), error);
       }
     }
     return null;
   },
 });
 
-/** One team's step at the deadline. Everything is worked out before the first write, so a throw
- *  leaves the team as it was. */
-async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"teams">, held: HeldLineup, rules: FirstLineupRules, gameweek: number) {
+/** One team's step at the deadline. Every read, the letters' readers among them, is done before
+ *  the first write, so a throw while working it out leaves the team as it was; only a write's own
+ *  throw can stop it part-way. */
+async function runTeam(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  team: Doc<"teams">,
+  held: HeldLineup,
+  rules: FirstLineupRules,
+  mode: Pick<GameMode, "showsStars">,
+  gameweek: number,
+) {
   const switched = team.autoTeam;
   const endsAfter = switched?.endsAfter;
   const lapsed = endsAfter !== undefined && endsAfter < gameweek;
@@ -102,26 +133,23 @@ async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"team
   if (byPerson || noManager || illegal) {
     const outs = new Set<number>();
     for (const playerCode of squad) if ((await availabilityOf(ctx, playerCode)).availability === "out") outs.add(playerCode);
-    const stars = await starsOfPlayers(ctx, squad);
-    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, (playerCode) => stars.get(playerCode) ?? []);
+    const starsOf = await starsLookupIn(ctx, squad, mode);
+    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf);
     if (!sameLineup(set, held)) lineup = set;
   }
 
-  if (lineup !== null) {
-    await storeAutoTeamLineup(ctx, league._id, team._id, gameweek, lineup);
-    // Switched on by the app for this gameweek alone: it is off again once the lineup is set.
-    if (!byPerson && !noManager) await fileAutoTeamLetter(ctx, league, autoTeamLetters.fixed(team.name, gameweek));
-  }
-  if (endsAfter !== undefined && endsAfter <= gameweek) {
-    await ctx.db.patch("teams", team._id, { autoTeam: undefined });
-    // A team with no manager stays on it until handed on, so its letter waits for that.
-    if (!noManager) await fileAutoTeamLetter(ctx, league, autoTeamLetters.ended(team.name, endsAfter));
-  }
-}
+  // Switched on by the app for this gameweek alone: it is off again once the lineup is set.
+  const fixedLetter = lineup !== null && !byPerson && !noManager;
+  const ends = endsAfter !== undefined && endsAfter <= gameweek;
+  // A team with no manager stays on it until handed on, so its letter waits for that.
+  const endedLetter = ends && !noManager;
+  // The app's letters go to the whole league, with no one's name on them.
+  const readers = fixedLetter || endedLetter ? await wholeLeague(ctx, league) : [];
 
-/** A letter the app files to the whole league, with no one's name on it. */
-async function fileAutoTeamLetter(ctx: MutationCtx, league: Doc<"leagues">, letter: { subject: string; body: string }) {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), letter);
+  if (lineup !== null) await storeAutoTeamLineup(ctx, league._id, team._id, gameweek, lineup);
+  if (fixedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.fixed(team.name, gameweek));
+  if (ends) await ctx.db.patch("teams", team._id, { autoTeam: undefined });
+  if (endedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.ended(team.name, endsAfter));
 }
 
 /** The team's manager, the league's commissioner, its co-commissioner or the admin switches its
@@ -145,7 +173,7 @@ export const set = mutation({
       await ctx.db.patch("teams", teamId, { autoTeam: undefined });
     } else {
       if (team.autoTeam !== undefined) refuse(autoTeamRefusals.alreadyOn);
-      if (endsAfter !== undefined) await checkEndsAfter(ctx, leagueId, endsAfter, isManager);
+      if (endsAfter !== undefined) await checkEndsAfter(ctx, league, endsAfter, isManager);
       await ctx.db.patch("teams", teamId, { autoTeam: { by: email, ...(endsAfter === undefined ? {} : { endsAfter }) } });
       // spec/08: its open trade offers close; a trade already in review finishes it.
       await closeOffersOfTeam(ctx, team);
@@ -157,30 +185,39 @@ export const set = mutation({
 
 /** A team's auto team as its switch shows it: on or off, and the gameweek it ends after, if its
  *  manager named one. */
-export const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
+const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 
-/** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
+/** A team's switch: on while a person switched it on or it has no manager (`onAutoTeam`). */
 export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });
 
-/** The caller's team's auto team, for My team's header band (spec/09). Refused for anyone who
- *  runs no team in the league. */
+/** The gameweeks an auto team may end after: each the league plays of its season's own count
+ *  (#1618), from the next not yet begun to the league's last, so a league that ends early offers
+ *  none after it (spec/13, Gameweeks). None once its season is over. */
+async function endGameweeksOf(ctx: QueryCtx, league: Doc<"leagues">, now: number): Promise<number[]> {
+  const next = await saveGameweekOf(ctx, league._id, now);
+  if (next.kind !== "open") return [];
+  return usedGameweeksOf(league, await seasonGameweekCount(ctx)).filter((gameweek) => gameweek >= next.gameweek);
+}
+
+/** The caller's team's auto team, for My team's header band (spec/09), with the gameweeks its
+ *  manager may name for it to end after. Refused for anyone who runs no team in the league. */
 export const ofMyTeam = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.object({ teamId: v.id("teams"), ...autoTeamSwitch.fields }),
+  returns: v.object({ teamId: v.id("teams"), ...autoTeamSwitch.fields, endGameweeks: v.array(v.number()) }),
   handler: async (ctx, { leagueId }) => {
-    const { team } = await managerOf(ctx, leagueId);
-    return { teamId: team._id, ...switchOf(team) };
+    const { league, team } = await managerOf(ctx, leagueId);
+    return { teamId: team._id, ...switchOf(team), endGameweeks: await endGameweeksOf(ctx, league, Date.now()) };
   },
 });
 
-/** Refuses a gameweek to end after that only the manager may name, or that isn't from the next not
- *  yet begun to the season's last. */
-async function checkEndsAfter(ctx: MutationCtx, leagueId: Id<"leagues">, endsAfter: number, isManager: boolean): Promise<void> {
+/** Refuses a gameweek to end after that only the manager may name, or that isn't one the league
+ *  plays from the next not yet begun to its last. */
+async function checkEndsAfter(ctx: MutationCtx, league: Doc<"leagues">, endsAfter: number, isManager: boolean): Promise<void> {
   if (!isManager) refuse(autoTeamRefusals.endsAfterOnlyManager);
-  const next = await saveGameweekOf(ctx, leagueId, Date.now());
-  if (next.kind !== "open") refuse(autoTeamRefusals.noGameweekToEnd);
-  if (!Number.isInteger(endsAfter) || endsAfter < next.gameweek || endsAfter > GAMEWEEKS) {
-    refuse(autoTeamRefusals.endsAfterOutOfRange(next.gameweek, GAMEWEEKS));
-  }
+  const choices = await endGameweeksOf(ctx, league, Date.now());
+  const first = choices[0];
+  const last = choices.at(-1);
+  if (first === undefined || last === undefined) refuse(autoTeamRefusals.noGameweekToEnd);
+  if (!choices.includes(endsAfter)) refuse(autoTeamRefusals.endsAfterOutOfRange(first, last));
 }

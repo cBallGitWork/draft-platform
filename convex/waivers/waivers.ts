@@ -1,18 +1,14 @@
 import { v, type Infer } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
-import { recordEvent } from "../mail/letters";
-import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { managerOf, memberOf, playerOrRefuse, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { tellShortlisters } from "../scouting/shortlist";
-import { latestRules } from "../rules/rulesHistory";
+import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
-import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
-import { inWaiverLock } from "./waiverLock";
-import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
-import { firstRunFrom } from "./waiverTimes";
+import { heldInReview } from "../trades/tradeClose";
+import { firstRunsIn, runAhead, waiversOpenFor } from "./waiverLock";
+import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
 // is a release by the manager: the player leaves the squad, the league is told in Mail, as is each
@@ -39,29 +35,23 @@ export const drop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(dropRefusals.notDrafted);
-    const now = Date.now();
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    if (await inWaiverLock(ctx, deadlines, now)) refuse(dropRefusals.locked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
-    const place = await placeOf(ctx, leagueId, playerCode);
-    if (place === null || place.teamId !== team._id) refuse(dropRefusals.notYours(player.name));
-    if ((await reviewHolding(ctx, leagueId, playerCode)) !== null) refuse(dropRefusals.held(player.name));
-    const toWaivers = await dropFromSquad(ctx, place, deadlines, now);
-    await closeOffersHolding(ctx, leagueId, team._id, [playerCode]);
-    await recordEvent(ctx, leagueId, email, {
-      kind: "playerDropped",
-      playerCode,
-      playerName: player.name,
-      teamId: team._id,
-      teamName: team.name,
-      toWaivers,
-    });
-    await tellShortlisters(ctx, league, player, team, email, { released: false, toWaivers });
+    const { deadlines, now } = await waiversOpenFor(ctx, leagueId, dropRefusals);
+    const player = await playerOrRefuse(ctx, playerCode);
+    const place = await placeToDrop(ctx, leagueId, team._id, player);
+    await dropAndTell(ctx, league, team, place, player, email, { deadlines, now, letter: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },
 });
+
+/** The squad place of the player the manager's team drops, by itself or for a pickup: refused
+ *  unless he is in its squad and not held in a trade under review. */
+export async function placeToDrop(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, player: { code: number; name: string }): Promise<Doc<"squadPlayers">> {
+  const place = await placeOf(ctx, leagueId, player.code);
+  if (place === null || place.teamId !== teamId) refuse(dropRefusals.notYours(player.name));
+  if ((await heldInReview(ctx, leagueId)).has(player.code)) refuse(dropRefusals.held(player.name));
+  return place;
+}
 
 const waiverState = v.union(
   v.object({ kind: v.literal("owned"), teamId: v.id("teams"), teamName: v.string() }),
@@ -86,16 +76,14 @@ export const stateOf = query({
   },
 });
 
-/** A player a claim or the card names, by code and name. */
-export const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
-
 const cardAction = v.union(
   /** Nothing to do: he is on another team, or the caller runs no team in the league. */
   v.object({ kind: v.literal("none") }),
   /** He is in the caller's squad. */
   v.object({ kind: v.literal("drop") }),
-  /** On waivers: `firstRunAt` is the run that can first take him, or null with no run times set. */
-  v.object({ kind: v.literal("claim"), firstRunAt: v.union(v.number(), v.null()), squad: v.array(namedPlayer) }),
+  /** On waivers: `firstRun` is the run that can first take him, still to come, and the gameweek
+   *  whose lock it may fall in (waiverLock.ts `firstRunTaking`), or null with no run times set. */
+  v.object({ kind: v.literal("claim"), firstRun: v.union(runAhead, v.null()), squad: v.array(namedPlayer) }),
   v.object({ kind: v.literal("pickUp"), squad: v.array(namedPlayer) }),
 );
 export type CardAction = Infer<typeof cardAction>;
@@ -103,20 +91,21 @@ export type CardAction = Infer<typeof cardAction>;
 /** What the player card offers the caller on this player (spec/12, the player card's actions;
  *  spec/08): drop him from his own squad, claim him off waivers or pick him up as a free agent,
  *  with the caller's squad, by name, to name who goes. Whether the change is open now is the
- *  mutation's to judge, so its refusal says why. */
+ *  mutation's to judge, so its refusal says why. The run that can first take him is as of `now`. */
 export const cardActionOn = query({
-  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  args: { leagueId: v.id("leagues"), playerCode: v.number(), now: v.number() },
   returns: cardAction,
-  handler: async (ctx, { leagueId, playerCode }): Promise<CardAction> => {
+  handler: async (ctx, { leagueId, playerCode, now }): Promise<CardAction> => {
     const { team } = await memberOf(ctx, leagueId);
-    if (!team || (await playerByCode(ctx, playerCode)) === null) return { kind: "none" };
+    const player = await playerByCode(ctx, playerCode);
+    if (!team || player === null) return { kind: "none" };
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place !== null) return { kind: place.teamId === team._id ? "drop" : "none" };
     const { held } = await heldOrNot(ctx, await squadOf(ctx, team._id));
     const squad = held.map(({ player }) => ({ playerCode: player.code, playerName: player.name })).sort((one, other) => one.playerName.localeCompare(other.playerName));
     const onWaivers = await waiverRowOf(ctx, leagueId, playerCode);
-    if (onWaivers === null) return { kind: "pickUp", squad };
-    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
-    return { kind: "claim", firstRunAt: firstRunFrom(runs, onWaivers.claimableFrom), squad };
+    // One who has left the Premier League is no free agent: nothing to pick up (#1469).
+    if (onWaivers === null) return player.droppedAt === undefined ? { kind: "pickUp", squad } : { kind: "none" };
+    return { kind: "claim", firstRun: (await firstRunsIn(ctx, leagueId, now))(onWaivers.claimableFrom), squad };
   },
 });

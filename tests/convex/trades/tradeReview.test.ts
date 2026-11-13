@@ -7,11 +7,12 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { mostAgainst, reviewRefusals } from "../../../convex/trades/tradeReview";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { DAY_MS } from "../../../convex/shared/time";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
+import { draftStarted } from "../../support/convex/draft.harness";
+import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
-import { draftOver, noDraft } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no
 // review; under a commissioner veto he has 24 hours to block it, and a trade he is in goes to the
@@ -28,19 +29,14 @@ let fourthTeam: Id<"teams">;
 const fourthTeamTo = async (email: string) => {
   await noDraft(w.t, w.leagueId);
   fourthTeam = await addManager(w.t, w.leagueId, email);
-  await draftOver(w.t, w.leagueId, w.teams);
+  await draftStarted(w.t, w.leagueId, w.teams);
 };
 beforeEach(async () => {
   w = await tradeLeague();
 });
 
 const squadOf = (teamId: Id<"teams">) => w.squadCodes(teamId);
-/** Ann's first drop for Bob's Saka, accepted by Bob. */
-const annTradesForSaka = async () => {
-  const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
-  await w.accept(BOB, offerId);
-  return offerId;
-};
+const annTradesForSaka = () => w.annTradesForSaka();
 
 describe("with no review", () => {
   beforeEach(() => w.tradesAre({ review: "none", deadline: null }));
@@ -52,7 +48,7 @@ describe("with no review", () => {
     expect(await squadOf(w.annsTeam)).not.toContain(ANNS_FIRST_DROP);
     expect(await squadOf(w.bobsTeam)).toEqual(expect.arrayContaining([PALMER, ANNS_FIRST_DROP]));
     expect(await w.offers()).toEqual([]);
-    expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerMoved")).toEqual([
+    expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerTraded")).toEqual([
       expect.objectContaining({ playerCode: ANNS_FIRST_DROP, teamId: w.bobsTeam, fromTeamId: w.annsTeam, by: BOB }),
       expect.objectContaining({ playerCode: SAKA, teamId: w.annsTeam, fromTeamId: w.bobsTeam, by: BOB }),
     ]);
@@ -85,7 +81,7 @@ describe("under a commissioner veto, a new league's", () => {
     const offerId = await annTradesForSaka();
 
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
-    expect((await w.mine(ANN))[0].review).toEqual({ kind: "veto", endsAt: Date.now() + REVIEW_MS });
+    expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
     expect(await w.subjectsTo(COMMISSIONER)).toContain("Block the trade between Team 1 and Team 2?");
     expect(await w.subjectsTo(CAT)).not.toContain("Block the trade between Team 1 and Team 2?");
@@ -130,7 +126,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect((await w.mine(BOB))[0].review?.kind).toBe("vote");
+    expect((await w.mine(BOB))[0].reviewer).toBe("vote");
     expect(await w.subjectsTo(ANN)).toContain("Vote on the trade between Team 4 and Team 2");
   });
 });
@@ -199,6 +195,18 @@ describe("under a league vote", () => {
     await w.reviewEnds(offerId);
 
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
+  });
+
+  test("with nobody able to vote, an accepted trade goes through at once (Craig, 11 Nov 2026, on #1607; S08.15)", async () => {
+    for (const [email, teamId] of [[CAT, w.catsTeam], [DAN, fourthTeam]] as const) {
+      await (await actingAs(w.t, email)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId, on: true });
+    }
+    await annTradesForSaka();
+
+    expect(await squadOf(w.annsTeam)).toContain(SAKA);
+    expect(await w.offers()).toEqual([]);
+    expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
+    expect(await w.subjectsTo(ANN)).toContain("Team 1 and Team 2 traded");
   });
 
   test("most is more than half of those who may vote", () => {

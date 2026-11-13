@@ -12,6 +12,14 @@ export function useMinute(): number {
   return minute;
 }
 
+/** The moment itself, the screen redrawn each minute: for a screen judging a deadline or an expiry
+ *  while it is open. Judged against the moment, not the minute's start, which would leave a passed
+ *  deadline still open up to 59s past. */
+export function useNowEachMinute(): number {
+  useMinute();
+  return Date.now();
+}
+
 function startOfMinute(at: number): number {
   return at - (at % MINUTE_MS);
 }

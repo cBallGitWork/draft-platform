@@ -1,13 +1,13 @@
 import { beforeEach, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Lineup } from "../../../convex/lineup/lineup";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { FOUR_FOUR_TWO, holdSquad } from "../../support/convex/lineupSquad.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A gameweek FPL stops sending keeps its last deadline (spec/05, The deadline; Craig, 1 Nov 2026:
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // match out to no gameweek and no kickoff: the league's gameweek 9 keeps the deadline it had, and
 // a lineup saved now still goes to it.
 
-const [ANN] = MANAGERS;
 /** holdGameweeks' next gameweek: every one before it has begun. */
 const DROPPED = 9;
 
@@ -36,7 +35,7 @@ const deadlineOf = (gameweek: number) => t.run(async (ctx) => (await leagueDeadl
 async function fplStopsSending(gameweek: number): Promise<void> {
   await t.mutation(internal.football.footballSync.markDropped, {
     table: "gameweeks",
-    sentKeys: SEASON_GAMEWEEKS.filter((each) => each !== gameweek),
+    sentKeys: seasonGameweeks(PL_GAMEWEEKS).filter((each) => each !== gameweek),
     droppedAt: Date.now(),
     paginationOpts: { cursor: null, numItems: BATCH_SIZE },
   });
@@ -63,7 +62,6 @@ test("a lineup saved now still goes to the gameweek FPL stopped sending", async 
   await holdSquad(t, leagueId, annsTeam);
   await fplStopsSending(DROPPED);
   const ann = await actingAs(t, ANN);
-  const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
 
   expect(await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) })).toBe(DROPPED);
 });

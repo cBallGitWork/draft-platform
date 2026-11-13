@@ -1,8 +1,8 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { delayedAt, heldOf } from "../football/matchCommentary";
+import { delayedFrom, earliestDelay, heldOf } from "../football/matchCommentary";
 import { scoreOf } from "../football/matchScores";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import type { GameweekTeams } from "../gameweekScorer/gameweekScores";
 import type { HeldMatch } from "../gameweekScorer/heldMatches";
@@ -18,18 +18,21 @@ import { shownLine, vidiprinter, type PricedLine, type VidiprinterLine, type Vid
 // lineup's men whose points count, in the matchday's matches (home/leagueHome.ts; spec/12).
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 
 export interface CommentaryReads {
+  /** His row, or null for one the football sync doesn't hold. */
+  player(playerCode: PlayerCode): Promise<Doc<"players"> | null>;
   /** His name, or the words for one the football sync doesn't hold. */
   name(playerCode: PlayerCode): Promise<string>;
   score(fixtureCode: number): Promise<Doc<"matchScores"> | null>;
 }
 
-/** Each man's name and each match's score, each read once however many lines ask. */
+/** Each man and each match's score, each read once however many lines ask. */
 export function commentaryReads(ctx: QueryCtx): CommentaryReads {
+  const player = readOnce((playerCode: PlayerCode) => playerByCode(ctx, playerCode));
   return {
-    name: readOnce((playerCode: PlayerCode) => playerByCode(ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode))),
+    player,
+    name: (playerCode) => player(playerCode).then((held) => held?.name ?? unheldPlayerWords(playerCode)),
     score: readOnce((fixtureCode: number) => scoreOf(ctx, fixtureCode)),
   };
 }
@@ -49,15 +52,15 @@ export interface TeamsLine extends VidiprinterLine {
   columns: (string | null)[];
 }
 
-/** The lines, newest first, and whether any of the matches' commentary is delayed as at `now`. */
+/** The lines, newest first, and the moment any of the matches' commentary is delayed from
+ *  (matchCommentary.ts's `delayedFrom`), so no clock is read. */
 export async function readCommentary(
   ctx: QueryCtx,
   inGameweek: GameweekTeams,
   teamIds: readonly TeamId[],
-  now: number,
   reads: CommentaryReads,
   { countingOnly, fixtureCodes }: CommentaryOf,
-): Promise<{ lines: TeamsLine[]; delayed: boolean }> {
+): Promise<{ lines: TeamsLine[]; delayedFrom: number | null }> {
   const players = new Map<PlayerCode, VidiprinterPlayer>();
   const matches = new Map<number, HeldMatch>();
   const counting: Counting[] = [];
@@ -89,7 +92,7 @@ export async function readCommentary(
     about: line.priced.about,
     columns: counting.map((counts) => columnOf(line, counts)),
   }));
-  return { lines, delayed: held.some(({ row, score }) => row !== null && delayedAt(row, score, now)) };
+  return { lines, delayedFrom: earliestDelay(held.map(({ row, score }) => (row === null ? null : delayedFrom(row, score)))) };
 }
 
 /** Each man whose points count for a team, a starter not subbed off or a sub who came on, and the

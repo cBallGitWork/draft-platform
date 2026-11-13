@@ -6,16 +6,40 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import type { Lineup } from "../../../convex/lineup/lineup";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { insertPlayers } from "./footballRows.harness";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { actingAs, type TestConvex } from "./leagues.harness";
 import { filledLineup, presetNamed } from "./lineup.harness";
 
+/** The next gameweek, not yet begun: holdGameweeks' `next` in the lineup and squad tests. */
+export const NEXT = 9;
+/** A player the squad tests assign, release and trade. */
+export const SAKA = 1001;
+
 export const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
 export const STARTERS = FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode);
 export const SQUAD = [...STARTERS, ...FOUR_FOUR_TWO.bench];
+/** The lineup with its bench reversed: another lineup of the same squad. */
+export const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
+/** A player in the Premier League on no team in the league. */
+export const FREE_AGENT = 999;
+/** Bob's player. */
+export const BOBS = 998;
+/** The lineup as a browser sends it. */
+export const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
+/** A lineup as a read gives it back, saved from `fromGameweek`, with no squad moves since. */
+export const saved = (lineup: Lineup, fromGameweek: number | null) => ({
+  fromGameweek,
+  starters: lineup.starters,
+  bench: lineup.bench,
+  leftSquad: [],
+  joinedBench: [],
+  vacated: [],
+});
 /** The position of every player who starts in no slot. */
 export const BENCH_POSITION: Position = "CM";
 /** The club every test player is at. */
@@ -27,12 +51,12 @@ export const nameOf = (code: number) => `Player ${code}`;
 
 /** Player and position rows for `codes`: a starter plays his slot's positions, anyone else the bench's. */
 export const holdPlayers = (t: TestConvex, codes: readonly number[]) =>
-  t.run(async (ctx) => {
-    for (const code of codes) {
-      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: CLUB_CODE });
-      await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION])], removed: [] });
-    }
-  });
+  t.run((ctx) =>
+    insertPlayers(
+      ctx,
+      codes.map((code) => ({ code, name: nameOf(code), fullName: nameOf(code), clubCode: CLUB_CODE, positions: [...(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION])] })),
+    ),
+  );
 
 /**
  * `codes` (SQUAD unless given) held on the team, written straight into the tables, never through

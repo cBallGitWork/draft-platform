@@ -1,17 +1,18 @@
 // The lineup a team holds before its manager saves one (spec/05, The pitch; #637, #836): "you
 // don't save to create, you save to edit". Pure functions; lineups.ts stores what they pick.
 
-import { DEFAULT_PRESETS, type Preset } from "./presets";
+import { FIRST_PRESETS, type Preset } from "./presets";
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
 import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
 import { isRole, offersRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
+import { matched } from "../shared/matching";
 
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
 const FIRST_FORMATION = "4-4-2";
 
-const FIRST_CELLS = DEFAULT_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
+const FIRST_CELLS = FIRST_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
 
 /** A starter as a stored row holds him: his cell, and the role he was given, none meaning the
  *  slot's first. */
@@ -55,12 +56,17 @@ export function firstLineup(
  *  onto the pitch is a drop): one still in the cell `held` has him in keeps the role he had there;
  *  anyone placed anew, or whose role the new shape no longer offers (a sweeper with two centre-backs
  *  left), starts on his best-star role (stars/bestRole.ts). */
-export function withDroppedRoles(picked: FirstLineup, ratingsOf: (playerCode: number) => readonly RoleStars[], held: readonly FirstStarter[] = []): FirstLineup {
+export function withDroppedRoles(
+  picked: FirstLineup,
+  ratingsOf: (playerCode: number) => readonly RoleStars[],
+  positions: PlayerPositions,
+  held: readonly FirstStarter[] = [],
+): FirstLineup {
   const formation = picked.starters;
   const starters = picked.starters.map((starter) => {
     const before = held.find((each) => each.playerCode === starter.playerCode && sameCell(each, starter));
     if (before !== undefined && (before.role === undefined || offersRole(before, before.role, formation) || !isRole(before.role))) return before;
-    return droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode));
+    return droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode), positions.get(starter.playerCode) ?? []);
   });
   return { starters, bench: picked.bench };
 }
@@ -130,21 +136,9 @@ function placedInPickOrder(
 }
 
 /** Whether these players can fill every one of these cells, one player a cell, each in a cell he
- *  plays: a bipartite matching, grown one cell at a time by augmenting paths. */
+ *  plays (shared/matching.ts). */
 function canFill(cells: readonly Cell[], players: readonly number[], positions: PlayerPositions): boolean {
   if (cells.length > players.length) return false;
-  const cellOf = new Map<number, number>();
-  const augment = (cellIndex: number, seen: Set<number>): boolean => {
-    for (const playerCode of players) {
-      if (seen.has(playerCode) || !playsCell(positions.get(playerCode) ?? [], cells[cellIndex])) continue;
-      seen.add(playerCode);
-      const taken = cellOf.get(playerCode);
-      if (taken === undefined || augment(taken, seen)) {
-        cellOf.set(playerCode, cellIndex);
-        return true;
-      }
-    }
-    return false;
-  };
-  return cells.every((_, cellIndex) => augment(cellIndex, new Set()));
+  const playersFor = (cellIndex: number) => players.filter((playerCode) => playsCell(positions.get(playerCode) ?? [], cells[cellIndex]));
+  return matched(cells.map((_, cellIndex) => cellIndex), playersFor, (playerCode) => playerCode).size === cells.length;
 }

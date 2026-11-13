@@ -4,37 +4,39 @@
 import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
-import type { TradesView } from "../../convex/trades/tradeScreen";
-import { changeFailedWords } from "../shared/words";
+import { capitalised } from "../../convex/shared/moments";
+import { afterLastMatchWords, changeFailedWords, commissionerVetoWords, gameweekShort, leagueVoteWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
-export { dayWords, noTeamWords, whenWords } from "../shared/words";
-export { warningWords } from "../squads/words";
+export { dateWords, noTeamWords, whenWords } from "../shared/words";
+export { warningWords } from "../shared/words";
 export { NOTE_MOST, pickWords };
-export { viaWords } from "../draft/words";
+export { viaWords } from "../shared/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
 export const tradeFailedWords = changeFailedWords;
 
-/** Why no trade can be offered or accepted now (convex/trades/tradeShut.ts). */
-export const shutWords: Record<NonNullable<TradesView["shut"]>, string> = {
-  draftLive: "Trades are shut while the draft is live.",
-  tradeDeadline: "The league's trade deadline has passed.",
-  unusedGameweek:
-    "Trades are locked through a gameweek the league doesn't play.",
-};
+/** Why no trade can be offered or accepted now, the same sentence the refusal gives
+ *  (convex/trades/tradeShutWords.ts). */
+export { shutWords } from "../../convex/trades/tradeShutWords";
 
 // The Offers tab.
 export const OFFERS_TITLE = "Offers";
 export const openCountWords = (count: number) => `${count} open`;
 export const offersTableLabel = "Your trade offers";
+/** An offer's sides and facts, as the tables' heads and the selected offer's panel say them. */
+export const withWords = "With";
+export const youGetWords = "You get";
+export const youGiveWords = "You give";
+export const waitingOnWords = "Waiting on";
+export const closesWords = "Closes";
 export const offersColumns = {
-  with: { short: "With", long: "The team the offer is with" },
-  get: { short: "You get", long: "What you get" },
-  give: { short: "You give", long: "What you give" },
-  waiting: { short: "Waiting on", long: "Who the offer is waiting on" },
-  closes: { short: "Closes", long: "When it closes, or its review ends" },
+  with: { short: withWords, long: "The team the offer is with" },
+  get: { short: youGetWords, long: "What you get" },
+  give: { short: youGiveWords, long: "What you give" },
+  waiting: { short: waitingOnWords, long: "Who the offer is waiting on" },
+  closes: { short: closesWords, long: "When it closes, or its review ends" },
 } as const;
 /** The Offers table's groups; "In review" also marks a squad's player or pick held in a trade
  *  under review, on the New offer tab. */
@@ -58,9 +60,9 @@ export const CLOSED_TITLE = "Closed offers";
 export const thisSeasonWords = "This season";
 export const closedTableLabel = "Your closed trade offers";
 export const closedColumns = {
-  with: { short: "With", long: "The team the offer was with" },
-  get: { short: "You get", long: "What you would have got" },
-  give: { short: "You give", long: "What you would have given" },
+  with: { short: withWords, long: "The team the offer was with" },
+  get: { short: youGetWords, long: "What you would have got" },
+  give: { short: youGiveWords, long: "What you would have given" },
   closed: { short: "Closed", long: "Why it closed" },
   when: { short: "When", long: "When it closed" },
 } as const;
@@ -69,7 +71,7 @@ export const olderWords = "Older ›";
 
 /** Why an offer closed, from the manager's side: `you` when his team is the one that acted. */
 export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
-  const who = you ? "You" : "They";
+  const who = you ? youWords : "They";
   switch (why) {
     case "withdrawn":
       return `${who} withdrew it`;
@@ -104,15 +106,11 @@ export const yourOfferToTitle = (teamName: string) =>
   `Your offer to ${teamName}`;
 export const tradeWithTitle = (teamName: string) =>
   `Your trade with ${teamName}`;
-export const youGetWords = "You get";
-export const youGiveWords = "You give";
 export const nobodyWords = "Nobody";
 export const noteWords = (note: string) => `“${note}”`;
 export const yourSquadWords = "Your squad";
 export const theirSquadWords = "Their squad";
-export const waitingOnWords = "Waiting on";
 export const reviewWords = "Review";
-export const closesWords = "Closes";
 export const reviewEndsWords = "Review ends";
 export const squadAfterWords = (count: number, maximum: number | null) =>
   maximum === null ? `${count} after it` : `${count} of ${maximum} after it`;
@@ -127,21 +125,22 @@ export function reviewRuleWords(
   const once = byYou ? "once you accept" : "once they accept";
   if (reviewer === null) return `None: it goes through ${once}`;
   const who = {
-    commissioner: "Commissioner veto",
+    commissioner: commissionerVetoWords,
     coCommissioner: "Co-commissioner veto",
-    vote: "League vote",
+    vote: leagueVoteWords,
   }[reviewer];
   return `${who}: ${reviewHours} hours ${once}`;
 }
 
-/** When an open offer closes unanswered: at the next deadline. */
-export const closesAtWords = (
-  closes: { gameweek: number; at: number } | null,
-  when: string | null,
-) =>
-  closes === null || when === null
-    ? "At the next deadline"
-    : `At the GW${closes.gameweek} deadline, ${when}`;
+/** When an offer made in the trade deadline's gameweek closes: its last match has no time known
+ *  ahead, so it shows in words (Craig, 11 Nov 2026, on #1492). */
+export const closesAfterLastMatchWords = (gameweek: number) =>
+  capitalised(afterLastMatchWords(gameweek));
+
+/** When an open offer closes unanswered at a known deadline, in its panel; its row shows the time
+ *  alone. */
+export const closesAtWords = (gameweek: number, when: string) =>
+  `At the ${gameweekShort(gameweek)} deadline, ${when}`;
 
 export const acceptWords = "Accept";
 export const counterWords = "Counter";
@@ -163,8 +162,8 @@ export const tradeBetweenTitle = (fromTeamName: string, toTeamName: string) =>
 /** How the trade is reviewed, from the reviewer's side. */
 export const yourReviewWords = {
   block: "Your veto",
-  against: "League vote",
-  takeBack: "League vote",
+  against: leagueVoteWords,
+  takeBack: leagueVoteWords,
 } as const;
 export const blockWords = "Block";
 export const blockQuestion = (fromTeamName: string, toTeamName: string) =>
@@ -182,7 +181,7 @@ export const squadCountWords = (count: number, maximum: number | null) =>
   maximum === null ? `${count}` : `${count} of ${maximum}`;
 export const partnerLabel = "Team to trade with";
 export const toTeamWords = (teamName: string) => `To ${teamName}`;
-export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+export { squadTableLabel } from "../shared/words";
 export const squadColumns = {
   tick: { short: "Tick", long: "In the offer" },
   position: { short: "Pos", long: "Position" },
@@ -198,9 +197,10 @@ export const pickTickLabel = (round: number, teamName: string) =>
   `Trade ${pickWords(round, teamName)}`;
 /** One pick ticked, and none on the other side yet: a pick trade is one pick each way. */
 export const onePickEachWords = "Tick a pick on the other side too.";
-export const noteLabel = "Note";
+/** The picture says "Note, one line"; the Glossary avoids "line" (it means an area of the pitch),
+ *  so the label takes spec/08's own "one-line note". */
+export const noteLabel = "One-line note";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";
 export const noPartnerWords = "No other team can trade now.";
-export const noneTickedWords = "Tick a player on either side.";

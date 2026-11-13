@@ -8,10 +8,9 @@ import { inTenths, type DoubleGameweekRule } from "../../../convex/scoring/value
 import { HOUR_MS } from "../../../convex/shared/time";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
-  ANN,
   EVERTON_STARTERS,
   LEAGUE_FULL_TIME_READ,
   LEAGUE_KICKOFF,
@@ -205,7 +204,7 @@ async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<s
   const rulesId = (await rulesRevision(league.t, league.leagueId))!;
   await league.t.run(async (ctx) => {
     const held = (await ctx.db.get("leagueRules", rulesId))!;
-    await ctx.db.patch("leagueRules", rulesId, { rules: { ...held.rules, doubleGameweek: rule } });
+    await ctx.db.patch("leagueRules", rulesId, { rules: { ...held.rules!, doubleGameweek: rule } });
     await ctx.db.insert("clubs", { code: SECOND_OPPONENT, name: "Arsenal", shortName: "ARS" });
     await ctx.db.insert("fixtures", { code: SECOND_MATCH, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: SECOND_OPPONENT, kickoff: LEAGUE_KICKOFF + HOUR_MS });
   });

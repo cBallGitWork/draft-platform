@@ -1,24 +1,28 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
-import { seasonShortWords } from "../draft/words";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
+import type { FirstRun } from "../myTeam/claims/words";
+import { LAST_MATCHES_SHOWN } from "./gameLog";
+import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekColumn, gameweekShort, gameweekWords, signedWords, thousandsWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
-export const goneWords = "No longer in the Premier League.";
+export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The card's head (the approved picture): his name, his positions, club and owner, his figures
  *  beside them, and his actions. */
 export const PLAYER_TITLE = "Player";
 export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
+/** On his shirt in the head, so it is plain the number is his club's, never his owner's squad
+ *  number (Craig, 12 Nov 2026, on #1496). */
+export const clubNumberLabel = (number: number) => `Club number ${figureWords(number)}`;
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
-export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: "Last 5" } as const;
+export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: `Last ${LAST_MATCHES_SHOWN}` } as const;
 /** His rank among every player holding the position the switch is on (Craig, 9 Nov 2026, on
  *  #1027): "Rank at CAM", "4th of 38". */
 export const rankLabel = (position: string | null) => (position === null ? "Rank" : `Rank at ${position}`);
@@ -53,15 +57,17 @@ export const logViews = { scoring: "Scoring", all: "All stats" } as const;
  *  his team's auto-subs aren't (spec/12). */
 export { liveWords, provisionalWords } from "../shared/words";
 export const columns = {
-  gameweek: { short: "GW", long: "Gameweek" },
+  gameweek: gameweekColumn,
   opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
   score: { short: "Score", long: "The match's score, home side first" },
   minutes: { short: "Min", long: "Minutes played" },
-  points: { short: "Pts", long: "Points under the site's scoring" },
+  points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
-export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
-/** A match his club's postponement took out, kept as its row. */
+export { notArrivedWords } from "../shared/words";
+/** A match his club's postponement took out, kept as its row, naming the side he'd have met:
+ *  "Postponed: Newcastle". No reason, as no feed gives one (Craig, 12 Nov 2026, on #1496). */
 export const postponedWords = "Postponed";
+export const postponedRowWords = (opponent: string | null) => (opponent === null ? postponedWords : `${postponedWords}: ${opponent}`);
 /** Before a match's points, the league's override, its reason on hover. */
 export const overriddenWasWords = (was: number | null) => (was === null ? "Overridden" : `Overridden, was ${figureWords(was)}`);
 /** The selected match's breakdown, at the top of the right column: "GW8, LIV (A) 2–1". */
@@ -71,11 +77,12 @@ export const matchTitle = (gameweek: number | null, opponent: string, score: str
  *  5", and why. */
 export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
 export const nothingEarnedWords = "No category earned him points.";
-/** Why a category's points are what they are (spec/14, On screen), in brackets after them: "(1 at
- *  5 each for Midfield)", "(4, 1 for every 3)", "(14, 2 for 10+ and 2 for 12+, held to at most 2)",
- *  "(1 at 4 each for Defence, but none under 60 minutes)", "(2 at 1 each, reaching its limit of at
- *  most 2)": the last cost him nothing (#863). */
-export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `(${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)})`;
+/** Why a category's points are what they are (spec/14, On screen), after its name, with its points
+ *  apart at the line's end (the approved picture): "1 at 5 each for Midfield", "4, 1 for every 3",
+ *  "14, 2 for 10 or more and 2 for 12 or more, held to at most 2", "1 at 4 each for Defence, but
+ *  none under 60 minutes", "2 at 1 each, reaching its limit of at most 2": the last cost him
+ *  nothing (#863). */
+export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)}`;
 const valueWords = (value: SlotValue, actions: number) => {
   switch (value.shape) {
     case "perAction":
@@ -83,7 +90,7 @@ const valueWords = (value: SlotValue, actions: number) => {
     case "perCount":
       return `${figureWords(actions)}, ${figureWords(value.points)} for every ${figureWords(value.every)}`;
     case "bands":
-      return `${figureWords(actions)}, ${value.earned.length === 0 ? "no band reached" : value.earned.map(({ atLeast, points }) => `${figureWords(points)} for ${figureWords(atLeast)}+`).join(" and ")}`;
+      return `${figureWords(actions)}, ${value.earned.length === 0 ? "no band reached" : value.earned.map(({ atLeast, points }) => `${figureWords(points)} for ${figureWords(atLeast)} or more`).join(" and ")}`;
   }
 };
 const pricedByWords = (pricedBy: PricedBy) => {
@@ -116,34 +123,37 @@ const cutWords = (cut: Cut | null) => {
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */
 export const scoredUnderWords = (version: string | null) => `Scored under ${version === null ? "the first scoring set" : `version ${version}`}`;
 
-/** Last season's one line under the game log (spec/12; Craig, 6 Nov 2026): "25/26: 34 apps, 2810
- *  min, 212 pts". */
+/** Last season's one line under the game log (spec/12; Craig, 6 Nov 2026), as the approved picture
+ *  has it: "2025/26: 36 matches, 3,012 min," then his points, picked out, then "pts". */
 export const LAST_SEASON_TITLE = "Last season, under today's scoring";
-export const lastSeasonWords = (season: number, { appearances, minutes, points }: { appearances: number; minutes: number; points: number }) =>
-  `${seasonShortWords(season)}: ${figureWords(appearances)} apps, ${figureWords(minutes)} min, ${figureWords(points)} pts`;
+export const lastSeasonWords = (season: number, { appearances, minutes }: { appearances: number; minutes: number }) =>
+  `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${thousandsWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${thousandsWords(minutes)} min,`;
+export const pointsShortWords = "pts";
 export const notInLastSeasonWords = "Not in the Premier League last season.";
 export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 
 /** His club's next fixtures, in a single row (Craig, 7 Nov 2026). */
 export const nextFixturesTitle = (club: string) => `${club}'s next fixtures`;
-export { difficultyNotRatedWords, nextFixtureShort, statusNotSettledLabel } from "../shared/words";
+export { difficultyNotRatedWords, statusNotSettledLabel } from "../shared/words";
 export const noFixturesWords = "No fixtures ahead with a date.";
 
 /** A commissioner's override of his points in a match (#32, spec/14). */
-export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
+export {
+  cancelWords as cancelOverrideWords,
+  overriddenDoneWords,
+  overriddenWords,
+  overrideFailedWords,
+  overrideHint,
+  overrideLabels,
+  overrideWords,
+  removeOverrideFailedWords,
+  removeOverrideWords,
+} from "../shared/words";
 export const OVERRIDE_TITLE = "Override points";
-export const overrideHint = "The whole league gets a letter saying what changed and why.";
-export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
 export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
   `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;
-export const overrideWords = "Override";
-export const cancelOverrideWords = "Cancel";
-export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
-export const overrideFailedWords = "The override couldn't be saved. Try again.";
-/** Taking the override off the match picked (#903, spec/14 S14.5): "remove override button". */
-export const removeOverrideWords = "Remove override";
+/** Taking the override off the match picked (#903, spec/14 S14.5). */
 export const overrideRemovedWords = "Override removed: his scored points are back, and the league has a letter.";
-export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
 
 /** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
 export const dropWords = "Drop";
@@ -155,7 +165,8 @@ export const pickUpWords = "Pick up";
 export const whoGoesLabel = "Who goes";
 export const dropNobodyWords = "Nobody";
 /** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
-export const onWaiversUntilWords = (firstRunAt: number | null) => (firstRunAt === null ? "On waivers" : `On waivers: first run ${whenWords(firstRunAt)}`);
+export const onWaiversUntilWords = (firstRun: FirstRun) =>
+  firstRun === null ? "On waivers" : `On waivers: first run ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
 export const claimedDoneWords = "Claim put in, last of your claims.";
 export const waiverFailedWords = "That couldn't be done. Try again.";
 

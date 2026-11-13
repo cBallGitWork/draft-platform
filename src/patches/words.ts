@@ -4,8 +4,7 @@
 
 import { screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
-import { seasonShortWords } from "../draft/words";
-import { failedWords } from "../shared/words";
+import { failedWords, seasonShortWords, thousandsWords } from "../shared/words";
 import type { VersionNotes } from "./seam";
 
 export const PATCH_NOTES_TITLE = "Patch notes";
@@ -16,7 +15,7 @@ export const noVersionsWords = "No patches yet.";
 export const notesHint = "Gameweeks played before a version keep the scoring they had.";
 
 export const KIND_WORDS: Record<VersionNotes["kind"], string> = { patch: "Patch", fix: "Fix" };
-/** When a version is in force from, on the Premier League's clock (London), as its letter says it. */
+/** When a version is in force from, in the viewer's own zone (convex/shared/moments.ts, #442). */
 export const fromWords = (at: number) => `From ${screenMoment(at)}`;
 /** A version made only by reordering the categories. */
 export { NOTHING_SCORES_DIFFERENTLY as nothingScoresDifferentlyWords } from "../../convex/scoring/patchChanges";
@@ -30,7 +29,7 @@ export const labSummaryWords = (seasons: readonly number[], starts: number, skip
   const last = seasons.at(-1);
   if (first === undefined || last === undefined) return "No past season is copied yet, so there are no starts to test on.";
   const on = first === last ? seasonShortWords(first) : `${seasonShortWords(first)} to ${seasonShortWords(last)}`;
-  return `On ${on}: ${starts.toLocaleString("en-GB")} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${skipped.toLocaleString("en-GB")}.`;
+  return `On ${on}: ${thousandsWords(starts)} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${thousandsWords(skipped)}.`;
 };
 export const labHint = `Each role's average a start over its slot's real starts, against the slot's target role adjustment. More than ${ROLE_TARGET_MARGIN} off it is flagged.`;
 export const labColumns = {
@@ -45,8 +44,16 @@ export const offTargetWords = "Off target";
 export const notTestedWords = (stats: readonly string[]) => `Not tested: no past ${stats.join(", ")}`;
 export const noStartsWords = "No starts";
 export const noRolesWords = "The set scores no roles.";
-/** The site's set holds no team instructions yet (spec/05 Team instructions), so none are checked. */
-export const noTeamInstructionsWords = "Team instructions: none in the site's scoring yet, so none checked.";
+/** The set scores no team instructions (spec/05 Team instructions), so none are checked. */
+export const noTeamInstructionsWords = "The set scores no team instructions.";
+/** Why no team instruction has an average yet (spec/14 S14.9; #1541). */
+export const instructionsHint = "Team instructions: each is averaged on a club's real XI, and the past seasons don't hold each player's club yet, so none is tested.";
+export const instructionColumns = {
+  instruction: { short: "Instruction", long: "Team instruction" },
+  average: { short: "Avg", long: "Average for a whole XI" },
+} as const;
+/** A team instruction whose stats were all copied, still untested as no club's XI is held. */
+export const notTestedYetWords = "Not tested";
 
 /** The banner, from a patch's announcement until it takes effect. */
 export const bannerWords = (name: string, takesEffectAt: number) => `Scoring patch ${name} takes effect on ${screenMoment(takesEffectAt)}.`;

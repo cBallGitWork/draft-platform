@@ -7,7 +7,16 @@
 // defence, and Press high's three are counted one row at a time. Pure: the server's save and the
 // Tactics screen both read it, so the two never differ. Scoring an instruction is not here.
 
-import { AREAS, sameCell, type Area, type Cell, type Lane } from "./pitch";
+import {
+  AREAS,
+  backOf,
+  FIVE_AT_THE_BACK_COUNT,
+  sameShape,
+  TWO_AT_THE_BACK_COUNT,
+  WIDE_LANES,
+  type Area,
+  type Cell,
+} from "./pitch";
 
 export const SIDES = ["attacking", "defensive"] as const;
 export type Side = (typeof SIDES)[number];
@@ -43,7 +52,7 @@ export type InstructionPair = Record<Side, string>;
 
 /** The set every league starts with, in spec/05's order. The descriptions are Claude's draft, for
  *  Craig to edit (spec/05: "Claude drafts them and Craig edits them"). */
-export const FIRST_INSTRUCTIONS: readonly Instruction[] = [
+export const FIRST_INSTRUCTIONS = [
   { key: "playOutFromTheBack", side: "attacking", name: "Play out from the back", needs: "anyShape",
     description: "Rewards the keeper's and defenders' passing; costs errors leading to a shot or goal." },
   { key: "bootItToTheBigMan", side: "attacking", name: "Boot it to the big man", needs: "oneUpTopNoWingers",
@@ -66,45 +75,51 @@ export const FIRST_INSTRUCTIONS: readonly Instruction[] = [
     description: "Rewards a clean sheet at half-time; costs goals let in before half-time." },
   { key: "parkTheBus", side: "defensive", name: "Park the bus", needs: "fiveAtTheBack",
     description: "Rewards the keeper's and defenders' clean sheets; costs goals and assists." },
-];
+] as const satisfies readonly Instruction[];
+
+/** A key of the first set: what the first defaults, the classic formations and the drafted scoring
+ *  name, so a typo fails typecheck. Keys are saved with lineups, so none is ever renamed. */
+export type FirstInstructionKey = (typeof FIRST_INSTRUCTIONS)[number]["key"];
+
+/** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
+export const instructionName = (key: string): string => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
 
 /** The first defaults (Craig, 6 Nov 2026, on #990): five at the back starts on Park the bus, two
  *  at the back on Gung-ho, and every other shape on Play out from the back and Keep it tight early.
  *  A league's presets hold their own pair (presets.ts), which it edits. */
-export function firstPairFor(cells: readonly Cell[]): InstructionPair {
-  const back = inArea(cells, "defence").length;
+export function firstPairFor(cells: readonly Cell[]): Record<Side, FirstInstructionKey> {
+  const back = backOf(cells);
   return {
-    attacking: back === 2 ? "gungHo" : "playOutFromTheBack",
-    defensive: back === 5 ? "parkTheBus" : "keepItTightEarly",
+    attacking: back === TWO_AT_THE_BACK_COUNT ? "gungHo" : "playOutFromTheBack",
+    defensive: back === FIVE_AT_THE_BACK_COUNT ? "parkTheBus" : "keepItTightEarly",
   };
 }
 
 const inArea = (cells: readonly Cell[], area: Area) => cells.filter((cell) => cell.area === area);
-const WIDE: readonly Lane[] = ["left", "right"];
 const ABOVE_DEFENCE: readonly Area[] = AREAS.slice(AREAS.indexOf("defensiveMidfield"));
 const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack"];
 const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
 
 /** Whether a formation, the cells its eleven stand in, has what an instruction needs. */
-export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
-  const back = inArea(cells, "defence").length;
+function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
+  const back = backOf(cells);
   switch (needs) {
     case "anyShape":
       return true;
     case "oneUpTopNoWingers":
-      return inArea(cells, "attack").length === 1 && !cells.some((cell) => WINGER_ROWS.includes(cell.area) && WIDE.includes(cell.lane));
+      return inArea(cells, "attack").length === 1 && !cells.some((cell) => WINGER_ROWS.includes(cell.area) && WIDE_LANES.includes(cell.lane));
     case "wideOnBothFlanks": {
       const above = cells.filter((cell) => ABOVE_DEFENCE.includes(cell.area));
-      return WIDE.every((lane) => above.some((cell) => cell.lane === lane));
+      return WIDE_LANES.every((lane) => above.some((cell) => cell.lane === lane));
     }
     case "twoAtTheBack":
-      return back === 2;
+      return back === TWO_AT_THE_BACK_COUNT;
     case "threeInARow":
       return PRESSING_ROWS.some((area) => inArea(cells, area).length >= 3);
     case "backThreeOrFour":
       return back === 3 || back === 4;
     case "fiveAtTheBack":
-      return back === 5;
+      return back === FIVE_AT_THE_BACK_COUNT;
   }
 }
 
@@ -118,12 +133,10 @@ export function offeredOn(side: Side, cells: readonly Cell[], set: readonly Inst
 }
 
 /** A preset as this module reads it: its cells and, once the league holds it, its default pair. */
-export interface PresetDefaults {
+interface PresetDefaults {
   cells: readonly Cell[];
   instructions?: InstructionPair;
 }
-
-const sameShape = (one: readonly Cell[], other: readonly Cell[]) => one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
 
 /** The formation's default pair: the league's preset of this shape's own, each where it is still
  *  offered; else, for a preset saved before #990 or a shape that is no preset, the first defaults'

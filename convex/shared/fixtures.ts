@@ -24,15 +24,32 @@ export function fixtureByCode(ctx: QueryCtx, code: number): Promise<Doc<"fixture
     .unique();
 }
 
-/** The season the matches the feed still sends are for: the one the latest kickoff falls in, as
- *  gameweekStarts.ts counts it, read from that one match. Null while none has a kickoff time. */
-export async function heldSeason(ctx: QueryCtx): Promise<number | null> {
+type KicksOff = { kickoff: number | null };
+
+/** Two matches in kickoff order, any with no time yet last. */
+export const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
+  (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);
+
+/** Matches by kickoff, any with no time yet last. Pure. */
+export const byKickoff = <Match extends KicksOff>(matches: readonly Match[]): Match[] => matches.toSorted(byKickoffOrder);
+
+/** The season these matches are for: the one their latest kickoff falls in. Null while none has a
+ *  kickoff time. */
+export function seasonOfMatches(matches: readonly { kickoff: number | null }[]): number | null {
+  const kickoffs = matches.flatMap(({ kickoff }) => (kickoff === null ? [] : [kickoff]));
+  return kickoffs.length === 0 ? null : seasonStartYear(Math.max(...kickoffs));
+}
+
+/** The season the matches the feed still sends are for (`seasonOfMatches`), read from the one
+ *  with the latest kickoff. gameweeks/seasonGameweeks.ts's `heldGameweeksSeason` reads the held
+ *  gameweeks' season instead. */
+export async function heldFixturesSeason(ctx: QueryCtx): Promise<number | null> {
   const latest = await ctx.db
     .query("fixtures")
     .withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined))
     .order("desc")
     .first();
-  return latest === null || latest.kickoff === null ? null : seasonStartYear(latest.kickoff);
+  return seasonOfMatches(latest === null ? [] : [latest]);
 }
 
 /** The gameweek's matches the feed still sends, in no set order. Past GAMEWEEK_MATCHES_MOST it

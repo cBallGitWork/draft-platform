@@ -1,12 +1,13 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, type QueryCtx } from "../_generated/server";
+import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
-import { startClock } from "./draftClock";
+import { cancelClockJob, startClock } from "./draftClock";
 import { tellPaused } from "./draftLetters";
-import { pickRefusals, pickSecondsNow } from "./draftPicks";
-import { draftOf, draftIsLive } from "./draftRow";
+import { pickSecondsNow } from "./draftPickTime";
+import { pickRefusals } from "./draftPicks";
+import { draftOf, draftIsLive, type Clock } from "./draftRow";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135). The commissioner pauses and
 // resumes it by hand, as often and for as long as he likes (Craig, 2 Nov 2026). A pause keeps the
@@ -15,7 +16,9 @@ import { draftOf, draftIsLive } from "./draftRow";
 // league's pick time has changed while it was paused, the pick on the clock restarts on the full
 // new time when it resumes (Craig, 4 Nov 2026, on #1135: "90s with 30s left, changed to 60s: it
 // resumes on 60s"). A pause sends the whole league a letter, a resume none (Craig, 4 Nov 2026, on
-// #1102; draftLetters.ts).
+// #1102; draftLetters.ts). Deleting the league pauses its live draft too, with no letter, and
+// undoing the deletion leaves it paused for the commissioner to resume (Craig, 11 Nov 2026, on
+// #1486: "Accept all"; leagueDeletion.ts).
 
 /** Why a pause or a resume is refused, in the words the commissioner is shown. */
 export const pauseRefusals = {
@@ -25,8 +28,6 @@ export const pauseRefusals = {
   notPaused: "The draft isn't paused.",
 };
 
-type Clock = NonNullable<Doc<"drafts">["clock"]>;
-
 /** The league's live draft and its clock, or the refusal: it hasn't started, or it is over. Undo
  *  refuses the same way (draftCommissioner.ts). */
 export async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; clock: Clock }> {
@@ -34,6 +35,22 @@ export async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
   if (draft?.started === undefined) refuse(pauseRefusals.notStarted);
   if (!(await draftIsLive(ctx, leagueId)) || draft.clock === undefined) refuse(pauseRefusals.over);
   return { draft, clock: draft.clock };
+}
+
+/** Stops `clock`: its job cancelled, the time it has left kept until a resume. */
+async function stopClock(ctx: MutationCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, clock: Clock): Promise<void> {
+  await cancelClockJob(ctx, clock);
+  const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
+  await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
+}
+
+/** The league's draft paused as the league is deleted, if it is live and running, telling no one:
+ *  nothing is picked, by a manager or the draft, while the league is frozen (#1486). */
+export async function pauseForDeletion(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
+  const draft = await draftOf(ctx, leagueId);
+  const clock = draft?.clock;
+  if (draft === null || clock === undefined || clock.paused !== undefined || !(await draftIsLive(ctx, leagueId))) return;
+  await stopClock(ctx, leagueId, draft, clock);
 }
 
 /** The commissioner pauses the draft: the pick on the clock keeps its time left, and nothing is
@@ -46,9 +63,7 @@ export const pause = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, clock } = await liveClock(ctx, leagueId);
     if (clock.paused !== undefined) refuse(pauseRefusals.alreadyPaused);
-    if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
-    await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
+    await stopClock(ctx, leagueId, draft, clock);
     await tellPaused(ctx, league, email);
     return null;
   },
@@ -69,8 +84,9 @@ export const resume = mutation({
     const pickSeconds = await pickSecondsNow(ctx, leagueId);
     const moved = now - clock.paused.at;
     const startsAt = clock.startsAt + moved;
-    // A pick the commissioner's undo put back still runs its full clock (draftCommissioner.ts).
-    const how = { fullClock: clock.fullClock };
+    // A pick the commissioner's undo put back still runs its full clock (draftCommissioner.ts), and
+    // a manager's own pick still holds his "you're up next" for the clock's start (#1458).
+    const how = { fullClock: clock.fullClock, upNext: clock.upNext };
     if (pickSeconds === clock.paused.pickSeconds) {
       await startClock(ctx, leagueId, clock.pick - 1, startsAt, (clock.endsAt - clock.startsAt) / SECOND_MS, how);
     } else {

@@ -3,7 +3,7 @@
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
 import { firstPairFor, type InstructionPair } from "./instructions";
-import { cellsOf, LANES, sameCell, type Area, type Cell, type Lane } from "./pitch";
+import { backOf, cellsOf, LANES, sameShape, TWO_AT_THE_BACK_COUNT, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
   /** As managers say it, such as "4-2-3-1". */
@@ -34,8 +34,8 @@ export interface BackLineScoring {
 export const TWO_AT_THE_BACK: BackLineScoring = { cleanSheet: 3, goalConceded: -1 };
 
 /** The first back line a shape gets: two at the back's, for a defence row of two; else none. */
-export function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
-  return cells.filter((cell) => cell.area === "defence").length === 2 ? { ...TWO_AT_THE_BACK } : null;
+function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
+  return backOf(cells) === TWO_AT_THE_BACK_COUNT ? { ...TWO_AT_THE_BACK } : null;
 }
 
 /** The back line of the preset a side stands in: its own, or for one held before #990 the first
@@ -50,7 +50,8 @@ const row = (area: Area, ...lanes: Lane[]): Cell[] => cellsOf(area, lanes);
 
 const KEEPER = row("goalkeeper", "centre");
 const BACK_FOUR = row("defence", "left", "leftCentre", "rightCentre", "right");
-const BACK_THREE = row("defence", "leftCentre", "centre", "rightCentre");
+// Not roles.ts's BACK_THREE, the number of centre-backs a back-three role needs.
+const THREE_CENTRE_BACKS = row("defence", "leftCentre", "centre", "rightCentre");
 const BACK_FIVE = row("defence", "left", "leftCentre", "centre", "rightCentre", "right");
 const FLAT_FOUR = row("midfield", "left", "leftCentre", "rightCentre", "right");
 const CENTRAL_THREE = row("midfield", "leftCentre", "centre", "rightCentre");
@@ -74,7 +75,7 @@ const preset = (name: string, ...areas: Cell[][]): Preset => {
 };
 
 /** In spec/05's order. */
-export const DEFAULT_PRESETS: readonly Preset[] = [
+export const FIRST_PRESETS: readonly Preset[] = [
   preset("4-4-2", BACK_FOUR, FLAT_FOUR, STRIKE_PAIR),
   preset("4-3-3", BACK_FOUR, CENTRAL_THREE, FRONT_THREE),
   preset("4-2-3-1", BACK_FOUR, HOLDING_PAIR,
@@ -83,9 +84,9 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("4-4-1-1", BACK_FOUR, FLAT_FOUR, NUMBER_TEN, LONE_STRIKER),
   preset("4-3-1-2", BACK_FOUR, CENTRAL_THREE, NUMBER_TEN, STRIKE_PAIR),
   // Its wing backs stand in defensive midfield's wide lanes.
-  preset("3-5-2", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, STRIKE_PAIR),
-  preset("3-4-3", BACK_THREE, FLAT_FOUR, FRONT_THREE),
-  preset("3-4-1-2", BACK_THREE, FLAT_FOUR, NUMBER_TEN, STRIKE_PAIR),
+  preset("3-5-2", THREE_CENTRE_BACKS, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, STRIKE_PAIR),
+  preset("3-4-3", THREE_CENTRE_BACKS, FLAT_FOUR, FRONT_THREE),
+  preset("3-4-1-2", THREE_CENTRE_BACKS, FLAT_FOUR, NUMBER_TEN, STRIKE_PAIR),
   preset("5-3-2", BACK_FIVE, CENTRAL_THREE, STRIKE_PAIR),
   preset("5-4-1", BACK_FIVE, FLAT_FOUR, LONE_STRIKER),
   // The ten Craig added (28 Oct 2026).
@@ -98,12 +99,12 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("4-3-2-1", BACK_FOUR, CENTRAL_THREE, INSIDE_PAIR, LONE_STRIKER),
   preset("4-1-3-2", BACK_FOUR, ANCHOR, row("midfield", "left", "centre", "right"), STRIKE_PAIR),
   preset("4-2-4", BACK_FOUR, CENTRAL_PAIR, WIDE_PAIR, STRIKE_PAIR),
-  preset("3-4-2-1", BACK_THREE, FLAT_FOUR, INSIDE_PAIR, LONE_STRIKER),
-  preset("3-1-4-2", BACK_THREE, ANCHOR, FLAT_FOUR, STRIKE_PAIR),
+  preset("3-4-2-1", THREE_CENTRE_BACKS, FLAT_FOUR, INSIDE_PAIR, LONE_STRIKER),
+  preset("3-1-4-2", THREE_CENTRE_BACKS, ANCHOR, FLAT_FOUR, STRIKE_PAIR),
   preset("5-2-3", BACK_FIVE, CENTRAL_PAIR, FRONT_THREE),
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
   // 3-5-2 with a ten behind the striker (Craig, 1 Nov 2026: "also add 3-6-1"; placed 5 Nov 2026).
-  preset("3-6-1", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
+  preset("3-6-1", THREE_CENTRE_BACKS, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
   // Two at the back, as Craig asked (1 Nov 2026) and placed (4 Nov 2026). Sweeper and libero are
   // centre-back roles, never presets (Craig, 5 Nov 2026).
   preset("2-3-5", BACK_TWO, CENTRAL_THREE, row("attack", ...LANES)),
@@ -120,5 +121,5 @@ export function presetNameOf(cells: readonly Cell[], presets: readonly Preset[])
 
 /** The first of `presets` whose cells are exactly these, in any order. */
 function presetOf(cells: readonly Cell[], presets: readonly Preset[]): Preset | undefined {
-  return presets.find((each) => each.cells.length === cells.length && each.cells.every((cell) => cells.some((other) => sameCell(cell, other))));
+  return presets.find((each) => sameShape(each.cells, cells));
 }

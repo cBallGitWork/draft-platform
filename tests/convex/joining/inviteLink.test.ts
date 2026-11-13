@@ -5,14 +5,13 @@ import { asCommissioner, invitesPage, joinPageAs, lastEmailTo, makeLink, openLas
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex } from "../../support/convex/leagues.harness";
+import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's invite link (#73 story 2; spec/02, spec/13 Joining): made, replaced and switched
 // off, and letting anyone who opens it sign in to ask to join.
-
-const [ANN] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];
@@ -21,15 +20,20 @@ let token: string;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   token = await makeLink(t, leagueId);
 });
 
 const joinPageFor = (email: string, linkToken = token) => joinPageAs(t, email, linkToken);
 
 describe("the invite link", () => {
-  test("opened signed in, names the league and lets them ask to join", async () => {
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "mayAsk" });
+  test("opened signed in, names the league, its commissioner and how full it is, and lets them ask to join", async () => {
+    await addManagers(t, leagueId, [BOB]);
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: COMMISSIONER, teams: 1, maxTeams: 4, standing: "mayAsk" });
+  });
+
+  test("opened signed out, names the league and how full it is, but not the commissioner's email", async () => {
+    expect(await t.query(api.joining.joinRequests.joinPage, { token })).toEqual({ leagueName: LEAGUE_NAME, commissionerEmail: null, teams: 0, maxTeams: 4, standing: "mayAsk" });
   });
 
   test("lets anyone who opens it sign in, on the list or not, with a link back to it", async () => {
@@ -38,6 +42,13 @@ describe("the invite link", () => {
     expect(await onTheList(t, UNLISTED)).toBe(true);
     expect(lastEmailTo(sent, UNLISTED).text).toContain(`${SITE_URL}${joinPath(token)}?code=`);
     expect(await openLastLinkTo(t, sent, UNLISTED)).not.toBeNull();
+  });
+
+  test("refuses an email longer than any address can be, as sign-in does, and lists nobody", async () => {
+    const tooLong = `${"a".repeat(EMAIL_MAX)}@example.com`;
+
+    await expectRefused(t.action(api.joining.inviteLink.signInToJoin, { token, email: tooLong }), refusals.notEmail(tooLong));
+    expect(await onTheList(t, tooLong)).toBe(false);
   });
 
   test("switched off, stops working: its page is gone, and it neither signs anyone in nor takes a request", async () => {
