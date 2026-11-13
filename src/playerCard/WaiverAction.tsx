@@ -44,6 +44,8 @@ export function WaiverAction({
   const [confirming, setConfirming] = useState(false);
   const [choice, setChoice] = useState<{ kind: CardAction["kind"]; code: number | null }>({ kind: "none", code: null });
   const [claimed, setClaimed] = useState(false);
+  // Once he has gone (or left by a trade), Drop asks again the next time he is in the squad (#1437).
+  if (confirming && action?.kind !== "drop") setConfirming(false);
   if (action === undefined || action.kind === "none" || (fixed !== undefined && action.kind === "drop")) return null;
   // A choice made for a claim is dropped once the player turns free agent, and the other way round.
   const kind = action.kind;

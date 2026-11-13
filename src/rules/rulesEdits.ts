@@ -18,6 +18,10 @@ export type Revision = Id<"leagueRules">;
  *  revision the site's (`Rev`). */
 export type RulesView<Part, Rev = Revision> = { part: Part; revision: Rev; changesFrom: number };
 
+/** The commissioner's edits and the row they were made over; `overSave` while that row is the one
+ *  a save that ran under them replaced, until the screen reads the save's own. */
+type Edits<Part, Rev> = { part: Part; revision: Rev; overSave?: true };
+
 /** Saves a part: resolves with the gameweek it takes effect from, or the words saying why not. */
 type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | string>;
 
@@ -33,7 +37,9 @@ export function useRulesEdits<Part, Rev = Revision>(
   blankRefusal: (draft: Part) => string | null = () => null,
   onRefused: (draft: Part) => void = () => {},
 ) {
-  const [edits, setEdits] = useState<{ part: Part; revision: Rev } | null>(null);
+  const [edits, setEdits] = useState<Edits<Part, Rev> | null>(null);
+  // Edits typed while a save ran were made over it: they take its row as it arrives (#1437).
+  if (edits?.overSave === true && view.revision !== edits.revision) setEdits({ part: edits.part, revision: view.revision });
   const [savedFrom, setSavedFrom] = useState<number | null>(null);
   const [refusedBlank, setRefusedBlank] = useState(false);
   const saving = useChange();
@@ -57,6 +63,7 @@ export function useRulesEdits<Part, Rev = Revision>(
   }
   async function saveDraft() {
     let from: number | null = null;
+    const saved = draft;
     const made = await saving.run(async () => {
       const refused = blankRefusal(draft);
       setRefusedBlank(refused !== null);
@@ -71,8 +78,9 @@ export function useRulesEdits<Part, Rev = Revision>(
       return null;
     });
     if (!made) return;
-    // The live part has this save in it by now: Convex answers a mutation after its queries.
-    setEdits(null);
+    // The live part has this save in it by now: Convex answers a mutation after its queries. Edits
+    // typed since are kept, to be saved next.
+    setEdits((now) => (now === null || now.part === saved ? null : { ...now, overSave: true }));
     setSavedFrom(from);
   }
   return {
@@ -86,7 +94,7 @@ export function useRulesEdits<Part, Rev = Revision>(
     boxRefusal,
     area: blank.area,
     edit(part: Part) {
-      setEdits({ part, revision });
+      setEdits({ part, revision, ...(edits?.overSave === true ? { overSave: true } : {}) });
       setSavedFrom(null);
     },
     drop,
