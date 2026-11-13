@@ -115,14 +115,18 @@ describe("who is shown whose stars (spec/19, Role stars)", () => {
     expect(await ofPlayer(BLANK.code)).toEqual(everyStrikerRole(2.5));
   });
 
-  test("a scouted player is hidden again once the server holds a new season, never on a clock alone (#2046)", async () => {
+  test("a scouted player is hidden again once a new season starts", async () => {
     await (await actingAs(t, ANN)).mutation(api.scouting.scouts.send, { leagueId, playerCode: SCORER.code });
     await elapse(t, SCOUT_TRIP_MS);
-    const nextSeason = seasonStartYear(Date.now()) + 1;
-    vi.setSystemTime(Date.UTC(nextSeason, JULY, 1));
-    expect(await ofPlayer(SCORER.code)).toEqual(everyStrikerRole(5));
-    await holdSeason(nextSeason);
+    await holdSeason(seasonStartYear(Date.now()) + 1);
     expect(await ofPlayer(SCORER.code)).toBeNull();
+  });
+
+  test("the season is the one the server holds, so a clock already in the next one changes nothing (#2046)", async () => {
+    await (await actingAs(t, ANN)).mutation(api.scouting.scouts.send, { leagueId, playerCode: SCORER.code });
+    await elapse(t, SCOUT_TRIP_MS);
+    vi.setSystemTime(Date.UTC(seasonStartYear(Date.now()) + 1, JULY, 1));
+    expect(await ofPlayer(SCORER.code)).toEqual(everyStrikerRole(5));
   });
 
   test("with no season held yet, only his squad's are shown", async () => {
