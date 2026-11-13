@@ -228,7 +228,7 @@
     "fixed a mistake in the scoring every league plays on: version"
   ],
   "tests/convex/scoring/patchChanges.test.ts": [
-    "New own stat: Tackles plus (TP) = Tackles + 0.5 \u00d7 Clearances blocks interceptions"
+    "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions"
   ],
   "tests/convex/scoring/siteScoring.test.ts": [
     "Tackles won"
@@ -572,7 +572,7 @@
     "Yellow cards"
   ],
   "tests/src/scouting/compare.test.tsx": [
-    "Compare with another\u2026"
+    "Compare with another…"
   ],
   "tests/src/scouting/list.test.tsx": [
     "Shots on target"

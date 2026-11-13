@@ -138,9 +138,9 @@ flowchart TD
 
 ## Screens
 
-Status is the route's state only. A built screen has a route and its own page. `none` in the Path and File columns means no
-route yet. Whether a screen is spec'd or to grill, and its issue, is in [SPEC.md](../../SPEC.md)'s
-Features table (feature 12), the one home for screen status.
+Status is the route's state only. A built screen has a route and its own page. `none` in the Path
+and File columns means no route yet. Whether a screen is spec'd or to grill, and its issue, is in
+[SPEC.md](../../SPEC.md)'s Features table (feature 12), the one home for screen status.
 
 | Screen | Path | File | Spec | Status |
 |---|---|---|---|---|
