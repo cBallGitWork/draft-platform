@@ -4,7 +4,7 @@
 // and the tests draw exactly what the server sends.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
+import { drawFixtures, type DrawRules, type GameweekFixtures } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { gameModeOf } from "../../convex/rules/gameMode";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
@@ -44,14 +44,21 @@ const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
 const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
 
+/** The head-to-head schedule `drawn` says for `teams`, made in this order: none in total points.
+ *  The draw hangs on the teams' order, never on what they are, so League home's preview draws it
+ *  by name and plays the table's fixtures (#1969). */
+export function drawnSchedule<Team>(teams: readonly Team[], drawn: Drawn = {}): GameweekFixtures<Team>[] {
+  const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
+  return gameModeOf({ format: drawn.format ?? "headToHead" }).hasMatchups ? drawFixtures(teams, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+}
+
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the
  *  format, the teams, the head-to-head schedule (none in total points), each team's points in each
  *  gameweek scored, those unscored and the deadlines. */
 function inputsOf(teamNames: readonly string[], drawn: Drawn) {
-  const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
   const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const teamIds = teamNames.map(idOf);
-  const schedule = gameModeOf({ format }).hasMatchups ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const schedule = drawnSchedule(teamIds, drawn);
   const latest = Math.max(...scores.keys());
   const results: Results = new Map(
     [...scores].map(([gameweek, scored]) => [

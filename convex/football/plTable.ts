@@ -187,6 +187,14 @@ function tieBreakKey<Club>(
   }
 }
 
+/** How many places each club in `now` has moved since `before`, keyed by the club: up is positive,
+ *  down negative, a club not in `before` unmoved (spec/18, The table: "each club shows how many
+ *  places it has moved since it began"). Positions, not row order, so clubs sharing one stay put. */
+export function placesMoved<Club>(before: readonly PlTableRow<Club>[], now: readonly PlTableRow<Club>[]): Map<Club, number> {
+  const was = new Map(before.map(({ club, position }) => [club, position]));
+  return new Map(now.map(({ club, position }) => [club, (was.get(club) ?? position) - position]));
+}
+
 /** The matches between the clubs level. */
 function between<Club, M extends PlMatch<Club>>(level: readonly Row<Club>[], matches: readonly M[]): M[] {
   const levelClubs = new Set(level.map((row) => row.club));

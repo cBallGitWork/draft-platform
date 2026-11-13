@@ -1,21 +1,23 @@
+import { useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { AREAS, type Area } from "../../convex/lineup/pitch";
+import { AREAS } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
-import { LeagueHeading } from "../leagues/LeagueLinks";
+import { Loading, PAGE_STACK, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { PlateTabs } from "../ui/PlateTabs";
 import { Choice } from "../ui/Choice";
+import { SETTINGS_DRAFT_HASH } from "./paths";
 import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
 import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
-import { BoxRefusalContext, blankOrOff } from "../rules/blank";
-import { TickBox } from "../ui/TickBox";
-import { AREA_WORDS } from "../shared/words";
+import { BoxRefusalContext } from "../rules/blank";
 import { DraftPanel } from "./DraftPanel";
 import { NumberRow } from "./NumberRow";
 import { ScoringStartRow } from "./ScoringStartRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
+import { SquadPanel } from "./SquadPanel";
 import { TeamOrderPanel } from "./TeamOrderPanel";
 import { TradesPanel } from "./TradesPanel";
 import { runTwice, WaiversPanel } from "./WaiversPanel";
@@ -25,9 +27,6 @@ import { EveryTeamTable } from "../myTeam/claims/EveryTeamTable";
 import type { WaiversView } from "../myTeam/claims/seam";
 import { CLAIMS_TITLE, everyTeamClaimsLoadingWords, noClaimsWords, teamsWithoutClaimsWords, waiverOrderLoadingWords } from "../myTeam/claims/words";
 import {
-  areaMinimumLabel,
-  areaMinimumsHint,
-  areaMinimumsLabel,
   blankAreaMinimumWords,
   blankClubMaximumWords,
   blankGamesWords,
@@ -35,95 +34,110 @@ import {
   blankSquadMaximumWords,
   blankTimeoutsWords,
   blankTradeDeadlineWords,
-  clubMaximumHint,
-  clubMaximumLabel,
-  clubMaximumWords,
   fixturesTitle,
   gamesHint,
   gamesLabel,
   loadingWords,
-  noSquadSizeWords,
   oddTeamOutLabel,
   oddTeamOutWords,
   redrawWords,
   runTwiceWords,
   draftStartSavedWords,
   savedWords,
+  SETTINGS_TABS,
   SETTINGS_TITLE,
-  squadMaximumHint,
-  squadMaximumLabel,
-  squadTitle,
+  settingsTabsLabel,
+  settingsTabWords,
+  type SettingsTab,
 } from "./words";
 
-const AREA_MINIMUMS_ID = "area-minimums";
-/** Each hint's id, which its boxes are described by (#915). */
+/** The games box's hint's id, which the box is described by (#915). */
 const GAMES_HINT_ID = "settings-games-hint";
-const SQUAD_MAXIMUM_HINT_ID = "settings-squad-maximum-hint";
-const AREA_MINIMUMS_HINT_ID = "settings-area-minimums-hint";
-const CLUB_MAXIMUM_HINT_ID = "settings-club-maximum-hint";
 const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
- *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341), how
- *  the draft runs and when it starts (spec/04; #1087, #1476), how trades run (spec/08; #383) and how waivers do, beside the
- *  waiver order (spec/08; #1200), with the commissioner's draft order, which saves at once. */
+ *  to the league, a tab each on the title plate (docs/design/approved/settings/; #1034): the
+ *  round robin's two (spec/09), the squad's make-up (spec/03; #341), how the draft runs and when
+ *  it starts (spec/04; #1087, #1476), how waivers run, beside the waiver order (spec/08; #1200),
+ *  how trades do (spec/08; #383), and the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   // The settings are asked again each minute (liveSettings.ts), and the next minute's load mustn't
   // unmount the editor and throw its unsaved edits away; another league's loads afresh.
   const view = useLastLoaded(seam.useSettings(league.leagueId), league.leagueId);
+  // The draft room's "Change the start" opens the Draft tab (SETTINGS_DRAFT_HASH; #1476).
+  const hash = useRouterState({ select: (state) => state.location.hash });
+  const [tab, choose] = useState<SettingsTab>(hash === SETTINGS_DRAFT_HASH ? "draft" : "fixtures");
+  const aside = (
+    <>
+      <PlateTabs label={settingsTabsLabel} tabs={SETTINGS_TABS} words={settingsTabWords} chosen={tab} choose={choose} />
+      <span className="self-center text-soft">{league.name}</span>
+    </>
+  );
   return (
-    <div className="flex max-w-3xl flex-col gap-2">
-      <PageSection title={SETTINGS_TITLE} className="bg-panel">
-        <LeagueHeading name={league.name} />
-      </PageSection>
-      {view === undefined ? (
-        <Loading>{loadingWords}</Loading>
-      ) : (
-        <Editor league={league} seam={seam} view={view} />
-      )}
-    </div>
+    <PageSection title={SETTINGS_TITLE} aside={aside} className={PAGE_STACK}>
+      {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor league={league} seam={seam} view={view} tab={tab} />}
+    </PageSection>
   );
 }
 
-/** The settings, and the bar that saves them (rulesEdits.ts says how the draft follows the latest
- *  settings, and what a save over someone else's does). A save refused for a box left without a
- *  number says so beside that box, the cursor in it. */
-function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView }) {
+/** The chosen tab's settings, its panels on the left and what they lead to on the right (the
+ *  approved pictures), and the bar that saves them at the end of each tab but Draft order, whose
+ *  moves save at once. Edits are kept as the tabs switch, and one Save sends them all
+ *  (rulesEdits.ts says how the draft follows the latest settings, and what a save over someone
+ *  else's does). A save refused for a box left without a number says so beside that box, the
+ *  cursor in it. */
+function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView; tab: SettingsTab }) {
   const rulesEdits = useRulesEdits(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
   const { draft, edit } = rulesEdits;
   const start = useDraftStartEdit(league.leagueId, seam);
   const bar = withDraftStart(rulesEdits, start);
   return (
-    <div ref={rulesEdits.area} className="flex flex-col gap-2">
-      <BoxRefusalContext value={rulesEdits.boxRefusal}>
-        <Panel title={fixturesTitle}>
-          <div className={PANEL_BODY}>
-            <ScoringStartRow leagueId={league.leagueId} seam={seam} />
-            <Choice
-              label={oddTeamOutLabel}
-              name={ODD_TEAM_OUT_CHOICE}
-              options={ODD_TEAM_OUTS}
-              words={oddTeamOutWords}
-              chosen={draft.oddTeamOut}
-              onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
-            />
-            <NumberRow label={gamesLabel} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
-            <p id={GAMES_HINT_ID} className="text-muted">
-              {gamesHint}
-            </p>
-            <p className="text-muted">{redrawWords}</p>
-          </div>
-        </Panel>
-        <SquadPanel draft={draft} edit={edit} />
-        <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} start={start} />
-        <TradesPanel trades={draft.trades} seasonGameweeks={view.seasonGameweeks} edit={(trades) => edit({ ...draft, trades })} />
-        <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
-        <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
-        <SaveBar draft={bar} savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
-      </BoxRefusalContext>
-      <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
+    <div ref={rulesEdits.area} className="grid items-start gap-2 lg:grid-cols-table">
+      <div className={PAGE_STACK}>
+        <BoxRefusalContext value={rulesEdits.boxRefusal}>
+          {tab === "fixtures" && <FixturesPanel league={league} seam={seam} draft={draft} edit={edit} />}
+          {tab === "squad" && <SquadPanel draft={draft} edit={edit} />}
+          {tab === "draft" && <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} start={start} />}
+          {tab === "waivers" && <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />}
+          {tab === "trades" && <TradesPanel trades={draft.trades} seasonGameweeks={view.seasonGameweeks} edit={(trades) => edit({ ...draft, trades })} />}
+          {tab === "draftOrder" ? (
+            <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
+          ) : (
+            <SaveBar draft={bar} savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
+          )}
+        </BoxRefusalContext>
+      </div>
+      {tab === "waivers" && (
+        <div className={PAGE_STACK}>
+          <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
+        </div>
+      )}
     </div>
+  );
+}
+
+/** The Fixtures tab's panel: the scoring start (saved at once) and the round robin's two (spec/09). */
+function FixturesPanel({ league, seam, draft, edit }: { league: LeagueSummary; seam: LeagueSettingsSeam; draft: LeagueSettings; edit: (settings: LeagueSettings) => void }) {
+  return (
+    <Panel title={fixturesTitle}>
+      <div className={PANEL_BODY}>
+        <ScoringStartRow leagueId={league.leagueId} seam={seam} />
+        <Choice
+          label={oddTeamOutLabel}
+          name={ODD_TEAM_OUT_CHOICE}
+          options={ODD_TEAM_OUTS}
+          words={oddTeamOutWords}
+          chosen={draft.oddTeamOut}
+          onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
+        />
+        <NumberRow label={gamesLabel} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
+        <p id={GAMES_HINT_ID} className="text-muted">
+          {gamesHint}
+        </p>
+        <p className="text-muted">{redrawWords}</p>
+      </div>
+    </Panel>
   );
 }
 
@@ -178,69 +192,6 @@ function EveryTeamClaims({ leagueId, seam, waivers }: { leagueId: LeagueSummary[
     </Panel>
   );
 }
-
-/** The squad's make-up (spec/03, Squad make-up): its most players, the fewest in each area, and
- *  the most from one club, off by default. */
-function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: LeagueSettings) => void }) {
-  return (
-    <Panel title={squadTitle}>
-      <div className={PANEL_BODY}>
-        {draft.squadMaximum === null ? (
-          <p>{noSquadSizeWords}</p>
-        ) : (
-          <>
-            <NumberRow label={squadMaximumLabel} hintId={SQUAD_MAXIMUM_HINT_ID} value={draft.squadMaximum} onChange={(squadMaximum) => edit({ ...draft, squadMaximum })} />
-            <p id={SQUAD_MAXIMUM_HINT_ID} className="text-muted">
-              {squadMaximumHint}
-            </p>
-          </>
-        )}
-        <div role="group" aria-labelledby={AREA_MINIMUMS_ID} className="flex flex-col gap-1">
-          <span id={AREA_MINIMUMS_ID} className="text-soft">
-            {areaMinimumsLabel}
-          </span>
-          <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-            {AREAS.map((area) => (
-              <NumberRow
-                key={area}
-                label={areaMinimumLabel(area)}
-                shown={AREA_WORDS[area]}
-                hintId={AREA_MINIMUMS_HINT_ID}
-                value={draft.minimumByArea?.[area] ?? NO_MINIMUM}
-                onChange={(minimum) => edit({ ...draft, minimumByArea: withMinimum(draft.minimumByArea, area, minimum) })}
-              />
-            ))}
-          </div>
-          <p id={AREA_MINIMUMS_HINT_ID} className="text-muted">
-            {areaMinimumsHint}
-          </p>
-        </div>
-        <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: blankOrOff(on) })}>
-          {clubMaximumWords}
-        </TickBox>
-        {draft.maxPerClub !== null && (
-          <>
-            <NumberRow label={clubMaximumLabel} hintId={CLUB_MAXIMUM_HINT_ID} value={draft.maxPerClub} onChange={(maxPerClub) => edit({ ...draft, maxPerClub })} />
-            <p id={CLUB_MAXIMUM_HINT_ID} className="text-muted">
-              {clubMaximumHint}
-            </p>
-          </>
-        )}
-      </div>
-    </Panel>
-  );
-}
-
-/** An area with no minimum shows as 0, and minimums all 0 are saved as none, as the rules hold
- *  them (null), so putting each back to 0 leaves nothing changed. */
-const NO_MINIMUM = 0;
-
-function withMinimum(minimums: LeagueSettings["minimumByArea"], area: Area, minimum: number): LeagueSettings["minimumByArea"] {
-  const next = { ...(minimums ?? noMinimums()), [area]: minimum };
-  return AREAS.every((each) => next[each] === NO_MINIMUM) ? null : next;
-}
-
-const noMinimums = () => Object.fromEntries(AREAS.map((area) => [area, NO_MINIMUM])) as Record<Area, number>;
 
 /** Why settings with a box left without a number aren't sent: the server would refuse them as data
  *  of the wrong shape, never with a reason the commissioner can act on. */

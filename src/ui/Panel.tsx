@@ -51,7 +51,7 @@ function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode
     );
   }
   return (
-    <div className={`flex items-baseline justify-between ${PAGE_PLATE}`}>
+    <div className={`flex flex-wrap items-baseline justify-between ${PAGE_PLATE}`}>
       <h1 id={PAGE_TITLE_ID} className="text-title display-face">
         {children}
       </h1>

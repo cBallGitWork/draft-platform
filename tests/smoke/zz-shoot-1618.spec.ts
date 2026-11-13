@@ -1,5 +1,6 @@
 // Throwaway: shoots #1618's screens at 1440 for ui-verifier. Not committed.
 import { test } from "@playwright/test";
+import { settingsTabsLabel, settingsTabWords } from "../../src/leagueSettings/words";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 const OUT = "/tmp/b1618/shots";
@@ -25,6 +26,8 @@ test.describe("shoot", { tag: "@dev" }, () => {
     const options = await page.locator("select").first().locator("option").allTextContents();
     console.log("AUTO TEAM OPTIONS:", options[0], "…", options.at(-1), options.length);
     await page.goto(previewUrl("/leagues/preview-pro-league/settings", "commissioner"));
+    // The trade deadline is on League settings' Trades tab (#1034).
+    await page.getByRole("group", { name: settingsTabsLabel }).getByRole("button", { name: settingsTabWords.trades, exact: true }).click();
     await page.getByRole("checkbox", { name: "A trade deadline" }).check();
     await page.getByText(/^A gameweek, 1 to/).waitFor();
     console.log("HINT:", await page.getByText(/^A gameweek, 1 to/).textContent());
