@@ -30,7 +30,8 @@ import type { RoleStars } from "./starsShape";
 // club changed weeks later never re-works its auto-subs, nor gives him his new club's match in it.
 //
 // With no copy kept, a sub plays the slot's first role: a stable fallback, which no change of stars
-// moves, and a man is read with his club and positions now. So it is for a gameweek locked before
+// moves, and a man is read with his positions now and his club now, or the one a record of his in
+// the gameweek names (#2039). So it is for a gameweek locked before
 // this was built, for a player who joined the lineup after the deadline (the copy names only those
 // in it then), and for one whose keeping failed. A failed keeping is logged, and each recording
 // after tries again (`keepMissing`) for the league's latest begun gameweek, until one of its
