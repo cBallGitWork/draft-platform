@@ -5,10 +5,10 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { InvitesPageData } from "../../convex/joining/invitesPage";
-import type { JoinPageData } from "../../convex/joining/joinRequests";
+import type { JoinPageData, WaitingRequest } from "../../convex/joining/joinRequests";
 import type { Change } from "../shared/refusal";
 
-export type { EndedInvite, InvitesPageData, JoinPageData };
+export type { EndedInvite, InvitesPageData, JoinPageData, WaitingRequest };
 
 export type JoiningSeam = {
   /** The league's invites page, live (a hook): undefined while it loads, null when the person
@@ -20,6 +20,9 @@ export type JoiningSeam = {
   /** The person's newest invite, live (a hook), if it ended without them joining: undefined while
    *  it loads, null when there's none to tell of. */
   useEndedInvite(): EndedInvite | null | undefined;
+  /** The leagues the person has asked to join and waits on, live (a hook): undefined while it
+   *  loads. */
+  useWaitingRequests(): readonly WaitingRequest[] | undefined;
   /** Invites an email to the vacated team `teamId`, or to a new team when it's null. */
   invite(leagueId: Id<"leagues">, email: string, teamId: Id<"teams"> | null): Change;
   resendInvite(inviteId: Id<"invites">): Change;

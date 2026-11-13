@@ -6494,6 +6494,13 @@
             "email",
             "decision"
           ]
+        },
+        {
+          "indexDescriptor": "by_email_and_decision",
+          "fields": [
+            "email",
+            "decision"
+          ]
         }
       ],
       "stagedDbIndexes": [],

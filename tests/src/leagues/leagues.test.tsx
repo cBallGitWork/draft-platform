@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
-import { joinFailedWords } from "../../../src/joining/words";
+import { joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
@@ -71,6 +71,19 @@ describe("someone signed in, in no league", () => {
     expect(screen.queryByText(/Your invite to/)).toBeNull();
   });
 
+  it("is told beside it how joining a league goes", async () => {
+    openApp(LEAGUES_PATH, newcomer);
+    const panel = await screen.findByRole("region", { name: joiningALeagueWords.title });
+    expect(panel.textContent).toContain(joiningALeagueWords.how);
+  });
+
+  it("sees each league they asked to join waiting for its commissioner (spec/13, Joining)", async () => {
+    openApp(LEAGUES_PATH, newcomer, { joining: { waitingRequests: [{ leagueName: "Sunday Funday" }] } });
+    const panel = await screen.findByRole("region", { name: yourJoinRequestWords.title });
+    expect(within(panel).getByText("Sunday Funday")).toBeTruthy();
+    expect(within(panel).getByText(yourJoinRequestWords.waiting)).toBeTruthy();
+  });
+
   it("sees a Main menu of only their leagues and Mail, no section tabs, no Create a league, and can sign out", async () => {
     const app = openApp(LEAGUES_PATH, newcomer);
     await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
@@ -125,7 +138,10 @@ describe("the admin, with no part in a league", () => {
   it("is offered no way into a league being deleted, and its pages send him back to his leagues", async () => {
     const deleting = adminSeeing(beingDeleted(withNoPart(league)));
     openApp(LEAGUES_PATH, deleting);
-    expect(within(await rowOf(league.name)).queryAllByRole("link")).toEqual([]);
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    expect(screen.queryByRole("rowheader", { name: new RegExp(`^${league.name}`) })).toBeNull();
+    expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();
+    expect(screen.queryByRole("link", { name: SCORING_TITLE })).toBeNull();
 
     const app = openApp(scoringPath(league.leagueId), deleting);
     await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
@@ -172,6 +188,13 @@ describe("a manager in a league", () => {
     expect(screen.getByRole("navigation", { name: mainMenuLabel })).toBeTruthy();
     expect(screen.queryByRole("link", { name: NEW_LEAGUE_TITLE })).toBeNull();
     expect(app.path()).toBe(LEAGUES_PATH);
+  });
+
+  it("reads their parts in a league as a phrase, as the picture words it", () => {
+    expect(rolesWords(["commissioner", "manager"])).toBe("Commissioner and manager");
+    expect(rolesWords(["co-commissioner", "manager"])).toBe("Co-commissioner and manager");
+    expect(rolesWords(["manager"])).toBe("Manager");
+    expect(rolesWords([])).toBe("");
   });
 
   it("heads each column of their leagues with its short word, named by its long one", async () => {
