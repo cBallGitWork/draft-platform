@@ -5,16 +5,20 @@ import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { LIVE_WINDOW_MS } from "../../shared/dueMatches";
-import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
-import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sportmonksToken } from "./sportmonks";
+import { takeAllOrThrow } from "../../shared/cappedRead";
+import { MATCH_RECORDS_MOST } from "../../stats/matchRecordReads";
+import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksPlayerMatchRecord, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
+import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sides, sportmonksToken } from "./sportmonks";
 import { mapSportmonksMatch } from "./sportmonksMatch";
+import { halfTimeReached, sportmonksPlayerStats } from "./sportmonksPlayerStats";
 import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
 import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
 
 // Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each match of
 // a competition that is on (#1414), from kickoff to full time, read with its competition's others
 // in one call, with its lineups (starters, bench, formation places), each man's running totals
-// (`lineups.details`) and its events timeline, written over the last read. No match on, no call
+// (`lineups.details`) and its events timeline, written over the last read, and each man's match stats
+// worked out from them (#1415, sportmonksPlayerStats.ts). No match on, no call
 // and no row; otherwise a row a tick for each competition with a match on, each match read or why
 // not, which the feeds page judges and a failure of emails the admin. Where the deployment has no
 // `SPORTMONKS_API_TOKEN` it does nothing.
@@ -101,11 +105,44 @@ async function writeLiveMatch(ctx: ActionCtx, fixtureCode: number, read: RawFixt
     if (raw === undefined) throw new Error(`${SPORTMONKS} sent no match ${fixtureCode}`);
     const { score, men, events } = mapSportmonksMatch(raw);
     await ctx.runMutation(internal.football.sportmonks.sportmonksLive.writeMatch, { score, men, events, readAt });
+    // The score and lineups are written first: a match whose stats can't be worked out still shows.
+    try {
+      const { home, away } = sides(raw);
+      const records = sportmonksPlayerStats({ score, homeTeamId: home, awayTeamId: away, halfTime: halfTimeReached(raw.state_id), men, events });
+      await ctx.runMutation(internal.football.sportmonks.sportmonksLive.writePlayerStats, { fixtureCode, records });
+    } catch (error: unknown) {
+      throw new Error(`${PLAYER_STATS_FAILED}: ${errorMessage(error)}`);
+    }
     return { fixtureCode, ok: true };
   } catch (error: unknown) {
     return { fixtureCode, ok: false, error: errorMessage(error) };
   }
 }
+
+/** What a match's failure says, before the error, when its players' stats couldn't be worked out. */
+export const PLAYER_STATS_FAILED = "players' stats";
+
+/** One match's players' stats, replaced whole: a man the newest read no longer names loses his row. */
+export const writePlayerStats = internalMutation({
+  args: { fixtureCode: v.number(), records: v.array(sportmonksPlayerMatchRecord) },
+  returns: v.null(),
+  handler: async (ctx, { fixtureCode, records }) => {
+    const held = await takeAllOrThrow(
+      ctx.db.query("sportmonksPlayerMatchStats").withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode)),
+      MATCH_RECORDS_MOST,
+      `Match ${fixtureCode} holds more than ${MATCH_RECORDS_MOST} players' stats, so their rewrite would be cut short`,
+    );
+    const byPlayer = new Map(held.map((row) => [row.playerCode, row]));
+    for (const record of records) {
+      const row = byPlayer.get(record.playerCode);
+      byPlayer.delete(record.playerCode);
+      if (row === undefined) await ctx.db.insert("sportmonksPlayerMatchStats", record);
+      else await ctx.db.replace("sportmonksPlayerMatchStats", row._id, record);
+    }
+    for (const gone of byPlayer.values()) await ctx.db.delete("sportmonksPlayerMatchStats", gone._id);
+    return null;
+  },
+});
 
 /** One match's live read: its score, and its lineups and events replaced whole. */
 export const writeMatch = internalMutation({
