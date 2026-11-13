@@ -6,7 +6,7 @@ import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON } from "../../support/convex/matc
 // League home's panels on the reader's own team (#1976; Craig, 13 Nov 2026, on #1976): his squad's
 // news, his lineup's flagged starters in the pitch's order, the waiver runs and his claims, and this
 // gameweek's matches with his players or his opponent's. Ann fields Hull and Bob Everton, playing
-// each other in gameweek 6's one match.
+// each other in gameweek 6's one match. `S12.8`, `S12.9`, `S12.12`
 
 const KNOCK = "Knock - 75% chance of playing";
 const HAMSTRING = "Hamstring injury - Expected back 29 Nov";

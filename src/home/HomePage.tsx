@@ -66,7 +66,8 @@ const cellClasses = (column: Column) =>
  *  Under the league's title plate, the deadline strip; then Mail and News on the left; Your matchup,
  *  this gameweek's head-to-heads, scored once begun, and the table with each team's form in the
  *  centre; and on the right, the Vidiprinter while a matchday is open (1440-locked.png), the
- *  latest recap, and the panels still to come, each in its place. */
+ *  Premier League's gameweek with the reader's players, the latest recap, his squad's news, and the
+ *  panels still to come, each in its place. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
   // The minute is in the query's arguments, and league home mustn't blank every minute (nor its
   // Mail panel's choice reset); another league's loads afresh.

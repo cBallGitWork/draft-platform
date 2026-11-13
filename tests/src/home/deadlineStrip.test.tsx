@@ -1,7 +1,7 @@
 // League home's title plate and deadline strip (#1976; docs/design/approved/home/1440.png), as Craig
 // answered on #1976 (13 Nov 2026): when this gameweek locks, the reader's lineup by its first
 // flagged starter, Set or Not set, the next waiver run with his claims waiting, and his place in the
-// table, none of them opening anything.
+// table, none of them opening anything. `S12.9`, `S12.10`
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";

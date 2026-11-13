@@ -133,9 +133,11 @@ name (the score).
 - **Form**: a team's last five results, W, L or D, each a square chip in the figure colour with
   the ground's ink (14.8:1), oldest first. Built once, `src/myTeam/header/FormChips.tsx`.
 - **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
-  size, drawn as a 1px muted (`--color-muted`) outline with nothing in it; its `title` and label say what
-  will show there ("Role fit: not rated yet"). Never a made-up figure (Craig, 1 Nov 2026:
-  "placeholders, always placeholders, dont design a page with missing info when info is to come").
+  size, drawn as a 1px muted (`--color-muted`) outline; its `title` and label say what will show
+  there ("Role fit: not rated yet"). One on a panel keeps its outline with that label written inside
+  in muted words; a tiny one, a status chip or stars, stays an empty outline (Craig, 13 Nov 2026, on
+  #1976). Never a made-up figure (Craig, 1 Nov 2026: "placeholders, always placeholders, dont
+  design a page with missing info when info is to come").
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
   to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The

@@ -56,6 +56,26 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 
   League home's approved picture is in `docs/design/approved/home/` (Craig, 1 Nov 2026: "yes to
   all").
+  - Craig, 13 Nov 2026, on #1976, "yes to all five" of Claude's recommendations, wiring the
+    panels the picture draws:
+    - Flagged means any player FPL gives a news note, the note shown word for word, with no chip:
+      the status chips stay placeholders until they are settled. Your squad news lists the whole
+      squad's; Tactics' Lineup check lists only the starters'. `S12.8`
+    - The deadline strip's Your lineup box names the first flagged starter in the pitch's order,
+      "doubtful" when FPL gives him 25 to 75% and "out" at 0%, with "and 1 more" when there are
+      others; with none flagged it says Set, and with no lineup yet Not set. `S12.9`
+    - The strip's other three boxes are built as pictured and open nothing: GW9 locks shows its
+      day, time and how long is left ("Tue 11:00 in 1d 17h"); Claims close the next waiver run
+      and how many claims you have waiting ("Mon 20:00, 2 claims"); Table your place, points and
+      the gap ("2nd, 18 pts, 1 behind 1st", or "N ahead of 2nd" on top), in total points only
+      place and points. `S12.10`
+    - A placeholder keeps its outline, with its label written inside in muted words ("Role fit:
+      not rated yet"); a tiny one, a status chip or stars, stays an empty outline
+      (`docs/design/plate.md`, Marks). `S12.11`
+    - Home's Premier League panel is wired from the fixtures the site holds: this gameweek's
+      matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
+      only the matches where one of the two of you has a player; All fixtures opens the Premier
+      League. `S12.12`
 - **My team** shows the tactics pitch, the squad and Mail side by side.
   - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
     with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,

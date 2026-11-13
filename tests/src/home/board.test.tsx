@@ -2,7 +2,7 @@
 // Mail and News on the left; Your matchup at the top of the centre; and on the right, the Premier
 // League's gameweek, the recap and Your squad news, each folding on its ▾. The title plate and the
 // deadline strip are deadlineStrip.test.tsx's; the head-to-heads, the table and matchday mode
-// home.test.tsx's.
+// home.test.tsx's. `S12.8`, `S12.11`, `S12.12`
 
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

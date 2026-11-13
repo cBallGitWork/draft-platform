@@ -75,7 +75,7 @@ describe("on the Tactics tab", () => {
     expect(within(rowOf(WHITE)).queryByTitle(/Out of position/)).toBeNull();
   });
 
-  it("the lineup check lists each starter FPL gives a news note, the note word for word, never a bench player (#1976)", async () => {
+  it("the lineup check lists each starter FPL gives a news note, the note word for word, never a bench player (#1976, S12.8)", async () => {
     const newsOn = (member: Member, news: string): Member => ({ ...member, news });
     const squad = SQUAD.map((each) => (each === SALIBA ? newsOn(lostSaliba, "Knock - 75% chance of playing") : each === WHITE ? newsOn(WHITE, "Suspended") : each));
     openTacticsTab({ tactics: openTactics({ ...SAVED, squad }) });
