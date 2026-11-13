@@ -46,7 +46,7 @@ test("throws with the status and body when the API refuses", async () => {
   await expect(writeWithClaude(ASK)).rejects.toThrow("refused the request (529): overloaded");
 });
 
-test("throws when the reply was cut off at its token limit: half a report is a failed write (#1437)", async () => {
+test("throws when the reply was cut off at its token limit: half a report is a failed write (#1437, S19.4)", async () => {
   fakeApi(Response.json({ content: [{ type: "text", text: "Arsenal's defence was" }], stop_reason: "max_tokens" }));
   await expect(writeWithClaude(ASK)).rejects.toThrow("cut the reply off at 400 tokens");
 });

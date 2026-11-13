@@ -60,6 +60,9 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
 - A few plain sentences, written by AI, judging: his fit with the manager's shape and roles under
   the site's scoring; his form trend; his job security (will he keep starting); his fixtures ahead.
 - It keeps the date it was written; sending a scout to him again writes a new one.
+- A report that fails to be written, or is cut off part-way, is tried again for a day. Then the
+  scout comes back free with no report, and Mail tells the manager the report couldn't be filed
+  (Craig, 12 Nov 2026, on #1437: "Retry a day, then tell him"). `S19.4`
 
 ## Role stars
 

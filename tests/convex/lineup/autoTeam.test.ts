@@ -188,7 +188,7 @@ describe("an illegal lineup", () => {
     expect(await startersIn(NEXT + 1)).toContain(DOUBTFUL_MIDFIELDER);
   });
 
-  test("a slot no bench player fits is left empty, and the rest of the lineup stays (#1437)", async () => {
+  test("a slot no bench player fits is left empty, and the rest of the lineup stays (#1437, S09.2)", async () => {
     // The bench holds no keeper, so no one can come on for the keeper released.
     const error = silenceConsoleError();
     const keeper = FOUR_FOUR_TWO.starters.find(({ area }) => area === "goalkeeper")!.playerCode;

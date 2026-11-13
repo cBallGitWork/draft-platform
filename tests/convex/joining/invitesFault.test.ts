@@ -9,7 +9,7 @@ import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // A fault while taking up an invite at sign-in (Craig, 12 Nov 2026, on #1437: "Signed in, invite
 // kept"): the person is signed in anyway, the invite stays live with nothing of the join written,
-// and their leagues page says to open the link again, which then works.
+// and their leagues page says to open the link again, which then works. `S13.1`
 
 vi.mock("../../../convex/leagues/teams", async (actual) => {
   const teams = await actual<typeof import("../../../convex/leagues/teams")>();

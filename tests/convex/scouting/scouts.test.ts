@@ -165,7 +165,7 @@ describe("the report", () => {
     await elapse(t, CLAUDE_RETRY_MS);
     expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
   });
-  test("after a day of failed tries the scout is back with no report, free, and Mail says so (#1437)", async () => {
+  test("after a day of failed tries the scout is back with no report, free, and Mail says so (#1437, S19.4)", async () => {
     silenceConsoleError();
     claude.failing = true;
     const ann = await as(ANN);
