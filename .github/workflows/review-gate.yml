@@ -35,7 +35,7 @@ env:
 jobs:
   gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10  # room for set_status's retries, three minutes at most a write (#2030)
     steps:
       - name: Set the review-landed status
         env:
@@ -47,9 +47,16 @@ jobs:
           REVIEW_RUN_OK: ${{ github.event.workflow_run.conclusion == 'success' }}
         run: |
           set -euo pipefail
+          # a failed write is tried twice more, a minute then two apart, before the run fails: nothing runs the gate again
+          # for its pull request, so one 403 from a spent API quota held #1988's review-landed for 4.5 hours (#2030)
           set_status() { # sha state description
             echo "$1: $2 ($3)"
-            gh api "repos/$GH_REPO/statuses/$1" -f state="$2" -f context="$STATUS" -f description="$3" > /dev/null
+            local try
+            for try in 1 2 3; do
+              gh api "repos/$GH_REPO/statuses/$1" -f state="$2" -f context="$STATUS" -f description="$3" > /dev/null && return
+              [ "$try" = 3 ] || { echo "::warning::couldn't set $1's $STATUS (try $try of 3): trying again"; sleep $((60 * try)); }
+            done
+            echo "::error::couldn't set $1's $STATUS after 3 tries"; return 1
           }
           gate() { # pr
             local pr=$1 view sha review verdict at newer

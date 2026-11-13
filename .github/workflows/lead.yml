@@ -124,6 +124,7 @@ env:
   # a day (38 to 70 a day, 6-10 Nov 2026; 307 on 11 Nov building the second refactor pass, Craig: "we were doing a
   # refactor"), which also pauses builds until Craig closes the pause issue.
   TRIP_CHECK: "tripwire"
+  TRIP_EVERY_MINUTES: 40  # a pass that isn't the schedule's runs the tripwire only when no scheduled one has in this long
   TRIP_WINDOW_MINUTES: 90  # past one missed half-hourly pass; Healthchecks emails once when it goes down
   MAX_BUILDS_A_DAY: 400
   KNOWN_ACTORS: "CBHelper180 claude[bot] github-actions[bot] vercel[bot]"  # and OWNER
@@ -138,17 +139,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # each label is made only when it is missing: one read instead of nine writes every pass (#2030: the Actions
+      # token's API quota ran out twice on 13 Nov 2026)
       - name: Make the lead's labels
         run: |
-          gh label create "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
-          gh label create "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
-          gh label create "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
-          gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
-          gh label create "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
-          gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
-          gh label create "$CONFLICT_LABEL" --color 5319E7 --description "The lead gave this pull request a round for its conflicts with main" --force
-          gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
-          gh label create "$REVIEW_STARTED_LABEL" --color 5319E7 --description "Its review never ran, so the lead started one" --force
+          have=$(gh label list --limit 500 --json name --jq '.[].name')
+          make() { grep -qxF "$1" <<<"$have" || gh label create "$@"; }
+          make "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
+          make "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
+          make "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
+          make "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
+          make "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
+          make "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
+          make "$CONFLICT_LABEL" --color 5319E7 --description "The lead gave this pull request a round for its conflicts with main" --force
+          make "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
+          make "$REVIEW_STARTED_LABEL" --color 5319E7 --description "Its review never ran, so the lead started one" --force
       # A merged pull request's `Closes #N` line links its issue but GitHub never closed it here (9 and 11 Nov 2026:
       # 17, then 56 issues closed by hand, each one "blocked" on the board meanwhile), so the lead closes it. Only a
       # line that starts with the closing word counts, as the template writes it; `Part of #N` leaves N open.
@@ -387,11 +392,15 @@ jobs:
                        or (.event == "commented" and .actor.login == env.OWNER and ((.body // "") | test("^Craig.s answer"))))]
               | length > 0' <<<"$timeline" > /dev/null
           }
+          # only an issue the queue would build has its timeline read: a full timeline for every issue built in the last
+          # day was the lead's biggest API spend (#2030)
+          buildable=$(for row in $ready; do [ "${row#*:}" = build ] && echo "${row%%:*}"; done)
           stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
                       --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle,createdAt \
                       --jq '[.[] | select(.displayTitle | startswith("build #")) | {n: (.displayTitle | ltrimstr("build #")), at: .createdAt}]
                             | group_by(.n)[] | max_by(.at) | "\(.n) \(.at)"' \
                     | while read -r n at; do
+                        grep -qx "$n" <<<"$buildable" || continue
                         if answered_since "$n" "$at"; then echo "#$n was answered after its build stopped: buildable again" >&2; else echo "$n"; fi
                       done)
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$stopped" && ! grep -qx "$n" <<<"$taken"; then echo "$n:stopped"; else echo "$row"; fi; done)
@@ -449,6 +458,14 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: the tripwire can't tell Craig."; exit 1; }
+          # it runs on the half-hourly scheduled pass, and on any other only when no scheduled pass succeeded in the
+          # last TRIP_EVERY_MINUTES, since GitHub's schedule can stop firing: on every pass it spent the API quota (#2030)
+          if [ "$GITHUB_EVENT_NAME" != schedule ]; then
+            last=$(gh run list --workflow lead.yml --event schedule --status success --limit 1 --json createdAt --jq '.[0].createdAt // ""')
+            if [ -n "$last" ] && [[ "$last" > "$(date -u -d "$TRIP_EVERY_MINUTES minutes ago" +%FT%TZ)" ]]; then
+              echo "A scheduled pass ran the tripwire at $last: this pass skips it."; exit 0
+            fi
+          fi
           since=$(date -u -d "$TRIP_WINDOW_MINUTES minutes ago" +%FT%TZ)
           trips=()
           # a workflow run for an actor the pipeline doesn't know (a stranger's pull request from a fork included)

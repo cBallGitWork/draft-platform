@@ -136,9 +136,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh label create 'rules:open' --color D93F0B --description 'Rules Craig must answer before this issue builds' --force
-          gh label create 'rules:clear' --color 0E8A16 --description 'The rules sweep found every rule settled' --force
-          gh label create 'lead:stale' --color BFBFBF --description 'The rules sweep found it already built or out of date' --force
+          # only the missing ones: one read instead of three writes every build (#2030)
+          have=$(gh label list --limit 500 --json name --jq '.[].name')
+          make() { grep -qxF "$1" <<<"$have" || gh label create "$@"; }
+          make 'rules:open' --color D93F0B --description 'Rules Craig must answer before this issue builds' --force
+          make 'rules:clear' --color 0E8A16 --description 'The rules sweep found every rule settled' --force
+          make 'lead:stale' --color BFBFBF --description 'The rules sweep found it already built or out of date' --force
       - name: Note when the build started  # the draft step tells a question asked since then from an unfinished build
         if: steps.gate.outputs.go == 'true'
         run: echo "BUILD_STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
