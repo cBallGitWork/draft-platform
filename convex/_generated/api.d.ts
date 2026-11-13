@@ -97,6 +97,7 @@ import type * as gameweeks_gameweekEnd from "../gameweeks/gameweekEnd.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
+import type * as gameweeks_matchMoves from "../gameweeks/matchMoves.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
 import type * as gameweeks_roundStarts from "../gameweeks/roundStarts.js";
@@ -483,6 +484,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueDeadlines": typeof gameweeks_leagueDeadlines;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
+  "gameweeks/matchMoves": typeof gameweeks_matchMoves;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
   "gameweeks/roundStarts": typeof gameweeks_roundStarts;
