@@ -1,7 +1,9 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DEADLINE, GAMEWEEK, homeAt, HULL_BENCH, HULL_KEEPER, HULL_SCORER, HULL_STARTERS, LEAGUE_FULL_TIME_READ, nameOf, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { COMMISSIONER } from "../../support/convex/leagues.harness";
+import { squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // League home's panels on the reader's own team (#1976; Craig, 13 Nov 2026, on #1976): his squad's
 // news, his lineup's flagged starters in the pitch's order, the waiver runs and his claims, and this
@@ -37,6 +39,19 @@ test("lists each of his squad's players FPL gives a note, word for word, and his
   expect(yours.squadNews.toSorted((one, other) => one.playerCode - other.playerCode)).toEqual(noted.toSorted((one, other) => (one.playerCode as number) - (other.playerCode as number)));
   // The bench man is no starter; the back line stands before the midfield.
   expect(yours.lineup).toEqual({ set: true, flagged: [noted[0], noted[1]] });
+});
+
+test("still flags a starter released since the deadline, who starts this gameweek all the same", async () => {
+  const league = await scoresLeague();
+  const [, firstStarter] = HULL_STARTERS;
+  await giveNews(league, firstStarter.playerCode, "Suspended", 0);
+  vi.setSystemTime(LEAGUE_FULL_TIME_READ);
+  await (await squadMoves(league.t, league.leagueId, COMMISSIONER)).release(firstStarter.playerCode);
+  const yours = (await homeAt(league, LEAGUE_FULL_TIME_READ))!.yours!;
+
+  const suspended = { playerCode: firstStarter.playerCode, name: await nameOf(league, firstStarter.playerCode), news: "Suspended", chanceOfPlaying: 0 };
+  expect(yours.squadNews).not.toContainEqual(suspended);
+  expect(yours.lineup).toEqual({ set: true, flagged: [suspended] });
 });
 
 test("holds the league's waiver runs and his claims waiting", async () => {

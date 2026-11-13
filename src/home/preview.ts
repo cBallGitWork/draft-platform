@@ -57,7 +57,7 @@ const deadline = deadlineOf(current.gameweek);
 const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
 const startersOf = new Set(previewStarterCodes);
 const clubs = [...new Map(previewSquad.map(({ clubCode, clubShortName }) => [clubCode, { code: clubCode, name: clubShortName, shortName: clubShortName }])).values()];
-const THEIRS = ["Raya, Saliba", "Dias", "Mac Allister, Gravenberch, Salah", "Gusto", ""];
+const THEIRS = ["Raya, Saliba", "Dias", "Jones, Gravenberch, Salah", "Gusto", ""];
 const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, index) => {
   const [home, away] = [clubs[2 * index], clubs[2 * index + 1]];
   const playing = new Set([home.code, away.code]);

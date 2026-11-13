@@ -6,7 +6,7 @@ import { byPitchOrder, heldCell } from "../lineup/pitch";
 import { waiverRulesShape, type LeagueRules } from "../rules/leagueRulesShape";
 import { clubRecord } from "../schema";
 import { byKickoff, gameweekFixtures } from "../shared/fixtures";
-import { clubsByCode } from "../shared/players";
+import { clubsByCode, playerByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "../squads/squadPlace";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { claimsOf } from "../waivers/waiverClaims";
@@ -83,7 +83,10 @@ async function lineupOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"team
   if (lineup.fromGameweek === null) return { set: false, flagged: [] };
   const byCode = new Map(squad.map((player) => [player.code, player]));
   const starters = lineup.starters.toSorted((one, other) => byPitchOrder(heldCell(one), heldCell(other)));
-  return { set: true, flagged: starters.flatMap(({ playerCode }) => (byCode.has(playerCode) ? flagged(byCode.get(playerCode)!) : [])) };
+  // A begun gameweek's lineup is its squad at the deadline, so a starter who has left since still
+  // starts and is read on his own; one the football sync doesn't hold has no note to flag.
+  const players = await Promise.all(starters.map(({ playerCode }) => byCode.get(playerCode) ?? playerByCode(ctx, playerCode)));
+  return { set: true, flagged: players.flatMap((player) => (player === null ? [] : flagged(player))) };
 }
 
 async function premierLeagueOf(ctx: QueryCtx, current: GameweekFixtures<Id<"teams">>, teamId: Id<"teams">, squad: readonly HeldPlayer[]) {
