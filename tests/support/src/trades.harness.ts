@@ -1,6 +1,8 @@
 // Trades' tests' fake seam (shell.harness.tsx hands it to the app): the manager's Team 1, Team 2
 // to trade with, nothing offered or closed unless a test says.
 
+import { act } from "@testing-library/react";
+import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type {
@@ -149,11 +151,23 @@ export function fakeTrades({
     against: vi.fn<TradeChanges["against"]>(async () => refusal),
     takeBack: vi.fn<TradeChanges["takeBack"]>(async () => refusal),
   };
+  let shown = view;
+  const listeners = new Set<() => void>();
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  };
   return {
     ...changes,
-    useTrades: vi.fn<TradesSeam["useTrades"]>(() =>
-      loading ? undefined : view,
-    ),
+    useTrades: vi.fn<TradesSeam["useTrades"]>(() => {
+      const now = useSyncExternalStore(subscribe, () => shown);
+      return loading ? undefined : now;
+    }),
+    /** The server's answer changes while Trades is open: another offer closes, a player moves. */
+    showView(next: TradesView) {
+      shown = next;
+      act(() => listeners.forEach((listener) => listener()));
+    },
     useReviews: vi.fn<TradesSeam["useReviews"]>(() =>
       loading ? undefined : reviews,
     ),
