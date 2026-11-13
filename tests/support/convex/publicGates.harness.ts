@@ -91,6 +91,8 @@ export const gates: Record<string, Gate> = {
   "draft/draftStart:setStart": "runner",
   "draft/draftStart:start": "runner",
   "feedback/feedback:list": "admin",
+  "feedback/feedback:markRead": "admin",
+  "feedback/feedback:remove": "admin",
   "feedback/feedback:send": "signedIn",
   "football/clubKits:all": "signedInOrNothing",
   "football/clubKits:set": "admin",

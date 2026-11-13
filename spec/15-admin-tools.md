@@ -26,6 +26,9 @@ each league's **commissioner**.
   on admin"; the admin owning them leaves room for real shirt packs and away kits later).
 - Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
   lands in a list on the admin dashboard, with no email (25 Oct 2026).
+- One person sends the admin at most 5 feedback messages a day: a 6th is refused, and the sender
+  is told so in plain words. The admin can delete a message, and can mark one read (Craig,
+  13 Nov 2026, on #395: "5 a day, delete and read"). `S15.5`
 - A feeds page: when Sportmonks' data last arrived, and whether scoring is behind. Sportmonks
   replaces FPL's and the Premier League's feeds (Craig, 9 Nov 2026, on #1196: "stop with fpl and
   prem, thats not scalable"). A feed that stops silently is the failure to catch. A feed or sync

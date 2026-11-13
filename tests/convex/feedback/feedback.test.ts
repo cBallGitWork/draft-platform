@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { feedbackRefusals } from "../../../convex/feedback/feedback";
-import { FEEDBACK_MAX, FEEDBACK_SHOWN } from "../../../convex/feedback/feedbackLimits";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { FEEDBACK_A_DAY, FEEDBACK_MAX, FEEDBACK_SHOWN } from "../../../convex/feedback/feedbackLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, actingAs, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { EMOJI, expectRefused } from "../../support/convex/test.harness";
@@ -35,8 +36,8 @@ describe("sending", () => {
   test("#357 Done: a manager sends, and the admin sees it with who sent it and when", async () => {
     await send(ANN, "The table looks wrong.");
     const { entries, more } = await list(ADMIN);
-    expect(entries.map(({ from, at, message }) => ({ from, at, message }))).toEqual([
-      { from: ANN, at: SENT_AT, message: "The table looks wrong." },
+    expect(entries.map(({ from, at, message, read }) => ({ from, at, message, read }))).toEqual([
+      { from: ANN, at: SENT_AT, message: "The table looks wrong.", read: false },
     ]);
     expect(more).toBe(false);
   });
@@ -74,6 +75,88 @@ describe("sending", () => {
       [COMMISSIONER, "From the commissioner."],
       [BOB, "From someone in no league."],
     ]);
+  });
+});
+
+describe(`S15.5: at most ${FEEDBACK_A_DAY} a day from one person`, () => {
+  const sendTimes = async (email: string, times: number) => {
+    for (let number = 1; number <= times; number++) await send(email, `Message ${number}`);
+  };
+
+  test(`${FEEDBACK_A_DAY} are sent; one more is refused in plain words, and not stored`, async () => {
+    await sendTimes(ANN, FEEDBACK_A_DAY);
+    await expectRefused(send(ANN, "One too many."), feedbackRefusals.tooMany);
+    expect(await stored()).toHaveLength(FEEDBACK_A_DAY);
+  });
+
+  test("the limit is each person's own", async () => {
+    await sendTimes(ANN, FEEDBACK_A_DAY);
+    await send(BOB, "Bob's first.");
+    expect(await stored()).toHaveLength(FEEDBACK_A_DAY + 1);
+  });
+
+  test("a day after the first, its place is free again", async () => {
+    await send(ANN, "First.");
+    vi.advanceTimersByTime(HOUR_MS);
+    await sendTimes(ANN, FEEDBACK_A_DAY - 1);
+    vi.advanceTimersByTime(DAY_MS - HOUR_MS - 1);
+    await expectRefused(send(ANN, "Still too soon."), feedbackRefusals.tooMany);
+    vi.advanceTimersByTime(1);
+    await send(ANN, "A day on.");
+    await expectRefused(send(ANN, "Too many again."), feedbackRefusals.tooMany);
+  });
+});
+
+describe("S15.5: the admin marks a message read or deletes it", () => {
+  const onlyId = async () => (await list(ADMIN)).entries[0].feedbackId;
+  const markRead = async (email: string, feedbackId: Id<"feedback">) =>
+    (await actingAs(t, email)).mutation(api.feedback.feedback.markRead, { feedbackId });
+  const remove = async (email: string, feedbackId: Id<"feedback">) =>
+    (await actingAs(t, email)).mutation(api.feedback.feedback.remove, { feedbackId });
+
+  test("marked read, the list says so, and marking again changes nothing", async () => {
+    await send(ANN, "Read me.");
+    const feedbackId = await onlyId();
+    await markRead(ADMIN, feedbackId);
+    expect((await list(ADMIN)).entries.map((entry) => entry.read)).toEqual([true]);
+    const readAt = await t.run(async (ctx) => (await ctx.db.get("feedback", feedbackId))?.readAt);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await markRead(ADMIN, feedbackId);
+    expect(await t.run(async (ctx) => (await ctx.db.get("feedback", feedbackId))?.readAt)).toBe(readAt);
+  });
+
+  test("deleted, it leaves the list", async () => {
+    await send(ANN, "Delete me.");
+    await send(BOB, "Keep me.");
+    const doomed = (await list(ADMIN)).entries.find((entry) => entry.message === "Delete me.")?.feedbackId;
+    if (doomed === undefined) throw new Error("Ann's message wasn't listed");
+    await remove(ADMIN, doomed);
+    expect(await stored()).toEqual([[BOB, "Keep me."]]);
+  });
+
+  test("a message already deleted is refused, read or deleted again", async () => {
+    await send(ANN, "Gone soon.");
+    const feedbackId = await onlyId();
+    await remove(ADMIN, feedbackId);
+    await expectRefused(markRead(ADMIN, feedbackId), feedbackRefusals.gone);
+    await expectRefused(remove(ADMIN, feedbackId), feedbackRefusals.gone);
+  });
+
+  test("no one but the admin can, and nothing changes", async () => {
+    await send(ANN, "Mine.");
+    const feedbackId = await onlyId();
+    for (const email of [ANN, COMMISSIONER]) {
+      await expectRefused(markRead(email, feedbackId), refusals.notAdmin);
+      await expectRefused(remove(email, feedbackId), refusals.notAdmin);
+    }
+    expect((await list(ADMIN)).entries.map((entry) => entry.read)).toEqual([false]);
+  });
+
+  test("a deleted message frees its place in the sender's day", async () => {
+    for (let number = 1; number <= FEEDBACK_A_DAY; number++) await send(ANN, `Message ${number}`);
+    await remove(ADMIN, (await list(ADMIN)).entries[0].feedbackId);
+    await send(ANN, "In its place.");
+    expect(await stored()).toHaveLength(FEEDBACK_A_DAY);
   });
 });
 
