@@ -187,6 +187,7 @@ class SideScorer {
       autoTeam: onAutoTeam(team),
       lineup: { starters: await Promise.all(scored.team.starters.map(starterOf)), bench: await Promise.all(scored.team.bench.map(benchOf)) },
       formation: scored.formation,
+      runs: [...(this.inGameweek.set.runs ?? [])],
     };
   }
 

@@ -8,6 +8,7 @@ import { droppedStarter } from "../stars/bestRole";
 import { starsOfPlayers } from "../stars/playerStars";
 import { sortedJson } from "../shared/sortedJson";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "./draftedRoleAdjustments";
+import { FIRST_RUNS } from "./draftedRoleRuns";
 import type { StoredScoringSet } from "./scoringSetShape";
 import { addVersion, checkScoringSet } from "./siteScoring";
 import { isWaiting, setOf, siteVersions, versionName } from "./siteVersions";
@@ -24,7 +25,11 @@ import { isWaiting, setOf, siteVersions, versionName } from "./siteVersions";
 //   set no longer holds moves to the role he'd get dropped into that slot, his lineup never refused
 //   (spec/05, Roles' patch rule). Run it again and it does nothing.
 //     npx convex run scoring/firstRolesVersion:addRedrawnRoles
-// Add --prod to run either on production.
+// - addFirstRuns (#886; spec/05 `S05.8`): each moving role's run (draftedRoleRuns.ts) into the
+//   set, beside the roles, so the pitch draws them and a patch can change one. It adds only the runs
+//   the set doesn't hold yet; run it again and it does nothing.
+//     npx convex run scoring/firstRolesVersion:addFirstRuns
+// Add --prod to run any of them on production.
 
 const added = v.object({ name: v.string(), fromGameweek: v.number() });
 
@@ -54,6 +59,25 @@ export const addRedrawnRoles = internalMutation({
     if (sortedJson(set.roles ?? []) === sortedJson(FIRST_ROLES) && missingOwnStats(set).length === 0) return null;
     const { name, fromGameweek } = await addRoles(ctx, latest);
     return { name, fromGameweek, moved: await moveOffCutRoles(ctx, fromGameweek) };
+  },
+});
+
+/** Adds the version with every first run the set doesn't hold, returning its name and the first
+ *  gameweek it reaches, or null when it holds a run for each. Throws while a patch waits to take
+ *  effect, as addFirstRoles does. */
+export const addFirstRuns = internalMutation({
+  args: {},
+  returns: v.union(v.null(), added),
+  handler: async (ctx) => {
+    const { history, version } = await latestInForce(ctx, "the runs");
+    const set = setOf(version);
+    const held = new Set((set.runs ?? []).map(({ role }) => role));
+    const missing = FIRST_RUNS.filter(({ role }) => !held.has(role));
+    if (missing.length === 0) return null;
+    const scoring = { ...set, runs: [...(set.runs ?? []), ...missing] };
+    checkScoringSet(scoring);
+    const { name, fromGameweek } = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: Date.now() }, null);
+    return { name, fromGameweek };
   },
 });
 

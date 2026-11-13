@@ -1827,6 +1827,38 @@
               }
             },
             "optional": false
+          },
+          "unplacedArea": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "goalkeeper"
+                },
+                {
+                  "type": "literal",
+                  "value": "defence"
+                },
+                {
+                  "type": "literal",
+                  "value": "defensiveMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "midfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attackingMidfield"
+                },
+                {
+                  "type": "literal",
+                  "value": "attack"
+                }
+              ]
+            },
+            "optional": true
           }
         }
       }
@@ -11253,6 +11285,46 @@
                           }
                         },
                         "optional": true
+                      },
+                      "runs": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "role": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "path": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "forward": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "across": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
                       }
                     }
                   },
@@ -16665,6 +16737,46 @@
                           }
                         },
                         "optional": true
+                      },
+                      "runs": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "role": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "path": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "forward": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "across": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
                       }
                     }
                   },
@@ -20366,6 +20478,46 @@
                                     "type": "number"
                                   },
                                   "optional": true
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "runs": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "role": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "path": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "forward": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "across": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
                                 }
                               }
                             }
@@ -24350,6 +24502,46 @@
                                     "type": "number"
                                   },
                                   "optional": true
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "runs": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "role": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "path": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "forward": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "across": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
                                 }
                               }
                             }

@@ -33,7 +33,7 @@ export const noGameWords = (teamName: string, gameweek: number) => `${teamName} 
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
 /** Before the deadline: no lineup is shown, the manager's own is on My team. */
 export const notBegunWords = (deadline: number | null) =>
-  `Lineups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
+  `Line-ups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
 export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
 export const averageWords = "Every team counted once.";
 /** A side's or an opponent's name: its team's, or the league's average. */
@@ -59,7 +59,7 @@ export const sidePitchLabel = (teamName: string) => `${teamName}'s pitch`;
 export const pitchPlayerLabel = (name: string, position: string, role: string, points: string) => `${name}, ${position} ${role}, ${points}`;
 export { BENCH_TITLE } from "../shared/words";
 /** Each side's panel's title (the approved picture): its team's name, read out, is the panel's. */
-export const LINEUP_TITLE = "Lineup";
+export const LINEUP_TITLE = "Line-up";
 /** A side's bench, a row of tiles (the approved picture), and each man in it. */
 export const benchLabel = (teamName: string) => `${teamName}'s bench`;
 /** On a tile's shirt where his match's state goes: a starter who didn't play and was replaced. */

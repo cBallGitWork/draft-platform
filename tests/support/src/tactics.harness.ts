@@ -6,6 +6,7 @@ import { firstPairFor } from "../../../convex/lineup/instructions";
 import { gameModeOf } from "../../../convex/rules/gameMode";
 import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 import { serverStore } from "./serverStore";
 
@@ -15,6 +16,10 @@ export const TACTICS_GAMEWEEK = 9;
 /** The team instructions the fake server holds in force, unless a test says: a back four's first
  *  defaults, Play out from the back and Keep it tight early. A save sends them with the lineup. */
 export const OPEN_PICKED = firstPairFor([]);
+
+/** The role's first run, as the fake server's scoring set holds it, or null for one that holds its
+ *  place. */
+export const firstRunOf = (key: string) => FIRST_RUNS.find(({ role }) => role === key) ?? null;
 
 /** An open gameweek under the first rules, with this squad and lineup: an empty squad and its
  *  empty first lineup, and no deadline, unless a test says. */
@@ -30,6 +35,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   squad: [],
   lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
   mode: gameModeOf(FIRST_RULES),
+  runs: [...FIRST_RUNS],
   ...change,
 });
 

@@ -27,5 +27,5 @@ export function switchedWords(switched: readonly Switched[]): string | null {
 export function pairRefusalWords(refusal: { side: Side; key: string; blockedBy?: ShapeNeed }, set: readonly Instruction[]): string {
   const name = set.find(({ key }) => key === refusal.key)?.name;
   if (refusal.blockedBy === undefined || name === undefined) return `"${refusal.key}" isn't one of this league's ${refusal.side} instructions.`;
-  return `${name} needs ${NEEDS_WORDS[refusal.blockedBy]}, which this lineup's formation doesn't have.`;
+  return `${name} needs ${NEEDS_WORDS[refusal.blockedBy]}, which this line-up's formation doesn't have.`;
 }

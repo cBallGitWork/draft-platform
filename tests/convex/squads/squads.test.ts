@@ -221,6 +221,16 @@ describe("squad limits warn, never block", () => {
     expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([{ kind: "underAreaMinimum", area: "midfield", players: 0, minimum: 1 }]);
   });
 
+  test("#911: a player no feed has placed fills the area the admin set, and none with no area set", async () => {
+    await setSquadRules({ size: null, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 1 }, maxPerClub: null });
+    await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
+    const short = [{ kind: "underAreaMinimum", area: "defence", players: 0, minimum: 1 }];
+    expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual(short);
+
+    await (await actingAs(t, ADMIN)).mutation(api.positions.unplacedAreas.setUnplacedArea, { code: SAKA, area: "defence" });
+    expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([]);
+  });
+
   test("a league with no squad limits warns of nothing", async () => {
     await setSquadRules({ size: null, minimumByArea: null, maxPerClub: null });
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);

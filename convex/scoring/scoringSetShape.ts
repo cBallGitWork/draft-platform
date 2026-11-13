@@ -31,6 +31,9 @@ const weighedStats = v.array(v.object({ stat: v.string(), weight: v.number() }))
 /** scoringSet.ts's RoleSide. */
 const roleSideShape = v.object({ parts: weighedStats, bars: v.array(v.number()) });
 
+/** scoringSet.ts's RoleRun: a role's run, which the screens drawing runs are sent too. */
+export const roleRunShape = v.object({ role: v.string(), path: v.array(v.object({ forward: v.number(), across: v.number() })) });
+
 /** scoringSet.ts's ScoringSet. */
 export const scoringSetShape = v.object({
   rules: v.array(
@@ -77,6 +80,8 @@ export const scoringSetShape = v.object({
       }),
     ),
   ),
+  /** scoringSet.ts's RoleRun (spec/05 Runs, `S05.8`; #886). */
+  runs: v.optional(v.array(roleRunShape)),
 });
 
 export type StoredScoringSet = Infer<typeof scoringSetShape>;

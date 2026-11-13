@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { positionsNow } from "../positions/playerPositions";
+import { playerPositionsNow, positionsNow } from "../positions/playerPositions";
 import { ASSISTS, CLEAN_SHEETS, GOALS } from "../scoring/statKeys";
 import { memberOf, runnerOf } from "../shared/leagueAccess";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
@@ -63,7 +63,7 @@ async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: 
   const teamId = teamOf(turn);
   const picksLeft = await picksLeftOf(ctx, draft, started, teamId);
   const players = await everyPlayerNow(ctx);
-  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId, players), await positionsNow(ctx, leagueId));
+  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId, players), (await playerPositionsNow(ctx, leagueId)).minimumAreasOf);
   const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
   return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
 }

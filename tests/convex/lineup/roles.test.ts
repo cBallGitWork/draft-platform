@@ -162,7 +162,7 @@ describe("sweeper and libero (spec/05 The pitch; Craig, 4 Nov 2026)", () => {
       { kind: "noBackThree", playerCode: first.playerCode, role: "libero", centreBacks: 2 },
       { kind: "noBackThree", playerCode: second.playerCode, role: "libero", centreBacks: 2 },
     ]);
-    expect(problemWords(problems[0], (code) => `Player ${code}`)).toBe(`Player ${first.playerCode} can play Libero only with 3 or more centre-backs; this lineup has 2.`);
+    expect(problemWords(problems[0], (code) => `Player ${code}`)).toBe(`Player ${first.playerCode} can play Libero only with 3 or more centre-backs; this line-up has 2.`);
   });
 });
 

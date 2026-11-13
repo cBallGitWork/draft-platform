@@ -6,6 +6,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import { centreSlotOf } from "../../../src/matchup/preview";
 import { previewGameMode } from "../../../src/shared/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
@@ -117,6 +118,7 @@ export const teamSide = (
   autoTeam: false,
   lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...(slot.autoSub?.kind === "on" ? centreSlotOf(slot.area) : {}), ...slot })) },
   formation: null,
+  runs: [...FIRST_RUNS],
 });
 
 type Game = HeadToHead["game"];

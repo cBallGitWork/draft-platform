@@ -18,6 +18,9 @@ import { ratedRoles } from "../../../convex/stars/stars";
 import { NO_DATA } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { movedToFullBack } from "../../support/convex/positionStarts.harness";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -65,6 +68,15 @@ describe("the lineup to set", () => {
     expect(tactics.squad).toEqual(
       SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], flagged: [], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]), availability: "available" })),
     );
+  });
+
+  // S05.8
+  test("sends the roles' runs the site's scoring set holds in the gameweek, none while it holds none", async () => {
+    const before = await tacticsOf(ANN);
+    expect(before.kind === "open" && before.runs).toEqual([]);
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, runs: [...FIRST_RUNS] }, kind: "fix" }));
+    const after = await tacticsOf(ANN);
+    expect(after.kind === "open" && after.runs).toEqual(FIRST_RUNS);
   });
 
   test("keeps a squad player the football sync doesn't hold, saying so in place of his name (#323)", async () => {

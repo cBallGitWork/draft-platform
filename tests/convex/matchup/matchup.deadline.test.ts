@@ -1,6 +1,9 @@
 import { expect, test } from "vitest";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
+import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import {
   annsScoredGame,
   BOBS_TEAM,
@@ -52,9 +55,10 @@ test("once the deadline has passed each starter on both sides carries his role: 
 });
 
 // spec/10: "Each starter on the matchup's lineups shows his slot's position label and his role's
-// run, as on the Tactics pitch" (#850). The run is read from the role set at his place.
+// run, as on the Tactics pitch" (#850). The run is the site's scoring set's for his role (`S05.8`).
 test("once the deadline has passed each starter on both sides carries his slot's lane and label, and from them his role's run", async () => {
   const league = await scoresLeague();
+  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, runs: [...FIRST_RUNS] }, kind: "fix" }));
   const game = await annsScoredGame(league, GAMEWEEK);
   for (const [side, starters] of [[game.team, HULL_STARTERS], [game.opponent, EVERTON_STARTERS]] as const) {
     const sent = lineupOf(side).starters;
@@ -64,8 +68,10 @@ test("once the deadline has passed each starter on both sides carries his slot's
     // Each starter's run is his role's at his cell: the one the Tactics pitch draws.
     for (const { area, place, role } of sent) expect(roleIn({ area, lane: place.lane }, role.key).key).toBe(role.key);
   }
-  // Hull's lineup holds at least one moving role, so the matchup has a run to draw.
-  expect(lineupOf(game.team).starters.some(({ area, place, role }) => roleIn({ area, lane: place.lane }, role.key).run !== null)).toBe(true);
+  // Each side carries the gameweek's set's runs, and Hull's lineup holds at least one moving role,
+  // so the matchup has a run to draw.
+  for (const side of [game.team, game.opponent]) expect(side.kind === "team" && side.runs).toEqual(FIRST_RUNS);
+  expect(lineupOf(game.team).starters.some(({ role }) => FIRST_RUNS.some((run) => run.role === role.key))).toBe(true);
   // Nobody has come on, so the bench stands in no slot.
   expect(lineupOf(game.team).bench.map((slot) => slot.place)).toEqual(lineupOf(game.team).bench.map(() => null));
 });

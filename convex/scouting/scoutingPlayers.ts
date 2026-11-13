@@ -65,7 +65,7 @@ function scoutingFields(
   };
 }
 
-function positionInputsOf({ _id, _creationTime, code, ...inputs }: Doc<"playerPositions">): ScoutingFields["positions"] {
+function positionInputsOf({ _id, _creationTime, code, unplacedArea, ...inputs }: Doc<"playerPositions">): ScoutingFields["positions"] {
   return inputs;
 }
 

@@ -27,7 +27,7 @@ function Side({ name, row, end }: { name: string; row: Row | undefined; end: boo
 }
 
 /** Your matchup (docs/design/approved/home/1440.png): the reader's head-to-head this gameweek, his
- *  side first, the score once begun (an outline before), and Set lineup until it begins. Only for
+ *  side first, the score once begun (an outline before), and Set line-up until it begins. Only for
  *  someone running a team in a head-to-head league with this gameweek drawn. */
 export function YourMatchup({ home: { thisGameweek, table } }: { home: LeagueHome }) {
   const mine = table.find((row) => row.mine);
