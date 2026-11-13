@@ -143,7 +143,7 @@ async function report(ctx: MutationCtx, { league, nameOf }: Run, claim: Doc<"wai
   const playerName = await nameOf(claim.playerCode);
   const dropName = claim.dropCode === null ? null : await nameOf(claim.dropCode);
   if (!tried.won) {
-    if (tried.why !== null) await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
+    if (tried.why !== null) await fileLetter(ctx, league, "waivers",[claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
     return;
   }
   const team = await teamIn(ctx, league._id, claim.teamId);

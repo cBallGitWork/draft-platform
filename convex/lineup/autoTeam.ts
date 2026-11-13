@@ -147,9 +147,9 @@ async function runTeam(
   const readers = fixedLetter || endedLetter ? await wholeLeague(ctx, league) : [];
 
   if (lineup !== null) await storeAutoTeamLineup(ctx, league._id, team._id, gameweek, lineup);
-  if (fixedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.fixed(team.name, gameweek));
+  if (fixedLetter) await fileLetter(ctx, league, "lineup", readers, autoTeamLetters.fixed(team.name, gameweek));
   if (ends) await ctx.db.patch("teams", team._id, { autoTeam: undefined });
-  if (endedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.ended(team.name, endsAfter));
+  if (endedLetter) await fileLetter(ctx, league, "lineup", readers, autoTeamLetters.ended(team.name, endsAfter));
 }
 
 /** The team's manager, the league's commissioner, its co-commissioner or the admin switches its

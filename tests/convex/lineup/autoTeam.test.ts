@@ -210,9 +210,9 @@ describe("an illegal lineup", () => {
     const name = await teamNameOf();
     const filed = vi.mocked(fileLetter);
     const real = filed.getMockImplementation()!;
-    filed.mockImplementation(async (ctx, league, to, letter, by) => {
+    filed.mockImplementation(async (ctx, league, kind, to, letter, by) => {
       if (typeof letter !== "function" && letter.subject === autoTeamLetters.fixed(name, NEXT).subject) throw new Error(LETTER_FAILED);
-      return real(ctx, league, to, letter, by);
+      return real(ctx, league, kind, to, letter, by);
     });
     try {
       // Bob's holiday ends after NEXT: his step, run after or before Ann's, still switches it off.

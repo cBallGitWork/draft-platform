@@ -132,7 +132,7 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
         if (team.managerEmail === undefined) continue;
         await ctx.db.insert("positionWarnings", { teamId: team._id, playerCode, position, step });
         const news = { playerName: await nameOf(ctx, playerCode), fromGameweek: next.gameweek, removeAfter: how.thresholds.removeAfter };
-        await fileLetter(ctx, league, [team.managerEmail], positionLetter({ ...news, ...change }));
+        await fileLetter(ctx, league, "positions",[team.managerEmail], positionLetter({ ...news, ...change }));
       }
     }
     for (const each of told) {
@@ -180,7 +180,7 @@ async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position
     const next = await saveGameweekOf(ctx, league._id, Date.now(), matches);
     if (next.kind !== "open") continue;
     const letter = positionLetter({ step: "takenByAdmin", playerName: await nameOf(ctx, playerCode), position, fromGameweek: next.gameweek });
-    await fileLetter(ctx, league, [team.managerEmail], letter);
+    await fileLetter(ctx, league, "positions",[team.managerEmail], letter);
   }
 }
 

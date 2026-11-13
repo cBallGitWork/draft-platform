@@ -7,6 +7,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
 import { letterAsRead } from "./letterMoments";
 import type { Doc, Id } from "../_generated/dataModel";
+import { letterKind } from "../schema/mail";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
@@ -26,6 +27,8 @@ const letterSummary = v.object({
   /** Where it came from: its league's name, or the product's for a letter from the site. */
   leagueName: v.string(),
   at: v.number(),
+  /** What it is about; null on a letter filed before letters held it. */
+  kind: v.union(letterKind, v.null()),
   from: v.union(v.string(), v.null()),
   subject: v.string(),
   body: v.string(),
@@ -76,6 +79,7 @@ const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary
   letterId: row._id,
   leagueName: row.leagueName ?? PRODUCT_NAME,
   at: row.at,
+  kind: row.kind ?? null,
   from: row.from ?? null,
   ...letterAsRead(row, zone),
   read: row.readAt !== undefined,
@@ -131,7 +135,7 @@ export const writeToLeague = mutation({
     const { email, league } = await runnerOf(ctx, args.leagueId);
     const subject = typedName(args.subject, SUBJECT_MAX, { blank: mailRefusals.blankSubject, tooLong: mailRefusals.subjectTooLong });
     const body = typedText(args.body, BODY_MAX, { blank: mailRefusals.blankBody, tooLong: mailRefusals.bodyTooLong });
-    await fileLetter(ctx, league, await wholeLeague(ctx, league), { subject, body, from: email }, email);
+    await fileLetter(ctx, league, "commissioner", await wholeLeague(ctx, league), { subject, body, from: email }, email);
     await ctx.db.patch("leagues", league._id, { pinnedLetter: { at: Date.now(), from: email, subject, body } });
     return null;
   },

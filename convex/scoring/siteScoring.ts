@@ -102,7 +102,7 @@ export async function addVersion(
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
-  if (by !== null) await fileSiteLetter(ctx, (tell) => versionLetter(news, tell), by);
+  if (by !== null) await fileSiteLetter(ctx, "patch", (tell) => versionLetter(news, tell), by);
   await repriceAt(ctx, version.takesEffectAt);
   return { id, name, fromGameweek };
 }
@@ -276,7 +276,7 @@ export const withdraw = mutation({
       await ctx.db.delete("patchBannerDismissals", row._id);
     }
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
-    await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
+    await fileSiteLetter(ctx, "patch", (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;
   },
 });

@@ -5,6 +5,7 @@ import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
 import type { LeagueEvent } from "../schema";
+import type { LetterKind } from "../schema/mail";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
@@ -28,11 +29,13 @@ export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promis
   return [league.commissionerEmail, league.coCommissionerEmail, ...managers].filter((email) => email !== undefined);
 }
 
-/** Files `letter` in the league's name to each of `to`, once each. The copy to `by`, who wrote it
- *  or did what it reports, is filed read: they know. With no `by`, every copy is unread. */
+/** Files `letter`, of `kind`, in the league's name to each of `to`, once each. The copy to `by`,
+ *  who wrote it or did what it reports, is filed read: they know. With no `by`, every copy is
+ *  unread. */
 export async function fileLetter(
   ctx: MutationCtx,
   league: Doc<"leagues">,
+  kind: LetterKind,
   to: readonly string[],
   letter: Written,
   by?: string,
@@ -45,6 +48,7 @@ export async function fileLetter(
       leagueId: league._id,
       leagueName: league.name,
       at,
+      kind,
       ...copy,
       readAt: email === by ? at : undefined,
     });
@@ -55,13 +59,13 @@ export async function fileLetter(
  *  copy each however many leagues they are in. The copy to `by`, who did what it reports, is filed
  *  read. Past LEAGUES_READ_MOST leagues it throws, and the change it reports with it, never
  *  reaching only some. */
-export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: string): Promise<void> {
+export async function fileSiteLetter(ctx: MutationCtx, kind: LetterKind, letter: Written, by: string): Promise<void> {
   const leagues = await everyLeague(ctx, "so a letter from the site can't reach everyone in them");
   const everyone = new Set((await Promise.all(leagues.map((league) => wholeLeague(ctx, league)))).flat());
   const at = Date.now();
   const copy = filed(letter);
   for (const email of everyone) {
-    await ctx.db.insert("letters", { to: email, at, ...copy, readAt: email === by ? at : undefined });
+    await ctx.db.insert("letters", { to: email, at, kind, ...copy, readAt: email === by ? at : undefined });
   }
 }
 
@@ -108,6 +112,53 @@ function takenOut(event: LeagueEvent): string[] {
   }
 }
 
+/** What the letter reporting the event is about: a squad move's own kind, a manager's own doing in
+ *  the league, or else the commissioner's (or the admin's) action. */
+function kindOf(event: LeagueEvent): LetterKind {
+  switch (event.kind) {
+    case "playerAssigned":
+    case "playerMoved":
+    case "playerReleased":
+      return "assigned";
+    case "playerDropped":
+    case "playerClaimed":
+    case "playerPickedUp":
+      return "waivers";
+    case "playerTraded":
+    case "tradeMade":
+      return "trade";
+    case "autoTeamSwitched":
+      return "lineup";
+    case "managerLeft":
+    case "joinedByInvite":
+    case "teamRenamed":
+      return "league";
+    case "created":
+    case "commissionerNamed":
+    case "coCommissionerNamed":
+    case "coCommissionerRemoved":
+    case "managerAdded":
+    case "managerRemoved":
+    case "maxTeamsChanged":
+    case "deletionStarted":
+    case "deletionUndone":
+    case "gameweekUsed":
+    case "scoringStartSet":
+    case "invited":
+    case "inviteResent":
+    case "inviteCancelled":
+    case "joinRequestApproved":
+    case "inviteLinkMade":
+    case "inviteLinkSwitchedOff":
+    case "rulesChanged":
+    case "pointsOverridden":
+    case "pointsOverrideRemoved":
+    case "teamPointsOverridden":
+    case "fixturesSwapped":
+      return "commissioner";
+  }
+}
+
 /** How whoever did something is named: the admin by `adminByline`, anyone else by their email. */
 export function bylineOf(email: string): string {
   return isAdmin(email) ? adminByline : email;
@@ -128,7 +179,7 @@ async function fileEventLetter(
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
   const to = only ?? [...(await wholeLeague(ctx, league)), ...takenOut(event)];
   const who = bylineOf(by);
-  await fileLetter(ctx, league, to, (tell) => eventLetter(event, who, tell), unread ? undefined : by);
+  await fileLetter(ctx, league, kindOf(event), to, (tell) => eventLetter(event, who, tell), unread ? undefined : by);
 }
 
 /** Files what happened, with no Mail letter: a draft pick, which Mail doesn't report (Craig, 4 Nov

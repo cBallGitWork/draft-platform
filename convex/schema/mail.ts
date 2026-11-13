@@ -4,6 +4,12 @@ import { v } from "convex/values";
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
 // fixed when it's filed: someone who joins later doesn't get the league's old letters.
 
+/** What a letter is about, which its chip on Mail names (approved/mail): one for each kind of
+ *  letter Mail files (spec/16, S16.5), its words in src/mail/words.ts (`letterKindWords`). */
+export const LETTER_KINDS = ["trade", "waivers", "assigned", "commissioner", "league", "draft", "lineup", "positions", "scout", "recap", "patch"] as const;
+export type LetterKind = (typeof LETTER_KINDS)[number];
+export const letterKind = v.union(...LETTER_KINDS.map((kind) => v.literal(kind)));
+
 export const letterFields = {
   /** Whom this copy is to, by email. */
   to: v.string(),
@@ -13,6 +19,8 @@ export const letterFields = {
   /** The league's name when it was filed; absent with `leagueId`. */
   leagueName: v.optional(v.string()),
   at: v.number(),
+  /** What it is about (`LETTER_KINDS`); absent on a letter filed before letters held it (#1030). */
+  kind: v.optional(letterKind),
   /** Who wrote it, by email: absent on a letter the app files about something that happened. */
   from: v.optional(v.string()),
   subject: v.string(),

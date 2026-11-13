@@ -132,6 +132,20 @@ describe("letters about the league's events", () => {
     const [left] = await (await mailOf(ANN)).letters();
     expect(left).toMatchObject({ subject: `${ANN} left ${TEAM_1}`, read: true });
   });
+
+  test("each carries its kind: the commissioner's doing, or a manager's own; one filed before letters held a kind carries none (#1030)", async () => {
+    await addManagers(t, leagueId, [ANN, BOB]);
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
+    vi.advanceTimersByTime(MINUTE_MS);
+    await t.run((ctx) => ctx.db.insert("letters", { to: BOB, leagueId, leagueName: LEAGUE_NAME, at: Date.now(), subject: "Old", body: "Filed before kinds." }));
+
+    const kinds = (await (await mailOf(BOB)).letters()).map(({ subject, kind }) => [subject, kind]);
+    expect(kinds).toEqual([
+      ["Old", null],
+      [`${ANN} left ${TEAM_1}`, "league"],
+      [`${BOB} joined as manager of ${TEAM_2}`, "commissioner"],
+    ]);
+  });
 });
 
 describe("unread", () => {
@@ -221,7 +235,7 @@ describe("the commissioner's letter to the league", () => {
     await (await mailOf(COMMISSIONER)).writeToLeague("  Draft night  ", " Friday at eight. ");
 
     const [newest, older] = await (await mailOf(BOB)).letters();
-    expect(newest).toMatchObject({ subject: "Draft night", body: "Friday at eight.", from: COMMISSIONER, read: false });
+    expect(newest).toMatchObject({ subject: "Draft night", body: "Friday at eight.", from: COMMISSIONER, kind: "commissioner", read: false });
     expect(newest.at).toBeGreaterThan(older.at);
     expect((await everyLetter()).filter(([, subject]) => subject === "Draft night").map(([to]) => to).sort()).toEqual(
       [ANN, BOB, COMMISSIONER].sort(),

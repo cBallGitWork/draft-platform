@@ -12,7 +12,7 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { league, manager, newcomer, openApp } from "../../support/src/shell.harness";
-import { MAIL_TITLE, fromWords, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
+import { MAIL_TITLE, fromWords, letterKindWords, letterTime, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
 import { letterButton, lettersPanel, letterShown, mailLetter, mailLetters, twoUnread } from "../../support/src/mailScreen.harness";
 
 const tab = (name: string) => within(screen.getByRole("group", { name: mailTabsLabel })).getByRole("button", { name });
@@ -82,14 +82,25 @@ describe("the letters", () => {
     expect(app.mail.open).toHaveBeenCalledTimes(1);
   });
 
-  it("the open one is beside the list, its plate saying who it's from, its subject over its text", async () => {
+  it("the open one is beside the list, its plate saying its kind and who it's from, its subject over its text", async () => {
     openApp(MAIL_PATH, manager, { letters: mailLetters });
     await lettersPanel();
     await userEvent.click(letterButton("Letter 3"));
-    const open = screen.getByRole("region", { name: fromWords("commish@example.com") });
+    const open = screen.getByRole("region", { name: new RegExp(`^${letterKindWords.commissioner}:\\s*${fromWords("commish@example.com")}$`) });
     expect(within(open).getByRole("heading", { level: 3 }).textContent).toBe("Letter 3");
     expect(within(open).getByText("The text of letter 3.")).toBeTruthy();
     expect(within(open).getByText("Tue 13 Oct, 13:00")).toBeTruthy();
+  });
+
+  it("each row carries its letter's kind; one filed before letters held a kind carries none (#1030)", async () => {
+    openApp(MAIL_PATH, manager, { letters: mailLetters });
+    await lettersPanel();
+    expect(within(letterButton("Letter 3")).getByText(letterKindWords.commissioner)).toBeTruthy();
+    expect(within(letterButton("Letter 2")).getByText(letterKindWords.trade)).toBeTruthy();
+    expect(letterButton("Letter 1").textContent).toBe(`${league.name}Letter 1${letterTime(mailLetter(1, true).at)}`);
+
+    await userEvent.click(letterButton("Letter 1"));
+    expect(screen.getByRole("region", { name: fromWords(league.name) })).toBeTruthy();
   });
 
   it("with none, says so", async () => {

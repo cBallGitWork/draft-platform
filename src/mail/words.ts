@@ -4,6 +4,7 @@
 
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
+import type { LetterKind } from "../../convex/schema/mail";
 import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export { MAIL_TITLE } from "../shared/words";
@@ -38,8 +39,20 @@ export const mailTabWords = (unread: number): Record<MailTab, string> => ({ all:
 export const LETTERS_TITLE = "Letters";
 export const noUnreadWords = "No unread letters.";
 export const noLetterOpenWords = "No letter open.";
-/** A letter's kind chip, which no letter holds yet (the approved picture's Deadline, Trade, Doubt). */
-export const kindPlaceholderLabel = "Kind: not held yet";
+/** A letter's kind chip (the approved picture's Trade, Waivers, Commissioner). */
+export const letterKindWords = {
+  trade: "Trade",
+  waivers: "Waivers",
+  assigned: "Assigned",
+  commissioner: "Commissioner",
+  league: "League",
+  draft: "Draft",
+  lineup: "Lineup",
+  positions: "Positions",
+  scout: "Scout",
+  recap: "Recap",
+  patch: "Patch",
+} as const satisfies Record<LetterKind, string>;
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "No one can reply: there is no chat.";
