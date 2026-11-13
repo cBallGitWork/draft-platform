@@ -28,8 +28,9 @@ import { heldRecap, homeRecap, shownRecap } from "./recaps";
 //
 // Which gameweek this is, and whether a matchday is open, needs the time, and a query must not read
 // the clock: Convex caches a query by its arguments (convex/_generated/ai/guidelines.md). So the
-// screen passes `now` to one small query, homeClock.ts's `clockOf`, and these take what it says,
-// with no minute, so they are read again only when their data changes (#1550; homeAt.ts).
+// screen judges homeClock.ts's `clockOf` times at its minute (homeAt.ts's `clockAt`, #2005), and
+// these take what it says, with no minute, so they are read again only when their data changes
+// (#1550; homeAt.ts).
 
 const homeRow = v.object({
   position: v.number(),
@@ -123,7 +124,7 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
 export const heldLeagueHome = leagueHome.omit("matchday", "recap").extend({ recap: v.union(v.null(), heldRecap) });
 export type HeldLeagueHome = Infer<typeof heldLeagueHome>;
 
-/** League home's first slice, its head-to-heads `gameweek`'s: homeClock.ts's `clockOf` says which. */
+/** League home's first slice, its head-to-heads `gameweek`'s: homeAt.ts's `clockAt` says which. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), gameweek: v.union(v.number(), v.null()) },
   returns: heldLeagueHome,
@@ -163,8 +164,8 @@ export const ofLeague = query({
   },
 });
 
-/** The Vidiprinter of the matchday open in `gameweek`, of its matches `fixtureCodes`: homeClock.ts's
- *  `clockOf` says which. Its delay is a moment (commentaryAt.ts). */
+/** The Vidiprinter of the matchday open in `gameweek`, of its matches `fixtureCodes`: homeAt.ts's
+ *  `clockAt` says which. Its delay is a moment (commentaryAt.ts). */
 export const matchdayOf = query({
   args: { leagueId: v.id("leagues"), gameweek: v.number(), fixtureCodes: v.array(v.number()) },
   returns: heldCommentary,

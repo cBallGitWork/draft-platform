@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { positionsNow } from "../positions/playerPositions";
+import { playerPositionsNow } from "../positions/playerPositions";
 import { positionRank, type Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { inTenths } from "../scoring/values";
@@ -10,6 +10,7 @@ import { clubsByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { CLEAN_SHEETS, EVENT_STATS, MINUTES_STAT, SAVES } from "../stats/matchRecords";
+import { seasonPointsIn } from "../stats/seasonPoints";
 import { newestSeasonWithTotals, playerSeasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
@@ -21,11 +22,12 @@ import { squadLimit, squadLimits } from "./squadRulesView";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
-// with his position, club, next fixture, season points and last gameweek's points"). His points
-// are what his team got from him (spec/12): the matches his card shows at his slot, from the one
-// place both read them (scoredMatches.ts). A match labelled not counted, or priced at his best
-// position because no lineup of this team scored it, adds nothing, so the Squad tab never comes
-// out above the table (Craig, 29 Oct 2026, #595). Beside them, his season's stats from the totals
+// with his position, club, next fixture, season points and last gameweek's points"). His season
+// points are his total, the figure his card and Scouting show (seasonPoints.ts; Craig, 13 Nov 2026,
+// #628: "Just his total season points"). His gameweeks' points are what his team got from him: the
+// matches his card shows at his slot, from the one place both read them (scoredMatches.ts), a
+// match labelled not counted, or priced at his best position because no lineup of this team scored
+// it, adding nothing (#595). Beside them, his season's stats from the totals
 // Scouting reads (seasonStats.ts), for the same season Scouting shows (#647), his club's next three
 // matches, his points in the league's last five gameweeks, and FPL's news on him (Squad's approved
 // picture, docs/design/approved/team-squad).
@@ -83,8 +85,8 @@ const squadRow = v.object({
   /** His club's matches in the Schedule view's gameweeks (`scheduleGameweeks`), in their order:
    *  none in a blank week, two in a double. */
   schedule: v.array(scheduledMatch),
-  /** What his team got from him this season, or null ("—") while none of his matches has been
-   *  priced. */
+  /** His season points, as his card and Scouting add them up (seasonPoints.ts), or null ("—")
+   *  while none of his matches has been priced. */
   seasonPoints: v.union(v.number(), v.null()),
   /** What his team got from him in the league's latest begun gameweek, or null ("—") while none
    *  of his matches there has been priced. */
@@ -136,8 +138,8 @@ type ElevenMatch = Pick<PricedMatch, "points" | "counted"> & { inEleven: boolean
  *  stood in his team's scoring eleven for, auto-subs in, so a sub who came on gets the start and
  *  the man he replaced none; and what his roles added or took away in the matches his team got,
  *  never his roles for another team, nor a team instruction's line. A live gameweek counts
- *  provisionally, as his season points do. Role points is null ("—") while his team has got no
- *  priced match of his, as his season points are. */
+ *  provisionally, as his gameweeks' points do. Role points is null ("—") while his team has got no
+ *  priced match of his. */
 export function squadEleven(matches: readonly ElevenMatch[]) {
   const counted = matches.filter((match) => match.counted && match.points !== null);
   return {
@@ -146,23 +148,18 @@ export function squadEleven(matches: readonly ElevenMatch[]) {
   };
 }
 
-/** Season and last gameweek's points from his priced matches: each the sum of those his team got,
- *  kept to tenths as the table keeps them, or null while none is priced. */
-export function squadPoints(matches: readonly PricedMatch[], lastGameweek: number | null) {
-  return { seasonPoints: pointsOf(matches), lastGameweekPoints: pointsOf(matches.filter(({ gameweek }) => gameweek === lastGameweek)) };
-}
-
-/** What his team got from these matches, kept to tenths, or null while none is priced. */
-function pointsOf(some: readonly PricedMatch[]): number | null {
-  const priced = some.filter((match): match is PricedMatch & { points: number } => match.points !== null);
+/** What his team got from him in `gameweek` from his priced matches: the sum of those it counted,
+ *  kept to tenths as the table keeps them, or null while none there is priced, and for no gameweek. */
+export function gameweekPoints(matches: readonly PricedMatch[], gameweek: number | null): number | null {
+  const priced = matches.filter((match): match is PricedMatch & { points: number } => match.gameweek === gameweek && match.points !== null);
   if (priced.length === 0) return null;
   return inTenths(priced.reduce((total, { points, counted }) => (counted ? total + points : total), 0));
 }
 
 /** His points in each of `begun`'s last FORM_GAMEWEEKS gameweeks, oldest first, each added up as
- *  squadPoints adds up the last gameweek's. */
+ *  the last gameweek's are (gameweekPoints). */
 export function squadForm(matches: readonly PricedMatch[], begun: readonly number[]): (number | null)[] {
-  return begun.slice(-FORM_GAMEWEEKS).map((gameweek) => pointsOf(matches.filter((match) => match.gameweek === gameweek)));
+  return begun.slice(-FORM_GAMEWEEKS).map((gameweek) => gameweekPoints(matches, gameweek));
 }
 
 /** Where a player's first position falls in POSITIONS, back to front; one with none goes last. */
@@ -179,13 +176,14 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const { positionsOf: positionsOfNow, minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const begun = await begunGameweeks(ctx, league);
     const lastGameweek = begun.at(-1) ?? null;
     const season = await newestSeasonWithTotals(ctx);
     const price = await pricer(ctx, league, team._id);
     const { held, unheld } = await heldOrNot(ctx, await squadOf(ctx, team._id));
+    const seasonPointsOf = await seasonPointsIn(ctx, leagueId, held.map(({ player }) => player.code));
     const players = await Promise.all(
       held.map(async ({ row, player }) => {
         const positions = await positionsOfNow(player.code);
@@ -206,7 +204,8 @@ export const ofMyTeam = query({
       number,
       nextFixtures: next.get(player.clubCode) ?? [],
       schedule: schedule.byClub.get(player.clubCode) ?? [],
-      ...squadPoints(matches, lastGameweek),
+      seasonPoints: seasonPointsOf(player.code, positions),
+      lastGameweekPoints: gameweekPoints(matches, lastGameweek),
       form: squadForm(matches, begun),
       ...squadEleven(matches),
       stats,
@@ -222,7 +221,11 @@ export const ofMyTeam = query({
       unheld,
       squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
-      limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
+      limits: squadLimits(
+        await Promise.all(rows.map(async (row) => ({ ...row, minimumAreas: await minimumAreasOf(row.code) }))),
+        unheld.length,
+        rules?.squad ?? null,
+      ),
     };
   },
 });
@@ -236,7 +239,8 @@ export const ofMyTeam = query({
  *  match's state, and the records of the men in the lineup. Inside a query's limits for a season of
  *  an ordinary league; past SQUAD_MOVES_READ_MOST moves of a kind it throws rather than mis-price.
  *  Storing a gameweek's priced matches once final, as finalScores.ts does the totals, is the way on
- *  if it grows. Beside it the read adds one season-totals row a player and the league's rules, and
+ *  if it grows. Beside it the read adds one season-totals row and one season-points row a player, the
+ *  league's overrides and rules, and
  *  reads the matches ahead until every club has three, so it grows with the squad, never the league. */
 export async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);

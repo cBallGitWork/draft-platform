@@ -1,23 +1,47 @@
 // What the Premier League section says, in one place for Craig to change in the pull request.
 
-import { LOCALE } from "../../convex/shared/moments";
 import { DAY_MS } from "../../convex/shared/time";
-import { awayWords, gameweekWords, homeWords, scoreWords, STAT_WORD, timeOfDayWords, versusWords } from "../shared/words";
+import type { TableLine } from "../../convex/football/tableLines";
+import {
+  ascendingGlyph,
+  awayWords,
+  dateWords,
+  descendingGlyph,
+  gameweekShort,
+  gameweekWords,
+  homeWords,
+  lastSeasonPointsColumn,
+  menuWords,
+  scoreWords,
+  seasonShortWords,
+  STAT_WORD,
+  timeOfDayWords,
+  versusWords,
+} from "../shared/words";
 
 export { clockWords, fullTime, gameweekWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { signedWords as goalDifferenceWords } from "../shared/words";
 
+/** The section's heading, read out only: its plate is the competitions' tabs (spec/18; the
+ *  approved picture). */
+export const FOOTBALL_TITLE = menuWords.football;
 export const PREMIER_LEAGUE_TITLE = "Premier League";
-export const FIXTURES_TITLE = "Fixtures and results";
+/** The real competitions a league can play, each a tab on the section's plate (spec/18: "a tab
+ *  for each competition it plays"). Only the Premier League feeds the site yet: the Scottish
+ *  Premiership's tab comes when its fixtures and table do (#1391). */
+export const COMPETITIONS = ["premierLeague"] as const;
+export type Competition = (typeof COMPETITIONS)[number];
+export const competitionWords: Record<Competition, string> = { premierLeague: PREMIER_LEAGUE_TITLE };
+export const competitionsLabel = "Competitions";
+export const FIXTURES_TITLE = "Fixtures";
 export const loadingWords = "Loading the Premier League's fixtures…";
 export const loadingGameweekWords = (gameweek: number) => `Loading ${gameweekWords(gameweek)}'s matches…`;
 export const noMatchesWords = (gameweek: number) => `No matches are held for ${gameweekWords(gameweek)} yet.`;
 export const matchesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s matches`;
 
-const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "long" });
-/** A day's heading over its matches, in the viewer's own zone: "Saturday 17 October". */
-export const dayWords = (at: number) => dayFormat.format(at);
+/** A day's heading over its matches, in the viewer's own zone: "Sat 21 Nov" (the approved picture). */
+export const dayWords = dateWords;
 /** A match's kickoff, in the viewer's own zone: "15:00". */
 export const kickoffWords = timeOfDayWords;
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
@@ -50,6 +74,25 @@ export const tableColumns = {
   goalDifference: { short: "GD", long: "Goal difference" },
   points: { short: "Pts", long: "Points" },
 } as const;
+/** The live table's column of places moved, after Pos: unheaded on screen (the approved picture). */
+export const movedColumn = { short: "", long: "Places moved this gameweek" } as const;
+
+/** A club's places moved since the live gameweek began (spec/18, `S18.4`; the approved picture):
+ *  "▲ 2" up, "▼ 1" down, "–" unmoved. */
+export const movedWords = (moved: number) => (moved === 0 ? "–" : `${moved > 0 ? ascendingGlyph : descendingGlyph} ${Math.abs(moved)}`);
+/** Said on hovering it: "Up 2 since GW11 began", "No change since GW11 began". */
+export function movedLabel(moved: number, gameweek: number): string {
+  const since = `since ${gameweekShort(gameweek)} began`;
+  if (moved === 0) return `No change ${since}`;
+  return `${moved > 0 ? "Up" : "Down"} ${Math.abs(moved)} ${since}`;
+}
+
+/** What each line across the table says on hovering it (spec/18, `S18.5`; the approved picture). */
+export const tableLineWords: Record<TableLine, string> = {
+  championsLeague: "Champions League places end here",
+  otherEurope: "Europa League and Conference League places end here",
+  relegation: "Relegation places start below",
+};
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
@@ -112,10 +155,10 @@ export const possessionWords = (share: number) => `${Math.round(share)}%`;
 export { placeWords } from "../shared/words";
 export const loadingClubWords = "Loading the club…";
 export const noClubWords = "No club with this code is held.";
-/** The club page's tabs on its title plate; the Squad tab comes with #1937. */
-export const CLUB_TABS = ["fixtures"] as const;
+/** The club page's tabs on its title plate, the Squad tab first (spec/18). */
+export const CLUB_TABS = ["squad", "fixtures"] as const;
 export type ClubTab = (typeof CLUB_TABS)[number];
-export const clubTabWords: Record<ClubTab, string> = { fixtures: "Fixtures" };
+export const clubTabWords: Record<ClubTab, string> = { squad: "Squad", fixtures: "Fixtures" };
 export const clubTabsLabel = "The club's tabs";
 export const CLUB_TITLE = "Club";
 export const NEXT_MATCH_TITLE = "Next match";
@@ -134,6 +177,36 @@ export function daysAwayWords(kickoff: number, now: number): string {
   const days = Math.round((dayStart(kickoff) - dayStart(now)) / DAY_MS);
   if (days <= 0) return "Today";
   return days === 1 ? "Tomorrow" : `In ${days} days`;
+}
+
+// The club page's Squad tab and top scorers (#1937; spec/18 `S18.7`, `S18.8`).
+
+export { statusNotSettledLabel } from "../shared/words";
+/** The club's top three scorers, under its table place and form: "Saka 42". */
+export const topScorersHead = "Top scorers";
+export const loadingSquadWords = "Loading the squad…";
+export const noSquadWords = "No players are held at this club.";
+/** In the Team column, a player on the league's waivers. */
+export const waiversWords = "Waivers";
+/** Why his season points are "—", as Scouting says it. */
+export { noSeasonPointsWords } from "../shared/words";
+/** Why a gameweek's cell is "—". */
+export const didNotPlayWords = (gameweek: number) => `He didn't play in ${gameweekWords(gameweek)}.`;
+/** A row, read out: pressing it opens his player card. */
+export const openCardLabel = (name: string) => `${name}'s player card`;
+
+/** The Squad tab's columns, the last five gameweeks' between the points and the starts: a short
+ *  head, and what it stands for. The points' head names the season while they are last season's. */
+export function squadColumns(gameweeks: readonly number[], pointsSeason: number | null) {
+  return {
+    positions: { short: "Pos", long: "Positions" },
+    player: { short: "Player", long: "Player" },
+    owner: { short: "Team", long: "The team that owns him in this league, Free agent or Waivers" },
+    points: pointsSeason === null ? { short: "Pts", long: "Season points in this league" } : lastSeasonPointsColumn(pointsSeason),
+    ...Object.fromEntries(gameweeks.map((gameweek) => [`gw${gameweek}`, { short: gameweekShort(gameweek), long: `Points in ${gameweekWords(gameweek)}` }])),
+    starts: { short: "St", long: pointsSeason === null ? "Starts this season" : `Starts in ${seasonShortWords(pointsSeason)}` },
+    minutes: { short: "Mins", long: pointsSeason === null ? "Minutes this season" : `Minutes in ${seasonShortWords(pointsSeason)}` },
+  };
 }
 
 /** The Fixtures tab's columns: a short head, and what it stands for. */

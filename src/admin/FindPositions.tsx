@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { AREAS, type Area } from "../../convex/lineup/pitch";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
+import { AREA_WORDS } from "../shared/words";
 import { FindPlayerPanel } from "../ui/FindPlayerPanel";
 import { PANEL_LIST_ROW } from "../ui/Panel";
 import type { Changing } from "../shared/useChange";
@@ -10,7 +12,9 @@ import {
   flaggedNote,
   positionsListLabel,
   removeWords,
+  noAreaWords,
   noPositionsWords,
+  unplacedAreaLabel,
   removeLabel,
   setLabel,
   setWords,
@@ -18,7 +22,8 @@ import {
   unconfirmedNote,
 } from "./words";
 
-// Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
+// Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among
+// them. A player with none takes the area he counts towards for the squad minimums (`S06.1`).
 
 export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing }) {
   const [text, setText] = useState("");
@@ -40,7 +45,10 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
     <li className={PANEL_LIST_ROW}>
       <span className="text-lead font-semibold">{player.fullName}</span>
       {player.positions.length === 0 ? (
-        <span className="text-muted">{noPositionsWords}</span>
+        <>
+          <span className="text-muted">{noPositionsWords}</span>
+          <UnplacedArea player={player} seam={seam} change={change} />
+        </>
       ) : (
         <ul aria-label={positionsListLabel(player.name)} className="flex flex-col gap-1">
           {player.positions.map((each) => (
@@ -84,5 +92,38 @@ function PlayerPositions({ player, seam, change }: { player: FoundPlayerPosition
         </span>
       )}
     </li>
+  );
+}
+
+/** The select's value for no area. */
+const NO_AREA = "";
+
+/** The area a player no feed has placed counts towards for the squad minimums, chosen straight
+ *  from the list; "No area" and he fills none. */
+function UnplacedArea({ player, seam, change }: { player: FoundPlayerPositions; seam: AdminSeam; change: Changing }) {
+  const selectId = `area-${player.code}`;
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      <label htmlFor={selectId} className="sr-only">
+        {unplacedAreaLabel(player.name)}
+      </label>
+      <select
+        id={selectId}
+        value={player.unplacedArea ?? NO_AREA}
+        disabled={change.busy}
+        onChange={(event) => {
+          const chosen = event.target.value;
+          void change.run(() => seam.setUnplacedArea(player.code, chosen === NO_AREA ? null : (chosen as Area)));
+        }}
+        className="text-box"
+      >
+        <option value={NO_AREA}>{noAreaWords}</option>
+        {AREAS.map((area) => (
+          <option key={area} value={area}>
+            {AREA_WORDS[area]}
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }

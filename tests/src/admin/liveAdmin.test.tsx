@@ -15,6 +15,7 @@ const convex = vi.hoisted(() => ({
   find: vi.fn(),
   feeds: vi.fn(),
   setPosition: vi.fn(),
+  setUnplacedArea: vi.fn(),
   approvePlayer: vi.fn(),
   approveClub: vi.fn(),
   setChangeThresholds: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock("convex/react", async () =>
       "positions/playerPositions:approveClub": convex.approveClub,
       "positions/playerPositions:setPosition": convex.setPosition,
       "positions/playerPositions:removePosition": vi.fn(),
+      "positions/unplacedAreas:setUnplacedArea": convex.setUnplacedArea,
       "positions/positionSettings:setApproveMode": vi.fn(),
       "positions/positionSettings:setChangeThresholds": convex.setChangeThresholds,
       "football/clubKits:set": convex.setClubColours,
@@ -76,6 +78,13 @@ test("a change positions/playerPositions:setPosition makes resolves with no prob
   convex.setPosition.mockResolvedValue(null);
   expect(await seam().setPosition(3, "SS")).toBeNull();
   expect(convex.setPosition).toHaveBeenCalledWith({ code: 3, position: "SS" });
+});
+
+test("#911: an unplaced player's area goes to positions/unplacedAreas:setUnplacedArea, null clearing it", async () => {
+  convex.setUnplacedArea.mockResolvedValue(null);
+  expect(await seam().setUnplacedArea(9, "defence")).toBeNull();
+  expect(await seam().setUnplacedArea(9, null)).toBeNull();
+  expect(convex.setUnplacedArea.mock.calls).toEqual([[{ code: 9, area: "defence" }], [{ code: 9, area: null }]]);
 });
 
 test("new thresholds go to positions/positionSettings:setChangeThresholds", async () => {

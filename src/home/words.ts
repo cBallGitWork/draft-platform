@@ -18,7 +18,7 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 /** The deadline strip's boxes (docs/design/approved/home/, Placeholders: which boxes, in which
  *  states, is still to grill). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your line-up", "Claims close", "Table"] as const;
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
 export { MAIL_TITLE } from "../shared/words";
@@ -29,7 +29,7 @@ export const needsYouToComeWords = "Which letters need you is still to come.";
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";
 export const openMatchupLink = "Open the matchup";
-export const setLineupLink = "Set lineup";
+export const setLineupLink = "Set line-up";
 export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} pts`;
 export const scoreToComeLabel = toComeLabel("The score");
 
@@ -80,6 +80,9 @@ export const scoreChangedWords = "A score has changed since this recap was writt
 export const changedMatchupLink = "See the matchup";
 export const loadingRecapWords = "Loading the recap…";
 export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
+/** Read the recap's page with no gameweek named (#1967): the latest recap, before it loads or with none. */
+export const latestRecapTitle = "Latest recap";
+export const noRecapYetWords = "No recap yet.";
 export const backHomeLink = "Back to League home";
 
 export const moreOnNewsLink = "More, on News";

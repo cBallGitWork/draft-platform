@@ -4,7 +4,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LANES, type Cell } from "../../../convex/lineup/pitch";
-import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
+import { ROWS_DRAWN } from "../../../src/ui/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
@@ -145,8 +145,8 @@ export async function pickRole(name: string, role: string) {
 /** The server's refusal of a lineup starting five, in its own words: what a save answers in a
  *  refused-save test. */
 export const REFUSAL = problemWords({ kind: "wrongStarterCount", starterCount: 5 }, String);
-/** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
-export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
+/** The line a save leaves, "Line-up saved 14:02", at whatever minute it landed. */
+export const SAVED_LINE = /^Line-up saved \d{2}:\d{2}$/;
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */
 export const IN_A_442 = (() => {
   const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));

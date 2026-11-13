@@ -6,6 +6,7 @@ import { expect, test, vi } from "vitest";
 import { liveHome } from "../../../src/home/liveHome";
 import { gameweekOneRecap, quietHome, quietNews } from "../../support/src/home.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
+import { HOUR_MS } from "../../../convex/shared/time";
 
 const convex = vi.hoisted(() => ({ clockOf: vi.fn(), ofLeague: vi.fn(), matchdayOf: vi.fn(), ofGameweek: vi.fn(), news: vi.fn() }));
 vi.mock("convex/react", async () =>
@@ -30,24 +31,33 @@ const now = 1_000_000;
 const { matchday: _matchday, recap: _recap, ...quietRead } = quietHome;
 const heldHome = { ...quietRead, recap: null };
 
-// Only the small clock query takes the minute (#1550): the rest take what it says, so a new minute
-// asks them nothing new.
-test("only home/homeClock:clockOf takes the minute; home/leagueHome:ofLeague takes the gameweek it says, and the home comes back as read", () => {
-  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: null });
+/** What home/homeClock:clockOf sends for `gameweek`, begun, with `open`'s matches kicking off now. */
+const timesAt = (gameweek: number, open: number[] = []) => ({
+  gameweeks: [{ gameweek, deadline: 0 }],
+  margins: { beforeMs: 0, afterMs: 0 },
+  matches: open.map((fixtureCode) => ({ gameweek, fixtureCode, kickoff: now, fullTimeAt: null })),
+});
+
+// No read takes the minute (#1550, #2005): the clock query takes the hour and sends its times,
+// judged at the minute, and the rest take what that says, so a new minute asks nothing new.
+test("home/homeClock:clockOf takes only the hour; home/leagueHome:ofLeague takes the gameweek its times say, and the home comes back as read", () => {
+  convex.clockOf.mockReturnValue(timesAt(1));
   convex.ofLeague.mockReturnValue(heldHome);
   const { result, rerender } = renderHook(({ minute }) => liveHome.useLeagueHome(A_LEAGUE_ID, minute), { initialProps: { minute: now } });
   expect(result.current).toEqual(quietHome);
-  expect(convex.clockOf).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now });
+  expect(convex.clockOf).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, hour: 0 });
   expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 1 });
   expect(convex.matchdayOf).toHaveBeenCalledWith("skip");
 
   rerender({ minute: now + 60_000 });
-  expect(convex.clockOf).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, now: now + 60_000 });
+  expect(convex.clockOf).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, hour: 0 });
   expect(convex.ofLeague).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, gameweek: 1 });
+  rerender({ minute: HOUR_MS });
+  expect(convex.clockOf).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, hour: HOUR_MS });
 });
 
 test("while a matchday is open it asks home/leagueHome:matchdayOf for its matches, and says the Vidiprinter delayed from the moment it sends", () => {
-  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: { gameweek: 1, fixtureCodes: [7, 9] } });
+  convex.clockOf.mockReturnValue(timesAt(1, [9, 7]));
   convex.ofLeague.mockReturnValue(heldHome);
   convex.matchdayOf.mockReturnValue({ kind: "read", lines: [], delayedFrom: now + 1 });
   const { result, rerender } = renderHook(({ minute }) => liveHome.useLeagueHome(A_LEAGUE_ID, minute), { initialProps: { minute: now } });
@@ -58,7 +68,7 @@ test("while a matchday is open it asks home/leagueHome:matchdayOf for its matche
 });
 
 test("the recap leaves at the moment ofLeague sends with it", () => {
-  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: null });
+  convex.clockOf.mockReturnValue(timesAt(1));
   convex.ofLeague.mockReturnValue({ ...heldHome, recap: { ...gameweekOneRecap, until: now + 1 } });
   const { result, rerender } = renderHook(({ minute }) => liveHome.useLeagueHome(A_LEAGUE_ID, minute), { initialProps: { minute: now } });
   expect(result.current?.recap).toEqual(gameweekOneRecap);
@@ -67,19 +77,19 @@ test("the recap leaves at the moment ofLeague sends with it", () => {
 });
 
 test("the home keeps its place while a new gameweek's read or the matchday's new matches load", () => {
-  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: { gameweek: 1, fixtureCodes: [7] } });
+  convex.clockOf.mockReturnValue(timesAt(1, [7]));
   convex.ofLeague.mockReturnValue(heldHome);
   convex.matchdayOf.mockReturnValue({ kind: "read", lines: [], delayedFrom: Infinity });
   const { result, rerender } = renderHook(({ minute }) => liveHome.useLeagueHome(A_LEAGUE_ID, minute), { initialProps: { minute: now } });
   const before = result.current;
   expect(before?.matchday).toEqual({ gameweek: 1, commentary: { kind: "read", lines: [], delayed: false } });
 
-  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: { gameweek: 1, fixtureCodes: [7, 9] } });
+  convex.clockOf.mockReturnValue(timesAt(1, [9, 7]));
   convex.matchdayOf.mockReturnValue(undefined);
   rerender({ minute: now + 60_000 });
   expect(result.current).toEqual(before);
 
-  convex.clockOf.mockReturnValue({ gameweek: 2, matchday: null });
+  convex.clockOf.mockReturnValue(timesAt(2));
   convex.ofLeague.mockReturnValue(undefined);
   rerender({ minute: now + 120_000 });
   expect(result.current).toEqual({ ...before, matchday: null });

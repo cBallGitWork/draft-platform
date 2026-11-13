@@ -29,8 +29,12 @@ export const squadLimit = v.union(
 export type SquadLimit = Infer<typeof squadLimit>;
 type Club = Infer<typeof clubRecord>;
 
-/** A held player as the limits read him. */
-export type LimitPlayer = { code: number; positions: readonly Position[]; club: Club };
+/** A held player as the limits read him: `minimumAreas`, when given, are the areas whose minimums
+ *  he can fill in place of those his positions play (the admin's area for a player no feed has
+ *  placed, spec/06 `S06.1`). */
+export type LimitPlayer = { code: number; positions: readonly Position[]; club: Club; minimumAreas?: readonly Area[] };
+
+const minimumAreasOf = ({ positions, minimumAreas }: LimitPlayer): readonly Area[] => minimumAreas ?? areasOf(positions);
 
 /** The squad's rows against the league's squad rules, in the view's order: its size, then each
  *  area back to front, then each club, most players first. None with no rules. */
@@ -48,11 +52,8 @@ export function squadLimits(players: readonly LimitPlayer[], unheld: number, squ
 /** One row for each area with a minimum: who fills it, and each player who fills none named under
  *  the first area with a row he plays, his main position's first. */
 function areaLimits(players: readonly LimitPlayer[], minimums: Readonly<Record<Area, number>>): SquadLimit[] {
-  const filled = minimumsFilled(
-    players.map(({ positions }) => areasOf(positions)),
-    minimums,
-  );
-  const named = players.map(({ positions }, index) => filled[index] ?? [...areasOf(positions.slice(0, 1)), ...areasOf(positions)].find((area) => minimums[area] > 0) ?? null);
+  const filled = minimumsFilled(players.map(minimumAreasOf), minimums);
+  const named = players.map((player, index) => filled[index] ?? [...areasOf(player.positions.slice(0, 1)), ...minimumAreasOf(player)].find((area) => minimums[area] > 0) ?? null);
   return AREAS.filter((area) => minimums[area] > 0).map((area) => ({
     kind: "area" as const,
     area,

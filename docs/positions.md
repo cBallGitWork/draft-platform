@@ -104,8 +104,9 @@ longer counts, nor is it proposed.
 six-hourly football sync never touches it: his newest 38 starts and his label, from the feeds,
 and the admin's approvals and corrections, written only by his functions. `positionsOf` runs on
 every read (`positions/playerPositions:ofPlayer`), so neither a change of approve mode nor a corrected
-table needs a recount. `positionSettings` holds the approve mode and the thresholds, each absent
-until he sets it; `positionSheets` each match filed.
+table needs a recount. The approve mode and the thresholds are platform settings, one
+`platformSettings` row each, absent until he sets it (#200; the old one-row `positionSettings` is
+read as a fallback until `positions/positionSettingsMove` has run); `positionSheets` each match filed.
 
 The admin's functions, his alone by his email on the server (#124): `queue` (new signings, the
 men whose starts wait for him, and positions flagged or removed), `ofPlayer`, `find`,

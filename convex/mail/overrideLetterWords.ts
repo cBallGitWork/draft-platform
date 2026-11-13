@@ -38,7 +38,7 @@ function overrideRemovedBody(event: Extract<LeagueEvent, { kind: "pointsOverride
 /** Each team whose gameweek total a player's override moved, or that none did. */
 function movedTotals(teams: readonly { teamName: string; from: number; to: number }[], gameweek: number): string {
   return teams.length === 0
-    ? "No team's total moved: no lineup counted him."
+    ? "No team's total moved: no line-up counted him."
     : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
 }
 

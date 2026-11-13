@@ -10,30 +10,33 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
-import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, cronRunOff, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
 import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
 import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
-import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
 import { seedColours } from "./clubKits";
-import { repriceMatches } from "../stats/seasonPointsMoves";
-import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
-import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
-import { keepScoutingPlayers } from "../scouting/scoutingPlayers";
 import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
-import { followKickoffs } from "../scoring/patchKickoffs";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
+import {
+  afterMatchesMoved,
+  afterMatchesSent,
+  afterPlayersDropped,
+  afterPlayersSent,
+  beforeGameweeksDropped,
+  beforeMatchesWritten,
+} from "./afterFootballSync";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
 // from the CLI: `npx convex run football/footballSync:run '{"trigger":"manual"}'`, then `football/footballSync:latest`.
 // A held row the feed stops sending is kept and marked `droppedAt`, never deleted, and only by a
 // sync that read the whole list (#64). Rows are matched on their stable key, a player on his
-// `code`, so one sent again is unmarked in his own row.
+// `code`, so one sent again is unmarked in his own row. What follows the rows written, in the
+// deadlines, stats, scoring, waivers and Scouting, runs from afterFootballSync.ts.
 
 // The schema's counts are optional only for runs before #64; every run since writes them all.
 type TableWrites = Required<Infer<typeof tableWrites>>;
@@ -58,8 +61,9 @@ export const SYNC_FAILED_LOG = "football sync failed";
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
-  handler: async (ctx, { trigger }) =>
-    withHeartbeat(trigger === CRON_TRIGGER ? "footballSync" : null, async () => {
+  handler: async (ctx, { trigger }) => {
+    if (cronRunOff(trigger)) return null;
+    return withHeartbeat(trigger === CRON_TRIGGER ? "footballSync" : null, async () => {
       const ranAt = Date.now();
       const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
         // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
@@ -84,7 +88,8 @@ export const run = internalAction({
       });
       await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
       return null;
-    }),
+    });
+  },
 });
 
 export const upsertClubs = internalMutation({
@@ -108,10 +113,8 @@ export const upsertPlayers = internalMutation({
       if (held === null || held.droppedAt !== undefined) newcomers.push(row.code);
       return held;
     });
-    // New, or sent again after a gap (#1489), in his row's transaction: no league sees a free agent first (#1197).
-    await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
-    // Every one sent, changed or not, so a player held from before Scouting's rows gets his (#1559).
-    await keepScoutingPlayers(ctx, rows.map(({ code }) => code));
+    // New, or sent again after a gap (#1489).
+    await afterPlayersSent(ctx, newcomers, rows.map(({ code }) => code));
     return upserted;
   },
 });
@@ -120,18 +123,15 @@ export const upsertFixtures = internalMutation({
   args: { rows: v.array(fixtureRecord) },
   returns: upserted,
   handler: async (ctx, { rows: sent }): Promise<Upserted> => {
-    // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
-    await recordPassedDeadlines(ctx);
+    // In the same transaction as the kickoffs it may move (#150).
+    await beforeMatchesWritten(ctx);
     // Each match is held in the gameweek its kickoff falls in, never the feed's round (#1416).
     const rows = await placeInWindows(ctx, sent, Date.now());
     const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
     const upserted = await upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code), (held, row) => {
       if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
     });
-    await repriceMatches(ctx, moved);
-    // A waiting patch follows its gameweek's first kickoff later (patchKickoffs.ts, #901).
-    await followKickoffs(ctx, Date.now());
-    await rebuildIfNoneKept(ctx);
+    await afterMatchesSent(ctx, moved);
     return upserted;
   },
 });
@@ -156,7 +156,7 @@ export const markDropped = internalMutation({
   returns: markedPage,
   handler: async (ctx, { table, sentKeys, droppedAt, paginationOpts }): Promise<MarkedPage> => {
     // Dropping a match can move its gameweek's first kickoff: as upsertFixtures (#150).
-    if (table === "fixtures") await recordPassedDeadlines(ctx);
+    if (table === "fixtures") await beforeMatchesWritten(ctx);
     const sent = new Set(sentKeys);
     const page = await unmarkedPage(ctx, table, paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
@@ -165,16 +165,13 @@ export const markDropped = internalMutation({
     if (table === "gameweeks") {
       const season = await heldGameweeksSeason(ctx);
       const thisSeason = (dropped as Doc<"gameweeks">[]).filter((held) => held.season === season);
-      await keepDroppedDeadlines(ctx, thisSeason.map(({ number }) => number));
+      await beforeGameweeksDropped(ctx, thisSeason.map(({ number }) => number));
     }
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     // On the players table, its page holds players: each leaves Scouting's list with his row (#1559).
-    if (table === "players") await keepScoutingPlayers(ctx, (dropped as Doc<"players">[]).map(({ code }) => code));
+    if (table === "players") await afterPlayersDropped(ctx, (dropped as Doc<"players">[]).map(({ code }) => code));
     // On the fixtures table, its page holds fixtures.
-    if (table === "fixtures") {
-      await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
-      await followKickoffs(ctx, Date.now());
-    }
+    if (table === "fixtures") await afterMatchesMoved(ctx, dropped as Doc<"fixtures">[]);
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });

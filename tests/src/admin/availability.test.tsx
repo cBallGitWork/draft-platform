@@ -93,7 +93,7 @@ describe("a player's panel", () => {
   });
 
   it("#1209 story 4: the admin finds a player on the feed's and sets him out by hand", async () => {
-    const app = openAvailability({ setByHand: [SAKA], players: [SAKA, ISAK], found: [{ code: ISAK.code, name: "Isak", fullName: "Alexander Isak", clubCode: 14, positions: [] }] });
+    const app = openAvailability({ setByHand: [SAKA], players: [SAKA, ISAK], found: [{ code: ISAK.code, name: "Isak", fullName: "Alexander Isak", clubCode: 14, positions: [], unplacedArea: null }] });
     await userEvent.type(await screen.findByRole("searchbox", { name: findLabel }), "Isak");
     await userEvent.click(within(screen.getByRole("list", { name: foundListLabel })).getByRole("button", { name: "Alexander Isak" }));
     const isak = await panelOf(ISAK.name);

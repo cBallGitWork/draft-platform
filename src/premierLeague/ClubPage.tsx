@@ -10,6 +10,7 @@ import { FormChips, ResultChip } from "../ui/FormChips";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { ClubLink } from "./ClubLink";
+import { SquadTab, TopScorers } from "./ClubSquad";
 import { MatchState } from "./MatchState";
 import { matchPath } from "./paths";
 import type { ClubPageData, ClubPageFixture, PremierLeagueSeam } from "./seam";
@@ -38,12 +39,14 @@ import {
 } from "./words";
 
 /** A real club's page under Football (spec/18, Club pages): its mark and name on the title plate
- *  with its tabs; its table place and last five results beside its next match as an opponent card
- *  (`S18.7`); and the Fixtures tab, its matches this season, each opening its match page (`S18.9`).
- *  No difficulty colours. */
+ *  with its tabs; its table place, last five results and top three scorers beside its next match as
+ *  an opponent card (`S18.7`); the Squad tab, its players in the league's numbers (`S18.8`); and the
+ *  Fixtures tab, its matches this season, each opening its match page (`S18.9`). No difficulty
+ *  colours. */
 export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; seam: PremierLeagueSeam; clubCode: number }) {
   const page = seam.useClub(league.leagueId, clubCode);
-  const [tab, choose] = useState<ClubTab>("fixtures");
+  const squad = seam.useClubSquad(league.leagueId, clubCode);
+  const [tab, choose] = useState<ClubTab>("squad");
   if (page === undefined || page === null) {
     return (
       <PageSection title={CLUB_TITLE} className="bg-panel">
@@ -69,11 +72,12 @@ export function ClubPage({ league, seam, clubCode }: { league: LeagueSummary; se
             <dd>
               <FormChips form={page.form} />
             </dd>
+            <TopScorers leagueId={league.leagueId} squad={squad} />
           </dl>
         </Panel>
         <NextMatch next={page.next} />
       </div>
-      <ClubFixtures club={page.club} fixtures={page.fixtures} />
+      {tab === "squad" ? <SquadTab leagueId={league.leagueId} squad={squad} /> : <ClubFixtures club={page.club} fixtures={page.fixtures} />}
     </PageSection>
   );
 }

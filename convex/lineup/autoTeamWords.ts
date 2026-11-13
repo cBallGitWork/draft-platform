@@ -19,7 +19,7 @@ export const autoTeamRefusals = {
 
 /** What the auto team does, as its letters say. */
 const autoTeamDoes =
-  "At each deadline it keeps the last lineup and brings on the first bench player who fits for any starter who is out; it never drops or adds a player.";
+  "At each deadline it keeps the last line-up and brings on the first bench player who fits for any starter who is out; it never drops or adds a player.";
 
 /** The letter for a person switching the auto team on or off, done by `who`. */
 export function autoTeamSwitchedWords(event: Switched, who: string): Words {
@@ -35,8 +35,8 @@ export function autoTeamSwitchedWords(event: Switched, who: string): Words {
 export const autoTeamLetters = {
   /** Its lineup couldn't stand, so the auto team set it for this gameweek alone. */
   fixed: (teamName: string, gameweek: number): Words => ({
-    subject: `The auto team set ${teamName}'s lineup for gameweek ${gameweek}`,
-    body: `${teamName}'s lineup couldn't stand at gameweek ${gameweek}'s deadline, so the auto team switched on and set it for that gameweek alone. It is off again from gameweek ${gameweek + 1}.`,
+    subject: `The auto team set ${teamName}'s line-up for gameweek ${gameweek}`,
+    body: `${teamName}'s line-up couldn't stand at gameweek ${gameweek}'s deadline, so the auto team switched on and set it for that gameweek alone. It is off again from gameweek ${gameweek + 1}.`,
   }),
   /** The gameweek its manager named has begun, so it is off from the next. */
   ended: (teamName: string, gameweek: number): Words => ({

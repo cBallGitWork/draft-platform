@@ -49,7 +49,7 @@ export function WriteToLeague({
   }
 
   return (
-    <Panel title={WRITE_TITLE} className="min-w-0 max-w-xl grow basis-letter-form">
+    <Panel title={WRITE_TITLE} className="min-w-0">
       <Problem problem={problem} />
       <Status words={sentTo === null ? null : sentWords(sentTo)} className="px-3 pt-2 text-derived" />
       <form onSubmit={send} className={PANEL_BODY}>

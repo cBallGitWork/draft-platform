@@ -63,7 +63,7 @@ test("the kick-off and full-time lines carry the clubs and the score", () => {
   const texts = writtenLive("final").lines.map((line) => line.text);
 
   expect(texts[0]).toBe("FT IPS 1–1 NFO");
-  expect(texts.slice(-2)).toEqual(["KO IPS v NFO", "Lineups out"]);
+  expect(texts.slice(-2)).toEqual(["KO IPS v NFO", "Line-ups out"]);
   expect(texts).toContain("46' Second half");
   expect(texts).toContain("45+3' HT");
 });
@@ -114,7 +114,7 @@ test.each([
   { change: { type: FEED_TYPE.penaltyLost }, expected: "62' PENALTY conceded by N.Williams" },
   { change: { type: FEED_TYPE.playerRetired }, expected: "62' OFF INJURED N.Williams" },
   { change: { type: FEED_TYPE.refereeDecision, playerCodes: [] }, expected: "62' VAR" },
-  { change: { type: FEED_TYPE.lineup, minute: null, addedMinute: null, playerCodes: [] }, expected: "Lineups out" },
+  { change: { type: FEED_TYPE.lineup, minute: null, addedMinute: null, playerCodes: [] }, expected: "Line-ups out" },
 ])("a \"$change.type\" line, is written $expected", ({ change, expected }) => {
   expect(writeCommentary([lineOf(change)], liveInput).lines.map((line) => line.text)).toEqual([expected]);
 });

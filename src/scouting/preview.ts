@@ -25,7 +25,8 @@ export const ARSENAL = previewClub("ARS");
 export const CHELSEA = previewClub("CHE");
 export const LIVERPOOL = previewClub("LIV");
 
-const player = (code: number, name: string, fullName: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null = null): ListedPlayer => ({
+/** A preview player as the players list sends him: no figures yet, and on no waivers. */
+export const previewListedPlayer = (code: number, name: string, fullName: string, club: ListedPlayer["club"], positions: ListedPlayer["positions"], ownerTeamName: string | null = null): ListedPlayer => ({
   code,
   name,
   fullName,
@@ -42,6 +43,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
 /** One player on waivers, so the filter and the player card's claim show: a run two days off first
  *  takes him. */
 const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRun: { at: Date.now() + 2 * DAY_MS, skippedIf: null } } });
+const player = previewListedPlayer;
 
 export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
@@ -128,6 +130,26 @@ const previewRace = (stat: string): StatRace => ({
   ),
 });
 
+/** The players list over `players`, filtered and sorted by the server's own rule, their clubs in
+ *  the filter: Scouting's preview players, and the draft room's, which adds its lists' (#1969). */
+export const previewPlayersListOf =
+  (players: readonly ListedPlayer[]): ScoutingSeam["usePlayersList"] =>
+  (_leagueId, filters, sort, stat, period = DEFAULT_PERIOD, keep) => {
+    const rows = players.map((player) => {
+      const totals = totalsOver(period)[player.code];
+      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
+    });
+    return {
+      clubs: [...new Map(players.map(({ club }) => [club.code, club])).values()],
+      ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
+      players: listOf(rows, filters, sort),
+      pointsSeason: null,
+      periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
+      mode: previewGameMode,
+      ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
+    };
+  };
+
 /** Scouting's own part of the preview; the app adds the player card's pickup and claim
  *  (src/app/previewApp.tsx), whose preview reads these players. */
 export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
@@ -152,20 +174,6 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
     return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
   },
-  usePlayersList: (_leagueId, filters, sort, stat, period = DEFAULT_PERIOD, keep) => {
-    const rows = previewPlayers.map((player) => {
-      const totals = totalsOver(period)[player.code];
-      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
-    });
-    return {
-      clubs: [ARSENAL, CHELSEA, LIVERPOOL],
-      ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
-      players: listOf(rows, filters, sort),
-      pointsSeason: null,
-      periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
-      mode: previewGameMode,
-      ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
-    };
-  },
+  usePlayersList: previewPlayersListOf(previewPlayers),
   useStatRace: (_leagueId, stat) => previewRace(stat),
 };

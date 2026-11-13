@@ -10,6 +10,9 @@ import { internal } from "../_generated/api";
 import { approveMode, changeThresholds, clubColoursRecord, position } from "../schema";
 import { heldColours } from "../football/clubKits";
 import { keepScoutingPlayer } from "../scouting/scoutingPlayers";
+import type { Area } from "../lineup/pitch";
+import { areaShape } from "../lineup/pitchShape";
+import { minimumAreas } from "../squads/areaMinimums";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
@@ -180,11 +183,17 @@ export const queue = query({
   },
 });
 
-const foundPlayer = v.object({ ...queuedPlayer, positions: v.array(heldPosition) });
+const foundPlayer = v.object({
+  ...queuedPlayer,
+  positions: v.array(heldPosition),
+  /** The area the admin set while no feed places him (unplacedAreas.ts), or null for none. */
+  unplacedArea: v.union(areaShape, v.null()),
+});
 export type FoundPlayerPositions = Infer<typeof foundPlayer>;
 
-/** Players whose name matches, with their positions now, for the admin to correct any of them
- *  (spec/06). Never those who have left the Premier League. */
+/** Players whose name matches, with their positions now and any area the admin set for him while
+ *  he has none, for the admin to correct any of them (spec/06). Never those who have left the
+ *  Premier League. */
 export const find = query({
   args: { text: v.string() },
   returns: v.array(foundPlayer),
@@ -194,13 +203,17 @@ export const find = query({
     const how = await howPositionsCount(ctx, EVERY_LEAGUE);
     const found = await playersNamed(ctx, text);
     return Promise.all(
-      found.map(async (player) => ({
-        code: player.code,
-        name: player.name,
-        fullName: player.fullName,
-        clubCode: player.clubCode,
-        positions: (await workedOutNow(ctx, player.code, how)).positions,
-      })),
+      found.map(async (player) => {
+        const row = (await findRow(ctx, player.code)) ?? EMPTY_ROW;
+        return {
+          code: player.code,
+          name: player.name,
+          fullName: player.fullName,
+          clubCode: player.clubCode,
+          positions: positionsFrom(row, how).positions,
+          unplacedArea: row.unplacedArea ?? null,
+        };
+      }),
     );
   },
 });
@@ -208,25 +221,36 @@ export const find = query({
 /** A player's positions now, by his code. */
 export type PositionsNow = (code: number) => Promise<Position[]>;
 
-/** Each player's positions now, as the league's own deadlines have them (#895; EVERY_LEAGUE for
- *  what no one league owns), for anyone's screen (a squad's area minimums, #317): none for a player
- *  no feed has named yet. How positions count is read once, here, and each player's row once per
- *  lookup (#1532): a draft pick asks after the same players several times over, near Convex's read
- *  limit. A caller that writes a player's positions takes a new lookup to read them again. */
+/** The areas whose squad minimums a player can fill now, by his code (areaMinimums.ts's
+ *  `minimumAreas`): `positionsThen` counts him at positions he had before (a drafted player's,
+ *  #1484) in place of his positions now; one who had none then counts as he stands now. */
+export type MinimumAreasNow = (code: number, positionsThen?: readonly Position[]) => Promise<Area[]>;
+
+/** Each player's positions now, as `playerPositionsNow` reads them, for anyone's screen. */
 export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<PositionsNow> {
-  const how = await howPositionsCount(ctx, positionsFor);
-  const read = new Map<number, Promise<Position[]>>();
-  return (code) => {
-    const known = read.get(code);
-    if (known !== undefined) return known;
-    const positions = currentPositions(ctx, code, how);
-    read.set(code, positions);
-    return positions;
-  };
+  return (await playerPositionsNow(ctx, positionsFor)).positionsOf;
 }
 
-async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
-  return positionListFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how);
+/** Each player's positions now, as the league's own deadlines have them (#895; EVERY_LEAGUE for
+ *  what no one league owns), none for a player no feed has named yet, and the areas whose squad
+ *  minimums he can fill (#317), which the admin's area gives an unplaced player (spec/06 `S06.1`).
+ *  How positions count is read once, here, and each player's row once per lookup, for both (#1532):
+ *  a draft pick asks after the same players several times over, near Convex's read limit. A caller
+ *  that writes a player's positions takes a new lookup to read them again. */
+export async function playerPositionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<{ positionsOf: PositionsNow; minimumAreasOf: MinimumAreasNow }> {
+  const how = await howPositionsCount(ctx, positionsFor);
+  const rows = new Map<number, Promise<RowFields>>();
+  const rowOf = (code: number): Promise<RowFields> => {
+    const known = rows.get(code);
+    if (known !== undefined) return known;
+    const row = findRow(ctx, code).then((found) => found ?? EMPTY_ROW);
+    rows.set(code, row);
+    return row;
+  };
+  const positionsOf: PositionsNow = async (code) => positionListFrom(await rowOf(code), how);
+  const minimumAreasOf: MinimumAreasNow = async (code, positionsThen) =>
+    minimumAreas(positionsThen?.length ? positionsThen : await positionsOf(code), (await rowOf(code)).unplacedArea ?? null);
+  return { positionsOf, minimumAreasOf };
 }
 
 /** Everything `positionsOf` works out for him now, flags and removals with his positions. */

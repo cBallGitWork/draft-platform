@@ -15,13 +15,18 @@ export const leaguesCutWords = `More leagues exist than this list can show (it s
 export const NEW_LEAGUE_TITLE = "Create a league";
 
 const roleWords: Record<LeagueSummary["roles"][number], string> = {
-  commissioner: "Commissioner",
-  "co-commissioner": "Co-commissioner",
-  manager: "Manager",
+  commissioner: "commissioner",
+  "co-commissioner": "co-commissioner",
+  manager: "manager",
 };
 
-/** A person's parts in a league, as a list: "Commissioner, Manager". */
-export const rolesWords = (roles: LeagueSummary["roles"]) => roles.map((role) => roleWords[role]).join(", ");
+/** A person's parts in a league, as a phrase: "Commissioner and manager", as the approved picture
+ *  words it (docs/design/approved/leagues). */
+export function rolesWords(roles: LeagueSummary["roles"]) {
+  const parts = roles.map((role) => roleWords[role]);
+  const phrase = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+  return phrase.charAt(0).toUpperCase() + phrase.slice(1);
+}
 
 /** The admin's part in a league where he has no other. */
 export const adminWords = "Admin";
@@ -31,7 +36,6 @@ export const backToLeaguesWords = "Back to your leagues";
 
 /** "Your leagues" for someone in none. */
 export const notInALeagueWords = (email: string) => `You're signed in as ${email}, and you're not in a league yet.`;
-export const invitedHereWords = "A commissioner's invite brings you into one.";
 
 /** "Your leagues" as a table: its columns, and what each row says. */
 export const leagueColumns = {
@@ -85,9 +89,10 @@ export const confirmDelete = (leagueName: string) =>
   `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
   `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
 
-/** When it goes, in the viewer's own zone (convex/shared/moments.ts, #442). */
+/** After the league's name, on its strip under Your leagues: when it goes, in the viewer's own zone
+ *  (convex/shared/moments.ts, #442). */
 export const beingDeleted = (deletesAt: number) =>
-  `Being deleted: it goes for good on ${screenMoment(deletesAt)}. Until then it's frozen and hidden from everyone but its commissioner and the admin.`;
+  `is being deleted, and is frozen and hidden from everyone but its commissioner and the admin. It goes for good on ${screenMoment(deletesAt)}.`;
 export const undoWords = "Undo";
 
 /** When deleting a league, or undoing it, failed before the server could say why. */

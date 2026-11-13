@@ -77,7 +77,9 @@ export const previewAdmin: AdminSeam = {
               { position: "CAM", source: "label", confirmed: false, flaggedElsewhere: null },
               { position: "SS", source: "admin", confirmed: true, flaggedElsewhere: null },
             ],
+            unplacedArea: null,
           },
+          { code: 9, name: "Okafor", fullName: "Chidi Okafor", clubCode: 4, positions: [], unplacedArea: "defence" },
         ]
       : [],
   useFeeds: () => feeds,
@@ -87,6 +89,7 @@ export const previewAdmin: AdminSeam = {
   approveClub: previewSays("no club was approved"),
   setPosition: previewSays("no position was set"),
   removePosition: previewSays("no position was removed"),
+  setUnplacedArea: previewSays("no player's area was set"),
   setApproveMode: previewSays("how starts count didn't change"),
   setChangeThresholds: previewSays("the thresholds didn't change"),
   setClubColours: previewSays("no club's colours changed"),

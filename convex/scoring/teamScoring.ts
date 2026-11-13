@@ -45,16 +45,23 @@ export const ANY_BACK_LINE: BackLineScoring = { cleanSheet: 1, goalConceded: -1 
  *  defence slots (withBackLine), else as they are. */
 export function rulesAt(rules: readonly ScoringRule[], team: TeamScoring | undefined, area: Area): readonly ScoringRule[] {
   const backLine = backLineAt(team, area);
-  return backLine === null ? rules : rules.map((rule) => withBackLine(rule, backLine.scoring));
+  return backLine === null ? rules : withBackLine(rules, backLine.scoring);
 }
 
-/** The rule as a back line prices it: a clean sheet and each goal conceded at the formation's
- *  values, the rule's minimum minutes and points limit kept; any other rule as it is. */
-export function withBackLine(rule: ScoringRule, scoring: BackLineScoring): ScoringRule {
-  const { shape: _shape, values: _values, ...kept } = rule;
-  if (rule.stat === CLEAN_SHEETS) return { ...kept, shape: "perAction", values: { all: scoring.cleanSheet } };
-  if (rule.stat === GOALS_CONCEDED) return { ...kept, shape: "perCount", values: { all: { every: 1, points: scoring.goalConceded } } };
-  return rule;
+/** The rules as a back line prices them, in their order: a clean sheet and each goal conceded at
+ *  the formation's values, once whatever the categories (spec/05 S05.19; #1968), so the first rule
+ *  on each takes them and any later one on the same stat gives nothing; each keeps its minimum
+ *  minutes and points limit. Any other rule as it is. */
+export function withBackLine(rules: readonly ScoringRule[], scoring: BackLineScoring): ScoringRule[] {
+  const priced = new Set<string>();
+  return rules.map((rule) => {
+    if (rule.stat !== CLEAN_SHEETS && rule.stat !== GOALS_CONCEDED) return rule;
+    const { shape: _shape, values: _values, ...kept } = rule;
+    if (priced.has(rule.stat)) return { ...kept, shape: "perAction", values: { all: 0 } };
+    priced.add(rule.stat);
+    if (rule.stat === CLEAN_SHEETS) return { ...kept, shape: "perAction", values: { all: scoring.cleanSheet } };
+    return { ...kept, shape: "perCount", values: { all: { every: 1, points: scoring.goalConceded } } };
+  });
 }
 
 /** An instruction's points for this record, own stats worked out, at a slot standing for

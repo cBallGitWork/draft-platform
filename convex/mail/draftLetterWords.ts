@@ -31,7 +31,7 @@ export function draftOverLetter(picks: number): Words {
 export function scoringStartMovedLetter({ from, to }: { from: number; to: number }): Words {
   return {
     subject: `Scoring starts in gameweek ${to}`,
-    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and lineups count from gameweek ${to}'s deadline.`,
+    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and line-ups count from gameweek ${to}'s deadline.`,
   };
 }
 

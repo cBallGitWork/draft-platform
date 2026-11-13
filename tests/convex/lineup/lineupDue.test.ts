@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
+import { lineupDueAt } from "../../../convex/lineup/lineupDueAt";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
@@ -27,7 +28,8 @@ beforeEach(async () => {
   [annsTeam] = await addManagers(t, leagueId, [ANN]);
 });
 
-const isDue = async (email: string) => (await actingAs(t, email)).query(api.lineup.lineupDue.isDue, { leagueId, now: Date.now() });
+/** Whether `email`'s lineup is due now, as the top bar judges the times `isDue` sends at its minute. */
+const isDue = async (email: string) => lineupDueAt(await (await actingAs(t, email)).query(api.lineup.lineupDue.isDue, { leagueId }), Date.now());
 /** `email` opens the Tactics tab, showing `gameweek` (the next, unless a test says). */
 const opensTactics = async (email: string, gameweek = NEXT) => (await actingAs(t, email)).mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek });
 /** The next gameweek's league deadline, as holdGameweeks sets its kickoff, under the first rules. */
@@ -77,7 +79,15 @@ describe("whether his lineup is due", () => {
     clockTo(nextDeadline() - LINEUP_DUE_BEFORE_DEADLINE_MS);
     expect(await isDue(COMMISSIONER)).toBe(false);
     expect(await isDue(ADMIN)).toBe(false);
-    expect(await t.query(api.lineup.lineupDue.isDue, { leagueId, now: Date.now() })).toBe(false);
+    expect(await t.query(api.lineup.lineupDue.isDue, { leagueId })).toBeNull();
+  });
+
+  test("its times take no minute, so a minute passing reads nothing again: only the judging moves on (#2005)", async () => {
+    const before = await (await actingAs(t, ANN)).query(api.lineup.lineupDue.isDue, { leagueId });
+    clockTo(nextDeadline() - LINEUP_DUE_BEFORE_DEADLINE_MS);
+    expect(await (await actingAs(t, ANN)).query(api.lineup.lineupDue.isDue, { leagueId })).toEqual(before);
+    expect(lineupDueAt(before, Date.now() - MINUTE_MS)).toBe(false);
+    expect(lineupDueAt(before, Date.now())).toBe(true);
   });
 
   test("afresh for a new manager of a vacated team, who has opened nothing", async () => {

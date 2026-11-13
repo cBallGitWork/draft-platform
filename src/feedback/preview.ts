@@ -25,7 +25,7 @@ const list: FeedbackList = {
       "bob@example.com",
       "Squads page on my phone:\n1. Open Squads\n2. Search for Saka\n3. The Assign button sits off the right edge\n\nOtherwise loving it.",
     ),
-    entry(3, 30, "cat.with.a.very.long.address@example.com", "Can Mail tell me when my lineup is short before the deadline?"),
+    entry(3, 30, "cat.with.a.very.long.address@example.com", "Can Mail tell me when my line-up is short before the deadline?"),
   ],
   more: false,
 };

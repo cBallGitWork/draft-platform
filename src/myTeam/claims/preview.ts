@@ -7,7 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { previewSays, previewTeamNames } from "../../shared/preview";
-import { previewIdOf } from "../../table/preview";
+import { previewIdOf, previewLeagueTable } from "../../table/preview";
 import type { ClaimsSeam, PendingClaim, WaiversView } from "./seam";
 
 const unsavedWords = "claims aren't saved";
@@ -55,12 +55,12 @@ const claims: PendingClaim[] = [
   claimOf(4, otherTeam, wissa, konsa, wednesday),
 ];
 
-const points = [9, 9, 12, 12, 15];
 const waivers: WaiversView = {
   type: "reverseStandings",
-  teams: previewTeamNames
-    .map((name, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: previewTeamNames.length - index, points: points[index] ?? 0 }))
-    .toSorted((one, other) => other.tablePlace - one.tablePlace),
+  // The table preview's places and points, bottom first, so the order agrees with the table (#1969).
+  teams: previewLeagueTable.table
+    .map(({ teamName: name, points }, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: index + 1, points }))
+    .toReversed(),
   drafted: true,
   runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
   locked: false,

@@ -18,15 +18,13 @@ import {
   noFigureWords,
   noneMatchWords,
   nameLabel,
-  noPointsYetWords,
-  notLastSeasonWords,
   onWaiversWords,
   positionLabel,
   SCOUTING_TITLE,
   seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
-import { columnHeadName, freeAgentWords, menuWords, POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName, freeAgentWords, menuWords, noPointsYetWords, notLastSeasonWords, POSITION_NAMES } from "../../../src/shared/words";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";

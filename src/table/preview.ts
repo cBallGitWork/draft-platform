@@ -7,7 +7,7 @@ import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
 import { previewChristmasBreak, previewGameweek, previewSays, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TableScreenSeam } from "./seam";
-import { leagueTableOf, type Drawn } from "./drawnTable";
+import { drawnSchedule, leagueTableOf, type Drawn } from "./drawnTable";
 import { swapUnsavedOutcome } from "./words";
 
 /** The gameweeks begun, scored with made-up points: up to the preview's own, the last still live. */
@@ -32,8 +32,12 @@ const scores = new Map(
 );
 /** How the preview league is scored: My team's preview shows the same scores. */
 export const previewScored = { ...previewSeason, scores, provisional: previewTeamNames } satisfies Drawn;
-const table = leagueTableOf(previewTeamNames, { ...previewScored, autoTeams: [previewAutoTeam] });
+/** The preview league's table: League home's table card and the waiver order read it too, so every
+ *  screen tells the same story (#1969). */
+export const previewLeagueTable = leagueTableOf(previewTeamNames, { ...previewScored, autoTeams: [previewAutoTeam] });
+/** The same draw as the table's, by team name: League home plays its fixtures. */
+export const previewSchedule = drawnSchedule(previewTeamNames, previewScored);
 
 const previewSwap = { swap: previewSays(swapUnsavedOutcome) };
 
-export const previewTable: TableScreenSeam = { useLeagueTable: () => table, useFixtureSwap: () => previewSwap };
+export const previewTable: TableScreenSeam = { useLeagueTable: () => previewLeagueTable, useFixtureSwap: () => previewSwap };

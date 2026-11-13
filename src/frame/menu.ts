@@ -58,7 +58,7 @@ export const sections: readonly Section[] = [
       { label: menuWords.newOffer, path: TRADES_NEW_PATH },
     ],
   },
-  { label: menuWords.premierLeague, path: PREMIER_LEAGUE_PATH, tabs: [] },
+  { label: menuWords.football, path: PREMIER_LEAGUE_PATH, tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];
 

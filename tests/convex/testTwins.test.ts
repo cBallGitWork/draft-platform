@@ -161,7 +161,6 @@ const STILL_TWINNED: string[] = [
   "tests/src/leagues/leagues.test.tsx defines rowOf",
   "tests/src/leagues/liveLeagues.test.tsx defines undo",
   "tests/src/leagueSettings/leagueSettings.scoringStart.test.tsx defines season",
-  "tests/src/mail/mail.test.tsx defines commissioner",
   "tests/src/matchup/breakdown.test.tsx defines ALL",
   "tests/src/matchup/matchup.test.tsx defines KICKOFF",
   "tests/src/matchup/paths.test.ts defines team",
