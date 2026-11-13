@@ -5,7 +5,7 @@ import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated
 import { draftHasStarted, draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { scheduleHeartbeat } from "../heartbeats/heartbeat";
+import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
@@ -247,12 +247,12 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: asks each league due a look (../leagues/leagueChecks.ts, #1998) to start what is due
- *  in it (`runLeagueDue`) in its own transaction, so one league's fault stops no other's (#1762). */
+/** The cron's: asks each league due a look (../leagues/leagueChecks.ts, #1998) to start what is due in it (`runLeagueDue`) in its own transaction (#1762). */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
+    if (!timedJobsOn()) return null;
     for (const leagueId of await leaguesDue(ctx, "waivers", Date.now())) {
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.runLeagueDue, { leagueId });
     }

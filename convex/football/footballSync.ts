@@ -10,7 +10,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
-import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, cronRunOff, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
@@ -62,8 +62,9 @@ export const SYNC_FAILED_LOG = "football sync failed";
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
-  handler: async (ctx, { trigger }) =>
-    withHeartbeat(trigger === CRON_TRIGGER ? "footballSync" : null, async () => {
+  handler: async (ctx, { trigger }) => {
+    if (cronRunOff(trigger)) return null;
+    return withHeartbeat(trigger === CRON_TRIGGER ? "footballSync" : null, async () => {
       const ranAt = Date.now();
       const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
         // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
@@ -88,7 +89,8 @@ export const run = internalAction({
       });
       await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
       return null;
-    }),
+    });
+  },
 });
 
 export const upsertClubs = internalMutation({

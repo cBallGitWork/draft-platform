@@ -4,7 +4,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { scheduleHeartbeat } from "../heartbeats/heartbeat";
+import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, type OfferClosed } from "../mail/tradeLetterWords";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -133,6 +133,7 @@ export const closeDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
+    if (!timedJobsOn()) return null;
     for (const leagueId of await leaguesDue(ctx, "offers", Date.now())) {
       await ctx.scheduler.runAfter(0, internal.trades.tradeClose.closeLeagueDue, { leagueId });
     }
