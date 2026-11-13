@@ -47,7 +47,7 @@ permissions:
 
 jobs:
   build:
-    # a build starts from Craig's `build` label, from a dispatch (the nightly job, the weekly drift pass, or Craig's
+    # a build starts from Craig's `build` label, from a dispatch (the lead, the weekly drift pass, or Craig's
     # button), or from Craig's comment on an issue labelled `rules:open`, never on a pull request's comments
     # Nothing starts while Craig's stop switch is set (the header).
     if: >-
@@ -57,7 +57,7 @@ jobs:
           || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
               && github.event.comment.user.login == github.repository_owner
               && contains(github.event.issue.labels.*.name, 'rules:open')))
-    # one build per issue, so a manual run and the nightly run never build it twice; different issues build side by
+    # one build per issue, so a manual run and the lead's never build it twice; different issues build side by
     # side. At job level, so a run for any other label (skipped by the `if` above) never joins the group and never
     # replaces a build waiting in it.
     concurrency:
@@ -68,6 +68,10 @@ jobs:
     env:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       MODE: ${{ inputs.mode || 'build' }}
+      # an unfinished build's branch starts with this, then the run's id; lead.yml's WIP_PREFIX finds it (keep in step),
+      # and the prompt below spells it too, as job env can't feed the prompt held in the same env
+      WIP_BRANCH: wip/issue-${{ inputs.issue || github.event.issue.number }}-
+      WIP_TITLE: "wip: unfinished build of #${{ inputs.issue || github.event.issue.number }}"
       PAUSED_LABEL: "pipeline:paused"  # an open issue with it holds every build until the time on its `Until:` line (lead.yml)
       PAUSE_HOURS: 5  # how long a usage limit pauses builds when its message gives no reset time: the subscription's window
       # lead.yml dispatches each build as CBHelper180 (BUILD_TOKEN) since 6 Nov 2026, falling back to the job's token,
@@ -298,33 +302,34 @@ jobs:
           git config --unset-all http.https://github.com/.extraheader || true  # the revoked token, if the action left it
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
           git config user.name "claude-build" && git config user.email "claude-build@users.noreply.github.com"
+          # everything the run wrote, committed if there is any: .gitignore keeps out node_modules, dist, .shots,
+          # test-results and coverage (naming them here made git add exit 1)
+          keep() { git add -A; git diff --cached --quiet || git commit -q -m "$1"; }
           if [ "$MODE" = fix ]; then
             [ "$FINISHED" != true ] || { echo "The fix round finished: nothing to keep."; exit 0; }
-            git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage
-            git diff --cached --quiet || git commit -q -m "wip: unfinished fix round of #$ISSUE"
+            keep "wip: unfinished fix round of #$ISSUE"
             # commits no origin branch holds: the edits just committed, and any the round committed but never pushed
             [ -n "$(git log --oneline HEAD --not --remotes=origin)" ] || { echo "The fix round left nothing unpushed."; exit 0; }
-            branch="wip/issue-$ISSUE-$GITHUB_RUN_ID-pr-$PR"
+            branch="$WIP_BRANCH$GITHUB_RUN_ID-pr-$PR"
             git push -q origin "HEAD:refs/heads/$branch"
             gh issue comment "$ISSUE" --body "The fix round on #$PR stopped before it finished, out of turns or cut off. What it hadn't pushed is on \`$branch\`, unreviewed and unverified, and not on the pull request, which can merge on its own and has had its one review round. If the pull request closes unmerged, the issue's next build carries on from that branch; if it merges, the next build leaves the branch alone."
             echo "::warning::Unfinished fix round kept on $branch"; exit 0
           fi
           if [ "$current" != HEAD ] && [ "$current" != "$GITHUB_REF_NAME" ] && [ -n "$(gh pr list --head "$current" --state open --json number --jq '.[].number')" ]; then  # the branch a test run started on has its own pull request, not the build's
-            if [[ "$current" == wip/issue-"$ISSUE"-* ]]; then  # a carried-on draft: keep what it wrote since its last push
-              git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage; naming them here made git add exit 1
-              git diff --cached --quiet || { git commit -q -m "wip: unfinished build of #$ISSUE"; git push -q origin "HEAD:refs/heads/$current"; }
+            if [[ "$current" == "$WIP_BRANCH"* ]]; then  # a carried-on draft: keep what it wrote since its last push
+              keep "$WIP_TITLE"
+              [ -z "$(git log --oneline HEAD --not --remotes=origin)" ] || git push -q origin "HEAD:refs/heads/$current"
             fi
             echo "The build's pull request is open."; exit 0
           fi
-          git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage; naming them here made git add exit 1
-          git diff --cached --quiet || git commit -q -m "wip: unfinished build of #$ISSUE"
+          keep "$WIP_TITLE"
           # past the commit the run started from, not main: a run from a branch starts ahead of main, and its draft held
           # only that branch's pipeline commits (#1174, #1178, #1186)
           if [ -z "$(git log --oneline "$GITHUB_SHA..HEAD")" ]; then echo "Nothing written past where the run started: no draft."; exit 0; fi
-          branch="wip/issue-$ISSUE-$GITHUB_RUN_ID"  # the name the next build looks for; one per run, so none collide
+          branch="$WIP_BRANCH$GITHUB_RUN_ID"  # the name the next build looks for; one per run, so none collide
           git push -q origin "HEAD:refs/heads/$branch"
           url=$(gh pr create --draft --base main --head "$branch" \
-            --title "wip: unfinished build of #$ISSUE" \
+            --title "$WIP_TITLE" \
             --body "The build of #$ISSUE stopped before it opened its pull request, out of turns or cut off. This is what it wrote, unreviewed and unverified. Part of #$ISSUE")
           if [ "$asked" != 0 ]; then why="stopped to ask the question above"; else why="stopped before it finished"; fi
           gh issue comment "$ISSUE" --body "The build $why. Its work so far is in the draft $url. lead.yml carries on from it once; label the issue \`build\` to carry on by hand."

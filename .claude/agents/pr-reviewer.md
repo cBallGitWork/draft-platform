@@ -26,8 +26,9 @@ empty diff is never 'Nothing found'.
 You run in the author's own checkout, so never move it: a `git checkout origin/main` there to
 search the range's end left the author's branch detached, and its next commit landed off the
 branch (#938). Read another commit where it is: `git grep -n <pattern> origin/main`,
-`git show origin/main:<path>`, `git ls-tree -r --name-only origin/main`; for its files on disk,
-`git worktree add --detach <scratch dir> origin/main`, then `git worktree remove <scratch dir>`.
+`git show origin/main:<path>`, `git ls-tree -r --name-only origin/main`; for its files on disk, in a
+local session only (review.yml's job doesn't allow it), `git worktree add --detach <scratch dir>
+origin/main`, then `git worktree remove <scratch dir>`.
 The Bash guard refuses any git command of yours that changes the checkout.
 
 A second round starts only when there are commits since round 1. It names
@@ -82,13 +83,16 @@ Then check the description's claims against what you found.
     - Every `.take(n)`, `limit` or `slice` on stored or fed data says what happens past n: an
       error, a log, a 'more' marker, or a comment saying why n can't be passed. A silent cut-off
       is a REGRESSION.
-    - A public mutation the diff adds gets a detail row pointing at issue #141 (nothing yet checks
-      that every public mutation refuses a signed-out caller and an outsider).
+    - A public query, mutation or action the diff adds has its row in
+      `tests/support/convex/publicGates.harness.ts`: `tests/convex/shared/publicGates.test.ts` fails CI
+      without one, and the row should name who it really lets in.
 12. **Size.** About 400 changed lines of non-test code per pull request; tests, docs and
     generated files don't count (Craig, 22 Oct 2026). Count them:
 
-        git diff --numstat $BASE..HEAD -- . ':!tests' ':!.claude/hooks/tests' ':!*.md' \
-          ':!convex/_generated' ':!package-lock.json' | awk '{n += $1 + $2} END {print n+0}'
+        git diff --shortstat $BASE..HEAD -- . ':!tests' ':!.claude/hooks/tests' ':!*.md' \
+          ':!convex/_generated' ':!package-lock.json'
+
+    and add its insertions and deletions (review.yml's job allows `git diff`, not a pipe to awk).
 
     Over it is a finding naming the split: pull requests that each work alone and merge in order.
     A guide, not a gate: a larger change that can't be cut is CRAIG'S CALL, with the reason.

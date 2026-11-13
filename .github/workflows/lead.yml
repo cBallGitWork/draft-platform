@@ -40,7 +40,7 @@ on:
   schedule:
     # off the hour and half hour, GitHub's busiest minutes: on 5 Nov 2026 no :00 or :30 pass fired for over an hour
     - cron: "7,37 * * * *"
-    # the rules sweep, before the 02:00 builds and the 7am dashboard: keep in step with SWEEP_CRON, as on.schedule can't read env
+    # the rules sweep, overnight before the day's builds and the 7am dashboard: keep in step with SWEEP_CRON, as on.schedule can't read env
     - cron: "37 1 * * *"
   # GitHub's schedule is not to be relied on: on 5 Nov 2026 no scheduled run of any workflow fired after 11:21 UTC
   # and the lead had never run on it. So the lead also passes when a build ends (a slot is free) and when an issue
@@ -89,6 +89,13 @@ env:
   FIXED_LABEL: "lead:fixed"
   RESUMED_LABEL: "lead:resumed"
   CLEAR_LABEL: "rules:clear"
+  OPEN_LABEL: "rules:open"  # waits on Craig's answers to its rules
+  CRAIG_LABEL: "lane:craig"  # waits on Craig himself
+  AUTO_LABEL: "lane:auto"  # a grill's issue, ready to build
+  # the labels that start a pass when an issue gets one, written out again in the concurrency group and the job's `if`,
+  # which can't read env: AUTO_LABEL, CLEAR_LABEL, NEXT_LABEL (keep the three in step)
+  ISSUE_LINK: '(?m)^(?:Part of|Closes) #([0-9]+)'  # the line a pull request names its issue on (pr_body.py's ISSUE_LINE)
+  WIP_PREFIX: "wip/issue-"  # an unfinished build's draft branch, wip/issue-N-<run id>: claude-build.yml's WIP_BRANCH (keep in step)
   STALE_LABEL: "lead:stale"  # built but for work a build can't do: left open for a session
   DONE_LABEL: "lead:done"  # a build found nothing left: the lead closes it
   SESSION_LABEL: "lane:session"  # work a build can't do (.github/, .claude/, a deployment), filed by a build or review
@@ -249,7 +256,7 @@ jobs:
           }
 
           prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable,createdAt,isCrossRepository)
-          linked() { jq -r '.[] | (.body // "") | scan("(?m)^(?:Part of|Closes) #([0-9]+)") | .[0]' <<<"$prs" | sort -u; }
+          linked() { jq -r '.[] | (.body // "") | scan(env.ISSUE_LINK) | .[0]' <<<"$prs" | sort -u; }
           taken=$(linked)
           label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
           # the jq tests 0, 1 and 1b share: a builder pull request, and a red one (a RED_CHECKS check failed). The board's
@@ -275,7 +282,7 @@ jobs:
               | select($red or .mergeable == "CONFLICTING" or $waiting)
               | (if $red then "red" elif .mergeable == "CONFLICTING" then "conflict" elif .mergeable == "MERGEABLE" then "review" else "unknown" end) as $kind
               | (any(.labels[]?; .name == env.CONFLICT_LABEL)) as $rounded
-              | "\(.number):\($kind):\($rounded):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+              | "\(.number):\($kind):\($rounded):\((.body // "") | ([scan(env.ISSUE_LINK)] | first // [""]) | .[0])"' <<<"$prs"); do
             IFS=: read -r pr kind rounded n <<<"$row"
             [ -n "$n" ] || continue
             grep -qx "$n" <<<"$busy_issues" && continue  # its fix round is still running
@@ -304,7 +311,7 @@ jobs:
           for row in $(jq -r --arg fixed "$FIXED_LABEL" "$jq_defs"'
               .[] | select(builder)
               | select(all(.labels[]?; .name != $fixed))
-              | "\(.number):\(red or .mergeable == "CONFLICTING"):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+              | "\(.number):\(red or .mergeable == "CONFLICTING"):\((.body // "") | ([scan(env.ISSUE_LINK)] | first // [""]) | .[0])"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             IFS=: read -r pr red n <<<"$row"
             [ -n "$n" ] || continue
@@ -324,7 +331,7 @@ jobs:
           for row in $(jq -r "$jq_defs"'
               .[] | select(builder)
               | select(any(.labels[]?; .name == env.FIXED_LABEL)) | select(.mergeable == "CONFLICTING")
-              | "\(.number):\(any(.labels[]?; .name == env.CONFLICT_LABEL)):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+              | "\(.number):\(any(.labels[]?; .name == env.CONFLICT_LABEL)):\((.body // "") | ([scan(env.ISSUE_LINK)] | first // [""]) | .[0])"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             IFS=: read -r pr rounded n <<<"$row"
             [ -n "$n" ] || continue
@@ -357,14 +364,14 @@ jobs:
 
           # 2. resume an unfinished build once
           for row in $(jq -r --arg resumed "$RESUMED_LABEL" '
-              .[] | select(.isDraft) | select(.headRefName | test("^wip/issue-[0-9]+-"))
+              .[] | select(.isDraft) | select(.headRefName | test("^" + env.WIP_PREFIX + "[0-9]+-"))
               | select(all(.labels[]?; .name != $resumed))
-              | "\(.number):\(.headRefName | capture("^wip/issue-(?<n>[0-9]+)-").n)"' <<<"$prs"); do
+              | "\(.number):\(.headRefName | capture("^" + env.WIP_PREFIX + "(?<n>[0-9]+)-").n)"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             pr=${row%%:*} n=${row#*:}
             # read first, then test, as in 1a: a failed read in a pipe would read as "no open rules" and resume it
             labels=$(gh issue view "$n" --json labels --jq '.labels[].name')
-            grep -qx 'rules:open' <<<"$labels" && continue
+            grep -qx "$OPEN_LABEL" <<<"$labels" && continue
             take "$n" || continue
             dispatch "$n" build; label "$pr" "$RESUMED_LABEL"; slots=$((slots - 1))
           done
@@ -377,9 +384,9 @@ jobs:
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
               | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.SESSION_LABEL and .name != env.STUCK_LABEL))
               | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
-              | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
-                elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"
-                elif any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\($prio):\(.number):build"
+              | if any(.labels[]?; .name == env.OPEN_LABEL) then "\($prio):\(.number):rules"
+                elif any(.labels[]?; .name == env.CRAIG_LABEL) then "\($prio):\(.number):craig"
+                elif any(.labels[]?; .name == env.AUTO_LABEL or .name == env.CLEAR_LABEL) then "\($prio):\(.number):build"
                 # a `next` label from Craig is a go-ahead even with no spec file named (#917, a bug, sat `next` with nothing to
                 # start it: #1203); the build still stops on any open rule
                 elif any(.labels[]?; .name == env.NEXT_LABEL) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\($prio):\(.number):build"
@@ -408,7 +415,7 @@ jobs:
               echo "::warning::couldn't read #$1's timeline, so it stays stopped this run" >&2; return 1
             fi
             jq -se --arg t "$2" '[.[][] | select((.created_at // "") > $t)
-              | select((.event == "unlabeled" and .label.name == "rules:open")
+              | select((.event == "unlabeled" and .label.name == env.OPEN_LABEL)
                        or (.event == "commented" and .actor.login == env.OWNER and ((.body // "") | test("^Craig.s answer"))))]
               | length > 0' <<<"$timeline" > /dev/null
           }
