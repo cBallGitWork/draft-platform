@@ -10,7 +10,6 @@ src/admin/words.ts: findTitle
 src/admin/words.ts: foundListLabel
 src/admin/words.ts: noneFoundWords
 src/app/liveApp.tsx: ZONE_FAILED_LOG
-src/draft/ClockLeft.tsx: PickClock
 src/draft/ClockLeft.tsx: leftAt
 src/draft/seam.ts: CommissionerView
 src/frame/menu.ts: sections
