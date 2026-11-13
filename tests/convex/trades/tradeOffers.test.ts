@@ -170,7 +170,7 @@ describe("answering an offer", () => {
     expect(await w.offers()).toEqual([expect.objectContaining({ _id: countered.offerId, fromTeamId: w.bobsTeam, toTeamId: w.annsTeam, gives: [SAKA], gets: [ANNS_FIRST_DROP] })]);
     expect(await w.lettersTo(ANN)).toContainEqual({
       subject: `${TEAM_2} offered ${TEAM_1} a trade`,
-      body: `${BOB} countered ${TEAM_1}'s offer with this one for ${TEAM_2}, which closes the old offer: ${TEAM_2} give ${nameOf(SAKA)}; ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}. ${TEAM_1} can accept, reject or counter it; unanswered, it closes at the next deadline.`,
+      body: `${BOB} countered ${TEAM_1}'s offer with this one for ${TEAM_2}, which closes the old offer: ${TEAM_2} give ${nameOf(SAKA)}; ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}. ${TEAM_1} can accept, reject or counter it; unanswered, it closes at the next deadline.`, // one-home-ok: pins the whole letter a manager reads
     });
     await expectRefused(w.accept(BOB, offerId), offerRefusals.closed);
   });
@@ -181,7 +181,7 @@ describe("answering an offer", () => {
     await w.withdraw(ANN, offerId);
 
     expect(await w.offers()).toEqual([]);
-    expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Team 1 withdrew it\./) }));
+    expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_1} withdrew it\\.`)) }));
 
     const accepted = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await w.accept(BOB, accepted.offerId);

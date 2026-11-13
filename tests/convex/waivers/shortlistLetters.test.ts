@@ -37,7 +37,7 @@ describe("a shortlisted player dropped", () => {
     const letter = dropped(true, ANN);
     expect(letter).toEqual({
       subject: `${nameOf(ANNS_FIRST_DROP)}, on your shortlist, was dropped`,
-      body: `${ANN} dropped ${nameOf(ANNS_FIRST_DROP)} from ${TEAM_1}. He is on waivers for at least 24 hours, and on your shortlist.`,
+      body: `${ANN} dropped ${nameOf(ANNS_FIRST_DROP)} from ${TEAM_1}. He is on waivers for at least 24 hours, and on your shortlist.`, // one-home-ok: pins the whole letter a manager reads
     });
     expect(await shortlistLettersTo(BOB)).toEqual([letter]);
     expect(await shortlistLettersTo(CAT)).toEqual([letter]);

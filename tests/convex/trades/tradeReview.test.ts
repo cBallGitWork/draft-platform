@@ -264,7 +264,7 @@ describe("open offers close", () => {
     await (await actingAs(w.t, BOB)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.bobsTeam, on: true });
 
     expect((await w.offers()).map(({ _id }) => _id)).toEqual([inReview]);
-    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Team 2 went on the auto team/) }));
+    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_2} went on the auto team`)) }));
     await w.reviewEnds(inReview);
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
   });

@@ -44,7 +44,7 @@ describe("a drop", () => {
     expect(await lastEvent()).toMatchObject({ kind: "playerDropped", playerCode: DROPPED, teamId: annsTeam, toWaivers: true, by: ANN });
     expect(await w.lettersTo(BOB)).toContainEqual({
       subject: `${TEAM_1} dropped ${nameOf(DROPPED)}`,
-      body: `${ANN} dropped ${nameOf(DROPPED)} from ${TEAM_1}. He is on waivers for at least 24 hours.`,
+      body: `${ANN} dropped ${nameOf(DROPPED)} from ${TEAM_1}. He is on waivers for at least 24 hours.`, // one-home-ok: pins the whole letter a manager reads
     });
     const squad = await t.run((ctx) => ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", annsTeam)).collect());
     expect(squad.map(({ playerCode }) => playerCode)).not.toContain(DROPPED);

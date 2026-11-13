@@ -1,7 +1,7 @@
 // The lint step (#154): React's two hook rules, so a hand-written dependency list is checked, and
 // a few bans that keep a value with one owner from being typed again (design values in
-// src/styles.css, those #1810 names, a team's starting name in Convex tests, and a named helper written out by hand, #1806); no style rule
-// sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
+// src/styles.css, those #1810 names, a team's starting name in Convex tests, and a named helper
+// written out by hand, #1806); no style rule sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
 import tsParser from "@typescript-eslint/parser";
 import reactHooks from "eslint-plugin-react-hooks";
 
