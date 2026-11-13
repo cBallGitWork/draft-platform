@@ -30,12 +30,15 @@ export const matchWrites = v.object({
 /** One match's records as read at `readAt`, a match at full time. Before the lock each record is
  *  written as sent, so a correction updates it and a stat taken away is gone (read as 0); the match
  *  is complete once every record is whole, and its lock is scheduled then. After the lock nothing
- *  is written but the changes, for the feeds page, and a whole record filling a held one's gap. */
+ *  is written but the changes, for the feeds page, and a whole record filling a held one's gap.
+ *  A read older than the last one written writes nothing, as matchScores.ts's `wins` refuses an
+ *  older score: a slow read never undoes a newer one (#2042). */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
   returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
+    if (status !== null && readAt < status.lastReadAt) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
     const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its records' write")).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
