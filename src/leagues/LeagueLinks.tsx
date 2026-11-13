@@ -5,6 +5,14 @@ import { backToLeaguesWords, leagueColumns } from "./words";
 /** How many columns "Your leagues" has, which a row across the whole table spans. */
 export const leagueColumnCount = Object.keys(leagueColumns).length;
 
+/** Your leagues' and Create a league's desk, as their approved pictures draw it: the main column
+ *  three quarters wide, the side panels beside it. */
+export const LEAGUE_DESK = "grid items-start gap-2 lg:grid-cols-4";
+export const LEAGUE_DESK_MAIN = "lg:col-span-3";
+
+/** A link in a side panel: a full tap on a phone, a plain line on a desktop. */
+export const SIDE_PANEL_LINK = "flex min-h-tap items-center lg:min-h-0";
+
 /** The way back to "Your leagues" from a page about one league; `className` places it. */
 export function BackToLeagues({ className }: { className?: string }) {
   return (

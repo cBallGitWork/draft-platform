@@ -49,7 +49,7 @@ const leaguesRoute = createRoute({
         leagues={session.leagues}
         leaguesCut={session.leaguesCut === true}
         actions={leagues}
-        useEndedInvite={joining.useEndedInvite}
+        joining={joining}
       />
     ) : null;
   },

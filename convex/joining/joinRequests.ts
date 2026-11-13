@@ -65,9 +65,12 @@ export const joinPage = query({
 
 /** The leagues the signed-in person has asked to join and waits on, by name, for "Your leagues"
  *  (spec/13: they see it waits for the commissioner). A league being deleted is hidden from them. */
+const waitingRequest = v.object({ leagueName: v.string() });
+export type WaitingRequest = Infer<typeof waitingRequest>;
+
 export const waitingMine = query({
   args: {},
-  returns: v.array(v.object({ leagueName: v.string() })),
+  returns: v.array(waitingRequest),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];

@@ -6,7 +6,7 @@ import { ADMIN_TITLE } from "../admin/words";
 import { Panel, PANEL_BODY, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { LeaguesSeam } from "./seam";
-import { BackToLeagues } from "./LeagueLinks";
+import { BackToLeagues, LEAGUE_DESK, LEAGUE_DESK_MAIN, SIDE_PANEL_LINK } from "./LeagueLinks";
 import { LEAGUES_PATH } from "./paths";
 import { adminWords, createLeagueHint, LEAGUES_TITLE, leagueNameHint, maxTeamsHint, NEW_LEAGUE_TITLE, newLeagueLabels } from "./words";
 
@@ -35,8 +35,8 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
   }
 
   return (
-    <div className="grid items-start gap-2 lg:grid-cols-4">
-      <Panel title={NEW_LEAGUE_TITLE} pageTitle className="lg:col-span-3">
+    <div className={LEAGUE_DESK}>
+      <Panel title={NEW_LEAGUE_TITLE} pageTitle className={LEAGUE_DESK_MAIN}>
         <Problem problem={problem} />
         <form onSubmit={create} className={PANEL_BODY}>
           <label htmlFor={NAME_ID} className="font-semibold">
@@ -96,10 +96,10 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
       </Panel>
       <Panel title={adminWords}>
         <div className={PANEL_BODY}>
-          <Link to={ADMIN_PATH} className="flex min-h-tap items-center lg:min-h-0">
+          <Link to={ADMIN_PATH} className={SIDE_PANEL_LINK}>
             {ADMIN_TITLE}
           </Link>
-          <Link to={LEAGUES_PATH} className="flex min-h-tap items-center lg:min-h-0">
+          <Link to={LEAGUES_PATH} className={SIDE_PANEL_LINK}>
             {LEAGUES_TITLE}
           </Link>
         </div>

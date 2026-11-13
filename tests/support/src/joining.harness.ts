@@ -2,10 +2,15 @@
 // change a test can see asked for.
 
 import { vi } from "vitest";
-import type { EndedInvite, InvitesPageData, JoinPageData, JoiningSeam } from "../../../src/joining/seam";
+import type { EndedInvite, InvitesPageData, JoinPageData, JoiningSeam, WaitingRequest } from "../../../src/joining/seam";
 
 /** What the pages read; one left out is still loading. */
-export type JoiningData = { invitesPage?: InvitesPageData | null; joinPage?: JoinPageData; endedInvite?: EndedInvite | null };
+export type JoiningData = {
+  invitesPage?: InvitesPageData | null;
+  joinPage?: JoinPageData;
+  endedInvite?: EndedInvite | null;
+  waitingRequests?: readonly WaitingRequest[];
+};
 
 /** Every change is made, unless a test says otherwise; asking for a link gets `linkReply`. */
 export function fakeJoining(data: JoiningData, linkReply: string) {
@@ -14,6 +19,7 @@ export function fakeJoining(data: JoiningData, linkReply: string) {
     useInvitesPage: () => data.invitesPage,
     useJoinPage: () => data.joinPage,
     useEndedInvite: () => data.endedInvite,
+    useWaitingRequests: () => data.waitingRequests,
     invite: vi.fn<JoiningSeam["invite"]>(made),
     resendInvite: vi.fn<JoiningSeam["resendInvite"]>(made),
     cancelInvite: vi.fn<JoiningSeam["cancelInvite"]>(made),
