@@ -156,5 +156,5 @@ async function tellManager(ctx: MutationCtx, scout: Doc<"scouts">, letter: { sub
   const team = await ctx.db.get("teams", scout.teamId);
   if (league === null || team === null) throw new Error(`Scout ${scout._id}'s league or team doesn't exist`);
   if (team.managerEmail === undefined) return;
-  await fileLetter(ctx, league, [team.managerEmail], letter);
+  await fileLetter(ctx, league, "scout", [team.managerEmail], letter);
 }

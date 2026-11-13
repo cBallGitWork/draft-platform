@@ -6693,6 +6693,58 @@
             },
             "optional": false
           },
+          "kind": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "trade"
+                },
+                {
+                  "type": "literal",
+                  "value": "waivers"
+                },
+                {
+                  "type": "literal",
+                  "value": "assigned"
+                },
+                {
+                  "type": "literal",
+                  "value": "commissioner"
+                },
+                {
+                  "type": "literal",
+                  "value": "league"
+                },
+                {
+                  "type": "literal",
+                  "value": "draft"
+                },
+                {
+                  "type": "literal",
+                  "value": "lineup"
+                },
+                {
+                  "type": "literal",
+                  "value": "positions"
+                },
+                {
+                  "type": "literal",
+                  "value": "scout"
+                },
+                {
+                  "type": "literal",
+                  "value": "recap"
+                },
+                {
+                  "type": "literal",
+                  "value": "patch"
+                }
+              ]
+            },
+            "optional": true
+          },
           "from": {
             "fieldType": {
               "type": "string"

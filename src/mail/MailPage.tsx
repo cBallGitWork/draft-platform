@@ -7,6 +7,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
+import { KindChip } from "../ui/KindChip";
 import { Placeholder } from "../ui/Placeholder";
 import { runs } from "../leagues/access";
 import type { MailSeam } from "./seam";
@@ -19,6 +20,7 @@ import {
   fromWords,
   kindPlaceholderLabel,
   letterDate,
+  letterKindWords,
   letterTime,
   letterWhen,
   loadingWords,
@@ -169,7 +171,13 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
         onClick={open}
         className={`grid min-h-tap w-full grid-cols-letter-row items-center gap-3 px-3 py-1 text-left hover:bg-stepper ${edge}`}
       >
-        <Placeholder label={kindPlaceholderLabel} className="h-4 w-full" />
+        {letter.kind === null ? (
+          <Placeholder label={kindPlaceholderLabel} className="h-4 w-full" />
+        ) : (
+          <span>
+            <KindChip>{letterKindWords[letter.kind]}</KindChip>
+          </span>
+        )}
         <span className="min-w-0">
           {!letter.read && <span className="sr-only">{unreadWords}: </span>}
           <span className="block truncate text-muted">{senderWords(letter.leagueName, letter.from)}</span>
@@ -183,10 +191,17 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
   );
 }
 
-/** The open letter: who it's from and when on the plate, then its subject over its text. */
+/** The open letter: its kind, who it's from and when on the plate, then its subject over its text. */
 function OpenLetter({ letter }: { letter: LetterSummary }) {
+  const from = fromWords(senderWords(letter.leagueName, letter.from));
+  const title = letter.kind === null ? from : (
+    <span className="flex items-center gap-2">
+      <KindChip>{letterKindWords[letter.kind]}</KindChip>
+      {from}
+    </span>
+  );
   return (
-    <Panel title={fromWords(senderWords(letter.leagueName, letter.from))} aside={<time dateTime={new Date(letter.at).toISOString()}>{letterWhen(letter.at)}</time>} className="min-w-0">
+    <Panel title={title} aside={<time dateTime={new Date(letter.at).toISOString()}>{letterWhen(letter.at)}</time>} className="min-w-0">
       <article className="flex flex-col gap-3 p-4">
         <h3 className="text-heading font-bold text-fact">{letter.subject}</h3>
         <p className="whitespace-pre-line wrap-anywhere">{letter.body}</p>

@@ -56,6 +56,7 @@ const letter = (number: number, read: boolean): LetterSummary => ({
   letterId: `letter-${number}` as Id<"letters">,
   leagueName: league.name,
   at: Date.UTC(2026, 9, 10 + number, 12),
+  kind: null,
   from: null,
   subject: `Letter ${number}`,
   body: `The text of letter ${number}.`,

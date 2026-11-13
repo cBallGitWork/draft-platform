@@ -145,7 +145,7 @@ async function makeOffer(
   const words = await tradeWordsOf(ctx, offer);
   const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
   const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;
-  await fileLetter(ctx, league, await managersOf(ctx, offer), offerLetter(words, by, countered, lastMatchOf), by);
+  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), offerLetter(words, by, countered, lastMatchOf), by);
   return { offerId, warnings };
 }
 

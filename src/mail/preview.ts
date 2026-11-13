@@ -13,11 +13,12 @@ import type { MailSeam } from "./seam";
 const NEWEST = Date.parse("2026-10-20T14:02:00Z");
 const { commissionerEmail: commissioner } = proLeague;
 
-type Made = Pick<LetterSummary, "subject" | "body" | "read"> & Partial<Pick<LetterSummary, "from">>;
-const letter = (number: number, hoursAgo: number, { from = null, ...made }: Made): LetterSummary => ({
+type Made = Pick<LetterSummary, "subject" | "body" | "read"> & Partial<Pick<LetterSummary, "from" | "kind">>;
+const letter = (number: number, hoursAgo: number, { from = null, kind = "commissioner", ...made }: Made): LetterSummary => ({
   letterId: `preview-letter-${number}` as Id<"letters">,
   leagueName: proLeague.name,
   at: NEWEST - hoursAgo * HOUR_MS,
+  kind,
   from,
   ...made,
 });
@@ -34,7 +35,7 @@ const previewLetters: LetterSummary[] = [
     body: `${commissioner} added bob@example.com as the manager of Team 9.`,
     read: false,
   }),
-  letter(3, 26, { subject: "Team 4 is now Rovers XI", body: "ann@example.com renamed Team 4 to Rovers XI.", read: false }),
+  letter(3, 26, { subject: "Team 4 is now Rovers XI", body: "ann@example.com renamed Team 4 to Rovers XI.", kind: "league", read: false }),
   letter(4, 49, {
     subject: "The league now holds up to 12 teams",
     body: `${commissioner} changed the most teams the league holds from 10 to 12.`,

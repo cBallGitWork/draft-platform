@@ -143,7 +143,7 @@ export async function tellShortlisters(
     ? shortlistedReleasedLetter(player.name, from.name, who)
     : shortlistedDroppedLetter({ playerName: player.name, teamName: from.name, toWaivers: how.toWaivers }, who);
   const entries = await shortlistersOf(ctx, league._id, player.code);
-  await fileLetter(ctx, league, [...(await managersHolding(ctx, league._id, entries)).keys()], letter, unread ? undefined : by);
+  await fileLetter(ctx, league, "waivers", [...(await managersHolding(ctx, league._id, entries)).keys()], letter, unread ? undefined : by);
 }
 
 /** The league's shortlist rows holding player `code`: one a team at most. */
@@ -183,6 +183,6 @@ export async function tellShortlistersCleared(ctx: MutationCtx, league: Doc<"lea
   for (const [email, held] of await managersHolding(ctx, league._id, shortlisted)) {
     const players = await Promise.all(held.map((code) => heldPlayerByCode(ctx, code, `Shortlisted player ${code}, cleared from waivers, isn't held`)));
     const names = players.map(({ name }) => name).sort((one, other) => one.localeCompare(other));
-    await fileLetter(ctx, league, [email], shortlistedClearedLetter(names));
+    await fileLetter(ctx, league, "waivers", [email], shortlistedClearedLetter(names));
   }
 }

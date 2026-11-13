@@ -50,7 +50,7 @@ import { commissioner, league, manager, openApp, panel } from "../../support/src
 const follows = (first: Element, second: Element) => Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 describe("Mail", () => {
-  const letter: LetterSummary = { letterId: "letter-1" as Id<"letters">, leagueName: league.name, at: Date.now(), from: null, subject: "Set your lineup", body: "GW1 locks soon.", read: false };
+  const letter: LetterSummary = { letterId: "letter-1" as Id<"letters">, leagueName: league.name, at: Date.now(), kind: null, from: null, subject: "Set your lineup", body: "GW1 locks soon.", read: false };
 
   it("lists the newest letters, each opening in Mail; Needs you holds a line until its grill", async () => {
     const app = withHome({}, { mail: { letters: [letter], unread: 1 } });

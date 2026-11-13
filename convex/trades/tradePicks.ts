@@ -172,7 +172,7 @@ export async function undoCutTrades(ctx: MutationCtx, league: Doc<"leagues">, ro
   for (const { trade, because } of undone) {
     const offer = { ...trade, gives: [], gets: [] };
     const letter = pickTradeUndoneLetter(await tradeWordsOf(ctx, offer), await pickName(ctx, because.pick), because, rounds);
-    await fileLetter(ctx, league, await managersOf(ctx, offer), letter);
+    await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), letter);
   }
 }
 

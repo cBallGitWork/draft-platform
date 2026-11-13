@@ -72,7 +72,7 @@ export async function endOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, why:
 export async function closeOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, closed: OfferClosed, by?: string): Promise<void> {
   const words = await tradeWordsOf(ctx, offer);
   await endOffer(ctx, offer, closed.why);
-  await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), offerClosedLetter(words, closed), by);
+  await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), "trade", await managersOf(ctx, offer), offerClosedLetter(words, closed), by);
 }
 
 /** Whether a deadline of the league's has passed since the offer was made: unanswered, it is closed. */

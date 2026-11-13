@@ -44,7 +44,7 @@ export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clock
   const to = clocked.team.managerEmail;
   if (to === undefined || clocked.atOnce) return;
   const news = { round: clocked.round, pick: clocked.pick, teamName: clocked.team.name, endsAt: clocked.paused ? null : clocked.endsAt };
-  await fileLetter(ctx, league, [to], (tell) => upNextLetter(news, tell));
+  await fileLetter(ctx, league, "draft", [to], (tell) => upNextLetter(news, tell));
   if (clocked.endsAt - clocked.startsAt <= UP_NEXT_EMAIL_OVER_MS) return;
   if (!(await takeTodaysEmail(ctx))) {
     console.warn(`${to} wasn't emailed that they're up next in ${league.name}'s draft: the day's emails are all gone`);
@@ -56,32 +56,32 @@ export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clock
 
 /** Tells the whole league the draft is over, after its `picks` picks. */
 export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, picks: number): Promise<void> {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftOverLetter(picks));
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftOverLetter(picks));
 }
 
 /** Tells the commissioner the draft's end moved the league's scoring start (scoringStart.ts). */
 export async function tellScoringStartMoved(ctx: MutationCtx, league: Doc<"leagues">, moved: MovedStart): Promise<void> {
-  await fileLetter(ctx, league, [league.commissionerEmail], scoringStartMovedLetter(moved));
+  await fileLetter(ctx, league, "draft", [league.commissionerEmail], scoringStartMovedLetter(moved));
 }
 
 /** Tells the whole league `by`, the commissioner, paused the draft. */
 export async function tellPaused(ctx: MutationCtx, league: Doc<"leagues">, by: string): Promise<void> {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftPausedLetter(bylineOf(by)), by);
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftPausedLetter(bylineOf(by)), by);
 }
 
 /** Tells the whole league `by`, the commissioner, made a team's pick for it. */
 export async function tellPickedFor(ctx: MutationCtx, league: Doc<"leagues">, by: string, news: PickNews): Promise<void> {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftPickedForLetter(bylineOf(by), news), by);
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftPickedForLetter(bylineOf(by), news), by);
 }
 
 /** Tells the whole league `by`, the commissioner, undid a pick. */
 export async function tellUndone(ctx: MutationCtx, league: Doc<"leagues">, by: string, news: PickNews): Promise<void> {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftUndoneLetter(bylineOf(by), news), by);
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftUndoneLetter(bylineOf(by), news), by);
 }
 
 /** Tells the commissioner the draft didn't start at its date, `startsAt`, for `refusal`. */
 export async function tellNotStarted(ctx: MutationCtx, league: Doc<"leagues">, startsAt: number, refusal: string): Promise<void> {
-  await fileLetter(ctx, league, [league.commissionerEmail], (tell) => draftNotStartedLetter(startsAt, refusal, tell));
+  await fileLetter(ctx, league, "draft", [league.commissionerEmail], (tell) => draftNotStartedLetter(startsAt, refusal, tell));
 }
 
 /** Sends the "you're up next" email, already counted; a refusal is logged. */
