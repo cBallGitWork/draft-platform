@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { twins, TWIN_RUN } from "../support/convex/testTwins.harness";
 
-// ARCHITECTURE.md "Where code lives", rule 7, beside featureImports.test.ts (#1814). A builder
+// ARCHITECTURE.md "Where code lives", rule 7, beside importCycles.test.ts (#1814). A builder
 // starts a test by copying a neighbour, so setup two test files share ends up in both instead of
 // in tests/support/. This fails on either: a test file defining a top-level name tests/support/
 // exports, or the same run of TWIN_RUN lines in two test files (the reading is in
@@ -52,7 +52,6 @@ const STILL_TWINNED: string[] = [
   "tests/convex/draft/legalPlayers.test.ts defines ARSENAL, CENTRE_BACK, CHELSEA, KEEPER, STRIKER",
   "tests/convex/draft/pickWindow.test.ts defines squadOf, undo",
   "tests/convex/draft/shortlistQueue.test.ts defines as, namesOn",
-  "tests/convex/featureImports.test.ts defines nameOf",
   "tests/convex/feedback/feedback.test.ts defines list",
   "tests/convex/football/feeds.test.ts defines fakeFeeds",
   "tests/convex/football/footballSync.test.ts defines SAKA",
@@ -123,8 +122,8 @@ const STILL_TWINNED: string[] = [
   "tests/convex/signIn/account.test.ts defines refresh",
   "tests/convex/signIn/signInLinks.test.ts defines REFUSED",
   "tests/convex/squads/areaMinimums.test.ts defines CENTRE_BACK",
-  "tests/convex/squads/squadLimits.test.ts defines CENTRE_BACK, KEEPER",
   "tests/convex/squads/squadNumbers.test.ts defines RICE",
+  "tests/convex/squads/squadRulesView.test.ts defines CENTRE_BACK, KEEPER",
   "tests/convex/squads/squads.test.ts defines as",
   "tests/convex/squads/teamSquad.test.ts defines GW1, GW2, PALMER, RAYA, SAKA, SAKA_GW1, SAKA_GW2, fixture, rowOf",
   "tests/convex/squads/teamTransactions.test.ts defines RICE",
@@ -216,7 +215,7 @@ test("finds a planted twin and passes a clean file", () => {
   expect(Object.keys(TESTS).length).toBeGreaterThan(100);
   expect(Object.keys(SUPPORT).length).toBeGreaterThan(20);
   // Vite leaves this file out of its own glob, so two neighbours stand for the folders.
-  expect(Object.keys(TESTS)).toContain("tests/convex/featureImports.test.ts");
+  expect(Object.keys(TESTS)).toContain("tests/convex/importCycles.test.ts");
   expect(Object.keys(TESTS)).toContain("tests/src/designTokens.test.ts");
   expect(
     Object.keys(TESTS).some((path) => path.startsWith("tests/support/")),

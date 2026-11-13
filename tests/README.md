@@ -6,6 +6,11 @@ files (`tests/src/flow.test.ts`). The Convex tests that play the whole product t
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
 stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
 time.
+
+**Contents:** [The five roots](#the-five-roots) ·
+[What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
+[The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
+
 `tests/convex/generatedApi.test.ts` fails when `convex/_generated/api.d.ts` leaves out a module
 Convex deploys, or lists one it doesn't: after adding, moving or deleting a file in `convex/`, run
 `npx convex codegen` with a deployment selected.
@@ -49,12 +54,14 @@ Nothing in it is a test. Each kind of file:
   checks that compare with it, built on `scratchDir.mjs`, a temp folder removed when its test ends). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
   files, laid out as that repository lays them out, for the past-season copy
   (`scripts/past-season.mjs`; `convex/pastSeason.harness.ts` reads it for the Convex tests).
+- **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
+  `tests/src/featureImports.test.ts`) read an import line.
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**
   beside them loads and types each set, and says when it was recorded and how it was cut.
 - **`convex/featureImports.breaches.ts`**, the imports past ARCHITECTURE.md's rules 4 and 5 that
-  `tests/convex/featureImports.test.ts` found on main, on lists that only shrink.
+  `tests/src/featureImports.test.ts` found on main, on lists that only shrink.
 - **`convex/scoring.example.ts`**, a scoring set for the tests only, never one anyone plays; the
   first real set is in `convex/scoring/firstScoring.ts`.
 - **`golden/`**, the expected output a test compares with (`toMatchFileSnapshot`):

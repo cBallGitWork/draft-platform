@@ -321,6 +321,7 @@ import type * as squads_squadLimits from "../squads/squadLimits.js";
 import type * as squads_squadNumberRange from "../squads/squadNumberRange.js";
 import type * as squads_squadNumbers from "../squads/squadNumbers.js";
 import type * as squads_squadPlace from "../squads/squadPlace.js";
+import type * as squads_squadRulesView from "../squads/squadRulesView.js";
 import type * as squads_squadSchedule from "../squads/squadSchedule.js";
 import type * as squads_squads from "../squads/squads.js";
 import type * as squads_teamSquad from "../squads/teamSquad.js";
@@ -707,6 +708,7 @@ declare const fullApi: ApiFromModules<{
   "squads/squadNumberRange": typeof squads_squadNumberRange;
   "squads/squadNumbers": typeof squads_squadNumbers;
   "squads/squadPlace": typeof squads_squadPlace;
+  "squads/squadRulesView": typeof squads_squadRulesView;
   "squads/squadSchedule": typeof squads_squadSchedule;
   "squads/squads": typeof squads_squads;
   "squads/teamSquad": typeof squads_teamSquad;

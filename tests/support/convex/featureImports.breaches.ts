@@ -1,4 +1,4 @@
-// The breaches of ARCHITECTURE.md's rules 4 and 5 that tests/convex/featureImports.test.ts found
+// The breaches of ARCHITECTURE.md's rules 4 and 5 that tests/src/featureImports.test.ts found
 // on main when each scan began (#1581, #1815). Each list only shrinks: a line goes when its import
 // or file moves, and a new breach fails the test.
 

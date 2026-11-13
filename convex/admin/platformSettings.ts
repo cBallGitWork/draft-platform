@@ -5,7 +5,7 @@ import { HOUR_MS, MINUTE_MS } from "../shared/time";
 import { FIRST_PLATFORM_SETTINGS, settingRefusals, type PlatformSettings, type SettingName } from "./platformSettingDefaults";
 
 // The platform's own settings, one row each, the admin's to change on his dashboard (spec/15,
-// #1555). The internal setters below set one or two at a time, for tests and the command line.
+// #1555). The internal setSettings sets any of them, for tests and the command line.
 // The defaults and refusals live in platformSettingDefaults.ts, which the browser's preview reads.
 
 export type { PlatformSettings };
@@ -52,22 +52,13 @@ export function scoutsPerTeam(ctx: QueryCtx): Promise<number> {
   return valueOf(ctx, "scoutsPerTeam");
 }
 
-/** Sets the window. A lock already scheduled reads it again when it fires. */
-export const setStatCorrectionWindow = internalMutation({
-  args: { minutes: v.number() },
+/** Sets any of the settings, as `save` does without the admin, for tests and the command line
+ *  (`npx convex run admin/platformSettings:setSettings '{"scoutsPerTeam": 2}'`). */
+export const setSettings = internalMutation({
+  args: platformSettings.partial().fields,
   returns: v.null(),
-  handler: async (ctx, { minutes }) => {
-    await saveAll(ctx, { statCorrectionWindowMinutes: minutes });
-    return null;
-  },
-});
-
-/** Sets how many scouts each team has. A scout already out stays out; only new sends count it. */
-export const setScoutsPerTeam = internalMutation({
-  args: { scouts: v.number() },
-  returns: v.null(),
-  handler: async (ctx, { scouts }) => {
-    await saveAll(ctx, { scoutsPerTeam: scouts });
+  handler: async (ctx, values) => {
+    await saveAll(ctx, values);
     return null;
   },
 });
@@ -78,16 +69,6 @@ export async function matchdayMargins(ctx: QueryCtx): Promise<{ beforeMs: number
   const [before, after] = await Promise.all([valueOf(ctx, "matchdayHoursBefore"), valueOf(ctx, "matchdayHoursAfter")]);
   return { beforeMs: before * HOUR_MS, afterMs: after * HOUR_MS };
 }
-
-/** Sets matchday mode's hours, before the first kickoff and after the last final whistle. */
-export const setMatchdayHours = internalMutation({
-  args: { before: v.number(), after: v.number() },
-  returns: v.null(),
-  handler: async (ctx, { before, after }) => {
-    await saveAll(ctx, { matchdayHoursBefore: before, matchdayHoursAfter: after });
-    return null;
-  },
-});
 
 const isWholeAndNotBelowNought = (value: number) => Number.isInteger(value) && value >= 0;
 
