@@ -204,3 +204,27 @@ export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOIC
 /** What it changes (spec/06, spec/09): our own availability, the same in every league. */
 export const autoTeamReadsWords = "The auto team reads this in every league.";
 export const pickPlayerLabel = (name: string) => `Open ${name}'s availability`;
+
+/** Moving a match to another gameweek (#1417; spec/07 S07.9), and his log of moves (spec/15). */
+export const moveMatchTitle = "Move a match";
+export const moveGameweekLabel = "Gameweek";
+export const gameweekMatchesLoadingWords = "Loading the gameweek's matches…";
+export const noGameweekMatchesWords = "No match is in this gameweek.";
+export const noKickoffWords = "No kick-off time";
+/** A match he moved in, and where the window rule would put it. */
+export const movedFromWords = (unmoved: number | null) => `Moved here from ${gameweekWords(unmoved)}`;
+export const moveToLabel = (match: string) => `Move ${match} to gameweek`;
+export const moveWords = "Move";
+export const clearMoveWords = "Clear move";
+export const clearMoveLabel = (match: string) => `Clear the move of ${match}`;
+export const moveLogTitle = "Matches moved";
+export const moveLogLoadingWords = "Loading the matches moved…";
+export const noMovesWords = "No match has been moved.";
+/** Past the newest the log shows, said as the late corrections say it. */
+export const moreMovesWords = moreCorrectionsWords;
+function gameweekWords(gameweek: number | null) {
+  return gameweek === null ? "no gameweek" : `gameweek ${gameweek}`;
+}
+/** One row of his log: a move, or a clear, which sends the match back where the window rule puts it. */
+export const moveLogWords = ({ from, to }: { from: number | null; to: number | null }) =>
+  to === null ? `Move cleared, out of ${gameweekWords(from)}` : `From ${gameweekWords(from)} to ${gameweekWords(to)}`;
