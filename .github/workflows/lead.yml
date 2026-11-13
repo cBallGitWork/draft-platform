@@ -414,7 +414,7 @@ jobs:
           }
           # only an issue the queue would build has its timeline read: a full timeline for every issue built in the last
           # day was the lead's biggest API spend (#2030)
-          buildable=$(for row in $ready; do [ "${row#*:}" = build ] && echo "${row%%:*}"; done)
+          buildable=$(for row in $ready; do if [ "${row#*:}" = build ]; then echo "${row%%:*}"; fi; done)  # an if: with && a last row that is no build fails the step
           stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
                       --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle,createdAt \
                       --jq '[.[] | select(.displayTitle | startswith("build #")) | {n: (.displayTitle | ltrimstr("build #")), at: .createdAt}]
