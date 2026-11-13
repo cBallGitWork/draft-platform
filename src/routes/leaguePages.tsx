@@ -18,7 +18,7 @@ import { INVITES_ROUTE, JOIN_ROUTE } from "../joining/paths";
 import { LeaguesPage } from "../leagues/LeaguesPage";
 import { NewLeaguePage } from "../leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../leagues/paths";
-import { leagueIn, leagueRunBy, runs } from "../leagues/access";
+import { currentLeagueOf, leagueIn, leagueRunBy, runs } from "../leagues/access";
 import { SETTINGS_ROUTE } from "../leagueSettings/paths";
 import { SettingsPage } from "../leagueSettings/SettingsPage";
 import { MailPage, leaguesToWriteFrom } from "../mail/MailPage";
@@ -69,12 +69,15 @@ const mailRoute = createRoute({
   path: MAIL_PATH,
   validateSearch: mailSearchOf,
   component: function MailScreen() {
-    const { mail, session, topBar } = mailRoute.useRouteContext();
+    const { mail, session } = mailRoute.useRouteContext();
     const { letter } = mailRoute.useSearch();
+    const leagueId = currentLeagueOf(session)?.leagueId ?? null;
+    // Keyed by the league, so a switch in the top bar starts Mail afresh (S16.1).
     return (
       <MailPage
+        key={leagueId}
         mail={mail}
-        unread={topBar.unreadMail}
+        leagueId={leagueId}
         writableLeagues={leaguesToWriteFrom(session)}
         leaguesCut={session.signedIn && session.leaguesCut === true}
         opened={letter}

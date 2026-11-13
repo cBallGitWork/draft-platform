@@ -6555,6 +6555,14 @@
           ]
         },
         {
+          "indexDescriptor": "by_to_and_leagueId_and_at",
+          "fields": [
+            "to",
+            "leagueId",
+            "at"
+          ]
+        },
+        {
           "indexDescriptor": "by_leagueId",
           "fields": [
             "leagueId"

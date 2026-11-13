@@ -27,5 +27,7 @@ export const letterFields = {
 export const mailTables = {
   letters: defineTable(letterFields)
     .index("by_to_and_at", ["to", "at"])
+    // One league's letters to someone, or with no league the site's (Mail, spec/16, S16.1).
+    .index("by_to_and_leagueId_and_at", ["to", "leagueId", "at"])
     .index("by_leagueId", ["leagueId"]),
 };
