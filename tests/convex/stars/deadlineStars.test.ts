@@ -40,9 +40,24 @@ async function kept() {
   return new Map(teams.map(({ teamId, bench }) => [teamId, new Map(bench)]));
 }
 
+/** Asks again for the stars kept missing, as a recording after the last one would. */
+const keepMissingLater = () => t.mutation(internal.stars.deadlineStars.keepMissing, { recordedBefore: Date.now() + 1 });
+
 test("the deadline's recording asks for the league's benches to be kept with their stars", async () => {
   await passNextDeadline(t);
+  // Through the auto team's job, which asks for them once it has set the lineups (#2041).
+  expect((await pendingJobs(t, internal.lineup.autoTeam.atDeadline)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: NEXT });
+
+  await t.mutation(internal.lineup.autoTeam.atDeadline, { leagueId, gameweek: NEXT });
+
   expect((await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: NEXT });
+});
+
+test("a deadline just recorded is left to the auto team's job, never asked for beside it (#2041)", async () => {
+  await passNextDeadline(t);
+  await t.mutation(internal.stars.deadlineStars.keepMissing, { recordedBefore: Date.now() });
+
+  expect(await askedForNext()).toBe(0);
 });
 
 test("each bench player is kept with his rated roles; “?” and “—” pick nothing, so aren't kept", async () => {
@@ -101,7 +116,7 @@ test("a gameweek with nothing kept, one locked before this was built, holds no s
 
 test("a keeping that never happened is asked for again by the next recording, for the latest begun gameweek", async () => {
   await passNextDeadline(t);
-  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+  await keepMissingLater();
 
   expect((await pendingJobs(t, internal.stars.deadlineStars.storeLeague)).map((job) => job.args[0])).toContainEqual({ leagueId, gameweek: NEXT });
   expect(await pendingJobs(t, internal.stars.deadlineStars.keepMissing)).not.toHaveLength(0);
@@ -115,7 +130,7 @@ test("not asked for again once kept", async () => {
   const before = await askedForNext();
   await t.run((ctx) => ctx.db.insert("deadlineStars", { leagueId, gameweek: NEXT, teamId: annsTeam, bench: [] }));
 
-  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+  await keepMissingLater();
 
   expect(await askedForNext()).toBe(before);
 });
@@ -128,7 +143,7 @@ test("not asked for again once one of the gameweek's matches has locked, after w
     await insertLockedStatus(ctx, fixture.code, Date.now());
   });
 
-  await t.mutation(internal.stars.deadlineStars.keepMissing, {});
+  await keepMissingLater();
 
   expect(await askedForNext()).toBe(before);
 });

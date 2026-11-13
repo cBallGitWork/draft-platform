@@ -67,8 +67,9 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
     }
   }
   await setDeadlineAlarm(ctx, soonestToCome);
-  // A keeping of stars that failed is asked for again (deadlineStars.ts, #11).
-  await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.keepMissing, {});
+  // A keeping of stars that failed is asked for again (deadlineStars.ts, #11); one this recording
+  // just asked the auto team for waits for it (#2041).
+  await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.keepMissing, { recordedBefore: now });
   return recorded;
 }
 
@@ -119,10 +120,10 @@ async function recordLeague(
     if (deadline === null || !isLocked(deadline, now) || passed.has(gameweek)) continue;
     await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
     // Its teams on the auto team have their lineups set (spec/09; #1207), then its teams' benches
-    // kept with their stars, which pick an auto-sub's role (#11): each in a transaction of its
+    // kept with their stars, which pick an auto-sub's role (#11): one job that, done, asks for the
+    // other, so the stars always read the auto team's lineups (#2041), each in a transaction of its
     // own, so a failure there never holds a kickoff back.
     await ctx.scheduler.runAfter(0, internal.lineup.autoTeam.atDeadline, { leagueId: league._id, gameweek });
-    await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.storeLeague, { leagueId: league._id, gameweek });
     recorded += 1;
   }
   // Once a gameweek has begun, its fixtures are stored, so nothing after can redraw them (#137).

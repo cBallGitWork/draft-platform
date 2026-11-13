@@ -21,8 +21,9 @@ import type { RoleStars } from "./starsShape";
 
 // Stars at the deadline (spec/05 Auto-subs; Craig, 1 Nov 2026): an auto-sub who comes on in his
 // own area plays the role he had the most stars for when the lineup locked, so scoring the gameweek
-// again never moves it. When a league's deadline is recorded (deadlineRecorder.ts), each team's
-// bench as it stood then is kept with its stars.
+// again never moves it. When a league's deadline is recorded (deadlineRecorder.ts) and the auto
+// team has set its lineups (autoTeam.ts, #2041), each team's bench as it stood then is kept with
+// its stars.
 //
 // The same row keeps each man the lineup named, with his club and positions then (#1540): "a
 // position change counts from each league's own deadline" (spec/06, When positions change), so
@@ -84,11 +85,13 @@ export function keptBench(
 }
 
 /** Asks again for each league's latest begun gameweek with no stars kept, while none of its matches
- *  has locked. Run by each recording of deadlines. */
+ *  has locked. Run by each recording of deadlines. A deadline recorded at `recordedBefore` or later
+ *  is skipped: that recording asked the auto team, which asks for its stars once the lineups are
+ *  set (#2041), so keeping them here could read the lineups before it. */
 export const keepMissing = internalMutation({
-  args: {},
+  args: { recordedBefore: v.number() },
   returns: v.null(),
-  handler: async (ctx) => {
+  handler: async (ctx, { recordedBefore }) => {
     const leagues = await everyLeague(ctx, "so some would keep no stars");
     for (const league of leagues) {
       const latest = await ctx.db
@@ -96,7 +99,7 @@ export const keepMissing = internalMutation({
         .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", league._id))
         .order("desc")
         .first();
-      if (latest === null || (await keptRows(ctx, league._id, latest.gameweek)).length > 0) continue;
+      if (latest === null || latest.recordedAt >= recordedBefore || (await keptRows(ctx, league._id, latest.gameweek)).length > 0) continue;
       if ((await teamsOf(ctx, league._id)).length === 0) continue;
       if (await anyLocked(ctx, latest.gameweek)) continue;
       await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.storeLeague, { leagueId: league._id, gameweek: latest.gameweek });
