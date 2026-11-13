@@ -1,13 +1,13 @@
 # The auto team, fixture swaps and availability
 
-Routes, for #1209:
+Routes: `/team`, `/leagues/$leagueId/squads`, `/table` and `/admin/availability`, for #1209. Each
+picture and the preview it's checked on:
 
-- My team's header band (`/team`, checked on `/team?preview=manager`): `1440.png`.
-- Squads, the commissioner's (`/leagues/$leagueId/squads`, checked on
-  `/leagues/preview-pro-league/squads?preview=commissioner`): `1440-squads.png`.
-- Table's Fixtures, the commissioner's (`/table`, checked on `/table?preview=commissioner`):
-  `1440-fixture-swap.png`.
-- The admin dashboard's Availability tab (`/admin`, checked on `/admin?preview=admin`):
+- My team's header band (`/team?preview=manager`): `1440.png`.
+- Squads, the commissioner's (`/leagues/preview-pro-league/squads?preview=commissioner`):
+  `1440-squads.png`.
+- Table's Fixtures, the commissioner's (`/table?preview=commissioner`): `1440-fixture-swap.png`.
+- The admin dashboard's Availability tab (`/admin/availability?preview=admin`):
   `1440-availability.png`.
 
 The rest of each screen keeps its own picture: My team's in [`team`](../team/README.md) and the

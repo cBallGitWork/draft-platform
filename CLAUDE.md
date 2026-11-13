@@ -5,7 +5,7 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 
 ## The product is SPEC.md
 
-- `SPEC.md` is the index and `spec/NN-*.md` each feature; both hold only Craig's answers. Wants no grill has settled live in `docs/to-grill.md`, never in `SPEC.md`; those, a screen marked `to grill` in `SPEC.md`, and any detail a spec file doesn't settle each get a `/grill` before they are built.
+- `SPEC.md` is the index and `spec/NN-*.md` each feature; both hold only Craig's answers. Wants no grill has settled live in `docs/to-grill.md`, never in `SPEC.md`; those, and any detail a spec file doesn't settle, each get a `/grill` before they are built.
 - The build queue is the GitHub issues each grill ends in (`/grill` step 6).
 - Don't assume features. Generic fantasy-app research is background, never the product (`docs/research/`).
 

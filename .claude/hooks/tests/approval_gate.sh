@@ -87,6 +87,23 @@ mkdir -p "$repo/docs/design/approved/gone" && printf 'Route: `/gone`\n' > "$repo
 on_branch traced src/team/Table.tsx
 says "can't trace which files under src/ render /gone" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
 rm -r "$repo/docs/design/approved/gone"
+# a Routes: paragraph guards each route it names, over its lines; a path holding a ? is the preview (#1721)
+both=$repo/docs/design/approved/both && mkdir -p "$both"
+printf 'Routes: `/team` and\n`/other`, checked on `/other?preview=manager`.\n' > "$both/README.md"
+on_branch several src/other/OtherPage.tsx
+says "changes a screen with an approved picture: /other (src/other/OtherPage.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
+# a README saved with CRLF line endings is read as LF (Python's text mode), so its paragraph still ends at its blank line
+printf 'Route: `/other`.\r\n\r\nIts button opens `/gone`.\r\n' > "$both/README.md"
+says "changes a screen with an approved picture: /other (src/other/OtherPage.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
+# a folder whose README names no route, or that has none, is refused, never passed as no screen
+printf '# Both\n\nRoute: the Both tab, `spec/12`.\n' > "$both/README.md"
+says "can't read which routes docs/design/approved/both/ shows" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
+rm "$both/README.md"
+says "can't read which routes docs/design/approved/both/ shows" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
+# a picture approved before its screen is built says so, and guards nothing yet
+printf 'Route: none yet. The slice that builds it names it.\n' > "$both/README.md"
+check allow guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
+rm -r "$both"
 # a branch git can't diff against origin/main is refused too
 git -C "$repo" update-ref -d refs/remotes/origin/main
 says "Can't tell whether this branch changes a screen" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
@@ -123,6 +140,10 @@ for row in '/team|src/myTeam/tactics/TacticsPage.tsx' '/team/squad|src/myTeam/Sq
   done
 done
 if traced /team | grep -qx src/myTeam/SquadPage.tsx; then fail "screen_routes.py: /team traces to the Squad tab's page"; fi
+# every folder in this repo's docs/design/approved/ names its routes and each traces, so a README naming none,
+# or a route src/routes/ doesn't have, fails here rather than at the next gh pr create (#1721)
+(cd "$hooks" && python3 -c 'import sys, screen_routes as s; c = s.path_constants(sys.argv[1]); [s.files_rendering(r, sys.argv[1], c) for r in s.approved_routes(sys.argv[1])]' \
+  "$hooks/../..") || fail "screen_routes.py: an approved folder in this repo names no route, or one that doesn't trace"
 
 # the same as look-gate.yml's look-approved check: approval_gate.py run on the event GitHub hands
 # the job passes whatever the differences, listing the layout ones, and exits 1 only on an event

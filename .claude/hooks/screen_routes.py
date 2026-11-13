@@ -1,6 +1,9 @@
 """Which screens with an approved picture a branch changes, for pr_body.py (#947). Each folder in
-docs/design/approved/ has a README whose `Route:` line names the route it shows in backticks
-(Route: `/team`, …). A route is rendered by the files its route definition in src/routes/ hands it:
+docs/design/approved/ has a README whose `Route:` (or `Routes:`) paragraph names each route it shows
+in backticks (Route: `/team`, checked on `/team?preview=manager`: a path holding a ? is where it's
+checked, not a route), or says `Route: none yet` for a picture approved before its screen is built.
+A folder whose README names neither raises ValueError, never passes as no screen (#1721).
+A route is rendered by the files its route definition in src/routes/ hands it:
 the page component that definition names, found through the path constant whose value is that
 route (src/frame/menu.ts: MY_TEAM_PATH = "/team"), then every file under src/ that component
 imports, however deep, and the stylesheets src/main.tsx loads for every screen (styles.css, and
@@ -19,7 +22,9 @@ from run_command import run
 from where import MAIN, REMOTE, REMOTE_MAIN
 
 APPROVED = os.path.join("docs", "design", "approved")
-ROUTE_LINE = re.compile(r"^Route:\s*`([^`]+)`", re.M)
+ROUTE_LINE = re.compile(r"^Routes?:(.*?)(?=\n[ \t]*\n|\Z)", re.M | re.S)  # the paragraph, to its blank line
+CODE = re.compile(r"`([^`]*)`")
+NOT_BUILT = "none yet"
 SRC, ROUTES = "src", os.path.join("src", "routes")
 CONSTANT_HOMES = (SRC, "convex")  # where a route's path constant may be defined (convex: JOIN_PATH)
 ENTRY = os.path.join("src", "main.tsx")  # its stylesheets draw every screen
@@ -38,13 +43,19 @@ DEFINES = (r"\bpath:\s*{}(?![\w$])", r"\(\s*{}\s*,")
 
 
 def approved_routes(folder):
-    """{route: its folder in docs/design/approved}, from each README's Route: line."""
+    """{route: its folders in docs/design/approved}, from each folder's README's Route: paragraph;
+    ValueError for a folder whose README names no route and doesn't say none yet."""
     out = {}
-    for readme in sorted(glob.glob(os.path.join(folder, APPROVED, "*", "README.md"))):
-        with open(readme, encoding="utf-8") as f:
-            found = ROUTE_LINE.search(f.read())
-        if found:
-            out[found.group(1)] = os.path.basename(os.path.dirname(readme))
+    for screen in sorted(glob.glob(os.path.join(folder, APPROVED, "*", ""))):  # each folder
+        name, readme = os.path.basename(os.path.dirname(screen)), os.path.join(screen, "README.md")
+        found = ROUTE_LINE.search(_read(readme)) if os.path.isfile(readme) else None
+        said = found.group(1) if found else ""
+        routes = [span for span in CODE.findall(said) if span.startswith("/") and "?" not in span]
+        if not routes and not said.strip().startswith(NOT_BUILT):
+            raise ValueError(f"the guard can't read which routes {APPROVED}/{name}/ shows: its README.md needs a "
+                             f"Route: line naming each in backticks (Route: `/team`), or Route: {NOT_BUILT}")
+        for route in routes:
+            out.setdefault(route, []).append(name)
     return out
 
 

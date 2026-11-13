@@ -26,7 +26,10 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - `<Name>.dc.html`: the approved board's source from the canvas, saved from 1 Nov 2026 on, so the
   picture can be redrawn if the canvas changes.
 - `README.md`:
-  - `Route:` the route it shows, with the preview it's checked on (`/team?preview=manager`);
+  - `Route:` the route it shows in backticks, with the preview it's checked on
+    (`/team?preview=manager`); `Routes:` and each one, for a folder showing several;
+    `Route: none yet` for a screen not built yet. `.claude/hooks/screen_routes.py` reads each
+    backticked path without a `?` in that paragraph as a route, and refuses a folder naming none;
   - the date and Craig's words approving it;
   - the Football Manager idea it borrows: its organisation, never its colours;
   - interaction notes, one line per control: what can be tapped and what happens;

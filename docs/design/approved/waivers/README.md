@@ -1,7 +1,8 @@
 # Waivers
 
-Routes: My team's Transactions tab (`/team`, checked on `/team?preview=manager`), and League
-settings' Waivers tab (`/leagues/$leagueId/settings`, checked on
+Routes: My team's Transactions tab (`/team/transactions`, checked on
+`/team/transactions?preview=manager`), and League settings' Waivers tab
+(`/leagues/$leagueId/settings`, checked on
 `/leagues/preview-pro-league/settings?preview=commissioner`). For #1200, stories 2 and 3.
 
 ## The pictures
