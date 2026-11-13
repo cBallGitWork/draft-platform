@@ -16,8 +16,11 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
+import { gamesOf } from "../table/teamGames";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownRows, TICKER_MOST } from "./glance";
 import { heldRecap, homeRecap, shownRecap } from "./recaps";
+import { yourGameweek, yourGameweekOf } from "./yourGameweek";
 
 // League home (spec/12, League home; #387): the glance (this gameweek's head-to-heads, scored once
 // begun, the table and each team's form), the league's latest squad moves from its events (Mail's,
@@ -75,6 +78,9 @@ export const leagueHome = v.object({
    *  gameweek has begun, live until final; null with none, as in total points or with fewer than
    *  two teams. */
   thisGameweek: v.union(v.null(), v.object({ gameweek: v.number(), fixtures: v.array(scoredFixture), byes: v.array(v.string()) })),
+  /** This gameweek's deadline, when its lineups lock: null with no gameweek, or while none of its
+   *  matches has a kickoff time. */
+  deadline: v.union(v.number(), v.null()),
   /** While one of the gameweek's matchdays is open, its Vidiprinter: newest first, only the lines
    *  that move a head-to-head, so no full-time line; null while the home is quiet. */
   matchday: v.union(v.null(), v.object({ gameweek: v.number(), commentary })),
@@ -88,6 +94,8 @@ export const leagueHome = v.object({
   /** The latest weekly recap, until the next gameweek's first matchday mode begins (recaps.ts);
    *  null with none. */
   recap: v.union(v.null(), shownRecap),
+  /** The panels on the reader's own team (yourGameweek.ts); null for someone running no team in it. */
+  yours: v.union(v.null(), yourGameweek),
 });
 export type LeagueHome = Infer<typeof leagueHome>;
 
@@ -144,6 +152,7 @@ export const ofLeague = query({
             byes: current.byes.map(named),
           }
         : null,
+      deadline: current ? (await leagueDeadlineOf(ctx, leagueId))(current.gameweek) : null,
       table: shownRows(table.map(({ team, ...row }) => ({ teamId: team, ...row })), mine).map((row) => ({
         position: row.position,
         teamId: row.teamId,
@@ -160,9 +169,15 @@ export const ofLeague = query({
       squadMoves: await latestSquadMoves(ctx, leagueId),
       pinnedLetter: league.pinnedLetter ?? null,
       recap: await homeRecap(ctx, leagueId, results),
+      yours: team ? await yourGameweekOf(ctx, leagueId, rules, team, current && { gameweek: current.gameweek, opponents: opponentsIn(current, team._id) }) : null,
     };
   },
 });
+
+/** The teams `teamId` meets in `drawn`, each once (a league playing two a gameweek can meet one twice). */
+const opponentsIn = (drawn: Parameters<typeof scoredFixtures>[0], teamId: Id<"teams">) => [
+  ...new Set(gamesOf([drawn], teamId).flatMap(({ against }) => (against.kind === "team" ? [against.team] : []))),
+];
 
 /** The Vidiprinter of the matchday open in `gameweek`, of its matches `fixtureCodes`: homeAt.ts's
  *  `clockAt` says which. Its delay is a moment (commentaryAt.ts). */

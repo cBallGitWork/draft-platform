@@ -156,8 +156,13 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
 /** Hull's and Everton's club rows, which scoresLeague doesn't hold, as the football sync holds them. */
 export const holdHullAndEverton = ({ t }: ScoresLeague) => t.run((ctx) => insertClubs(ctx, [HULL_CITY, EVERTON_CLUB]));
 
-/** League home at `now`, as Ann reads it. */
-export const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
+/** League home at `now`, as Ann reads it: its Premier League panel names Hull's and Everton's
+ *  match, so their clubs are held first, where a test hasn't held them already. */
+export const homeAt = async (league: ScoresLeague, now: number) => {
+  const held = await league.t.run((ctx) => ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", HULL)).unique());
+  if (held === null) await holdHullAndEverton(league);
+  return leagueHomeOf(await actingAs(league.t, ANN), league.leagueId, now);
+};
 
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 

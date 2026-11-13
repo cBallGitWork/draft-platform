@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { openPanelLabel } from "../../../../src/myTeam/squad/words";
 import { positionMarksOf } from "../../../../src/myTeam/tactics/positionMarks";
-import { flaggedMarkLabel, LINEUP_CHECK_TITLE, outOfPositionMarkLabel } from "../../../../src/myTeam/tactics/words";
+import { flaggedMarkLabel, LINEUP_CHECK_TITLE, nothingToCheckWords, outOfPositionMarkLabel } from "../../../../src/myTeam/tactics/words";
 import { openSquad, PALMER, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
 import { openTactics } from "../../../support/src/tactics.harness";
 import { RICE, rowOf, SALIBA, SAVED, SQUAD, openTacticsTab, type Member, WHITE } from "../../../support/src/tacticsScreen.harness";
@@ -70,8 +70,17 @@ describe("on the Tactics tab", () => {
     openTacticsTab({ tactics: tacticsWithSaliba(flaggedSaliba) });
     const check = (await screen.findByRole("heading", { name: LINEUP_CHECK_TITLE })).closest("section")!;
     expect(within(check).queryByRole("list")).toBeNull();
+    expect(within(check).getByText(nothingToCheckWords)).toBeTruthy();
     // A bench player who no longer plays a position is never out of position.
     expect(within(rowOf(WHITE)).queryByTitle(/Out of position/)).toBeNull();
+  });
+
+  it("the lineup check lists each starter FPL gives a news note, the note word for word, never a bench player (#1976, S12.8)", async () => {
+    const newsOn = (member: Member, news: string): Member => ({ ...member, news });
+    const squad = SQUAD.map((each) => (each === SALIBA ? newsOn(lostSaliba, "Knock - 75% chance of playing") : each === WHITE ? newsOn(WHITE, "Suspended") : each));
+    openTacticsTab({ tactics: openTactics({ ...SAVED, squad }) });
+    const check = (await screen.findByRole("heading", { name: LINEUP_CHECK_TITLE })).closest("section")!;
+    expect(within(check).getAllByRole("listitem").map((line) => line.textContent)).toEqual(["Saliba: out of position at CB", "Saliba: Knock - 75% chance of playing"]);
   });
 });
 

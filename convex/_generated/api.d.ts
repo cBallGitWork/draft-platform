@@ -123,6 +123,7 @@ import type * as home_leagueNews from "../home/leagueNews.js";
 import type * as home_matchday from "../home/matchday.js";
 import type * as home_recapWords from "../home/recapWords.js";
 import type * as home_recaps from "../home/recaps.js";
+import type * as home_yourGameweek from "../home/yourGameweek.js";
 import type * as http from "../http.js";
 import type * as joining_endedInvite from "../joining/endedInvite.js";
 import type * as joining_inviteLink from "../joining/inviteLink.js";
@@ -526,6 +527,7 @@ declare const fullApi: ApiFromModules<{
   "home/matchday": typeof home_matchday;
   "home/recapWords": typeof home_recapWords;
   "home/recaps": typeof home_recaps;
+  "home/yourGameweek": typeof home_yourGameweek;
   http: typeof http;
   "joining/endedInvite": typeof joining_endedInvite;
   "joining/inviteLink": typeof joining_inviteLink;

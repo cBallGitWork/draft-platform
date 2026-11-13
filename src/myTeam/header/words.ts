@@ -1,7 +1,6 @@
 // What My team's header band says (spec/12, My team; the approved Tactics picture's header), in one
 // place for Craig to change in the pull request.
 
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result, type Winner } from "../../../convex/table/standings";
@@ -9,23 +8,13 @@ import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
-export { formHead, gameweekShort, placeWords, tableHead } from "../../shared/words";
+export { countdownWords, formHead, gameweekShort, placeWords, tableHead } from "../../shared/words";
 
 /** The band's heads over each reading. */
 export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
 /** The band's readings, for screen readers, as a list. */
 export const meterListLabel = "Your team at a glance";
 
-/** "in 1d 17h", "in 5h 12m", "in 12m": the two largest units, counted down a minute at a time. */
-export function countdownWords(left: number): string {
-  if (left < MINUTE_MS) return "in under a minute";
-  const days = Math.floor(left / DAY_MS);
-  const hours = Math.floor((left % DAY_MS) / HOUR_MS);
-  const minutes = Math.floor((left % HOUR_MS) / MINUTE_MS);
-  if (days > 0) return `in ${days}d ${hours}h`;
-  if (hours > 0) return `in ${hours}h ${minutes}m`;
-  return `in ${minutes}m`;
-}
 /** On the hover of the no-deadline dash: why there is none. */
 export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
 

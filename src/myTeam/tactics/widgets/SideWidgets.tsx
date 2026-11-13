@@ -1,5 +1,4 @@
-import { Panel } from "../../../ui/Panel";
-import { Placeholder } from "../../../ui/Placeholder";
+import { Panel, PanelNote } from "../../../ui/Panel";
 import { FormChips } from "../../header/FormChips";
 import { formHead, placeWords, pointsShort, tableHead } from "../../header/words";
 import { noFigureWords } from "../../../shared/words";
@@ -8,7 +7,7 @@ import { gamesIn, standingOf } from "../../header/teamStanding";
 import type { LeagueTable } from "../../../table/seam";
 import { startersInOrder, type EditedLineup, type SquadMember } from "../lineupEdits";
 import { positionMarksOf } from "../positionMarks";
-import { instructionsTitle, LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, pickedWords, SIDE_WORDS } from "../words";
+import { instructionsTitle, LINEUP_CHECK_TITLE, newsLineWords, nothingToCheckWords, opponentTitle, outOfPositionLineWords, pickedWords, SIDE_WORDS } from "../words";
 import { offeredOn, SIDES, type Instruction, type InstructionPair } from "../../../../convex/lineup/instructions";
 import type { Cell } from "../../../../convex/lineup/pitch";
 import { gameModeOf } from "../../../../convex/rules/gameMode";
@@ -16,33 +15,36 @@ import { gameModeOf } from "../../../../convex/rules/gameMode";
 // The Tactics tab's widgets, each a panel with its title plate (plate.md, Tables and panels): the
 // lineup check under the pitch, and the team instructions and the gameweek's opponent down the right.
 
-/** Who to look at before the deadline: a line for each starter out of position, his name selecting
- *  him (#23; Craig, 6 Nov 2026), in the pitch's order; above what waits on the status chips' data
- *  (to-grill: Status chips' data; Who's doubtful, on Tactics), a placeholder in its place and size. */
+/** Who to look at before the deadline, in the pitch's order, his name selecting him: a line for
+ *  each starter out of position (#23; Craig, 6 Nov 2026), and one for each starter FPL gives a news
+ *  note, the note word for word, with no chip (Craig, 13 Nov 2026, on #1976). */
 export function LineupCheck({ draft, squad, onSelect }: { draft: EditedLineup; squad: ReadonlyMap<number, SquadMember>; onSelect(playerCode: number): void }) {
-  const outOfPosition = startersInOrder(draft).flatMap((starter) => {
+  const lines = startersInOrder(draft).flatMap((starter) => {
     const player = squad.get(starter.playerCode);
+    if (player === undefined) return [];
     // Out of position comes first of his marks.
-    const mark = player === undefined ? undefined : positionMarksOf(player, starter)[0];
-    return player !== undefined && mark?.kind === "outOfPosition" ? [{ player, position: mark.position }] : [];
+    const mark = positionMarksOf(player, starter)[0];
+    return [
+      ...(mark?.kind === "outOfPosition" ? [{ key: `${player.playerCode}-position`, player, words: outOfPositionLineWords(mark.position) }] : []),
+      ...(player.news !== null ? [{ key: `${player.playerCode}-news`, player, words: newsLineWords(player.news) }] : []),
+    ];
   });
   return (
     <Panel title={LINEUP_CHECK_TITLE}>
-      <div className="flex flex-col gap-2 p-3">
-        {outOfPosition.length > 0 && (
-          <ul>
-            {outOfPosition.map(({ player, position }) => (
-              <li key={player.playerCode}>
-                <button type="button" onClick={() => onSelect(player.playerCode)} className="min-h-tap font-semibold text-event lg:min-h-0">
-                  {player.name}
-                </button>
-                {outOfPositionLineWords(position)}
-              </li>
-            ))}
-          </ul>
-        )}
-        <Placeholder label={lineupCheckPlaceholder} className="h-24 w-full" />
-      </div>
+      {lines.length === 0 ? (
+        <PanelNote>{nothingToCheckWords}</PanelNote>
+      ) : (
+        <ul className="p-3">
+          {lines.map(({ key, player, words }) => (
+            <li key={key}>
+              <button type="button" onClick={() => onSelect(player.playerCode)} className="min-h-tap min-w-tap font-semibold text-event lg:min-h-0 lg:min-w-0">
+                {player.name}
+              </button>
+              {words}
+            </li>
+          ))}
+        </ul>
+      )}
     </Panel>
   );
 }

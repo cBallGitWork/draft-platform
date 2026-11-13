@@ -39,11 +39,17 @@ export const homeFixture = (
   points: points && { provisional: false, ...points },
 });
 
-/** Two teams in gameweek 1, nothing scored, moved or written, no matchday open: what league home
- *  holds by default. */
+/** The reader's own panels with nothing in them: no news, no lineup saved, no waiver runs or claims,
+ *  and none of his players or his opponent's playing. */
+export const quietYours: NonNullable<LeagueHome["yours"]> = { squadNews: [], lineup: { set: false, flagged: [] }, waiverRuns: [], claims: 0, premierLeague: [] };
+
+/** Two teams in gameweek 1, nothing scored, moved or written, no matchday open, no deadline yet:
+ *  what league home holds by default. */
 export const quietHome: LeagueHome = {
   format: "headToHead",
   thisGameweek: { gameweek: 1, fixtures: [homeFixture(MY_TEAM_NAME, THEIR_TEAM_NAME)], byes: [] },
+  deadline: null,
+  yours: quietYours,
   matchday: null,
   table: [homeRow(1, MY_TEAM_NAME, { mine: true }), homeRow(2, THEIR_TEAM_NAME)],
   teams: 2,
