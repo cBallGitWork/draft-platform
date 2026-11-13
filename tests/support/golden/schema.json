@@ -26017,7 +26017,7 @@
                       }
                     }
                   },
-                  "optional": true
+                  "optional": false
                 }
               }
             },
@@ -26447,7 +26447,7 @@
                 ]
               }
             },
-            "optional": true
+            "optional": false
           },
           "own": {
             "fieldType": {

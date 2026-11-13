@@ -20,14 +20,12 @@ export const draftRankingTables = {
 
 /** A started draft: when it started, its teams in the draft order then, first pick first, its
  *  rounds, the league's squad maximum then, and the squad rules every pick is checked against, the
- *  league's then (spec/04, Starting it and The picks; Craig, 4 Nov 2026, on #1090). `squad` is
- *  absent only from drafts started before #1090, which ../draft/oldDraftsBackfill.ts fills once
- *  (#1610); it stays optional until that has run on every deployment. */
+ *  league's then (spec/04, Starting it and The picks; Craig, 4 Nov 2026, on #1090). */
 const startedDraft = v.object({
   at: v.number(),
   teamIds: v.array(v.id("teams")),
   rounds: v.number(),
-  squad: v.optional(leagueRulesShape.fields.squad),
+  squad: leagueRulesShape.fields.squad,
 });
 
 export const draftTables = {
@@ -58,8 +56,7 @@ export const draftTables = {
     /** The pick on the clock (spec/04, The picks; #1091): its number, when its clock starts, 10
      *  seconds after the pick before it, and when it runs out, and the scheduled job that makes the
      *  pick for its team then, or as its clock starts for a team with no manager. Absent before the
-     *  draft starts and once it is over (a live draft started before #1091 gets one from
-     *  ../draft/oldDraftsBackfill.ts; #1610). ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
+     *  draft starts and once it is over. ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
      *  holds when he paused it and the league's pick time then, and the job is cancelled, so absent.
      *  `fullClock` marks a pick the commissioner's undo put back (#1095): the draft picks for its team
      *  only when its clock runs out, even for a team it would pick for at once (Craig, 5 Nov 2026).
@@ -82,7 +79,7 @@ export const draftTables = {
     /** The pick time this draft runs on, in seconds: the league's latest when it started (#1439), or
      *  the one the commissioner set since while it was paused (#1095), which it runs on at once, not
      *  waiting for the league's rules change to reach a gameweek (Craig, 5 Nov 2026). Absent before
-     *  the start (a draft started before #1439 gets one from ../draft/oldDraftsBackfill.ts; #1610). ../draft/draftStart.ts
+     *  the start. ../draft/draftStart.ts
      *  and ../draft/draftPickTime.ts write it. */
     pickSeconds: v.optional(v.number()),
     /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
@@ -120,8 +117,7 @@ export const draftTables = {
    *  "at once" (#1463), so the commissioner's undo (#1095) can put both back. `auto`
    *  marks every pick the draft made for a team (#1100), which the board shows. `positions` are the
    *  player's when he was drafted, which the rest of the draft counts him at, a change since showing
-   *  only after it (Craig, 11 Nov 2026, on #1484): optional only until ../draft/oldDraftsBackfill.ts
-   *  has filled picks made before #1484 on every deployment (#1610). `own` marks a pick its manager made himself, which he can undo for 10 seconds, with the
+   *  only after it (Craig, 11 Nov 2026, on #1484). `own` marks a pick its manager made himself, which he can undo for 10 seconds, with the
    *  time his clock had left when he made it, which his undo gives back (Craig, 11 Nov 2026, on
    *  #1458). */
   draftPicks: defineTable({
@@ -132,7 +128,7 @@ export const draftTables = {
     at: v.number(),
     timeout: v.optional(v.object({ putOnAutoPick: v.boolean(), movedToAtOnce: v.optional(v.literal(true)) })),
     auto: v.optional(v.literal(true)),
-    positions: v.optional(v.array(position)),
+    positions: v.array(position),
     own: v.optional(v.object({ leftMs: v.number() })),
   }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };
