@@ -9,7 +9,7 @@ import { NoTeam, TeamPage } from "./header/TeamHeader";
 import { positionMarksOf, type PositionMark } from "./tactics/positionMarks";
 import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
-import { PlayerPanel } from "./squad/PlayerPanel";
+import { SquadPlayerPanel } from "./squad/PlayerPanel";
 import { squadOrder } from "./squad/squadOrder";
 import { RulesTable } from "./squad/RulesTable";
 import { ScheduleTable } from "./squad/ScheduleTable";
@@ -70,7 +70,7 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
         {picked !== null && mailWidget}
       </div>
       <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
-        {picked !== null && <PlayerPanel key={picked.code} leagueId={league.leagueId} player={picked} tactics={tactics} numbers={numbers} onClose={() => setSelected(null)} />}
+        {picked !== null && <SquadPlayerPanel key={picked.code} leagueId={league.leagueId} player={picked} tactics={tactics} numbers={numbers} onClose={() => setSelected(null)} />}
         <YourEleven tactics={tactics} players={new Map(squad.players.map((player) => [player.code, player]))} selected={picked?.code ?? null} />
         {picked === null && mailWidget}
       </div>

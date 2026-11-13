@@ -1,6 +1,6 @@
 @import "tailwindcss";
-/* A screen's own utilities, too long to keep here */
-@import "./myTeam/tactics/pitch/pitch.css";
+/* The pitch's utilities, too long to keep here */
+@import "./ui/pitch/pitch.css";
 /* The controls every screen shares, built on the tokens below */
 @import "./ui/controls.css";
 
@@ -221,6 +221,9 @@
   --shadow-event-edge: inset 3px 0 0 var(--color-event);
   /* the draft room's "On the clock" when it is the reader's turn: it needs him (approved draft-room) */
   --shadow-event-under: inset 0 -3px 0 var(--color-event);
+  /* the lines across a real competition's table, Europe's and relegation's (approved premier-league) */
+  --shadow-europe-line: inset 0 -2px 0 var(--color-derived);
+  --shadow-relegation-line: inset 0 -2px 0 var(--color-event);
 }
 
 @layer base {

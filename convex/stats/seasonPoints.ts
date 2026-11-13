@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { basePoints, cardOpensAt, pointsAtEveryPosition } from "../playerCard/cardPoints";
+import { basePoints, cardOpensAt, pointsAtEveryPosition } from "../gameweekScorer/cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { siteScoringByGameweek } from "../scoring/siteVersions";

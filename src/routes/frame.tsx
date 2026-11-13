@@ -97,18 +97,15 @@ const matchupRoute = createRoute({
 });
 
 // League home's weekly recap, whole (#387), opened by Read the recap. With no gameweek named it is
-// League home's to show, so it goes there.
+// the league's latest, so the recap's own address, shared or bookmarked, opens it (#1967).
 const recapRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: RECAP_PATH,
   validateSearch: recapSearchOf,
-  beforeLoad: ({ search }) => {
-    if (search.gameweek === undefined) throw redirect({ to: HOME_PATH });
-  },
   component: function RecapScreen() {
     const { session, home } = recapRoute.useRouteContext();
     const { gameweek } = recapRoute.useSearch();
-    return <CurrentLeague session={session} page={(league) => <RecapPage league={league} seam={home} gameweek={gameweek!} />} />;
+    return <CurrentLeague session={session} page={(league) => <RecapPage league={league} seam={home} gameweek={gameweek} />} />;
   },
 });
 

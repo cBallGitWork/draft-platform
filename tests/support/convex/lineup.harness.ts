@@ -4,7 +4,7 @@ import type { AreaLimit, Lineup, LineupRules, PlayerPositions } from "../../../c
 import { AREAS, LANES, type Area } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_PRESETS, type Preset } from "../../../convex/lineup/presets";
-import { FIRST_CLASSIC_FORMATIONS } from "../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../convex/lineup/classicFormations";
 
 /** Every area from none to a full row: limits that refuse nothing. */
 export function openLimits(overrides: Partial<Record<Area, AreaLimit>> = {}): LineupRules {

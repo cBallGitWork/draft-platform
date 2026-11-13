@@ -3,72 +3,61 @@ import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { matchdayMargins } from "../admin/platformSettings";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
-import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
-import { groupedBy } from "../shared/groupedBy";
 import { memberOf } from "../shared/leagueAccess";
-import { DAY_MS } from "../shared/time";
-import { LIVE_WINDOW_MS } from "../shared/dueMatches";
+import { HOUR_MS } from "../shared/time";
 import { statusOf } from "../stats/matchStats";
 import { scheduleOf } from "../table/playedFixtures";
-import { matchdayAt } from "./matchday";
+import { heldClock, NEAR_BEFORE_MS, type HeldClock } from "./homeAt";
 
-// What league home needs the screen's minute for (#1550): which gameweek is this, and which
-// matchday is open. A query may not read the clock, and one taking the minute runs again, uncached,
-// every minute for every open screen, so this is the small one; league home's reads of the table,
-// the moves and the Vidiprinter take what it says (leagueHome.ts) and are read again only when
-// their data changes. homeAt.ts puts them together.
+// What league home tells the time by (#1550): which gameweek is this, and which matchday is open.
+// A query may not read the clock, and one taking the minute runs again, uncached, every minute for
+// every open screen (#2005), so this sends the times and the screen judges them at its minute
+// (homeAt.ts's `clockAt`); it takes only the hour, for which matches are near. League home's reads
+// of the table, the moves and the Vidiprinter take what `clockAt` says (leagueHome.ts) and are read
+// again only when their data changes. homeAt.ts puts them together.
 
-export const homeClock = v.object({
-  /** This gameweek (nextGameweek.ts's `thisGameweekOf`) among the league's head-to-heads; null
-   *  with none, as in total points or with fewer than two teams. */
-  gameweek: v.union(v.number(), v.null()),
-  /** The matchday open at `now`, by its gameweek and its matches' codes, smallest first; null
-   *  while the home is quiet. */
-  matchday: v.union(v.null(), v.object({ gameweek: v.number(), fixtureCodes: v.array(v.number()) })),
-});
-
-/** League home's clock at `now`, the screen's minute. For anyone with a part in the league. */
+/** League home's times for any minute of the hour starting at `hour`: the league's head-to-head
+ *  gameweeks with their deadlines, the matchday margins, and the matches kicking off near. For
+ *  anyone with a part in the league. */
 export const clockOf = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: homeClock,
-  handler: async (ctx, { leagueId, now }) => {
+  args: { leagueId: v.id("leagues"), hour: v.number() },
+  returns: heldClock,
+  handler: async (ctx, { leagueId, hour }) => {
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const schedule = gameModeOf(season.latest).hasMatchups ? await scheduleOf(ctx, league, season) : [];
+    const deadlineOf = await leagueDeadlineOf(ctx, leagueId);
+    const margins = await matchdayMargins(ctx);
     return {
-      gameweek: thisGameweekOf(schedule, await leagueDeadlineOf(ctx, leagueId), now)?.gameweek ?? null,
-      matchday: await matchdayOpen(ctx, now),
+      gameweeks: schedule.map(({ gameweek }) => ({ gameweek, deadline: deadlineOf(gameweek) })),
+      margins,
+      matches: await nearMatches(ctx, hour, margins),
     };
   },
 });
 
-/** The matchday open at `now`, or null while none is. Read from the matches kicking off near `now`,
- *  not this gameweek's: a gameweek's first matchday opens hours before its first kickoff, while its
- *  deadline, and so the head-to-heads shown, may still be to come. */
-async function matchdayOpen(ctx: QueryCtx, now: number): Promise<{ gameweek: number; fixtureCodes: number[] } | null> {
-  const margins = await matchdayMargins(ctx);
-  // Any match whose matchday may be open: up to `beforeMs` to come, or kicked off within the day
-  // before its latest final whistle and `afterMs` (matchday.ts). A window joined across more days
-  // than that would leave its first day's lines out, while staying open.
+/** The matches `clockAt` may look at in any minute of the hour starting at `hour`, each with its
+ *  full-time read: up to `beforeMs` to come, or kicked off within NEAR_BEFORE_MS and `afterMs`
+ *  before (homeAt.ts's `clockAt`). */
+async function nearMatches(ctx: QueryCtx, hour: number, margins: HeldClock["margins"]): Promise<HeldClock["matches"]> {
   const near = await takeAllOrThrow(
-    ctx.db.query("fixtures").withIndex("by_kickoff", (q) => q.gt("kickoff", now - DAY_MS - LIVE_WINDOW_MS - margins.afterMs).lte("kickoff", now + margins.beforeMs)),
+    ctx.db
+      .query("fixtures")
+      .withIndex("by_kickoff", (q) => q.gt("kickoff", hour - NEAR_BEFORE_MS - margins.afterMs).lte("kickoff", hour + HOUR_MS + margins.beforeMs)),
     NEAR_MATCHES_MOST,
-    `More than ${NEAR_MATCHES_MOST} matches kick off near ${now}, so league home's matchday would be cut short`,
+    `More than ${NEAR_MATCHES_MOST} matches kick off near ${hour}, so league home's matchday would be cut short`,
   );
-  const inPlay = near.filter((fixture): fixture is Doc<"fixtures"> & { gameweek: number } => fixture.droppedAt === undefined && fixture.gameweek !== null);
-  const byGameweek = groupedBy(inPlay, ({ gameweek }) => gameweek);
-  for (const [gameweek, fixtures] of [...byGameweek].toSorted(([one], [other]) => one - other)) {
-    const matches = await Promise.all(
-      fixtures.map(async ({ code, kickoff }) => ({ fixtureCode: code, kickoff, fullTimeAt: (await statusOf(ctx, code))?.fullTimeAt ?? null })),
-    );
-    const open = matchdayAt(matches, margins, now);
-    if (open !== null) return { gameweek, fixtureCodes: open.fixtureCodes.toSorted((one, other) => one - other) };
-  }
-  return null;
+  const inPlay = near.filter(
+    (fixture): fixture is Doc<"fixtures"> & { gameweek: number; kickoff: number } =>
+      fixture.droppedAt === undefined && fixture.gameweek !== null && fixture.kickoff !== null,
+  );
+  return Promise.all(
+    inPlay.map(async ({ code, gameweek, kickoff }) => ({ gameweek, fixtureCode: code, kickoff, fullTimeAt: (await statusOf(ctx, code))?.fullTimeAt ?? null })),
+  );
 }
 
 /** The most matches kicking off in the few days around a matchday: a gameweek's, with room. More

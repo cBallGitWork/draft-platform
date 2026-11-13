@@ -50,8 +50,8 @@ describe("reaching it", () => {
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
     expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), FIXTURE);
-    // Under the Premier League section, whose tab stays lit.
-    expect(screen.getByRole("link", { name: "Premier League" }).getAttribute("data-status")).toBe("active");
+    // Under the Football section, whose tab stays lit.
+    expect(screen.getByRole("link", { name: "Football" }).getAttribute("data-status")).toBe("active");
   });
 
   /** His match on the matchup, as his breakdown names it: "ARS 1–0 CHE 67'". */
@@ -110,7 +110,7 @@ describe("reaching it", () => {
 
   it("an address whose code isn't a number goes to the Premier League's fixtures", async () => {
     const app = openMatch({}, `${PREMIER_LEAGUE_PATH}/match/saka`);
-    await screen.findByRole("heading", { level: 1, name: "Premier League" });
+    await screen.findByRole("heading", { level: 1, name: "Football" });
     expect(app.path()).toBe(PREMIER_LEAGUE_PATH);
   });
 

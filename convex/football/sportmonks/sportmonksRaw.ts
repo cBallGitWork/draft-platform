@@ -119,6 +119,8 @@ export const SM_STATE = {
   penalties: 9, // INPLAY_PENALTIES
   postponed: 10, // POSTPONED
   toBeAnnounced: 13, // TBA
+  /** From Sportmonks' v3 state list; no abandoned match has been recorded yet (#904). */
+  abandoned: 15, // ABANDONED
   delayed: 16, // DELAYED
   awarded: 17, // AWARDED
   extraTimeBreak: 21, // EXTRA_TIME_BREAK

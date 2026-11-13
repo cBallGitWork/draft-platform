@@ -11,7 +11,7 @@ import {
   PENALTY_SPOT_DISTANCE,
   PITCH_ASPECT,
   PITCH_SIZE,
-} from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
+} from "../../../../../src/ui/pitch/pitchMarkings";
 import { openedPitch, pitch, STARTERS } from "../../../../support/src/tacticsScreen.harness";
 
 /** The drawing behind the cells: its box is the pitch in metres. */

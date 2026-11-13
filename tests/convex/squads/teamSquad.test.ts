@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Cell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { cardPoints } from "../../../convex/playerCard/cardPoints";
 import type { Position } from "../../../convex/positions/positionTables";
 import { scoreMatch } from "../../../convex/scoring/scoring";
+import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadStats } from "../../../convex/squads/teamSquad";
@@ -19,9 +20,10 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Squad tab (#364): every player in the manager's squad with his positions, club, his
-// club's next match, and his season's and last gameweek's points: what his team got from him, the
-// matches his card shows at his slot, never one labelled not counted or at his best position
-// (spec/12; #595). The site plays EXAMPLE_SET throughout.
+// club's next match, his season points, his total as his card and Scouting show it (spec/12;
+// Craig, 13 Nov 2026, #628), and his last gameweek's: what his team got from him, the matches his
+// card shows at his slot, never one labelled not counted or at his best position (#595). The site
+// plays EXAMPLE_SET throughout.
 
 const player = (code: number, name: string, clubCode: number, positions: Position[]) => ({ code, name, fullName: `${name} in full`, clubCode, positions });
 const SAKA = player(1001, "Saka", ARSENAL.code, ["W"]);
@@ -69,7 +71,12 @@ beforeEach(async () => {
   });
 });
 
-const read = async (email = ANN) => (await actingAs(t, email)).query(api.squads.teamSquad.ofMyTeam, { leagueId, now: NOW });
+/** Prices the squad's season points afresh, as the queued refresh does (seasonPointsQueue.ts). */
+const priceSeasons = () => t.mutation(internal.stats.seasonPoints.refresh, { playerCodes: [SAKA, RAYA, PALMER, NOBODY].map(({ code }) => code) });
+const read = async (email = ANN) => {
+  await priceSeasons();
+  return (await actingAs(t, email)).query(api.squads.teamSquad.ofMyTeam, { leagueId, now: NOW });
+};
 const rowOf = async (code: number) => (await read()).players.find((each) => each.code === code)!;
 const priced = (stats: Record<string, number>, positions: Position[], slot: Cell | null) =>
   (slot === null ? cardPoints(stats, EXAMPLE_SET, positions) : scoreMatch(stats, EXAMPLE_SET, slot, roleIn(slot, undefined).key)).total!;
@@ -77,6 +84,8 @@ const priced = (stats: Record<string, number>, positions: Position[], slot: Cell
  *  nobody to come on for, at his best, labelled not counted. */
 const sakaGw1 = () => priced(SAKA_GW1, ["W"], SAKA_SLOT);
 const sakaGw2 = () => priced(SAKA_GW2, ["W"], null);
+/** Saka's season points: both matches at his main position, whatever his team got from them. */
+const sakaSeason = (gw1 = priced(SAKA_GW1, ["W"], null)) => inTenths(gw1 + sakaGw2());
 
 /** A commissioner's override of the player's points in the match (#32), in `league`. */
 const overrides = (playerCode: number, { code: fixtureCode, gameweek }: { code: number; gameweek: number }, points: number, league = leagueId) =>
@@ -191,11 +200,10 @@ describe("the form", () => {
 });
 
 describe("the points", () => {
-  test("add up his slot's points when he started for the team, and nothing for a match he stayed on the bench", async () => {
-    const slot = sakaGw1();
-    expect(slot).not.toBe(priced(SAKA_GW1, ["W"], null));
+  test("for the season are his total, every match at his main position; for the last gameweek, nothing for one he stayed benched (#628)", async () => {
+    expect(sakaGw1()).not.toBe(priced(SAKA_GW1, ["W"], null));
     expect(sakaGw2()).toBeGreaterThan(0);
-    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: slot, lastGameweekPoints: 0 });
+    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: sakaSeason(), lastGameweekPoints: 0 });
     expect((await read()).lastGameweek).toBe(2);
   });
 
@@ -223,7 +231,7 @@ describe("the points", () => {
     const overridden = 12.5;
     expect(sakaGw1()).not.toBe(overridden);
     await overrides(SAKA.code, GW1, overridden);
-    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: overridden, lastGameweekPoints: 0 });
+    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: sakaSeason(overridden), lastGameweekPoints: 0 });
   });
 
   test("take an override of a match whose whole record hasn't arrived", async () => {
@@ -231,13 +239,13 @@ describe("the points", () => {
       await ctx.db.insert("playerMatchStats", completeRecord(PALMER.code, GW2.code, { minutes: 90, goals_scored: 1 }, { pl: false }));
     });
     await overrides(PALMER.code, GW2, 4);
-    // Priced now, so no longer '—'; but he wasn't in the lineup, so his team got nothing from it.
-    expect(await rowOf(PALMER.code)).toMatchObject({ seasonPoints: 0, lastGameweekPoints: 0 });
+    // Priced now, so no longer '—'; he wasn't in the lineup, so his team got nothing from it.
+    expect(await rowOf(PALMER.code)).toMatchObject({ seasonPoints: 4, lastGameweekPoints: 0 });
   });
 
   test("leave another league's override out", async () => {
     await overrides(SAKA.code, GW1, 12.5, await adminCreatesLeague(t));
-    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: sakaGw1(), lastGameweekPoints: 0 });
+    expect(await rowOf(SAKA.code)).toMatchObject({ seasonPoints: sakaSeason(), lastGameweekPoints: 0 });
   });
 });
 
@@ -248,7 +256,7 @@ describe("the last gameweek", () => {
     });
     const squad = await read();
     expect(squad.lastGameweek).toBe(1);
-    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: sakaGw1(), lastGameweekPoints: sakaGw1() });
+    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: sakaSeason(), lastGameweekPoints: sakaGw1() });
   });
 
   test("is none for a league made after the deadlines passed, until its first gameweek begins, and his matches add nothing", async () => {
@@ -257,9 +265,9 @@ describe("the last gameweek", () => {
     });
     const squad = await read();
     expect(squad.lastGameweek).toBeNull();
-    // The table scores none of the league's gameweeks, so his team got nothing from him (#577):
-    // his card prices them at his best position, and the Squad tab adds none of it (#595).
-    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: 0, lastGameweekPoints: null });
+    // The table scores none of the league's gameweeks (#577), but his season points are still his
+    // card's total (#628).
+    expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: sakaSeason(), lastGameweekPoints: null });
   });
 });
 
@@ -273,7 +281,7 @@ describe("another team's squad", () => {
     const { teamName, players } = await readTeam(BOB);
     expect(teamName).toBe(mine.teamName);
     expect(players).toEqual(mine.players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })));
-    expect(players.find(({ code }) => code === SAKA.code)?.seasonPoints).toBe(sakaGw1());
+    expect(players.find(({ code }) => code === SAKA.code)?.seasonPoints).toBe(sakaSeason());
   });
 
   test("is read by the commissioner, who runs no team, and refused to someone outside the league", async () => {

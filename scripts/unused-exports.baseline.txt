@@ -15,7 +15,6 @@ src/draft/ClockLeft.tsx: leftAt
 src/draft/seam.ts: CommissionerView
 src/frame/menu.ts: sections
 src/frame/words.ts: menuWords
-src/frame/words.ts: notBuiltWords
 src/joining/seam.ts: EndedInvite
 src/joining/seam.ts: JoinPageData
 src/joining/words.ts: dayWords

@@ -190,6 +190,42 @@ test("at the end of the season, a match never played between two other clubs lea
   expect(second.slice(0, 2)).toEqual([2, 1]);
 });
 
+test("while a gameweek is live, each club shows its places moved since it began; between gameweeks, none (S18.4)", async () => {
+  const t = freshConvex();
+  // Gameweeks 1 and 2 at full time: Burnley top, Chelsea second, Arsenal third. Gameweek 3: Arsenal
+  // beating Burnley, then Chelsea v Arsenal to come in it.
+  await holdSeason(t, [
+    { code: 1, home: 2, away: 3, score: [2, 0] },
+    { code: 2, home: 3, away: 1, score: [1, 0] },
+    { code: 3, home: 1, away: 2, score: null },
+  ]);
+  await t.run(async (ctx) => {
+    await ctx.db.insert("fixtures", { code: 4, gameweek: 3, homeClubCode: 3, awayClubCode: 1, kickoff: 4 * HOUR_MS });
+  });
+  const before = await table(t);
+  expect(before.liveGameweek).toBeNull();
+  expect(before.rows.map(({ moved }) => moved)).toEqual([null, null, null]);
+
+  await read(t, 0, { state: "live", homeGoals: 3, awayGoals: 0, minutes: 60, clockLabel: null }, 3);
+  const live = await table(t);
+  expect(live.liveGameweek).toBe(3);
+  // Arsenal 1st (3 pts, +2), Burnley 2nd (3 pts, −1), Chelsea 3rd (3 pts, −1, fewer goals).
+  expect(live.rows.map(({ club, position, moved }) => [club.code, position, moved])).toEqual([
+    [1, 1, 2],
+    [2, 2, -1],
+    [3, 3, -1],
+  ]);
+
+  // Its first match over, its second still to come: the gameweek stays live.
+  await read(t, HOUR_MS, { state: "fullTime", homeGoals: 3, awayGoals: 0, minutes: 90, clockLabel: null }, 3);
+  expect((await table(t)).liveGameweek).toBe(3);
+
+  await read(t, HOUR_MS, { state: "fullTime", homeGoals: 0, awayGoals: 0, minutes: 90, clockLabel: null }, 4);
+  const over = await table(t);
+  expect(over.liveGameweek).toBeNull();
+  expect(over.rows.every(({ moved }) => moved === null)).toBe(true);
+});
+
 test("a match held as played with no score throws, never left out of the table", async () => {
   const t = freshConvex();
   await holdSeason(t, [{ code: 1, home: 3, away: 1, score: null }]);

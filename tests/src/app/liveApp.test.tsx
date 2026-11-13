@@ -43,7 +43,7 @@ vi.mock("convex/react", async () => {
         }),
         // What the top bar, the leagues page and the patch banner read: no lineup due, no ended
         // invite, no join request waiting, no patch waiting.
-        "lineup/lineupDue:isDue": unlessSkipped(() => false),
+        "lineup/lineupDue:isDue": unlessSkipped(() => null),
         "joining/endedInvite:mine": unlessSkipped(() => null),
         "joining/joinRequests:waitingMine": unlessSkipped(() => []),
         "scoring/patchNotes:banner": unlessSkipped(() => null),

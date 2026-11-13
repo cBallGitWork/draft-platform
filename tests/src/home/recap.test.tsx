@@ -11,8 +11,10 @@ import { RECAP_PATH } from "../../../src/home/paths";
 import {
   backHomeLink,
   changedMatchupLink,
+  latestRecapTitle,
   loadingRecapWords,
   noRecapWords,
+  noRecapYetWords,
   readRecapLink,
   recapTitle,
   recapToComeWords,
@@ -84,9 +86,17 @@ describe("Read the recap's page", () => {
     expect(await screen.findByText(noRecapWords(2))).toBeTruthy();
   });
 
-  it("with no gameweek named, goes to League home", async () => {
-    const app = openApp(RECAP_PATH, manager);
-    await screen.findByRole("heading", { level: 1, name: league.name });
-    expect(app.path()).toBe(HOME_PATH);
+  it("with no gameweek named, opens the latest recap, so its own address opens it (#1967)", async () => {
+    const app = openApp(RECAP_PATH, manager, { home: { recaps: [gameweekOneRecap] } });
+    expect(await screen.findByRole("heading", { level: 1, name: TITLE })).toBeTruthy();
+    expect(screen.getByText(/Saka scored 15\./)).toBeTruthy();
+    expect(app.path()).toBe(RECAP_PATH);
+    expect(app.home.useRecap).toHaveBeenLastCalledWith(league.leagueId, undefined);
+  });
+
+  it("with no gameweek named and no recap yet, says so", async () => {
+    openApp(RECAP_PATH, manager);
+    expect(await screen.findByRole("heading", { level: 1, name: latestRecapTitle })).toBeTruthy();
+    expect(await screen.findByText(noRecapYetWords)).toBeTruthy();
   });
 });

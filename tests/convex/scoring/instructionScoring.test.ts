@@ -164,4 +164,21 @@ describe("two at the back's back line", () => {
     const goal = (team?: TeamScoring) => scoreMatch(scored, SET, LEFT_CENTRE_BACK, undefined, team).categories.find((category) => category.stat === "goals_scored");
     expect(goal(TWO_AT_BACK)).toEqual(goal());
   });
+
+  test("replaces a stat's values once, whatever the categories on it (#1968)", () => {
+    const twice: ScoringSet = {
+      ...SET,
+      rules: [
+        ...SET.rules,
+        { shape: "bands", stat: "clean_sheets", stack: false, values: { all: [{ atLeast: 1, points: 1 }] } },
+        { shape: "perCount", stat: "goals_conceded", values: { all: { every: 1, points: -1 } } },
+      ],
+    };
+    const points = (scored: Record<string, number>, stat: string) =>
+      scoreMatch(scored, twice, LEFT_CENTRE_BACK, undefined, TWO_AT_BACK)
+        .categories.filter((category) => category.stat === stat)
+        .map((category) => category.points);
+    expect(points({ minutes: 90, clean_sheets: 1 }, "clean_sheets")).toEqual([3, 0]);
+    expect(points({ minutes: 90, goals_conceded: 2 }, "goals_conceded")).toEqual([-2, 0]);
+  });
 });

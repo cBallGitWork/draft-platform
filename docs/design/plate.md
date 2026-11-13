@@ -139,13 +139,13 @@ name (the score).
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
   to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
-  measurements live once, in `src/myTeam/tactics/pitch/pitchMarkings.ts`. Flat: one stripe to each
+  measurements live once, in `src/ui/pitch/pitchMarkings.ts`. Flat: one stripe to each
   row the formation uses, the used rows sharing its length equally and an empty row closed up, so a
   shape leaves no gap ("pitch view should be dynamic so it fills out correctly", Craig, 5 Nov 2026;
-  `src/myTeam/tactics/pitch/rowLayout.ts`); no gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
+  `src/ui/pitch/rowLayout.ts`); no gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
 - **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place with a solid
   white arrowhead, drawn under the players' blocks so it never covers a name. Its shape is the
-  role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/pitch/RoleRuns.tsx` only draws it.
+  role's, in metres (`convex/lineup/roles.ts`); `src/ui/pitch/RoleRuns.tsx` only draws it.
 - **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
   2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
   his block. A slot a preset asks to fill is quieter,

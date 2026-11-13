@@ -6,7 +6,7 @@
 import { act, render } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { MINUTE_MS } from "../../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../../../../src/frame/menu";
 import { useLiveTopBar } from "../../../../src/frame/topBar/liveTopBar";
 import type { TopBarState } from "../../../../src/frame/topBar/topBarState";
@@ -26,10 +26,14 @@ vi.mock("convex/react", async () =>
 );
 
 beforeEach(() => {
-  convex.isDue.mockReturnValue(false);
+  convex.isDue.mockReturnValue(null);
   convex.countMine.mockReturnValue(0);
   convex.offersWaiting.mockReturnValue(0);
 });
+
+/** The times `isDue` sends for a lineup due now: the one gameweek's deadline an hour away, not
+ *  opened in Tactics. */
+const dueNow = () => ({ deadlines: [{ gameweek: 1, deadline: Date.now() + HOUR_MS }], lastGameweek: 1, openedIn: null });
 
 const UNREAD = 3;
 const TO_MAIL = { path: MAIL_PATH, reason: unreadCount(UNREAD) };
@@ -62,32 +66,40 @@ test("with nothing unread, or the count still loading, there is no count and not
 });
 
 test("a lineup the server says is due, with nothing unread, is Continue's: his Tactics tab", () => {
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   expect(live(0)).toEqual({ unreadMail: 0, next: TO_TACTICS, pendingClaims: 0 });
 });
 
 test("an unread letter still comes before a lineup that is due", () => {
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   expect(live(UNREAD)?.next).toEqual(TO_MAIL);
 });
 
-test("it asks lineup/lineupDue:isDue for the league the app is in at the minute, and not at all with none", () => {
+test("it asks lineup/lineupDue:isDue for the league the app is in, with no minute, and not at all with none", () => {
   live(0);
-  expect(convex.isDue).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: expect.any(Number) });
+  expect(convex.isDue).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
   convex.isDue.mockClear();
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   expect(live(0, null)).toEqual({ unreadMail: 0, next: null, pendingClaims: 0 });
   expect(convex.isDue).not.toHaveBeenCalled();
 });
 
-test("a minute passing asks again at the new minute without re-rendering the shell", () => {
+// The read it removes (#2005): a new minute asks the server nothing new, as isDue's arguments stay
+// as they were, and the times it sent are judged again at the new minute.
+test("a minute passing asks with the same arguments, and judges the times again, without re-rendering the shell", () => {
   vi.useFakeTimers();
+  // Two minutes on from the start of this one: due at the next minute, not at the one after.
+  const deadline = Date.now() - (Date.now() % MINUTE_MS) + 2 * MINUTE_MS;
+  convex.isDue.mockReturnValue({ deadlines: [{ gameweek: 1, deadline }], lastGameweek: 1, openedIn: null });
   const shell = liveShell(0);
+  expect(shell.topBar?.next).toEqual(TO_TACTICS);
   const rendersBefore = shell.renders;
   convex.isDue.mockClear();
   act(() => vi.advanceTimersByTime(MINUTE_MS));
-  expect(convex.isDue).toHaveBeenCalledOnce();
+  expect(convex.isDue.mock.calls).toEqual([[{ leagueId: A_LEAGUE_ID }]]);
   expect(shell.renders).toBe(rendersBefore);
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(shell.topBar?.next).toBeNull();
 });
 
 test("switching league, Continue doesn't carry the last league's lineup over before the new one answers", () => {
@@ -98,7 +110,7 @@ test("switching league, Continue doesn't carry the last league's lineup over bef
     next = topBar.next;
     return <>{watch}</>;
   }
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   const { rerender } = render(<Shell leagueId={A_LEAGUE_ID} />);
   expect(next).toEqual(TO_TACTICS);
   convex.isDue.mockReturnValue(undefined);
@@ -106,9 +118,9 @@ test("switching league, Continue doesn't carry the last league's lineup over bef
   expect(next).toBeNull();
 });
 
-test("while the new minute's answer loads, Continue stays where the last answer sent it", () => {
+test("while new times load, Continue stays where the last answer sent it", () => {
   vi.useFakeTimers();
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   const shell = liveShell(0);
   const rendersBefore = shell.renders;
   convex.isDue.mockReturnValueOnce(undefined);
@@ -131,9 +143,9 @@ test("a trade offer waiting for his answer is Continue's after a letter and a li
   expect(live(0)?.next).toEqual(TO_OFFERS);
   expect(convex.offersWaiting).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
   expect(live(UNREAD)?.next).toEqual(TO_MAIL);
-  convex.isDue.mockReturnValue(true);
+  convex.isDue.mockReturnValue(dueNow());
   expect(live(0)?.next).toEqual(TO_TACTICS);
-  convex.isDue.mockReturnValue(false);
+  convex.isDue.mockReturnValue(null);
   convex.offersWaiting.mockReturnValue(undefined);
   expect(live(0)?.next).toBeNull();
 });

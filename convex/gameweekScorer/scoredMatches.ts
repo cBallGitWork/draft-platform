@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { positionOfSlot } from "../lineup/pitch";
-import { cardPoints, type CardPoints } from "../playerCard/cardPoints";
+import { cardPoints, type CardPoints } from "./cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { seasonRules } from "../rules/rulesHistory";

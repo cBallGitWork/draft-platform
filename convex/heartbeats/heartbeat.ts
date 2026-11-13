@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type MutationCtx } from "../_generated/server";
+import { TIMED_JOBS_SETTING } from "../outbound/deploymentSettings";
 import { OUTBOUND_TIMEOUT_MS } from "../outbound/timeouts";
 
 // Each timed job in crons.ts pings Healthchecks.io when it finishes (docs/PLAN.md, "No
@@ -18,6 +19,19 @@ export const PING_FAILED_LOG = "Healthchecks ping failed";
 
 /** The trigger a sync's run carries when its cron starts it (crons.ts); a run by hand pings nothing. */
 export const CRON_TRIGGER = "cron" as const;
+
+/** Whether this deployment runs its timed feed, waiver and trade jobs: only where `TIMED_JOBS_ON`
+ *  is set, the live one (#1997). Each job's cron entry asks first and does nothing where it isn't;
+ *  a run by hand always runs. */
+export function timedJobsOn(): boolean {
+  return Boolean(process.env[TIMED_JOBS_SETTING]);
+}
+
+/** Whether a sync run with `trigger` stops before reading anything: its cron started it and timed
+ *  jobs are off here. */
+export function cronRunOff(trigger: string): boolean {
+  return trigger === CRON_TRIGGER && !timedJobsOn();
+}
 
 /** Each timed job's check in Healthchecks, by its slug: the check Craig makes for it there. */
 export const CHECK_SLUGS = {

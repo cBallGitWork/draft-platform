@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { settingsPath } from "../../../src/leagueSettings/paths";
-import { SETTINGS_TITLE } from "../../../src/leagueSettings/words";
+import { SETTINGS_TITLE, settingsTabWords, type SettingsTab } from "../../../src/leagueSettings/words";
 import { saveWords } from "../../../src/rules/words";
 import type { LeagueSettingsData } from "./leagueSettings.harness";
 import { commissioner, league, openApp } from "./shell.harness";
@@ -24,6 +24,15 @@ export async function openedSettings(data?: LeagueSettingsData) {
   await screen.findByRole("heading", { level: 1, name: SETTINGS_TITLE });
   return app;
 }
+
+/** The screen opened as openedSettings opens it, then the title plate's `tab` chosen. */
+export async function openedOn(tab: SettingsTab, data?: LeagueSettingsData) {
+  const app = await openedSettings(data);
+  await openTab(tab);
+  return app;
+}
+/** Chooses `tab` on the title plate. */
+export const openTab = (tab: SettingsTab) => userEvent.click(screen.getByRole("button", { name: settingsTabWords[tab] }));
 
 /** A box by its label. */
 export const box = (name: string) => screen.getByRole("textbox", { name }) as HTMLInputElement;

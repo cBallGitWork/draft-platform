@@ -96,11 +96,11 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   record = withOwnStats(record, set);
   const minutes = statIn(record, MINUTES_STAT);
   const backLine = backLineAt(team, slot.area);
-  const categories = set.rules.map((each) => {
-    const rule = backLine === null ? each : withBackLine(each, backLine.scoring);
+  const rules = backLine === null ? set.rules : withBackLine(set.rules, backLine.scoring);
+  const categories = rules.map((rule, index) => {
     const actions = statIn(record, rule.stat);
     const { points, value, cut } = ruleScore(rule, slot, actions, minutes);
-    const by = rule === each ? pricedBy(rule.values, slot) : { by: "formation" as const, formation: backLine!.formation };
+    const by = rule === set.rules[index] ? pricedBy(rule.values, slot) : { by: "formation" as const, formation: backLine!.formation };
     return { stat: rule.stat, points, why: { actions, value, pricedBy: by, cut } };
   });
   const base = sum(categories.map((category) => category.points));

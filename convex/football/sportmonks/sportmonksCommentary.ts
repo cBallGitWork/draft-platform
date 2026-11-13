@@ -4,10 +4,10 @@
 // rewrites a line and never doubles it. Pure: a `sportmonksMatches` row's events in, the lines and
 // the delay `matchCommentary.ts` stores out. The kick-off and full-time lines are written apart.
 
-import type { ScoreRead } from "./scoreReads";
-import { byEventMinute, type SportmonksEvent } from "./sportmonks/sportmonksMatch";
-import { FEED_TYPE, minuteOf, UNLISTED_NAME, type WrittenLine } from "./commentary";
-import { behind, joinedReasons, type CommentaryRead } from "./matchCommentary";
+import type { ScoreRead } from "../scoreReads";
+import { byEventMinute, type SportmonksEvent } from "./sportmonksMatch";
+import { FEED_TYPE, minuteOf, UNLISTED_NAME, type WrittenLine } from "../commentary";
+import { behind, joinedReasons, type CommentaryRead } from "../matchCommentary";
 
 /** Sportmonks' event type ids (its `type_id`) this file words, from its v3 types list. */
 export const SM_EVENT_TYPE = {

@@ -6,11 +6,11 @@ import { useSyncExternalStore } from "react";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { Position } from "../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../convex/scouting/playersList";
+import { previewClub } from "../shared/preview";
 import type { DraftBoard, DraftList, DraftListChanges, DraftLists, DraftSeam } from "./seam";
 
 type Listed = DraftLists["queue"][number];
 
-const club = (code: number, name: string, shortName: string) => ({ code, name, shortName });
 const listed = (code: number, name: string, fullName: string, playerClub: Listed["club"], position: Position): Listed => ({
   code,
   name,
@@ -20,19 +20,22 @@ const listed = (code: number, name: string, fullName: string, playerClub: Listed
   gone: false,
   position,
 });
-const NEWCASTLE = club(4, "Newcastle", "NEW");
+const NEWCASTLE = previewClub("NEW");
 
 let lists: DraftLists = {
   queue: [
-    listed(8101, "B. Fernandes", "Bruno Fernandes", club(1, "Man Utd", "MUN"), "CAM"),
-    listed(8102, "Mitoma", "Kaoru Mitoma", club(2, "Brighton", "BHA"), "W"),
-    listed(8103, "Kudus", "Mohammed Kudus", club(3, "Spurs", "TOT"), "W"),
+    listed(8101, "B. Fernandes", "Bruno Fernandes", previewClub("MUN"), "CAM"),
+    listed(8102, "Mitoma", "Kaoru Mitoma", previewClub("BHA"), "W"),
+    listed(8103, "Kudus", "Mohammed Kudus", previewClub("TOT"), "W"),
     listed(8104, "Tonali", "Sandro Tonali", NEWCASTLE, "CDM"),
     listed(8105, "Pope", "Nick Pope", NEWCASTLE, "GK"),
-    listed(8106, "Senesi", "Marcos Senesi", club(5, "Bournemouth", "BOU"), "CB"),
+    listed(8106, "Senesi", "Marcos Senesi", previewClub("BOU"), "CB"),
   ],
-  doNotDraft: [listed(8107, "Paquetá", "Lucas Paquetá", club(6, "West Ham", "WHU"), "CAM"), listed(8108, "Rodon", "Joe Rodon", club(7, "Leeds", "LEE"), "CB")],
+  doNotDraft: [listed(8107, "Paquetá", "Lucas Paquetá", previewClub("WHU"), "CAM"), listed(8108, "Rodon", "Joe Rodon", previewClub("LEE"), "CB")],
 };
+/** The players the queue and the do-not-draft list start with: the draft room's players list
+ *  holds them too, as a queue holds only players still to draft (#1969). */
+export const previewListsPlayers: readonly Listed[] = [...lists.queue, ...lists.doNotDraft];
 let autoPick: NonNullable<DraftBoard["yourAutoPick"]> = { on: false, timeouts: 1, limit: 2 };
 
 const listeners = new Set<() => void>();
@@ -86,8 +89,8 @@ export const setPreviewShortlisted = (players: readonly ListedPlayer[]) => {
   shortlisted = players.filter(({ ownerTeamName }) => ownerTeamName === null).map(listedFromScouting);
 };
 
-/** Every player the preview lists, which Scouting's preview sets, for his panel's "Add to queue"
- *  and "Do not draft". */
+/** Every player the preview lists, which Scouting's preview sets and the draft room's (./preview.ts)
+ *  widens to its lists' players, for his panel's "Add to queue" and "Do not draft". */
 let known: readonly ListedPlayer[] = [];
 export const setPreviewPlayers = (players: readonly ListedPlayer[]) => {
   known = players;

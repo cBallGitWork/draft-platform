@@ -10,8 +10,10 @@ import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import type { GameweekMatch } from "../../../src/premierLeague/seam";
 import {
+  competitionsLabel,
   dayWords,
   FIXTURES_TITLE,
+  FOOTBALL_TITLE,
   fullTime,
   halfTime,
   kickoffWords,
@@ -51,13 +53,15 @@ async function matchLines(gameweek: number) {
 }
 
 describe("reaching it", () => {
-  it("is its own section of the menu, opened by anyone in a league", async () => {
+  it("is the menu's Football section, opened by anyone in a league, its plate a tab for each competition the league plays", async () => {
     const app = openApp(MY_TEAM_PATH, manager, { premierLeague: { firstKickoffs: kickoffsTo10 } });
-    await userEvent.click(await screen.findByRole("link", { name: menuWords.premierLeague }));
+    await userEvent.click(await screen.findByRole("link", { name: menuWords.football }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: PREMIER_LEAGUE_TITLE })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: FOOTBALL_TITLE })).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2, name: FIXTURES_TITLE })).toBeTruthy();
     expect(app.path()).toBe(PREMIER_LEAGUE_PATH);
+    const tabs = within(screen.getByRole("group", { name: competitionsLabel })).getAllByRole("button");
+    expect(tabs.map((tab) => [tab.textContent, tab.getAttribute("aria-pressed")])).toEqual([[PREMIER_LEAGUE_TITLE, "true"]]);
   });
 
   it("says so while the gameweeks load", async () => {
@@ -226,5 +230,14 @@ describe("live scores", () => {
       app.premierLeague.send(9, [plMatch(1, ARSENAL, CHELSEA, begun, score)]);
       expect(await matchLines(9)).toEqual([line]);
     }
+  });
+
+  it("the Fixtures plate says Live while one of the gameweek's matches is being played, and not once they are over", async () => {
+    const app = openSection({ firstKickoffs: kickoffsTo10, matches: { 9: [plMatch(1, ARSENAL, CHELSEA, begun, { state: "halfTime", homeGoals: 0, awayGoals: 0, minutes: 45 })] } });
+    await matchLines(9);
+    expect(screen.getByRole("heading", { level: 2, name: `${FIXTURES_TITLE}${liveWords}` })).toBeTruthy();
+
+    app.premierLeague.send(9, [plMatch(1, ARSENAL, CHELSEA, begun, { state: "fullTime", homeGoals: 1, awayGoals: 0, minutes: 90 })]);
+    expect(await screen.findByRole("heading", { level: 2, name: FIXTURES_TITLE })).toBeTruthy();
   });
 });
