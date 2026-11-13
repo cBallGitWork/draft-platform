@@ -82,7 +82,7 @@ describe("the letters", () => {
     expect(app.mail.open).toHaveBeenCalledTimes(1);
   });
 
-  it("the open one is beside the list, its plate saying its kind and who it's from, its subject over its text", async () => {
+  it("the open one is beside the list, its plate saying who it's from, its subject over its text", async () => {
     openApp(MAIL_PATH, manager, { letters: mailLetters });
     await lettersPanel();
     await userEvent.click(letterButton("Letter 3"));
