@@ -1,13 +1,15 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the unused-exports check, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
 ---
 
 # Verify
 
 ```bash
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, the lint step
-                 # (eslint's hook rules, no arbitrary Tailwind values), then scripts/recorded-add-only.mjs (payloads, goldens add-only),
+                 # (eslint's hook rules, no arbitrary Tailwind values), then
+                 # scripts/unused-exports.mjs (no export nothing reads, past its shrinking baseline),
+                 # scripts/recorded-add-only.mjs (payloads, goldens add-only),
                  # scripts/tests-kept.mjs (no test origin/main has is cut),
                  # scripts/spec-ids.mjs (spec answer IDs and tests' citations),
                  # scripts/contents-lists.mjs (a doc over 100 lines opens with a contents list),
@@ -48,6 +50,7 @@ failure.
 test       <n> passed / FAILED (<which>) / install stale (run npm ci)
 typecheck  clean / <n> errors
 lint       clean / <n> problems (<which files>)
+exports    none unread past the baseline / FAILED (<which exports, or stale baseline lines>)
 recorded   add-only / FAILED (<which file>)
 tests kept none cut / FAILED (<which tests>)
 spec IDs   <n> answers, uncited: <ids or none> / FAILED (<which>)

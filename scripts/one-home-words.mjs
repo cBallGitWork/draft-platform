@@ -17,11 +17,11 @@ import { posix } from "node:path";
 import ts from "typescript";
 import { CHECKOUT, ranDirectly } from "./thisScript.mjs";
 
-export const MIN_WORDS = 2;
-export const CONTAINED_WORDS = 3;
-export const LONG_WORDS = 4;
+const MIN_WORDS = 2;
+const CONTAINED_WORDS = 3;
+const LONG_WORDS = 4;
 export const BASELINE = "scripts/one-home-words.baseline.json";
-export const ALLOW = /\/\/ one-home-ok:\s*\S/;
+const ALLOW = /\/\/ one-home-ok:\s*\S/;
 
 const WORDS_FILE = /^src\/.*\/words\.ts$|^convex\/.*Words\.ts$/;
 const PREVIEW_FILE = /^src\/.*\/preview\.ts$/;
@@ -29,7 +29,7 @@ const TEST_FILE = /^tests\/.*\.(test|spec)\.(ts|tsx|mjs)$/;
 // This check's own test writes phrases twice on purpose, as fixtures, so it is never read as a test.
 const OWN_TEST = "tests/scripts/one-home-words.test.mjs";
 
-export const isHomeFile = (path) => WORDS_FILE.test(path) || PREVIEW_FILE.test(path);
+const isHomeFile = (path) => WORDS_FILE.test(path) || PREVIEW_FILE.test(path);
 export const isTestFile = (path) => TEST_FILE.test(path) && path !== OWN_TEST;
 
 const wordCount = (text) => text.split(/\s+/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
@@ -56,7 +56,7 @@ export function literalsOf(source, path = "x.ts") {
 }
 
 /** The relative modules a source imports, resolved against its own path to the files in `known`. */
-export function importsOf(path, source, known) {
+function importsOf(path, source, known) {
   const imported = new Set();
   for (const [, spec] of source.matchAll(/(?:\bfrom|\bimport)\s*\(?\s*["'](\.[^"']*)["']/g)) {
     const base = posix.join(posix.dirname(path), spec);
@@ -73,7 +73,7 @@ function byHome(a, b) {
 }
 
 /** The phrases the home files hold: a Map from phrase to `{ file, line, allowed }[]`. */
-export function phrasesOf(homes) {
+function phrasesOf(homes) {
   const phrases = new Map();
   for (const [file, source] of homes) {
     const lines = source.split("\n");

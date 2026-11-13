@@ -2,13 +2,13 @@
 // Exports nobody uses (#1811). knip, with knip.json, lists every export the app, Convex and the
 // scripts never read (`--production`: the tests' import.meta.glob would otherwise mark every Convex
 // export as read). This drops Convex's registrations, which Convex itself reads, and the ones a
-// test reads, unless that one is a re-export: a constant or function exported for a test stays
-// allowed, a re-export only tests read doesn't. What's left fails, whether nothing imports it or
-// only its own file reads it, unless scripts/unused-exports.baseline.txt pins it. The baseline only
-// shrinks: a line no longer found fails too, so it's cut when its export goes. The weekly drift
-// pass clears it.
-// Run from the repo: `node scripts/unused-exports.mjs`. `npm run verify` and CI's verify workflow
-// run it once both name it, in one pipeline change (#1811).
+// test or a config file at the repo's top reads (knip's production run reads neither), unless that
+// one is a re-export: a constant or function exported for a test stays allowed, a re-export only
+// tests read doesn't. What's left fails, whether nothing imports it or only its own file reads it,
+// unless scripts/unused-exports.baseline.txt pins it. The baseline only shrinks: a line no longer
+// found fails too, so it's cut when its export goes. The weekly drift pass clears it.
+// Run from the repo: `node scripts/unused-exports.mjs`. `npm run verify` runs it, and so does CI's
+// verify workflow, in its `checks` job.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -30,6 +30,8 @@ const CONVEX_DEFAULTS = new Set(["convex/crons.ts", "convex/http.ts", "convex/sc
 const CONVEX_AUTH = "convex/auth.ts";
 
 const SOURCE = /\.(ts|tsx|mjs|js)$/;
+/** A config file at the repo's top, such as playwright.live.config.ts, which reads scripts/live-site.mjs. */
+const TOP_CONFIG = /\.config\.(ts|mjs|js)$/;
 const RESOLVED = ["", ".ts", ".tsx", ".mjs", ".js", "/index.ts", "/index.tsx"];
 /** Every export of a file, when a test reads it whole (`import * as`, `import()`). */
 const WHOLE = "*";
@@ -122,7 +124,7 @@ export const knipFindings = (report) =>
   report.issues.flatMap(({ file, exports = [], types = [] }) => [...exports, ...types].map(({ name }) => ({ file, name })));
 
 /** The findings that fail: not a Convex registration, and not a test's read of what isn't a
- *  re-export. `textOf` gives a file's text; `testReads` is readsOf the tests. */
+ *  re-export. `textOf` gives a file's text; `testReads` is readsOf the tests and the top's config files. */
 export function unusedExports(findings, textOf, testReads) {
   return findings.filter(({ file, name }) => {
     if (file === CONVEX_AUTH || (name === "default" && CONVEX_DEFAULTS.has(file))) return false;
@@ -157,8 +159,11 @@ function main() {
   const root = process.cwd();
   const report = JSON.parse(execFileSync(process.execPath, [KNIP, ...KNIP_ARGS], { cwd: root, encoding: "utf8", maxBuffer: 1 << 28 }));
   const textOf = (file) => readFileSync(join(root, file), "utf8");
-  const tests = filesUnder(root, TESTS_ROOT).map((file) => [file, textOf(file)]);
-  const found = unusedExports(knipFindings(report), textOf, readsOf(root, tests));
+  const configs = readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && TOP_CONFIG.test(entry.name))
+    .map((entry) => entry.name);
+  const readers = [...filesUnder(root, TESTS_ROOT), ...configs].map((file) => [file, textOf(file)]);
+  const found = unusedExports(knipFindings(report), textOf, readsOf(root, readers));
   const baselineFile = join(root, BASELINE_PATH);
   const baseline = existsSync(baselineFile) ? lines(readFileSync(baselineFile, "utf8")) : [];
   const { unpinned, stale } = baselineProblems(found, baseline);

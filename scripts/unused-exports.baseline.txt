@@ -10,14 +10,10 @@ src/admin/words.ts: findTitle
 src/admin/words.ts: foundListLabel
 src/admin/words.ts: noneFoundWords
 src/app/liveApp.tsx: ZONE_FAILED_LOG
-src/draft/ClockLeft.tsx: PickClock
 src/draft/ClockLeft.tsx: leftAt
 src/draft/seam.ts: CommissionerView
 src/frame/menu.ts: sections
-src/frame/words.ts: menuWords
 src/joining/seam.ts: EndedInvite
-src/joining/seam.ts: JoinPageData
-src/joining/words.ts: dayWords
 src/leagueSettings/seam.ts: TeamOrder
 src/leagues/seam.ts: NewLeague
 src/mail/seam.ts: LeagueLetter
@@ -47,7 +43,6 @@ src/premierLeague/seam.ts: PlGameweeks
 src/premierLeague/words.ts: commentaryDelayedWords
 src/premierLeague/words.ts: freeAgentWords
 src/premierLeague/words.ts: gameweekWords
-src/premierLeague/words.ts: liveWords
 src/scoring/seam.ts: Announced
 src/scouting/seam.ts: Per90Panel
 src/scouting/seam.ts: YourPlayer

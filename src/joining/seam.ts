@@ -8,7 +8,7 @@ import type { InvitesPageData } from "../../convex/joining/invitesPage";
 import type { JoinPageData, WaitingRequest } from "../../convex/joining/joinRequests";
 import type { Change } from "../shared/refusal";
 
-export type { EndedInvite, InvitesPageData, JoinPageData, WaitingRequest };
+export type { EndedInvite, InvitesPageData, JoinPageData };
 
 export type JoiningSeam = {
   /** The league's invites page, live (a hook): undefined while it loads, null when the person
