@@ -116,13 +116,15 @@ echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF2
 tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 git -C "$repo" switch -q main
-merge="gh pr merge 5 --squash"
-for body in pr-differs.md pr-pasted.md pr-matches.md pr.md; do
-  export FAKE_BODY=$repo/$body
-  check allow guard_bash.py "$(bash_in "$repo" "$merge")"
-  check allow guard_github.py "$tool"
-done
-unset FAKE_BODY
+check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
+check allow guard_github.py "$tool"
+# gh pr merge with no number merges the branch's pull request: one open on it is named, none or two can't be
+git -C "$repo" switch -q -c feat/x
+check allow guard_bash.py "$(bash_in "$repo" "gh pr merge --squash")"
+FAKE_OPEN_PRS='[]' says "no single open pull request has the branch feat/x" guard_bash.py "$(bash_in "$repo" "gh pr merge --squash")"
+FAKE_OPEN_PRS='[{"number":5,"head":{"ref":"feat/x"}},{"number":6,"head":{"ref":"feat/x"}}]' \
+  says "no single open pull request has the branch feat/x" guard_bash.py "$(bash_in "$repo" "gh pr merge --squash")"
+git -C "$repo" switch -q main
 says "bypasses the main ruleset" guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash --admin")"
 # a write to gh api's merge endpoint is the same admin merge with none of gh pr merge's checks (#1075)
 for merge in "gh api -X PUT repos/o/r/pulls/5/merge" "gh api --method=put /repos/{owner}/{repo}/pulls/5/merge -f merge_method=squash" \
@@ -150,7 +152,6 @@ for read in "gh api graphql -f query='query{viewer{login}}'" "gh api graphql -f 
   'echo "gh api graphql -f query=mutation{mergePullRequest}"'; do
   check allow guard_bash.py "$(bash_in "$repo" "$read")"
 done
-check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 
 # this repo's own routes trace to their pages and the stylesheets, so a rename in src/routes/ that
 # loses a page fails here rather than letting its changes pass as no screen

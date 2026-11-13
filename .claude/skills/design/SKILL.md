@@ -125,8 +125,8 @@ On his yes, a `docs/` branch and PR adds `docs/design/approved/<screen>/` (the r
   placeholder with its data's issue, and the canvas link;
 - the screen's line in `docs/design/approved/README.md`'s Screens list.
 
-The PR quotes Craig's yes and the panel's findings (the template's Checks). A docs-only PR that
-only quotes Craig's answers may skip `pr-reviewer`, and says so.
+The PR's `## What` quotes Craig's yes and the panel's findings. `review.yml` reviews it like any
+other pull request.
 
 When a value in `src/styles.css` or `docs/design/plate.md` changed, re-sync the design system
 artifact, <https://claude.ai/artifact/KnbhQ7oEyXakwqFsEbGk8e>: `read` it (Artifact tool), compare
