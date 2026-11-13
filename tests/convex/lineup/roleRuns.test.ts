@@ -6,7 +6,7 @@ import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 // real match, as docs/role-runs.md's research found it, put into the site's scoring set once
 // (`S05.8`; #886) and changed by patch after that.
 
-describe("each role's first run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () => {
+describe("each role's run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () => {
   const everyRole = Object.values(DEFAULT_ROLES)
     .flat()
     .map(({ key }) => ({ key, run: FIRST_RUNS.find(({ role }) => role === key) ?? null }));

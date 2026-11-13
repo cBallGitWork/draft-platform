@@ -254,6 +254,7 @@ import type * as scoring_carryFix from "../scoring/carryFix.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_draftedInstructionScoring from "../scoring/draftedInstructionScoring.js";
 import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
+import type * as scoring_draftedRoleRuns from "../scoring/draftedRoleRuns.js";
 import type * as scoring_firstInstructionsVersion from "../scoring/firstInstructionsVersion.js";
 import type * as scoring_firstRolesVersion from "../scoring/firstRolesVersion.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
@@ -649,6 +650,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/categories": typeof scoring_categories;
   "scoring/draftedInstructionScoring": typeof scoring_draftedInstructionScoring;
   "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
+  "scoring/draftedRoleRuns": typeof scoring_draftedRoleRuns;
   "scoring/firstInstructionsVersion": typeof scoring_firstInstructionsVersion;
   "scoring/firstRolesVersion": typeof scoring_firstRolesVersion;
   "scoring/firstScoring": typeof scoring_firstScoring;

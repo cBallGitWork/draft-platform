@@ -7,6 +7,7 @@ import { priceFor, type Priced } from "./priced";
 import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
 import type { WeighedStat } from "./values";
 import { groupedBy, keyedByCount } from "../shared/groupedBy";
+import { sortedJson } from "../shared/sortedJson";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
@@ -149,7 +150,7 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
 /** One line for each role whose run on the pitch changed (spec/05 Runs, `S05.8`): that it has one
  *  now, holds his place now, or that its run changes. */
 function runChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
-  const pathOf = (set: StoredScoringSet, role: string) => JSON.stringify((set.runs ?? []).find((each) => each.role === role)?.path ?? null);
+  const pathOf = (set: StoredScoringSet, role: string) => sortedJson((set.runs ?? []).find((each) => each.role === role)?.path ?? null);
   const roles = new Set([...(before.runs ?? []), ...(after.runs ?? [])].map(({ role }) => role));
   const lines: string[] = [];
   for (const role of roles) {
