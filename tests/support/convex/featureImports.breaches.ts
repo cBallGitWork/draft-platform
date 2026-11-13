@@ -97,6 +97,7 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/gameweeks/seasonGameweeks",
   "convex/gameweeks/usedGameweeks",
   "convex/heartbeats/heartbeat",
+  "convex/leagues/leagueChecks",
   "convex/leagues/leagueLimits",
   "convex/leagues/leagueOpens",
   "convex/lineup/autoTeamSwitch",

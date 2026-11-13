@@ -6,6 +6,7 @@ import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../
 import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../shared/leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
 import { recordEvent, wholeLeague } from "../mail/letters";
+import { checkSoon } from "./leagueChecks";
 import { HOUR_MS } from "../shared/time";
 import { pauseForDeletion } from "../draft/draftPause";
 import { pauseReviews, resumeReviews } from "../trades/reviewPause";
@@ -46,6 +47,7 @@ const leagueIndexes: { [Table in TableNames]?: IndexOf<Table> } = {
   pointsOverrides: "by_leagueId_and_playerCode",
   teamOverrides: "by_leagueId_and_gameweek_and_teamId",
   lastLeagues: "by_leagueId",
+  leagueChecks: "by_leagueId",
   squadPlayers: "by_leagueId_and_playerCode",
   waiverPlayers: "by_leagueId_and_playerCode",
   waiverClaims: "by_leagueId_and_teamId_and_rank",
@@ -140,6 +142,8 @@ export const undo = mutation({
     if (Date.now() >= deletion.deletesAt) refuse(refusals.tooLateToUndo);
     await ctx.scheduler.cancel(deletion.scheduledId);
     await ctx.db.patch("leagues", leagueId, { deletion: undefined });
+    // Its waivers and offers due meanwhile are looked at on the crons' next pass (#1493, #1998).
+    await checkSoon(ctx, leagueId);
     await resumeReviews(ctx, leagueId, Date.now() - (deletion.deletesAt - UNDO_MS));
     await recordEvent(
       ctx,

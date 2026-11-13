@@ -5,6 +5,7 @@ import type { DeadlineRule } from "../gameweeks/deadline";
 import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tradeRulesOf } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { bylineOf, recordEvent } from "../mail/letters";
+import { checkSoon } from "../leagues/leagueChecks";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
 import { roundsInARoundRobin } from "../table/roundRobin";
 import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
@@ -214,6 +215,8 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   if (before !== null && before.latest.waivers.order !== rules.waivers.order) await switchWaiverOrder(ctx, league, before, Date.now());
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek, ...savedForm(rules, latestRow === undefined ? undefined : changed) });
+  // New run times or deadlines can bring the league's next waiver or offer check sooner (#1998).
+  await checkSoon(ctx, leagueId);
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });
   return fromGameweek;
 }

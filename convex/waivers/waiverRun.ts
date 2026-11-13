@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
+import { draftHasStarted, draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
@@ -14,7 +14,7 @@ import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords"
 import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
-import { scheduleEveryLeague } from "../shared/cappedRead";
+import { checkAgainAt, forgetChecks, leaguesDue, NEVER_DUE } from "../leagues/leagueChecks";
 import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
@@ -28,7 +28,7 @@ import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropAndTell, waiverRowsIn } from "./waiverPlayers";
-import { latestRunAt, wasRunTime } from "./waiverTimes";
+import { latestRunAt, nextWaiverCheck, wasRunTime } from "./waiverTimes";
 
 // The waiver run (#1198, spec/08 Waivers and free agency). At each of the league's run times
 // (waiverTimes.ts) every player on waivers whose 24 hours are up is claimed in the waiver order
@@ -247,13 +247,15 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: asks each open league to start what is due in it (`runLeagueDue`) in its own transaction, so one league's fault stops no other's (#1558, #1762). */
+/** The cron's: asks each league due a look (../leagues/leagueChecks.ts, #1998) to start what is due in it (`runLeagueDue`) in its own transaction (#1762). */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
     if (!timedJobsOn()) return null;
-    await scheduleEveryLeague(ctx, internal.waivers.waiverRun.runLeagueDue, "so waivers can't be run in every one", leagueOpens);
+    for (const leagueId of await leaguesDue(ctx, "waivers", Date.now())) {
+      await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.runLeagueDue, { leagueId });
+    }
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
@@ -261,22 +263,38 @@ export const runDue = internalMutation({
 
 /** Puts the league's free agents back on waivers once its window has shut since a deadline they
  *  weren't yet, its draft over; then starts its run if its latest run time has come unrun and was a
- *  run time when it came (`wasRunTime`), a league never run only if it came since the last check. */
+ *  run time when it came (`wasRunTime`), a league never run only if it came since the last check.
+ *  Then sets when the league is next looked at (`nextWaiverCheck`). */
 export const runLeagueDue = internalMutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const league = await ctx.db.get("leagues", leagueId);
-    if (league === null || !leagueOpens(league)) return null;
+    if (league === null) {
+      await forgetChecks(ctx, leagueId);
+      return null;
+    }
+    // A league frozen for deletion waits for an undo, which wakes it.
+    if (!leagueOpens(league)) {
+      await checkAgainAt(ctx, leagueId, "waivers", NEVER_DUE);
+      return null;
+    }
     const now = Date.now();
     const held = await waiverOrderRow(ctx, leagueId);
-    const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
-    if (shut !== null && held?.backOnWaivers !== shut && (await draftIsOver(ctx, leagueId)))
-      await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
+    const deadlines = await leagueDeadlines(ctx, leagueId);
+    const shut = await windowShutSince(ctx, leagueId, deadlines, now);
+    const backDue = shut !== null && held?.backOnWaivers !== shut;
+    const drafted = backDue && (await draftIsOver(ctx, leagueId));
+    if (drafted) await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
     const history = await historyOf(ctx, leagueId);
-    const at = latestRunAt(newestRow(history, leagueId).rules.waivers.runs, now);
-    if (at === null || !wasRunTime(history, at) || (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt)) return null;
-    await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId, at });
+    const runs = newestRow(history, leagueId).rules.waivers.runs;
+    const at = latestRunAt(runs, now);
+    const runNow = at !== null && wasRunTime(history, at) && (held === null ? at > now - FIRST_RUN_WITHIN_MS : at > held.ranAt);
+    if (runNow) await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId, at });
+    // Work started, or free agents waiting on a draft under way, is looked at again next pass, as
+    // before #1998; a draft not yet started wakes the league as it starts (../draft/draftStart.ts).
+    const waiting = drafted || runNow || (backDue && (await draftHasStarted(ctx, leagueId)));
+    await checkAgainAt(ctx, leagueId, "waivers", waiting ? now + CHECK_MS : nextWaiverCheck(runs, deadlines, now));
     return null;
   },
 });
