@@ -7,7 +7,7 @@ import { SQUAD_STATS, gameweekPoints, squadEleven, squadForm } from "../../../co
 // gameweek's points added up from his priced matches, his form, and the stats a row holds. His
 // season points are his card's total (seasonPoints.ts, #628), tested there.
 
-describe("a gameweek's points", () => {
+describe("the points", () => {
   test("add up only the matches priced, and a gameweek he didn't play is '—'", () => {
     const matches = [
       { gameweek: 1, points: 4, counted: true },

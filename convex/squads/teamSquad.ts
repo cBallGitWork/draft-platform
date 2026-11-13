@@ -239,7 +239,8 @@ export const ofMyTeam = query({
  *  match's state, and the records of the men in the lineup. Inside a query's limits for a season of
  *  an ordinary league; past SQUAD_MOVES_READ_MOST moves of a kind it throws rather than mis-price.
  *  Storing a gameweek's priced matches once final, as finalScores.ts does the totals, is the way on
- *  if it grows. Beside it the read adds one season-totals row a player and the league's rules, and
+ *  if it grows. Beside it the read adds one season-totals row and one season-points row a player, the
+ *  league's overrides and rules, and
  *  reads the matches ahead until every club has three, so it grows with the squad, never the league. */
 export async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);
