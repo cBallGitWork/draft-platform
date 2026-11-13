@@ -1,6 +1,7 @@
 [
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "GK",
   "fpl_minutes": 90,
   "goals": 0,
@@ -22,6 +23,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "GK",
   "fpl_minutes": 90,
   "goals": 0,
@@ -43,6 +45,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "DR",
   "fpl_minutes": 90,
   "goals": 1,
@@ -64,6 +67,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "DR",
   "fpl_minutes": 75,
   "goals": 0,
@@ -85,6 +89,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "MC",
   "fpl_minutes": 90,
   "goals": 2,
@@ -106,6 +111,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "MC",
   "fpl_minutes": 58,
   "goals": 0,
@@ -127,6 +133,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": null,
   "fpl_minutes": 20,
   "goals": 1,
@@ -148,6 +155,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": "ST",
   "fpl_minutes": 30,
   "goals": 0,
@@ -169,6 +177,7 @@
  },
  {
   "competition": "premier_league",
+  "team": "Sample United",
   "starting_position": null,
   "fpl_minutes": 0,
   "goals": 0,
@@ -190,6 +199,7 @@
  },
  {
   "competition": "efl_cup",
+  "team": "Sample United",
   "starting_position": "ST",
   "fpl_minutes": 90,
   "goals": 3,
@@ -211,6 +221,7 @@
  },
  {
   "competition": "efl_cup",
+  "team": "Sample United",
   "starting_position": "ST",
   "fpl_minutes": 90,
   "goals": 0,

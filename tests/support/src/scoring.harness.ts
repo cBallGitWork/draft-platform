@@ -53,9 +53,12 @@ export const LAB_REPORT: LabReport = {
     { role: "numberTen", slot: "CAM", target: 0.6, missing: ["big_chance_created"] },
   ],
   instructions: [
-    { instruction: "gungHo", missing: [] },
+    { instruction: "gungHo", xis: 40, average: 1.61 },
+    { instruction: "parkTheBus", xis: 0, average: null },
     { instruction: "shootOnSight", missing: ["att_obox_goal"] },
   ],
+  xis: 1520,
+  xisShort: 12,
 };
 
 /** The view the fake server gives by default: the first set, as the admin reads it, with no

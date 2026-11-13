@@ -49,6 +49,7 @@ describe("a past season's rows", () => {
       fplPosition: 2,
       match: {
         kickoff: KICKOFF_A,
+        club: "Sample United",
         startingPosition: "DR",
         stats: {
           minutes: 90,
@@ -159,6 +160,12 @@ describe("the copy stops, naming him, rather than guess", () => {
 
   test("a player twice at one kickoff", () => {
     expect(() => pastSeasonRows(SAMPLE_SEASON, [playedRow, playedRow], codes, positions)).toThrow("plays twice at kickoff 2025-08-15T19:00:00.000Z");
+  });
+
+  test("a played row with no club (S14.20)", () => {
+    expect(() => pastSeasonRows(SAMPLE_SEASON, [{ ...playedRow, team: null }], codes, positions)).toThrow(
+      "Person keeper-one (FPL code 100001) has no team at kickoff 2025-08-15T19:00:00.000Z",
+    );
   });
 
   test("a kickoff that isn't a time", () => {

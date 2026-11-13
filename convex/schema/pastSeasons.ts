@@ -7,6 +7,9 @@ import { v } from "convex/values";
 
 export const pastMatch = v.object({
   kickoff: v.number(),
+  /** The club he played for that day, as ai-carling's log names it (Craig, 12 Nov 2026, on #1541:
+   *  "Match by match"); absent on a row copied before. */
+  club: v.optional(v.string()),
   /** Where he started, as ai-carling's log gives it; null where it gives none. */
   startingPosition: v.union(v.string(), v.null()),
   /** Under our stat names (matchRecords.ts); a stat the log has no value for is absent. */

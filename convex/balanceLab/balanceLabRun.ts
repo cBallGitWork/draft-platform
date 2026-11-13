@@ -18,17 +18,26 @@ import { labReportShape, type LabReport } from "./labReportShape";
  *  so about 1.8 MB, well inside a query's reads. */
 const PAST_ROWS_PAGE = 2000;
 
-const pastStart = v.object({ season: v.number(), startingPosition: v.string(), stats: v.record(v.string(), v.number()) });
+const pastStart = v.object({
+  season: v.number(),
+  kickoff: v.number(),
+  club: v.optional(v.string()),
+  startingPosition: v.string(),
+  stats: v.record(v.string(), v.number()),
+});
 
 /** One page of the past seasons' rows from `cursor` (null for the first): the real starts on it,
- *  a match he came on in (no starting position) left out, and where the next page starts. */
+ *  each with its match and club, so the lab forms each club's XI; a match he came on in (no
+ *  starting position) left out; and where the next page starts. */
 export const startsPage = internalQuery({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.object({ starts: v.array(pastStart), cursor: v.string(), isDone: v.boolean() }),
   handler: async (ctx, { cursor }) => {
     const page = await ctx.db.query("pastPlayerMatchStats").paginate({ numItems: PAST_ROWS_PAGE, cursor });
     const starts = page.page.flatMap(({ season, match }) =>
-      match === null || match.startingPosition === null ? [] : [{ season, startingPosition: match.startingPosition, stats: match.stats }],
+      match === null || match.startingPosition === null
+        ? []
+        : [{ season, kickoff: match.kickoff, ...(match.club === undefined ? {} : { club: match.club }), startingPosition: match.startingPosition, stats: match.stats }],
     );
     return { starts, cursor: page.continueCursor, isDone: page.isDone };
   },

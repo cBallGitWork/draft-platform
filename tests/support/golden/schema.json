@@ -20471,25 +20471,73 @@
                   "fieldType": {
                     "type": "array",
                     "value": {
-                      "type": "object",
-                      "value": {
-                        "instruction": {
-                          "fieldType": {
-                            "type": "string"
-                          },
-                          "optional": false
-                        },
-                        "missing": {
-                          "fieldType": {
-                            "type": "array",
-                            "value": {
-                              "type": "string"
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "object",
+                          "value": {
+                            "instruction": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "xis": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "average": {
+                              "fieldType": {
+                                "type": "union",
+                                "value": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "optional": false
                             }
-                          },
-                          "optional": false
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "value": {
+                            "instruction": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "missing": {
+                              "fieldType": {
+                                "type": "array",
+                                "value": {
+                                  "type": "string"
+                                }
+                              },
+                              "optional": false
+                            }
+                          }
                         }
-                      }
+                      ]
                     }
+                  },
+                  "optional": true
+                },
+                "xis": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                },
+                "xisShort": {
+                  "fieldType": {
+                    "type": "number"
                   },
                   "optional": true
                 }
@@ -26430,6 +26478,12 @@
                         "type": "number"
                       },
                       "optional": false
+                    },
+                    "club": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": true
                     },
                     "startingPosition": {
                       "fieldType": {

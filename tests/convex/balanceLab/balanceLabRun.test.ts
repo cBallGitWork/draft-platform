@@ -12,12 +12,13 @@ import { announceAs, as, draftSavedAt, kickoffOf, saveDraftAs, t, useSiteScoring
 
 useSiteScoringDeployment();
 
-/** Two keepers' starts in 2024/25, a sub's match, and a start at a position that maps to no slot. */
+/** Two keepers' starts in 2024/25, one copied with his club and one before clubs were (#1541), a
+ *  sub's match, and a start at a position that maps to no slot. */
 const holdPastSeason = () =>
   t.run(async (ctx) => {
-    const row = (playerCode: number, kickoff: number, startingPosition: string | null, stats: Record<string, number>) =>
-      ctx.db.insert("pastPlayerMatchStats", { season: 2024, playerCode, fplPosition: 1, match: { kickoff, startingPosition, stats } });
-    await row(1, 1, "GK", { saves: 2, goals_conceded: 0 });
+    const row = (playerCode: number, kickoff: number, startingPosition: string | null, stats: Record<string, number>, club?: string) =>
+      ctx.db.insert("pastPlayerMatchStats", { season: 2024, playerCode, fplPosition: 1, match: { kickoff, ...(club === undefined ? {} : { club }), startingPosition, stats } });
+    await row(1, 1, "GK", { saves: 2, goals_conceded: 0 }, "Leeds");
     await row(2, 1, "GK", { saves: 6, goals_conceded: 1 });
     await row(3, 2, null, { saves: 9, goals_conceded: 0 });
     await row(4, 2, "SW", { saves: 9, goals_conceded: 0 });
@@ -35,8 +36,17 @@ describe("the admin's button on the draft patch", () => {
 
     const report = await runAs(ADMIN, (await draftSavedAt())!);
 
-    // +1 and +3 over the two keepers' starts; the sub's match isn't a start.
-    expect(report).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 2, offTarget: true }], instructions: [] });
+    // +1 and +3 over the two keepers' starts; the sub's match isn't a start. Leeds' keeper alone
+    // makes an XI, short of ten starters.
+    expect(report).toEqual({
+      seasons: [2024],
+      starts: 2,
+      startsSkipped: 1,
+      roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 2, offTarget: true }],
+      instructions: [],
+      xis: 1,
+      xisShort: 1,
+    });
     expect(await everything()).toEqual(before);
   });
 
@@ -65,5 +75,5 @@ test("an announced patch's lab runs by itself on exactly its set, and its report
 
   const [notes] = await (await as(ADMIN)).query(api.scoring.patchNotes.notes, {});
   // 0 and +2 over the two keepers' starts.
-  expect(notes.lab).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [] });
+  expect(notes.lab).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [], xis: 1, xisShort: 1 });
 });
