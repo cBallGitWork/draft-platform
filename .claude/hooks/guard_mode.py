@@ -22,11 +22,12 @@ import re
 import sys
 
 from commands import Unbalanced, Unreadable, UnreadableStdin, commands
+from guard_github import PREFIX, writes
 from guard_run import run_guard
 from hook_payload import field, project_dir
 from last_prompt import state_file
 from private_words import GH_VALUE_OPTS
-from where import arguments, runs_at
+from where import MAIN, arguments, runs_at
 
 GO_WORDS = re.compile(
     r"\b(build|go ahead|go for it|do it|do that|do them|do all|do both|do more|"
@@ -55,10 +56,6 @@ SLASH_COMMAND = re.compile(r"^\s*/[a-z]")
 SAYS_NO = re.compile(r"^\W*(?:no(?!\s+(?:worries|problem|bother))|nope|not|don[’']?t|do not|never|later|wait|hold|skip|leave)\b", re.I)
 GH_GATED = {("issue", "create"), ("issue", "edit"), ("pr", "create"), ("pr", "ready"), ("pr", "merge"),
             ("workflow", "run")}
-GITHUB_TOOL = "mcp__github__"
-GITHUB_READS = ("get_", "list_", "search_", "issue_read", "pull_request_read", "actions_get", "actions_list")
-SPEC_PATHS = ("SPEC.md", "spec/", "/spec/", "/SPEC.md")
-DEFAULT_BRANCH = "main"
 DRY_RUN_INPUT = "dry_run=true"
 UNREAD_WORDS = re.compile(r"[\s'\"`;&|()<>$\\]+")  # a line it can't read, split at blanks, quotes and the shell's marks
 TALK = ("Craig's latest message didn't say to build, file or ship ({what}); it reads as talk, and talk stays "
@@ -83,7 +80,7 @@ def pipeline_test(words):
     guard refused three such test runs that Craig had asked for."""
     if DRY_RUN_INPUT in words:
         return True
-    return any(word == "--ref" and i + 1 < len(words) and words[i + 1] != DEFAULT_BRANCH for i, word in enumerate(words))
+    return any(word == "--ref" and i + 1 < len(words) and words[i + 1] != MAIN for i, word in enumerate(words))
 
 
 def gh_command(args):
@@ -122,8 +119,8 @@ def gated(tool, tool_input, cwd):
         if path.endswith("SPEC.md") or "/spec/" in path or path.startswith("spec/"):
             return f"an edit to {path}"
         return None
-    if tool.startswith(GITHUB_TOOL) and not tool[len(GITHUB_TOOL):].startswith(GITHUB_READS):
-        return tool[len(GITHUB_TOOL):]
+    if writes(tool):  # guard_github.py's list of the GitHub tool's reads, the one home of it
+        return tool[len(PREFIX):]
     return None
 
 

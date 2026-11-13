@@ -19,7 +19,6 @@ Python 3.9+.
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 import sys
 import tempfile
@@ -27,6 +26,7 @@ import time
 from collections import namedtuple
 from pathlib import Path
 
+from guard_run import deny
 from hook_payload import BadPayload, field, read_payload, report
 from last_prompt import remember
 
@@ -182,11 +182,7 @@ def main():
     except BadPayload as error:
         return report(error, "the question wasn't checked against Craig's standing answers")
     if reason:
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }}))
+        deny(reason)
     return 0
 
 
