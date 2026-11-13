@@ -12,24 +12,40 @@ const POLL_INTERVAL_MS = 50;
 const DEATH_WAIT_MS = 2_500;
 // Generous, so a slow runner still gets there; the signal test's own timeout below allows for it.
 const PID_FILE_WAIT_MS = 10_000;
-// Time allowed for the wrapper to close once signalled. The signal test's timeout is twice the pid
-// wait, this and the death wait (coverage about doubles test time), so a missing pid fails with its
-// own message, not vitest's default 5s timeout.
+// Time allowed for the wrapper to exit once signalled, and for its output to close once it has
+// exited. The signal test's timeout is twice every wait it can sit through (coverage about doubles
+// test time), so each stuck step fails with its own message, not vitest's generic timeout (#2034).
+const WRAPPER_EXIT_ALLOWANCE_MS = 2_500;
 const WRAPPER_CLOSE_ALLOWANCE_MS = 2_500;
-const SIGNAL_TEST_TIMEOUT_MS = 2 * (PID_FILE_WAIT_MS + WRAPPER_CLOSE_ALLOWANCE_MS + DEATH_WAIT_MS);
+const SIGNAL_TEST_TIMEOUT_MS =
+  2 * (PID_FILE_WAIT_MS + WRAPPER_EXIT_ALLOWANCE_MS + WRAPPER_CLOSE_ALLOWANCE_MS + DEATH_WAIT_MS);
 
-// Runs the wrapper and resolves with how it ended, how long it took and what it printed.
+// Runs the wrapper and resolves with how it ended, how long it took and what it printed. Its output
+// closes only once everything the command started has let go of it, so that wait is bounded: a
+// process outliving the wrapper fails saying so, rather than holding the test until it ends.
 function run(args, { onSpawn } = {}) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const started = Date.now();
     const wrapper = spawn(process.execPath, [WRAPPER, ...args], { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";
+    let stuck;
     wrapper.stdout.on("data", (chunk) => (output += chunk));
     wrapper.stderr.on("data", (chunk) => (output += chunk));
     onSpawn?.(wrapper);
-    wrapper.on("close", (code) => resolve({ code, output, seconds: (Date.now() - started) / 1000 }));
+    wrapper.on("exit", (code) => {
+      stuck = setTimeout(
+        () => reject(new Error(`the wrapper exited (code ${code}) but its output was still open ${WRAPPER_CLOSE_ALLOWANCE_MS}ms later: a process it started outlived it`)),
+        WRAPPER_CLOSE_ALLOWANCE_MS,
+      );
+    });
+    wrapper.on("close", (code) => {
+      clearTimeout(stuck);
+      resolve({ code, output, seconds: (Date.now() - started) / 1000 });
+    });
   });
 }
+
+const running = (child) => child.exitCode === null && child.signalCode === null;
 
 function alive(pid) {
   try {
@@ -104,13 +120,31 @@ test("at the deadline the command's own children die too, not just the command",
 test("a signal to the wrapper reaches the command's group, which sits outside the terminal's", async () => {
   const pidFile = grandchildPidFile();
   let grandchildPid;
-  const { code, output } = await run(["30", ...grandchildCommand(pidFile)], {
+  let ignoredSignal = false;
+  // Checked first, even when the run fails: a killed wrapper leaves its command's group holding the
+  // output open, and the step that stuck is the signal, not the close.
+  const signalHeard = () =>
+    expect(ignoredSignal, `the wrapper was still running ${WRAPPER_EXIT_ALLOWANCE_MS}ms after SIGTERM`).toBe(false);
+  const ended = run(["30", ...grandchildCommand(pidFile)], {
     // Signal once the grandchild's pid is written; signal anyway if it never is, so the run ends.
+    // A wrapper still running after that would sit out its 30s deadline: end it, and fail below.
     onSpawn: (wrapper) => {
-      grandchildPid = waitForPid(pidFile).finally(() => wrapper.kill("SIGTERM"));
+      grandchildPid = waitForPid(pidFile).finally(() => {
+        wrapper.kill("SIGTERM");
+        setTimeout(() => {
+          if (!running(wrapper)) return;
+          ignoredSignal = true;
+          wrapper.kill("SIGKILL");
+        }, WRAPPER_EXIT_ALLOWANCE_MS);
+      });
       grandchildPid.catch(() => {}); // awaited below, once the wrapper has closed
     },
   });
+  const { code, output } = await ended.catch((error) => {
+    signalHeard();
+    throw error;
+  });
+  signalHeard();
   const grandchild = await grandchildPid;
   expect(code).not.toBe(0);
   expect(output).not.toContain("deadline");
