@@ -1,6 +1,8 @@
 import { renderHook } from "@testing-library/react";
 import { expect, it } from "vitest";
+import { previewDraft } from "../../../src/draft/preview";
 import { previewHome } from "../../../src/home/preview";
+import { previewClaims } from "../../../src/myTeam/claims/preview";
 import { previewMatchup } from "../../../src/matchup/preview";
 import { openingGameweek } from "../../../src/premierLeague/openingGameweek";
 import { previewPremierLeague } from "../../../src/premierLeague/preview";
@@ -39,6 +41,30 @@ it("shows the same teams on League home, the table and the matchup, as many as t
   expect(matchup.teamName).toBe(previewTeamNames[0]);
   expect(opponents).toHaveLength(1);
   expect(previewTeamNames).toContain(opponents[0]);
+});
+
+it("tells the same table on League home, the table screen and the waiver order (#1969)", () => {
+  const table = previewTable.useLeagueTable(leagueId)!.table;
+  const home = previewHome.useLeagueHome(leagueId, now)!.table;
+  const waiverOrder = previewClaims.useWaivers(leagueId)!.teams;
+
+  expect(home.map(({ position, teamName, played, won, drawn, lost, points }) => ({ position, teamName, played, won, drawn, lost, points }))).toEqual(
+    table.map(({ teamName, played, won, drawn, lost, points }, index) => ({ position: index + 1, teamName, played, won, drawn, lost, points })),
+  );
+  // Reverse standings: the bottom team first, each at its table place on its table points.
+  expect(waiverOrder.map(({ name, tablePlace, points }) => ({ name, tablePlace, points }))).toEqual(
+    table.map(({ teamName, points }, index) => ({ name: teamName, tablePlace: index + 1, points })).toReversed(),
+  );
+});
+
+it("lists every player on the draft queue and the do-not-draft list among the draft room's undrafted players (#1969)", () => {
+  window.history.replaceState(null, "", "/?preview=manager");
+  const { queue, doNotDraft } = renderHook(() => previewDraft.useLists(leagueId)).result.current!;
+  const undrafted = previewDraft.usePlayersList(leagueId, { availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null)!;
+  const listed = undrafted.players.map(({ code }) => code);
+
+  expect(queue.length + doNotDraft.length).toBeGreaterThan(0);
+  for (const { code } of [...queue, ...doNotDraft]) expect(listed).toContain(code);
 });
 
 it("puts League home, the table, the matchup, the Premier League and the player card on the same gameweek", () => {
