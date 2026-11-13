@@ -6,7 +6,6 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
-import type { LeagueRules } from "../rules/leagueRulesShape";
 import { managerOf, playerOrRefuse, refuse, runnerOf, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode } from "../shared/players";
 import { SECOND_MS } from "../shared/time";
@@ -19,7 +18,7 @@ import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
-import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, OLD_DRAFTS_BACKFILL_HINT, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
+import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
@@ -63,13 +62,6 @@ export const pickRefusals = {
   onAutoPick: "You're already on auto-pick.",
 };
 
-/** The squad rules the draft picks under: those it started under, never a change made since (Craig,
- *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). */
-export function squadRulesOf(leagueId: Id<"leagues">, started: StartedDraft): LeagueRules["squad"] {
-  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: ${OLD_DRAFTS_BACKFILL_HINT}`);
-  return started.squad;
-}
-
 /** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
  *  under, with `picksLeft` picks still to make counting this one and a legal finish from the
  *  `undrafted`; null when it may, each player's positions read through `positionsOf`. The pick and
@@ -94,7 +86,7 @@ export async function whyNotLegalFor(
       asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`), drafted.get(playerCode)),
     ),
   );
-  const why = whyNotLegal(squad, picksLeft, squadRulesOf(leagueId, started), await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
+  const why = whyNotLegal(squad, picksLeft, started.squad, await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
   return async (player) => why(await asDraftPlayer(player));
 }
 

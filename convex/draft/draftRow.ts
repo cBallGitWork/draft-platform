@@ -10,10 +10,6 @@ import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
 // (../squads/squads.ts); and whether it is over, before which free agency and waivers are shut
 // (../waivers/).
 
-/** What a draft row from before #1610 lacking a field it now keeps says to do: here, not in
- *  oldDraftsBackfill.ts, which imports this file. */
-export const OLD_DRAFTS_BACKFILL_HINT = "run draft/oldDraftsBackfill once (#1610)";
-
 /** A draft's pick clock, as its row holds it. */
 export type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
@@ -55,17 +51,12 @@ export async function draftedPositionsIn(ctx: QueryCtx, leagueId: Id<"leagues">)
     .query("draftPicks")
     .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
     .collect();
-  return new Map(
-    picks.map(({ pick, playerCode, positions }) => {
-      if (positions === undefined) throw new Error(`League ${leagueId}'s pick ${pick} kept no positions: ${OLD_DRAFTS_BACKFILL_HINT}`);
-      return [playerCode, positions] as const;
-    }),
-  );
+  return new Map(picks.map(({ playerCode, positions }) => [playerCode, positions]));
 }
 
 /** The clock of `draft`, live with a pick on it, which always has one (draftClock.ts). */
 export function liveClockOf(draft: Doc<"drafts">): NonNullable<Doc<"drafts">["clock"]> {
-  if (draft.clock === undefined) throw new Error(`League ${draft.leagueId}'s live draft has no clock: ${OLD_DRAFTS_BACKFILL_HINT}`);
+  if (draft.clock === undefined) throw new Error(`League ${draft.leagueId}'s live draft has no clock`);
   return draft.clock;
 }
 

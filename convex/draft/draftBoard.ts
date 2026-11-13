@@ -8,7 +8,6 @@ import { position, tradedPick } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";
-import { squadRulesOf } from "./draftPicks";
 import { draftIsOver, draftOf } from "./draftRow";
 import { isOnAutoPick, timeoutCountOf } from "./draftTimeouts";
 
@@ -82,7 +81,7 @@ export const ofLeague = query({
     const draftRules = draftRulesOf(latest);
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started;
-    const squad = started === undefined ? latest.squad : squadRulesOf(leagueId, started);
+    const squad = started === undefined ? latest.squad : started.squad;
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;
