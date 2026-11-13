@@ -60,7 +60,6 @@ src/squads/words.ts: noneFoundWords
 src/squads/words.ts: searchingWords
 src/table/words.ts: gameweekWords
 src/table/words.ts: scoreWords
-src/trades/paths.ts: offerLink
 src/trades/seam.ts: OfferTerms
 src/trades/seam.ts: YourReview
 src/trades/words.ts: withWords

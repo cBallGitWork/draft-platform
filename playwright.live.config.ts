@@ -1,10 +1,10 @@
 // The after-release check (spec/20, Every release): tests/live/ opened against the live site, no
 // local server. `npx playwright test -c playwright.live.config.ts`; .github/workflows/release-check.yml
-// runs it after each production deployment. What it points at: tests/live/releaseCheck.ts. The test
+// runs it after each production deployment. What it points at: scripts/live-site.mjs. The test
 // account's sign-in, in the same folder, is run by hand only (playwright.testAccount.config.ts).
 
 import { defineConfig } from "@playwright/test";
-import { checkSite } from "./tests/live/releaseCheck";
+import { checkSite } from "./scripts/live-site.mjs";
 
 /** The test account's sign-in: never part of the release check. */
 export const TEST_ACCOUNT_SPEC = "testAccount.live.spec.ts";

@@ -464,20 +464,19 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
    features say move to `src/shared/words.ts` (#1330). Only `convex/schema.ts` imports a
-   `convex/schema/` file. `tests/convex/featureImports.test.ts` holds all three, with the imports
+   `convex/schema/` file. `tests/src/featureImports.test.ts` holds all three, with the imports
    still to move on lists that only shrink (#1581, #1815). No import cycles
    (`tests/convex/importCycles.test.ts`).
 5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
-   `tests/convex/featureImports.test.ts` counts the features importing each file, in `src/` and
+   `tests/src/featureImports.test.ts` counts the features importing each file, in `src/` and
    in `convex/`, with the files still to move on a list that only shrinks (#1815).
    `tests/convex/oneHome.test.ts` fails a type, a function body of 3 or more lines or an object of
    only literals written in 3 or more files under `convex/`, and a test restating a value a
    `tests/support/` harness exports, with today's copies on lists that only shrink (#1813).
-6. A file stops at 300 lines and is split along a seam; a folder past about 12 files gets a
-   sub-folder (above). `convex/lineup` (21 files), `convex/scoring` (21) and `convex/stats` (17)
-   stay flat (8 Nov 2026): each is one job (a team's lineup, the site's scoring set, the match
-   records and their totals), the browser and the scheduler call their functions, so a move
-   leaves re-exports behind (rule 8).
+6. A file stops at 300 lines and is split along a seam; a folder in `src/` past about 12 files
+   gets a sub-folder (above). `convex/` stays flat, one folder per feature however many files
+   it holds (`convex/scouting` keeps the jobs `src/scouting` splits into sub-folders): the browser
+   and the scheduler call its functions by path, so a move leaves re-exports behind (rule 8).
 7. A test mirrors its source's path; setup two test files share lives in `tests/support/convex/`
    or `tests/support/src/`, by feature (`tests/convex/testTwins.test.ts`).
 8. Moving a Convex file whose functions the browser or the scheduler call keeps a thin re-export at

@@ -102,7 +102,8 @@ describe("reaching it", () => {
 describe("the deadline", () => {
   it("says when the gameweek locks and counts down to it", async () => {
     const minute = Date.now() - (Date.now() % MINUTE_MS);
-    const deadline = minute + DAY_MS + 17 * HOUR_MS;
+    // Half past the hour, so a minute ticking over mid-test still reads "1d 17h".
+    const deadline = minute + DAY_MS + 17 * HOUR_MS + 30 * MINUTE_MS;
     openTacticsTab({ tactics: { ...SAVED, deadline } });
     // In My team's header band (src/myTeam/header/TeamHeader.tsx).
     expect(await screen.findByText(deadlineHead(TACTICS_GAMEWEEK))).toBeTruthy();
