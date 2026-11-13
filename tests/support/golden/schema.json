@@ -3090,39 +3090,90 @@
       "vectorIndexes": [],
       "stagedVectorIndexes": [],
       "documentType": {
-        "type": "object",
-        "value": {
-          "name": {
-            "fieldType": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "literal",
-                  "value": "statCorrectionWindowMinutes"
+        "type": "union",
+        "value": [
+          {
+            "type": "object",
+            "value": {
+              "name": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "statCorrectionWindowMinutes"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "scoutsPerTeam"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "matchdayHoursBefore"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "matchdayHoursAfter"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "positionsFlagAfter"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "positionsRemoveAfter"
+                        }
+                      ]
+                    }
+                  ]
                 },
-                {
-                  "type": "literal",
-                  "value": "scoutsPerTeam"
+                "optional": false
+              },
+              "value": {
+                "fieldType": {
+                  "type": "number"
                 },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursBefore"
-                },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursAfter"
-                }
-              ]
-            },
-            "optional": false
+                "optional": false
+              }
+            }
           },
-          "value": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
+          {
+            "type": "object",
+            "value": {
+              "name": {
+                "fieldType": {
+                  "type": "literal",
+                  "value": "positionsApproveMode"
+                },
+                "optional": false
+              },
+              "value": {
+                "fieldType": {
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "proposals"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "countAtOnce"
+                    }
+                  ]
+                },
+                "optional": false
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
