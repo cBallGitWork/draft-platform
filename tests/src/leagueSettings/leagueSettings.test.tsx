@@ -6,6 +6,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { changeStartWords } from "../../../src/draft/words";
 import { SETTINGS_DRAFT_HASH } from "../../../src/leagueSettings/paths";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
 import {
@@ -99,7 +100,7 @@ describe("its tabs (#1034, the approved pictures)", () => {
     expect(screen.queryByRole("button", { name: saveWords })).toBeNull();
   });
 
-  it("opens on Draft from the draft room's Change the start (#1476)", async () => {
+  it(`opens on Draft from the draft room's ${changeStartWords} (#1476)`, async () => {
     openApp(`${SETTINGS_PAGE}#${SETTINGS_DRAFT_HASH}`, commissioner);
 
     expect(await screen.findByRole("region", { name: draftTitle })).toBeTruthy();
