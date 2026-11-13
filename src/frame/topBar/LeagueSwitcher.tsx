@@ -72,7 +72,10 @@ export function LeagueSwitcher({
   }
 
   const switchTo = async (leagueId: Id<"leagues">) => {
-    if (leagueId === current.leagueId || (await run(() => switchLeague(leagueId)))) setOpen(false);
+    if (leagueId !== current.leagueId && !(await run(() => switchLeague(leagueId)))) return;
+    // The picked choice goes with the list, so keyboard focus goes back to the toggle, as on Escape.
+    setOpen(false);
+    toggle.current?.focus();
   };
 
   return (
@@ -105,7 +108,7 @@ export function LeagueSwitcher({
               </li>
             ))}
           </ul>
-          <Link to={LEAGUES_PATH} className="flex min-h-tap items-center px-3">
+          <Link to={LEAGUES_PATH} onClick={() => setOpen(false)} className="flex min-h-tap items-center px-3">
             {allLeaguesWords}
           </Link>
           {teamName !== null && (
