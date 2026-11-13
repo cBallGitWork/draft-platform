@@ -124,6 +124,17 @@ for body in pr-differs.md pr-pasted.md pr-matches.md pr.md; do
 done
 unset FAKE_BODY
 says "bypasses the main ruleset" guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash --admin")"
+# a write to gh api's merge endpoint is the same admin merge with none of gh pr merge's checks (#1075)
+for merge in "gh api -X PUT repos/o/r/pulls/5/merge" "gh api --method=put /repos/{owner}/{repo}/pulls/5/merge -f merge_method=squash" \
+  "gh -R o/r api -XPUT repos/o/r/pulls/5/merge" "cd /x && gh api --method PUT https://api.github.com/repos/o/r/pulls/5/merge" \
+  'gh api -X "$M" repos/o/r/pulls/5/merge'; do
+  check deny guard_bash.py "$(bash_in "$repo" "$merge")"
+done
+says "gh api's merge endpoint" guard_bash.py "$(bash_in "$repo" "gh api -X PUT repos/o/r/pulls/5/merge")"
+for read in "gh api repos/o/r/pulls/5/merge" "gh api -X GET repos/o/r/pulls/5/merge" "gh api -X PATCH repos/o/r/pulls/5 -f body=x" \
+  "gh api repos/o/r/pulls/5 --jq .merged" 'echo "gh api -X PUT repos/o/r/pulls/5/merge"'; do
+  check allow guard_bash.py "$(bash_in "$repo" "$read")"
+done
 check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 
 # this repo's own routes trace to their pages and the stylesheets, so a rename in src/routes/ that
