@@ -1,9 +1,12 @@
 import { beforeEach, expect, test, vi } from "vitest";
+import { internal } from "../../../convex/_generated/api";
 import { HALF_TIME_STATS } from "../../../convex/football/premierLeague/plMatch";
 import { statValue } from "../../../convex/stats/matchRecords";
 import {
   FULL_TIME_READ,
+  HULL_EVERTON,
   heldMatch,
+  mergedHullEverton,
   syncAt,
   withBelloumiGoalRemoved,
   withFplBlocksEmpty,
@@ -40,6 +43,23 @@ test("a correction inside the window updates the record, and a stat taken away g
   expect(statValue(belloumi, "goals_scored")).toBe(0);
   expect(belloumi.stats).not.toHaveProperty("goals_openplay");
   expect(statValue(belloumi, "goals_openplay")).toBe(0);
+});
+
+test("a read older than the last one written changes nothing, so a slow read never undoes a newer correction", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, withBelloumiGoalRemoved(recordedGw6()));
+
+  const written = await t.mutation(internal.stats.matchStats.upsertMatch, {
+    fixtureCode: HULL_EVERTON,
+    readAt: FULL_TIME_READ + HOUR_MS / 4,
+    records: mergedHullEverton(),
+  });
+
+  expect(written).toMatchObject({ inserted: 0, updated: 0, changed: [], lateCorrections: 0 });
+  const held = await heldMatch(t);
+  expect(statValue(held.records.get(FULL_STATS.belloumi.code)!, "goals_scored")).toBe(0);
+  expect(held.status?.lastReadAt).toBe(FULL_TIME_READ + HOUR_MS / 2);
 });
 
 /** Gameweek 6 with Coyle not yet counted by the Premier League, so the match stays provisional
