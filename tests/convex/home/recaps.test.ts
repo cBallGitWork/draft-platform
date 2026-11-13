@@ -101,7 +101,7 @@ test("League home shows it until the next gameweek's first matchday mode begins,
 /** The recap the recap's own address opens, no gameweek named (#1967). */
 const latestRecapOf = async ({ t, leagueId }: ScoresLeague) => (await actingAs(t, BOB)).query(api.home.recaps.ofGameweek, { leagueId });
 
-test("with no gameweek named, Read the recap opens the latest written, even once League home no longer shows it", async () => {
+test("with no gameweek named, the recap page opens the latest written, even once League home no longer shows it", async () => {
   const { league } = await finalLeague();
   const nextKickoff = LEAGUE_FULL_TIME_READ + WEEK_MS;
   await league.t.run((ctx) => ctx.db.insert("fixtures", { code: 900_001, gameweek: GAMEWEEK + 1, homeClubCode: 1, awayClubCode: 2, kickoff: nextKickoff }));
