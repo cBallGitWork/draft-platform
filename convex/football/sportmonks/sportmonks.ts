@@ -20,12 +20,15 @@ export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
 
 const SPORTMONKS_API_BASE = "https://api.sportmonks.com/v3/football";
 export type SportmonksCompetition = Infer<typeof sportmonksCompetition>;
+/** Sportmonks' id for the Premier League: the one competition FPL also covers, so the one whose
+ *  clubs, players and matches are linked to FPL's codes (#1421). */
+export const PREMIER_LEAGUE = 8;
 /** The competitions the beta plays on (SPEC, *What it is*; Craig, #1196), the list's first rows:
  *  the Scottish Premiership, on the free plan (checked 9 Nov 2026, on #1391), and the Premier
  *  League, off until the paid plan covers it. A deployment holding none starts from these. */
 export const SEEDED_COMPETITIONS: readonly SportmonksCompetition[] = [
   { name: "Scottish Premiership", competition: 501, on: true },
-  { name: "Premier League", competition: 8, on: false },
+  { name: "Premier League", competition: PREMIER_LEAGUE, on: false },
 ];
 /** The most rows Sportmonks gives a page. */
 const PER_PAGE = 50;
@@ -145,8 +148,9 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
   for (const team of teams) {
     for (const man of team.players ?? []) {
       if (!man.player) throw new Error(`${SPORTMONKS} sent squad man ${man.player_id} of club ${team.id} with no player`);
-      const { id, name, display_name, common_name } = man.player;
-      players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id, ...availabilityOf(out.get(id)) });
+      const { id, name, display_name, common_name, date_of_birth } = man.player;
+      const born = date_of_birth ? { birthDate: date_of_birth } : {};
+      players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id, ...availabilityOf(out.get(id)), ...born });
     }
   }
   const fixtures: Football["fixtures"] = [];
