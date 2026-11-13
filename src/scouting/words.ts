@@ -213,7 +213,7 @@ export function seasonColumns(lastSeason: number | null) {
 
 /** Why a figure isn't there yet (shared/words.ts), and role fit waits on role stars and scouts
  *  (spec/19, Role stars). */
-export { noPointsYetWords, notLastSeasonWords, noSeasonPointsWords } from "../shared/words";
+export { noSeasonPointsWords } from "../shared/words";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
