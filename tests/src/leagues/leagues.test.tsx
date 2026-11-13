@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
+import { joinFailedWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
@@ -50,6 +51,8 @@ describe("someone signed in, in no league", () => {
       { leagueName: "Mini beta", ended: "couldNotJoin", reason: "The league is full: it has all 4 of its teams." },
       "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
     ],
+    // Still live, but a fault at sign-in kept them out (Craig, 12 Nov 2026, on #1437).
+    [{ leagueName: "Mini beta", ended: "joinFailed", reason: null }, joinFailedWords],
   ] as const)("whose newest invite ended without them joining is told how, and to ask for a new one", async (endedInvite, line) => {
     openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite } });
     expect(await screen.findByText(line)).toBeTruthy();

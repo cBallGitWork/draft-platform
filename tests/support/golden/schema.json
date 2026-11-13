@@ -6338,6 +6338,12 @@
               "type": "string"
             },
             "optional": true
+          },
+          "joinFailedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -24480,6 +24486,120 @@
       }
     },
     {
+      "tableName": "matchMoves",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode",
+          "fields": [
+            "fixtureCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "unmoved": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "movedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "matchMoveLog",
+      "indexes": [
+        {
+          "indexDescriptor": "by_at",
+          "fields": [
+            "at"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "from": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "to": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "at": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "deadlineAlarms",
       "indexes": [],
       "stagedDbIndexes": [],
@@ -26761,6 +26881,10 @@
                 {
                   "type": "literal",
                   "value": "playerLeft"
+                },
+                {
+                  "type": "literal",
+                  "value": "notFiled"
                 }
               ]
             },
@@ -28379,6 +28503,99 @@
           "readAt": {
             "fieldType": {
               "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksPlayerMatchStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode_and_playerCode",
+          "fields": [
+            "fixtureCode",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "started": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": false
+          },
+          "played": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": false
+          },
+          "arrived": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": false
+          },
+          "stats": {
+            "fieldType": {
+              "type": "record",
+              "keys": {
+                "type": "string"
+              },
+              "values": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            },
+            "optional": false
+          },
+          "state": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "provisional"
+                },
+                {
+                  "type": "literal",
+                  "value": "complete"
+                },
+                {
+                  "type": "literal",
+                  "value": "locked"
+                }
+              ]
             },
             "optional": false
           }

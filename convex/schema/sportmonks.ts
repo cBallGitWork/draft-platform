@@ -2,6 +2,7 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { clubRow, droppedAt, failure, fixtureRecord, gameweekRecord, playerRecord, scoreRead, scoreWrites, syncTrigger, tableWrites } from "./football";
 import { sideRunFields } from "./live";
+import { matchStatsState } from "./matchStats";
 import { startRecord } from "./positions";
 
 // Sportmonks' reads (#1391), slice 1 of the switch off FPL and the Premier League feeds: each
@@ -104,6 +105,23 @@ export const sportmonksPositionsSyncFields = {
   ),
 };
 
+/** One man's stats in one match (#1415, football/sportmonks/sportmonksPlayerStats.ts), in
+ *  `playerMatchStats`' shape but keyed on Sportmonks' player and match ids, `clubCode` his team's.
+ *  Provisional until full time and every man who played has sent his stats (`S07.10`); never
+ *  locked yet, as nothing the site scores reads it until #1425. */
+export const sportmonksPlayerMatchRecord = v.object({
+  playerCode: v.number(),
+  fixtureCode: v.number(),
+  clubCode: v.number(),
+  started: v.boolean(),
+  /** False for an unused substitute (`S07.4`). */
+  played: v.boolean(),
+  /** Whether Sportmonks has sent his `lineups.details`. */
+  arrived: v.boolean(),
+  stats: v.record(v.string(), v.number()),
+  state: matchStatsState,
+});
+
 /** Which Sportmonks read gave a match's held score: the six-hourly sync's or the live tick's. */
 export const sportmonksReader = v.union(v.literal("sync"), v.literal("live"));
 
@@ -128,6 +146,9 @@ export const sportmonksTables = {
     events: v.array(sportmonksEvent),
     readAt: v.number(),
   }).index("by_fixtureCode", ["fixtureCode"]),
+  /** Each man's stats in each match from its newest live read (#1415): a row a man in either team
+   *  sheet, the match's set replaced with each read. */
+  sportmonksPlayerMatchStats: defineTable(sportmonksPlayerMatchRecord).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
   sportmonksSyncs: defineTable(sportmonksSyncFields).index("by_competition", ["competition"]),
   /** Each man's newest starts and Sportmonks' label for him (#1419), by his Sportmonks id: what
    *  his positions are worked out from (football/sportmonks/sportmonksPositions.ts). */

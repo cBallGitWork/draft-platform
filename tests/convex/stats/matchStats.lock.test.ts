@@ -143,7 +143,7 @@ test("a match whose record goes missing again before the lock is provisional aga
 
 test("the window is the admin's setting", async () => {
   const t = await withHullEverton();
-  await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: 30 });
+  await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: 30 });
   await syncAt(t, FULL_TIME_READ, recordedGw6());
 
   await elapse(t, 30 * MINUTE_MS);
@@ -154,7 +154,7 @@ test("the window is the admin's setting", async () => {
 test("a window changed after the lock was scheduled is read again when the lock fires", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());
-  await t.mutation(internal.admin.platformSettings.setStatCorrectionWindow, { minutes: 90 });
+  await t.mutation(internal.admin.platformSettings.setSettings, { statCorrectionWindowMinutes: 90 });
 
   await elapse(t, HOUR_MS);
   expect(await stateOf(t)).toMatchObject({ match: "complete" });

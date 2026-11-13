@@ -16,7 +16,8 @@ import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
-import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
+import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN } from "./squadLimits";
+import { squadLimit, squadLimits } from "./squadRulesView";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
@@ -117,7 +118,7 @@ export const teamSquad = v.object({
   /** The Schedule view's gameweeks, from the one a lineup is being set for, at most
    *  SCHEDULE_GAMEWEEKS (squadLimits.ts): none once the season is over or with no rules. */
   scheduleGameweeks: v.array(v.number()),
-  /** The Rules view's rows: the squad against each of the league's squad limits (squadLimits.ts). */
+  /** The Rules view's rows: the squad against each of the league's squad limits (squadRulesView.ts). */
   limits: v.array(squadLimit),
 });
 export type TeamSquad = Infer<typeof teamSquad>;

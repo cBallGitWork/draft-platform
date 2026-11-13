@@ -8,13 +8,13 @@
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import spec from "../../SPEC.md?raw";
+import { SOURCE_PREFIX } from "../support/importLines";
 
 const WORDS_FILES = import.meta.glob<string>(["../../src/**/words.ts", "../../convex/**/*Words.ts"], {
   query: "?raw",
   import: "default",
   eager: true,
 });
-const SOURCE_PREFIX = "../../";
 
 /** The Glossary table's cells, row by row: Term, Meaning, Avoid. */
 function glossaryRows(markdown: string): string[][] {

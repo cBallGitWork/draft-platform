@@ -73,6 +73,11 @@ points this season, by FPL's club `code`, the same way, and `"points":null` goes
 results' total:
 `npx convex run football/plPointsOverrides:set '{"clubCode":11,"points":4}' --identity '{"subject":"<admin's _id>|cli"}'`.
 
+Moving a match to another gameweek has no screen yet either: the admin moves it by FPL's fixture
+`code`, the same way, and `"gameweek":null` clears the move, back to the gameweek its kickoff
+makes; it answers with any deadline warnings, and `gameweeks/matchMoves:log` lists his moves:
+`npx convex run gameweeks/matchMoves:move '{"fixtureCode":121,"gameweek":15}' --identity '{"subject":"<admin's _id>|cli"}'`.
+
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`
 (dev server only, with made-up figures). `npx vite` starts the app alone, without touching Convex,

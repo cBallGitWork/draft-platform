@@ -246,7 +246,7 @@ export function kickoffOf(match: RawFixture): number | null {
 }
 
 /** A match's home and away clubs, by their `meta.location`. */
-function sides(match: RawFixture): { home: number; away: number } {
+export function sides(match: RawFixture): { home: number; away: number } {
   const at = (location: string) => match.participants?.find((side) => side.meta?.location === location)?.id;
   const home = at(HOME);
   const away = at(AWAY);
