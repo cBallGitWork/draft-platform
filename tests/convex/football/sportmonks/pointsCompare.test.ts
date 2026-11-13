@@ -16,7 +16,8 @@ import { CLUB_CODE, FIXTURE_CODE, PLAYER_CODE } from "../../../support/recorded/
 import { SM_PL } from "../../../support/recorded/sportmonks.payloads";
 
 const RAN_AT = Date.parse("2026-11-12T06:00:00Z");
-const GAMEWEEK = 1;
+/** The recorded Arsenal v Coventry match's gameweek. */
+const ARSENAL_V_COVENTRY_GAMEWEEK = 1;
 const report = internal.football.sportmonks.pointsCompareReport.gameweek;
 
 /** Sportmonks' ids for the recorded Arsenal men FPL lists too (sportmonks-pl-season.json). */
@@ -57,8 +58,8 @@ test("with both feeds alike, every man's points match and nobody is listed", asy
   const t = freshConvex();
   await bothRecordsHeld(t, ALIKE);
 
-  const compared = await t.query(report, { gameweek: GAMEWEEK });
-  expect(compared).toMatchObject({ gameweek: GAMEWEEK, matching: 4, differing: [], unlinkedMatches: [] });
+  const compared = await t.query(report, { gameweek: ARSENAL_V_COVENTRY_GAMEWEEK });
+  expect(compared).toMatchObject({ gameweek: ARSENAL_V_COVENTRY_GAMEWEEK, matching: 4, differing: [], unlinkedMatches: [] });
   expect(compared.matches).toEqual([{ fixtureCode: FIXTURE_CODE.arsenalVCoventry, sportmonksFixtureCode: SM_PL.arsenalCoventry, fpl: null, sportmonks: "complete" }]);
 });
 
@@ -66,7 +67,7 @@ test("exactly the men planted with a different stat are listed, with the stat an
   const t = freshConvex();
   await bothRecordsHeld(t, { ...ALIKE, saka: { ...ALIKE.saka, [GOALS]: 2 }, raya: { ...ALIKE.raya, [SAVES]: 6 } });
 
-  const compared = await t.query(report, { gameweek: GAMEWEEK });
+  const compared = await t.query(report, { gameweek: ARSENAL_V_COVENTRY_GAMEWEEK });
   expect(compared.matching).toBe(2);
   expect(compared.differing.map(({ fplPlayerCode, sportmonksPlayerCode, name, stats }) => ({ fplPlayerCode, sportmonksPlayerCode, name, stats }))).toEqual([
     { fplPlayerCode: PLAYER_CODE.saka, sportmonksPlayerCode: SM_PL.saka, name: "Bukayo Saka", stats: [{ stat: GOALS, fpl: 1, sportmonks: 2 }] },
@@ -78,7 +79,7 @@ test("exactly the men planted with a different stat are listed, with the stat an
 test("a stat the scoring doesn't read never lists a man", async () => {
   const t = freshConvex();
   await bothRecordsHeld(t, { ...ALIKE, saliba: { ...ALIKE.saliba, touches: 80 } });
-  expect(await t.query(report, { gameweek: GAMEWEEK })).toMatchObject({ matching: 4, differing: [] });
+  expect(await t.query(report, { gameweek: ARSENAL_V_COVENTRY_GAMEWEEK })).toMatchObject({ matching: 4, differing: [] });
 });
 
 test("a man who played in only one feed is listed; one who sat it out in the only feed that names him is not", () => {

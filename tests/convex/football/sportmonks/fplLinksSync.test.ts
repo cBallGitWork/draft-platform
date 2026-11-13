@@ -6,15 +6,13 @@
 import { expect, test } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { SPORTMONKS_STAT_IDS } from "../../../../convex/football/sportmonks/sportmonksStats";
-import { bothFeedsHeld as feedsHeldAt } from "../../../support/convex/sportmonks.harness";
+import { bothFeedsHeld } from "../../../support/convex/sportmonks.harness";
 import { freshConvex, type TestConvex } from "../../../support/convex/test.harness";
 import { CLUB_CODE, PLAYER_CODE } from "../../../support/recorded/fpl.payloads";
 import { SM_PL } from "../../../support/recorded/sportmonks.payloads";
 
 const RAN_AT = Date.parse("2026-11-12T06:00:00Z");
 const links = internal.football.sportmonks.fplLinksSync;
-
-const bothFeedsHeld = (t: TestConvex) => feedsHeldAt(t, RAN_AT);
 
 /** A live read of the Arsenal v Coventry match in which `playerId` has played `minutes`. */
 async function livePlays(t: TestConvex, playerId: number, minutes: number, readAt: number) {
@@ -25,7 +23,7 @@ async function livePlays(t: TestConvex, playerId: number, minutes: number, readA
 
 test("the link run links every club and match and every man but the two strangers, and counts them", async () => {
   const t = freshConvex();
-  await bothFeedsHeld(t);
+  await bothFeedsHeld(t, RAN_AT);
 
   expect(await t.mutation(links.link, { ranAt: RAN_AT })).toEqual({
     club: { linked: 7, unlinked: 0 },
@@ -38,7 +36,7 @@ test("the link run links every club and match and every man but the two stranger
 
 test("an unlinked man is listed for the admin only from his first Premier League minute; a man who sits the match out is not", async () => {
   const t = freshConvex();
-  await bothFeedsHeld(t);
+  await bothFeedsHeld(t, RAN_AT);
   await t.mutation(links.link, { ranAt: RAN_AT });
   expect(await t.query(links.unlinked, {})).toEqual([]);
 
@@ -53,7 +51,7 @@ test("an unlinked man is listed for the admin only from his first Premier League
 
 test("the admin's link by hand stands through the next link run, and an FPL code another man holds is refused", async () => {
   const t = freshConvex();
-  await bothFeedsHeld(t);
+  await bothFeedsHeld(t, RAN_AT);
   // FPL lists him late, under a name the link can't tie to Sportmonks'.
   const fplCode = 990001;
   await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [{ code: fplCode, name: "Wrenfield", fullName: "Toby Wren-Field", clubCode: CLUB_CODE.arsenal }] });
