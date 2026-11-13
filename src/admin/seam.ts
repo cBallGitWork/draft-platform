@@ -6,6 +6,7 @@ import type { FeedsReport } from "../../convex/admin/feeds";
 import type { PlatformSettings } from "../../convex/admin/platformSettings";
 import type { Availability, AvailabilityRow } from "../../convex/availability/availability";
 import type { Colours } from "../../convex/football/clubColours";
+import type { GameweekMatch, MatchMoveLogRow } from "../../convex/gameweeks/matchMoves";
 import type { Area } from "../../convex/lineup/pitch";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
@@ -13,7 +14,7 @@ import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../shared/refusal";
 
-export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue };
+export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, GameweekMatch, MatchMoveLogRow, PlatformSettings, PositionsQueue };
 
 export type AdminSeam = {
   /** The queue, the clubs and the approve mode, live (a hook): undefined while they load. */
@@ -47,4 +48,12 @@ export type AdminSeam = {
   usePlatformSettings(): PlatformSettings | undefined;
   /** Saves every one of the site's settings together; one refused saves none. */
   savePlatformSettings(settings: PlatformSettings): Change;
+  /** The gameweek's matches with his moves of them, live (a hook): undefined while they load, and
+   *  for no gameweek (null) (#1417). */
+  useGameweekMatches(gameweek: number | null): readonly GameweekMatch[] | undefined;
+  /** His moves and clears, newest first, live (a hook): undefined while they load (spec/15). */
+  useMatchMoveLog(): { rows: readonly MatchMoveLogRow[]; more: boolean } | undefined;
+  /** Moves the match to `gameweek`, or with null clears his move (spec/07 `S07.9`): resolves with
+   *  the warnings about the deadline it moved, or with the words saying why it was refused. */
+  moveMatch(fixtureCode: number, gameweek: number | null): Promise<{ warnings: string[] } | string>;
 };

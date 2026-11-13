@@ -10,7 +10,7 @@ import type { Infer } from "convex/values";
 import type { ScoreRead } from "../scoreReads";
 import type { sportmonksPlayerMatchRecord } from "../../schema";
 import { HALF_TIME_STATS } from "../premierLeague/plMatch";
-import { SM_EVENT_TYPE } from "../sportmonksCommentary";
+import { SM_EVENT_TYPE } from "./sportmonksCommentary";
 import { SPORTMONKS_STAT_IDS } from "./sportmonksStats";
 import type { SportmonksEvent, SportmonksMan } from "./sportmonksMatch";
 import { SM_STATE, SPORTMONKS } from "./sportmonksRaw";

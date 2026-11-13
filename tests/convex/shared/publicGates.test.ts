@@ -81,6 +81,7 @@ beforeEach(async () => {
       "football/plPointsOverrides:set": () => caller.mutation(api.football.plPointsOverrides.set, { clubCode: SOME_CODE, points: null }),
       "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
       "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
+      "gameweeks/matchMoves:gameweekMatches": () => caller.query(api.gameweeks.matchMoves.gameweekMatches, { gameweek: 1 }),
       "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
       "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),

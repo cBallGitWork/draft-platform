@@ -22,13 +22,16 @@ export const LINEUP_STARTER = 11;
 const LINEUP_BENCH = 12;
 
 /** Sportmonks' match states (its `state_id`), as our four. A postponed, delayed or unsettled match
- *  is not started; one abandoned, cancelled, suspended or stuck is a problem for the run row, as
- *  any state not listed here is, never guessed at. */
+ *  is not started. An abandoned one counts as never played (S05.6, S05.7), so it is read as not
+ *  started, with no score, and never stays live or counts as a problem (Craig, 13 Nov 2026, on
+ *  #904). One cancelled, suspended or stuck is a problem for the run row, as any state not listed
+ *  here is, never guessed at. */
 const STATES: Record<number, ScoreRead["state"]> = {
   [SM_STATE.notStarted]: "upcoming",
   [SM_STATE.postponed]: "upcoming",
   [SM_STATE.toBeAnnounced]: "upcoming",
   [SM_STATE.delayed]: "upcoming",
+  [SM_STATE.abandoned]: "upcoming",
   [SM_STATE.firstHalf]: "live",
   [SM_STATE.secondHalf]: "live",
   [SM_STATE.extraTime]: "live",

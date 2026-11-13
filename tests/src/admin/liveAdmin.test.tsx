@@ -24,6 +24,9 @@ const convex = vi.hoisted(() => ({
   setAvailability: vi.fn(),
   platformSettings: vi.fn(),
   savePlatformSettings: vi.fn(),
+  gameweekMatches: vi.fn(),
+  moveLog: vi.fn(),
+  moveMatch: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
@@ -32,6 +35,8 @@ vi.mock("convex/react", async () =>
       "admin/feeds:feeds": convex.feeds,
       "availability/availability:forAdmin": convex.forAdmin,
       "admin/platformSettings:settings": convex.platformSettings,
+      "gameweeks/matchMoves:gameweekMatches": convex.gameweekMatches,
+      "gameweeks/matchMoves:log": convex.moveLog,
     },
     mutations: {
       "positions/playerPositions:approvePlayer": convex.approvePlayer,
@@ -44,6 +49,7 @@ vi.mock("convex/react", async () =>
       "football/clubKits:set": convex.setClubColours,
       "availability/availability:set": convex.setAvailability,
       "admin/platformSettings:save": convex.savePlatformSettings,
+      "gameweeks/matchMoves:move": convex.moveMatch,
     },
   }),
 );
@@ -102,6 +108,21 @@ test("the site's settings are asked of admin/platformSettings:settings, and save
   convex.savePlatformSettings.mockResolvedValue(null);
   expect(await seam().savePlatformSettings(settings)).toBeNull();
   expect(convex.savePlatformSettings).toHaveBeenCalledWith(settings);
+});
+
+test("#1417: a gameweek's matches are asked of gameweeks/matchMoves:gameweekMatches, no gameweek asking nothing, and a move resolves with its warnings", async () => {
+  renderHook(() => useLiveAdmin().useGameweekMatches(14));
+  expect(convex.gameweekMatches).toHaveBeenLastCalledWith({ gameweek: 14 });
+  renderHook(() => useLiveAdmin().useGameweekMatches(null));
+  expect(convex.gameweekMatches).toHaveBeenLastCalledWith("skip");
+  renderHook(() => useLiveAdmin().useMatchMoveLog());
+  expect(convex.moveLog).toHaveBeenLastCalledWith({});
+
+  convex.moveMatch.mockResolvedValue({ warnings: ["late"] });
+  expect(await seam().moveMatch(142, 15)).toEqual({ warnings: ["late"] });
+  expect(convex.moveMatch).toHaveBeenLastCalledWith({ fixtureCode: 142, gameweek: 15 });
+  convex.moveMatch.mockRejectedValueOnce(new ConvexError(refusals.notAdmin));
+  expect(await seam().moveMatch(142, null)).toBe(refusals.notAdmin);
 });
 
 test("a club's colours go to football/clubKits:set", async () => {

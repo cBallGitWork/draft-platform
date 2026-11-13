@@ -5,7 +5,8 @@ import { clubRecord, position } from "../schema";
 import { memberOf, teamIn } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "./squadPlace";
-import { bySquadOrder, pricer, squadPoints } from "./teamSquad";
+import { seasonPointsIn } from "../stats/seasonPoints";
+import { bySquadOrder } from "./teamSquad";
 
 // Another team's squad, read-only, opened from its name on a player's card (Craig, 9 Nov 2026,
 // #1027: "a read-only page of that team, its Squad table (players, positions, club, season
@@ -19,7 +20,7 @@ const otherSquadRow = v.object({
   club: clubRecord,
   /** Left the Premier League: he stays on the team until released. */
   gone: v.boolean(),
-  /** What his team got from him this season, added up as the Squad tab adds it (teamSquad.ts), or
+  /** His season points, as the Squad tab, his card and Scouting add them up (seasonPoints.ts), or
    *  null ("—") while none of his matches has been priced. */
   seasonPoints: v.union(v.number(), v.null()),
 });
@@ -33,12 +34,12 @@ export const ofTeam = query({
   args: { leagueId: v.id("leagues"), teamId: v.id("teams") },
   returns: otherSquad,
   handler: async (ctx, { leagueId, teamId }) => {
-    const { league } = await memberOf(ctx, leagueId);
+    await memberOf(ctx, leagueId);
     const team = await teamIn(ctx, leagueId, teamId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
-    const price = await pricer(ctx, league, team._id);
     const { held } = await heldOrNot(ctx, await squadOf(ctx, team._id));
+    const seasonPointsOf = await seasonPointsIn(ctx, leagueId, held.map(({ player }) => player.code));
     const players = await Promise.all(
       held.map(async ({ player }) => {
         const positions = await positionsOfNow(player.code);
@@ -49,7 +50,7 @@ export const ofTeam = query({
           positions,
           club: await clubs(player.clubCode),
           gone: player.droppedAt !== undefined,
-          seasonPoints: squadPoints(await price(player.code, positions), null).seasonPoints,
+          seasonPoints: seasonPointsOf(player.code, positions),
         };
       }),
     );

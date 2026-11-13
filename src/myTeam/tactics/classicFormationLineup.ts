@@ -3,7 +3,7 @@
 // the formation in use goes by, the classic formation's, marked custom once a manager changes a
 // role or an instruction. Pure, so the screen only says what was asked.
 
-import { standsAsClassicFormation, type ClassicFormation } from "../../../convex/lineup/classics";
+import { standsAsClassicFormation, type ClassicFormation } from "../../../convex/lineup/classicFormations";
 import { sameCell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { onSetRole, presetInUse, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";

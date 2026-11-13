@@ -84,8 +84,9 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     31 Oct 2026, `/grill the Tactics pitch`).
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
-    season points and last gameweek's points. His season points are what his team got from him,
-    not every match his card shows (Craig, 29 Oct 2026). Craig's "ok" to Claude's suggestions for
+    season points and last gameweek's points. His season points are his total, the figure his
+    card and Scouting show: "Just his total season points" (Craig, 13 Nov 2026, #628, replacing
+    29 Oct 2026's "what his team got from him"). Craig's "ok" to Claude's suggestions for
     its approved picture (1 Nov 2026):
     - Started, in his season panel: games he started for your team.
     - Role points, in his season panel: the points his roles added or took away this season.

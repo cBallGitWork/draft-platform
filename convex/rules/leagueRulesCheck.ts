@@ -1,7 +1,7 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area, type Cell } from "../lineup/pitch";
 import { AREA_WORDS, LANE_WORDS } from "../lineup/pitchWords";
-import { inClassicFormationShape } from "../lineup/classics";
+import { inClassicFormationShape } from "../lineup/classicFormations";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
 import { offersRole } from "../lineup/roles";
 import { instructionsOf } from "./firstRules";

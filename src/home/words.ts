@@ -1,6 +1,7 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
+import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
 import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
@@ -18,7 +19,7 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 
 /** The deadline strip's boxes, as the picture has them (Craig, 13 Nov 2026, on #1976). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your line-up", "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, YOUR_LINEUP, "Claims close", "Table"] as const;
 /** Your line-up's box: its first flagged starter, by FPL's chance he plays ("doubtful" at 25 to 75%,
  *  "out" at 0), and how many more are flagged; or whether it is set at all. */
 export const lineupSetWords = "Set";

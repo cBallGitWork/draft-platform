@@ -16,7 +16,7 @@ const offered = (side: "attacking" | "defensive") => within(picker(side)).getAll
 describe("team instructions", () => {
   it("offers on each side only what the shape allows, on the picks held", async () => {
     // One at the back, one up top, nobody wide: Boot it is offered; Gung-ho, Get it wide, Press
-    // high, Hold a high line and Park the bus aren't.
+    // high and Park the bus aren't, and Hold a high line is in no league's set (#1452).
     await openedPitch();
     expect(offered("attacking")).toEqual(["Play out from the back", "Boot it to the big man", "Shoot on sight"]);
     expect(offered("defensive")).toEqual(["Clear it", "Get stuck in", "Keep it tight early"]);
