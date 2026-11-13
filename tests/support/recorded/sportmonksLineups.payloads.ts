@@ -1,4 +1,4 @@
-// Sportmonks' lineups for positions (#1419). NOT YET RECORDED, as sportmonks.payloads.ts's aren't:
+// Sportmonks' lineups for positions (#1419). NOT YET RECORDED, as sportmonks.payloads.ts's docs set isn't:
 // no token reached the build that wrote it, so it is shaped from Sportmonks' v3 docs, one
 // `fixtures/multi` body with `formations;lineups.detailedPosition`: a played Celtic v Rangers, Celtic
 // in a 4-3-3 and Rangers in a 4-2-3-1, each side's eleven and one man on the bench. Once
