@@ -10,6 +10,7 @@ const NEEDS_WORDS: Record<ShapeNeed, string> = {
   wideOnBothFlanks: "wide players on both flanks",
   twoAtTheBack: "2 at the back",
   threeInARow: "3 or more in one row of midfield or attack",
+  twoUpFront: "2 or more in attack and attacking midfield",
   backThreeOrFour: "3 or 4 at the back",
   fiveAtTheBack: "5 at the back",
 };

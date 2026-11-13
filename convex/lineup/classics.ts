@@ -68,7 +68,7 @@ export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
     "The Mighty Magyars: Hidegkuti dropping off as a false 9, Puskás shooting from anywhere.",
     "4-2-4",
     ["sweeperKeeper", "defensiveFullBack", "stopper", "noNonsenseCentreBack", "defensiveFullBack", "boxToBox", "ballWinner", "winger", "winger", "falseNine", "poacher"],
-    // Press high needs three in a row, which a 4-2-4 has nowhere (#990): its back four holds a line.
+    // Its back four holds a line (#990).
     { attacking: "shootOnSight", defensive: "holdAHighLine" },
   ),
   classicFormation(

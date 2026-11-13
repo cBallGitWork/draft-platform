@@ -146,11 +146,11 @@ were fitted so that a whole XI, in a shape the instruction allows, nets close to
 it pays when it suits that week's fixtures, and none is a free upgrade. "XI avg" is over 1,500
 random XIs in the shape shown, with the best and worst tenth of XIs after it.
 
-Shoot on sight and Press high were redrawn around what Sportmonks sends (spec/05 S05.37, 10 Nov
-2026) and are not fitted yet: they are refitted, and the code and its tests follow the new wording,
-in the build that moves team instructions onto Sportmonks' stats. Hold a high line is dropped from
-the table until Sportmonks sends offsides won. The figures in the notes below are from the
-5 Nov fit of the instructions that remain.
+Shoot on sight and Press high were redrawn around what Sportmonks sends (spec/05 S05.37 and S05.42,
+10 to 13 Nov 2026), and the code scores them so (#1452), on Craig's values below. They are not fitted
+yet: the fit needs the same 2,769 player matches of Sportmonks' stats, which the build could not
+read. Hold a high line is dropped from the table until Sportmonks sends offsides won. The figures
+in the notes below are from the 5 Nov fit of the instructions that remain.
 
 | instruction | first values | shape | XI avg (best / worst 10%) | suits clubs |
 |---|---|---|---|---|
@@ -159,7 +159,7 @@ the table until Sportmonks sends offsides won. The figures in the notes below ar
 | Get it wide | +1 per accurate cross; −1 per 2 failed crosses | 4-4-2 | -0.44 (+2 / -3) | Ipswich Town, Manchester City, Newcastle United |
 | Shoot on sight | +1 per shot, any range; −1 per 2 shots off target (Craig, 10 Nov 2026; to be refitted) | 4-4-2 | not fitted | not fitted |
 | Gung-ho | goals and assists +1; GK/DEF −1 per 2 goals conceded | 2-3-5 | +1.61 (+4 / -1) | Brighton Hove Albion, Manchester City, Arsenal |
-| Press high | the front three: +1 per 2 tackles won and interceptions; −1 per foul (Craig, 10 Nov 2026; to be refitted) | 4-3-3 | not fitted | not fitted |
+| Press high | up front, attacking midfielders too: +1 per 2 tackles won and interceptions; −1 per foul, any slot (Craig, 10 and 12 Nov 2026; to be refitted) | 4-3-3 | not fitted | not fitted |
 | Clear it | DEF +1 per 3 clearances and blocks; −1 per 6 possession lost | 4-4-2 | +0.03 (+4 / -3) | Coventry City, Ipswich Town, Newcastle United |
 | Get stuck in | +1 per 5 tackles and duels won; yellow −2, red −5, −1 per 2 fouls | 4-4-2 | -0.28 (+5 / -5) | Everton, Arsenal, Crystal Palace |
 | Keep it tight early | +1 if his club kept a clean sheet at half-time; −1 per goal his club let in before half-time; starters only (Craig, 9 Nov 2026, on #990) | 4-4-2 | +0.49 (+5 / -5) | Everton, Leeds United, Tottenham Hotspur |
