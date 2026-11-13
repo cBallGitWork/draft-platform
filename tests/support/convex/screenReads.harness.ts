@@ -5,8 +5,7 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { clockAt, leagueHomeAt } from "../../../convex/home/homeAt";
-import { HOUR_MS } from "../../../convex/shared/time";
+import { clockAt, clockHourOf, leagueHomeAt } from "../../../convex/home/homeAt";
 import { matchupAt } from "../../../convex/matchup/commentaryAt";
 import type { actingAs } from "./leagues.harness";
 
@@ -14,7 +13,7 @@ type Caller = Awaited<ReturnType<typeof actingAs>>;
 
 /** League home at `now`, as `caller` reads it. */
 export async function leagueHomeOf(caller: Caller, leagueId: Id<"leagues">, now: number) {
-  const clock = clockAt(await caller.query(api.home.homeClock.clockOf, { leagueId, hour: now - (now % HOUR_MS) }), now);
+  const clock = clockAt(await caller.query(api.home.homeClock.clockOf, { leagueId, hour: clockHourOf(now) }), now);
   const held = await caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: clock.gameweek });
   const open = clock.matchday;
   const matchday = open === null ? null : { gameweek: open.gameweek, commentary: await caller.query(api.home.leagueHome.matchdayOf, { leagueId, ...open }) };

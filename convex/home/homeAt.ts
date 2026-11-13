@@ -4,7 +4,7 @@ import { commentaryAt } from "../matchup/commentaryAt";
 import type { HeldCommentary } from "../matchup/matchupShape";
 import { LIVE_WINDOW_MS } from "../shared/dueMatches";
 import { groupedBy } from "../shared/groupedBy";
-import { DAY_MS } from "../shared/time";
+import { DAY_MS, HOUR_MS } from "../shared/time";
 import type { HeldLeagueHome, LeagueHome } from "./leagueHome";
 import { matchdayAt } from "./matchday";
 
@@ -39,6 +39,9 @@ export type HomeClock = {
  *  open: the day before its latest final whistle (matchday.ts). A window joined across more days
  *  than that would leave its first day's lines out, while staying open. */
 export const NEAR_BEFORE_MS = DAY_MS + LIVE_WINDOW_MS;
+
+/** The hour `clockOf` is asked for at `now`: the start of the hour it is in. */
+export const clockHourOf = (now: number): number => now - (now % HOUR_MS);
 
 /** League home's clock at `now`, from `clockOf`'s times. */
 export function clockAt({ gameweeks, margins, matches }: HeldClock, now: number): HomeClock {

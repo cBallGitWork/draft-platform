@@ -1,8 +1,7 @@
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { clockAt, leagueHomeAt } from "../../convex/home/homeAt";
-import { HOUR_MS } from "../../convex/shared/time";
+import { clockAt, clockHourOf, leagueHomeAt } from "../../convex/home/homeAt";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import type { HomeSeam } from "./seam";
 
@@ -13,7 +12,7 @@ import type { HomeSeam } from "./seam";
  *  matchday's lines across its matches changing), so the home doesn't blank when the clock moves on. */
 export const liveHome: HomeSeam = {
   useLeagueHome: (leagueId, now) => {
-    const times = useLastLoaded(useQuery(api.home.homeClock.clockOf, { leagueId, hour: now - (now % HOUR_MS) }), leagueId);
+    const times = useLastLoaded(useQuery(api.home.homeClock.clockOf, { leagueId, hour: clockHourOf(now) }), leagueId);
     const clock = useMemo(() => (times === undefined ? undefined : clockAt(times, now)), [times, now]);
     const held = useLastLoaded(
       useQuery(api.home.leagueHome.ofLeague, clock === undefined ? "skip" : { leagueId, gameweek: clock.gameweek }),
