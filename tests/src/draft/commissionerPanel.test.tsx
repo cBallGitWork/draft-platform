@@ -14,6 +14,7 @@ import {
   changeStartWords,
   COMMISSIONER_TITLE,
   draftPlayerWords,
+  lostTeamWords,
   notLegalWords,
   pauseWords,
   pickForTeamWords,
@@ -139,6 +140,13 @@ describe("while it runs", () => {
     expect(app.draft.changes.undo).toHaveBeenCalledWith(league.leagueId);
     expect(within(await commissionerPanel()).getByRole("button", { name: pauseWords })).toBeTruthy();
     expect(within(await commissionerPanel()).queryByRole("button", { name: /^Pick for/ })).toBeNull();
+  });
+
+  // #1572 item 5: a team the draft order no longer holds is named missing, never left blank.
+  it("says the last pick's team is missing when the draft order no longer holds it", async () => {
+    const lostTeam = { ...oneTaken, picks: [{ ...oneTaken.picks[0], teamId: "gone" as (typeof draftOrder)[number]["teamId"] }] };
+    openAs(commissioner, { draft: liveDraft(), board: lostTeam });
+    expect(within(await commissionerPanel()).getByText(`Last pick: ${lostTeamWords} took Saka ARS, 1.01`)).toBeTruthy();
   });
 
   it("offers no undo before any pick is made", async () => {
