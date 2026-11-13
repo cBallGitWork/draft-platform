@@ -3,12 +3,14 @@
 crafting on scoring, and instead youve tried built it and its destroyed the project flow". So a
 command that files, specs, starts or ships work (gh issue create or edit, gh pr create, ready or
 merge, gh workflow run, the GitHub tool's writes, and an edit to SPEC.md or spec/) is denied unless
-Craig's latest message in this session (last_prompt.py) says to act: one of GO_WORDS, as "build it",
-"go ahead", "file it", "ship it", "merge it" (merge and the verbs after a yes need an object), a bare "File",
-a message opening with "yes" or with "file" and an object ("file answers"), one made only of numbered answers
-("1 a\n2 b"), or a slash command, which is an instruction by itself.
+Craig's latest message in this session (last_prompt.py; an answer he picks in a question box counts, as
+guard_ask.py records it) says to act: one of GO_WORDS, as "build it", "go ahead", "file it", "ship it",
+"merge it" (merge and the verbs after a yes need an object), a bare "File", a message opening with "yes" or
+with "file" and an object ("file answers"), one made only of numbered answers ("1 a\n2 b"), or a slash
+command, which is an instruction by itself.
 Only a gh call the command line really runs is gated, each read as the shell reads it (commands.py), so a
-commit message, echo or grep that quotes one isn't, and gh's options before its command are skipped.
+commit message, echo or grep that quotes one isn't, and gh's options before its command are skipped; in a
+line it can't read, every gh counts.
 Without his message on record (a cloud builder, whose whole run is a build Craig or the lead started)
 nothing is gated. Reads and git are never gated: a branch, a commit and a push are the session's own
 and publish nothing. A payload it can't read is denied (guard_run.run_guard). Stdlib only, Python 3.9+.
@@ -27,11 +29,13 @@ from private_words import GH_VALUE_OPTS
 from where import arguments, runs_at
 
 GO_WORDS = re.compile(
-    r"\b(build|go ahead|go for it|do it|do that|do them|do all|do both|"
+    r"\b(build|go ahead|go for it|do it|do that|do them|do all|do both|do more|"
     r"file (it|them|that|these|those|all|both|the rest|an issue|issues)|"
     r"ship|merge (it|them|that|this|these|those|the|a|an|now|#\d+)|open (a|the) (pr|pull request)|start (it|them|the build|building)|run it|make it|create|"
-    r"sort it|set it up|set up|implement|land|label it|fix (it|that|them|those|the|this|all|everything)|"
+    r"sort it|set it up|set up|implement|land|label it|fix (it|that|them|those|the|this|all|everything|where|what)|"
     r"just do|get on with|crack on|carry on|proceed|"
+    # Craig's go-aheads it missed, 5 Nov 2026 (#1228): "get as many features done as you can", "fix where we can"
+    r"get(\s+\w+){0,5}\s+done|"
     # a yes that names the action: Claude's own reply buttons read so (9 Nov 2026, #1376: "Yes, run the lead" was refused)
     # and an object after the newer verbs, so "yes, set pieces matter" stays talk (#1378's review)
     # merge too needs one: Craig's "yes merge confilcts are annoying" was a go (9 Nov 2026)
@@ -54,6 +58,7 @@ GITHUB_READS = ("get_", "list_", "search_", "issue_read", "pull_request_read", "
 SPEC_PATHS = ("SPEC.md", "spec/", "/spec/", "/SPEC.md")
 DEFAULT_BRANCH = "main"
 DRY_RUN_INPUT = "dry_run=true"
+UNREAD_WORDS = re.compile(r"[\s'\"`;&|()<>$\\]+")  # a line it can't read, split at blanks, quotes and the shell's marks
 TALK = ("Craig's latest message didn't say to build, file or ship ({what}); it reads as talk, and talk stays "
         "talk (Craig, 5 Nov 2026: theory-crafting on scoring became a build and \"destroyed the project flow\"). "
         "Keep it as ideas in chat, or ask him in one line whether to build it.")
@@ -73,23 +78,29 @@ def pipeline_test(words):
     return any(word == "--ref" and i + 1 < len(words) and words[i + 1] != DEFAULT_BRANCH for i, word in enumerate(words))
 
 
+def gh_command(args):
+    """The command these gh arguments name: the first two that aren't an option or an option's value
+    (gh -R o/r issue create). An option GH_VALUE_OPTS doesn't list, put between the two (gh issue
+    --body-file b.md create), still hides it."""
+    return tuple(arguments(args, GH_VALUE_OPTS)[1][:2])
+
+
 def gated_bash(command, cwd):
-    """What this command does that is gated, or None. Each gh call it runs is judged by its own words, its
-    command the first two that aren't an option or an option's value (gh -R o/r issue create); a gh command
-    only quoted (git commit -m "say when gh pr create is refused", echo, grep) isn't gated (#1557)."""
+    """What this command does that is gated, or None. Each gh call it runs is judged by its own words; a gh
+    command only quoted (git commit -m "say when gh pr create is refused", echo, grep) isn't gated (#1557).
+    A line it can't read is judged on every gh its words hold, quoted or not: bash runs the lines before an
+    unbalanced quote, and refusing a line that doesn't run costs nothing."""
     try:
         cmds = commands(command, cwd)
-    except Unbalanced:
-        return None  # its quotes don't balance, so zsh runs none of it (commands.py)
-    except (Unreadable, UnreadableStdin):
-        return None  # guard_bash.py refuses a string it can't read
+    except (Unbalanced, Unreadable, UnreadableStdin):
+        words = UNREAD_WORDS.split(command)
+        found = [pair for pair in (gh_command(words[i + 1:]) for i, word in enumerate(words) if word == "gh")
+                 if pair in GH_GATED]
+        return f"gh {' '.join(found[0])}, in a line the guard can't read" if found else None
     for words, _ in cmds:
         i = runs_at(words, "gh")
-        if i is None:
-            continue
-        args = words[i + 1:]
-        pair = tuple(arguments(args, GH_VALUE_OPTS)[1][:2])
-        if pair in GH_GATED and not (pair == ("workflow", "run") and pipeline_test(args)):
+        pair = () if i is None else gh_command(words[i + 1:])
+        if pair in GH_GATED and not (pair == ("workflow", "run") and pipeline_test(words[i + 1:])):
             return "gh " + " ".join(pair)
     return None
 

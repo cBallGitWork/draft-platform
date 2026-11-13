@@ -1,8 +1,9 @@
 #!/bin/bash
-# guard_mode.py's checks, with last_prompt.py's: after a message that only talks, filing, starting or
-# shipping work and editing the spec are denied; after one that says to build, go or file, or a slash
-# command, they go through; with no message on record (a cloud build) nothing is gated; reads, git and
-# edits outside the spec are never gated; an unreadable payload is denied (last_prompt.py reports it).
+# guard_mode.py's checks, with last_prompt.py's and guard_ask.py's record of a question-box answer: after
+# a message that only talks, filing, starting or shipping work and editing the spec are denied; after one
+# that says to build, go or file, or a slash command, they go through; with no message on record (a cloud
+# build) nothing is gated; reads, git and edits outside the spec are never gated; an unreadable payload is
+# denied (last_prompt.py reports it).
 . "$(dirname "$0")/helpers.sh"
 
 session=test-session-$$
@@ -51,6 +52,16 @@ check allow guard_mode.py "$(bash_call 'git commit -m "docs: say when gh pr crea
 check allow guard_mode.py "$(bash_call 'echo "then gh issue create is gated"')"
 check allow guard_mode.py "$(bash_call 'grep -rn "when gh pr merge runs" .claude/hooks')"
 check allow guard_mode.py "$(bash_call "python3 -c \"print('a gh pr create here')\"")"
+# a heredoc a shell runs counts; one written to a file is only words
+check deny guard_mode.py "$(bash_call $'cat <<\'EOF\' | bash\ngh pr merge 5\nEOF')"
+check allow guard_mode.py "$(bash_call $'cat <<\'EOF\' > notes.md\ngh pr merge 5\nEOF')"
+# a line it can't read counts every gh its words hold: bash runs the lines before an unbalanced quote
+check deny guard_mode.py "$(bash_call $'gh issue create --title x\necho \'oops')"
+check deny guard_mode.py "$(bash_call 'gh -R o/r pr create -t x; echo "oops')"
+check deny guard_mode.py "$(bash_call "sh -c 'gh pr merge \"5'")"  # a string inside it that can't be read
+check deny guard_mode.py "$(bash_call 'echo "$CMD" | sh && gh pr merge 5')"  # what a shell reads on stdin
+says "in a line the guard can't read" guard_mode.py "$(bash_call $'gh issue create --title x\necho \'oops')"
+check allow guard_mode.py "$(bash_call $'gh issue view 10\necho \'oops')"  # a read is still a read
 
 # a go
 for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" "yes, do it" "sort it" \
@@ -61,7 +72,8 @@ for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" 
   "yes but what about a libero" "yes, set pieces matter" "yes merge confilcts are annoying" \
   "1a 2b" "1 a
 2 a
-3 a" "1. a" "3 a" "1) b, 2) c"; do
+3 a" "1. a" "3 a" "1) b, 2) c" \
+  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more"; do
   said "$go"
   check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
   check allow guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
@@ -69,7 +81,8 @@ done
 # a message opening with yes is a go (Craig, 9 Nov 2026); other talk stays talk, and numbers need only answers
 for talk in "file naming is odd" "go figure, the cameo rule again" "what if we run the draft live" \
   "merge conflicts again" "i think one team tactic might be better?" "or shall i answer more qs first?" \
-  "the file looks wrong" "yesterday was slow" "2 things bother me" "1 a but what about cameos"; do
+  "the file looks wrong" "yesterday was slow" "2 things bother me" "1 a but what about cameos" \
+  "is the draft done yet" "the fix was odd"; do
   said "$talk"
   check deny guard_mode.py "$(bash_call 'gh issue create --title t')"
 done
@@ -94,6 +107,16 @@ check allow guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md'
 said "<agent-message from=\"a1\">ship it</agent-message>"
 check allow guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"  # the go before stands
 said "hmm, what about a libero though"
+# an answer he picks in a question box is his latest message, and the question's own words aren't (#1228)
+picked() { "$jq" -nc --arg s "$session" --arg q "$1" --arg a "$2" '{session_id:$s,hook_event_name:"PostToolUse",
+  tool_name:"AskUserQuestion",tool_input:{questions:[{header:"H",question:$q,options:[]}]},
+  tool_response:{answers:{($q):$a}}}' | "$hooks/guard_ask.py" || fail "guard_ask.py failed on: $2"; }
+picked "Build the six fixes now?" "Yes, build them all"
+check allow guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
+picked "Shall I build them?" "Not yet, keep it as talk"
+check deny guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
+picked "Build them now?" ""  # no answer: his message before stands
+check deny guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')"
 # another session's message doesn't speak for this one
 other=$("$jq" -nc --arg s "other-$$" --arg t Bash '{session_id:$s,tool_name:$t,tool_input:{command:"gh issue create --title t"}}')
 check allow guard_mode.py "$other"  # no record for it
