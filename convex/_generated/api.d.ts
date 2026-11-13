@@ -49,6 +49,7 @@ import type * as draft_snakeOrder from "../draft/snakeOrder.js";
 import type * as draft_undrafted from "../draft/undrafted.js";
 import type * as feedback_feedback from "../feedback/feedback.js";
 import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
+import type * as football_afterFootballSync from "../football/afterFootballSync.js";
 import type * as football_clubColours from "../football/clubColours.js";
 import type * as football_clubFixtures from "../football/clubFixtures.js";
 import type * as football_clubKits from "../football/clubKits.js";
@@ -91,6 +92,7 @@ import type * as football_sportmonks_sportmonksSync from "../football/sportmonks
 import type * as football_sportmonksCommentary from "../football/sportmonksCommentary.js";
 import type * as football_tableLines from "../football/tableLines.js";
 import type * as football_tieBreaks from "../football/tieBreaks.js";
+import type * as gameweekScorer_cardPoints from "../gameweekScorer/cardPoints.js";
 import type * as gameweekScorer_gameweekScores from "../gameweekScorer/gameweekScores.js";
 import type * as gameweekScorer_heldMatches from "../gameweekScorer/heldMatches.js";
 import type * as gameweekScorer_scoredMatches from "../gameweekScorer/scoredMatches.js";
@@ -448,6 +450,7 @@ declare const fullApi: ApiFromModules<{
   "draft/undrafted": typeof draft_undrafted;
   "feedback/feedback": typeof feedback_feedback;
   "feedback/feedbackLimits": typeof feedback_feedbackLimits;
+  "football/afterFootballSync": typeof football_afterFootballSync;
   "football/clubColours": typeof football_clubColours;
   "football/clubFixtures": typeof football_clubFixtures;
   "football/clubKits": typeof football_clubKits;
@@ -490,6 +493,7 @@ declare const fullApi: ApiFromModules<{
   "football/sportmonksCommentary": typeof football_sportmonksCommentary;
   "football/tableLines": typeof football_tableLines;
   "football/tieBreaks": typeof football_tieBreaks;
+  "gameweekScorer/cardPoints": typeof gameweekScorer_cardPoints;
   "gameweekScorer/gameweekScores": typeof gameweekScorer_gameweekScores;
   "gameweekScorer/heldMatches": typeof gameweekScorer_heldMatches;
   "gameweekScorer/scoredMatches": typeof gameweekScorer_scoredMatches;

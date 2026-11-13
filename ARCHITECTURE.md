@@ -481,6 +481,16 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    or `tests/support/src/`, by feature (`tests/convex/testTwins.test.ts`).
 8. Moving a Convex file whose functions the browser or the scheduler call keeps a thin re-export at
    the old path (`docs/REFACTORING.md`, "Function paths").
+9. The server's folders have layers, and new code imports down them, never up: the feeds
+   (`convex/football/fpl/`, `premierLeague/`, `sportmonks/`), then football data and stats
+   (`football`, `gameweeks`, `positions`, `stats`), then scoring (`scoring`, `gameweekScorer`),
+   then the league's features (`lineup`, `squads`, `draft`, `waivers`, `trades`, `table` and the
+   rest), then the screens' reads (`home`, `playerCard`, `scouting`, `match`, `matchup`). `shared`
+   sits under them all. What a football sync's rows set off in the layers above, the deadlines,
+   season points, a waiting patch, waivers and Scouting, runs from one home,
+   `convex/football/afterFootballSync.ts`, which a feed adapter writing the site's tables calls
+   instead of naming those features (#1581). Today's imports up the layers stay until each moves
+   (#1581's 11 Nov count: 56 folder pairs import each other).
 
 ## With the first code
 
