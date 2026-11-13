@@ -58,6 +58,16 @@ function previewStars(playerCode: number, positions: readonly Position[]): RoleS
   }));
 }
 
+/** FPL's news on two of them, made up: Saka, a starter, doubtful, and Watkins, on the bench, out. */
+const NEWS = new Map([
+  [10, { news: "Knock - 75% chance of playing", chanceOfPlaying: 75 }],
+  [15, { news: "Hamstring injury - Expected back 22 Nov", chanceOfPlaying: 0 }],
+]);
+/** The first lineup's starters, in the pitch's order, for League home's preview. */
+export const previewStarterCodes = PLAYERS.flatMap(([playerCode, , , , cell]) => (cell === null ? [] : [playerCode]));
+/** FPL's chance he plays next round, null with no news on him. */
+export const previewChanceOf = (playerCode: number) => NEWS.get(playerCode)?.chanceOfPlaying ?? null;
+
 // Squad numbers are made up too: each player wears his code, the last one none yet (#13).
 const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   playerCode,
@@ -70,6 +80,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   number: playerCode === 15 ? null : playerCode,
   stars: previewStars(playerCode, positions),
   availability: "available" as const,
+  news: NEWS.get(playerCode)?.news ?? null,
 }));
 /** The squad, for the Squad tab's preview (../preview.ts), so both tabs show the same players. */
 export const previewSquad = squad;

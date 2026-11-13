@@ -36,14 +36,15 @@ export const offerTradeWords = "Offer a trade";
 /** The left column: FPL's news on him, his news notes, and his role fit. */
 export const NEWS_TITLE = "News";
 export const noNewsWords = "No news on him.";
-export const newsNotesLabel = "His news notes: the news job isn't built yet";
+/** Each placeholder's words, written inside it (Craig, 13 Nov 2026, on #1976). */
+export const newsNotesLabel = "News notes come with the news job";
 export const ROLE_FIT_TITLE = "Role fit";
-export const roleFitLabel = "Role fit: comes with scouts";
+export const roleFitLabel = "Role fit: not rated yet";
 /** Under the game log: the club captain hint (spec/17 `S17.7`, after the mini beta). Set-piece
  *  hints are dropped (`S05.24`). */
 export const CAPTAIN_TITLE = "Captain";
 export const captainLabel = "Club captain";
-export const hintNotHeldLabel = (what: string) => `${what}: comes after the mini beta`;
+export const hintNotHeldLabel = (what: string) => `${what}: after the mini beta`;
 
 /** This season's matches, as a game log. */
 export const SEASON_TITLE = "This season";
