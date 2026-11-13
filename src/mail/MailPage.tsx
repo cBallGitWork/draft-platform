@@ -82,7 +82,7 @@ export function MailPage({
     <>
       <PlateTabs label={mailTabsLabel} tabs={MAIL_TABS} words={mailTabWords(unread)} chosen={tab} choose={choose} />
       {writableLeagues.length > 0 && (
-        <button type="button" aria-pressed={reading === "writing"} onClick={() => read("writing")} className="secondary-action self-center">
+        <button type="button" aria-pressed={reading === "writing"} onClick={() => read("writing")} className="secondary-action self-center aria-pressed:bg-stepper lg:min-h-bar-control">
           {WRITE_TITLE}
         </button>
       )}
@@ -160,7 +160,7 @@ function byDay(letters: readonly LetterSummary[]): { day: string; letters: Lette
 /** A letter's row: its kind, who it's from, its subject and the time. Unread, the orange edge and
  *  a bold subject; open, the cyan edge and a tint (plate.md, Marks). */
 function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: boolean; open: () => void }) {
-  const edge = isOpen ? "bg-stepper shadow-current-edge" : letter.read ? "" : "shadow-event-edge";
+  const edge = isOpen ? "bg-name-plate shadow-current-edge" : letter.read ? "" : "shadow-event-edge";
   return (
     <li className="border-b border-panel-rule">
       <button
@@ -186,13 +186,9 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
 /** The open letter: who it's from and when on the plate, then its subject over its text. */
 function OpenLetter({ letter }: { letter: LetterSummary }) {
   return (
-    <Panel
-      title={fromWords(senderWords(letter.leagueName, letter.from))}
-      aside={<time dateTime={new Date(letter.at).toISOString()}>{letterWhen(letter.at)}</time>}
-      className="min-w-0"
-    >
+    <Panel title={fromWords(senderWords(letter.leagueName, letter.from))} aside={<time dateTime={new Date(letter.at).toISOString()}>{letterWhen(letter.at)}</time>} className="min-w-0">
       <article className="flex flex-col gap-3 p-4">
-        <h3 className="text-lead font-bold text-fact">{letter.subject}</h3>
+        <h3 className="text-heading font-bold text-fact">{letter.subject}</h3>
         <p className="whitespace-pre-line wrap-anywhere">{letter.body}</p>
       </article>
     </Panel>
