@@ -12,8 +12,7 @@ import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords } from "../../convex/shared/numberWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { versusWords, whenWords } from "../shared/words";
-import { confirmDeleteWords } from "../leagues/words";
+import { confirmDeleteWords, versusWords, whenWords } from "../shared/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";

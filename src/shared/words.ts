@@ -39,6 +39,8 @@ export const POSITION_NAMES: Record<Position, string> = {
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
 /** Closes what was opened to change something, changing nothing. */
 export const cancelWords = "Cancel";
+/** The two answers to "Delete this?": deleting a league and the admin's feedback both ask it. */
+export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
 /** When a change failed before the server could say why: the connection, or the server itself. */
 export const changeFailedWords = failedWords("nothing changed");
 
