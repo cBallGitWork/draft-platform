@@ -44,6 +44,8 @@ beforeEach(async () => {
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
   const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
+  // Marking feedback read and deleting it need a message.
+  const feedbackId = await t.run((ctx) => ctx.db.insert("feedback", { from: ANN, at: Date.now(), message: "Love it" }));
 
   calls = (caller) => {
     const now = Date.now();
@@ -72,6 +74,8 @@ beforeEach(async () => {
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
       "draft/draftStart:ofLeague": () => caller.query(api.draft.draftStart.ofLeague, { leagueId }),
       "feedback/feedback:list": () => caller.query(api.feedback.feedback.list, {}),
+      "feedback/feedback:markRead": () => caller.mutation(api.feedback.feedback.markRead, { feedbackId }),
+      "feedback/feedback:remove": () => caller.mutation(api.feedback.feedback.remove, { feedbackId }),
       "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
       "football/clubKits:all": () => caller.query(api.football.clubKits.all, {}),
       "football/clubKits:set": () => caller.mutation(api.football.clubKits.set, { code: SOME_CODE, primary: "#000000", secondary: "#FFFFFF", pattern: "plain" }),

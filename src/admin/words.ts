@@ -12,7 +12,7 @@ import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords } from "../../convex/shared/numberWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { versusWords, whenWords } from "../shared/words";
+import { confirmDeleteWords, versusWords, whenWords } from "../shared/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
 
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
@@ -183,6 +183,16 @@ export const feedbackLoadingWords = "Loading the feedback…";
 export const noFeedbackWords = "No feedback yet.";
 /** Past the newest the list shows, said as the late corrections say it. */
 export const moreFeedbackWords = moreCorrectionsWords;
+/** A message's own controls (#395, S15.7): mark it read, or delete it after a yes. */
+export const feedbackWords = {
+  read: "Read",
+  markRead: "Mark read",
+  markReadLabel: (from: string) => `Mark ${from}'s feedback read`,
+  remove: "Delete",
+  removeLabel: (from: string) => `Delete ${from}'s feedback`,
+  confirm: (from: string) => `Delete this feedback from ${from}? It can't be undone.`,
+  ...confirmDeleteWords,
+};
 
 /** The Availability tab (#1209, spec/06 Availability; the approved auto-team picture): every player
  *  set by hand over the feed, and the picked one's panel. */

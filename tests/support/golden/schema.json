@@ -6685,6 +6685,13 @@
           "fields": [
             "at"
           ]
+        },
+        {
+          "indexDescriptor": "by_from_and_at",
+          "fields": [
+            "from",
+            "at"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -6712,6 +6719,12 @@
               "type": "string"
             },
             "optional": false
+          },
+          "readAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }

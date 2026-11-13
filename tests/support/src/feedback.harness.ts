@@ -12,6 +12,8 @@ const NO_FEEDBACK: FeedbackList = { entries: [], more: false };
 export function fakeFeedback({ list = NO_FEEDBACK, loading = false }: FeedbackData = {}) {
   return {
     send: vi.fn<FeedbackSeam["send"]>(async () => null),
+    markRead: vi.fn<FeedbackSeam["markRead"]>(async () => null),
+    remove: vi.fn<FeedbackSeam["remove"]>(async () => null),
     useFeedbackList: vi.fn<FeedbackSeam["useFeedbackList"]>(() => (loading ? undefined : list)),
   };
 }
