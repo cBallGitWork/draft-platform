@@ -7,6 +7,8 @@ Craig's latest message in this session (last_prompt.py) says to act: one of GO_W
 "go ahead", "file it", "ship it", "merge it" (merge and the verbs after a yes need an object), a bare "File",
 a message opening with "yes" or with "file" and an object ("file answers"), one made only of numbered answers
 ("1 a\n2 b"), or a slash command, which is an instruction by itself.
+Only a gh call the command line really runs is gated, each read as the shell reads it (commands.py), so a
+commit message, echo or grep that quotes one isn't, and gh's options before its command are skipped.
 Without his message on record (a cloud builder, whose whole run is a build Craig or the lead started)
 nothing is gated. Reads and git are never gated: a branch, a commit and a push are the session's own
 and publish nothing. A payload it can't read is denied (guard_run.run_guard). Stdlib only, Python 3.9+.
@@ -17,9 +19,12 @@ from __future__ import annotations
 import re
 import sys
 
+from commands import Unbalanced, Unreadable, UnreadableStdin, commands
 from guard_run import run_guard
 from hook_payload import field, project_dir
 from last_prompt import state_file
+from private_words import GH_VALUE_OPTS
+from where import arguments, runs_at
 
 GO_WORDS = re.compile(
     r"\b(build|go ahead|go for it|do it|do that|do them|do all|do both|"
@@ -68,21 +73,31 @@ def pipeline_test(words):
     return any(word == "--ref" and i + 1 < len(words) and words[i + 1] != DEFAULT_BRANCH for i, word in enumerate(words))
 
 
-def gated_bash(command):
-    """What this command does that is gated, or None."""
-    words = command.split()
-    for i, word in enumerate(words):
-        if word == "gh" and tuple(words[i + 1:i + 3]) in GH_GATED:
-            if words[i + 1:i + 3] == ["workflow", "run"] and pipeline_test(words[i + 3:]):
-                continue
-            return f"gh {' '.join(words[i + 1:i + 3])}"
+def gated_bash(command, cwd):
+    """What this command does that is gated, or None. Each gh call it runs is judged by its own words, its
+    command the first two that aren't an option or an option's value (gh -R o/r issue create); a gh command
+    only quoted (git commit -m "say when gh pr create is refused", echo, grep) isn't gated (#1557)."""
+    try:
+        cmds = commands(command, cwd)
+    except Unbalanced:
+        return None  # its quotes don't balance, so zsh runs none of it (commands.py)
+    except (Unreadable, UnreadableStdin):
+        return None  # guard_bash.py refuses a string it can't read
+    for words, _ in cmds:
+        i = runs_at(words, "gh")
+        if i is None:
+            continue
+        args = words[i + 1:]
+        pair = tuple(arguments(args, GH_VALUE_OPTS)[1][:2])
+        if pair in GH_GATED and not (pair == ("workflow", "run") and pipeline_test(args)):
+            return "gh " + " ".join(pair)
     return None
 
 
-def gated(tool, tool_input):
-    """What this tool call does that is gated, or None."""
+def gated(tool, tool_input, cwd):
+    """What this tool call does that is gated, or None; cwd is where a Bash command starts."""
     if tool == "Bash":
-        return gated_bash(field(tool_input, "command", str, ""))
+        return gated_bash(field(tool_input, "command", str, ""), cwd)
     if tool in {"Write", "Edit", "MultiEdit"}:
         path = field(tool_input, "file_path", str, "")
         if path.endswith("SPEC.md") or "/spec/" in path or path.startswith("spec/"):
@@ -95,7 +110,8 @@ def gated(tool, tool_input):
 
 def decide(payload):
     """The deny reason, or None."""
-    what = gated(field(payload, "tool_name", str, ""), field(payload, "tool_input", dict, {}))
+    what = gated(field(payload, "tool_name", str, ""), field(payload, "tool_input", dict, {}),
+                 project_dir(field(payload, "cwd", str, "")))
     if not what:
         return None
     try:

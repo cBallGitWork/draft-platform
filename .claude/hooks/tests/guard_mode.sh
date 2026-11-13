@@ -22,7 +22,7 @@ check deny guard_mode.py "$(bash_call 'gh pr create --title x --body-file b.md')
 check deny guard_mode.py "$(bash_call 'gh pr ready 5')"
 check deny guard_mode.py "$(bash_call 'gh pr merge 5 --squash')"
 check deny guard_mode.py "$(bash_call 'gh workflow run claude-build.yml -f issue=10')"
-check deny guard_mode.py "$(bash_call 'cd /x && gh issue create --title t')"  # anywhere in the line
+check deny guard_mode.py "$(bash_call 'cd /x && gh issue create --title t')"  # any command the line runs
 check deny guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
 check deny guard_mode.py "$(edit "$tmp/SPEC.md")"
 check deny guard_mode.py "$(call Write "$("$jq" -nc --arg f "spec/05-scoring.md" '{file_path:$f,content:"x"}')")"
@@ -39,6 +39,18 @@ check allow guard_mode.py "$(edit "$tmp/docs/to-grill.md")"
 check allow guard_mode.py "$(edit "$tmp/src/draft/words.ts")"
 check allow guard_mode.py "$(call mcp__github__issue_read '{"issue_number":1}')"
 silent guard_mode.py "$(bash_call 'gh issue view 10')"
+# only a gh call the line runs counts, read as the shell reads it, gh's options skipped (#1557)
+check deny guard_mode.py "$(bash_call 'gh -R o/r issue create --title x')"
+check deny guard_mode.py "$(bash_call 'gh --repo=o/r pr merge 5')"
+check deny guard_mode.py "$(bash_call 'gh issue -R o/r edit 10 --add-label build')"
+check deny guard_mode.py "$(bash_call 'bash -c "gh pr create --title x"')"
+check deny guard_mode.py "$(bash_call 'echo "$(gh pr ready 5)"')"
+says "gh issue create" guard_mode.py "$(bash_call 'gh -R o/r issue create --title x')"
+# a gh command only quoted isn't gated
+check allow guard_mode.py "$(bash_call 'git commit -m "docs: say when gh pr create is refused"')"
+check allow guard_mode.py "$(bash_call 'echo "then gh issue create is gated"')"
+check allow guard_mode.py "$(bash_call 'grep -rn "when gh pr merge runs" .claude/hooks')"
+check allow guard_mode.py "$(bash_call "python3 -c \"print('a gh pr create here')\"")"
 
 # a go
 for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" "yes, do it" "sort it" \
@@ -70,6 +82,7 @@ check allow guard_mode.py "$(bash_call 'gh workflow run claude-build.yml --ref f
 check allow guard_mode.py "$(bash_call 'gh workflow run lead.yml -f dry_run=true')"
 check deny guard_mode.py "$(bash_call 'gh workflow run claude-build.yml --ref main -f issue=10')"
 check deny guard_mode.py "$(bash_call 'gh workflow run lead.yml --ref fix/x && gh pr merge 5')"  # the merge is still gated
+check deny guard_mode.py "$(bash_call 'gh workflow run claude-build.yml -f issue=10 && echo dry_run=true')"  # another command's words
 # an app notice isn't his message: the talk before it still stands, and his words after one still count
 said "<task-notification>
 <task-id>x</task-id> go ahead, build it
