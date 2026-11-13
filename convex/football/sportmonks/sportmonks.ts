@@ -137,18 +137,24 @@ function shortNameOf(team: RawTeam): string {
 }
 
 /** The payloads as the seam's records: each club, each squad's men (a man in two squads once,
- *  under the club listed last), each round as a gameweek (rounds sharing a number as one) and each match under its round's number. */
+ *  under the club he joined last, his current one: of two spells, the one whose `start` is later;
+ *  one with no `start` counts as earliest, and of two equal, the club listed last, #2043), each
+ *  round as a gameweek (rounds sharing a number as one) and each match under its round's number. */
 export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): Football {
   if (!league.currentseason) throw new Error(`${SPORTMONKS} sent no current season`);
   const season = seasonStart(league.currentseason);
   if (teams.length === 0) throw new Error(`${SPORTMONKS} sent no clubs`);
   const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: shortNameOf(team), ...detailsOf(team) }));
   const players = new Map<number, Football["players"][number]>();
+  const joined = new Map<number, string>();
   const out = openSidelines(teams);
   for (const team of teams) {
     for (const man of team.players ?? []) {
       if (!man.player) throw new Error(`${SPORTMONKS} sent squad man ${man.player_id} of club ${team.id} with no player`);
       const { id, name, display_name, common_name, date_of_birth } = man.player;
+      const start = man.start ?? "";
+      if (start < (joined.get(id) ?? "")) continue;
+      joined.set(id, start);
       const born = date_of_birth ? { birthDate: date_of_birth } : {};
       players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id, ...availabilityOf(out.get(id)), ...born });
     }

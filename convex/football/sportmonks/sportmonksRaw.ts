@@ -18,7 +18,8 @@ export interface RawPlayer {
   position?: RawPosition | null;
   detailedposition?: RawPosition | null;
 }
-export interface RawSquadMan { player_id: number; player?: RawPlayer | null }
+/** A man's spell in a squad: `start` "2026-07-01", the day he joined it. */
+export interface RawSquadMan { player_id: number; start?: string | null; player?: RawPlayer | null }
 /** What keeps a man out (#1420): an injury or a suspension, its `type` naming it ("Hamstring
  *  Injury", "Red Card Suspension"). `end_date` is the expected return where Sportmonks sends one;
  *  `completed` is true once he is back. */
