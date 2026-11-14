@@ -52,6 +52,11 @@ import type { TestConvex } from "../../support/convex/test.harness";
 const SEED = simulationSeed();
 console.log(`Season simulation seed: ${SEED} (play it again with SIM_SEED=${SEED} npm run simulate)`);
 
+/** The wall clock, taken before the test fakes the clock, so the run says how long each part took. */
+const wallClock = performance.now.bind(performance);
+const STARTED = wallClock();
+const progress = (what: string) => console.log(`${what} (${Math.round((wallClock() - STARTED) / 1000)}s)`);
+
 /** A commissioner's reason, as each override needs one. */
 const REASON = "Season simulation";
 
@@ -84,7 +89,7 @@ function worldFetch(sendDays: string[]) {
   );
 }
 
-/** The football sync's rows, held as it holds them, and the first deadline alarm it sets. */
+/** The football sync's rows, held as it holds them. */
 async function holdTheSeason(t: TestConvex) {
   await t.run(async (ctx) => {
     await insertClubs(ctx, CLUBS);
@@ -95,7 +100,6 @@ async function holdTheSeason(t: TestConvex) {
     }
     for (const fixture of FIXTURES) await ctx.db.insert("fixtures", fixture);
   });
-  await t.mutation(internal.gameweeks.deadlineRecorder.recordDueDeadlines, {});
 }
 
 /** The admin makes the `index`th league, the commissioner gives it its pairwise rules and assigns
@@ -124,11 +128,10 @@ const fullTimeRead = (t: TestConvex, fixture: Fixture, readAt: number, records: 
   t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: fixture.code, readAt, records });
 
 /** Each team's stored points in the gameweek, by team. */
-const storedIn = (t: TestConvex, leagueId: Id<"leagues">, gameweek: number) =>
-  t.run(async (ctx) => {
-    const rows = await ctx.db.query("finalScores").collect();
-    return new Map(rows.filter((row) => row.leagueId === leagueId && row.gameweek === gameweek).map((row) => [row.teamId, row.points]));
-  });
+async function storedIn(t: TestConvex, leagueId: Id<"leagues">, gameweek: number) {
+  const rows = await t.run((ctx) => ctx.db.query("finalScores").collect());
+  return new Map(rows.filter((row) => row.leagueId === leagueId && row.gameweek === gameweek).map((row) => [row.teamId, row.points]));
+}
 
 /** The override the player's card shows for the match, in the league, or null. */
 async function cardOverride(t: TestConvex, league: League, playerCode: number, fixtureCode: number) {
@@ -158,6 +161,9 @@ test("a whole season: six leagues, 80 teams, 39 gameweeks, within Convex's limit
   const leagues: League[] = [];
   for (let index = 0; index < LEAGUE_SIZES.length; index += 1) leagues.push(await makeLeague(t, random, index));
   expect(leagues.reduce((teams, league) => teams + league.teams.length, 0)).toBe(80);
+  // The football sync's next run records the deadlines, and sets the alarm for the first to come.
+  await t.mutation(internal.gameweeks.deadlineRecorder.recordDueDeadlines, {});
+  progress("Leagues made and squads assigned");
 
   for (let gameweek = 1; gameweek <= SEASON_GAMEWEEKS; gameweek += 1) {
     if (gameweek === RULES_CHANGE_GAMEWEEK) {
@@ -219,6 +225,8 @@ test("a whole season: six leagues, 80 teams, 39 gameweeks, within Convex's limit
       // The screens' reads of the league, within Convex's limits.
       await (await actingAs(t, league.manager)).query(api.table.leagueTable.ofLeague, { leagueId: league.leagueId });
     }
+
+    progress(`Gameweek ${gameweek} played and stored`);
 
     // The week between: the waiver and trade checks run as their crons do, each day.
     for (let day = 1; day <= 5; day += 1) {
