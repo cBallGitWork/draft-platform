@@ -54,19 +54,21 @@ const LITERAL_TYPES = { string: "string", number: "number", boolean: "boolean" }
 /**
  * Where a value `before` accepts may not fit `after` (a field's path, or "" for the type itself),
  * or null when `after` accepts every value `before` does. A field added to an object strands
- * nothing (a required one makes Convex refuse the deploy instead). Cautious: a value split across
- * a new union's branches, say, reads as stranded.
+ * nothing (a required one makes Convex refuse the deploy instead), unless `newRequiredStrands`: a
+ * function's arguments, where a queued call made without it fails (scripts/function-inputs.mjs).
+ * Cautious: a value split across a new union's branches, say, reads as stranded.
  */
-export function strandedAt(before, after, path = "") {
+export function strandedAt(before, after, { newRequiredStrands = false } = {}, path = "") {
+  const options = { newRequiredStrands };
   if (after.type === "any") return null;
   if (before.type === "union") {
     for (const branch of before.value) {
-      const at = strandedAt(branch, after, path);
+      const at = strandedAt(branch, after, options, path);
       if (at !== null) return at;
     }
     return null;
   }
-  if (after.type === "union") return after.value.some((branch) => strandedAt(before, branch, path) === null) ? null : path;
+  if (after.type === "union") return after.value.some((branch) => strandedAt(before, branch, options, path) === null) ? null : path;
   if (before.type === "literal") {
     if (after.type === "literal") return sameValue(before.value, after.value) ? null : path;
     return LITERAL_TYPES[typeof before.value] === after.type ? null : path;
@@ -75,20 +77,22 @@ export function strandedAt(before, after, path = "") {
   const inside = (name) => (path ? `${path}.${name}` : name);
   switch (before.type) {
     case "array":
-      return strandedAt(before.value, after.value, inside("[]"));
+      return strandedAt(before.value, after.value, options, inside("[]"));
     case "record":
       return (
-        strandedAt(before.keys, after.keys, inside("[key]")) ??
-        strandedAt(before.values.fieldType, after.values.fieldType, inside("[]"))
+        strandedAt(before.keys, after.keys, options, inside("[key]")) ??
+        strandedAt(before.values.fieldType, after.values.fieldType, options, inside("[]"))
       );
-    case "object":
+    case "object": {
       for (const [name, field] of Object.entries(before.value)) {
         const now = after.value[name];
         if (!now || (field.optional && !now.optional)) return inside(name);
-        const at = strandedAt(field.fieldType, now.fieldType, inside(name));
+        const at = strandedAt(field.fieldType, now.fieldType, options, inside(name));
         if (at !== null) return at;
       }
-      return null;
+      const added = Object.entries(after.value).find(([name, field]) => !field.optional && !(name in before.value));
+      return newRequiredStrands && added ? inside(added[0]) : null;
+    }
     default:
       // string, number, boolean, null and the rest: the same in everything they carry (an id's table).
       return sameValue(before, after) ? null : path;

@@ -17,11 +17,14 @@ export const modules = import.meta.glob("../../../convex/**/*.ts");
 export type TestConvex = TestConvexOf<typeof schema>;
 
 /** A registered function as Convex's runtime marks it, all a sweep reads of one. */
-export type RegisteredFunction = { isMutation?: boolean; isPublic?: boolean; exportArgs?: () => string };
+export type RegisteredFunction = { isMutation?: boolean; isAction?: boolean; isPublic?: boolean; exportArgs?: () => string };
 
 /** Every public query, mutation and action, keyed "folder/module:name". Read from the deployed
  *  modules, so a function added later is found without anyone listing it. */
-export async function publicFunctions(): Promise<Map<string, RegisteredFunction>> {
+export const publicFunctions = () => registeredFunctions((fn) => fn.isPublic === true);
+
+/** Every registered function `wanted` picks, keyed as publicFunctions keys them. */
+export async function registeredFunctions(wanted: (fn: RegisteredFunction) => boolean): Promise<Map<string, RegisteredFunction>> {
   const found = new Map<string, RegisteredFunction>();
   for (const [path, load] of Object.entries(modules)) {
     // Convex deploys only files with one dot in their name, and none of _generated.
@@ -29,7 +32,7 @@ export async function publicFunctions(): Promise<Map<string, RegisteredFunction>
     if (!module) continue;
     for (const [name, exported] of Object.entries((await load()) as Record<string, unknown>)) {
       const fn = exported as RegisteredFunction | undefined;
-      if (fn?.isPublic) found.set(`${module}:${name}`, fn);
+      if (fn?.exportArgs && wanted(fn)) found.set(`${module}:${name}`, fn);
     }
   }
   return found;
