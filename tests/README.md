@@ -4,8 +4,8 @@ Every Vitest and Playwright test sits here (the hook checks are in `.claude/hook
 one of five roots: at the path of the code it tests, or at the root for a test that spans many
 files (`tests/src/flow.test.ts`). The Convex tests that play the whole product through are under
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
-stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
-time.
+stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
+time, and `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points.
 
 **Contents:** [The five roots](#the-five-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·

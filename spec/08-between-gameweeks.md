@@ -22,13 +22,13 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   2026, the same day:
   - Reverse table order is worked out again when a gameweek ends, the bottom of the table first. A
     team that wins a claim goes to the bottom until the next gameweek ends: "the table order resets
-    only fully only when a gameweek ends". `S08.18`
+    only fully only when a gameweek ends".
   - Rotating: whoever last won a claim goes to the bottom, and it never resets: "rolling means
     whoever last made a waiver is at the bottom, that doesnt reset. you dont want to give the last
     pick in draft first waiver every week".
   - There is always a table ("theres always a table"), everyone on 0 at the start. Teams level in it
     go by its own tie-breaks, then by the reverse of the draft order, which is also rotating's
-    starting order.
+    starting order. `S08.18`
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
   commissioner can change it (`spec/03`).
   - Changed run times count only from the next one still ahead, so a new time already gone this

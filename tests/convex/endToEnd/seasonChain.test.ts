@@ -16,10 +16,10 @@ import { draftSteps } from "../../support/convex/draft.harness";
 import { annsScoredGame, EVERTON_POINTS, HULL_POINTS, sideTotal, slotOf } from "../../support/convex/gameweekScores.harness";
 import { actingAs, addManagers, adminCreatesLeague, ADMIN, lettersTo } from "../../support/convex/leagues.harness";
 import { EVERTON, FULL_TIME_READ, GAMEWEEK, HULL, KICKOFF, mergedHullEverton } from "../../support/convex/matchStats.harness";
-import { ANN, BOB, CAT, DAN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, SETUP_MORNING, tableOf } from "../../support/convex/miniBeta.harness";
+import { ANN, BOB, CAT, DAN, DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, WEEK_BEFORE_GW6, tableOf } from "../../support/convex/miniBeta.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
-import { clockRunsTo, MADE_UP_CODES, type TestConvex } from "../../support/convex/test.harness";
+import { clockRunsTo, MADE_UP_CODES, SLOW_TEST, type TestConvex } from "../../support/convex/test.harness";
 import { dropPlayer } from "../../support/convex/waivers.harness";
 
 // One season chain through the entry points the app and the crons call (#2131): the four mini beta
@@ -42,16 +42,16 @@ const WEDNESDAY_RUN = Date.parse("2026-10-14T17:00:00Z");
 /** Each manager's squad, in the order he drafts it: his eleven as the mini beta assigns it. */
 const PICKS = new Map([ANN, BOB, CAT, DAN].map((email) => [email, ELEVENS[email].map(({ playerCode }) => playerCode)]));
 
-const squadOf = (t: TestConvex, teamId: Id<"teams">) =>
+const heldSquad = (t: TestConvex, teamId: Id<"teams">) =>
   t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode));
-const lineupRows = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === teamId));
+const teamLineups = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === teamId));
 const storedIn = async (t: TestConvex, gameweek: number, emailOf: Map<Id<"teams">, string>) =>
   new Map((await t.run((ctx) => ctx.db.query("finalScores").collect())).filter((row) => row.gameweek === gameweek).map((row) => [emailOf.get(row.teamId)!, row.points]));
 
-test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 scored, the table, a waiver run and the claimed man's points", async () => {
+test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 scored, the table, a waiver run and the claimed man's points", SLOW_TEST, async () => {
   const beforeKickoff = () => leagueWorld(recordedGw6(), { beforeKickoff: true });
-  const t = await signInDeployment(SETUP_MORNING);
-  expect((await footballSyncAt(t, SETUP_MORNING, beforeKickoff())).outcome.ok).toBe(true);
+  const t = await signInDeployment(WEEK_BEFORE_GW6);
+  expect((await footballSyncAt(t, WEEK_BEFORE_GW6, beforeKickoff())).outcome.ok).toBe(true);
   const leagueId = await adminCreatesLeague(t);
   const managers = [...PICKS.keys()];
   const teamIds = await addManagers(t, leagueId, managers);
@@ -72,12 +72,12 @@ test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 
     await draft.pickAndWait(email, left.get(email)!.shift()!);
   }
   expect(await draft.read()).toMatchObject({ status: "over", picksMade: PICKS.size * ELEVENS[ANN].length });
-  for (const teamId of teamIds) expect(new Set(await squadOf(t, teamId))).toEqual(new Set(PICKS.get(emailOf.get(teamId)!)));
+  for (const teamId of teamIds) expect(new Set(await heldSquad(t, teamId))).toEqual(new Set(PICKS.get(emailOf.get(teamId)!)));
 
   // Each team holds the first lineup its picks filled, from gameweek 1, saved as the draft ended
   // (S05.49, #1040): every man in his squad on it, nobody twice.
   for (const teamId of teamIds) {
-    const [first] = await lineupRows(t, teamId);
+    const [first] = await teamLineups(t, teamId);
     expect(first).toMatchObject({ fromGameweek: FIRST_GAMEWEEK });
     expect(first.firstLineup).toBeUndefined();
     expect([...first.starters.map(({ playerCode }) => playerCode), ...first.bench].sort()).toEqual([...PICKS.get(emailOf.get(teamId)!)!].sort());
@@ -87,7 +87,7 @@ test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 
   // his midfielders is then ruled out.
   for (const email of [ANN, BOB, CAT]) await (await actingAs(t, email)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: ELEVENS[email], bench: [] } });
   await (await actingAs(t, DAN)).mutation(api.lineup.autoTeam.set, { leagueId, teamId: dansTeam, on: true });
-  const [dansFirst] = await lineupRows(t, dansTeam);
+  const [dansFirst] = await teamLineups(t, dansTeam);
   const ruledOut = dansFirst.starters.find(({ area }) => area === "midfield")!;
   await admin.mutation(api.availability.availability.set, { code: ruledOut.playerCode, availability: "out" });
 
@@ -95,7 +95,7 @@ test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 
   // and swaps the man who is out for the first bench player who fits, from gameweek 6 (S09.3).
   expect((await footballSyncAt(t, DEADLINE + MINUTE_MS, beforeKickoff())).outcome.ok).toBe(true);
   await clockRunsTo(t, Date.now());
-  const dansSix = (await lineupRows(t, dansTeam)).find((row) => row.fromGameweek === GAMEWEEK)!;
+  const dansSix = (await teamLineups(t, dansTeam)).find((row) => row.fromGameweek === GAMEWEEK)!;
   const startersOf = (row: typeof dansFirst) => row.starters.map(({ playerCode }) => playerCode).sort();
   const swapped = startersOf(dansFirst).map((code) => (code === ruledOut.playerCode ? dansFirst.bench[0] : code)).sort();
   expect(startersOf(dansSix)).toEqual(swapped);
@@ -142,11 +142,11 @@ test("a season chain: the draft's end, first lineups, the auto team, gameweek 6 
   await (await actingAs(t, ANN)).mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: BELLOUMI, dropCode: annsDrop.playerCode });
   vi.setSystemTime(WEDNESDAY_RUN);
   await t.mutation(internal.waivers.waiverRun.run, { leagueId, at: WEDNESDAY_RUN });
-  expect(await squadOf(t, annsTeam)).toContain(BELLOUMI);
-  expect(await squadOf(t, annsTeam)).not.toContain(annsDrop.playerCode);
-  expect(await squadOf(t, bobsTeam)).toContain(bobsDrop.playerCode);
-  expect(await squadOf(t, bobsTeam)).not.toContain(BELLOUMI);
-  expect(await squadOf(t, catsTeam)).not.toContain(BELLOUMI);
+  expect(await heldSquad(t, annsTeam)).toContain(BELLOUMI);
+  expect(await heldSquad(t, annsTeam)).not.toContain(annsDrop.playerCode);
+  expect(await heldSquad(t, bobsTeam)).toContain(bobsDrop.playerCode);
+  expect(await heldSquad(t, bobsTeam)).not.toContain(BELLOUMI);
+  expect(await heldSquad(t, catsTeam)).not.toContain(BELLOUMI);
   expect((await lettersTo(t, BOB)).map(({ subject }) => subject)).toContain("Your claim for Belloumi failed");
 
   // Ann puts Belloumi in her dropped man's place from gameweek 7, the next not yet begun.
