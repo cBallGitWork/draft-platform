@@ -10,9 +10,9 @@ import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 // tests/ and names any such file, using the include globs vitest.config.ts itself holds.
 
 const TESTS_ROOT = "tests";
-// Playwright runs tests/smoke/ (`npm run smoke`) and tests/live/ (the after-release check,
-// playwright.live.config.ts); tests/support/ holds harnesses, not tests.
-const NOT_VITEST = [`${TESTS_ROOT}/smoke/`, `${TESTS_ROOT}/live/`, `${TESTS_ROOT}/support/`];
+// Playwright runs tests/smoke/ (`npm run smoke`), tests/clicker/ (`npm run clicker`) and tests/live/
+// (the after-release check, playwright.live.config.ts); tests/support/ holds harnesses, not tests.
+const NOT_VITEST = [`${TESTS_ROOT}/smoke/`, `${TESTS_ROOT}/clicker/`, `${TESTS_ROOT}/live/`, `${TESTS_ROOT}/support/`];
 const TEST_FILE = /\.(test|spec)\.[^/]+$/;
 
 const projectIncludes = config.test.projects.flatMap((project) => project.test.include);

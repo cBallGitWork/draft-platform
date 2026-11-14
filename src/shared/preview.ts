@@ -124,7 +124,8 @@ export const chaosFailedWords = previewSaid("the save failed");
 /** The chaos the address the app opened at asks for, read once, so it lasts as the manager moves
  *  round the app; none off the dev server. */
 const chaos: ChaosMode | null = (() => {
-  if (!import.meta.env.DEV || typeof window === "undefined") return null;
+  // No window first: Playwright's specs load this file in Node, with no import.meta.env.
+  if (typeof window === "undefined" || !import.meta.env.DEV) return null;
   const asked = new URLSearchParams(window.location.search).get(CHAOS_KEY);
   return CHAOS_MODES.find((mode) => mode === asked) ?? null;
 })();
