@@ -10,9 +10,9 @@ import {
   matchRecords,
   SEASON_PLAYERS,
   SEASON_GAMEWEEKS,
-  seededRandom,
   SQUAD_SHAPE,
 } from "../../support/convex/seasonSimulation.harness";
+import { seededRandom } from "../../support/seededRandom";
 
 // The season simulation's world (#2132), checked on every pull request: `npm run simulate` plays it
 // for about an hour, so a world that couldn't be played would only show there.
@@ -23,12 +23,12 @@ test("the leagues hold 80 teams, and their rules cover every pair of settings", 
 });
 
 test("the same seed plays the same season", () => {
-  const draw = (seed: number) => {
+  const play = (seed: number) => {
     const random = seededRandom(seed);
-    return Array.from({ length: 5 }, () => random());
+    return { squads: dealSquads(random, Math.max(...LEAGUE_SIZES)), records: matchRecords(random, FIXTURES[0]) };
   };
-  expect(draw(7)).toEqual(draw(7));
-  expect(draw(7)).not.toEqual(draw(8));
+  expect(play(7)).toEqual(play(7));
+  expect(play(7)).not.toEqual(play(8));
 });
 
 test("each gameweek every club plays once, and twice in the double gameweek", () => {

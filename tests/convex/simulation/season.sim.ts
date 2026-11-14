@@ -23,11 +23,9 @@ import {
   LEAGUE_SIZES,
   matchRecords,
   pairwiseRules,
-  pickOne,
   SEASON_PLAYERS,
   RULES_CHANGE_GAMEWEEK,
   SEASON_GAMEWEEKS,
-  seededRandom,
   LEAGUES_MADE_AT,
   simulationSeed,
   TO_FULL_TIME,
@@ -36,6 +34,7 @@ import {
   type Random,
 } from "../../support/convex/seasonSimulation.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
+import { seededRandom } from "../../support/seededRandom";
 
 // The season simulation (#2132): `npm run simulate`, which the nightly job calls; never part of
 // `npm test`, being minutes long. Six leagues, 80 teams, a whole season of 39 gameweeks on the
@@ -143,7 +142,7 @@ async function cardOverride(t: TestConvex, league: League, playerCode: number, f
 function heldIn(random: Random, league: League, records: MatchRecord[]) {
   const held = records.filter((record) => record.played && league.ownerOf.has(record.playerCode));
   if (held.length === 0) return null;
-  const { playerCode } = pickOne(random, held);
+  const { playerCode } = random.oneOf(held);
   return { playerCode, teamId: league.ownerOf.get(playerCode)! };
 }
 
@@ -252,7 +251,7 @@ async function overrideAndRemove(
   fixtures: SeasonFixture[],
   played: Map<number, MatchRecord[]>,
 ) {
-  const fixture = pickOne(random, fixtures);
+  const fixture = random.oneOf(fixtures);
   const held = heldIn(random, league, played.get(fixture.code)!);
   if (held === null) return;
   const { leagueId } = league;

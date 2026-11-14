@@ -14,6 +14,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { WAIVER_ORDERS, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../../../convex/scoring/values";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
+import type { seededRandom } from "../seededRandom";
 import { PL_GAMEWEEKS, type Club, type HeldPlayer } from "./footballRows.harness";
 
 /** The seed the run plays, from SIM_SEED when it is set, so a red run can be played again. */
@@ -22,22 +23,11 @@ export const simulationSeed = (): number => {
   return set === undefined || set === "" ? Math.floor(Math.random() * 2 ** 31) : Number(set);
 };
 
-/** A seeded random number in [0, 1), Mulberry32: the same seed plays the same season. */
-export function seededRandom(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let mixed = state;
-    mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
-    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
-    return ((mixed ^ (mixed >>> 14)) >>> 0) / 2 ** 32;
-  };
-}
-
+/** The seeded random source the run draws from (../seededRandom.ts): the same seed plays the same
+ *  season. */
 export type Random = ReturnType<typeof seededRandom>;
-/** A whole number from 0 to `below` - 1. */
-export const below = (random: Random, count: number) => Math.floor(random() * count);
-export const pickOne = <Item>(random: Random, items: readonly Item[]): Item => items[below(random, items.length)];
+/** A whole number from 0 to `count` - 1. */
+export const below = (random: Random, count: number) => random.between(0, count - 1);
 
 /** The season's gameweeks: the Premier League's 38 and one more, as a season may hold (#1618). */
 export const SEASON_GAMEWEEKS = PL_GAMEWEEKS + 1;
@@ -176,9 +166,9 @@ function clubRecords(random: Random, fixtureCode: number, clubCode: number, conc
     const line = squadLineOf(player);
     const stats: Record<string, number> = { [MINUTES_STAT]: minutes };
     if (played) {
-      const goals = line === "attack" ? below(random, 3) : line === "midfield" ? below(random, 2) : random() < 0.1 ? 1 : 0;
+      const goals = line === "attack" ? below(random, 3) : line === "midfield" ? below(random, 2) : random.next() < 0.1 ? 1 : 0;
       if (goals > 0) stats[GOALS] = goals;
-      if (random() < 0.15) stats[ASSISTS] = 1;
+      if (random.next() < 0.15) stats[ASSISTS] = 1;
       if (line === "goalkeeper") stats[SAVES] = below(random, 6);
       if (line === "goalkeeper" || line === "defence") {
         if (conceded === 0 && minutes >= 60) stats[CLEAN_SHEETS] = 1;
