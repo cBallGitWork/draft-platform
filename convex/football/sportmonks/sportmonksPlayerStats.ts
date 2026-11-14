@@ -171,6 +171,27 @@ export function sportmonksPlayerStats(match: SportmonksMatchRead): SportmonksPla
   return records.map((record) => ({ ...record, state: complete ? ("complete" as const) : ("provisional" as const) }));
 }
 
+/** A read's records with each man who played but has no stats row in it holding his last read's
+ *  (`S07.13`): one named with no `lineups.details` keeps his last sent stats under this read's
+ *  worked-out ones; one no longer named keeps his last record whole. Either is marked `held`, and
+ *  keeps the match provisional until a read fills him, so at full time he is still missing. A man
+ *  no longer named who never played loses his record, and one never sent has none to hold. */
+export function withLastRead(
+  records: readonly SportmonksPlayerMatchRecord[],
+  last: readonly SportmonksPlayerMatchRecord[],
+): SportmonksPlayerMatchRecord[] {
+  const lastOf = new Map(last.map((record) => [record.playerCode, record]));
+  const named = new Set(records.map((record) => record.playerCode));
+  const kept = records.map((record): SportmonksPlayerMatchRecord => {
+    const before = lastOf.get(record.playerCode);
+    if (!record.played || record.arrived || before === undefined || !before.arrived) return record;
+    return { ...record, arrived: true, stats: { ...before.stats, ...record.stats }, held: true };
+  });
+  const gone = last.filter((record) => record.played && !named.has(record.playerCode)).map((record) => ({ ...record, held: true as const }));
+  const all = [...kept, ...gone];
+  return all.some((record) => record.held) ? all.map((record) => ({ ...record, state: "provisional" as const })) : all;
+}
+
 /** The catalogue stats a man's `lineups.details` fill; a type the catalogue has no stat for is not
  *  one we keep (a match rating). */
 function sentStats(man: SportmonksMan, fixtureCode: number): Record<string, number> {
