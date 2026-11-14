@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { expect, test } from "vitest";
-import { PIN_PATH, kitProblems } from "../../scripts/studio-kit.mjs";
+import { PIN_PATH, hashOf, isSafePath, kitProblems, readPin } from "../../scripts/studio-kit.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
@@ -47,4 +47,13 @@ test("a checkout with no pin says how to get one", () => {
 
 test("this repository's kit copies match their pin", () => {
   expect(kitProblems(REPO_ROOT)).toEqual([]);
+});
+
+test("the helpers Forge's copy-kit shares: line-ending-blind hash, safe paths, a pin read without throwing", () => {
+  const root = pinnedCheckout({ "a.py": "one\n" });
+  expect(hashOf(join(root, "a.py"), HASH)).toBe(createHash(HASH).update("one\n").digest("hex"));
+  expect([isSafePath("a/b.py"), isSafePath("../x"), isSafePath("/etc/x"), isSafePath("a\\b")]).toEqual([true, false, false, false]);
+  expect(readPin(root).pin.studio).toBe("abc1234");
+  writeFileSync(join(root, PIN_PATH), "{ broken");
+  expect(readPin(root).problem).toMatch(/not valid JSON/);
 });
