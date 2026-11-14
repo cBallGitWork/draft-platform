@@ -11,8 +11,9 @@ import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 
 // A busy waiver run held to Convex's own limits (#1538): the first after a draft, in a league
-// of the most teams one holds (#2130), every team with a full ranked list, the squad, club and area limits all on. Each team's squad and each player's
-// club and positions are read once for the run, not once per claim tried, so the one job that
+// of the most teams one holds (#2130), every team with a full ranked list, the squad, club and
+// area limits all on. Each team's squad and each player's club and positions are read once for
+// the run, not once per claim tried, so the one job that
 // tries every claim stays clear of the reads one transaction may make. Before #1538 a run this size
 // threw, saved nothing and threw again at every check after.
 
