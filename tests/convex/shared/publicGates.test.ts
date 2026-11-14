@@ -132,7 +132,7 @@ beforeEach(async () => {
       "positions/positionSettings:setChangeThresholds": () =>
         caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),
       "rules/leagueRules:latest": () => caller.query(api.rules.leagueRules.latest, { leagueId }),
-      "rules/leagueSettings:settings": () => caller.query(api.rules.leagueSettings.settings, { leagueId, now }),
+      "rules/leagueSettings:settings": () => caller.query(api.rules.leagueSettings.settings, { leagueId }),
       "scoring/patchNotes:banner": () => caller.query(api.scoring.patchNotes.banner, { now }),
       "scoring/patchNotes:dismissBanner": () => caller.mutation(api.scoring.patchNotes.dismissBanner, { versionId }),
       "scoring/patchNotes:notes": () => caller.query(api.scoring.patchNotes.notes, {}),

@@ -8,6 +8,12 @@ import type { gameweekRecord } from "../schema";
 
 type Gameweek = Pick<Infer<typeof gameweekRecord>, "number">;
 
+/** A gameweek with the league's own deadline in it, null where none is known: what a query sends
+ *  for the screen to judge at its own minute, as a query taking the minute runs again, uncached,
+ *  every minute for every open screen (#2005, #2008). */
+export const gameweekDeadline = v.object({ gameweek: v.number(), deadline: v.union(v.number(), v.null()) });
+export type GameweekDeadline = Infer<typeof gameweekDeadline>;
+
 /**
  * The first gameweek that hasn't begun after the last that has: begun is past its league deadline
  * (deadline.ts's `leagueDeadline`). FPL's deadline plays no part (#138). A gameweek with no kickoff
@@ -22,13 +28,39 @@ export function nextGameweek(
   passed: ReadonlyMap<number, number>,
   now: number,
 ): number {
-  const inOrder = gameweeks.toSorted((one, other) => one.number - other.number);
-  const next = nextByDeadlines(
-    inOrder,
-    ({ number }) => leagueDeadline(number, matches, deadlineFor(number), passed.get(number) ?? null),
-    now,
-  );
-  return next?.number ?? (inOrder.at(-1)?.number ?? 0) + 1;
+  return nextGameweekAt(deadlinesOf(gameweeks, matches, deadlineFor, passed), now);
+}
+
+/** Each gameweek, in order, with its league deadline (deadline.ts's `leagueDeadline`) under the
+ *  rule `deadlineFor` names for it: what `nextGameweek` judges, at any minute. */
+export function deadlinesOf(
+  gameweeks: readonly Gameweek[],
+  matches: readonly ScheduledMatch[],
+  deadlineFor: (gameweek: number) => DeadlineRule,
+  passed: ReadonlyMap<number, number>,
+): GameweekDeadline[] {
+  return gameweeks
+    .toSorted((one, other) => one.number - other.number)
+    .map(({ number }) => ({ gameweek: number, deadline: leagueDeadline(number, matches, deadlineFor(number), passed.get(number) ?? null) }));
+}
+
+/** `nextGameweek` at `now`, from `deadlinesOf`'s gameweeks. */
+export function nextGameweekAt(inOrder: readonly GameweekDeadline[], now: number): number {
+  return nextByDeadlines(inOrder, ({ deadline }) => deadline, now)?.gameweek ?? (inOrder.at(-1)?.gameweek ?? 0) + 1;
+}
+
+/** What the gameweek a rule change takes effect from is judged on (leagueRules.ts's
+ *  `changesFromTimesOf`):the season's gameweeks with their deadlines under the rules in force in
+ *  each, and under the changed rules' own deadline; and the gameweek a change already waiting takes
+ *  effect from. A screen editing the rules judges them at its own minute (`changesFromAt`), so its
+ *  query takes none and isn't asked again every minute (#2008). */
+export const changesFromTimes = v.object({ inForce: v.array(gameweekDeadline), own: v.array(gameweekDeadline), waiting: v.number() });
+export type ChangesFromTimes = Infer<typeof changesFromTimes>;
+
+/** The gameweek a rule change made at `now` takes effect from: the next not begun under the rules it
+ *  replaces nor under its own deadline, and never earlier than a change already waiting. */
+export function changesFromAt({ inForce, own, waiting }: ChangesFromTimes, now: number): number {
+  return Math.max(nextGameweekAt(inForce, now), nextGameweekAt(own, now), waiting);
 }
 
 /**
@@ -50,12 +82,6 @@ export function thisGameweekOf<Gameweek extends { gameweek: number }>(
 ): Gameweek | undefined {
   return gameweeks.findLast(({ gameweek }) => isLocked(deadlineOf(gameweek), now)) ?? gameweeks[0];
 }
-
-/** A gameweek with the league's own deadline in it, null where none is known: what a query sends
- *  for the screen to judge at its own minute, as a query taking the minute runs again, uncached,
- *  every minute for every open screen (#2005, #2008). */
-export const gameweekDeadline = v.object({ gameweek: v.number(), deadline: v.union(v.number(), v.null()) });
-export type GameweekDeadline = Infer<typeof gameweekDeadline>;
 
 /** `thisGameweekOf` among gameweeks sent with their deadlines, in order: null with none. */
 export function thisGameweekAt(gameweeks: readonly GameweekDeadline[], now: number): number | null {

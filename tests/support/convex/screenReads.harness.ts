@@ -1,11 +1,11 @@
-// League home and the matchup read as their screens read them (#1550): the small query that tells
+// League home, the matchup and League settings read as their screens read them (#1550): the small query that tells
 // the time (each sends its times, judged at the minute: #2005, #2008), then the clock-free ones it
 // points at, put together at the minute as the live seams put them (src/home/liveHome.ts,
 // src/matchup/liveMatchup.ts).
 
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { thisGameweekAt } from "../../../convex/gameweeks/nextGameweek";
+import { changesFromAt, thisGameweekAt } from "../../../convex/gameweeks/nextGameweek";
 import { clockAt, clockHourOf, leagueHomeAt } from "../../../convex/home/homeAt";
 import { matchupAt } from "../../../convex/matchup/commentaryAt";
 import type { actingAs } from "./leagues.harness";
@@ -19,6 +19,13 @@ export async function leagueHomeOf(caller: Caller, leagueId: Id<"leagues">, now:
   const open = clock.matchday;
   const matchday = open === null ? null : { gameweek: open.gameweek, commentary: await caller.query(api.home.leagueHome.matchdayOf, { leagueId, ...open }) };
   return leagueHomeAt(held, matchday, now);
+}
+
+/** League settings at `now`, as `caller` reads them: the gameweek a change applies from judged at
+ *  `now` (#2008). */
+export async function leagueSettingsOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
+  const held = await caller.query(api.rules.leagueSettings.settings, { leagueId });
+  return { ...held, changesFrom: changesFromAt(held.changesFrom, now) };
 }
 
 /** The matchup at `now`, as `caller` reads it: their own team's unless `asked` names one, in the

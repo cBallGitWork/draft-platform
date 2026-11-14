@@ -77,7 +77,7 @@ export async function tradeLeague() {
     /** The commissioner changes the trade rules in League settings now: from the next gameweek. */
     tradesChange: async (trades: TradeRules) => {
       const commissioner = await actingAs(t, COMMISSIONER);
-      const settings = (await commissioner.query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() }))!.part;
+      const settings = (await commissioner.query(api.rules.leagueSettings.settings, { leagueId }))!.part;
       return commissioner.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...settings, trades }, revision: await rulesRevision(t, leagueId) });
     },
     /** The review's 24 hours pass and its timer fires, as the scheduler fires it. */
