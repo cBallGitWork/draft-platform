@@ -5,8 +5,7 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 import { draftStarted } from "../../support/convex/draft.harness";
 import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks, holdMatchState, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, managersNamed, teamsIn } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { addManagers, managersNamed, teamsIn, freshLeague } from "../../support/convex/leagues.harness";
 import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 
@@ -33,9 +32,7 @@ const squadCodes = (team: number) => Array.from({ length: SQUAD_SIZE }, (_, inde
 const poolCodes = Array.from({ length: POOL }, (_, index) => 30_000 + index);
 
 test(`a run of ${TEAMS} teams with ${CLAIMS} claims each tries every claim and lands`, ROWS_TO_THE_CAP, async () => {
-  const t = await signInDeployment(undefined, true);
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t, TEAMS);
+  const { t, leagueId } = await freshLeague({ atConvexLimits: true, maxTeams: TEAMS });
   const emails = managersNamed(TEAMS);
   await addManagers(t, leagueId, emails);
   const teams = (await teamsIn(t, leagueId)).map(({ _id }) => _id);

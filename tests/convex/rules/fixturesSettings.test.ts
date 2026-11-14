@@ -4,8 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { HELD_FIRST_RULES, holdGameweeks, NEXT, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, COMMISSIONER, eventsIn, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // The Fixtures tab's league rules (spec/03; #1034): the format (S03.1), the deadline (S03.3), double
 // gameweeks and the table's tie-breaks, whose order the commissioner changes (S03.2), saved through League settings as its other rules are. The format's lock
@@ -14,10 +13,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
 });
 
 const settingsNow = async () => (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId })).part;

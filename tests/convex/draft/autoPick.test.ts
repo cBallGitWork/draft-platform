@@ -8,8 +8,7 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { draftSteps, FIRST_PICK_MS } from "../../support/convex/draft.harness";
-import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { addManager, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
@@ -57,10 +56,7 @@ const ranking = (codes: number[]) =>
   t.run((ctx) => ctx.db.insert("draftRanking", { players: codes.map((code, index) => ({ code, rank: index + 1 })), uploadedAt: Date.now() }));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, PLAYERS);

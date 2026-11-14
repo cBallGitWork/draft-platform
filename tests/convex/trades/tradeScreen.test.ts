@@ -6,6 +6,7 @@ import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import {
   ANNS_FIRST_DROP,
+  PALMER,
   SAKA,
   tradeLeague,
   type TradeLeague,
@@ -53,7 +54,7 @@ describe("the Trades screen", () => {
       onAutoTeam: false,
     });
     expect(view.teams[0].players.map(({ code }) => code).sort()).toEqual(
-      [SAKA, 9002].sort(),
+      [SAKA, PALMER].sort(),
     );
     expect(view.teams.map(({ teamId }) => teamId)).toContain(w.annsTeam);
     expect(view.shut).toBeNull();
@@ -63,14 +64,14 @@ describe("the Trades screen", () => {
     await w.t.run(async (ctx) => {
       const player = await ctx.db
         .query("players")
-        .filter((q) => q.eq(q.field("code"), 9002))
+        .filter((q) => q.eq(q.field("code"), PALMER))
         .unique();
       await ctx.db.delete(player!._id);
     });
     const warn = silenceConsoleWarn();
     const view = await viewOf(BOB);
     expect(view.teams[0].players.map(({ code }) => code)).toEqual([SAKA]);
-    expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), 9002));
+    expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), PALMER));
   });
 
   test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {

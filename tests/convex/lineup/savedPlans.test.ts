@@ -9,8 +9,7 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, EVE } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, type TestConvex, ANN, BOB, EVE, freshLeague } from "../../support/convex/leagues.harness";
 
 // A manager's saved plans (spec/05, Saved plans; #992): a formation and every slot's role by name,
 // never players; up to 5, saving under a name he has replaces it, and he deletes one to make room
@@ -23,10 +22,7 @@ const PRESS = FOUR_FOUR_TWO.cells.map((cell) => ({ ...cell, role: DEFAULT_ROLES[
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN, BOB] }));
 });
 
 const as = async (email: string) => {

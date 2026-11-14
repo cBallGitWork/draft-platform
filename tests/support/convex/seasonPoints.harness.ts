@@ -6,12 +6,11 @@ import type { SlotPosition } from "../../../convex/lineup/pitch";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "./leagues.harness";
+import { actingAs, type TestConvex, ANN, freshLeague } from "./leagues.harness";
 import { ARSENAL, CHELSEA, PALMER, RICE as SHARED_RICE, SAKA, completeRecord, insertClubs, insertPlayers, type HeldPlayer } from "./footballRows.harness";
 import { BY_NAME, playersListed } from "./playersList.harness";
 import { EXAMPLE_SET } from "./scoring.example";
 import { holdExampleScoring } from "./siteScoring.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
 
 // Season points' league (#525, seasonPoints.ts): Ann's team holds Saka; Rice and Palmer are free
 // agents. Saka has two whole records this season, one last season's and one only FPL's part of;
@@ -46,10 +45,7 @@ export interface PointsLeague {
 }
 
 export async function seasonPointsLeague(): Promise<PointsLeague> {
-  const t = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t);
-  const [annTeam] = await addManagers(t, leagueId, [ANN]);
+  const { t, leagueId, teams: [annTeam] } = await freshLeague({ managers: [ANN] });
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, RICE, PALMER]);

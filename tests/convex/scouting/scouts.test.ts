@@ -8,9 +8,8 @@ import { notFiledLetter, playerLeftLetter, REPORT_SYSTEM, reportInLetter, report
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { GONE, UNHELD, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, actingAs, freshLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport, type FakeClaude } from "../../support/convex/scouts.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { BLANK, CAMEO, SCORER, STEADY, holdStarsPlayers } from "../../support/convex/stars.harness";
 import { elapse, expectRefused, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -23,11 +22,8 @@ let claude: FakeClaude;
 let bobsTeam: Id<"teams"> | undefined;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
+  ({ t, leagueId, teams: [, bobsTeam] } = await freshLeague({ managers: [ANN, BOB] }));
   claude = fakeClaude();
-  leagueId = await adminCreatesLeague(t);
-  [, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await holdStarsPlayers(t);
 });
 

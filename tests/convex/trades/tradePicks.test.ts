@@ -8,9 +8,8 @@ import { pickTradeRefusals } from "../../../convex/trades/tradePicks";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, eventsIn, lettersTo, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 // Draft picks in trades (spec/04, The picks; #1096): before the draft starts only, one pick for one
 // pick and nothing else. A traded pick is a team's pick in a round, not a fixed slot (Craig, 8 Nov
@@ -39,10 +38,7 @@ const tradesAre =(trades: TradeRules) => changeEveryRules(t, leagueId, (rules) =
 
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  [ann, bob, cat] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId, teams: [ann, bob, cat] } = await freshLeague({ managers: [ANN, BOB, CAT], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, PLAYERS);

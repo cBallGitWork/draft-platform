@@ -9,8 +9,7 @@ import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { elapse, expectRefused, everyJobRuns, silenceConsoleWarn } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, addManager, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Starting the draft (spec/04, Starting it; #1089): on the commissioner's date or when he presses
@@ -22,10 +21,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, MANAGERS.slice(0, 3));
+  ({ t, leagueId, teams } = await freshLeague({ managers: MANAGERS.slice(0, 3), maxTeams: 5 }));
 });
 
 const ROUNDS = HELD_FIRST_RULES.squad.size!.maximum;

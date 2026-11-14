@@ -2,11 +2,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3 } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3, freshLeague } from "../../support/convex/leagues.harness";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -17,9 +16,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
 });
 
 async function mailOf(email: string) {

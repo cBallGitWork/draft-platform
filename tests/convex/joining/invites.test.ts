@@ -32,12 +32,11 @@ import {
   DAN,
   EVE,
   TEAM_1,
+  freshLeague,
 } from "../../support/convex/leagues.harness";
 import {
   SITE_URL,
   ask,
-  fakeResend,
-  signInDeployment,
   spendTodaysEmails,
   type SentEmail,
 } from "../../support/convex/signIn.harness";
@@ -52,9 +51,7 @@ let t: TestConvex;
 let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId, sent } = await freshLeague());
 });
 
 const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagueId))?.invites.find((row) => row.inviteId === inviteId);

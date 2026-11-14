@@ -8,8 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { HELD_FIRST_RULES, holdGameweeks, NEXT, NO_AREA_MINIMUMS, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { leagueSettingsOf } from "../../support/convex/screenReads.harness";
 
 // League settings (Craig, 22 Oct 2026): the odd team out, games a gameweek and the squad's make-up
@@ -22,10 +21,7 @@ const SEASON_SO_FAR = NEXT * WEEK_MS;
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
 });
 
 /** The first rules' settings, the squad's maximum the site's for a test league's size. */

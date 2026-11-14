@@ -24,8 +24,8 @@ import {
   TEAM_1,
   TEAM_2,
   TEAM_3,
+  freshLeague,
 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
@@ -33,9 +33,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
 });
 
 const teamNames = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));

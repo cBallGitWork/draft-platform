@@ -16,8 +16,8 @@ import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { deletes, undoes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, eventsIn, teamsIn, type TestConvex, ANN, BOB, CAT, TEAM_1, freshLeague } from "../../support/convex/leagues.harness";
+import { fakeResend, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -29,9 +29,7 @@ let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 let token: string;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, LEAGUE_NAME);
+  ({ t, leagueId, sent } = await freshLeague());
   token = await makeLink(t, leagueId);
 });
 

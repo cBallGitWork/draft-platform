@@ -65,7 +65,6 @@ const STILL_RESTATED: string[] = [
   "tests/convex/table/playedFixtures.test.ts recordPassed -> tests/support/convex/deadlineRecorder.harness.ts",
   "tests/convex/table/playedFixtures.test.ts setUsedIn -> tests/support/convex/deadlineRecorder.harness.ts",
   "tests/src/matchup/teamOverride.test.tsx GAMEWEEK -> tests/support/convex/matchStats.harness.ts",
-  "tests/src/myTeam/transactions.test.tsx SAKA -> tests/support/convex/lineupSquad.harness.ts",
   "tests/src/myTeam/transactions.test.tsx cells -> tests/support/src/squadTab.harness.ts",
   "tests/src/scoring/scoringControls.test.tsx saveButton -> tests/support/src/leagueSettingsScreen.harness.ts",
   "tests/src/trades/offerSides.test.ts DEADLINE -> tests/support/src/trades.harness.ts",

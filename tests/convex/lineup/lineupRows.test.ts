@@ -4,8 +4,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { pickFirstLineupAgain, storeAutoTeamLineup } from "../../../convex/lineup/lineups";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { ANN, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ANN, actingAs, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 
 // The three writers of a team's lineup row, each through lineupRows.ts's one writer (#1759): the
@@ -27,11 +26,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   await holdSquad(t, leagueId, annsTeam);
 });
 

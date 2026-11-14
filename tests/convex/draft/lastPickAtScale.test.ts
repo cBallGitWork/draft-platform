@@ -5,8 +5,7 @@ import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, managersNamed } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, COMMISSIONER, managersNamed, freshLeague } from "../../support/convex/leagues.harness";
 import { clockRunsTo, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // A draft's last pick, auto-picked from a full-size player pool, held to Convex's own limits
@@ -32,10 +31,7 @@ test(
   `the first pick by hand, then ${MOST_TEAMS - 1} auto-picked from ${POOL} players each priced last season, the last among them, land, and the rest go on waivers`,
   ROWS_TO_THE_CAP,
   async () => {
-    const t = await signInDeployment(undefined, true);
-    fakeResend();
-    const leagueId = await adminCreatesLeague(t, MOST_TEAMS);
-    await addManagers(t, leagueId, EVERY_MANAGER);
+    const { t, leagueId } = await freshLeague({ managers: EVERY_MANAGER, atConvexLimits: true, maxTeams: MOST_TEAMS });
     const players = Array.from({ length: POOL }, (_, index) => player(index));
     await t.run(async (ctx) => {
       await insertClubs(ctx, CLUBS);

@@ -10,15 +10,16 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MINUTE_MS } from "../../../convex/shared/time";
-import { insertPlayers } from "./footballRows.harness";
+import { insertPlayers, PALMER as PALMER_ROW, RICE as RICE_ROW, SAKA as SAKA_ROW } from "./footballRows.harness";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { actingAs, type TestConvex } from "./leagues.harness";
 import { filledLineup, presetNamed } from "./lineup.harness";
 
 /** The next gameweek, not yet begun: holdGameweeks' `next` in the lineup and squad tests. */
 export const NEXT = 9;
-/** A player the squad tests assign, release and trade. */
-export const SAKA = 1001;
+/** Players the squad, waiver and trade tests assign, release and trade, by code alone: the codes
+ *  of footballRows.harness's named players, so each name has one code. */
+export const [SAKA, RICE, PALMER] = [SAKA_ROW.code, RICE_ROW.code, PALMER_ROW.code];
 
 export const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
 export const STARTERS = FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode);
