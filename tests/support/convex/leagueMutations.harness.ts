@@ -17,7 +17,7 @@ import { teamsIn, ANN, CAT, DAN } from "./leagues.harness";
 import { publicFunctions, type TestConvex } from "./test.harness";
 
 /** Someone in no league, whom `changesTo` adds as a manager and invites. */
-const NEWCOMER = "new@example.com";
+export const NEWCOMER = "new@example.com";
 
 /** Whoever calls a mutation: someone signed in, or the deployment itself when no one is. */
 export type Caller = Pick<TestConvex, "mutation">;

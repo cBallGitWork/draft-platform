@@ -4,8 +4,8 @@ Every Vitest and Playwright test sits here (the hook checks are in `.claude/hook
 one of five roots: at the path of the code it tests, or at the root for a test that spans many
 files (`tests/src/flow.test.ts`). The Convex tests that play the whole product through are under
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
-stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
-time.
+stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
+time, and `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points.
 
 **Contents:** [The five roots](#the-five-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
@@ -62,9 +62,11 @@ Nothing in it is a test. Each kind of file:
   colour tokens as written), `styledColour.ts` (a colour as jsdom hands it back) and
   `serverStore.ts` (a fake server's value a test changes under an open screen);
   `specExamples.ts`, a spec file's example table read as rows; `seededDraw.ts`, the seeded draw
-  the tests on random inputs run on, so a failure names the seed that runs it again;
-  `seededRandom.ts`, a seeded random source for a test that tries many generated cases;
-  `smoke/errorsTest.ts`, the smoke
+  the tests on random inputs run on, so a failure names the seed that runs it again; `ruleRuns.ts`,
+  how many random inputs the rule tests (`*.rules.test.ts`, fast-check) try, short on every pull
+  request and long in `npm run test:rules-long` (run by hand until a nightly job calls it, #2139),
+  and a failure's seed to replay; `seededRandom.ts`, a seeded random source for a test that tries
+  many generated cases; `smoke/errorsTest.ts`, the smoke
   suite's own `test`, failing on any console or page error it didn't expect; and
   `scripts/repoRoot.mjs`, the repository's root for the script tests.
 - **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,

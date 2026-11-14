@@ -10,7 +10,7 @@ import { tradeLeague } from "../../support/convex/trades.harness";
 import { SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // Each of the league's squad limits, held the same way everywhere a squad changes after the draft
-// (#2127): a waiver claim that would break it is refused at the run (S08.18), while a trade (S08.19)
+// (#2127): a waiver claim that would break it is refused at the run (S08.20), while a trade (S08.21)
 // and the commissioner's release and assign (S15.8) go through, warned. For each kind of limit,
 // Ann's 4-4-2 squad of 15 Arsenal players sits within it, and taking Saka, another of Arsenal's
 // midfielders, for the players named breaks it.
@@ -46,7 +46,7 @@ const withSaka = (goes: readonly number[]) => [...SQUAD.filter((code) => !goes.i
 describe.each(kinds)("a squad pushed past its %s", (kind) => {
   const { squad, goes, claimable } = cases[kind];
 
-  test.runIf(claimable)("by a waiver claim: refused at the run, the squad as it was, and its manager told why (S08.18)", async () => {
+  test.runIf(claimable)("by a waiver claim: refused at the run, the squad as it was, and its manager told why (S08.20)", async () => {
     const w = await waiverLeague();
     await limitsAre(w, squad);
     await w.onWaivers([SAKA]);
@@ -59,7 +59,7 @@ describe.each(kinds)("a squad pushed past its %s", (kind) => {
     expect(await w.lettersTo(ANN)).toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName, why: "limits" }));
   });
 
-  test("by a trade: warned when offered, and it goes through (S08.19)", async () => {
+  test("by a trade: warned when offered, and it goes through (S08.21)", async () => {
     const w = await tradeLeague();
     await limitsAre(w, squad);
     const { offerId, warnings } = await w.offer(ANN, w.bobsTeam, goes, [SAKA]);

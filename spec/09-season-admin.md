@@ -22,7 +22,7 @@ Feature 9 of [SPEC.md](../SPEC.md). Only Craig's answers.
 From `/grill the auto team and fixture edits` (5 Nov 2026).
 
 - It keeps the team's last lineup. At the deadline it swaps any starter who is out (`spec/06`,
-  Availability) for the first bench player who fits, the way an auto-sub comes on (`spec/05`).
+  Availability) for the first bench player who fits, the way an auto-sub comes on (`spec/05`). `S09.3`
 - When no bench player fits, the slot stays empty and scores nothing, and the rest of the lineup is
   kept (Craig, 12 Nov 2026, on #1437: "Leave the slot empty"). `S09.2`
 - It only ever touches the lineup, never dropping or adding players.
