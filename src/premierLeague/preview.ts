@@ -6,7 +6,7 @@
 import { placesMoved, plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
-import { previewClubs, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
+import { previewClubs, previewDone, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
@@ -108,10 +108,8 @@ export const previewPremierLeague: PremierLeagueSeam = {
   useClub: (_leagueId, clubCode) => previewClub(clubCode),
   useClubSquad: (_leagueId, clubCode) => previewClubSquad(clubCode),
   // The preview changes nothing: the mark goes through as if saved.
-  useAbandonedMark: () => markNothing,
+  useAbandonedMark: () => previewDone,
 };
-
-const markNothing = () => Promise.resolve(null);
 
 /** Each preview player's made-up row on his club's Squad tab, by his code (Scouting's preview
  *  players): his group, his points in the last five gameweeks, his starts, minutes and doubt. */

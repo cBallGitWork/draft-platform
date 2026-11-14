@@ -3,6 +3,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { previewSaves } from "../../shared/preview";
 import type { OwnListPlayer, ShortlistSeam } from "./seam";
 
 /** A shortlist seam over `players`, holding those with `openingCodes` to begin with. */
@@ -27,14 +28,14 @@ export function previewShortlistOf(players: readonly ListedPlayer[], openingCode
     return () => void listeners.delete(listener);
   };
   const changes = {
-    add: async (_leagueId: unknown, playerCode: number) => {
+    add: previewSaves(async (_leagueId: unknown, playerCode: number) => {
       changeTo(new Set([...codes, playerCode]));
       return null;
-    },
-    remove: async (_leagueId: unknown, playerCode: number) => {
+    }),
+    remove: previewSaves(async (_leagueId: unknown, playerCode: number) => {
       changeTo(new Set([...codes].filter((code) => code !== playerCode)));
       return null;
-    },
+    }),
   };
   return {
     useShortlist: () => useSyncExternalStore(subscribe, () => list),

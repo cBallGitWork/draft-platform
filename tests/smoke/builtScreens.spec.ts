@@ -5,12 +5,12 @@
 // the UI reskin, and never fail it (lookRules.ts).
 
 import { expect } from "@playwright/test";
-import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { DESK, PHONE } from "../../scripts/viewports.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 import { test } from "../support/smoke/errorsTest";
 import { lookBreaks } from "../support/smoke/lookRules";
+import { expectPageSound } from "../support/smoke/pageChecks";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 /** The annotation a break of the plate's look rules is listed under, in the run's report. */
@@ -27,12 +27,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, ${checks}`, async ({ page }) => {
           await page.goto(previewUrl(path, session));
           await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
-          await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
-          const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-            scrollWidth: document.documentElement.scrollWidth,
-            innerWidth: window.innerWidth,
-          }));
-          expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
+          await expectPageSound(page);
           if (onPhone) {
             const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
             expect(small, `taps under ${tapSize}px`).toEqual([]);

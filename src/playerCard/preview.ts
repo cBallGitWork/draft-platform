@@ -11,7 +11,7 @@ import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
-import { previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
+import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import { seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
@@ -143,7 +143,7 @@ function rankOf(playerCode: number, position: SlotPosition): PositionRank {
 
 /** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
  *  says so. */
-const overrideNothing = () => Promise.resolve(null);
+const overrideNothing = previewDone;
 export const previewWaiverOutcomes = {
   drop: "nobody was dropped",
   claim: "no claim was put in",

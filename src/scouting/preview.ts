@@ -7,7 +7,7 @@ import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/sc
 import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { previewClub, previewGameMode, previewTeamNames, proLeague } from "../shared/preview";
+import { previewClub, previewGameMode, previewSaves, previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
@@ -108,10 +108,10 @@ setPreviewShortlisted(previewPlayers.filter(({ code }) => SHORTLISTED.includes(c
 setPreviewPlayers(previewPlayers);
 
 /** "Add to queue" on a shortlisted player: into the preview's draft queue (../draft/previewLists.ts). */
-const addToQueue = async (_leagueId: unknown, playerCode: number) => {
+const addToQueue = previewSaves(async (_leagueId: unknown, playerCode: number) => {
   listInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
   return null;
-};
+});
 
 /** The stat race's teams (#800): the preview league's, each with made-up season totals in the first
  *  set's categories, a league that began at gameweek 1. */

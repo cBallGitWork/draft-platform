@@ -183,6 +183,6 @@ export default [
   },
   { files: ["convex/shared/moments.ts"], rules: bans(LOCAL_DATE_BAN, helperBans(false)) },
   ...homeBlocks(false, LOCALE_BAN, LOCAL_DATE_BAN),
-  { files: ["tests/smoke/**/*.ts"], languageOptions: { parser: tsParser }, rules: bans(PREVIEW_BAN) },
+  { files: ["tests/smoke/**/*.ts", "tests/clicker/**/*.ts"], languageOptions: { parser: tsParser }, rules: bans(PREVIEW_BAN) },
   { files: CONVEX_TEST_FILES, languageOptions: { parser: tsParser }, rules: bans(TEAM_NUMBERED_BAN) },
 ];

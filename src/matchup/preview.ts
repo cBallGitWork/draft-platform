@@ -12,7 +12,7 @@ import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, Ma
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
-import { previewClub, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewClub, previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
@@ -269,7 +269,7 @@ function usePreviewMatchup(gameweek: number): Matchup {
 }
 
 /** The preview saves nothing: a team override is taken and forgotten. */
-const overrideNothing = () => Promise.resolve(null);
+const overrideNothing = previewDone;
 
 export const previewMatchup: MatchupSeam = {
   useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? previewGameweek),

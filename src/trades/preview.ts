@@ -8,7 +8,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL } from "../scouting/preview";
-import { previewClub } from "../shared/preview";
+import { previewClub, previewDone } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import type {
   ClosedOffer,
@@ -170,13 +170,13 @@ export const previewTrades: TradesSeam = {
   useTrades: () => view,
   useReviews: () => toReview,
   useTradeChanges: () => ({
-    offer: async () => null,
-    counter: async () => null,
-    accept: async () => null,
-    reject: async () => null,
-    withdraw: async () => null,
-    block: async () => null,
-    against: async () => null,
-    takeBack: async () => null,
+    offer: previewDone,
+    counter: previewDone,
+    accept: previewDone,
+    reject: previewDone,
+    withdraw: previewDone,
+    block: previewDone,
+    against: previewDone,
+    takeBack: previewDone,
   }),
 };

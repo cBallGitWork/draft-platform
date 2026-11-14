@@ -18,6 +18,11 @@ const DEV_URL = localUrl(DEV_PORT);
 const BUNDLE_URL = localUrl(BUNDLE_PORT);
 const NO_CONVEX = { VITE_CONVEX_URL: "" };
 
+/** The dev server's project and server, which the random clicker's run (playwright.clicker.config.ts)
+ *  uses alone. */
+export const DEV_PROJECT = { name: "dev", grep: /@dev/, use: { baseURL: DEV_URL } };
+export const DEV_SERVER = { command: `npx vite --strictPort --port ${DEV_PORT}`, url: DEV_URL, env: NO_CONVEX, timeout: 60_000 };
+
 export default defineConfig({
   testDir: "tests/smoke",
   forbidOnly: !!process.env.CI,
@@ -28,11 +33,11 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "dev", grep: /@dev/, use: { baseURL: DEV_URL } },
+    DEV_PROJECT,
     { name: "bundle", grep: /@bundle/, use: { baseURL: BUNDLE_URL } },
   ],
   webServer: [
-    { command: `npx vite --strictPort --port ${DEV_PORT}`, url: DEV_URL, env: NO_CONVEX, timeout: 60_000 },
+    DEV_SERVER,
     {
       command: `npx vite build && npx vite preview --strictPort --port ${BUNDLE_PORT}`,
       url: BUNDLE_URL,

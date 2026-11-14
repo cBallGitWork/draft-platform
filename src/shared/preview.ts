@@ -7,6 +7,7 @@ import { MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { gameModeOf } from "../../convex/rules/gameMode";
+import { SECOND_MS } from "../../convex/shared/time";
 
 /** The address's search key that puts the preview at the league limits (#2136): `?preview=manager&limits`. */
 export const PREVIEW_LIMITS_KEY = "limits";
@@ -145,5 +146,43 @@ export const previewChristmasBreak: readonly number[] = [17, 18, 19];
 
 /** What the preview says of a change it doesn't make: what that left. */
 export const previewSaid = (outcome: string) => `This is a preview: ${outcome}.`;
+
+/** The address's search key for the dev-only chaos switch (#2138): `&chaos=slow` makes every preview
+ *  save wait CHAOS_SLOW_MS, `&chaos=fail` makes every one fail, so the random clicker
+ *  (tests/clicker/) can press a screen while a save is out or after one failed. */
+export const CHAOS_KEY = "chaos";
+export const CHAOS_MODES = ["slow", "fail"] as const;
+type ChaosMode = (typeof CHAOS_MODES)[number];
+/** How long a save waits under `chaos=slow`: long enough to press again before it lands. */
+export const CHAOS_SLOW_MS = 3 * SECOND_MS;
+/** What a save says under `chaos=fail`, as a live seam answers one that went wrong. */
+export const chaosFailedWords = previewSaid("the save failed");
+
+/** The chaos the address the app opened at asks for, read once, so it lasts as the manager moves
+ *  round the app; none off the dev server. */
+const chaos: ChaosMode | null = (() => {
+  // No address first: Playwright's specs load this file in Node, with no import.meta.env, and the
+  // Convex tests' edge runtime has a window with no location.
+  const search = globalThis.location?.search;
+  if (search === undefined || !import.meta.env.DEV) return null;
+  const asked = new URLSearchParams(search).get(CHAOS_KEY);
+  return CHAOS_MODES.find((mode) => mode === asked) ?? null;
+})();
+
+/** A preview save's chaos: waits under `slow`, and is the failed save's words under `fail`, else
+ *  null, and the save goes on. */
+export async function previewChaos(): Promise<string | null> {
+  if (chaos === "slow") await new Promise((resolve) => setTimeout(resolve, CHAOS_SLOW_MS));
+  return chaos === "fail" ? chaosFailedWords : null;
+}
+
 /** A change the preview doesn't make, saying what that left. */
-export const previewSays = (outcome: string) => async () => previewSaid(outcome);
+export const previewSays = (outcome: string) => async () => (await previewChaos()) ?? previewSaid(outcome);
+/** A change the preview takes and forgets, saying nothing went wrong (null), as a made one does. */
+export const previewDone = () => previewChaos();
+/** A change the preview makes for the session, `save`, after its chaos: under `fail` it isn't made,
+ *  and says so. */
+export const previewSaves =
+  <Args extends unknown[], Answer>(save: (...args: Args) => Promise<Answer>) =>
+  async (...args: Args): Promise<Answer | string> =>
+    (await previewChaos()) ?? save(...args);

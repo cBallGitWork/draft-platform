@@ -1,7 +1,7 @@
 # Tests
 
 Every Vitest and Playwright test sits here (the hook checks are in `.claude/hooks/tests/`), under
-one of five roots: at the path of the code it tests, or at the root for a test that spans many
+one of six roots: at the path of the code it tests, or at the root for a test that spans many
 files (`tests/src/flow.test.ts`). The Convex tests that play the whole product through are under
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
 stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
@@ -16,7 +16,7 @@ held to Convex's limits, in about an hour (the timings in `vitest.simulate.confi
 Its world is `tests/support/convex/seasonSimulation.harness.ts`, which `seasonWorld.test.ts` beside
 it checks on every pull request.
 
-**Contents:** [The five roots](#the-five-roots) ·
+**Contents:** [The six roots](#the-six-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
 [The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
 
@@ -24,11 +24,11 @@ it checks on every pull request.
 Convex deploys, or lists one it doesn't: after adding, moving or deleting a file in `convex/`, run
 `npx convex codegen` with a deployment selected.
 
-**Contents:** [The five roots](#the-five-roots) ·
+**Contents:** [The six roots](#the-six-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
 [The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
 
-## The five roots
+## The six roots
 
 | Root | What it tests | Runs with | An example |
 | --- | --- | --- | --- |
@@ -36,6 +36,7 @@ Convex deploys, or lists one it doesn't: after adding, moving or deleting a file
 | `tests/src/` | `src/`, the screens, in jsdom | Vitest, the `app` project: `*.test.ts`, `*.test.tsx` | `tests/src/table/table.test.tsx` |
 | `tests/scripts/` | `scripts/`, in Node | Vitest, the `scripts` project: `*.test.mjs` | `tests/scripts/port.test.mjs` |
 | `tests/smoke/` | the app loaded in a real browser, no Convex | Playwright (`npm run smoke`, `playwright.config.ts`) | `tests/smoke/smoke.spec.ts` |
+| `tests/clicker/` | every built screen pressed at random from a seed on preview data, no Convex, the smoke checks after each step; `&chaos=slow` or `fail` makes the preview's saves slow or fail (`src/shared/preview.ts`) | Playwright (`npm run clicker`, `playwright.clicker.config.ts`), by hand: it prints its seed, `CLICKER_SEED=<seed>` replays it and `CLICKER_STEPS` sets each screen's steps | `tests/clicker/clicker.spec.ts` |
 | `tests/live/` | the live site after each release, signed in to for real (ARCHITECTURE.md, The after-release check) | Playwright (`npx playwright test -c playwright.live.config.ts`), run only by `.github/workflows/release-check.yml`; it skips without its two secrets. The test account's sign-in beside it runs only by hand, `npm run test-account` (`playwright.testAccount.config.ts`) | `tests/live/signIn.live.spec.ts` |
 
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
