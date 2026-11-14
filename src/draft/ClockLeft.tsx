@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SECOND_MS } from "../../convex/shared/time";
+import { serverNow } from "../shared/serverClock";
 import type { DraftState } from "./seam";
 import { timeLeftWords } from "./words";
 
@@ -41,18 +42,18 @@ export function useUndoLeft(window: UndoWindow | null): number | null {
   return left > 0 ? left : null;
 }
 
-/** The time now, read again each second while `ticking`, and in the render it starts, so a clock
- *  resumed never draws the time it held from before its pause (#1437). */
+/** The time now by the server's clock (S04.22), read again each second while `ticking`, and in the
+ *  render it starts, so a clock resumed never draws the time it held from before its pause (#1437). */
 function useNowWhile(ticking: boolean): number {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(serverNow);
   const [wasTicking, setWasTicking] = useState(ticking);
   if (ticking !== wasTicking) {
     setWasTicking(ticking);
-    if (ticking) setNow(Date.now());
+    if (ticking) setNow(serverNow());
   }
   useEffect(() => {
     if (!ticking) return;
-    const timer = setInterval(() => setNow(Date.now()), SECOND_MS);
+    const timer = setInterval(() => setNow(serverNow()), SECOND_MS);
     return () => clearInterval(timer);
   }, [ticking]);
   return now;
