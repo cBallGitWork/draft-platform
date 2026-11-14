@@ -65,6 +65,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   auto-pick took Saka for you". Palmer stays in her queue. A pick her app re-sends on reconnecting,
   after that turn has passed, is refused too, and she's shown what happened, even when her next turn
   is on the clock and Palmer is free (Craig, 14 Nov 2026, grill batch 1, on #2191). `S04.20`
+- Ann reloads the draft room while she's on the clock. She's back on her turn with the time left as
+  it was (the clock never stopped), her queue and lists as saved. A pick not yet sent is lost
+  (Craig, 14 Nov 2026, grill batch 2, on #2201). `S04.21`
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
   date can still be set while squads hold players; if they still do when it comes, the draft
   doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams
