@@ -154,6 +154,7 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/table/playedFixtures",
   "convex/table/standings",
   "convex/trades/tradeClose",
+  "convex/waivers/waiverClaims",  // football/afterFootballSync withdraws claims for leavers since #2200
   "convex/waivers/waiverPlayers",
   "src/myTeam/claims/words",
 ];

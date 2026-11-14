@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
+import { offerClosedLetter } from "../../../convex/mail/tradeLetterWords";
 import { claimWithdrawnLetter } from "../../../convex/mail/waiverLetterWords";
 import { playerSoldAbroad } from "../../support/convex/draftLists.harness";
 import { BOB, ANN, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
@@ -31,10 +32,10 @@ describe("a pending claim for him", () => {
 });
 
 describe("a pending trade holding him", () => {
-  const cancelled = {
-    subject: `The trade between ${TEAM_1} and ${TEAM_2} is closed`,
-    body: `${nameOf(SAKA)} has left the Premier League. The offer was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
-  };
+  const cancelled = offerClosedLetter(
+    { fromTeamName: TEAM_1, toTeamName: TEAM_2, gives: [nameOf(ANNS_FIRST_DROP)], gets: [nameOf(SAKA)], note: null },
+    { why: "leftPremierLeague", playerName: nameOf(SAKA) },
+  );
 
   test("is cancelled while open, both managers told by letter; one without him stays (S08.25)", async () => {
     const w = await tradeLeague();

@@ -58,6 +58,7 @@
   "feedback/feedback:markRead": {"type":"object","value":{"feedbackId":{"fieldType":{"type":"id","tableName":"feedback"},"optional":false}}},
   "feedback/feedback:remove": {"type":"object","value":{"feedbackId":{"fieldType":{"type":"id","tableName":"feedback"},"optional":false}}},
   "feedback/feedback:send": {"type":"object","value":{"message":{"fieldType":{"type":"string"},"optional":false}}},
+  "football/afterFootballSync:playersLeftIn": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCodes":{"fieldType":{"type":"array","value":{"type":"number"}},"optional":false}}},
   "football/clubKits:all": {"type":"object","value":{}},
   "football/clubKits:seedHeldClubs": {"type":"object","value":{}},
   "football/clubKits:set": {"type":"object","value":{"code":{"fieldType":{"type":"number"},"optional":false},"primary":{"fieldType":{"type":"string"},"optional":false},"secondary":{"fieldType":{"type":"string"},"optional":false},"pattern":{"fieldType":{"type":"union","value":[{"type":"literal","value":"plain"},{"type":"literal","value":"stripes"}]},"optional":false}}},
