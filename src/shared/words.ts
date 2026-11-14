@@ -330,6 +330,8 @@ export const notCountingLabel = "not counting";
 export const VIDIPRINTER_TITLE = "Vidiprinter";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
+/** The matchup's and match page's scoreboards, while live points are held as last read (S10.12). */
+export const livePointsDelayedWords = "Live points delayed";
 
 /** A commissioner's override (spec/14 S14.3 to S14.6; #32, #903), of a player's points on his card
  *  and of a team's total on the matchup alike. */

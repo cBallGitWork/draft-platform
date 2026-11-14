@@ -20,6 +20,7 @@ import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } 
 import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
+import { livePointsDelayOf } from "../stats/livePrints";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
@@ -39,7 +40,6 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 // The men come from the match's records, which the live poller writes from kickoff (#28); before
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
 // five team stats are as the live poller last read them (football/matchTeamStats.ts).
-
 
 /** A man the match names: from his record, or before any, from the sheets, not yet played and
  *  with no stats. */
@@ -95,6 +95,7 @@ const heldMatchPage = v.object({
   commentary: heldCommentary,
   /** Whether the admin marked it abandoned, for his button to take the mark back (#904, S05.46). */
   abandoned: v.boolean(),
+  pointsDelayed: v.boolean(), // its live points held as last read: "Live points delayed" (S10.12)
 });
 export type HeldMatchPage = Infer<typeof heldMatchPage>;
 /** The match page as the screen shows it at its minute: its commentary delayed or not. */
@@ -132,6 +133,7 @@ export const ofMatch = query({
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
       abandoned: await isAbandoned(ctx, fixtureCode),
+      pointsDelayed: (await livePointsDelayOf(ctx, fixtureCode)) !== null,
     };
   },
 });

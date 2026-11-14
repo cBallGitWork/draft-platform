@@ -1,4 +1,5 @@
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { GameweekTeams } from "../gameweekScorer/gameweekScores";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { statChanges, type PlayerMatchRecord } from "./matchRecords";
 
@@ -46,6 +47,17 @@ export function livePointsDelayOf(ctx: QueryCtx, fixtureCode: number): Promise<D
     .query("livePointsDelays")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+/** Whether any match the teams' lineups' men play in has its live points delayed: the matchup's
+ *  scoreboard then says "Live points delayed" (spec/10 `S10.12`). */
+export async function lineupPointsDelayed(ctx: QueryCtx, inGameweek: GameweekTeams, teamIds: readonly Id<"teams">[]): Promise<boolean> {
+  const codes = new Set<number>();
+  for (const teamId of teamIds) {
+    for (const matches of (await inGameweek.slotsOf(teamId)).matchesOf.values()) for (const { fixture } of matches) codes.add(fixture.code);
+  }
+  for (const code of codes) if ((await livePointsDelayOf(ctx, code)) !== null) return true;
+  return false;
 }
 
 /** The match's live points delayed from `readAt`; one already delayed keeps its moment. */

@@ -162,7 +162,7 @@ export {
 
 /** The matchup's commentary (spec/10): every line of every match either team's men play in; when
  *  the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
-export { commentaryDelayedWords, noCommentaryWords, VIDIPRINTER_TITLE } from "../shared/words";
+export { commentaryDelayedWords, livePointsDelayedWords, noCommentaryWords, VIDIPRINTER_TITLE } from "../shared/words";
 export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
 /** Its head row over the lines, and each team's column of what a line moves its score by (the
  *  approved picture's "Commentary", "Saka P", "Kroos C"): a team's first word and the first

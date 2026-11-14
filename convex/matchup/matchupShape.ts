@@ -202,6 +202,9 @@ const gameWith = <Commentary extends GenericValidator>(commentary: Commentary) =
       team: side,
       opponent: side,
       commentary,
+      /** Whether a match either lineup's men play in has its live points delayed, held as last
+       *  read: "Live points delayed" on the scoreboard (spec/10 `S10.12`). */
+      pointsDelayed: v.boolean(),
       /** The version of the site's scoring the gameweek is scored under, null for the first set: a
        *  breakdown's last line (spec/14, On screen). */
       version: v.union(v.string(), v.null()),

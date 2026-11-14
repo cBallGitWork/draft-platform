@@ -25,6 +25,7 @@ import { byKickoff, byKickoffOrder } from "../shared/fixtures";
 import { findClubByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { onAutoTeam } from "../lineup/autoTeamSwitch";
+import { lineupPointsDelayed } from "../stats/livePrints";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -123,6 +124,7 @@ async function gameOf(
       team: await scorer.team(team),
       opponent: await scorer.opponent(against),
       commentary: await scorer.commentary(sides, `${leagueLabel(league)} can't read ${team.name}'s commentary in gameweek ${gameweek}`),
+      pointsDelayed: await lineupPointsDelayed(ctx, inGameweek, sides),
       version: versionIn(gameweek).name,
     };
   } catch (error) {
