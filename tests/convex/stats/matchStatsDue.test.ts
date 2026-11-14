@@ -1,11 +1,11 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { UNSEEN_LOOKBACK_MS } from "../../../convex/stats/matchStatsDue";
+import { LATE_CORRECTION_WATCH_MS, UNSEEN_LOOKBACK_MS, UNSEEN_MOVE_STEP_MS } from "../../../convex/stats/matchStatsDue";
 import { FULL_TIME_READ, GAMEWEEK, HULL_EVERTON, heldMatch, KICKOFF, syncAt, withHullEverton, withHullEvertonLive, withPlReadEmpty } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
-import { WEEK_MS } from "../../../convex/shared/time";
+import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 
 // #199: matchStatsDue.due reads only what can still be due, so its reads stay flat across a season.
@@ -68,6 +68,36 @@ test("a kickoff the football sync learns late, before the last run but within th
   await t.run((ctx) => ctx.db.insert("fixtures", { code: HULL_EVERTON, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: learnedLate }));
 
   expect(await dueAt(t, lastRun)).toEqual([{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }]);
+});
+
+// #2002, the Convex quota: a cron run with no match due writes nothing but, once a day, the kickoff
+// to read from; one run by hand still writes its row, for whoever ran it to read back.
+test("a cron run with nothing due writes no run row, and stores the kickoff to read from only once it has moved a day", async () => {
+  const t = freshConvex();
+  const runs = () => t.run((ctx) => ctx.db.query("matchStatsSyncs").collect());
+  const quiet = FULL_TIME_READ + 2 * WEEK_MS;
+  await syncAt(t, quiet, recordedGw6(), undefined, "cron");
+  expect(await runs()).toEqual([]);
+  expect(await storedUnseenFrom(t)).toBe(quiet - UNSEEN_LOOKBACK_MS);
+
+  await syncAt(t, quiet + UNSEEN_MOVE_STEP_MS - 1, recordedGw6(), undefined, "cron");
+  expect(await storedUnseenFrom(t)).toBe(quiet - UNSEEN_LOOKBACK_MS);
+  await syncAt(t, quiet + UNSEEN_MOVE_STEP_MS, recordedGw6(), undefined, "cron");
+  expect(await storedUnseenFrom(t)).toBe(quiet + UNSEEN_MOVE_STEP_MS - UNSEEN_LOOKBACK_MS);
+  expect(await runs()).toEqual([]);
+
+  const byHand = await syncAt(t, quiet + UNSEEN_MOVE_STEP_MS, recordedGw6());
+  expect(byHand).toMatchObject({ trigger: "manual", outcome: { ok: true, matches: [], waiting: [] } });
+});
+
+test("a cron run with a match due still writes its row", async () => {
+  const t = await withHullEverton();
+  const run = await syncAt(t, FULL_TIME_READ, recordedGw6(), undefined, "cron");
+  expect(run).toMatchObject({ trigger: "cron", outcome: { ok: true, matches: [{ fixtureCode: HULL_EVERTON }] } });
+});
+
+test("a locked match is watched for late corrections for 6 hours (#2002)", () => {
+  expect(LATE_CORRECTION_WATCH_MS).toBe(6 * HOUR_MS);
 });
 
 test("the stored kickoff never moves back, so an older run's read can't undo a newer one's", async () => {

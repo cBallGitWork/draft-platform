@@ -1,7 +1,8 @@
-// Pruning the feeds' run logs (#146): a success goes after 30 days and a failure after 180, but a
-// feed's newest runs and its newest success always stay, in batches, liveStatsTicks first.
+// Pruning the feeds' run logs (#146): a success goes after 7 days (#2002; it was 30) and a failure
+// after 180, but a feed's newest runs and its newest success always stay, in batches, liveStatsTicks
+// first. The prune reads only rows created before a success's retention, by the index (#2002).
 
-import { expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { PRUNE_ORDER } from "../../../convex/admin/runLogs";
 import { FEED_RUN_TABLES, FEEDS, type Feed } from "../../../convex/shared/feedSchedule";
@@ -12,14 +13,23 @@ import { freshConvex, type TestConvex, everyJobRuns } from "../../support/convex
 
 const NOW = T0;
 
+beforeEach(() => vi.useFakeTimers());
+
+/** A run of `feed` recorded at `ranAt`, as the clock then says, so its row is created when it ran,
+ *  as a real run's is. */
+function runAt(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "ok") {
+  vi.setSystemTime(ranAt);
+  return recordRun(t, feed, ranAt, ran);
+}
+
 /** `feed`'s newest `LATEST_RUNS` runs, a minute apart in the hour before `NOW`, each as `ran` says. */
 async function recentRuns(t: TestConvex, feed: Feed, ran: Ran = "ok") {
-  for (let index = LATEST_RUNS; index > 0; index -= 1) await recordRun(t, feed, NOW - index * MINUTE_MS, ran);
+  for (let index = LATEST_RUNS; index > 0; index -= 1) await runAt(t, feed, NOW - index * MINUTE_MS, ran);
 }
 
 /** Every run log pruned at `NOW`, each batch handing on to the next until none is left. */
 async function prune(t: TestConvex) {
-  vi.useFakeTimers({ now: NOW });
+  vi.setSystemTime(NOW);
   await t.mutation(internal.admin.runLogs.prune, { startedAt: NOW });
   await everyJobRuns(t);
 }
@@ -37,11 +47,15 @@ test("the prune order starts with liveStatsTicks and names every feed once", () 
   expect([...PRUNE_ORDER].sort()).toEqual([...FEEDS].sort());
 });
 
-test.each(FEEDS)("a %s success older than 30 days goes; one younger stays", async (feed) => {
+test("a success is kept 7 days (#2002)", () => {
+  expect(SUCCESS_KEPT_MS).toBe(7 * DAY_MS);
+});
+
+test.each(FEEDS)("a %s success older than 7 days goes; one younger stays", async (feed) => {
   const t = freshConvex();
-  await recordRun(t, feed, NOW - SUCCESS_KEPT_MS - 10 * DAY_MS);
-  await recordRun(t, feed, NOW - SUCCESS_KEPT_MS - 1);
-  await recordRun(t, feed, NOW - SUCCESS_KEPT_MS + DAY_MS);
+  await runAt(t, feed, NOW - SUCCESS_KEPT_MS - 10 * DAY_MS);
+  await runAt(t, feed, NOW - SUCCESS_KEPT_MS - 1);
+  await runAt(t, feed, NOW - SUCCESS_KEPT_MS + DAY_MS);
   await recentRuns(t, feed);
 
   await prune(t);
@@ -54,10 +68,10 @@ test("a failure stays for 180 days, a run with one failed match counted as one",
   const tooOld = NOW - FAILURE_KEPT_MS - 1;
   const keptFailure = NOW - FAILURE_KEPT_MS + DAY_MS;
   const keptMatchFailure = NOW - SUCCESS_KEPT_MS - DAY_MS;
-  await recordRun(t, "liveStats", tooOld - 1, { error: "FPL answered 503" });
-  await recordRun(t, "liveStats", tooOld, { matchError: "PL answered 503" });
-  await recordRun(t, "liveStats", keptFailure, { error: "FPL answered 503" });
-  await recordRun(t, "liveStats", keptMatchFailure, { matchError: "PL answered 503" });
+  await runAt(t, "liveStats", tooOld - 1, { error: "FPL answered 503" });
+  await runAt(t, "liveStats", tooOld, { matchError: "PL answered 503" });
+  await runAt(t, "liveStats", keptFailure, { error: "FPL answered 503" });
+  await runAt(t, "liveStats", keptMatchFailure, { matchError: "PL answered 503" });
   await recentRuns(t, "liveStats");
 
   await prune(t);
@@ -67,8 +81,8 @@ test("a failure stays for 180 days, a run with one failed match counted as one",
 test("a feed's newest runs stay however old, failed or not", async () => {
   const t = freshConvex();
   const yearAgo = NOW - 365 * DAY_MS;
-  await recordRun(t, "football", yearAgo - DAY_MS);
-  for (let index = 0; index < LATEST_RUNS; index += 1) await recordRun(t, "football", yearAgo + index, index % 2 ? "ok" : { error: "FPL answered 503" });
+  await runAt(t, "football", yearAgo - DAY_MS);
+  for (let index = 0; index < LATEST_RUNS; index += 1) await runAt(t, "football", yearAgo + index, index % 2 ? "ok" : { error: "FPL answered 503" });
 
   await prune(t);
   expect(await ranAtOf(t, "football")).toEqual(Array.from({ length: LATEST_RUNS }, (_, index) => yearAgo + index));
@@ -79,8 +93,8 @@ test("a feed's newest success stays however old while every newer run failed", a
   const t = freshConvex();
   const older = NOW - 60 * DAY_MS;
   const newestSuccess = NOW - 50 * DAY_MS;
-  await recordRun(t, "positions", older);
-  await recordRun(t, "positions", newestSuccess);
+  await runAt(t, "positions", older);
+  await runAt(t, "positions", newestSuccess);
   await recentRuns(t, "positions", { error: "PL answered 503" });
 
   await prune(t);
@@ -90,8 +104,8 @@ test("a feed's newest success stays however old while every newer run failed", a
 test("an old success goes once a younger one is kept, though every newest run failed", async () => {
   const t = freshConvex();
   const youngerSuccess = NOW - SUCCESS_KEPT_MS + DAY_MS;
-  await recordRun(t, "positions", NOW - SUCCESS_KEPT_MS - DAY_MS);
-  await recordRun(t, "positions", youngerSuccess);
+  await runAt(t, "positions", NOW - SUCCESS_KEPT_MS - DAY_MS);
+  await runAt(t, "positions", youngerSuccess);
   await recentRuns(t, "positions", { error: "PL answered 503" });
 
   await prune(t);
@@ -104,8 +118,8 @@ test("a run with a failed match never stands in for the newest success", async (
   const t = freshConvex();
   const newestSuccess = NOW - 60 * DAY_MS;
   const matchFailure = NOW - 40 * DAY_MS;
-  await recordRun(t, "liveStats", newestSuccess);
-  await recordRun(t, "liveStats", matchFailure, { matchError: "PL answered 503" });
+  await runAt(t, "liveStats", newestSuccess);
+  await runAt(t, "liveStats", matchFailure, { matchError: "PL answered 503" });
   await recentRuns(t, "liveStats", { error: "FPL answered 503" });
 
   await prune(t);
@@ -116,18 +130,30 @@ test("more old runs than a batch are all pruned, batch by batch, and so is the n
   const t = freshConvex();
   const runs = 2 * BATCH_SIZE + 1;
   const firstRun = NOW - SUCCESS_KEPT_MS - runs * HOUR_MS;
-  await t.run(async (ctx) => {
-    for (let index = 0; index < runs; index += 1) {
-      await ctx.db.insert("liveStatsTicks", { ranAt: firstRun + index * HOUR_MS, outcome: { ok: true, matches: [] } });
-    }
-  });
+  await runAt(t, "matchStats", firstRun);
+  for (let index = 0; index < runs; index += 1) {
+    vi.setSystemTime(firstRun + index * HOUR_MS);
+    await t.run((ctx) => ctx.db.insert("liveStatsTicks", { ranAt: firstRun + index * HOUR_MS, outcome: { ok: true, matches: [] } }));
+  }
   await recentRuns(t, "liveStats");
-  await recordRun(t, "matchStats", firstRun);
   await recentRuns(t, "matchStats");
 
   await prune(t);
   expect(await ranAtOf(t, "liveStats")).toHaveLength(LATEST_RUNS);
   expect(await ranAtOf(t, "matchStats")).toHaveLength(LATEST_RUNS);
+});
+
+// The index stops each read at the retention, so the day's young rows are never read: a row
+// created inside it stays, whatever start it says it had, until a later day's prune reaches it.
+test("a row created within a success's retention is never read, so it stays that day", async () => {
+  const t = freshConvex();
+  const ranLongAgo = NOW - SUCCESS_KEPT_MS - DAY_MS;
+  vi.setSystemTime(NOW - SUCCESS_KEPT_MS + MINUTE_MS);
+  await recordRun(t, "football", ranLongAgo);
+  await recentRuns(t, "football");
+
+  await prune(t);
+  expect(old(await ranAtOf(t, "football"))).toEqual([ranLongAgo]);
 });
 
 test("with nothing old, nothing goes", async () => {

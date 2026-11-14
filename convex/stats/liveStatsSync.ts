@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
 import { timedJobsOn, withHeartbeat } from "../heartbeats/heartbeat";
+import { FEED_SCHEDULES } from "../shared/feedSchedule";
 import { syncDue } from "./matchStatsSync";
 import { delayCommentary } from "../football/matchCommentary";
 import { readFplPayloads } from "../football/fpl/fpl";
@@ -34,7 +35,7 @@ export const tick = internalAction({
       // After the live matches and apart from them: it never throws, and is on its own feed's row.
       await syncTeamSheets(ctx, ranAt, fpl);
       return null;
-    });
+    }, FEED_SCHEDULES.liveStats.every);
   },
 });
 

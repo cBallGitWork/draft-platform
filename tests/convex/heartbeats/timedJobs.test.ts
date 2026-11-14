@@ -41,8 +41,10 @@ test("off: the football sync, late stats and the live tick fetch nothing and wri
 });
 
 test("on, as on the live site: the same crons read and write their run rows and ping", async () => {
-  // Held, so the failure email the football sync schedules never fires into the next test.
+  // Held, so the failure email the football sync schedules never fires into the next test; at the
+  // top of an hour, when the minutely and 10-minute jobs ping (#2002).
   vi.useFakeTimers();
+  vi.setSystemTime(Date.parse(DAILY_RUN_AT));
   const t = freshConvex();
   // The football sync's read of an empty faked feed fails, and is logged.
   silenceConsoleError();
@@ -50,7 +52,8 @@ test("on, as on the live site: the same crons read and write their run rows and 
   await t.action(internal.stats.matchStatsSync.run, { trigger: CRON_TRIGGER });
   await t.action(internal.stats.liveStatsSync.tick, {});
   expect(fetched().length).toBeGreaterThan(3);
-  expect((await runRows(t)).length).toBe(2);
+  // The football sync's row; late stats with nothing due write none (#2002), nor does a tick with no match live.
+  expect((await runRows(t)).length).toBe(1);
 });
 
 test("off: a sync run by hand still runs", async () => {

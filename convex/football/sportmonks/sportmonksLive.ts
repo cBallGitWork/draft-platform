@@ -3,6 +3,7 @@ import { internal } from "../../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../../_generated/server";
 import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
+import { FEED_SCHEDULES } from "../../shared/feedSchedule";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { LIVE_WINDOW_MS } from "../../shared/dueMatches";
 import { takeAllOrThrow } from "../../shared/cappedRead";
@@ -79,7 +80,7 @@ export const tick = internalAction({
         await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { competition, ranAt, outcome });
       }
       return null;
-    });
+    }, FEED_SCHEDULES.sportmonksLive.every);
   },
 });
 
