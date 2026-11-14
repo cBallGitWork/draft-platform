@@ -23,7 +23,7 @@ import { teamsOf } from "../shared/leagueAccess";
 // matchup/matchup.ts's league average), which changes only when a score or a line does.
 //
 // The row stands only while it was scored for the league's teams from the gameweek's matches
-// (storedScores.ts's `standsFor`); otherwise, and with none, a screen works the gameweek out itself
+// (gameweekScores.ts's `standsFor`); otherwise, and with none, a screen works the gameweek out itself
 // as before. A change between ticks that moves the gameweek's scores asks for it again at once: a
 // match's records or state written (stats/matchStats.ts: a correction, full time, the lock), a
 // commissioner's override (finalScores.ts's `rescoreGameweek`) and a squad move (mail/letters.ts's
