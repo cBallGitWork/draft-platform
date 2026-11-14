@@ -157,10 +157,13 @@ export function ScoredHead({
             <ScorePlate points={opponent.points} />
           </span>
         </p>
-        <p aria-live="polite" className={provisional ? "text-soft" : "text-fact"}>
-          {provisional ? provisionalWords : finalWords}
-        </p>
-        <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
+        {/* One flex item, so the empty status adds no gap while the points keep up. */}
+        <div className="flex flex-col items-center">
+          <p aria-live="polite" className={provisional ? "text-soft" : "text-fact"}>
+            {provisional ? provisionalWords : finalWords}
+          </p>
+          <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
+        </div>
         {gameSwitch}
       </div>
       <TeamHead side={opponent} control={controlOf(opponent)} />
