@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { isOldCall, markNewVersion } from "../shared/newVersion";
 import { PageSection, Problem } from "../ui/Panel";
 import { ERROR_PAGE_TITLE, readFailedWords, retryWords } from "./words";
 
@@ -12,6 +13,8 @@ export const READ_FAILED_LOG = "Reading the page failed:";
 export function ReadFailed({ error, onRetry, children }: { error: unknown; onRetry: () => void; children?: ReactNode }) {
   useEffect(() => {
     console.error(READ_FAILED_LOG, error);
+    // A read the server refused as older code's: the new-version bar shows too (S12.13).
+    if (isOldCall(error)) markNewVersion();
   }, [error]);
   return (
     <PageSection title={ERROR_PAGE_TITLE} className="max-w-xl bg-panel">

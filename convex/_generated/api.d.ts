@@ -225,6 +225,7 @@ import type * as positions_positionWarnings from "../positions/positionWarnings.
 import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as positions_unplacedAreas from "../positions/unplacedAreas.js";
+import type * as release_version from "../release/version.js";
 import type * as rules_deadlineDefaultBackfill from "../rules/deadlineDefaultBackfill.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
 import type * as rules_formatLock from "../rules/formatLock.js";
@@ -328,6 +329,7 @@ import type * as shared_product from "../shared/product.js";
 import type * as shared_ranks from "../shared/ranks.js";
 import type * as shared_readOnce from "../shared/readOnce.js";
 import type * as shared_shuffle from "../shared/shuffle.js";
+import type * as shared_siteVersion from "../shared/siteVersion.js";
 import type * as shared_sortedJson from "../shared/sortedJson.js";
 import type * as shared_syncRuns from "../shared/syncRuns.js";
 import type * as shared_time from "../shared/time.js";
@@ -646,6 +648,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positions": typeof positions_positions;
   "positions/positionsSync": typeof positions_positionsSync;
   "positions/unplacedAreas": typeof positions_unplacedAreas;
+  "release/version": typeof release_version;
   "rules/deadlineDefaultBackfill": typeof rules_deadlineDefaultBackfill;
   "rules/firstRules": typeof rules_firstRules;
   "rules/formatLock": typeof rules_formatLock;
@@ -749,6 +752,7 @@ declare const fullApi: ApiFromModules<{
   "shared/ranks": typeof shared_ranks;
   "shared/readOnce": typeof shared_readOnce;
   "shared/shuffle": typeof shared_shuffle;
+  "shared/siteVersion": typeof shared_siteVersion;
   "shared/sortedJson": typeof shared_sortedJson;
   "shared/syncRuns": typeof shared_syncRuns;
   "shared/time": typeof shared_time;
