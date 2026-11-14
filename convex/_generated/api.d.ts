@@ -232,6 +232,7 @@ import type * as rules_leagueRulesShape from "../rules/leagueRulesShape.js";
 import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as rules_leagueSettingsPart from "../rules/leagueSettingsPart.js";
 import type * as rules_rulesHistory from "../rules/rulesHistory.js";
+import type * as rules_rulesToChanges from "../rules/rulesToChanges.js";
 import type * as rules_squadMaximums from "../rules/squadMaximums.js";
 import type * as schema_availability from "../schema/availability.js";
 import type * as schema_draft from "../schema/draft.js";
@@ -640,6 +641,7 @@ declare const fullApi: ApiFromModules<{
   "rules/leagueSettings": typeof rules_leagueSettings;
   "rules/leagueSettingsPart": typeof rules_leagueSettingsPart;
   "rules/rulesHistory": typeof rules_rulesHistory;
+  "rules/rulesToChanges": typeof rules_rulesToChanges;
   "rules/squadMaximums": typeof rules_squadMaximums;
   "schema/availability": typeof schema_availability;
   "schema/draft": typeof schema_draft;
