@@ -47,7 +47,7 @@ export const countedStats = (record: Pick<PlayerMatchRecord, "played" | "arrived
  *  changed record with stats to take away but no totals row to take them from (one held before the
  *  table existed, until `rebuild` has run) sets his totals from his records afresh instead, as it is
  *  already written. One that counted nothing yet (not whole) has nothing to take away, so its new
- *  stats are added alone, never re-reading his every season on each live write (#1565). */
+ *  stats are added alone, never re-reading his every season on each write (#1565). */
 export async function moveSeasonTotals(ctx: MutationCtx, changes: readonly RecordChange[]): Promise<void> {
   const reads = matchReads(ctx);
   for (const { playerCode, fixtureCode, before, after } of changes) {
