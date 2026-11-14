@@ -123,11 +123,6 @@ const SWEPT: Record<string, Sweep<World>> = {
     world: seasonLeague,
     change: ({ leagueId }, by) => by.mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId, gameweek: OPEN_GAMEWEEK }),
   }),
-  "rules/leagueRules:change": sweep({
-    world: joiningLeague,
-    change: async ({ t, leagueId }, by) =>
-      by.mutation(api.rules.leagueRules.change, { leagueId, rules: { ...structuredClone(FIRST_RULES), deadline: { minutesBeforeFirstKickoff: 30 } }, revision: await rulesRevision(t, leagueId) }),
-  }),
   "rules/leagueSettings:changeSettings": sweep({
     world: joiningLeague,
     change: async ({ t, leagueId }, by) =>

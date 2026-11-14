@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { EVENTS_SEARCHED_FOR_SAVER, rulesRefusals } from "../../../convex/rules/leagueRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
@@ -69,7 +69,7 @@ describe("a save made from rules someone has saved over since", () => {
     const { opened, refusal } = await coCommissionerSavesOver();
 
     await expectRefused(
-      (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: opened }),
+      (await actingAs(t, COMMISSIONER)).mutation(internal.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: opened }),
       refusal,
     );
     expect(await rulesNow()).toEqual({ ...HELD_FIRST_RULES, gamesPerGameweek: 2 });
@@ -94,7 +94,7 @@ describe("a save made from rules someone has saved over since", () => {
     const { opened, refusal } = await coCommissionerSavesOver();
 
     await expectRefused(
-      (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: rulesWith({ gamesPerGameweek: 99 }), revision: opened }),
+      (await actingAs(t, COMMISSIONER)).mutation(internal.rules.leagueRules.change, { leagueId, rules: rulesWith({ gamesPerGameweek: 99 }), revision: opened }),
       refusal,
     );
   });

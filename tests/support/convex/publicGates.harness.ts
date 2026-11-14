@@ -167,7 +167,6 @@ export const gates: Record<string, Gate> = {
   "positions/positionSettings:setApproveMode": "admin",
   "positions/positionSettings:setChangeThresholds": "admin",
   "positions/unplacedAreas:setUnplacedArea": "admin",
-  "rules/leagueRules:change": "runner",
   "rules/leagueRules:latest": "member",
   "rules/leagueSettings:changeSettings": "runner",
   "rules/leagueSettings:settings": "runner",
