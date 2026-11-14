@@ -55,7 +55,7 @@ describe("a manager's pick and his clock's auto-pick at the same moment", () => 
     expect(await timeouts()).toEqual([]);
   });
 
-  test("the auto-pick first: it lands as his timeout, and his pick after it is refused, saying so (S04.20)", async () => {
+  test("the auto-pick first: it lands as his timeout, and his pick after it is refused", async () => {
     await autoPickFirst();
     await expectRefused(pick(ANN, THIRD, 1), pickRefusals.tooLateAuto(midfielder(FIRST).name));
 
