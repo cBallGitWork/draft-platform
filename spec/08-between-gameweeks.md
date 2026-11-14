@@ -16,13 +16,13 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 
 - A dropped player goes on waivers for at least 24 hours before a run can take him.
 - A manager with a full squad names who he drops with his claim; that player goes only if the claim
-  succeeds.
+  succeeds. `S08.19`
 - A manager puts in as many claims as he likes, ranked: if his first fails, his next is tried.
 - The waiver order is reverse table order by default, or rotating (`spec/03`); corrected on 5 Nov
   2026, the same day:
   - Reverse table order is worked out again when a gameweek ends, the bottom of the table first. A
     team that wins a claim goes to the bottom until the next gameweek ends: "the table order resets
-    only fully only when a gameweek ends".
+    only fully only when a gameweek ends". `S08.18`
   - Rotating: whoever last won a claim goes to the bottom, and it never resets: "rolling means
     whoever last made a waiver is at the bottom, that doesnt reset. you dont want to give the last
     pick in draft first waiver every week".
