@@ -25,7 +25,8 @@ import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 // answers it; when the trade deadline passes or a break starts; when either team goes on the auto
 // team; and the moment one of its players leaves his squad, by a drop, a claim, a pickup, the
 // commissioner or another trade (Craig, 6 Nov 2026). A trade already accepted and in review isn't
-// closed by any of these: it finishes its review (tradeReview.ts). Its players are held meanwhile:
+// closed by any of these: it finishes its review (tradeReview.ts). A player leaving the Premier
+// League cancels an offer holding him, in review too (S08.25, #2200). Its players are held meanwhile:
 // they can't be dropped, and an accepted trade can't take them. Nothing closes while the league is
 // frozen for deletion; an offer due meanwhile closes at the cron's first check after an undo (#1493).
 

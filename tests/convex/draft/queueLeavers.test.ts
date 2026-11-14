@@ -12,7 +12,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // skips him for the next in the queue.
 
 const SOLD = 101;
-const NEXT = 102;
+const KEPT = 102;
 
 test("a queued player who leaves stays listed, gone, and auto-pick takes the next in the queue (S04.21)", async () => {
   const t = await signInDeployment();
@@ -21,8 +21,8 @@ test("a queued player who leaves stays listed, gone, and auto-pick takes the nex
   const [annsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
-    await insertPlayers(ctx, [midfielder(SOLD), midfielder(NEXT), midfielder(103)]);
-    await ctx.db.insert("draftLists", { leagueId, teamId: annsTeam, queue: [SOLD, NEXT], doNotDraft: [] });
+    await insertPlayers(ctx, [midfielder(SOLD), midfielder(KEPT), midfielder(103)]);
+    await ctx.db.insert("draftLists", { leagueId, teamId: annsTeam, queue: [SOLD, KEPT], doNotDraft: [] });
   });
   await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } }));
   const { as, start, pass } = draftSteps(() => ({ t, leagueId }));
@@ -32,10 +32,10 @@ test("a queued player who leaves stays listed, gone, and auto-pick takes the nex
   await pass(FIRST_PICK_MS);
 
   const picked = await t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
-  expect(picked).toEqual([NEXT]);
+  expect(picked).toEqual([KEPT]);
   const queue = (await (await as(ANN)).query(api.draft.draftLists.mine, { leagueId }))?.queue;
   expect(queue?.map(({ code, gone }) => ({ code, gone }))).toEqual([
     { code: SOLD, gone: true },
-    { code: NEXT, gone: false },
+    { code: KEPT, gone: false },
   ]);
 });
