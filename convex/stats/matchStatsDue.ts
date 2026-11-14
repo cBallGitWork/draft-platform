@@ -16,8 +16,9 @@ type State = Infer<typeof matchStatsState>;
  *  so none is read before. */
 const EARLIEST_FULL_TIME_MS = 105 * MINUTE_MS;
 /** How long a locked match is still read, to catch a late correction for the feeds page, and how
- *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
-export const LATE_CORRECTION_WATCH_MS = DAY_MS;
+ *  often: six hours (Craig, 13 Nov 2026, #2002, the Convex quota; it was a day), hourly Claude's
+ *  choice, and no late correction has been recorded to size either. */
+export const LATE_CORRECTION_WATCH_MS = 6 * HOUR_MS;
 export const LATE_READ_EVERY_MS = HOUR_MS;
 /** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
 export const MATCHES_PER_RUN = 10;
@@ -26,13 +27,18 @@ export const MATCHES_PER_RUN = 10;
  *  kickoff the football sync learns late (it reads every six hours) can land before the last run,
  *  and a week covers that sync being down for days. Claude's choice, not yet Craig's (#199). */
 export const UNSEEN_LOOKBACK_MS = WEEK_MS;
+/** How far the kickoff to read from must have moved before a run with nothing due stores it: such
+ *  a run writes nothing else (#2002), so storing it every 10 minutes would be a write each run for
+ *  ten minutes' fewer fixtures read. A day costs at most a day's more read. Claude's choice. */
+export const UNSEEN_MOVE_STEP_MS = DAY_MS;
 /** The most status rows read in one state at once: a season's matches, with room. More throws,
  *  never a silent cut. */
 const STATUS_ROWS_MOST = CURRENT_FIXTURES_MOST;
 
-/** What `due` found: the matches to read now, and the kickoff `record` stores for the next run to
- *  read the fixtures from. */
-const dueRead = v.object({ matches: v.array(dueMatch), unseenFrom: v.number() });
+/** What `due` found: the matches to read now, the kickoff `record` stores for the next run to
+ *  read the fixtures from, and whether it has moved `UNSEEN_MOVE_STEP_MS` past the stored one, so
+ *  a run with nothing due stores it too. */
+const dueRead = v.object({ matches: v.array(dueMatch), unseenFrom: v.number(), unseenMoved: v.boolean() });
 
 /** The held matches to read now: each past full time and not locked, or locked within the watch
  *  and not read for an hour. Those never tried come first, then the least lately tried, oldest
@@ -53,7 +59,8 @@ export const due = internalQuery({
     }
     // The next run reads from the oldest kickoff here with no status row, or a lookback ago.
     let unseenFrom = now - UNSEEN_LOOKBACK_MS;
-    for (const fixture of await currentFixtures(ctx, fullTimeBy, await storedUnseenFrom(ctx))) {
+    const stored = await storedUnseenFrom(ctx);
+    for (const fixture of await currentFixtures(ctx, fullTimeBy, stored)) {
       if (fixture.kickoff === null || (await statusOf(ctx, fixture.code)) !== null) continue;
       unseenFrom = Math.min(unseenFrom, fixture.kickoff);
       candidates.set(fixture.code, fixture);
@@ -68,7 +75,7 @@ export const due = internalQuery({
       .sort((a, b) => a.triedAt - b.triedAt || a.kickoff - b.kickoff)
       .slice(0, MATCHES_PER_RUN)
       .map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek }));
-    return { matches, unseenFrom };
+    return { matches, unseenFrom, unseenMoved: stored === undefined || unseenFrom - stored >= UNSEEN_MOVE_STEP_MS };
   },
 });
 

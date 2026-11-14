@@ -148,6 +148,17 @@ export const record = internalMutation({
   },
 });
 
+/** What a cron run with nothing due writes in place of its run row (#2002): only the kickoff to
+ *  read the fixtures from. */
+export const recordUnseenFrom = internalMutation({
+  args: { kickoff: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { kickoff }) => {
+    await storeUnseenFrom(ctx, kickoff);
+    return null;
+  },
+});
+
 /** Stores the kickoff to read the fixtures from, never moving it back: each run's is safe, since a
  *  status row is never deleted, so the later of two runs' is too. */
 async function storeUnseenFrom(ctx: MutationCtx, kickoff: number) {

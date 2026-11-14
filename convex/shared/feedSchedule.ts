@@ -97,8 +97,12 @@ export const FEED_SCHEDULES = {
 
 /** How long a scheduled feed may go without a success before it is late. */
 export function lateAfterMs({ every, graceMs }: FeedSchedule): number {
-  const everyMs = "hours" in every ? every.hours * HOUR_MS : every.minutes * MINUTE_MS;
-  return everyMs + graceMs;
+  return everyMs(every) + graceMs;
+}
+
+/** An interval in milliseconds. */
+export function everyMs(every: Every): number {
+  return "hours" in every ? every.hours * HOUR_MS : every.minutes * MINUTE_MS;
 }
 
 /** What the admin's failure email calls each kind: a feed's own name, or the skipped league's. */

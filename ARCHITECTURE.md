@@ -211,12 +211,14 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   (`convex/football/matchScores.ts`). A read that gives no score for a match (none sent once it has
   kicked off, or a status never seen) is a problem on that run's row, and the held score stands.
   `football/matchScores:ofGameweek` reads a gameweek's matches with their scores.
-- The run logs (#146): `admin/runLogs:prune` deletes a run row 30 days after its run if it
-  succeeded, and 180 days after if it failed (Craig, 22 Oct 2026). It always keeps each feed's
-  newest five rows and its newest success. It goes in batches, the live tick's tables first.
-  A cron runs it daily (spec/20). A match-stats run with no match due is still a row: the feeds
-  page needs it as a success to judge lateness, and pruning keeps a 10-minute cron's runs to
-  about 4,300.
+- The run logs (#146): `admin/runLogs:prune` deletes a run row 7 days after its run if it
+  succeeded (Craig, 13 Nov 2026, #2002, the Convex quota; it was 30), and 180 days after if it
+  failed (Craig, 22 Oct 2026). It always keeps each feed's newest five rows and its newest
+  success, and reads only rows past the 7 days, by the creation-time index. It goes in batches,
+  the live tick's tables first. A cron runs it daily (spec/20). A match-stats cron run with no
+  match due writes no row (#2002): the feeds page owes late stats a success only while a match
+  this season is past full time and not locked (`admin/feeds.ts`). `unemailedDeletions` rows
+  keep their own 30 days (`leagues/deletionNotices.ts`).
 - The feeds page (#35): `admin/feeds:feeds` reads each run table back and calls a feed late
   when it has gone longer than its schedule allows without a success. Each feed's interval is in
   `convex/shared/feedSchedule.ts`, which `crons.ts` runs from; a feed no cron runs is "not
