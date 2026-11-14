@@ -25,7 +25,7 @@ const player = (index: number): HeldPlayer => ({
   clubCode: CLUBS[index % CLUBS.length].code,
   positions: ["CM"],
 });
-const MANAGERS = managersNamed(MOST_TEAMS);
+const EVERY_MANAGER = managersNamed(MOST_TEAMS);
 const PICK_MS = PICK_GAP_MS + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 
 test(
@@ -35,7 +35,7 @@ test(
     const t = await signInDeployment(undefined, true);
     fakeResend();
     const leagueId = await adminCreatesLeague(t, MOST_TEAMS);
-    await addManagers(t, leagueId, MANAGERS);
+    await addManagers(t, leagueId, EVERY_MANAGER);
     const players = Array.from({ length: POOL }, (_, index) => player(index));
     await t.run(async (ctx) => {
       await insertClubs(ctx, CLUBS);
@@ -49,7 +49,7 @@ test(
     }));
     await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
     const [first] = players;
-    await (await actingAs(t, MANAGERS[0])).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: first.code });
+    await (await actingAs(t, EVERY_MANAGER[0])).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: first.code });
     // Every other clock runs out in turn; the draft ends the last pick's 10 seconds later (#1458).
     for (let pick = 1; pick < MOST_TEAMS; pick++) await clockRunsTo(t, Date.now() + PICK_MS);
     await clockRunsTo(t, Date.now() + PICK_GAP_MS);
