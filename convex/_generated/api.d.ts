@@ -418,6 +418,7 @@ import type * as waivers_waiverLock from "../waivers/waiverLock.js";
 import type * as waivers_waiverOrder from "../waivers/waiverOrder.js";
 import type * as waivers_waiverPlayers from "../waivers/waiverPlayers.js";
 import type * as waivers_waiverRun from "../waivers/waiverRun.js";
+import type * as waivers_waiverRunRetries from "../waivers/waiverRunRetries.js";
 import type * as waivers_waiverTimes from "../waivers/waiverTimes.js";
 import type * as waivers_waivers from "../waivers/waivers.js";
 
@@ -838,6 +839,7 @@ declare const fullApi: ApiFromModules<{
   "waivers/waiverOrder": typeof waivers_waiverOrder;
   "waivers/waiverPlayers": typeof waivers_waiverPlayers;
   "waivers/waiverRun": typeof waivers_waiverRun;
+  "waivers/waiverRunRetries": typeof waivers_waiverRunRetries;
   "waivers/waiverTimes": typeof waivers_waiverTimes;
   "waivers/waivers": typeof waivers_waivers;
 }>;

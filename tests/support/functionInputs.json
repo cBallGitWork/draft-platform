@@ -331,6 +331,9 @@
   "waivers/waiverRun:run": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"at":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/waiverRun:runDue": {"type":"object","value":{}},
   "waivers/waiverRun:runLeagueDue": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
+  "waivers/waiverRunRetries:emailRunFailed": {"type":"object","value":{"leagueName":{"fieldType":{"type":"string"},"optional":false},"at":{"fieldType":{"type":"number"},"optional":false},"error":{"fieldType":{"type":"string"},"optional":false}}},
+  "waivers/waiverRunRetries:runFailed": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"at":{"fieldType":{"type":"number"},"optional":false},"error":{"fieldType":{"type":"string"},"optional":false}}},
+  "waivers/waiverRunRetries:runWithRetries": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"at":{"fieldType":{"type":"number"},"optional":false},"backFrom":{"fieldType":{"type":"union","value":[{"type":"number"},{"type":"null"}]},"optional":false}}},
   "waivers/waivers:cardActionOn": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false},"now":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/waivers:drop": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/waivers:stateOf": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false}}}

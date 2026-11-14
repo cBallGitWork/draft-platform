@@ -1,5 +1,5 @@
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
-import { Panel } from "../../ui/Panel";
+import { Notice, Panel } from "../../ui/Panel";
 import type { PendingClaim, WaiversView } from "./seam";
 import {
   freeAgentsWords,
@@ -11,6 +11,7 @@ import {
   WAIVER_ORDER_TITLE,
   waiverOrderNote,
   waiverOrderWords,
+  waiversDelayedWords,
   windowWords,
 } from "./words";
 
@@ -60,6 +61,7 @@ export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; clai
   });
   return (
     <Panel title={RUNS_TITLE}>
+      {waivers.delayed && <Notice>{waiversDelayedWords}</Notice>}
       <ul>
         {waivers.runs.map(({ at, skippedIf }, index) => {
           const note = runNoteWords({

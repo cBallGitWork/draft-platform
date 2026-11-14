@@ -48,6 +48,10 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
     (Craig, 11 Nov 2026, #1590). `S08.14`
 - A run made late keeps its own check on now, and is skipped if its time fell in the lock (Craig,
   11 Nov 2026, #1470). `S08.11`
+- A run does every claim or none: Wednesday's 18:00 run crashing after 3 of 6 claims leaves all 6
+  undone, and it is tried again at once. A second run for the same time does nothing. Still failing
+  after its retries, the admin is emailed and managers see "Waivers delayed" (Craig, 14 Nov 2026,
+  #2193). `S08.23`
 - A player nobody claims at a run is a free agent straight after it, first come first served, through
   the window.
 - A free agent nobody picks up goes back on waivers at the deadline, so the next run hands him out

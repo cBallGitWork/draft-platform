@@ -90,8 +90,8 @@ describe("the cron", () => {
       if (args.leagueId === other) await expect(checking).rejects.toThrow("has no rules");
       else await checking;
     }
-    const [running] = await pendingJobs(w.t, internal.waivers.waiverRun.run);
-    await w.t.mutation(internal.waivers.waiverRun.run, running.args[0] as { leagueId: Id<"leagues">; at: number });
+    const [running] = await pendingJobs(w.t, internal.waivers.waiverRunRetries.runWithRetries);
+    await w.t.action(internal.waivers.waiverRunRetries.runWithRetries, running.args[0] as { leagueId: Id<"leagues">; at: number; backFrom: number | null });
     expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
     expect(await ranAt()).toBe(runTime);
   });
