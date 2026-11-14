@@ -139,14 +139,15 @@ describe("a traded pick's owner, on random trades (S04.2, S04.3)", () => {
 type Model = { teams: number[]; rounds: number; owners: Map<string, number>; made: number };
 type Real = { traded: TradedPick<number>[] };
 
-const slot = (round: number, team: number) => `${round}:${team}`;
+/** The model's key for `team`'s pick in `round`. */
+const pickKey = (round: number, team: number) => `${round}:${team}`;
 
 /** Every pick left in the model, in turn: its round, whose turn it is and who holds it. */
-function modelPicks({ teams, rounds, owners }: Model) {
+function modelPicks(model: Model) {
   const picks = [];
-  for (let round = 1; round <= rounds; round++) {
-    const inTurn = round % 2 === 1 ? teams : [...teams].reverse();
-    for (const turn of inTurn) picks.push({ round, turn, owner: owners.get(slot(round, turn)) ?? turn });
+  for (let round = 1; round <= model.rounds; round++) {
+    const inTurn = round % 2 === 1 ? model.teams : [...model.teams].reverse();
+    for (const turn of inTurn) picks.push({ round, turn, owner: holderIn(model, round, turn) });
   }
   return picks;
 }
@@ -162,7 +163,7 @@ function agree(model: Model, real: Real) {
 }
 
 /** Who holds `team`'s pick in `round` in the model. */
-const holderIn = (model: Model, round: number, team: number) => model.owners.get(slot(round, team)) ?? team;
+const holderIn = (model: Model, round: number, team: number) => model.owners.get(pickKey(round, team)) ?? team;
 
 /** The real list after `team`'s pick in `round` goes to `owner`: one entry a pick, none once it is home. */
 function tradedTo(traded: TradedPick<number>[], round: number, team: number, owner: number): TradedPick<number>[] {
@@ -182,12 +183,12 @@ class SwapPicks implements fc.Command<Model, Real> {
     holderIn(model, this.one.round, this.one.team) !== holderIn(model, this.other.round, this.other.team);
   run(model: Model, real: Real) {
     const [oneHolder, otherHolder] = [holderIn(model, this.one.round, this.one.team), holderIn(model, this.other.round, this.other.team)];
-    model.owners.set(slot(this.one.round, this.one.team), otherHolder);
-    model.owners.set(slot(this.other.round, this.other.team), oneHolder);
+    model.owners.set(pickKey(this.one.round, this.one.team), otherHolder);
+    model.owners.set(pickKey(this.other.round, this.other.team), oneHolder);
     real.traded = tradedTo(tradedTo(real.traded, this.one.round, this.one.team, otherHolder), this.other.round, this.other.team, oneHolder);
     agree(model, real);
   }
-  toString = () => `swap ${slot(this.one.round, this.one.team)} for ${slot(this.other.round, this.other.team)}`;
+  toString = () => `swap ${pickKey(this.one.round, this.one.team)} for ${pickKey(this.other.round, this.other.team)}`;
 }
 
 class NewOrder implements fc.Command<Model, Real> {
