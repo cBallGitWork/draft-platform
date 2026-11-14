@@ -2,6 +2,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { SECOND_MS } from "../shared/time";
+import { pickSecondsNow } from "./draftPickTime";
 import { draftOf, turnAfter, turnNow, type Clock } from "./draftRow";
 import { picksAtOnce } from "./draftTimeouts";
 
@@ -19,6 +20,11 @@ import { picksAtOnce } from "./draftTimeouts";
 /** How long after a pick the next pick's clock starts (Craig, 4 Nov 2026: "Yes, clock waits"). */
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
+/** How late the draft's pick can run before the draft takes it that the site was down when its
+ *  clock ran out (S04.21; #2204): Convex runs a job within a second or two of its time, so one this
+ *  late waited out an outage. Claude's choice. */
+export const AFTER_BREAK_LATE_MS = 30 * SECOND_MS;
+
 /** The pick a clock was started for: its number and round, its team, when its clock starts and
  *  runs out, `atOnce` when the draft picks for the team as it starts (`picksAtClockStart`), and
  *  `paused` when the draft is paused, so the clock waits for the commissioner to resume. */
@@ -29,8 +35,10 @@ export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsA
  *  the draft is paused, which schedules nothing until he resumes (draftPause.ts; #1095); `upNext`
  *  for one after a manager's own pick, whose manager is told he is up next only as it starts, once
  *  the 10 seconds to undo are up; and `leftMs` for a pick a manager's own undo put back, which runs
- *  for the time his clock had left, not the pick time (Craig, 11 Nov 2026, on #1458). */
-export type ClockStart = { fullClock?: true; pausedAt?: number; upNext?: true; leftMs?: number };
+ *  for the time his clock had left, not the pick time (Craig, 11 Nov 2026, on #1458); `afterBreak`
+ *  for one whose clock ran out while the site was down, which everyone is told resumed after a
+ *  break (`restartAfterBreak`; S04.21). */
+export type ClockStart = { fullClock?: true; pausedAt?: number; upNext?: true; leftMs?: number; afterBreak?: true };
 
 /** Puts the pick after the league's first `picksMade` on the clock, from `startsAt` for
  *  `pickSeconds`, scheduling the pick the draft makes for its team, and returns it; once every pick
@@ -44,7 +52,7 @@ export async function startClock(
   picksMade: number,
   startsAt: number,
   pickSeconds: number,
-  { fullClock, pausedAt, upNext, leftMs }: ClockStart = {},
+  { fullClock, pausedAt, upNext, leftMs, afterBreak }: ClockStart = {},
 ): Promise<Clocked | null> {
   const draft = await draftOf(ctx, leagueId);
   if (draft?.started === undefined) throw new Error(`League ${leagueId}'s draft hasn't started, so no pick can be put on the clock`);
@@ -59,7 +67,7 @@ export async function startClock(
   const team = await ctx.db.get("teams", turn.team);
   if (team === null) throw new Error(`League ${leagueId}'s draft names team ${turn.team}, which doesn't exist`);
   const endsAt = startsAt + (leftMs ?? pickSeconds * SECOND_MS);
-  const clock = { pick: turn.pick, startsAt, endsAt, ...(fullClock && { fullClock }), ...(upNext && { upNext }) };
+  const clock = { pick: turn.pick, startsAt, endsAt, ...(fullClock && { fullClock }), ...(upNext && { upNext }), ...(afterBreak && { afterBreak }) };
   if (paused !== undefined) {
     await ctx.db.patch("drafts", draft._id, { clock: { ...clock, paused } });
   } else {
@@ -111,6 +119,22 @@ export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, c
     ? await ctx.scheduler.runAt(clock.startsAt, internal.draft.pickWindow.clockStarts, args)
     : await ctx.scheduler.runAt(autoPickAt(draft, clock, team), internal.draft.draftPicks.autoPick, args);
   await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job } });
+}
+
+/** Whether the draft's pick for `team`, whose pick is `clock`'s, is running `AFTER_BREAK_LATE_MS` or
+ *  more past its time: its clock ran out while the site was down (S04.21). */
+export function ranOutInBreak(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): boolean {
+  return Date.now() - autoPickAt(draft, clock, team) >= AFTER_BREAK_LATE_MS;
+}
+
+/** The site is back after its clock ran out while it was down (Craig, 14 Nov 2026, grill batch 2,
+ *  on #2204; S04.21): no pick is made and no timeout counted, and the pick on the clock gets its
+ *  full clock at the league's pick time from now, as after a resume, marked `afterBreak` so everyone
+ *  sees the draft resumed after a break. A pick the commissioner's undo put back still waits out its
+ *  clock. The caller is the clock's own job, so the clock goes without it. */
+export async function restartAfterBreak(ctx: MutationCtx, leagueId: Id<"leagues">, clock: Clock): Promise<void> {
+  console.warn(`League ${leagueId}'s pick ${clock.pick} ran out while the site was down, so it is back on its full clock`);
+  await startClock(ctx, leagueId, clock.pick - 1, Date.now(), await pickSecondsNow(ctx, leagueId), { fullClock: clock.fullClock, afterBreak: true });
 }
 
 /** When `team`'s pick is on the clock in its league's draft, schedules its auto-pick again, for a

@@ -67,6 +67,10 @@ export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
 }
 
+/** The site is down for `ms`: the time moves on and no scheduled function runs, so each one waiting
+ *  runs `ms` late, as the clock next moves on to it. */
+export const siteDown = (ms: number) => vi.setSystemTime(Date.now() + ms);
+
 /** Lets `ms` pass, and runs every scheduled function that falls due in it. */
 export async function elapse(t: TestConvex, ms: number): Promise<void> {
   vi.advanceTimersByTime(ms);

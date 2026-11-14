@@ -10,6 +10,7 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { menuWords } from "../../../src/shared/words";
 import type { BoardPick } from "../../../src/draft/seam";
 import {
+  afterBreakWords,
   aPickWords,
   BOARD_TITLE,
   clockAPickHead,
@@ -139,6 +140,16 @@ describe("while it runs", () => {
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(stateWords.paused);
     expect(fact(clockAPickHead(90))).toBe("0:48");
     expect(fact(yourNextHead(false))).toBe("Round 1, pick 2 in 1 pick");
+  });
+
+  it("S04.21 says the draft resumed after a break while the pick is back on its full clock after the site was down, and not otherwise", async () => {
+    openDraft({ draft: liveDraft({ picksMade: 0, afterBreak: true }), board: emptyBoard });
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(afterBreakWords);
+  });
+
+  it("S04.21 says nothing of a break on a live draft that had none", async () => {
+    openDraft({ draft: liveDraft({ picksMade: 0 }), board: emptyBoard });
+    expect((await screen.findByRole("heading", { level: 1 })).textContent).not.toContain(afterBreakWords);
   });
 
   it("shows six rounds, and every round on the whole board", async () => {

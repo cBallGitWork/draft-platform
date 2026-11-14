@@ -4,12 +4,13 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { UP_NEXT_SUBJECT } from "../../../convex/mail/draftLetterWords";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
-import { SECOND_MS } from "../../../convex/shared/time";
+import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
+import { siteDown } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
@@ -154,6 +155,50 @@ describe("Mail", () => {
 
     expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1, A2]);
     expect(await newLetterSubjects(before)).toEqual([UP_NEXT_SUBJECT, UP_NEXT_SUBJECT]);
+  });
+});
+
+// spec/04, Auto-pick, S04.21 (Craig, 14 Nov 2026, grill batch 2, on #2204): a clock that ran out
+// while the site was down fires no auto-pick and counts no timeout; the turn gets its full clock
+// again, as after a resume, and everyone sees the draft resumed after a break.
+describe("after the site was down", () => {
+  const OUTAGE_MS = 20 * MINUTE_MS;
+  const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts ?? []);
+
+  test("S04.21 a clock that ran out in the outage fires no auto-pick, counts no timeout and restarts on its full clock", async () => {
+    await start();
+    await pass(FIRST_PICK_MS / 2);
+    siteDown(OUTAGE_MS);
+    await pass(FIRST_PICK_MS / 2);
+    const back = Date.now();
+
+    expect(await picks()).toEqual([]);
+    expect(await timeouts()).toEqual([]);
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { startsAt: back, endsAt: back + FIRST_PICK_MS, afterBreak: true } });
+  });
+
+  test("S04.21 the restarted clock runs out as any other: the pick is made, a timeout counted, and the next clock is no longer after a break", async () => {
+    await start();
+    siteDown(OUTAGE_MS);
+    await pass(FIRST_PICK_MS);
+    await pass(FIRST_PICK_MS);
+
+    expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1]);
+    expect(await timeouts()).toMatchObject([{ teamId: teams[0], count: 1 }]);
+    expect(await read()).toMatchObject({ onTheClock: { pick: 2 }, clock: expect.not.objectContaining({ afterBreak: true }) });
+  });
+
+  test("S04.21 a team with no manager, whose turn came in the outage, is picked for at once on the clock that restarts", async () => {
+    await t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: undefined }));
+    await start();
+    await pick(ANN, A2);
+    siteDown(OUTAGE_MS);
+    await pass(PICK_GAP_MS);
+
+    expect((await picks()).map(({ teamId, playerCode }) => ({ teamId, playerCode }))).toEqual([
+      { teamId: teams[0], playerCode: A2 },
+      { teamId: teams[1], playerCode: A1 },
+    ]);
   });
 });
 

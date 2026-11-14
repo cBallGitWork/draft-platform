@@ -13,6 +13,7 @@ import { DraftBoard } from "./DraftBoard";
 import { PickRoom } from "./PickRoom";
 import type { DraftBoard as Board, DraftSeam, DraftState } from "./seam";
 import {
+  afterBreakWords,
   aPickWords,
   clockAPickHead,
   clockHead,
@@ -66,9 +67,12 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       : null;
   const paused = pausedAtOf(draft) !== undefined;
   const state = paused ? stateWords.paused : stateWords[draft.status];
+  // After the site was down, the pick on the clock is back on its full clock (S04.21; #2204).
+  const afterBreak = draft.status === "live" && draft.clock.afterBreak === true;
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>
+      {afterBreak && <span className="ml-2 align-middle text-lead text-soft">{afterBreakWords}</span>}
     </>
   );
   const facts =

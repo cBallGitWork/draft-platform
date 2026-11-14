@@ -63,7 +63,9 @@ export const draftTables = {
      *  `upNext` marks a clock after a manager's own pick, whose job tells its manager he is up next
      *  as it starts, once the 10 seconds to undo are up (Craig, 11 Nov 2026, on #1458), and then
      *  schedules the pick the draft makes. `closing` marks the 10 seconds after the last pick: its
-     *  `pick` is one past the last, it starts and runs out as the draft ends, and its job ends it. */
+     *  `pick` is one past the last, it starts and runs out as the draft ends, and its job ends it.
+     *  `afterBreak` marks a pick whose clock ran out while the site was down, put back on its full
+     *  clock as the site came back, with no pick made and no timeout counted (S04.21; #2204). */
     clock: v.optional(
       v.object({
         pick: v.number(),
@@ -74,6 +76,7 @@ export const draftTables = {
         fullClock: v.optional(v.literal(true)),
         upNext: v.optional(v.literal(true)),
         closing: v.optional(v.literal(true)),
+        afterBreak: v.optional(v.literal(true)),
       }),
     ),
     /** The pick time this draft runs on, in seconds: the league's latest when it started (#1439), or
