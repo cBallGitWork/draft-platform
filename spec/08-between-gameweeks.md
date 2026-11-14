@@ -65,7 +65,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   drafts do by default (`spec/04`). A player who comes back to the Premier League mid-season counts
   as new, whenever he left, so every league's managers get the same fair chance at him (Craig,
   11 Nov 2026, #1489). `S08.8`
-- A claim that would break the squad's limits is refused at the run.
+- A claim that would break the squad's limits is refused at the run. `S08.20`
 - A manager sees only his own pending claims; the commissioner sees everyone's. The league gets a
   Mail letter for each claim that succeeds, who came in and who went; a failed claim's letter goes
   only to its manager (`spec/16`).
@@ -84,7 +84,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 From `/grill trades` (25 Oct 2026).
 
 - An offer holds any mix of players and picks on either side, in any numbers. A squad pushed past
-  its limits is warned, as an assignment is (`spec/15`).
+  its limits is warned, as an assignment is (`spec/15`). `S08.21`
 - An offer can carry a one-line note.
 - The other manager accepts, rejects or counters with a changed offer, which closes the old one.
 - An offer nobody answers closes at the next deadline.

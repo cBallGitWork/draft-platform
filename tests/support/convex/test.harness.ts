@@ -7,6 +7,7 @@ import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { expect, vi } from "vitest";
+import type { TableNames } from "../../../convex/_generated/dataModel";
 import schema from "../../../convex/schema";
 
 /** Every file in convex/, keyed by its path from here, as convex-test needs them: it finds
@@ -102,6 +103,14 @@ export function fakeFetch(
 export function refusedError(url: string): string {
   return `${url} answered ${REFUSED_STATUS}`;
 }
+
+/** Every row of every table in the schema, by table: for a check that a refused call wrote nothing. */
+export const everyRow = (t: TestConvex) =>
+  t.run(async (ctx) => {
+    const rows: Record<string, unknown[]> = {};
+    for (const table of Object.keys(schema.tables) as TableNames[]) rows[table] = await ctx.db.query(table).collect();
+    return rows;
+  });
 
 /** A refusal the person is shown: a ConvexError carrying the reason. A plain Error reaches the
  *  browser as "Server Error", its message lost, so matching the message alone would pass it.

@@ -1,16 +1,14 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
-import type { TableNames } from "../../../convex/_generated/dataModel";
 import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
-import schema from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange, type Caller } from "../../support/convex/leagueMutations.harness";
 import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { everyJobRuns } from "../../support/convex/test.harness";
+import { everyJobRuns, everyRow } from "../../support/convex/test.harness";
 
 // Every public mutation given a league refuses a signed-out caller and a signed-in outsider, and
 // changes nothing (#141; spec/13, Who runs it). Queries are left out: what an outsider may read
@@ -60,13 +58,6 @@ beforeEach(async () => {
   });
 });
 
-const everyRow = () =>
-  t.run(async (ctx) => {
-    const rows: Record<string, unknown[]> = {};
-    for (const table of Object.keys(schema.tables) as TableNames[]) rows[table] = await ctx.db.query(table).collect();
-    return rows;
-  });
-
 /** What each call is refused with, by its mutation's name; null where it was let in. */
 async function refusalsOf(caller: Caller): Promise<Record<string, string | null>> {
   const told: Record<string, string | null> = {};
@@ -84,20 +75,20 @@ async function refusalsOf(caller: Caller): Promise<Record<string, string | null>
 
 describe("a mutation given a league", () => {
   test("refuses anyone signed out, saying sign in, and nothing changes", async () => {
-    const before = await everyRow();
+    const before = await everyRow(t);
     const told = await refusalsOf(t);
 
     expect(Object.entries(told).filter(([, refusal]) => refusal !== refusals.signedOut)).toEqual([]);
-    expect(await everyRow()).toEqual(before);
+    expect(await everyRow(t)).toEqual(before);
   });
 
   test("refuses someone signed in with no part in the league, saying it isn't theirs, and nothing changes", async () => {
     const outsider = await actingAs(t, OUTSIDER);
-    const before = await everyRow();
+    const before = await everyRow(t);
     const told = await refusalsOf(outsider);
 
     expect(Object.entries(told).filter(([, refusal]) => refusal === null || !KEEPS_OUT.includes(refusal))).toEqual([]);
-    expect(await everyRow()).toEqual(before);
+    expect(await everyRow(t)).toEqual(before);
   });
 
   test("every one is swept: a mutation added later fails here until it is tried or named in notSwept", async () => {

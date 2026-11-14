@@ -65,7 +65,8 @@ Nothing in it is a test. Each kind of file:
   the tests on random inputs run on, so a failure names the seed that runs it again; `ruleRuns.ts`,
   how many random inputs the rule tests (`*.rules.test.ts`, fast-check) try, short on every pull
   request and long in `npm run test:rules-long` (run by hand until a nightly job calls it, #2139),
-  and a failure's seed to replay; `smoke/errorsTest.ts`, the smoke
+  and a failure's seed to replay; `seededRandom.ts`, a seeded random source for a test that tries
+  many generated cases; `smoke/errorsTest.ts`, the smoke
   suite's own `test`, failing on any console or page error it didn't expect; and
   `scripts/repoRoot.mjs`, the repository's root for the script tests.
 - **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
