@@ -31,7 +31,7 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A player gets a position after 3 starts there, counted over his last 38 starts, last season's
   and this. Coming on as a substitute gives no position.
 - The starts are read once a day, early morning UK time (06:00); a run with matches still to read
-  carries on straight away rather than waiting a day (Craig, 5 Nov 2026, #1194).
+  carries on straight away rather than waiting a day (Craig, 5 Nov 2026, #1194). `S06.8`
 - Claude builds the table from a formation's places to labels from Sportmonks' lineups (formation
   position, detailed position): in a 4-2-3-1 the two deepest midfielders are CDM; in a 4-3-3 the
   three are CM. Craig checks the result on a list of last season's regulars before it is used.

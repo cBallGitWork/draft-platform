@@ -49,7 +49,7 @@ const storedIn = async (t: TestConvex, gameweek: number, emailOf: Map<Id<"teams"
   new Map((await t.run((ctx) => ctx.db.query("finalScores").collect())).filter((row) => row.gameweek === gameweek).map((row) => [emailOf.get(row.teamId)!, row.points]));
 
 /** The league's deadline, under the first rules, for a gameweek whose one match kicks off at `kickoff`. */
-export const deadlineOf = (kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
+export const firstRulesDeadline =(kickoff: number) => kickoff - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
 /** Hull v Everton again in `gameweek`, coded `code`, held as the football sync holds a fixture. */
 export const holdHullEverton = (t: TestConvex, gameweek: number, code: number, kickoff: number) =>
@@ -178,7 +178,7 @@ export async function chainToGameweekSeven() {
   // Gameweek 7: its deadline passes, the match is read at full time, and an hour on it locks. A
   // match counts in the gameweek it kicks off in (S07.9), so Belloumi's points are Ann's now: his
   // recorded line priced at the cell she put him in, and her score her eleven's with him in it.
-  vi.setSystemTime(deadlineOf(RETURN_KICKOFF) + MINUTE_MS);
+  vi.setSystemTime(firstRulesDeadline(RETURN_KICKOFF) + MINUTE_MS);
   await t.run((ctx) => recordPassedDeadlines(ctx));
   const records = await playedAndLocked(t, RETURN_MATCH, RETURN_KICKOFF);
 

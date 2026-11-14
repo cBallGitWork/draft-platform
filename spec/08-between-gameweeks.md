@@ -30,7 +30,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
     go by its own tie-breaks, then by the reverse of the draft order, which is also rotating's
     starting order. `S08.18`
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
-  commissioner can change it (`spec/03`).
+  commissioner can change it (`spec/03`). `S08.22`
   - Changed run times count only from the next one still ahead, so a new time already gone this
     week never runs at once: runs only happen at times managers were shown (Craig, 11 Nov 2026,
     #1468). `S08.10`
