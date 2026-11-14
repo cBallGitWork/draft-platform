@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { hasBegun } from "../gameweekScorer/gameweekScores";
+import { hasBegun, SCREEN_READ } from "../gameweekScorer/gameweekScores";
 import { liveScoresIn } from "../gameweekScorer/storedScores";
 import { seasonRules } from "../rules/rulesHistory";
 import { commentary, heldCommentary } from "../matchup/matchupShape";
@@ -137,7 +137,7 @@ export const ofLeague = query({
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season, { fromLiveScores: true });
+    const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season, SCREEN_READ);
     const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
     const form = formOf(gameModeOf(rules), teamIds, schedule, scores);
     const mine = team?._id ?? null;

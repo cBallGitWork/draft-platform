@@ -7,7 +7,7 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { scheduleOf } from "./playedFixtures";
-import { leagueScores } from "../gameweekScorer/gameweekScores";
+import { leagueScores, SCREEN_READ } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { onAutoTeam } from "../lineup/autoTeamSwitch";
@@ -122,7 +122,7 @@ export const ofLeague = query({
   handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season, { fromLiveScores: true });
+    const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season, SCREEN_READ);
     const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },

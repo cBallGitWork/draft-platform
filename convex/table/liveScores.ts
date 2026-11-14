@@ -31,7 +31,6 @@ import { teamsOf } from "../shared/leagueAccess";
 // `fileEvent`), each through liveRescore.ts. Once no match is live the tick clears every row, so nothing read after a matchday
 // comes from here.
 
-type TeamId = Id<"teams">;
 type LiveFields = Omit<Doc<"liveScores">, "_id" | "_creationTime">;
 type LiveVidiprinter = LiveFields["vidiprinter"];
 
@@ -81,7 +80,7 @@ const sameFields = ({ _id, _creationTime, ...held }: Doc<"liveScores">, fields: 
 
 /** The gameweek scored as the table scores it, and its Vidiprinter. One that can't be scored, or
  *  whose scorer can't even be read, leaves no row, so the screens work it out and show why. */
-async function scoredLive(ctx: MutationCtx, league: Doc<"leagues">, teamIds: TeamId[], gameweek: number): Promise<LiveFields | null> {
+async function scoredLive(ctx: MutationCtx, league: Doc<"leagues">, teamIds: Id<"teams">[], gameweek: number): Promise<LiveFields | null> {
   const season = await seasonRules(ctx, league._id);
   const fixtureCodes = (await heldFixtures(ctx, gameweek)).map((fixture) => fixture.code);
   let scoredGameweek: Awaited<ReturnType<typeof gameweekScorer>>;
@@ -109,7 +108,7 @@ export async function gameweekVidiprinter(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   gameweek: number,
 ): Promise<LiveVidiprinter> {
   try {

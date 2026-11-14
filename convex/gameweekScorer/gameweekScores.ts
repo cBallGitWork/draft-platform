@@ -98,8 +98,11 @@ export async function hasBegun(ctx: QueryCtx, league: Doc<"leagues">, gameweek: 
   return (await begunGameweeks(ctx, league)).includes(gameweek);
 }
 
+/** How a screen's query asks for `leagueScores`: the live gameweek from its live row. */
+export const SCREEN_READ = { fromLiveScores: true as boolean };
+
 /** Every team's points in each gameweek the league has begun, each from the league's scorer. A
- *  screen's query reads the live gameweek from its live row instead (`fromLiveScores`;
+ *  screen's query reads the live gameweek from its live row instead (`SCREEN_READ`;
  *  table/liveScores.ts, #2007), scored once a tick rather than once a viewer; a change that stores
  *  scores never does, so works every gameweek out, and only it is told what to store. */
 export async function leagueScores(
@@ -107,7 +110,7 @@ export async function leagueScores(
   league: Doc<"leagues">,
   season: SeasonRules,
   teamIds: readonly TeamId[],
-  { fromLiveScores = false }: { fromLiveScores?: boolean } = {},
+  { fromLiveScores = false }: Partial<typeof SCREEN_READ> = {},
 ): Promise<LeagueScores> {
   const gameweeks = await begunGameweeks(ctx, league);
   const result: LeagueScores = { scores: new Map(), unscored: [], finalUnstored: [] };
