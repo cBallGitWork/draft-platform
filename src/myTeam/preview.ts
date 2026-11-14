@@ -10,10 +10,11 @@ import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadLimits";
 import { squadLimits } from "../../convex/squads/squadRulesView";
 import { previewLatestMail } from "../mail/preview";
-import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
+import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
+import { previewAtLimits, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable } from "../table/preview";
-import { PREVIEW_GAMEWEEK, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
+import { PREVIEW_GAMEWEEK, PREVIEW_UNPLAYED, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -75,9 +76,10 @@ const scheduleOf = (seed: number) =>
     });
     return double ? [match(0), match(3)] : [match(0)];
   });
-/** The preview league's squad limits, for the Rules view. */
+/** The preview league's squad limits, for the Rules view: at the league limits, its squads hold a
+ *  Premier League squad's most. */
 const PREVIEW_SQUAD_RULES = {
-  size: { minimum: 13, maximum: 20 },
+  size: { minimum: 13, maximum: previewAtLimits ? MOST_IN_SQUAD : 20 },
   minimumByArea: { goalkeeper: 2, defence: 5, defensiveMidfield: 0, midfield: 4, attackingMidfield: 0, attack: 2 },
   maxPerClub: 3,
 };
@@ -87,7 +89,7 @@ const NOTHING_COUNTED ={ appearances: 0, minutes: 0, goals: 0, assists: 0, clean
 /** A made-up season for each of the Tactics tab's players, worked out from his code so a reload
  *  shows the same; the last one has played nothing yet, and two carry FPL news. */
 const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number, news }) => {
-    const unplayed = code === previewSquad.length;
+    const unplayed = code === PREVIEW_UNPLAYED;
     const keeper = positions.includes("GK");
     return {
       code,

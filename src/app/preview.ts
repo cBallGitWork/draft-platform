@@ -2,7 +2,8 @@
 // `commissioner` (running the same two, so Mail offers a letter to either, and deleting a third),
 // `newcomer` (in none), `admin` (in none, seeing every league and offered "Create a league") or
 // `visitor` (signed out), on the dev server only (the ui-verifier agent's way in). The made-up
-// leagues every feature's preview shares are src/shared/preview.ts's.
+// leagues every feature's preview shares are src/shared/preview.ts's, as is `&limits`, which puts
+// them at the league limits (#2136).
 // The production bundle leaves this file out (main.tsx), and previewSession's own
 // `import.meta.env.DEV` guard holds if something imports it anyway, so a logged-out visitor can
 // never reach the frame through it.
