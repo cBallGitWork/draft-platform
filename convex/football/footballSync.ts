@@ -88,6 +88,8 @@ export const run = internalAction({
         };
       });
       await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
+      // Its matches' kickoffs arm the live tick (#1999, stats/liveTicks.ts).
+      if (trigger === CRON_TRIGGER) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed: "liveStats", ranTick: false, busy: null });
       return null;
     });
   },

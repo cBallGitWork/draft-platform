@@ -20,6 +20,7 @@ import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
 import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
 import { syncTeamStats } from "../football/matchTeamStats";
 import { recordSideMatches, type SideMatches, type SideMatchOutcome } from "../admin/sideRuns";
+import { LIVE_TICK_FEEDS } from "./liveTicks";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. `crons.ts` runs it every 10 minutes (ARCHITECTURE.md); by hand from
@@ -63,6 +64,11 @@ export const run = internalAction({
         teamStats = sides.teamStats;
         return { ok: true as const, ...read };
       });
+      // Every 10 minutes, matches due or not, so either live tick chain that died starts again
+      // (#1999, liveTicks.ts).
+      if (byCron) {
+        for (const feed of LIVE_TICK_FEEDS) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: false, busy: null });
+      }
       // A cron run with nothing due writes no run row (#2002, the Convex quota): the feeds page owes
       // late stats a run only while a match is unlocked (admin/feeds.ts), and Healthchecks hears it ran.
       // A run by hand still writes one, for whoever ran it to read back.

@@ -21,7 +21,7 @@ import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared
 
 beforeEach(() => vi.useFakeTimers());
 
-const liveAt = (t: TestConvex, now: number) => t.query(internal.stats.liveStats.live, { now });
+const liveAt = async (t: TestConvex, now: number) => (await t.query(internal.stats.liveStats.due, { now })).live;
 const HULL_EVERTON_LIVE = [{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }];
 /** The live tick's two side feeds' rows (#522). */
 const sideOutcomes = async (t: TestConvex) => ({ teamStats: await outcomesOf(t, "teamStats"), thresholdSteps: await outcomesOf(t, "thresholdSteps") });

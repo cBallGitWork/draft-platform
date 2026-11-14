@@ -17,8 +17,13 @@ export const liveStatsTickFields = {
   ),
 };
 
+/** The live ticks that run themselves near matches (#1999, stats/liveTicks.ts): FPL's and Sportmonks'. */
+export const liveTickFeed = v.union(v.literal("liveStats"), v.literal("sportmonksLive"));
+
 export const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
+  /** Each live tick's next run, one row a feed, so a sync arming it never starts a second chain. */
+  liveTickChains: defineTable({ feed: liveTickFeed, scheduledId: v.id("_scheduled_functions") }).index("by_feed", ["feed"]),
   /** One compact row a match while it is live (#2006, stats/livePrints.ts): each man's record as a
    *  print, so a tick reads this one row, not his every record, to find who moved. Its being there
    *  says the match's records are not yet in anyone's season totals; full time counts them and

@@ -16,8 +16,10 @@ import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
 import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
 import { sameValue } from "../../scouting/scoutingPlayers";
 import { noteFirstMinutes } from "./fplLinksSync";
+import { chainedTick } from "../../stats/liveTicksChained";
 
-// Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each match of
+// Sportmonks' live tick (#1391), run every minute as `liveStatsSync` is, from kickoff while a match
+// is on and asleep between (#1999, stats/liveTicks.ts): each match of
 // a competition that is on (#1414), from kickoff to full time, read with its competition's others
 // in one call, with its lineups (starters, bench, formation places), each man's running totals
 // (`lineups.details`) and its events timeline, written over the last read, and each man's match stats
@@ -63,25 +65,27 @@ export const tick = internalAction({
   handler: async (ctx) => {
     const token = sportmonksToken();
     if (token === null) return null;
-    return withHeartbeat("sportmonksLiveTick", async () => {
-      const ranAt = Date.now();
-      let live: Infer<typeof liveMatch>[];
-      try {
-        live = await ctx.runQuery(internal.football.sportmonks.sportmonksLive.live, { now: ranAt });
-      } catch (error: unknown) {
-        // Before any competition is known, a failure is the tick's own, on no competition's row.
-        const outcome = { ok: false as const, error: logFailure(SPORTMONKS_TICK_FAILED_LOG, error) };
-        await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt, outcome });
-        return null;
-      }
-      // Each competition with a match on is its own row: one the plan refuses fails alone.
-      for (const competition of new Set(live.map((match) => match.competition))) {
-        const codes = live.filter((match) => match.competition === competition).map(({ fixtureCode }) => fixtureCode);
-        const outcome = await tickCompetition(ctx, token, codes, ranAt);
-        await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { competition, ranAt, outcome });
-      }
-      return null;
-    }, FEED_SCHEDULES.sportmonksLive.every);
+    return chainedTick(ctx, "sportmonksLive", () =>
+      withHeartbeat("sportmonksLiveTick", async () => {
+        const ranAt = Date.now();
+        let live: Infer<typeof liveMatch>[];
+        try {
+          live = await ctx.runQuery(internal.football.sportmonks.sportmonksLive.live, { now: ranAt });
+        } catch (error: unknown) {
+          // Before any competition is known, a failure is the tick's own, on no competition's row.
+          const outcome = { ok: false as const, error: logFailure(SPORTMONKS_TICK_FAILED_LOG, error) };
+          await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt, outcome });
+          return null;
+        }
+        // Each competition with a match on is its own row: one the plan refuses fails alone.
+        for (const competition of new Set(live.map((match) => match.competition))) {
+          const codes = live.filter((match) => match.competition === competition).map(({ fixtureCode }) => fixtureCode);
+          const outcome = await tickCompetition(ctx, token, codes, ranAt);
+          await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { competition, ranAt, outcome });
+        }
+        return live.length > 0;
+      }, FEED_SCHEDULES.sportmonksLive.every),
+    );
   },
 });
 
