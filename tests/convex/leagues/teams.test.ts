@@ -116,6 +116,16 @@ describe("renaming a team", () => {
     expect((await teamNames())[0].name).toBe("x".repeat(TEAM_NAME_MAX));
   });
 
+  test(`S13.2: an emoji counts as one character as it looks, and "rovers " clashes with "Rovers"`, async () => {
+    const ann = await actingAs(t, ANN);
+    const flags = "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}".repeat(TEAM_NAME_MAX);
+    await ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: flags });
+    expect((await teamNames())[0].name).toBe(flags);
+
+    await (await actingAs(t, BOB)).mutation(api.leagues.teams.rename, { teamId: (await teamsIn(t, leagueId))[1]._id, name: "Rovers" });
+    await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "rovers " }), refusals.teamNameTaken("rovers"));
+  });
+
   test("its manager changes only its capitals, and it's filed", async () => {
     await (await actingAs(t, ANN)).mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "TEAM 1" });
 
