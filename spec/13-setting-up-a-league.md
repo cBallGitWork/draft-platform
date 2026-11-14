@@ -22,6 +22,9 @@ comes to exist, fills, changes and ends.
   stays, for the commissioner to hand to the next person.
 - A team starts as "Team 1", "Team 2" and so on, and its manager renames it. Names are unique
   within the league, up to 30 characters.
+- In a team's or league's name, an emoji counts as 1 character, as it looks, in the browser and
+  the server alike. Spaces at either end are trimmed. Names differing only in capitals are the same
+  name, so "rovers " is refused when "Rovers" exists (Craig, 14 Nov 2026, grill batch 3). `S13.2`
 - The admin can name a team's manager directly, from the command line; the commissioner and
   co-commissioner invite instead (22 Oct 2026).
 
