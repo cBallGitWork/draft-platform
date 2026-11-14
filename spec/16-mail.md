@@ -31,3 +31,11 @@ letters, newest first. It reports; it never advises.
   (Craig, 9 Nov 2026). `S16.3`
 - The deadline letter says how your lineup stands, such as "Lineup set, 1 doubt in your eleven"
   (Craig, 9 Nov 2026: "Yes, show it"). `S16.4`
+- A letter leaves Needs you once nothing waits on you any more: the offer is answered or closed,
+  the review is over, or the gameweek's deadline has passed. It stays in All (Craig, 14 Nov 2026,
+  on #1030). `S16.6`
+- A deadline letter is in Needs you only when the lineup needs something: an empty slot, or a
+  doubt or an injured player in the eleven (Craig, 14 Nov 2026, on #1030). `S16.7`
+- A letter with nothing to act on links to where the change shows: a rule change to League rules,
+  a join or a rename to the league's teams. A letter whose change shows nowhere has no link (Craig,
+  14 Nov 2026, on #1030). `S16.8`
