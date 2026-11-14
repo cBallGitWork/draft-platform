@@ -142,12 +142,12 @@ describe("while it runs", () => {
     expect(fact(yourNextHead(false))).toBe("Round 1, pick 2 in 1 pick");
   });
 
-  it("S04.21 says the draft resumed after a break while the pick is back on its full clock after the site was down, and not otherwise", async () => {
+  it("S04.22 says the draft resumed after a break while the pick is back on its full clock after the site was down, and not otherwise", async () => {
     openDraft({ draft: liveDraft({ picksMade: 0, afterBreak: true }), board: emptyBoard });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(afterBreakWords);
   });
 
-  it("S04.21 says nothing of a break on a live draft that had none", async () => {
+  it("S04.22 says nothing of a break on a live draft that had none", async () => {
     openDraft({ draft: liveDraft({ picksMade: 0 }), board: emptyBoard });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).not.toContain(afterBreakWords);
   });

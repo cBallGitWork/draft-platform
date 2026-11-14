@@ -93,6 +93,8 @@ export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
       return "A team went on the auto team";
     case "playerLeft":
       return "A player left his squad";
+    case "leftPremierLeague":
+      return "A player left the Premier League";
     case "blocked":
       return "Blocked in review";
     case "failed":

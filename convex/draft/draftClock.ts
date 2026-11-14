@@ -21,7 +21,7 @@ import { picksAtOnce } from "./draftTimeouts";
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
 /** How late the draft's pick can run before the draft takes it that the site was down when its
- *  clock ran out (S04.21; #2204): Convex runs a job within a second or two of its time, so one this
+ *  clock ran out (S04.22; #2204): Convex runs a job within a second or two of its time, so one this
  *  late waited out an outage. Claude's choice. */
 export const AFTER_BREAK_LATE_MS = 30 * SECOND_MS;
 
@@ -37,7 +37,7 @@ export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsA
  *  the 10 seconds to undo are up; and `leftMs` for a pick a manager's own undo put back, which runs
  *  for the time his clock had left, not the pick time (Craig, 11 Nov 2026, on #1458); `afterBreak`
  *  for one whose clock ran out while the site was down, which everyone is told resumed after a
- *  break (`restartAfterBreak`; S04.21). */
+ *  break (`restartAfterBreak`; S04.22). */
 export type ClockStart = { fullClock?: true; pausedAt?: number; upNext?: true; leftMs?: number; afterBreak?: true };
 
 /** Puts the pick after the league's first `picksMade` on the clock, from `startsAt` for
@@ -122,13 +122,13 @@ export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, c
 }
 
 /** Whether the draft's pick for `team`, whose pick is `clock`'s, is running `AFTER_BREAK_LATE_MS` or
- *  more past its time: its clock ran out while the site was down (S04.21). */
+ *  more past its time: its clock ran out while the site was down (S04.22). */
 export function ranOutInBreak(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): boolean {
   return Date.now() - autoPickAt(draft, clock, team) >= AFTER_BREAK_LATE_MS;
 }
 
 /** The site is back after its clock ran out while it was down (Craig, 14 Nov 2026, grill batch 2,
- *  on #2204; S04.21): no pick is made and no timeout counted, and the pick on the clock gets its
+ *  on #2204; S04.22): no pick is made and no timeout counted, and the pick on the clock gets its
  *  full clock at the league's pick time from now, as after a resume, marked `afterBreak` so everyone
  *  sees the draft resumed after a break. A pick the commissioner's undo put back still waits out its
  *  clock. The caller is the clock's own job, so the clock goes without it. */

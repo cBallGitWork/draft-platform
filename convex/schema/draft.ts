@@ -65,7 +65,7 @@ export const draftTables = {
      *  schedules the pick the draft makes. `closing` marks the 10 seconds after the last pick: its
      *  `pick` is one past the last, it starts and runs out as the draft ends, and its job ends it.
      *  `afterBreak` marks a pick whose clock ran out while the site was down, put back on its full
-     *  clock as the site came back, with no pick made and no timeout counted (S04.21; #2204). */
+     *  clock as the site came back, with no pick made and no timeout counted (S04.22; #2204). */
     clock: v.optional(
       v.object({
         pick: v.number(),

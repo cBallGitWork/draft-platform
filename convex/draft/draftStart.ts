@@ -159,7 +159,7 @@ async function waitWithNoDate(ctx: MutationCtx, draft: Doc<"drafts">, refusal: s
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
 /** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
  *  when it was paused, its time left counted from then; `afterBreak` while the pick is back on its
- *  full clock after the site was down (draftClock.ts `restartAfterBreak`; S04.21). */
+ *  full clock after the site was down (draftClock.ts `restartAfterBreak`; S04.22). */
 const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()), afterBreak: v.optional(v.literal(true)) });
 /** The team whose manager made the draft's last pick himself (pickWindow.ts), or null. */
 const ownPickBy = v.union(v.id("teams"), v.null());

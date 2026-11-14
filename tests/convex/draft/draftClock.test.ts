@@ -158,14 +158,14 @@ describe("Mail", () => {
   });
 });
 
-// spec/04, Auto-pick, S04.21 (Craig, 14 Nov 2026, grill batch 2, on #2204): a clock that ran out
+// spec/04, Auto-pick, S04.22 (Craig, 14 Nov 2026, grill batch 2, on #2204): a clock that ran out
 // while the site was down fires no auto-pick and counts no timeout; the turn gets its full clock
 // again, as after a resume, and everyone sees the draft resumed after a break.
 describe("after the site was down", () => {
   const OUTAGE_MS = 20 * MINUTE_MS;
   const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts ?? []);
 
-  test("S04.21 a clock that ran out in the outage fires no auto-pick, counts no timeout and restarts on its full clock", async () => {
+  test("S04.22 a clock that ran out in the outage fires no auto-pick, counts no timeout and restarts on its full clock", async () => {
     await start();
     await pass(FIRST_PICK_MS / 2);
     siteDown(OUTAGE_MS);
@@ -177,7 +177,7 @@ describe("after the site was down", () => {
     expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { startsAt: back, endsAt: back + FIRST_PICK_MS, afterBreak: true } });
   });
 
-  test("S04.21 the restarted clock runs out as any other: the pick is made, a timeout counted, and the next clock is no longer after a break", async () => {
+  test("S04.22 the restarted clock runs out as any other: the pick is made, a timeout counted, and the next clock is no longer after a break", async () => {
     await start();
     siteDown(OUTAGE_MS);
     await pass(FIRST_PICK_MS);
@@ -188,7 +188,7 @@ describe("after the site was down", () => {
     expect(await read()).toMatchObject({ onTheClock: { pick: 2 }, clock: expect.not.objectContaining({ afterBreak: true }) });
   });
 
-  test("S04.21 a team with no manager, whose turn came in the outage, is picked for at once on the clock that restarts", async () => {
+  test("S04.22 a team with no manager, whose turn came in the outage, is picked for at once on the clock that restarts", async () => {
     await t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: undefined }));
     await start();
     await pick(ANN, A2);

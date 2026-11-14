@@ -18,6 +18,7 @@ import {
   emptyQueueWords,
   foldedGlyph,
   fromShortlistWords,
+  goneWords,
   loadingListsWords,
   moveLabel,
   QUEUE_TITLE,
@@ -146,7 +147,14 @@ function QueueRow({
     event.preventDefault();
   };
   return (
-    <li draggable={!busy} onDragStart={startDrag} onDragEnd={onDragEnd} onDragOver={allowDrop} onDrop={drop} className="flex items-center gap-2 border-t border-panel-rule pr-1">
+    <li
+      draggable={!busy}
+      onDragStart={startDrag}
+      onDragEnd={onDragEnd}
+      onDragOver={allowDrop}
+      onDrop={drop}
+      className={`flex items-center gap-2 border-t border-panel-rule pr-1${player.gone ? " text-muted" : ""}`}
+    >
       <button type="button" disabled={busy} onKeyDown={keyMove} aria-label={moveLabel(player.name, place)} className="min-h-tap min-w-tap cursor-grab text-muted">
         {dragGlyph}
       </button>
@@ -157,15 +165,17 @@ function QueueRow({
   );
 }
 
-/** A listed player's position chip, name and club. */
+/** A listed player's position chip, name and club; one who has left the Premier League dimmed and
+ *  saying so, as auto-pick skips him (S04.21). */
 function ListedName({ player }: { player: Listed }) {
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-2">
-      {player.position !== null && <PositionChip label={player.position} />}
+    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
+      {player.position !== null && <PositionChip label={player.position} dimmed={player.gone} />}
       <span className="truncate font-semibold" title={player.fullName}>
         {player.name}
       </span>
       <ClubShort club={player.club} className="text-muted" />
+      {player.gone && <span className="basis-full">{goneWords}</span>}
     </span>
   );
 }

@@ -1,6 +1,8 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { fileLetter } from "../mail/letters";
+import { claimWithdrawnLetter } from "../mail/waiverLetterWords";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -60,6 +62,16 @@ export function leagueClaims(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
  *  is tried for a team nobody runs and the next manager starts with none (Craig, 11 Nov 2026, on #1464). */
 export async function withdrawClaimsOfTeam(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
   for (const claim of await claimsOf(ctx, team.leagueId, team._id)) await ctx.db.delete("waiverClaims", claim._id);
+}
+
+/** Withdraws every pending claim in the league for a player in `left`, each just gone from the
+ *  Premier League, telling its manager (S08.24, Craig, 14 Nov 2026, on #2200). */
+export async function withdrawClaimsForLeavers(ctx: MutationCtx, league: Doc<"leagues">, left: ReadonlySet<number>): Promise<void> {
+  for (const claim of await leagueClaims(ctx, league._id)) {
+    if (!left.has(claim.playerCode)) continue;
+    await ctx.db.delete("waiverClaims", claim._id);
+    await fileLetter(ctx, league, "waivers", [claim.by], claimWithdrawnLetter(await claimedName(ctx, claim.playerCode)));
+  }
 }
 
 /** The log line for a claim naming a player the football sync doesn't hold. */
