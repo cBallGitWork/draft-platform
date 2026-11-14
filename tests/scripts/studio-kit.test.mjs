@@ -30,11 +30,19 @@ test("a copy edited here and a copy deleted are each named", () => {
   const root = pinnedCheckout({ "a.py": "one\n", "tests/b.sh": "two\n" });
   writeFileSync(join(root, "a.py"), "one, edited\n");
   rmSync(join(root, "tests/b.sh"));
-  expect(kitProblems(root)).toEqual(["a.py was changed here", "tests/b.sh is missing"]);
+  const [edited, missing] = kitProblems(root);
+  expect(edited).toMatch(/^a\.py was changed here: undo it with git checkout -- a\.py/);
+  expect(missing).toMatch(/^tests\/b\.sh is missing: restore it/);
+});
+
+test("a CRLF checkout (Windows) still matches the pin", () => {
+  const root = pinnedCheckout({ "a.py": "one\ntwo\n" });
+  writeFileSync(join(root, "a.py"), "one\r\ntwo\r\n");
+  expect(kitProblems(root)).toEqual([]);
 });
 
 test("a checkout with no pin says how to get one", () => {
-  expect(kitProblems(scratchDir("studio-kit-"))).toEqual([`${PIN_PATH} is missing: copy the kit in with studio's bin/copy-kit.mjs`]);
+  expect(kitProblems(scratchDir("studio-kit-"))).toEqual([`${PIN_PATH} is missing: copy the kit in with Forge's bin/copy-kit.mjs`]);
 });
 
 test("this repository's kit copies match their pin", () => {
