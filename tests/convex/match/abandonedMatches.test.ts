@@ -5,7 +5,7 @@ import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { GAMEWEEK, HULL_POINTS, HULL_SCORER, nameOf, readTable, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, ANN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
 import { clockRunsTo, expectRefused } from "../../support/convex/test.harness";
@@ -16,7 +16,7 @@ import { clockRunsTo, expectRefused } from "../../support/convex/test.harness";
 
 const MATCH_NAME = matchWords(HULL_CITY.name, EVERTON_CLUB.name);
 
-const marks = async ({ t }: ScoresLeague, by = ADMIN, fixtureCode = HULL_EVERTON) => {
+const marks = async ({ t }: ScoresLeague, by = ADMIN, fixtureCode: number = HULL_EVERTON) => {
   // A final gameweek scored again asks for its recap (home/recaps.ts).
   fakeClaude();
   await (await actingAs(t, by)).mutation(api.match.abandonedMatches.mark, { fixtureCode });
@@ -53,6 +53,8 @@ test("a match marked abandoned counts as never played: its records and overrides
 
   expect(await recordsOf(league)).toEqual([]);
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
+  const page = await (await actingAs(league.t, ANN)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode: HULL_EVERTON });
+  expect(page?.abandoned).toBe(true);
   // Every man fielded played in it, so every slot is empty and the bench can't fill one.
   expect(await gameweekPoints(league)).toEqual({ table: [0, 0], stored: [0, 0] });
   // His season's goal went with the record.

@@ -110,6 +110,12 @@ export const noMatchWords = "No match with this code is held.";
 export const inGameweekWords = (gameweek: number) => ` (${gameweekWords(gameweek)})`;
 /** Before kickoff, the day and time it kicks off, in the viewer's own zone. */
 export const kickoffDayWords = (at: number) => `${dayWords(at)}, ${kickoffWords(at)}`;
+/** The admin's mark on a match (#904; spec/05 S05.46): his button, its confirm, and taking it back. */
+export const markAbandonedWords = "Mark abandoned";
+export const markAbandonedQuestion =
+  "Mark this match abandoned? Its players' stats and every league's overrides in it are deleted, its men are auto-subbed, and each league with a player in it gets a letter.";
+export const abandonedWords = "Abandoned";
+export const unmarkAbandonedWords = "Take back the mark";
 /** When the league's points can't be worked out, while the rest still shows. */
 export const pointsProblemWords = (reason: string) => `The league's points can't be worked out for this match: ${reason}.`;
 

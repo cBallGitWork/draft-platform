@@ -8,6 +8,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchMarks } from "../../convex/match/matchMarks";
 import type { MatchMan, MatchPageData } from "../../convex/match/matchPage";
 import type { ClubSquad, SquadGroup, SquadPlayer } from "../../convex/scouting/clubSquad";
+import type { Change } from "../shared/refusal";
 
 export type { ClubSquad, MatchMan, MatchMarks, MatchPageData, SquadGroup, SquadPlayer };
 
@@ -41,4 +42,7 @@ export type PremierLeagueSeam = {
   /** One club's Squad tab and top scorers in the league's numbers (scouting/clubSquad:ofClub), live
    *  (a hook): undefined while it loads, null while no club with its code is held. */
   useClubSquad(leagueId: Id<"leagues">, clubCode: number): ClubSquad | null | undefined;
+  /** The admin's mark on a match (match/abandonedMatches:mark and unmark, #904; a hook): marking it
+   *  abandoned with `abandoned`, else taking the mark back. */
+  useAbandonedMark(): (fixtureCode: number, abandoned: boolean) => Change;
 };

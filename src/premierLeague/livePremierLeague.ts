@@ -1,7 +1,9 @@
-import { useQuery } from "convex/react";
-import { useMemo } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { matchPageAt } from "../../convex/matchup/commentaryAt";
+import { refusalOf } from "../shared/refusal";
+import { changeFailedWords } from "../shared/words";
 import type { PremierLeagueSeam } from "./seam";
 
 /** The Premier League seam filled in by Convex. The match page is read without the minute, so it
@@ -17,4 +19,13 @@ export const livePremierLeague: PremierLeagueSeam = {
   useStandings: () => useQuery(api.football.plStandings.ofSeason, {}),
   useClub: (leagueId, clubCode) => useQuery(api.football.clubPage.ofClub, { leagueId, clubCode }),
   useClubSquad: (leagueId, clubCode) => useQuery(api.scouting.clubSquad.ofClub, { leagueId, clubCode }),
+  useAbandonedMark: () => {
+    const mark = useMutation(api.match.abandonedMatches.mark);
+    const unmark = useMutation(api.match.abandonedMatches.unmark);
+    return useCallback(
+      (fixtureCode: number, abandoned: boolean) =>
+        refusalOf(() => (abandoned ? mark : unmark)({ fixtureCode }), "Marking a match abandoned", changeFailedWords),
+      [mark, unmark],
+    );
+  },
 };
