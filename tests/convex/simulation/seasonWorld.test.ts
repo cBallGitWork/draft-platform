@@ -15,7 +15,7 @@ import {
 } from "../../support/convex/seasonSimulation.harness";
 
 // The season simulation's world (#2132), checked on every pull request: `npm run simulate` plays it
-// for over an hour, so a world that couldn't be played would only show there.
+// for about an hour, so a world that couldn't be played would only show there.
 
 test("the leagues hold 80 teams, and their rules cover every pair of settings", () => {
   expect(LEAGUE_SIZES.reduce((sum, size) => sum + size, 0)).toBe(80);

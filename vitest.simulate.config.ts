@@ -7,8 +7,8 @@ import { LONDON_ZONE } from "./convex/shared/moments.ts";
 
 process.env.TZ = LONDON_ZONE;
 
-/** A whole season at 80 teams takes over an hour (about 3 minutes to make the leagues, then 2 a
- *  gameweek, 14 Nov 2026), not vitest's default 5 seconds: three hours leaves room on a slow runner. */
+/** A whole season at 80 teams takes about an hour (2 to 3 minutes to make the leagues, then 70
+ *  seconds to 2 minutes a gameweek, 14 Nov 2026), not vitest's default 5 seconds: three hours leaves room on a slow runner. */
 const SEASON_MS = 3 * 60 * 60 * 1000;
 
 export default defineConfig({
@@ -22,6 +22,9 @@ export default defineConfig({
     restoreMocks: true,
     setupFiles: ["./tests/support/test.setup.ts", "./tests/support/console.setup.ts", "./tests/support/convex.setup.ts"],
     testTimeout: SEASON_MS,
+    // The seed and each gameweek's line print as they happen, not held until the test ends, so a
+    // run cut off part-way still says which seed to play again.
+    disableConsoleIntercept: true,
     fsModuleCache: false,
   },
 });
