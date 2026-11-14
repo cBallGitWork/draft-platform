@@ -19,6 +19,14 @@ export const liveStatsTickFields = {
 
 export const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
+  /** One compact row a match while it is live (#2006, stats/livePrints.ts): each man's record as a
+   *  print, so a tick reads this one row, not his every record, to find who moved. Its being there
+   *  says the match's records are not yet in anyone's season totals; full time counts them and
+   *  deletes it. */
+  liveMatchPrints: defineTable({
+    fixtureCode: v.number(),
+    prints: v.array(v.object({ playerCode: v.number(), print: v.number() })),
+  }).index("by_fixtureCode", ["fixtureCode"]),
 };
 
 // The live tick's side reads, each its own feed (#522, admin/sideRuns.ts): one row per run with a

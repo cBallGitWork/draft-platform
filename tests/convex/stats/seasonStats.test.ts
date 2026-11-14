@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
-import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
+import { PLAYERS_PAGE, type PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { countedStats } from "../../../convex/stats/seasonStats";
 import { addStats, sumStats } from "../../../convex/stats/statTotals";
 import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";
@@ -19,6 +19,10 @@ const SEASON = seasonStartYear(KICKOFF);
 
 const totalsHeld = async (t: TestConvex) =>
   new Map((await t.run((ctx) => ctx.db.query("playerSeasonStats").collect())).map((row) => [row.playerCode, row] as const));
+
+/** One match's records read at full time, where totals move: a live read moves none (#2006). */
+const writeAtFullTime = (t: TestConvex, fixtureCode: number, records: PlayerMatchRecord[]) =>
+  t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode, readAt: FULL_TIME_READ, records });
 
 /** Each player's held records at Hull v Everton, added up: what his totals should be. */
 async function recordsAddedUp(t: TestConvex) {
@@ -78,9 +82,10 @@ test("a record turning whole with no totals row adds its stats alone, never re-r
     ctx.db.insert("fixtures", { code: LAST_SEASON, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF - 365 * 24 * HOUR_MS }),
   );
   // A whole record last season, with a last-season row set wrong: a rebuild would put it right.
-  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: LAST_SEASON, minute: null, records: [{ ...held, fixtureCode: LAST_SEASON, arrived: { fpl: true, pl: true } }] });
-  const lastSeason = (await t.run((ctx) => ctx.db.query("playerSeasonStats").collect())).find((row) => row.playerCode === FULL_STATS.coyle.code && row.season === SEASON - 1)!;
-  await t.run((ctx) => ctx.db.patch("playerSeasonStats", lastSeason._id, { stats: { goals_scored: 99 } }));
+  await t.run(async (ctx) => {
+    await ctx.db.insert("playerMatchStats", { ...held, fixtureCode: LAST_SEASON, arrived: { fpl: true, pl: true }, state: "locked" });
+    await ctx.db.insert("playerSeasonStats", { season: SEASON - 1, playerCode: FULL_STATS.coyle.code, stats: { goals_scored: 99 } });
+  });
   expect((await totalsHeld(t)).get(FULL_STATS.coyle.code)?.season).toBe(SEASON - 1);
 
   await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, recordedGw6());
@@ -119,7 +124,7 @@ test("two matches in a season add up; one in another season is kept apart", asyn
   const { _id, _creationTime, state: _state, ...again } = record;
 
   for (const fixtureCode of [LATER, LAST_SEASON]) {
-    await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode, minute: null, records: [{ ...again, fixtureCode }] });
+    await writeAtFullTime(t, fixtureCode, [{ ...again, fixtureCode }]);
   }
 
   const rows = await t.run((ctx) => ctx.db.query("playerSeasonStats").collect());
@@ -133,7 +138,7 @@ test("a record for a match that isn't held throws rather than going uncounted", 
   await syncAt(t, FULL_TIME_READ, recordedGw6());
   const { _id, _creationTime, state: _state, ...record } = (await heldMatch(t)).records.get(FULL_STATS.belloumi.code)!;
 
-  await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: 404, minute: null, records: [{ ...record, fixtureCode: 404 }] })).rejects.toThrow(
+  await expect(writeAtFullTime(t, 404, [{ ...record, fixtureCode: 404 }])).rejects.toThrow(
     "Match 404 has records but isn't held",
   );
 });
