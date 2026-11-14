@@ -6,9 +6,10 @@ import { isGameweekScored, type WithUnusedGameweeks } from "../gameweeks/usedGam
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { leagueLabel, logFailure } from "../shared/errors";
+import { datedCodes } from "../shared/fixtures";
 import { readOnce } from "../shared/readOnce";
 import type { MovesSinceOf } from "../squads/squadPlace";
-import { heldFixtures, isMatchFinal } from "./heldMatches";
+import { heldFixtures, isMatchFinal, isPostponed } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
 import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
 import {
@@ -141,7 +142,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
   const reads = await leagueReads(ctx, league, season);
   return async (gameweek, teamIds) => {
     const fixtures = await heldFixtures(ctx, gameweek);
-    const fixtureCodes = fixtures.map((fixture) => fixture.code);
+    const fixtureCodes = datedCodes(fixtures);
     const held = stored.get(gameweek);
     const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweekTotal>();
     const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
@@ -232,8 +233,10 @@ function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScore
 }
 
 /** The teams' points in one gameweek, from its held fixtures, and whether they are final: the
- *  gameweek holds a match and every match in it is locked, so nothing counted is provisional. One
- *  with no match held (each postponed, say) is never final. */
+ *  gameweek holds a dated match and every one is locked, so nothing counted is provisional. A
+ *  postponed match waiting for a date counts as never played (spec/05 S05.4), its men subbed, so it
+ *  never holds the gameweek open (#2040); one with no dated match (each postponed, say) is never
+ *  final. */
 async function gameweekScores(
   ctx: QueryCtx,
   reads: LeagueReads,
@@ -246,6 +249,7 @@ async function gameweekScores(
   const scores = new Map<TeamId, TeamGameweekTotal>();
   for (const teamId of teamIds) scores.set(teamId, await pointsOf(teamId));
   const { matches } = inputs;
-  const final = matches.length > 0 && matches.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);
+  const dated = matches.filter((match) => !isPostponed(match));
+  const final = dated.length > 0 && dated.every(isMatchFinal) && [...scores.values()].every((team) => !team.provisional);
   return { scores, final };
 }

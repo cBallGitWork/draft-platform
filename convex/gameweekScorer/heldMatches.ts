@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import { gameweekFixtures } from "../shared/fixtures";
+import { gameweekFixtures, isPostponedFixture } from "../shared/fixtures";
 import type { PlayerCode } from "../shared/players";
 import { statusOf } from "../stats/matchStats";
 import { MATCH_RECORDS_MOST, matchRecordsOf } from "../stats/matchRecordReads";
@@ -80,7 +80,7 @@ export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.h
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
-/** Postponed and not rearranged into its gameweek: a match with no kickoff time (scoreReads.ts). */
-export const isPostponed = (match: Pick<HeldMatch, "fixture">) => match.fixture.kickoff === null;
+/** Postponed and not rearranged into its gameweek (../shared/fixtures.ts). */
+export const isPostponed = (match: Pick<HeldMatch, "fixture">) => isPostponedFixture(match.fixture);
 /** Its corrections window shut: nothing changes its points after (spec/07). */
 export const isMatchFinal = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";

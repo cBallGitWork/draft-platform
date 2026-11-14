@@ -26,6 +26,15 @@ export function fixtureByCode(ctx: QueryCtx, code: number): Promise<Doc<"fixture
 
 type KicksOff = { kickoff: number | null };
 
+/** Postponed and not rearranged into its gameweek: a match with no kickoff time (scoreReads.ts). */
+export const isPostponedFixture = (fixture: KicksOff) => fixture.kickoff === null;
+
+/** The codes of a gameweek's matches its final scores stand on: each with a kickoff. A postponed
+ *  one counts as never played (spec/05 S05.4), so the gameweek goes final once the rest lock; one
+ *  rearranged into it gets a kickoff, joins these and so reopens it (#2040). */
+export const datedCodes = (fixtures: readonly (KicksOff & { code: number })[]): number[] =>
+  fixtures.flatMap((fixture) => (isPostponedFixture(fixture) ? [] : [fixture.code]));
+
 /** Two matches in kickoff order, any with no time yet last. */
 export const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
   (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);

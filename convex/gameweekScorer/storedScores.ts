@@ -3,6 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { GAMEWEEKS_MOST } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { datedCodes } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import type { TeamGameweekTotal, TeamScores } from "./gameweekScores";
 
@@ -57,7 +58,7 @@ export async function storedScoresIn(
   );
   if (rows.length === 0) return new Map();
   const held = storedGameweekOf(rows);
-  return sameCodes(held.fixtureCodes, fixtures.map((fixture) => fixture.code)) ? held.scores : new Map();
+  return sameCodes(held.fixtureCodes, datedCodes(fixtures)) ? held.scores : new Map();
 }
 
 /** Whether two lists hold the same match codes, in any order. */

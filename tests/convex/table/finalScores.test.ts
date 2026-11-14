@@ -19,6 +19,7 @@ import {
   lockMatch,
   lockMovedIn,
   MOVED_IN,
+  rearrangeMovedIn,
   storeLeague,
   writeOverAnns,
   WRITTEN_OVER,
@@ -143,6 +144,37 @@ test("a match moved into a stored gameweek reopens it: worked out live, then sto
   expect(await storeLeague(league)).toEqual([GAMEWEEK]);
   expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
   expect(await storedCodes(league)).toEqual([[HULL_EVERTON, MOVED_IN].toSorted(), [HULL_EVERTON, MOVED_IN].toSorted()]);
+});
+
+test("a postponed match with no new date never holds its gameweek open: final once the rest lock, reopened if rearranged into it (#2040)", async () => {
+  const league = await scoresLeague();
+  await holdMovedIn(league, null);
+  await fullTimeRecords(league);
+  await lockMatch(league);
+
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS, provisional: false });
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storedCodes(league)).toEqual([[HULL_EVERTON], [HULL_EVERTON]]);
+
+  // Given a date inside the gameweek, it counts: not final, so worked out live, until it locks.
+  await writeOverAnns(league);
+  await rearrangeMovedIn(league);
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS });
+  expect(await storeLeague(league)).toEqual([]);
+  await lockMovedIn(league);
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect(await storedCodes(league)).toEqual([[HULL_EVERTON, MOVED_IN].toSorted(), [HULL_EVERTON, MOVED_IN].toSorted()]);
+});
+
+test("the last dated match's lock asks every league to store, a postponed one left out (#2040)", async () => {
+  const league = await scoresLeague();
+  await holdMovedIn(league, null);
+  await fullTimeRecords(league);
+  fakeClaude();
+  await lockMatch(league);
+  await everyJobRuns(league.t);
+
+  expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
 });
 
 test("a match moved out of a stored gameweek reopens it, and it is stored afresh from the matches left", async () => {
