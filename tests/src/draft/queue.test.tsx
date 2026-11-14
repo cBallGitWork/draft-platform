@@ -22,6 +22,7 @@ import {
   doNotDraftListLabel,
   emptyQueueWords,
   fromShortlistWords,
+  goneWords,
   moveLabel,
   onAutoPickWords,
   QUEUE_TITLE,
@@ -72,6 +73,14 @@ describe("the queue", () => {
     openDraft();
     expect(await queueRows()).toHaveLength(3);
     expect(await autoPickPanel()).toBeTruthy();
+  });
+
+  it("keeps a player who has left the Premier League in his place, greyed out and saying so (S04.21)", async () => {
+    openDraft({ lists: { ...LISTS, queue: [FERNANDES, { ...MITOMA, gone: true }, KUDUS] } });
+    const rows = await queueRows();
+    expect(rows[1].textContent).toBe(`⠿2WMitomaARS${goneWords}✕`);
+    expect(rows[1].className).toContain("text-muted");
+    expect(rows[0].className).not.toContain("text-muted");
   });
 
   it("says when it is empty", async () => {

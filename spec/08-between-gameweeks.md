@@ -77,6 +77,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   squad's limits.
 - A claim for a player his team already has, won by his own earlier claim in the same run or put
   there by the commissioner, goes quietly, with no letter (Craig, 11 Nov 2026, #1465). `S08.5`
+- A pending claim for a player who leaves the Premier League (sold abroad, say) is withdrawn as he
+  goes, and its manager gets a Mail letter saying so (Craig, 14 Nov 2026, grill batch 2, #2200). `S08.24`
 - No claim limits per season, week or team ("no limit"), and no can't-drop list.
 - A team holds at most 300 pending claims and 50 open offers at once; a team at the ceiling is told
   to withdraw one first (Craig, 11 Nov 2026, #1609). `S08.16`
@@ -122,6 +124,9 @@ From `/grill trades` (25 Oct 2026).
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).
+- A pending trade holding a player who leaves the Premier League (sold abroad, say), open or in
+  review, is cancelled as he goes, and both managers get a Mail letter saying so (Craig, 14 Nov
+  2026, grill batch 2, #2200). `S08.25`
 - A trade you review shows in a "To review" group at the top of Offers: its columns read as the two
   teams' sides, Waiting on shows "You", and Closes shows when the review ends. Selecting it opens
   its panel with both sides, the note, the review's end and Block behind a confirm. The Mail

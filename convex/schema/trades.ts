@@ -31,6 +31,7 @@ export const closedWhy = v.union(
   v.literal("pickTraded"),
   v.literal("autoTeam"),
   v.literal("playerLeft"),
+  v.literal("leftPremierLeague"),
   v.literal("blocked"),
   v.literal("failed"),
 );

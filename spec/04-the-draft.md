@@ -163,6 +163,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   (Craig, 11 Nov 2026, on #1606: "Auto-pick only, then wiped"). `S04.15`
 - A manager can change his queue and do-not-draft list between picks once the draft has started. A
   drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
+- A player who leaves the Premier League (sold abroad, say) stays listed in a queue, greyed out, and
+  auto-pick skips him (Craig, 14 Nov 2026, grill batch 2, on #2200). `S04.21`
 - The shortlist feeds the queue both ways: a shortlisted player added one at a time, and an "add my
   whole shortlist" button that adds them to the bottom of the queue in name order. Shortlisted
   players already in the queue keep their place; any on the do-not-draft list move off it. The
