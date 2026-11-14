@@ -13,6 +13,7 @@
     "test": "node scripts/with-deadline.mjs 300 vitest run",
     "test:docs": "vitest run $(grep -rlE '\\.md\\?raw' tests)",
     "test:rules-long": "RULE_TEST_RUNS=10000 node scripts/with-deadline.mjs 1800 vitest run .rules.test.ts",
+    "simulate": "vitest run -c vitest.simulate.config.ts",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "lint": "eslint --max-warnings 0 . && node scripts/named-literals.mjs",
     "smoke": "playwright test",
