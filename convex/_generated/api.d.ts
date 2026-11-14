@@ -104,6 +104,7 @@ import type * as gameweekScorer_teamGameweek from "../gameweekScorer/teamGamewee
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
 import type * as gameweeks_gameweekEnd from "../gameweeks/gameweekEnd.js";
+import type * as gameweeks_gameweekKickoffs from "../gameweeks/gameweekKickoffs.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
@@ -232,6 +233,7 @@ import type * as rules_leagueRulesShape from "../rules/leagueRulesShape.js";
 import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as rules_leagueSettingsPart from "../rules/leagueSettingsPart.js";
 import type * as rules_rulesHistory from "../rules/rulesHistory.js";
+import type * as rules_rulesToChanges from "../rules/rulesToChanges.js";
 import type * as rules_squadMaximums from "../rules/squadMaximums.js";
 import type * as schema_availability from "../schema/availability.js";
 import type * as schema_draft from "../schema/draft.js";
@@ -513,6 +515,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
   "gameweeks/gameweekEnd": typeof gameweeks_gameweekEnd;
+  "gameweeks/gameweekKickoffs": typeof gameweeks_gameweekKickoffs;
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueDeadlines": typeof gameweeks_leagueDeadlines;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
@@ -641,6 +644,7 @@ declare const fullApi: ApiFromModules<{
   "rules/leagueSettings": typeof rules_leagueSettings;
   "rules/leagueSettingsPart": typeof rules_leagueSettingsPart;
   "rules/rulesHistory": typeof rules_rulesHistory;
+  "rules/rulesToChanges": typeof rules_rulesToChanges;
   "rules/squadMaximums": typeof rules_squadMaximums;
   "schema/availability": typeof schema_availability;
   "schema/draft": typeof schema_draft;

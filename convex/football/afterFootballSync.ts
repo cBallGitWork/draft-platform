@@ -1,6 +1,7 @@
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
+import { keepGameweekKickoffs } from "../gameweeks/gameweekKickoffs";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
@@ -51,11 +52,21 @@ export function afterKickoffsChanged(ctx: MutationCtx): Promise<void> {
   return checkEveryLeagueSoon(ctx);
 }
 
-/** After a batch of matches sent: as afterMatchesMoved, then the season's points rebuilt where
- *  none are kept yet. */
-export async function afterMatchesSent(ctx: MutationCtx, moved: readonly Fixture[]): Promise<void> {
+/** After a batch of matches sent: first, before anything reads a deadline, the gameweeks whose
+ *  matches it added, moved or re-timed (`touched`, where each was and is) keep their first and last
+ *  kickoffs (gameweekKickoffs.ts, #2009); then as afterMatchesMoved, and the season's points
+ *  rebuilt where none are kept yet. */
+export async function afterMatchesSent(ctx: MutationCtx, moved: readonly Fixture[], touched: Iterable<number | null>): Promise<void> {
+  await keepGameweekKickoffs(ctx, touched);
   await afterMatchesMoved(ctx, moved);
   await rebuildIfNoneKept(ctx);
+}
+
+/** After a page of matches marked dropped: their gameweeks keep their first and last kickoffs
+ *  without them, then as afterMatchesMoved. */
+export async function afterMatchesDropped(ctx: MutationCtx, dropped: readonly Doc<"fixtures">[]): Promise<void> {
+  await keepGameweekKickoffs(ctx, dropped.map(({ gameweek }) => gameweek));
+  await afterMatchesMoved(ctx, dropped);
 }
 
 /** This season's gameweeks the feed stopped sending, before they are marked: each keeps its last
