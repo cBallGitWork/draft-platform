@@ -12,7 +12,7 @@ export const serverNow = () => Date.now() + offset;
 /** Takes the server's time, `serverAt`, asked for at `sentAt` and answered at `receivedAt` by this
  *  tab's clock: the server read it about halfway between, so the tab's clock is behind it by the
  *  difference. Every countdown watching redraws. */
-export function setServerTime(serverAt: number, sentAt: number, receivedAt: number) {
+function setServerTime(serverAt: number, sentAt: number, receivedAt: number) {
   offset = serverAt - (sentAt + receivedAt) / 2;
   for (const listener of listeners) listener();
 }
@@ -36,7 +36,7 @@ export async function syncServerTime(ask: () => Promise<number>): Promise<void> 
 }
 
 /** What the log says, before the error, when the server's time couldn't be read. */
-export const SERVER_TIME_FAILED_LOG = "Reading the server's time failed; countdowns go by this device's clock";
+const SERVER_TIME_FAILED_LOG = "Reading the server's time failed; countdowns go by this device's clock";
 
 /** For tests: back to the tab's own clock, as a reload does before the server answers. */
 export function forgetServerTime() {
