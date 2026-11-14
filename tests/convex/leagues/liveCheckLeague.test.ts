@@ -14,7 +14,7 @@ import { rowsKeyedTo } from "../../support/convex/leagueDeletion.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, SLOW_TEST } from "../../support/convex/test.harness";
 
-// The first live-data check's test league (spec/20, S20.12; #2114): one run makes two teams,
+// The first live-data check's test league (spec/20, The first live-data check; #2114): one run makes two teams,
 // Craig's and the test account's, drafts both by auto-pick and leaves each a lineup the auto team
 // sets; a second run finds it; a delete leaves nothing of it.
 

@@ -1,4 +1,4 @@
-// The first live-data check's test league (spec/20, The first live-data check, S20.12; #2114):
+// The first live-data check's test league (spec/20, The first live-data check; #2114):
 // makes it before the round's deadline, and deletes it once the check passes. Two teams, Craig's
 // and the test account's, drafted by auto-pick and each lineup set by the auto team
 // (convex/leagues/liveCheckLeague.ts). Safe to run twice: a second `make` finds the league and
@@ -9,6 +9,7 @@
 
 import { parseArgs } from "node:util";
 import { setTimeout as sleep } from "node:timers/promises";
+import { MINUTE_MS, SECOND_MS } from "../convex/shared/time.ts";
 import { bin, captured, cli } from "./live-setup/tools.mjs";
 import { LIVE_SITE_URL } from "./live-site.mjs";
 import { CHECKOUT, ranDirectly } from "./thisScript.mjs";
@@ -20,9 +21,9 @@ export const REMOVE = `${MODULE}:remove`;
 const COMMANDS =["make", "delete"];
 
 /** How often the draft is looked at while it runs itself: a pick every 10 seconds. */
-export const POLL_MS = 15_000;
+export const POLL_MS = 15 * SECOND_MS;
 /** How long the draft is waited for: two teams' picks, 10 seconds apart, take a few minutes. */
-export const WAIT_MOST_MS = 30 * 60_000;
+export const WAIT_MOST_MS = 30 * MINUTE_MS;
 
 /** One line a team: its manager, its players against the squad size, and its lineup. */
 const teamLine = (team, squadSize) =>
@@ -60,7 +61,7 @@ export async function liveCheckLeague({ command, prod = false, cwd = CHECKOUT, e
     print(`Ready for gameweek ${state.gameweek ?? "?"}: the draft is over and both lineups stand.`);
     return true;
   }
-  print(`Not ready after ${WAIT_MOST_MS / 60_000} minutes: ${state.draftOver ? "the draft is over" : "the draft is still running"}. Run it again to look.`);
+  print(`Not ready after ${WAIT_MOST_MS / MINUTE_MS} minutes: ${state.draftOver ? "the draft is over" : "the draft is still running"}. Run it again to look.`);
   return false;
 }
 

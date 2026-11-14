@@ -21,7 +21,7 @@ import { checkSoon } from "./leagueChecks";
 import { FEWEST_TEAMS } from "./leagueLimits";
 import { putOnTeam } from "./teams";
 
-// The first live-data check's test league (spec/20, The first live-data check, S20.12; #2114): two
+// The first live-data check's test league (spec/20, The first live-data check; #2114): two
 // teams, Craig's (the admin's) and the after-release check's test account's, its draft run by
 // auto-pick for both and each lineup set by the auto team. A script makes it before the round's
 // deadline and deletes it once the check passes (scripts/live-check-league.mjs). It is made once:
