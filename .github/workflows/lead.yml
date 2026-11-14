@@ -404,6 +404,15 @@ jobs:
           # again, every night for BUILT_DAYS days
           cleared=$(jq -r '.[] | select(any(.labels[]?; .name == env.CLEAR_LABEL)) | .number' <<<"$issues")
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs" && ! grep -qx "$n" <<<"$cleared"; then echo "$n:sweep"; else echo "$row"; fi; done)
+          # an issue whose "Blocked by" (a `**Blocked by**:` line, or a `## Blocked by` section) names an issue still
+          # open waits on that issue: built, it only stops and says so again each day (14 Nov 2026: #1424-#1431 waited
+          # on #1423 and each stopped daily). It shows on the board with what it waits on, and builds once those close
+          waits=$(jq -r '[.[].number] as $open | .[] | .number as $n
+              | [(.body // "") | (scan("(?i)\\*{0,2}blocked by\\*{0,2}:([^\\n]*)") | .[0]),
+                                 (split("\n## ") | .[] | select(test("^#* ?blocked by\\s*\\n"; "i")) | sub("^[^\\n]*\\n"; ""))
+                 | scan("#([0-9]+)") | .[0] | tonumber | select(. != $n) | select(. as $b | $open | index($b))] | unique
+              | select(length > 0) | "\($n) \(map("#\(.)") | join(" "))"' <<<"$issues")
+          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -q "^$n " <<<"$waits"; then echo "$n:waits"; else echo "$row"; fi; done)
           # a build that ended in the last STOPPED_HOURS with no pull request stopped on purpose (blocked by another
           # issue, or already done), and says why on the issue: built again it stops again, and since a build's end
           # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead, unless it was
@@ -461,7 +470,7 @@ jobs:
           # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
           next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
           unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
-          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h, or once you answer it";; esac; done)
+          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; waits) echo "- #$n $(title_of "$n"): waits on $(grep "^$n " <<<"$waits" | cut -d' ' -f2-), still open";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h, or once you answer it";; esac; done)
           stuck=$(jq -r '.[] | select(any(.labels[]?; .name == env.STUCK_LABEL)) | "- #\(.number) \(.title): its pull request stayed red after its fix round (the issue says which)"' <<<"$issues")
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
