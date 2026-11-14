@@ -181,6 +181,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   rank; gaps are fine (1, 2, 5); a player left out falls back to last season's points; a bad row
   refuses the whole file, with every bad row listed and the old ranking kept (Craig, 4 Nov 2026,
   on #1093, "your suggestions 1 to 5 stand"). `S04.8`
+- In the ranking file, a byte-order mark at the start (as Excel saves one) is ignored, and ";"
+  works like "," when the whole file uses it (Craig, 14 Nov 2026, grill batch 3, on #2210). `S04.22`
 - "remember that new plahyers will be added/removed and drafts can take place mid season" (Craig,
   4 Nov 2026, on #1093). So an id for a player no longer in the game is skipped and listed as
   skipped, not a bad row; a player added after the upload falls back like any unranked player; and
