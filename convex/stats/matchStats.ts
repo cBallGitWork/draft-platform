@@ -13,6 +13,7 @@ import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { matchRecordsOf } from "./matchRecordReads";
+import { livePrintsOf } from "./livePrints";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -55,6 +56,11 @@ export const upsertMatch = internalMutation({
       await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: false });
       return { state: status.state, ...writes, lateCorrections };
     }
+    // A match read live until now is counted nowhere yet (#2006): its compact row goes, so a
+    // totals rebuild from here counts it, and every record it holds is counted below.
+    const prints = await livePrintsOf(ctx, fixtureCode);
+    if (prints !== null) await ctx.db.delete("liveMatchPrints", prints._id);
+    const counted = prints === null ? held : new Map<number, Doc<"playerMatchStats">>();
     const complete = isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
     const fullTimeAt = status?.fullTimeAt ?? readAt;
@@ -66,7 +72,7 @@ export const upsertMatch = internalMutation({
       const lockAt = lockTime(fullTimeAt, completeAt, await statCorrectionWindowMs(ctx));
       await ctx.scheduler.runAt(lockAt, internal.stats.matchStats.lock, { fixtureCode });
     }
-    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0 };
+    return { state, ...(await writeRecords(ctx, records, held, state, counted)), lateCorrections: 0 };
   },
 });
 
@@ -173,37 +179,55 @@ export function triedOf(ctx: QueryCtx, fixtureCode: number) {
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
- *  his season totals and season points moved with it. `changed` names every man inserted or updated. */
+ *  his season totals and season points moved with it. `counted` is the rows the season rows
+ *  already count: the held ones, but none at a live match's full time, as its live writes counted
+ *  nothing (#2006), so each of its records, a held one the read leaves out too, is counted then.
+ *  `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
   held: Map<number, Doc<"playerMatchStats">>,
   state: State,
+  counted: ReadonlyMap<number, Doc<"playerMatchStats">> = held,
+): Promise<{ inserted: number; updated: number; changed: number[] }> {
+  const written = await writeRows(ctx, records, held, state);
+  const sent = new Set(records.map(({ playerCode }) => playerCode));
+  const leftOut = [...held.values()].filter(({ playerCode }) => !sent.has(playerCode) && !counted.has(playerCode));
+  const moved: RecordChange[] = [...records, ...leftOut].flatMap((record) => {
+    const row = counted.get(record.playerCode);
+    if (row !== undefined && sameRecord(row, record)) return [];
+    return [{ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: row && countedStats(row), after: countedStats(record) }];
+  });
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
+  await moveSeasonTotals(ctx, moved);
+  if (!rebuilding) await repriceChanged(ctx, [...records, ...leftOut], counted);
+  return written;
+}
+
+/** Each record as sent, in the match's state, and nothing else: a new man inserted, a changed one
+ *  replaced whole. The live tick's write (#2006); `writeRecords` moves the season rows with it. */
+export async function writeRows(
+  ctx: MutationCtx,
+  records: readonly PlayerMatchRecord[],
+  held: ReadonlyMap<number, Doc<"playerMatchStats">>,
+  state: State,
 ): Promise<{ inserted: number; updated: number; changed: number[] }> {
   let inserted = 0;
   const changed: number[] = [];
-  const moved: RecordChange[] = [];
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
       await ctx.db.insert("playerMatchStats", { ...record, state, ...(await clubThatDay(ctx, record.playerCode)) });
       inserted += 1;
       changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: countedStats(record) });
       continue;
     }
     const differs = !sameRecord(row, record);
-    if (differs) {
-      changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: countedStats(row), after: countedStats(record) });
-    }
+    if (differs) changed.push(record.playerCode);
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state, clubCode: row.clubCode });
   }
-  // Before any totals move, as their rows would hide a deployment whose older records have none.
-  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
-  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
-  await moveSeasonTotals(ctx, moved);
-  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 
