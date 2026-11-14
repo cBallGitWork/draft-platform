@@ -10,7 +10,7 @@ import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames
 import { roundsInARoundRobin } from "../table/roundRobin";
 import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShape";
 import { sortedJson } from "../shared/sortedJson";
-import { nextGameweek } from "../gameweeks/nextGameweek";
+import { changesFromAt, changesFromTimes, deadlinesOf, type ChangesFromTimes } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, seasonGameweeks } from "../gameweeks/usedGameweeks";
 import { refuseFormatChange } from "./formatLock";
@@ -169,27 +169,22 @@ export const latest = query({
   },
 });
 
-/** The gameweek a change to `rules` made at `now` takes effect from: the next not begun under the
- *  rules it replaces nor under its own deadline, and never earlier than a change already waiting.
- *  A later deadline must not reopen a gameweek the old one locked, nor an earlier one lock a
- *  gameweek the moment it is saved; and a row from before a waiting one would be overridden by it. */
-async function takesEffectFrom(
-  ctx: QueryCtx,
-  leagueId: Id<"leagues">,
-  history: readonly RulesRow[],
-  rules: LeagueRules,
-  now: number,
-): Promise<number> {
+/** What the gameweek a change to `rules` takes effect from is judged on, at any minute
+ *  (nextGameweek.ts's `changesFromAt`): the next not begun under the rules it replaces nor under
+ *  its own deadline, and never earlier than a change already waiting. A later deadline must not
+ *  reopen a gameweek the old one locked, nor an earlier one lock a gameweek the moment it is saved;
+ *  and a row from before a waiting one would be overridden by it. */
+async function changesFromTimesOf(ctx: QueryCtx, leagueId: Id<"leagues">, history: readonly RulesRow[], rules: LeagueRules): Promise<ChangesFromTimes> {
   // The season's gameweeks by count, as leagueDeadlines and siteVersions walk them (#1764).
   const gameweeks = seasonGameweeks(await seasonGameweekCount(ctx)).map((number) => ({ number }));
   const matches = await scheduledMatches(ctx);
   const passed = await fixedDeadlinesOf(ctx, leagueId);
-  const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
-  return Math.max(
-    nextUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
-    nextUnder(() => rules.deadline),
-    history.at(-1)?.fromGameweek ?? FIRST_GAMEWEEK,
-  );
+  const deadlinesUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => deadlinesOf(gameweeks, matches, deadlineFor, passed);
+  return {
+    inForce: deadlinesUnder((gameweek) => (inForce(history, gameweek)?.rules ?? rules).deadline),
+    own: deadlinesUnder(() => rules.deadline),
+    waiting: history.at(-1)?.fromGameweek ?? FIRST_GAMEWEEK,
+  };
 }
 
 /** Saves `rules` as the league's from the gameweek they can take effect, and files the letter
@@ -202,7 +197,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   await refuseStale(ctx, leagueId, email, latestRow, loaded);
   const league = await getLeague(ctx, leagueId);
   await refuseUnsound(ctx, rules, league.maxTeams);
-  const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
+  const fromGameweek = changesFromAt(await changesFromTimesOf(ctx, leagueId, history, rules), Date.now());
   if (latestRow !== undefined) await refuseFormatChange(ctx, league, latestRow.rules, rules, fromGameweek);
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
@@ -222,7 +217,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
 }
 
 /** The commissioner's change, whole, made from the rules `revision` names: it takes effect from
- *  the gameweek `takesEffectFrom` gives. Returns that gameweek. Refused, with the reason, if the
+ *  the gameweek `changesFromAt` gives of `changesFromTimesOf`. Returns that gameweek. Refused, with the reason, if the
  *  rules changed since or if unsound. */
 export const change = mutation({
   args: { leagueId: v.id("leagues"), rules: leagueRulesShape, revision: revisionShape },
@@ -234,19 +229,20 @@ export const change = mutation({
 });
 
 /** What a screen editing part of the rules reads (`editorViewOf` validates it): the part as the
- *  latest rules have it, a waiting change's among them, the rules row it is from (for
- *  the save to carry), and the gameweek a change made at `now` would take effect from. For whoever runs the league. `now` is the screen's, moved on
- *  each minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
-export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, partOf: (rules: LeagueRules) => Part) {
+ *  latest rules have it, a waiting change's among them, the rules row it is from (for the save to
+ *  carry), and what the gameweek a change would take effect from is judged on, which the screen
+ *  judges at its own minute (nextGameweek.ts's `changesFromAt`): it takes no minute, so it isn't
+ *  asked again every minute (#2008). For whoever runs the league. */
+export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, partOf: (rules: LeagueRules) => Part) {
   await runnerOf(ctx, leagueId);
   const history = await historyOf(ctx, leagueId);
   const latestRow = newestRow(history, leagueId);
-  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await takesEffectFrom(ctx, leagueId, history, latestRow.rules, now) };
+  return { part: partOf(latestRow.rules), revision: latestRow._id, changesFrom: await changesFromTimesOf(ctx, leagueId, history, latestRow.rules) };
 }
 
 /** `editorView`'s returns validator, for a part shaped as `part`. */
 export const editorViewOf = <Part extends Validator<unknown, "required", string>>(part: Part) =>
-  v.object({ part, revision: v.id("leagueRules"), changesFrom: v.number() });
+  v.object({ part, revision: v.id("leagueRules"), changesFrom: changesFromTimes });
 
 /** A screen's change to part of the rules: the league's latest with `changed` applied, saved as
  *  `change` saves them, made from the rules `revision` names, so a change to the rest made

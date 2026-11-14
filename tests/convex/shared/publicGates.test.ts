@@ -115,7 +115,7 @@ beforeEach(async () => {
       "mail/mail:unreadCount": () => caller.query(api.mail.mail.unreadCount, {}),
       "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, fixtureCode: SOME_CODE }),
       "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, gameweek: null }),
-      "matchup/matchupGameweek:thisGameweek": () => caller.query(api.matchup.matchupGameweek.thisGameweek, { leagueId, now }),
+      "matchup/matchupGameweek:gameweeksOf": () => caller.query(api.matchup.matchupGameweek.gameweeksOf, { leagueId }),
       "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
       "playerCard/positionRank:atPosition": () => caller.query(api.playerCard.positionRank.atPosition, { leagueId, playerCode: SOME_CODE, position: "CB" }),
       "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
@@ -132,7 +132,7 @@ beforeEach(async () => {
       "positions/positionSettings:setChangeThresholds": () =>
         caller.mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 3, removeAfter: 6 }),
       "rules/leagueRules:latest": () => caller.query(api.rules.leagueRules.latest, { leagueId }),
-      "rules/leagueSettings:settings": () => caller.query(api.rules.leagueSettings.settings, { leagueId, now }),
+      "rules/leagueSettings:settings": () => caller.query(api.rules.leagueSettings.settings, { leagueId }),
       "scoring/patchNotes:banner": () => caller.query(api.scoring.patchNotes.banner, { now }),
       "scoring/patchNotes:dismissBanner": () => caller.mutation(api.scoring.patchNotes.dismissBanner, { versionId }),
       "scoring/patchNotes:notes": () => caller.query(api.scoring.patchNotes.notes, {}),

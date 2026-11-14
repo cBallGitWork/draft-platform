@@ -16,12 +16,13 @@ export const settingsRefusals = {
 };
 
 /** The league's settings as League settings edits them, as `editorView` reads them, with how many
- *  gameweeks the season has, the latest a trade deadline can be (#1618). */
+ *  gameweeks the season has, the latest a trade deadline can be (#1618). It takes no minute: the
+ *  screen judges the gameweek a change takes effect from at its own (#2008). */
 export const settings = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: v.object({ ...editorViewOf(leagueSettingsShape).fields, seasonGameweeks: v.number() }),
-  handler: async (ctx, { leagueId, now }) => ({
-    ...(await editorView(ctx, leagueId, now, leagueSettingsOf)),
+  handler: async (ctx, { leagueId }) => ({
+    ...(await editorView(ctx, leagueId, leagueSettingsOf)),
     seasonGameweeks: await seasonGameweekCount(ctx),
   }),
 });
