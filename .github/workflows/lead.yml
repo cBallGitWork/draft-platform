@@ -143,6 +143,10 @@ env:
   MAX_BUILDS_A_DAY: 400
   KNOWN_ACTORS: "CBHelper180 claude[bot] github-actions[bot] vercel[bot]"  # and OWNER
   TRIP_PATHS: "^(\\.github/|\\.claude/|CLAUDE\\.md$)"
+  # The nightly backstop: GitHub skipped or delayed every scheduled nightly run, 5-13 Nov 2026, so when no nightly or
+  # manual verify.yml run on main started in the last NIGHTLY_GAP_HOURS, the lead starts one with `alert`, so a
+  # failure still reaches the nightly-ci issue (testing plan v3, 14 Nov 2026).
+  NIGHTLY_GAP_HOURS: 26
 
 jobs:
   lead:
@@ -491,6 +495,22 @@ jobs:
           elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
           else gh issue create --title "$BOARD_TITLE" --label "$BOARD_LABEL" --body "$body" > /dev/null; fi
           echo "Board written."
+      # The nightly backstop (the env block says why). On main; a dry run from a branch only says what it would do.
+      - name: The nightly backstop
+        if: always() && (github.ref_name == github.event.repository.default_branch || inputs.dry_run == true)
+        env:
+          DISPATCH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
+          MAIN: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          since=$(date -u -d "$NIGHTLY_GAP_HOURS hours ago" +%FT%TZ)
+          last=$(gh run list --workflow verify.yml --branch "$MAIN" --limit 50 --json event,createdAt \
+                   --jq '[.[] | select(.event == "schedule" or .event == "workflow_dispatch")][0].createdAt // ""')
+          if [ -n "$last" ] && [[ "$last" > "$since" ]]; then
+            echo "A nightly run on $MAIN started at $last: nothing to do."; exit 0
+          fi
+          echo "No nightly run on $MAIN in $NIGHTLY_GAP_HOURS hours (last: ${last:-none}): starting one."
+          [ "$DRY_RUN" = true ] || GH_TOKEN="$DISPATCH_TOKEN" gh workflow run verify.yml --ref "$MAIN" -f alert=true
       # The tripwire (the env block says what trips it). It runs even when the pass above failed, and on main only, as
       # the heartbeat. A trip pings TRIP_CHECK as failed with the reasons, so Healthchecks emails them to Craig; a clean
       # pass pings it as fine, so the check comes back up on its own once the window has passed.
