@@ -253,7 +253,8 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
     expect((error as Error).message).toBe(`the own stat ${T_C} has the name "Won tackle", which the catalogue's Won tackle has`);
   });
 
-  test("the sweep has a case for each throw, and every throw is an UnsoundScoring", () => {
+  // It reads the source's text, which a mutation run (npm run mutation, #2173) has rewritten.
+  test.skipIf(process.env.STRYKER_MUTATOR_WORKER !== undefined)("the sweep has a case for each throw, and every throw is an UnsoundScoring", () => {
     const source = `${scoringSetSource}\n${ruleChecksSource}\n${ownStatsSource}\n${valuesSource}`;
     expect(source.match(/throw new (?!UnsoundScoring\()/g)).toBeNull();
     expect(source.match(/throw new UnsoundScoring\(/g)?.length).toBe(SWEEP.length + 1);

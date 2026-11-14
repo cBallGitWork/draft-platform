@@ -13,6 +13,9 @@ process.env.TZ = LONDON_ZONE;
 // setup file does is in tests/README.md.
 
 const RESTORED = {
+  // A mutation run (npm run mutation, stryker.config.mjs) counts which test reaches which planted
+  // change, which slows each test as coverage does: an at-scale scoring test ran past 5s (#2173).
+  ...(process.env.STRYKER_MUTATOR_WORKER === undefined ? {} : { testTimeout: 30_000 }),
   unstubGlobals: true,
   unstubEnvs: true,
   restoreMocks: true,
