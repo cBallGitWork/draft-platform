@@ -23,3 +23,6 @@ coverage/
 /.open-rules*.md
 # and their throwaway screenshot specs, which never land (#1715).
 /tests/smoke/zz-*
+# Stryker's sandbox and report (npm run mutation, #2173).
+/.stryker-tmp/
+/reports/
