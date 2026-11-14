@@ -6,7 +6,7 @@ import { useSyncExternalStore } from "react";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { Position } from "../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { previewClub } from "../shared/preview";
+import { previewClub, previewSaves } from "../shared/preview";
 import type { DraftBoard, DraftList, DraftListChanges, DraftLists, DraftSeam } from "./seam";
 
 type Listed = DraftLists["queue"][number];
@@ -97,25 +97,25 @@ export const setPreviewPlayers = (players: readonly ListedPlayer[]) => {
 };
 
 const changes: DraftListChanges = {
-  add: async (_leagueId, playerCode, list) => {
+  add: previewSaves(async (_leagueId: unknown, playerCode: number, list: DraftList) => {
     listInPreview([listedFromScouting(known.find(({ code }) => code === playerCode)!)], list);
     return null;
-  },
-  remove: async (_leagueId, playerCode, list) => {
+  }),
+  remove: previewSaves(async (_leagueId: unknown, playerCode: number, list: DraftList) => {
     lists = { ...lists, [list]: lists[list].filter(({ code }) => code !== playerCode) };
     changed();
     return null;
-  },
-  move: async (_leagueId, playerCode, place) => {
+  }),
+  move: previewSaves(async (_leagueId: unknown, playerCode: number, place: number) => {
     const moving = lists.queue.find(({ code }) => code === playerCode)!;
     const rest = lists.queue.filter((each) => each !== moving);
     lists = { ...lists, queue: [...rest.slice(0, place - 1), moving, ...rest.slice(place - 1)] };
     changed();
     return null;
-  },
+  }),
   addShortlist: async () => ({ added: listInPreview([...shortlisted].sort((one, other) => one.name.localeCompare(other.name))), leftOut: 0 }),
-  turnOnAutoPick: () => setAutoPick(true),
-  takeControlBack: () => setAutoPick(false),
+  turnOnAutoPick: previewSaves(() => setAutoPick(true)),
+  takeControlBack: previewSaves(() => setAutoPick(false)),
 };
 
 export const previewLists: Pick<DraftSeam, "useLists" | "useListChanges"> = {

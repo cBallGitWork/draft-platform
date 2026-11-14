@@ -7,6 +7,7 @@ import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
 import { previewListedPlayer, previewPlayers, previewPlayersListOf } from "../scouting/preview";
+import { previewDone } from "../shared/preview";
 import { previewLists, previewListsPlayers, setPreviewPlayers, usePreviewAutoPick } from "./previewLists";
 import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
@@ -65,7 +66,7 @@ const ROOM_PLAYERS = [
 setPreviewPlayers(ROOM_PLAYERS);
 
 /** The preview changes nothing, and says nothing went wrong. */
-const done = () => Promise.resolve(null);
+const done = previewDone;
 const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done, pickFor: done };
 
 const GREYED: readonly GreyedPlayer[] = [

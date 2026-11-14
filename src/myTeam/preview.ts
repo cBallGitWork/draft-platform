@@ -10,7 +10,7 @@ import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadLimits";
 import { squadLimits } from "../../convex/squads/squadRulesView";
 import { previewLatestMail } from "../mail/preview";
-import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
+import { previewDone, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable } from "../table/preview";
 import { PREVIEW_GAMEWEEK, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
@@ -130,14 +130,14 @@ const squad: TeamSquad = {
 };
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
-const previewNumbers = { set: async () => null };
+const previewNumbers = { set: previewDone };
 const previewAutoTeam: MyAutoTeam = {
   teamId: previewIdOf(previewTeam),
   on: false,
   endsAfter: null,
   endGameweeks: seasonGameweeks(previewSeasonGameweeks).filter((gameweek) => gameweek >= scheduleGameweeks[0]!),
 };
-const previewAutoTeamChanges = { set: async () => null };
+const previewAutoTeamChanges = { set: previewDone };
 
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,

@@ -17,7 +17,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { previewGameMode } from "../../shared/preview";
+import { previewGameMode, previewSaves } from "../../shared/preview";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
@@ -125,31 +125,31 @@ const subscribe = (listener: () => void) => {
 };
 
 const changes = {
-  save: async (_leagueId: unknown, lineup: EditedLineup) => {
+  save: previewSaves(async (_leagueId: unknown, lineup: EditedLineup) => {
     const problems = lineupProblems(lineup, positionsOf, { areaLimits: FIRST_RULES.areaLimits });
     if (problems.length > 0) return problems.map((problem) => problemWords(problem, nameOf)).join(" ");
     tactics = tacticsWith(lineup);
     for (const listener of listeners) listener();
     return PREVIEW_GAMEWEEK;
-  },
+  }),
 };
 
 /** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
 let plans: readonly Plan[] = [];
 const planChanges: PlanChanges = {
-  save: async (_leagueId, name, slots, instructions) => {
+  save: previewSaves(async (...[, name, slots, instructions]: Parameters<PlanChanges["save"]>) => {
     const kept = plans.some((plan) => plan.name === name);
     if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
     const saved = { name, slots, instructions };
     plans = kept ? plans.map((plan) => (plan.name === name ? saved : plan)) : [...plans, saved];
     for (const listener of listeners) listener();
     return null;
-  },
-  remove: async (_leagueId, name) => {
+  }),
+  remove: previewSaves(async (...[, name]: Parameters<PlanChanges["remove"]>) => {
     plans = plans.filter((plan) => plan.name !== name);
     for (const listener of listeners) listener();
     return null;
-  },
+  }),
 };
 
 /** The role card prices the preview's made-up matches under the roles' first values. */
