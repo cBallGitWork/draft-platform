@@ -73,7 +73,7 @@ async function scheduleStart(ctx: MutationCtx, leagueId: Id<"leagues">, draft: D
 
 /** Starts the league's draft now, in the draft order, with the first pick on the clock
  *  (draftClock.ts), unless it has started or can't: then the refusal, with nothing written. */
-async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"drafts"> | null): Promise<string | null> {
+export async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"drafts"> | null): Promise<string | null> {
   if (draft?.started !== undefined) return draftStartRefusals.started;
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
