@@ -67,6 +67,10 @@ comes to exist, fills, changes and ends.
 - The admin or the commissioner can remove a manager. A removed manager loses the league at once
   and can be invited back later. The team keeps its name.
 - A manager can leave a league themselves. It works like a removal, and files a Mail letter.
+- A manager removed or leaving mid-season: his trade offers, sent and received, are cancelled, and
+  the other side gets a Mail letter; his waiver claims are withdrawn; his lineup stays, and the
+  auto team keeps it legal until a new manager takes over (Craig, 14 Nov 2026, grill batch 2, on
+  #2202). `S13.2`
 
 ## Gameweeks
 
