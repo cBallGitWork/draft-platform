@@ -8,7 +8,7 @@ import { MINUTES_STAT, storedStatName } from "./matchRecords";
 
 /** One of FPL's stats for a man in a match, under FPL's name, as FPL gives it and as his record
  *  holds it: null where there is no FPL line, or no record. */
-export type StatDifference = { stat: string; fpl: number | null; stored: number | null };
+type StatDifference = { stat: string; fpl: number | null; stored: number | null };
 
 /** Every stat FPL gives for the match whose stored count isn't FPL's, by name, FPL's own points left out
  *  (never stored, spec/07). A stat a record leaves out is 0, as the scoring reads it (spec/14). With
