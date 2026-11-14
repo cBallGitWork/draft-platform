@@ -43,6 +43,9 @@ export const waiverTables = {
     /** The deadline whose free agents were last put back on waivers as the window shut (#1478),
      *  so each deadline does it once. */
     backOnWaivers: v.optional(v.number()),
+    /** The run time still failing after its retries (#2193, S08.23), until a run is made or skipped:
+     *  the admin was emailed about it once, and managers see "Waivers delayed". */
+    delayedRun: v.optional(v.number()),
   }).index("by_leagueId", ["leagueId"]),
   /** The order a league's waivers start from after its commissioner changed the order type, one row
    *  at most (#1200; Craig, 6 Nov 2026: "At once, from today's order"): the order that day, first

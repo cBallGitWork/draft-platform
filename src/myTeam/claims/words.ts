@@ -106,6 +106,8 @@ export const waiverOrderLoadingWords = "Loading the waiver order…";
 export const RUNS_TITLE = "Runs";
 export const nextRunWords = "Next";
 export const freeAgentsWords = "Free agents";
+/** A run still failing after its retries (Craig, 14 Nov 2026, S08.23). */
+export const waiversDelayedWords = "Waivers delayed";
 /** Free agents before the league's draft is over (S08.1), matching `claimsNotOpenWords`. */
 export const freeAgentsNotOpenWords = "Open once the league's draft is over";
 /** A run that falls after a gameweek's deadline: it is skipped if that gameweek's last match isn't

@@ -177,6 +177,8 @@ const waiversView = v.object({
   /** The gameweek whose end works the order out again: the one under way in the lock, else the next
    *  deadline's; null with neither. */
   resetsAfter: v.union(v.number(), v.null()),
+  /** Whether a run is still failing after its retries, so managers see "Waivers delayed" (S08.23). */
+  delayed: v.boolean(),
 });
 export type WaiversView = Infer<typeof waiversView>;
 
@@ -222,6 +224,7 @@ export const ofLeague = query({
       windowOpen: open,
       windowShuts: waitedDeadline === null ? next : nextDeadline(deadlines, waitedDeadline),
       resetsAfter: underWay ?? next?.gameweek ?? null,
+      delayed: (await waiverOrderRow(ctx, leagueId))?.delayedRun !== undefined,
     };
   },
 });

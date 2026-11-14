@@ -1,5 +1,5 @@
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
-import { Panel } from "../../ui/Panel";
+import { Notice, Panel } from "../../ui/Panel";
 import type { PendingClaim, WaiversView } from "./seam";
 import {
   freeAgentsWords,
@@ -11,6 +11,7 @@ import {
   WAIVER_ORDER_TITLE,
   waiverOrderNote,
   waiverOrderWords,
+  waiversDelayedWords,
   windowWords,
 } from "./words";
 
@@ -43,7 +44,8 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
   );
 }
 
-/** The next runs, soonest first, the first marked Next, and when free agency opens; before the
+/** The next runs, soonest first, the first marked Next, and when free agency opens, under "Waivers
+ *  delayed" while a run still fails after its retries (S08.23); before the
  *  league's draft is over every run is skipped (S08.1), so none is marked Next. A run that may fall
  *  in a gameweek's lock says so in place of Next (#1488). On My team's Transactions tab each run
  *  counts the manager's `claims` in it (#1031). */
@@ -60,6 +62,7 @@ export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; clai
   });
   return (
     <Panel title={RUNS_TITLE}>
+      {waivers.delayed && <Notice>{waiversDelayedWords}</Notice>}
       <ul>
         {waivers.runs.map(({ at, skippedIf }, index) => {
           const note = runNoteWords({
