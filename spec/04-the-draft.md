@@ -68,6 +68,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Ann reloads the draft room while she's on the clock. She's back on her turn with the time left as
   it was (the clock never stopped), her queue and lists as saved. A pick not yet sent is lost
   (Craig, 14 Nov 2026, grill batch 2, on #2201). `S04.21`
+- Ann's laptop clock is 2 minutes slow. The draft clock goes by the server's time, so she sees
+  the same time left as everyone else (Craig, 14 Nov 2026, grill batch 3, on #2211). `S04.22`
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
   date can still be set while squads hold players; if they still do when it comes, the draft
   doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams
