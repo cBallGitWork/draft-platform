@@ -16,6 +16,8 @@ export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
 /** The five managers by name, so no test picks them out of MANAGERS by place. */
 export const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
+/** `count` managers' emails, manager1@example.com upward, for a league fuller than MANAGERS. */
+export const managersNamed = (count: number) => Array.from({ length: count }, (_, i) => `manager${i + 1}@example.com`);
 /** Someone signed in who has no part in any league. */
 export const OUTSIDER = "outsider@example.com";
 

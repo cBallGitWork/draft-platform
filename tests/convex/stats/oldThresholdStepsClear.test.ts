@@ -18,7 +18,7 @@ const insertOldRows = (count: number) =>
 
 beforeEach(() => {
   vi.useFakeTimers();
-  t = freshConvex();
+  t = freshConvex(true);
 });
 afterEach(() => vi.useRealTimers());
 

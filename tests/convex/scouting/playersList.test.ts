@@ -34,7 +34,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
+  t = await signInDeployment(undefined, true);
   fakeResend();
   leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB]);

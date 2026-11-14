@@ -28,7 +28,7 @@ import { MADE_UP_CODES, ROWS_TO_THE_CAP } from "../../support/convex/test.harnes
 
 let league: ScoresLeague;
 beforeEach(async () => {
-  league = await scoresLeague();
+  league = await scoresLeague({ atConvexLimits: true });
 });
 
 /** Reads at `cap` rows, held by `holdTo`, then throws `tooMany` once one more is held. */

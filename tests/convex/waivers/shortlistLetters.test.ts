@@ -16,7 +16,7 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 
 let w: WaiverLeague;
 beforeEach(async () => {
-  w = await waiverLeague();
+  w = await waiverLeague(true);
 });
 
 const shortlist = async (email: string, codes: readonly number[]) => {

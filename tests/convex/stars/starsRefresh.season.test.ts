@@ -23,7 +23,7 @@ test(
   `a match's ${MATCH_PLAYERS} players, each with ${STARS_WINDOW} matches and every outfield role, are refreshed in full pages of ${PLAYERS_PAGE} and on a lock`,
   ROWS_TO_THE_CAP,
   async () => {
-    const t = freshConvex();
+    const t = freshConvex(true);
     const codes = Array.from({ length: MATCH_PLAYERS }, (_, index) => 4000 + index);
     await t.run(async (ctx) => {
       await insertClubs(ctx, [ARSENAL, CHELSEA]);
