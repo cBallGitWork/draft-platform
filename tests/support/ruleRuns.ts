@@ -1,6 +1,6 @@
 // How long the rule tests' random runs are (#2126). fast-check tries `numRuns` random inputs a
 // property: a short run on every pull request, and `npm run test:rules-long` sets
-// RULE_TEST_RUNS for the nightly job's long one. A failure prints its seed and path and shrinks to
+// RULE_TEST_RUNS for a long one, run by hand until a nightly job calls it (#2139). A failure prints its seed and path and shrinks to
 // its smallest case; RULE_TEST_SEED (with RULE_TEST_PATH) runs that case again.
 
 import type { Parameters } from "fast-check";
