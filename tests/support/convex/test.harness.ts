@@ -7,6 +7,7 @@ import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
 import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { expect, vi } from "vitest";
+import type { TableNames } from "../../../convex/_generated/dataModel";
 import schema from "../../../convex/schema";
 
 /** Every file in convex/, keyed by its path from here, as convex-test needs them: it finds
@@ -16,11 +17,14 @@ export const modules = import.meta.glob("../../../convex/**/*.ts");
 export type TestConvex = TestConvexOf<typeof schema>;
 
 /** A registered function as Convex's runtime marks it, all a sweep reads of one. */
-export type RegisteredFunction = { isMutation?: boolean; isPublic?: boolean; exportArgs?: () => string };
+export type RegisteredFunction = { isMutation?: boolean; isAction?: boolean; isPublic?: boolean; exportArgs?: () => string };
 
 /** Every public query, mutation and action, keyed "folder/module:name". Read from the deployed
  *  modules, so a function added later is found without anyone listing it. */
-export async function publicFunctions(): Promise<Map<string, RegisteredFunction>> {
+export const publicFunctions = () => registeredFunctions((fn) => fn.isPublic === true);
+
+/** Every registered function `wanted` picks, keyed as publicFunctions keys them. */
+export async function registeredFunctions(wanted: (fn: RegisteredFunction) => boolean): Promise<Map<string, RegisteredFunction>> {
   const found = new Map<string, RegisteredFunction>();
   for (const [path, load] of Object.entries(modules)) {
     // Convex deploys only files with one dot in their name, and none of _generated.
@@ -28,7 +32,7 @@ export async function publicFunctions(): Promise<Map<string, RegisteredFunction>
     if (!module) continue;
     for (const [name, exported] of Object.entries((await load()) as Record<string, unknown>)) {
       const fn = exported as RegisteredFunction | undefined;
-      if (fn?.isPublic) found.set(`${module}:${name}`, fn);
+      if (fn?.exportArgs && wanted(fn)) found.set(`${module}:${name}`, fn);
     }
   }
   return found;
@@ -102,6 +106,14 @@ export function fakeFetch(
 export function refusedError(url: string): string {
   return `${url} answered ${REFUSED_STATUS}`;
 }
+
+/** Every row of every table in the schema, by table: for a check that a refused call wrote nothing. */
+export const everyRow = (t: TestConvex) =>
+  t.run(async (ctx) => {
+    const rows: Record<string, unknown[]> = {};
+    for (const table of Object.keys(schema.tables) as TableNames[]) rows[table] = await ctx.db.query(table).collect();
+    return rows;
+  });
 
 /** A refusal the person is shown: a ConvexError carrying the reason. A plain Error reaches the
  *  browser as "Server Error", its message lost, so matching the message alone would pass it.

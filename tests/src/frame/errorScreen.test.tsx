@@ -1,6 +1,7 @@
 // A page whose reading throws, such as a query that failed (spec/12, The frame): the page says so in
 // the alert strip in plain words, never the server's, even for a refusal; logs it; offers Retry,
-// which reads again; and leads back to "Your leagues". Every screen that reads is checked.
+// which reads again; and leads back to "Your leagues". Every route that reads is checked, and a new
+// route that isn't fails the check (#2136).
 
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -8,20 +9,45 @@ import { ConvexError } from "convex/values";
 import { describe, expect, it } from "vitest";
 import { JOIN_PATH } from "../../../convex/joining/joiningShared";
 import type { Session } from "../../../src/signIn/seam";
-import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
-import { MAIL_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
+import { FEEDBACK_PATH } from "../../../src/feedback/paths";
+import {
+  DRAFT_PATH,
+  HOME_NEWS_PATH,
+  HOME_PATH,
+  MAIL_PATH,
+  MATCHUP_PATH,
+  MY_TEAM_FIXTURES_PATH,
+  MY_TEAM_PATH,
+  MY_TEAM_SQUAD_PATH,
+  MY_TEAM_TRANSACTIONS_PATH,
+  PREMIER_LEAGUE_PATH,
+  SCOUTING_PATH,
+  TABLE_PATH,
+  TRADES_NEW_PATH,
+  TRADES_PATH,
+} from "../../../src/frame/menu";
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
 import { ERROR_PAGE_TITLE, readFailedWords, retryWords } from "../../../src/frame/words";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
+import { RECAP_PATH } from "../../../src/home/paths";
 import { invitesPath } from "../../../src/joining/paths";
 import { settingsPath } from "../../../src/leagueSettings/paths";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
+import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { backToLeaguesWords } from "../../../src/leagues/words";
+import { otherTeamPath } from "../../../src/myTeam/paths";
+import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
+import { playerCardPath } from "../../../src/playerCard/paths";
+import { clubPath, matchPath } from "../../../src/premierLeague/paths";
+import { createShellRouter, type ShellContext } from "../../../src/routes/router";
+import { frameRoute, LANDING_PATH, leaguePagesRoute } from "../../../src/routes/root";
 import { scoringPath } from "../../../src/scoring/paths";
+import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { squadsPath } from "../../../src/squads/paths";
 import { findLabel, menuWords } from "../../../src/shared/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import type { JoiningData } from "../../support/src/joining.harness";
+import { routerPaths, routesNotReached } from "../../support/src/routerPaths";
 import { admin, commissioned, league, manager, managerIn, newcomer, openApp, type AppSetUp, yourLeaguesHeading } from "../../support/src/shell.harness";
 
 type App = ReturnType<typeof openApp>;
@@ -157,11 +183,39 @@ const screensThatRead: [string, string, Session, Failing][] = [
   ["the admin's dashboard", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useQueue.mockImplementation(failing(error)) }],
   ["the admin's Find a player", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useFoundPlayers.mockImplementation((text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }],
   ["the admin's feeds", ADMIN_FEEDS_PATH, admin, { fail: (app, error) => app.admin.useFeeds.mockImplementation(failing(error)) }],
+  ["the admin's Feedback", ADMIN_FEEDBACK_PATH, admin, { fail: (app, error) => app.feedback.useFeedbackList.mockImplementation(failing(error)) }],
+  ["the admin's Availability", ADMIN_AVAILABILITY_PATH, admin, { fail: (app, error) => app.admin.useSetByHand.mockImplementation(failing(error)) }],
+  ["League home", HOME_PATH, manager, { fail: (app, error) => app.home.useLeagueHome.mockImplementation(failing(error)) }],
+  ["League home's News", HOME_NEWS_PATH, manager, { fail: (app, error) => app.home.useLeagueNews.mockImplementation(failing(error)) }],
+  ["the recap", RECAP_PATH, manager, { fail: (app, error) => app.home.useRecap.mockImplementation(failing(error)) }],
+  ["Scouting", SCOUTING_PATH, manager, { fail: (app, error) => app.scouting.usePlayersList.mockImplementation(failing(error)) }],
+  ["the draft room", DRAFT_PATH, manager, { fail: (app, error) => app.draft.useDraft.mockImplementation(failing(error)) }],
+  ["Tactics", MY_TEAM_PATH, manager, { fail: (app, error) => app.myTeam.useTactics.mockImplementation(failing(error)) }],
+  ["My team's Squad", MY_TEAM_SQUAD_PATH, manager, { fail: (app, error) => app.myTeam.useTeamSquad.mockImplementation(failing(error)) }],
+  ["My team's Fixtures", MY_TEAM_FIXTURES_PATH, manager, { fail: (app, error) => app.myTeam.useTeamFixtures.mockImplementation(failing(error)) }],
+  ["My team's Transactions", MY_TEAM_TRANSACTIONS_PATH, manager, { fail: (app, error) => app.myTeam.useTeamTransactions.mockImplementation(failing(error)) }],
+  ["another team's squad", otherTeamPath(leagueId, "team-2"), manager, { fail: (app, error) => app.myTeam.useOtherSquad.mockImplementation(failing(error)) }],
+  ["the matchup", MATCHUP_PATH, manager, { fail: (app, error) => app.matchup.useMatchup.mockImplementation(failing(error)) }],
+  ["the Premier League", PREMIER_LEAGUE_PATH, manager, { fail: (app, error) => app.premierLeague.useStandings.mockImplementation(failing(error)) }],
+  ["a match", matchPath(1), manager, { fail: (app, error) => app.premierLeague.useMatch.mockImplementation(failing(error)) }],
+  ["a club", clubPath(3), manager, { fail: (app, error) => app.premierLeague.useClub.mockImplementation(failing(error)) }],
+  ["Trades' Offers", TRADES_PATH, manager, { fail: (app, error) => app.trades.useTrades.mockImplementation(failing(error)) }],
+  ["Trades' New offer", TRADES_NEW_PATH, manager, { fail: (app, error) => app.trades.useTrades.mockImplementation(failing(error)) }],
+  ["a player's card", playerCardPath(leagueId, 1), manager, { fail: (app, error) => app.playerCard.usePlayerCard.mockImplementation(failing(error)) }],
+  ["the patch notes", PATCH_NOTES_PATH, manager, { fail: (app, error) => app.patches.useNotes.mockImplementation(failing(error)) }],
 ];
+
+/** Routes that read nothing the server could fail to send, each with why. */
+const READS_NOTHING: ReadonlyMap<string, string> = new Map([
+  [LANDING_PATH, "it redirects to My team, whose read is checked above"],
+  [SIGN_IN_PATH, "it reads nothing: asking for a link says its own failure (liveApp.test.tsx)"],
+  [NEW_LEAGUE_PATH, "it reads nothing: creating a league says its own failure"],
+  [FEEDBACK_PATH, "it reads nothing: sending says its own failure"],
+]);
 
 describe("no screen shows a failed read as the server's words", () => {
   it.each(screensThatRead)("%s", async (_, path, session, { setUp, fail, ask }) => {
-    silenceConsoleError();
+    const logged = silenceConsoleError();
     const error = new Error(serverWords);
     const app = openApp(path, session, setUp?.(error));
     fail?.(app, error);
@@ -171,5 +225,28 @@ describe("no screen shows a failed read as the server's words", () => {
     expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
     expect(screen.getByRole("button", { name: retryWords })).toBeTruthy();
     expect(screen.queryByText(serverWords, { exact: false })).toBeNull();
+    // The page failed on the read made to fail, not on something else.
+    expect(logged).toHaveBeenCalledWith(READ_FAILED_LOG, error);
+  });
+});
+
+describe("every route", () => {
+  it("that reads is checked above, but those listed with a reason", () => {
+    const unchecked = routesNotReached(screensThatRead.map(([, path]) => path), READS_NOTHING);
+    expect(unchecked, "routes no screensThatRead entry opens: add each, or to READS_NOTHING with why").toEqual([]);
+  });
+
+  it("listed as reading nothing is one the router has", () => {
+    expect([...READS_NOTHING.keys()].filter((route) => !routerPaths.includes(route))).toEqual([]);
+  });
+
+  // The two parents' errorComponent turns a thrown read into the error page; sign-in, for the
+  // signed-out visitor, reads nothing.
+  it("sits under one of the two parents that show the error page, but sign-in", () => {
+    const parents: unknown[] = [leaguePagesRoute, frameRoute];
+    const orphans = Object.entries(createShellRouter({} as ShellContext).routesByPath)
+      .filter(([path, route]) => path !== SIGN_IN_PATH && !parents.includes(route.parentRoute))
+      .map(([path]) => path);
+    expect(orphans).toEqual([]);
   });
 });

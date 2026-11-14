@@ -16,7 +16,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 
 - A dropped player goes on waivers for at least 24 hours before a run can take him.
 - A manager with a full squad names who he drops with his claim; that player goes only if the claim
-  succeeds.
+  succeeds. `S08.19`
 - A manager puts in as many claims as he likes, ranked: if his first fails, his next is tried.
 - The waiver order is reverse table order by default, or rotating (`spec/03`); corrected on 5 Nov
   2026, the same day:
@@ -28,9 +28,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
     pick in draft first waiver every week".
   - There is always a table ("theres always a table"), everyone on 0 at the start. Teams level in it
     go by its own tie-breaks, then by the reverse of the draft order, which is also rotating's
-    starting order.
+    starting order. `S08.18`
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
-  commissioner can change it (`spec/03`).
+  commissioner can change it (`spec/03`). `S08.22`
   - Changed run times count only from the next one still ahead, so a new time already gone this
     week never runs at once: runs only happen at times managers were shown (Craig, 11 Nov 2026,
     #1468). `S08.10`
@@ -65,7 +65,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   drafts do by default (`spec/04`). A player who comes back to the Premier League mid-season counts
   as new, whenever he left, so every league's managers get the same fair chance at him (Craig,
   11 Nov 2026, #1489). `S08.8`
-- A claim that would break the squad's limits is refused at the run.
+- A claim that would break the squad's limits is refused at the run. `S08.20`
 - A manager sees only his own pending claims; the commissioner sees everyone's. The league gets a
   Mail letter for each claim that succeeds, who came in and who went; a failed claim's letter goes
   only to its manager (`spec/16`).
@@ -84,7 +84,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 From `/grill trades` (25 Oct 2026).
 
 - An offer holds any mix of players and picks on either side, in any numbers. A squad pushed past
-  its limits is warned, as an assignment is (`spec/15`).
+  its limits is warned, as an assignment is (`spec/15`). `S08.21`
 - An offer can carry a one-line note.
 - The other manager accepts, rejects or counters with a changed offer, which closes the old one.
 - An offer nobody answers closes at the next deadline.

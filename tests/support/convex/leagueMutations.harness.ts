@@ -17,7 +17,7 @@ import { teamsIn, ANN, CAT, DAN } from "./leagues.harness";
 import { publicFunctions, type TestConvex } from "./test.harness";
 
 /** Someone in no league, whom `changesTo` adds as a manager and invites. */
-const NEWCOMER = "new@example.com";
+export const NEWCOMER = "new@example.com";
 
 /** Whoever calls a mutation: someone signed in, or the deployment itself when no one is. */
 export type Caller = Pick<TestConvex, "mutation">;
@@ -72,7 +72,6 @@ export function changesTo(
     "joining/joinRequests:refuseRequest": () => admin.mutation(api.joining.joinRequests.refuseRequest, { requestId }),
     "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: PL_GAMEWEEKS, used: false }),
     "gameweeks/scoringStart:setScoringStart": () => admin.mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId, gameweek: PL_GAMEWEEKS }),
-    "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
     "rules/leagueSettings:changeSettings": () =>
       admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
     "draft/draftOrder:setTeamOrder": () => admin.mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: reversedTeamIds }),

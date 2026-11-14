@@ -9,14 +9,12 @@ import { lineupInGameweek } from "../lineup/lineups";
 import { positionOfSlot } from "../lineup/pitch";
 import { roleIn, roleName } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";
-import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, failedTry, tryWriting, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
-import { logFailure } from "../shared/errors";
 import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
-import { MINUTE_MS } from "../shared/time";
 import { starsLookupIn } from "../stars/playerStars";
 import { notFiledLetter, playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
 
@@ -88,22 +86,17 @@ async function shapeGameweek(ctx: QueryCtx, league: Doc<"leagues">, now: number)
 export const write = internalAction({
   args: { scoutId: v.id("scouts") },
   returns: v.null(),
-  handler: async (ctx, { scoutId }) => {
-    let text: string | null;
-    try {
-      // The brief is read inside the try: one that throws is a failed write too, kept and tried again,
-      // never a scout left out for good.
-      const facts = await ctx.runQuery(internal.scouting.scoutReports.brief, { scoutId, now: Date.now() });
-      if (facts === null) return null;
-      text = facts.kind === "gone" ? null : await writeWithClaude({ system: REPORT_SYSTEM, prompt: facts.prompt, maxTokens: REPORT_MAX_TOKENS });
-    } catch (error) {
-      const failure = logFailure(`Scout ${scoutId}'s report wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error);
-      await ctx.runMutation(internal.scouting.scoutReports.failed, { scoutId, failure });
-      return null;
-    }
-    await ctx.runMutation(internal.scouting.scoutReports.comeBack, { scoutId, text });
-    return null;
-  },
+  handler: async (ctx, { scoutId }): Promise<null> =>
+    tryWriting<string | null>(
+      `Scout ${scoutId}'s report`,
+      async () => {
+        const facts = await ctx.runQuery(internal.scouting.scoutReports.brief, { scoutId, now: Date.now() });
+        if (facts === null) return null;
+        return { written: facts.kind === "gone" ? null : await writeWithClaude({ system: REPORT_SYSTEM, prompt: facts.prompt, maxTokens: REPORT_MAX_TOKENS }) };
+      },
+      (text) => ctx.runMutation(internal.scouting.scoutReports.comeBack, { scoutId, text }),
+      (failure) => ctx.runMutation(internal.scouting.scoutReports.failed, { scoutId, failure }),
+    ),
 });
 
 /** The scout comes back, free again: with his report, or, with none (`text` null), because the
@@ -132,8 +125,8 @@ export const failed = internalMutation({
   handler: async (ctx, { scoutId, failure }) => {
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
-    const failedTries = (scout.failedTries ?? 0) + 1;
-    if (failedTries < CLAUDE_TRIES_MOST) {
+    const { failedTries, again } = failedTry(scout);
+    if (again) {
       await ctx.db.patch("scouts", scoutId, { failedTries, lastFailure: failure });
       await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.scouting.scoutReports.write, { scoutId });
       return null;

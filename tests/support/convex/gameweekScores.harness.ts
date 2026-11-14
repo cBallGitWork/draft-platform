@@ -108,9 +108,10 @@ export interface ScoresLeague {
  *  squads held and Ann's lineup saved; Bob's too, unless `bobSaves` is false, when he holds the
  *  first lineup his squad's assignments stored (lineups.ts, #637), picked in the order each squad
  *  is listed here, starters then bench. With `catToo`, a third team, Cat's, with no squad and so
- *  nobody in its lineup, plays the league's average. */
-export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Promise<ScoresLeague> {
-  const t = await signInDeployment();
+ *  nobody in its lineup, plays the league's average. Held to Convex's own limits with
+ *  `atConvexLimits` (freshConvex). */
+export async function scoresLeague({ bobSaves = true, catToo = false, atConvexLimits = false } = {}): Promise<ScoresLeague> {
+  const t = await signInDeployment(undefined, atConvexLimits);
   fakeResend();
   const leagueId = await adminCreatesLeague(t);
   const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, catToo ? [ANN, BOB, CAT] : [ANN, BOB]);

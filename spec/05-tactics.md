@@ -90,7 +90,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   within the league's area limits, from the league's presets in order (Craig, 31 Oct 2026:
   "or find a legal formatin with 2 defenders"; then, 1 Nov 2026, on which shapes: "just the first
   that works from our preset list"; #866). Only if none fits does a slot stay empty: it
-  scores nothing, and never makes the lineup illegal or switches the auto team on.
+  scores nothing, and never makes the lineup illegal or switches the auto team on. `S05.49`
 
 ## Moving players
 

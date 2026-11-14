@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
@@ -12,6 +13,7 @@ import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
 import { MatchState } from "./MatchState";
+import { AbandonedMark } from "./AbandonedMark";
 import {
   cameOnWords,
   COMMENTARY_TITLE,
@@ -45,7 +47,7 @@ import {
  *  team sheet with every man's points and the team they're for, or "Free agent", the five team
  *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
  *  player's status on the matchup. */
-export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
+export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number; isAdmin: boolean }) {
   const match = seam.useMatch(league.leagueId, useMinute(), fixtureCode);
   return (
     <PageSection title={MATCH_TITLE} className={PAGE_STACK}>
@@ -54,18 +56,19 @@ export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary
       ) : match === null ? (
         <p className="text-muted">{noMatchWords}</p>
       ) : (
-        <HeldMatch match={match} />
+        <HeldMatch match={match} mark={isAdmin ? <AbandonedMark seam={seam} fixtureCode={fixtureCode} abandoned={match.abandoned} /> : null} />
       )}
     </PageSection>
   );
 }
 
-function HeldMatch({ match }: { match: MatchPageData }) {
+/** `mark` is the admin's abandoned mark, at the scoreboard's foot; null for anyone else. */
+function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
   const { home, away, men, pointsProblem, teamStats, commentary } = match;
   const moved = men.filter((man) => man.side === null);
   return (
     <>
-      <Scoreboard match={match} />
+      <Scoreboard match={match}>{mark}</Scoreboard>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
       <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
         <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} />
@@ -82,7 +85,7 @@ function HeldMatch({ match }: { match: MatchPageData }) {
 }
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match: MatchPageData }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek }, children }: { match: MatchPageData; children: ReactNode }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -95,6 +98,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
         <MatchState score={score} kickoff={kickoff} long />
         {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
+      {children}
     </section>
   );
 }

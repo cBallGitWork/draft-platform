@@ -45,11 +45,11 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 ## The picks
 
 - Snake only. The number of rounds is the league's maximum squad size. A league needs a squad size
-  limit before its draft can start (Craig, 4 Nov 2026, on #1089).
+  limit before its draft can start (Craig, 4 Nov 2026, on #1089). `S04.18`
 - A pick that would break the squad's rules is greyed out and can't be made (Craig, 2 Nov 2026):
   - a player whose club the team is already at the league's maximum for;
   - a player whose pick would leave too few picks to reach an area's minimum: with 2 picks left and
-    2 goalkeepers still needed, every outfielder is greyed out.
+    2 goalkeepers still needed, every outfielder is greyed out. `S04.19`
 
   So every finished squad is legal.
 - The players still undrafted count too. A player whose pick would leave no legal finish from the

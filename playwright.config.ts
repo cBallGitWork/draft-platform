@@ -7,7 +7,11 @@
 // by side, clear of every checkout's app server.
 
 import { defineConfig } from "@playwright/test";
+import { TIME_ZONE } from "./scripts/fixedClock.mjs";
 import { localUrl, smokePorts } from "./scripts/port.mjs";
+
+// The tests' own words for a time (savedWords) in the zone their pages run in (errorsTest.ts).
+process.env.TZ = TIME_ZONE;
 
 const { dev: DEV_PORT, bundle: BUNDLE_PORT } = smokePorts();
 const DEV_URL = localUrl(DEV_PORT);

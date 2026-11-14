@@ -5,6 +5,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Period } from "../../../convex/scouting/periods";
 import type { ListedRows, PlayersFilters, PlayersList, PlayersSort } from "../../../convex/scouting/playersList";
 import { listOf, withFirstRuns } from "../../../convex/scouting/playersOrder";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import type { actingAs } from "./leagues.harness";
 
 // Scouting's players list as the screen shows it (#1552): the server asked for the club, the stat
@@ -30,9 +31,13 @@ export async function playersListed(
 
 /** Copies every player's Scouting row from what the test holds: tests write players, positions and
  *  season totals straight to their tables, past the writers that keep those rows
- *  (scoutingPlayers.ts, #1559; scoutingPlayers.test.ts checks the writers). */
+ *  (scoutingPlayers.ts, #1559; scoutingPlayers.test.ts checks the writers). A page of PLAYERS_PAGE
+ *  a transaction, as `rebuild` copies them, so a full-size pool stays inside Convex's own limits. */
 export async function keepEveryScoutingPlayer(as: Pick<Reader, "run">): Promise<void> {
-  await as.run(async (ctx) => keepScoutingPlayers(ctx, (await ctx.db.query("players").collect()).map(({ code }) => code)));
+  const codes = await as.run(async (ctx) => (await ctx.db.query("players").collect()).map(({ code }) => code));
+  for (let from = 0; from < codes.length; from += PLAYERS_PAGE) {
+    await as.run((ctx) => keepScoutingPlayers(ctx, codes.slice(from, from + PLAYERS_PAGE)));
+  }
 }
 
 /** The list as the server sends it to `as`, once every player's Scouting row is copied. */

@@ -1,30 +1,22 @@
-// The smoke run's phone check (tests/smoke/smoke.spec.ts) opens every route the router has, so a
-// new screen can't skip its sideways-scroll and console-error check; the few it doesn't open are
-// listed here, each with why.
+// The smoke run's built-screens check (tests/smoke/builtScreens.spec.ts), on the phone and the
+// desk, opens every route the router has, so a new screen can't skip its sideways-scroll and
+// console-error check; the few it doesn't open are listed here, each with why.
 
 import { describe, expect, it } from "vitest";
-import { createShellRouter, type ShellContext } from "../../src/routes/router";
 import { LANDING_PATH } from "../../src/routes/root";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
+import { routePattern, routerPaths, routesNotReached } from "../support/src/routerPaths";
 
-/** Every path the router matches, read from its route tree. Building it loads nothing. */
-const routerPaths = Object.keys(createShellRouter({} as ShellContext).routesByPath);
-
-/** Routes the phone run doesn't open, each with why. */
+/** Routes the built-screens run doesn't open, each with why. */
 const NOT_SMOKED: ReadonlyMap<string, string> = new Map([
   [LANDING_PATH, "it redirects to My team; smoke.spec.ts's ?preview=manager test opens it"],
   [SIGN_IN_PATH, "smoke.spec.ts's ?preview=visitor test opens it"],
 ]);
 
-/** A route's path as a pattern its addresses match: each `$param` one segment, then any search. */
-const routePattern = (route: string) => new RegExp(`^${route.replace(/\$[^/]+/g, "[^/]+")}(\\?.*)?$`);
-
 describe("the smoke run's built screens", () => {
   it("open every route the router has, but those listed with a reason", () => {
-    const unsmoked = routerPaths.filter(
-      (route) => !NOT_SMOKED.has(route) && !BUILT_SCREENS.some(([, path]) => routePattern(route).test(path)),
-    );
+    const unsmoked = routesNotReached(BUILT_SCREENS.map(([, path]) => path), NOT_SMOKED);
     expect(unsmoked, "routes no BUILT_SCREENS entry opens: add each to tests/support/smoke/builtScreens.ts").toEqual([]);
   });
 

@@ -1,21 +1,23 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
+import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { draftStarted } from "../../support/convex/draft.harness";
 import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks, holdMatchState, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, teamsIn } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, managersNamed, teamsIn } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 
-// A busy waiver run held to Convex's own limits (#1538): the first after a draft, every team with
-// a full ranked list, the squad, club and area limits all on. Each team's squad and each player's
-// club and positions are read once for the run, not once per claim tried, so the one job that
+// A busy waiver run held to Convex's own limits (#1538): the first after a draft, in a league
+// of the most teams one holds (#2130), every team with a full ranked list, the squad, club and
+// area limits all on. Each team's squad and each player's club and positions are read once for
+// the run, not once per claim tried, so the one job that
 // tries every claim stays clear of the reads one transaction may make. Before #1538 a run this size
 // threw, saved nothing and threw again at every check after.
 
-const TEAMS = 14;
+const TEAMS = MOST_TEAMS;
 const CLAIMS = 30;
 const SQUAD_SIZE = 15;
 const POOL = 60;
@@ -34,7 +36,7 @@ test(`a run of ${TEAMS} teams with ${CLAIMS} claims each tries every claim and l
   const t = await signInDeployment(undefined, true);
   fakeResend();
   const leagueId = await adminCreatesLeague(t, TEAMS);
-  const emails = Array.from({ length: TEAMS }, (_, index) => `manager${index}@example.com`);
+  const emails = managersNamed(TEAMS);
   await addManagers(t, leagueId, emails);
   const teams = (await teamsIn(t, leagueId)).map(({ _id }) => _id);
   await holdGameweeks(t, { next: NEXT });

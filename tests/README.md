@@ -4,8 +4,9 @@ Every Vitest and Playwright test sits here (the hook checks are in `.claude/hook
 one of five roots: at the path of the code it tests, or at the root for a test that spans many
 files (`tests/src/flow.test.ts`). The Convex tests that play the whole product through are under
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
-stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
-time.
+stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
+time, `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points, and
+`clockChange.test.ts`, that chain carried on across the clocks going back on 25 Oct 2026.
 
 The season simulation, `tests/convex/simulation/season.sim.ts`, is not a test file: no project of
 `vitest.config.ts` runs it, and `npm run simulate` does (`vitest.simulate.config.ts`), for the
@@ -68,7 +69,12 @@ Nothing in it is a test. Each kind of file:
   `describedBy.ts` (what a screen reader hears after a box's name), `colorTokens.ts` (styles.css's
   colour tokens as written), `styledColour.ts` (a colour as jsdom hands it back) and
   `serverStore.ts` (a fake server's value a test changes under an open screen);
-  `specExamples.ts`, a spec file's example table read as rows; `smoke/errorsTest.ts`, the smoke
+  `specExamples.ts`, a spec file's example table read as rows; `seededDraw.ts`, the seeded draw
+  the tests on random inputs run on, so a failure names the seed that runs it again; `ruleRuns.ts`,
+  how many random inputs the rule tests (`*.rules.test.ts`, fast-check) try, short on every pull
+  request and long in `npm run test:rules-long` (run by hand until a nightly job calls it, #2139),
+  and a failure's seed to replay; `seededRandom.ts`, a seeded random source for a test that tries
+  many generated cases; `smoke/errorsTest.ts`, the smoke
   suite's own `test`, failing on any console or page error it didn't expect; and
   `scripts/repoRoot.mjs`, the repository's root for the script tests.
 - **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
@@ -86,6 +92,11 @@ Nothing in it is a test. Each kind of file:
   scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's written commentary,
   `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the round-robin fixture draws)
   and `schema.json` (the saved tables).
+- **`functionInputs.json`**, each public function's and each internal mutation's and action's
+  arguments, kept in step with the code by `tests/scripts/function-inputs.test.mjs` (`-u` rewrites
+  it). Not add-only, but `scripts/function-inputs.mjs`, which that test runs, fails when a branch
+  drops a function main's copy holds or changes its inputs so a call queued against main may not
+  fit, unless a commit carries `Inputs-changed: <function>: <how queued calls survive>` (#2172).
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer

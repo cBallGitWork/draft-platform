@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { MOST_IN_SQUAD, overMostInSquad } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/rulesHistory";
 import { refuse, teamIn } from "../shared/leagueAccess";
 import { squadCodes } from "../squads/squadPlace";
@@ -31,7 +31,7 @@ export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offe
   const squad = (await latestRules(ctx, leagueId)).squad;
   return Promise.all(
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
-      if (codes.length > MOST_IN_SQUAD) refuse(squadFullRefusal);
+      if (overMostInSquad(codes)) refuse(squadFullRefusal);
       const team = await teamIn(ctx, leagueId, teamId);
       const now = await squadCodes(ctx, teamId);
       const [before, after] = await Promise.all([limitsBroken(ctx, leagueId, now, squad), limitsBroken(ctx, leagueId, codes, squad)]);

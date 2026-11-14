@@ -18,7 +18,7 @@ const UNTOUCHED = { states: ["provisional"], count: MATCH_RECORDS_MOST + 1 };
 
 let t: TestConvex;
 beforeEach(async () => {
-  t = freshConvex();
+  t = freshConvex(true);
   await t.run(async (ctx) => {
     for (let index = 0; index <= MATCH_RECORDS_MOST; index += 1) {
       await ctx.db.insert("playerMatchStats", {

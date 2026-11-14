@@ -133,7 +133,7 @@ const matchRoute = createRoute({
     return (
       <CurrentLeague
         session={session}
-        page={(league) => <MatchPage league={league} seam={premierLeague} fixtureCode={code} />}
+        page={(league) => <MatchPage league={league} seam={premierLeague} fixtureCode={code} isAdmin={session.signedIn && session.isAdmin} />}
         // Keyed by the match as well as the league, so going to another match starts afresh too.
         keyOf={(league) => `${league.leagueId}/${code}`}
       />

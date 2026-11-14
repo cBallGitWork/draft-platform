@@ -1,6 +1,6 @@
 import { v, type Validator } from "convex/values";
 import type { Id } from "../_generated/dataModel";
-import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
 import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tradeRulesOf } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
@@ -218,8 +218,10 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
 
 /** The commissioner's change, whole, made from the rules `revision` names: it takes effect from
  *  the gameweek `changesFromAt` gives of `changesFromTimesOf`. Returns that gameweek. Refused, with the reason, if the
- *  rules changed since or if unsound. */
-export const change = mutation({
+ *  rules changed since or if unsound. Internal: no screen saves the rules whole, each saves its part
+ *  (`changeLatest`), so a commissioner changes only what a screen offers (#1437). It still checks
+ *  its caller runs the league, as the tests that call it act as one. */
+export const change = internalMutation({
   args: { leagueId: v.id("leagues"), rules: leagueRulesShape, revision: revisionShape },
   returns: v.number(),
   handler: async (ctx, { leagueId, rules, revision }) => {

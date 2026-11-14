@@ -1,5 +1,5 @@
 // The tap-size check (plate.md, The phone: "every target 44px"), run inside the page by
-// scripts/shoot.mjs and the smoke run (tests/smoke/smoke.spec.ts), so both measure the same way.
+// scripts/shoot.mjs and the smoke run (tests/smoke/builtScreens.spec.ts), so both measure the same way.
 // Pass it to Playwright's page.evaluate: it must stay self-contained, using nothing from this module.
 
 /** Every tap on the page smaller than the tap size (`--spacing-tap`, read from the page) either

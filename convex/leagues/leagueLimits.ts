@@ -13,6 +13,9 @@ export const DELETION_UNDO_HOURS = 24;
  *  prem squad is 25"). Also the most players one team can hold whatever its league's maximum,
  *  which only warns: a bound for reading a squad (#31). */
 export const MOST_IN_SQUAD = 25;
+/** Whether a squad holds more than MOST_IN_SQUAD: the one check a claim, a pickup and a trade
+ *  are refused on, whatever the league's own maximum. */
+export const overMostInSquad = (squad: readonly unknown[]): boolean => squad.length > MOST_IN_SQUAD;
 /** The Premier League's clubs, a fixed fact of the competition: a club maximum times these is the
  *  most players a squad can draw on, so a squad maximum above it is refused when saved (#1462). */
 export const PREMIER_LEAGUE_CLUBS = 20;

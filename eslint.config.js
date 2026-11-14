@@ -1,7 +1,7 @@
 // The lint step (#154): React's two hook rules, so a hand-written dependency list is checked, and
 // a few bans that keep a value with one owner from being typed again (design values in
 // src/styles.css, those #1810 names, a team's starting name in Convex tests, and a named helper
-// written out by hand, #1806); no style rule sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
+// written out by hand, #1806), and a ban on local-time Date methods in convex/ (#2129); no style rule sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
 import tsParser from "@typescript-eslint/parser";
 import reactHooks from "eslint-plugin-react-hooks";
 
@@ -35,6 +35,20 @@ const LOCALE_BAN = [
     selector: "CallExpression[callee.property.name=/^toLocale/] > Literal.arguments",
     message: "A locale typed by hand: pass LOCALE from convex/shared/moments.ts.",
   },
+];
+
+// A Date read or set in the machine's own time zone, in convex/ (#2129): the tests run in London
+// time (vitest.config.ts) and Convex in UTC, so such code passes its tests and is wrong when
+// deployed. A Date's UTC methods, or convex/shared/moments.ts for London, give the same answer in both.
+const LOCAL_DATE_MESSAGE =
+  "A local-time Date method: tests run in London time and Convex in UTC. Use its UTC form (getUTC…, setUTC…, Date.UTC) or convex/shared/moments.ts for London.";
+const LOCAL_DATE_BAN = [
+  {
+    selector:
+      "CallExpression > MemberExpression.callee[property.name=/^(get|set)(FullYear|Month|Date|Day|Hours|Minutes|Seconds|Milliseconds)$|^(getYear|setYear|getTimezoneOffset|toDateString|toTimeString)$/]",
+    message: LOCAL_DATE_MESSAGE,
+  },
+  { selector: "NewExpression[callee.name='Date'][arguments.length>1]", message: LOCAL_DATE_MESSAGE },
 ];
 
 // A League settings box ticked on opens blank: src/rules/blank.ts names that value.
@@ -165,10 +179,10 @@ export default [
     files: CONVEX_FILES,
     languageOptions: { parser: tsParser },
     linterOptions: { reportUnusedDisableDirectives: "error" },
-    rules: bans(LOCALE_BAN, helperBans(false)),
+    rules: bans(LOCALE_BAN, LOCAL_DATE_BAN, helperBans(false)),
   },
-  { files: ["convex/shared/moments.ts"], rules: bans(helperBans(false)) },
-  ...homeBlocks(false, LOCALE_BAN),
+  { files: ["convex/shared/moments.ts"], rules: bans(LOCAL_DATE_BAN, helperBans(false)) },
+  ...homeBlocks(false, LOCALE_BAN, LOCAL_DATE_BAN),
   { files: ["tests/smoke/**/*.ts"], languageOptions: { parser: tsParser }, rules: bans(PREVIEW_BAN) },
   { files: CONVEX_TEST_FILES, languageOptions: { parser: tsParser }, rules: bans(TEAM_NUMBERED_BAN) },
 ];
