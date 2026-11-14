@@ -2,8 +2,9 @@ import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 
-// A match's records as held, read whole, and the admin's abandoned mark that empties them (#904): the one read the stat writes (matchStats.ts, liveStats.ts),
-// the scorer (heldMatches.ts) and the screens share (#1725). Plain helpers: no Convex function lives
+// A match's records as held, read whole, and the admin's abandoned mark that empties them (#904):
+// the one read the stat writes (matchStats.ts, liveStats.ts), the scorer (heldMatches.ts) and the
+// screens share (#1725). Plain helpers: no Convex function lives
 // here, and nothing it imports reads back, so every one of those can import it without a loop.
 
 /** The most records one match holds: one for each man two team sheets name, about forty. More
