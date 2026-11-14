@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../../scripts/live-site.mjs";
 import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_ENV, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
+import { BUILD, PREVIOUS_SHA, SKIP, decide } from "../../scripts/release-skip.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
@@ -29,8 +30,22 @@ test("a production build runs the release, which puts the server code live and b
   expect(DEPLOY_ARGS).toEqual(["deploy", "--cmd", "npm run build"]);
 });
 
-test("Vercel skips no build itself: an ignore command once skipped production's too (#512)", () => {
-  expect(vercel).not.toHaveProperty("ignoreCommand");
+test("Vercel skips only a merge that ships nothing: #512's ignore command skipped production's too", () => {
+  expect(vercel.ignoreCommand).toBe("node scripts/release-skip.mjs");
+  // Vercel's own name and exits, outside facts the constants must keep.
+  expect(PREVIOUS_SHA).toBe("VERCEL_GIT_PREVIOUS_SHA");
+  expect([SKIP, BUILD]).toEqual([0, 1]);
+  const since = { [PREVIOUS_SHA]: "abc123" };
+  const only = (files) => () => files;
+  const notShipped = ["docs/setup.md", "spec/20-going-live.md", ".github/workflows/lead.yml", "tests/a.test.ts", "README.md"];
+  expect(decide(since, only(notShipped)).exit).toBe(SKIP);
+  for (const shipped of ["src/app.tsx", "convex/schema.ts", "scripts/release.mjs", "vercel.json", "package-lock.json"]) {
+    expect(decide(since, only([...notShipped, shipped])).exit).toBe(BUILD);
+  }
+  // any doubt builds: no earlier release, git unable to compare, or nothing listed
+  expect(decide({}, only(notShipped)).exit).toBe(BUILD);
+  expect(decide(since, () => null).exit).toBe(BUILD);
+  expect(decide(since, only([])).exit).toBe(BUILD);
 });
 
 test("only a production build with the deploy key may release", () => {
