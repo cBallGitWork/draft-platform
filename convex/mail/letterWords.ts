@@ -138,13 +138,11 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
 function abandonedWords({ matchName, gameweek, abandoned, overridesRemoved }: Extract<LeagueEvent, { kind: "matchAbandoned" }>, who: string): Words {
   if (!abandoned) {
     return {
-      subject: `${matchName} is no longer abandoned`,
-      body:
-        `${who} took back the abandoned mark on ${matchName}, gameweek ${gameweek}. Its players' points come back from the ` +
-        "feed's next read of it. Overrides removed with the mark stay removed.",
+      subject: unabandonedSubject(matchName),
+      body: `${tookBackWords(who, matchName, gameweek)} Its players' points come back from the feed's next read of it. Overrides removed with the mark stay removed.`,
     };
   }
-  const removed = overridesRemoved.length === 0 ? "" : `\n\nThe league's overrides in it went with it: ${andListWords(overridesRemoved)}.`;
+  const removed = overridesRemoved.length === 0 ? "" : `\n\n${overridesWentWords(overridesRemoved)}`;
   return {
     subject: `${matchName} was abandoned`,
     body:
@@ -152,6 +150,14 @@ function abandonedWords({ matchName, gameweek, abandoned, overridesRemoved }: Ex
       `gone, and each one in a line-up is auto-subbed as if he hadn't played. Only its replay counts.${removed}`,
   };
 }
+
+/** The subject, and the opening, of the letter when the abandoned mark is taken back. */
+export const unabandonedSubject = (matchName: string) => `${matchName} is no longer abandoned`;
+export const tookBackWords = (who: string, matchName: string, gameweek: number) =>
+  `${who} took back the abandoned mark on ${matchName}, gameweek ${gameweek}.`;
+
+/** The abandoned letter's line naming the men whose overrides in the match were deleted with it. */
+export const overridesWentWords = (names: readonly string[]) => `The league's overrides in it went with it: ${andListWords(names)}.`;
 
 /** What a scoring start set or moved means for the league: scoring starts in `to`, not `from` (null
  *  while none was set, when every ticked gameweek scored), and the gameweeks before it score nothing. */

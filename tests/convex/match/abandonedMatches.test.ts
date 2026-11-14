@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { abandonRefusals } from "../../../convex/match/abandonedMatches";
-import { adminByline, matchWords } from "../../../convex/mail/letterWords";
+import { adminByline, matchWords, overridesWentWords, tookBackWords, unabandonedSubject } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { GAMEWEEK, HULL_POINTS, HULL_SCORER, nameOf, readTable, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
@@ -66,7 +66,7 @@ test("a match marked abandoned counts as never played: its records and overrides
   expect(new Set(letters.map((letter) => letter.leagueId))).toEqual(new Set([league.leagueId]));
   expect(letters[0].kind).toBe("commissioner");
   expect(letters[0].body).toContain(`${adminByline} marked ${MATCH_NAME}, gameweek ${GAMEWEEK}, abandoned.`);
-  expect(letters[0].body).toContain(`The league's overrides in it went with it: ${scorer}.`);
+  expect(letters[0].body).toContain(overridesWentWords([scorer]));
 });
 
 test("while the mark stands the feeds write nothing for the match", async () => {
@@ -94,8 +94,8 @@ test("taking the mark back has the next read write the match again, the deleted 
   expect((await recordsOf(league)).length).toBe(mergedHullEverton().length);
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
   expect((await gameweekPoints(league)).table[0]).toBe(HULL_POINTS);
-  const [letter] = await lettersAbout(league, `${MATCH_NAME} is no longer abandoned`);
-  expect(letter.body).toContain(`${adminByline} took back the abandoned mark on ${MATCH_NAME}, gameweek ${GAMEWEEK}.`);
+  const [letter] = await lettersAbout(league, unabandonedSubject(MATCH_NAME));
+  expect(letter.body).toContain(tookBackWords(adminByline, MATCH_NAME, GAMEWEEK));
 });
 
 test("only the admin marks a match, once, and only one that has kicked off", async () => {

@@ -12,10 +12,10 @@ import { clubByCode, currentPlayersAt, lostPlayerName, playerByCode } from "../s
 import { livePrintsOf } from "../stats/livePrints";
 import { abandonedOf, matchRecordsOf } from "../stats/matchRecordReads";
 import { askToStoreFinal, statusOf } from "../stats/matchStats";
+import { reopenForRead } from "../stats/matchStatsDue";
 import { queueRefresh } from "../stats/seasonPointsQueue";
 import { countedStats, moveSeasonTotals } from "../stats/seasonStats";
 import { rescoreGameweek } from "../table/finalScores";
-import { rescoreEveryLive } from "../table/liveRescore";
 
 // The admin marks a match abandoned, or takes the mark back (#904; spec/05 S05.6, S05.7, S05.46,
 // S05.47). An abandoned match counts as never played: its records are deleted, and their stats
@@ -63,11 +63,8 @@ export const unmark = mutation({
     const fixture = await markable(ctx, fixtureCode);
     const held = (await abandonedOf(ctx, fixtureCode)) ?? refuse(abandonRefusals.notMarked);
     await ctx.db.delete("abandonedMatches", held._id);
-    const status = await statusOf(ctx, fixtureCode);
-    // Provisional and never read, so the next sync reads it whatever its last read was (matchStatsDue.ts).
-    if (status !== null) await ctx.db.patch("matchStatsStatus", status._id, { state: "provisional", completeAt: undefined, lockedAt: undefined, lastReadAt: 0 });
+    await reopenForRead(ctx, fixtureCode);
     await tellLeagues(ctx, fixture, by, false, []);
-    await rescoreEveryLive(ctx);
     return null;
   },
 });
