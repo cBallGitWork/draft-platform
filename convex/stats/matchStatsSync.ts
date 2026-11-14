@@ -19,6 +19,7 @@ import { plScoreRead, readEach, type ScoreReads } from "../football/scoreReads";
 import { commentaryContext, delayCommentary, syncCommentary } from "../football/matchCommentary";
 import { syncTeamStats } from "../football/matchTeamStats";
 import { recordSideMatches, type SideMatches, type SideMatchOutcome } from "../admin/sideRuns";
+import { LIVE_TICK_FEEDS } from "./liveTicks";
 
 // Issue #27: every due match's stats from both feeds, one record per named man, upserted with
 // `matchStats.upsertMatch`. `crons.ts` runs it every 10 minutes (ARCHITECTURE.md); by hand from
@@ -59,8 +60,10 @@ export const run = internalAction({
       await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
       // Only its full-time reads read team stats, and the feed owes none between matches.
       await recordSideMatches(ctx, ranAt, { teamStats }, false);
-      // Every 10 minutes, so a live tick chain that died starts again (#1999, liveTicks.ts).
-      if (trigger === CRON_TRIGGER) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed: "liveStats", ranTick: false, busy: null });
+      // Every 10 minutes, so either live tick chain that died starts again (#1999, liveTicks.ts).
+      if (trigger === CRON_TRIGGER) {
+        for (const feed of LIVE_TICK_FEEDS) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: false, busy: null });
+      }
       return null;
     });
   },

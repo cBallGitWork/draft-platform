@@ -57,6 +57,9 @@ const CHAINS: Record<LiveTickFeed, Chain> = {
   },
 };
 
+/** Every feed with a live tick chain, for the late-stats run that restarts one that died. */
+export const LIVE_TICK_FEEDS = Object.keys(CHAINS) as LiveTickFeed[];
+
 /** Each feed's tick, as the chain schedules it. */
 const TICKS = {
   liveStats: internal.stats.liveStatsSync.tick,
