@@ -61,7 +61,8 @@ Nothing in it is a test. Each kind of file:
   `describedBy.ts` (what a screen reader hears after a box's name), `colorTokens.ts` (styles.css's
   colour tokens as written), `styledColour.ts` (a colour as jsdom hands it back) and
   `serverStore.ts` (a fake server's value a test changes under an open screen);
-  `specExamples.ts`, a spec file's example table read as rows; `smoke/errorsTest.ts`, the smoke
+  `specExamples.ts`, a spec file's example table read as rows; `seededDraw.ts`, the seeded draw
+  the tests on random inputs run on, so a failure names the seed that runs it again; `smoke/errorsTest.ts`, the smoke
   suite's own `test`, failing on any console or page error it didn't expect; and
   `scripts/repoRoot.mjs`, the repository's root for the script tests.
 - **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
