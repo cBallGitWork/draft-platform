@@ -17,7 +17,7 @@ import {
   PHILLIPS,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { fullTimeRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
+import { fullTimeRecords, lockMatch, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole, MIDFIELD_GOAL, holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
 import { ADMIN, OUTSIDER, actingAs, ANN, BOB } from "../../support/convex/leagues.harness";
 import { holdLines, manOf, matchAs, matchLeague, notYetBegun, pointsOnCard, scorerFreeLeague, storedLine, STREAM_BEHIND_SINCE_KICKOFF } from "../../support/convex/matchPage.harness";
@@ -274,4 +274,17 @@ test("a match nobody holds is null, and someone outside the league is refused", 
   const league = await matchLeague();
   expect(await matchAs(league, ANN, 1)).toBeNull();
   await expectRefused(matchAs(league, OUTSIDER), refusals.notInLeague);
+});
+
+// "Live points carry a small 'prov.' tag until the gameweek's points are final" (Craig, 10 Nov 2026, on #1032).
+test("S10.10: its points are provisional from kickoff until every match in its gameweek locks, and not before kickoff", async () => {
+  const league = await matchLeague();
+  expect((await matchAs(league, ANN))!.provisional).toBe(false);
+  await scoreRead(league, "live", 30);
+  expect((await matchAs(league, ANN))!.provisional).toBe(true);
+  await fullTimeRecords(league);
+  await scoreRead(league, "fullTime", 90);
+  expect((await matchAs(league, ANN))!.provisional).toBe(true);
+  await lockMatch(league);
+  expect((await matchAs(league, ANN))!.provisional).toBe(false);
 });

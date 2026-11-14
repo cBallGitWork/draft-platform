@@ -5,9 +5,8 @@ import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekColumn, gameweekShort, gameweekWords, signedWords, thousandsWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
 
-export { figureWords, noFigureWords } from "../shared/words";
+export { backWords, figureWords, noFigureWords } from "../shared/words";
 
-export const backWords = "Back";
 export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
 export { noLongerInLeagueWords as goneWords } from "../shared/words";

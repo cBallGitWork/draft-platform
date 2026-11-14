@@ -131,9 +131,13 @@ export async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { o
  *  and the leagues are asked, as before. */
 async function gameweekFinalWith(ctx: QueryCtx, fixtureCode: number): Promise<boolean> {
   const gameweek = (await fixtureByCode(ctx, fixtureCode))?.gameweek ?? null;
-  if (gameweek === null) return true;
-  const fixtures = await gameweekFixtures(ctx, gameweek, "the leagues might never be asked to store it");
-  return allLocked(ctx, datedCodes(fixtures));
+  return gameweek === null || (await isGameweekFinal(ctx, gameweek, "the leagues might never be asked to store it"));
+}
+
+/** Whether every dated match held in the gameweek is locked, so its points are final (#2040);
+ *  `why` says what goes wrong if its fixtures can't all be read (gameweekFixtures). */
+export async function isGameweekFinal(ctx: QueryCtx, gameweek: number, why: string): Promise<boolean> {
+  return allLocked(ctx, datedCodes(await gameweekFixtures(ctx, gameweek, why)));
 }
 
 /** Whether the matches hold one and every one is locked: a gameweek with none dated (each postponed,
