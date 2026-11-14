@@ -39,8 +39,12 @@ export const midfielder = (code: number, club: Club = ARSENAL): HeldPlayer => ({
 export function draftSteps(current: () => { t: TestConvex; leagueId: Id<"leagues"> }) {
   const as = (email: string) => actingAs(current().t, email);
   const leagueId = () => current().leagueId;
-  const pick = async (email: string, playerCode: number) =>
-    (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId: leagueId(), playerCode });
+  /** The pick a manager sees on the clock: the one after every pick made so far. */
+  const nextPick = async () =>
+    (await current().t.run((ctx) => ctx.db.query("draftPicks").withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId())).collect())).length + 1;
+  /** `email` picks `playerCode` for `turn`, the pick on the clock unless a test says. */
+  const pick = async (email: string, playerCode: number, turn?: number) =>
+    (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId: leagueId(), pick: turn ?? (await nextPick()), playerCode });
   return {
     as,
     /** The draft as the commissioner's draft room reads it. */

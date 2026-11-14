@@ -22,7 +22,7 @@ export const liveDraft: DraftSeam = {
     const undoMyPick = useMutation(api.draft.pickWindow.undoMyPick);
     return useMemo<DraftChanges>(
       () => ({
-        makePick: (leagueId, playerCode) => refusalOf(() => makePick({ leagueId, playerCode }), "Making a draft pick", pickFailedWords),
+        makePick: (leagueId, pick, playerCode) => refusalOf(() => makePick({ leagueId, pick, playerCode }),"Making a draft pick", pickFailedWords),
         undoMyPick: (leagueId) => refusalOf(() => undoMyPick({ leagueId }), "Undoing his own draft pick", undoFailedWords),
       }),
       [makePick, undoMyPick],

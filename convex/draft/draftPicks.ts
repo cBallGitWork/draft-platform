@@ -55,6 +55,10 @@ export const pickRefusals = {
   allPicked: "Every pick is made: the draft ends in a few seconds.",
   noOwnPick: "You have no pick of your own to undo.",
   undoOver: `Your ${undoSeconds} seconds to undo that pick are up.`,
+  tooLateAuto: (name: string) => `Too late: auto-pick took ${name} for you.`,
+  tooLateFor: (name: string) => `Too late: the commissioner took ${name} for you.`,
+  tooLateOwn: (name: string) => `Too late: you've already picked ${name} with that pick.`,
+  notThisPick: "That pick isn't on the clock: the draft has moved on.",
   notOnAutoPick: "You aren't on auto-pick.",
   onAutoPick: "You're already on auto-pick.",
 };
@@ -100,18 +104,37 @@ function leftOnTheClock(draft: Doc<"drafts">, now: number): number {
   return Math.max(0, clock.endsAt - Math.max(now, clock.startsAt));
 }
 
-/** The manager of the team on the clock picks a player, who joins its squad, and the turn moves on.
- *  Refused before the draft starts, once every pick is made, while it is paused (draftPause.ts) and
- *  while the last pick can still be undone, to anyone but the manager on the clock, and for a player
- *  who isn't there to take or would break the team's squad rules. */
+/** The refusal for a pick sent for `pick` once that pick is made for `team`, by auto-pick, the
+ *  commissioner or its manager himself, so he is told what happened (spec/04, The picks, S04.20);
+ *  nothing when it isn't made yet, or was made for another team. */
+async function tooLate(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams">, pick: number): Promise<void> {
+  const made = await ctx.db
+    .query("draftPicks")
+    .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId).eq("pick", pick))
+    .unique();
+  if (made === null || made.teamId !== team._id) return;
+  const { name } = await playerOrRefuse(ctx, made.playerCode);
+  if (made.auto) refuse(pickRefusals.tooLateAuto(name));
+  refuse(made.own === undefined ? pickRefusals.tooLateFor(name) : pickRefusals.tooLateOwn(name));
+}
+
+/** The manager of the team on the clock picks a player for `pick`, the turn he saw on the clock, and
+ *  the player joins its squad and the turn moves on. A pick counts only for the turn it was made
+ *  for: once that turn has passed it is refused, saying what happened to it, even when his next turn
+ *  is on the clock and the player is free (spec/04, The picks, S04.20). Also refused before the draft
+ *  starts, once every pick is made, while it is paused (draftPause.ts) and while the last pick can
+ *  still be undone, to anyone but the manager on the clock, and for a player who isn't there to take
+ *  or would break the team's squad rules. */
 export const makePick = mutation({
-  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  args: { leagueId: v.id("leagues"), pick: v.number(), playerCode: v.number() },
   returns: v.null(),
-  handler: async (ctx, { leagueId, playerCode }) => {
+  handler: async (ctx, { leagueId, pick, playerCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
+    await tooLate(ctx, leagueId, team, pick);
     const { draft, started, turn } = await liveTurn(ctx, leagueId);
     if (draft.clock?.paused !== undefined) refuse(pickRefusals.paused);
     if (turn.team !== team._id) refuse(pickRefusals.notYourTurn((await teamIn(ctx, leagueId, turn.team)).name));
+    if (turn.pick !== pick) refuse(pickRefusals.notThisPick);
     const now = Date.now();
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), now)) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);

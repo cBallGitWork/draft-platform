@@ -60,6 +60,11 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
+- A pick counts only for the turn it was made on. Ann's clock runs out and auto-pick takes Saka for
+  her; a second later her own pick (Palmer) arrives: it is refused, and she sees "Too late:
+  auto-pick took Saka for you". Palmer stays in her queue. A pick her app re-sends on reconnecting,
+  after that turn has passed, is refused too, and she's shown what happened, even when her next turn
+  is on the clock and Palmer is free (Craig, 14 Nov 2026, grill batch 1, on #2191). `S04.20`
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
   date can still be set while squads hold players; if they still do when it comes, the draft
   doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams

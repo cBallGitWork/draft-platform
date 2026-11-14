@@ -39,7 +39,7 @@
   "draft/draftPause:pause": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "draft/draftPause:resume": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "draft/draftPicks:autoPick": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"pick":{"fieldType":{"type":"number"},"optional":false}}},
-  "draft/draftPicks:makePick": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false}}},
+  "draft/draftPicks:makePick": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"pick":{"fieldType":{"type":"number"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false}}},
   "draft/draftPicks:pickFor": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"teamId":{"fieldType":{"type":"id","tableName":"teams"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false}}},
   "draft/draftPlayers:figures": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "draft/draftPlayers:greyedOnTheClock": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
