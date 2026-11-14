@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { rankingProblems, readRankingFile } from "../../../convex/draft/rankingFile";
+import { BYTE_ORDER_MARK, rankingProblems, readRankingFile } from "../../../convex/draft/rankingFile";
 import { seededRandom } from "../../../convex/table/roundRobin";
 import { FUZZ_RUNS, fuzzedTexts, pickFrom } from "../../support/convex/fuzz.harness";
 
@@ -24,6 +24,24 @@ describe("a good file", () => {
       [3, 1001],
       [5, 1002],
     ]);
+  });
+
+  test("S04.22: a byte-order mark at the start, as Excel saves one, is ignored", () => {
+    expect(readRankingFile(`${BYTE_ORDER_MARK}code,rank\r\n1001,1`)).toEqual({ ranked: [{ line: 2, code: 1001, rank: 1 }], problems: [] });
+  });
+
+  test('S04.22: ";" works like "," when the whole file uses it', () => {
+    expect(readRankingFile(`${BYTE_ORDER_MARK}Code;Rank\r\n1001 ; 1\r\n;\r\n1002;2`)).toEqual({
+      ranked: [
+        { line: 2, code: 1001, rank: 1 },
+        { line: 4, code: 1002, rank: 2 },
+      ],
+      problems: [],
+    });
+  });
+
+  test('S04.22: in a file mixing ";" and ",", a line using ";" is a bad line', () => {
+    expect(readRankingFile("1001,1\n1002;2").problems).toEqual([{ line: 2, words: rankingProblems.notTwoColumns }]);
   });
 
   test("ranks may have gaps, and come in any order", () => {
