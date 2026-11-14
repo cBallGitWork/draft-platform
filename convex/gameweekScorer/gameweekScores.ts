@@ -10,7 +10,8 @@ import { readOnce } from "../shared/readOnce";
 import type { MovesSinceOf } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
-import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
+import { liveTeamScores, sameCodes, standsFor, storedFinalScores, storedScoresIn } from "./storedScores";
+import { heldLiveScores } from "../table/liveRescore";
 import {
   gameweekInputs,
   leagueReads,
@@ -97,18 +98,29 @@ export async function hasBegun(ctx: QueryCtx, league: Doc<"leagues">, gameweek: 
   return (await begunGameweeks(ctx, league)).includes(gameweek);
 }
 
-/** Every team's points in each gameweek the league has begun, each from the league's scorer. */
+/** Every team's points in each gameweek the league has begun, each from the league's scorer. A
+ *  screen's query reads the live gameweek from its live row instead (`fromLiveScores`;
+ *  table/liveScores.ts, #2007), scored once a tick rather than once a viewer; a change that stores
+ *  scores never does, so works every gameweek out, and only it is told what to store. */
 export async function leagueScores(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
   teamIds: readonly TeamId[],
+  { fromLiveScores = false }: { fromLiveScores?: boolean } = {},
 ): Promise<LeagueScores> {
   const gameweeks = await begunGameweeks(ctx, league);
   const result: LeagueScores = { scores: new Map(), unscored: [], finalUnstored: [] };
   if (gameweeks.length === 0 || teamIds.length === 0) return result;
   const scoredGameweek = await gameweekScorer(ctx, league, season);
+  const live = fromLiveScores ? await heldLiveScores(ctx, league._id) : new Map<number, Doc<"liveScores">>();
   for (const gameweek of gameweeks) {
+    const row = live.get(gameweek);
+    if (row !== undefined && (await standsFor(ctx, row, teamIds))) {
+      if (row.teams.kind === "unscored") result.unscored.push({ gameweek, reason: row.teams.reason });
+      else result.scores.set(gameweek, liveTeamScores(row.teams.scores));
+      continue;
+    }
     try {
       const { scores, toStore } = await scoredGameweek(gameweek, teamIds);
       result.scores.set(gameweek, scores);

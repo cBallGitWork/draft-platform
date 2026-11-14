@@ -48,8 +48,13 @@ async function tickLive(ctx: ActionCtx, ranAt: number, fpl: typeof readFplPayloa
   let sides: SideMatches | null = null;
   let anyMatchRead = false;
   try {
-    live = await ctx.runQuery(internal.stats.liveStats.live, { now: ranAt });
-    if (live.length === 0) return;
+    const { matches, liveScoresHeld } = await ctx.runQuery(internal.stats.liveStats.live, { now: ranAt });
+    live = matches;
+    if (live.length === 0) {
+      // The matchday is over: the screens work their scores out again (table/liveScores.ts).
+      if (liveScoresHeld) await ctx.runMutation(internal.table.liveScores.scoreEveryLeague, { gameweeks: [] });
+      return;
+    }
     const read = await syncDue(ctx, live, ranAt, "live", fpl);
     outcome = { ok: true, matches: read.matches, scores: read.scores };
     sides = read.sides;
@@ -61,4 +66,8 @@ async function tickLive(ctx: ActionCtx, ranAt: number, fpl: typeof readFplPayloa
   }
   await ctx.runMutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
   if (sides !== null && anyMatchRead) await recordSideMatches(ctx, ranAt, sides, true);
+  // Each league's live gameweek scored once for every screen, from what this tick wrote, its
+  // commentary's delay included (#2007).
+  const gameweeks = [...new Set(live.map(({ gameweek }) => gameweek))];
+  await ctx.runMutation(internal.table.liveScores.scoreEveryLeague, { gameweeks });
 }

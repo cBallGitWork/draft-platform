@@ -48,6 +48,33 @@ export const tableTables = {
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** The live gameweek as the league's screens read it while a match is on (#2007): each team's
+   *  points and the matchday Vidiprinter's lines, scored once a live tick rather than once a
+   *  viewer. One row a league and gameweek, written only by convex/table/liveScores.ts, which says
+   *  when it is read and when it goes. */
+  liveScores: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    /** The league's teams it was scored for: a team added or removed since sets it aside. */
+    teamIds: v.array(v.id("teams")),
+    /** The gameweek's matches it was scored from: a match moved in or out since sets it aside. */
+    fixtureCodes: v.array(v.number()),
+    /** Each team's points, or why the gameweek can't be scored (gameweekScores.ts's unscored). */
+    teams: v.union(
+      v.object({ kind: v.literal("scored"), scores: v.array(v.object({ teamId: v.id("teams"), points: v.number(), provisional: v.boolean() })) }),
+      v.object({ kind: v.literal("unscored"), reason: v.string() }),
+    ),
+    /** The lines of the gameweek's matches that move a head-to-head, newest first, each with its
+     *  match, and the moment each match's commentary is delayed from; or why they can't be read. */
+    vidiprinter: v.union(
+      v.object({
+        kind: v.literal("read"),
+        lines: v.array(v.object({ fixtureCode: v.number(), key: v.string(), text: v.string(), points: v.union(v.string(), v.null()) })),
+        delays: v.array(v.object({ fixtureCode: v.number(), delayedFrom: v.union(v.number(), v.null()) })),
+      }),
+      v.object({ kind: v.literal("unread"), reason: v.string() }),
+    ),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
   /** A commissioner's override of one player's points in one match (#32, spec/14), open or
    *  locked: his points there in place of what his record scores, standing over any later
    *  correction until changed or removed (#903). One row a league, match and player, a second

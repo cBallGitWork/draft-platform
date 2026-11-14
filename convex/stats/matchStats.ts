@@ -13,6 +13,7 @@ import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { matchRecordsOf } from "./matchRecordReads";
+import { rescoreEveryLive } from "../table/liveRescore";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -53,6 +54,7 @@ export const upsertMatch = internalMutation({
       if (filled.length === 0) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
       const writes = await writeRecords(ctx, filled, held, status.state);
       await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: false });
+      await rescoreEveryLive(ctx);
       return { state: status.state, ...writes, lateCorrections };
     }
     const complete = isMatchComplete(records);
@@ -66,7 +68,10 @@ export const upsertMatch = internalMutation({
       const lockAt = lockTime(fullTimeAt, completeAt, await statCorrectionWindowMs(ctx));
       await ctx.scheduler.runAt(lockAt, internal.stats.matchStats.lock, { fixtureCode });
     }
-    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0 };
+    const writes = await writeRecords(ctx, records, held, state);
+    // A correction or full time between live ticks moves the live scores (table/liveScores.ts).
+    if (writes.changed.length > 0 || status?.state !== state) await rescoreEveryLive(ctx);
+    return { state, ...writes, lateCorrections: 0 };
   },
 });
 
@@ -92,6 +97,7 @@ export const lock = internalMutation({
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
     await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: true });
+    await rescoreEveryLive(ctx);
     return null;
   },
 });

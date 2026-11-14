@@ -59,8 +59,26 @@ export async function readCommentary(
   inGameweek: GameweekTeams,
   teamIds: readonly TeamId[],
   reads: CommentaryReads,
-  { countingOnly, fixtureCodes }: CommentaryOf,
+  of: CommentaryOf,
 ): Promise<{ lines: TeamsLine[]; delayedFrom: number | null }> {
+  const { lines, delays } = await commentaryByMatch(ctx, inGameweek, teamIds, reads, of);
+  return { lines: lines.map(({ fixtureCode: _match, ...line }) => line), delayedFrom: earliestDelay(delays.map(({ delayedFrom }) => delayedFrom)) };
+}
+
+/** A line of `commentaryByMatch`'s, with its match. */
+type MatchLine = TeamsLine & { fixtureCode: number };
+
+/** `readCommentary`'s lines, each with its match, and each match's own delay, for a reader that
+ *  keeps only some matches' lines (table/liveScores.ts): each match's lines are placed apart and
+ *  only then sorted, so taking some matches' out of the newest first list leaves the rest as a
+ *  read of those matches alone would have them. */
+export async function commentaryByMatch(
+  ctx: QueryCtx,
+  inGameweek: GameweekTeams,
+  teamIds: readonly TeamId[],
+  reads: CommentaryReads,
+  { countingOnly, fixtureCodes }: CommentaryOf,
+): Promise<{ lines: MatchLine[]; delays: { fixtureCode: number; delayedFrom: number | null }[] }> {
   const players = new Map<PlayerCode, VidiprinterPlayer>();
   const matches = new Map<number, HeldMatch>();
   const counting: Counting[] = [];
@@ -89,10 +107,11 @@ export async function readCommentary(
   );
   const lines = vidiprinter(read, players, inGameweek.set).map((line) => ({
     ...shownLine(line),
+    fixtureCode: line.priced.fixtureCode,
     about: line.priced.about,
     columns: counting.map((counts) => columnOf(line, counts)),
   }));
-  return { lines, delayedFrom: earliestDelay(held.map(({ row, score }) => (row === null ? null : delayedFrom(row, score)))) };
+  return { lines, delays: held.map(({ fixture, row, score }) => ({ fixtureCode: fixture.code, delayedFrom: row === null ? null : delayedFrom(row, score) })) };
 }
 
 /** Each man whose points count for a team, a starter not subbed off or a sub who came on, and the

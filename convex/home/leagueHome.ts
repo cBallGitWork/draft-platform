@@ -1,19 +1,17 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { hasBegun, tableGameweek } from "../gameweekScorer/gameweekScores";
-import { leagueReads } from "../gameweekScorer/teamGameweek";
-import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matchupShape";
-import { commentaryReads, readCommentary } from "../matchup/readCommentary";
-import { shownLine } from "../matchup/vidiprinter";
+import { hasBegun } from "../gameweekScorer/gameweekScores";
+import { liveScoresIn } from "../gameweekScorer/storedScores";
+import { seasonRules } from "../rules/rulesHistory";
+import { commentary, heldCommentary } from "../matchup/matchupShape";
 import { gameModeOf } from "../rules/gameMode";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter, tradedSide } from "../schema";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
-import { leagueLabel, logFailure } from "../shared/errors";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
+import { gameweekVidiprinter, matchdayOfLines } from "../table/liveScores";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
 import { gamesOf } from "../table/teamGames";
@@ -139,7 +137,7 @@ export const ofLeague = query({
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
+    const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season, { fromLiveScores: true });
     const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
     const form = formOf(gameModeOf(rules), teamIds, schedule, scores);
     const mine = team?._id ?? null;
@@ -188,27 +186,12 @@ export const matchdayOf = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
-    return vidiprinterOf(ctx, league, season, teamIds, gameweek, new Set(fixtureCodes));
+    // Before the deadline no lineup is locked, so no line moves a head-to-head yet.
+    if (!(await hasBegun(ctx, league, gameweek))) return { kind: "read" as const, lines: [], delayedFrom: null };
+    // While a match is on, the live tick has priced the gameweek's lines once for every viewer
+    // (#2007); otherwise they are priced here, alike.
+    const live = await liveScoresIn(ctx, leagueId, gameweek, teamIds);
+    const priced = live?.vidiprinter ?? (await gameweekVidiprinter(ctx, league, season, teamIds, gameweek));
+    return matchdayOfLines(priced, new Set(fixtureCodes));
   },
 });
-
-/** The lines of the `fixtureCodes` that move a head-to-head: priced for each lineup's men whose
- *  points count. One that can't be read is logged and says why, while the scores still show. */
-async function vidiprinterOf(
-  ctx: QueryCtx,
-  league: Doc<"leagues">,
-  season: SeasonRules,
-  teamIds: readonly Id<"teams">[],
-  gameweek: number,
-  fixtureCodes: ReadonlySet<number>,
-): Promise<HeldCommentary> {
-  // Before the deadline no lineup is locked, so no line moves a head-to-head yet.
-  if (!(await hasBegun(ctx, league, gameweek))) return { kind: "read", lines: [], delayedFrom: null };
-  try {
-    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const { lines, delayedFrom } = await readCommentary(ctx, inGameweek, teamIds, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
-    return { kind: "read", lines: lines.filter((line) => line.points !== null).map(shownLine), delayedFrom };
-  } catch (error) {
-    return { kind: "unread", reason: logFailure(`${leagueLabel(league)} can't read gameweek ${gameweek}'s Vidiprinter`, error) };
-  }
-}

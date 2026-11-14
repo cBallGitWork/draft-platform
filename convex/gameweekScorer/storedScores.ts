@@ -5,6 +5,7 @@ import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { groupedBy } from "../shared/groupedBy";
 import type { TeamGameweekTotal, TeamScores } from "./gameweekScores";
+import { heldFixtures } from "./heldMatches";
 
 // The league's stored final scores (finalScores.ts's rows), as the scorer (gameweekScores.ts)
 // reads them: a gameweek's stand while it holds the matches they were stored from. Plain helpers:
@@ -60,8 +61,29 @@ export async function storedScoresIn(
   return sameCodes(held.fixtureCodes, fixtures.map((fixture) => fixture.code)) ? held.scores : new Map();
 }
 
-/** Whether two lists hold the same match codes, in any order. */
-export function sameCodes(one: readonly number[], other: readonly number[]): boolean {
+/** The league's live row (table/liveScores.ts) for the gameweek while it stands for the `teamIds` (`standsFor`); null
+ *  otherwise, when the reader works the gameweek out itself. */
+export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, teamIds: readonly TeamId[]): Promise<Doc<"liveScores"> | null> {
+  const row = await ctx.db
+    .query("liveScores")
+    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek))
+    .unique();
+  return row !== null && (await standsFor(ctx, row, teamIds)) ? row : null;
+}
+
+/** Whether a live row still stands: scored for the same teams, from the same matches the gameweek
+ *  holds. A team added or a match moved in or out since sets it aside until the next tick. */
+export async function standsFor(ctx: QueryCtx, row: Doc<"liveScores">, teamIds: readonly TeamId[]): Promise<boolean> {
+  if (!sameCodes(row.teamIds, teamIds)) return false;
+  return sameCodes(row.fixtureCodes, (await heldFixtures(ctx, row.gameweek)).map((fixture) => fixture.code));
+}
+
+/** A live row's teams' points, by team. */
+export const liveTeamScores = (scores: Extract<Doc<"liveScores">["teams"], { kind: "scored" }>["scores"]): TeamScores =>
+  new Map(scores.map(({ teamId, points, provisional }) => [teamId, { points, provisional }]));
+
+/** Whether two lists hold the same match codes (or teams), in any order. */
+export function sameCodes<Code>(one: readonly Code[], other: readonly Code[]): boolean {
   const others = new Set(other);
   return one.length === others.size && one.every((code) => others.has(code));
 }

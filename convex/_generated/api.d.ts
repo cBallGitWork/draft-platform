@@ -372,6 +372,8 @@ import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
 import type * as table_finalScores from "../table/finalScores.js";
 import type * as table_fixtureEdits from "../table/fixtureEdits.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
+import type * as table_liveRescore from "../table/liveRescore.js";
+import type * as table_liveScores from "../table/liveScores.js";
 import type * as table_overrideLimits from "../table/overrideLimits.js";
 import type * as table_playedFixtures from "../table/playedFixtures.js";
 import type * as table_pointsOverrides from "../table/pointsOverrides.js";
@@ -778,6 +780,8 @@ declare const fullApi: ApiFromModules<{
   "table/finalScores": typeof table_finalScores;
   "table/fixtureEdits": typeof table_fixtureEdits;
   "table/leagueTable": typeof table_leagueTable;
+  "table/liveRescore": typeof table_liveRescore;
+  "table/liveScores": typeof table_liveScores;
   "table/overrideLimits": typeof table_overrideLimits;
   "table/playedFixtures": typeof table_playedFixtures;
   "table/pointsOverrides": typeof table_pointsOverrides;

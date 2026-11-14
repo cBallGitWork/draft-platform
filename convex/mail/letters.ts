@@ -6,6 +6,8 @@ import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
 import type { LeagueEvent } from "../schema";
 import type { LetterKind } from "./letterShape";
+import { isSquadMove } from "../squads/squadPlace";
+import { rescoreLive } from "../table/liveRescore";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
@@ -186,6 +188,8 @@ async function fileEventLetter(
  *  2026, on #1091: "we dont need mail for that and each pick"). */
 export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
   await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
+  // A man gone from a squad mid-gameweek leaves his slot empty, so the live scores move (#2007).
+  if (isSquadMove(event)) await rescoreLive(ctx, leagueId);
 }
 
 /** Files what happened, and the Mail letter reporting it (#26): the copy to `by` filed read, unless

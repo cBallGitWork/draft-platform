@@ -98,7 +98,7 @@ export type LeagueTable = Infer<typeof leagueTable>;
  *  the latest rules, the teams, the head-to-head schedule (none in total points), each team's points
  *  in each gameweek begun and those that couldn't be scored (gameweekScores.ts), and the table they
  *  make. */
-export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules) {
+export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, read: Parameters<typeof leagueScores>[4] = {}) {
   // The format and tie-breaks are the latest rules'; the draw is each gameweek's own.
   const rules = season.latest;
   const teams = await teamsOf(ctx, league._id);
@@ -108,7 +108,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
 
   const headToHead = gameModeOf(rules).hasMatchups;
   const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
-  const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
+  const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds, read);
   const scores = pointsOf(results);
   const table = tableOf(rules.format, teamIds, schedule, scores, rules.tieBreaks);
   const autoTeams = new Set(teams.filter(onAutoTeam).map((team) => team._id));
@@ -122,7 +122,7 @@ export const ofLeague = query({
   handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
+    const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season, { fromLiveScores: true });
     const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },

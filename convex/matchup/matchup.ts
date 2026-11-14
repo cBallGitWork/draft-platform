@@ -7,7 +7,8 @@ import { gameModeOf } from "../rules/gameMode";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { leagueLabel, logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
-import { hasBegun, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
+import { hasBegun, tableGameweek, type GameweekTeams, type TeamScores } from "../gameweekScorer/gameweekScores";
+import { liveScoresIn, liveTeamScores } from "../gameweekScorer/storedScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMatches";
 import { leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
@@ -112,9 +113,12 @@ async function gameOf(
   try {
     const teamIds = teams.map((each) => each._id);
     const versionIn = await siteVersionByGameweek(ctx);
-    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season, (each) => versionIn(each).set), gameweek, teamIds);
-    const scorer = new SideScorer(ctx, league._id, inGameweek, teamsInGameweek(drawn), gameweek, teams);
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
+    // While a match is on, the average is the live row's, so only the sides are worked out (#2007).
+    const live = await liveScoresIn(ctx, league._id, gameweek, teamIds);
+    const averaged = live?.teams.kind === "scored" ? liveTeamScores(live.teams.scores) : null;
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season, (each) => versionIn(each).set), gameweek, averaged === null ? teamIds : sides);
+    const scorer = new SideScorer(ctx, league._id, inGameweek, teamsInGameweek(drawn), gameweek, teams, averaged);
     return {
       kind: "scored",
       team: await scorer.team(team),
@@ -164,6 +168,8 @@ class SideScorer {
     private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
     private readonly teams: readonly Doc<"teams">[],
+    /** Every team's points from the live row, for the average; null to work them out. */
+    private readonly liveTotals: TeamScores | null,
   ) {
     this.reads = commentaryReads(ctx);
     this.name = this.reads.name;
@@ -194,7 +200,8 @@ class SideScorer {
   async opponent(against: Opponent): Promise<MatchupSide> {
     if (against.kind === "team") return this.team(fixtureTeamIn(this.teams, this.gameweek)(against.team));
     // The average of the gameweek's teams' points, as the table counts it.
-    const every = await Promise.all(this.averaged.map((teamId) => this.inGameweek.pointsOf(teamId)));
+    const { liveTotals } = this;
+    const every = await Promise.all(this.averaged.map((teamId) => liveTotals?.get(teamId) ?? this.inGameweek.pointsOf(teamId)));
     const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
     return { kind: LEAGUE_AVERAGE, ...averageScore(this.averaged, sides, this.gameweek) };
   }

@@ -57,7 +57,7 @@ export const ofMyTeam = query({
     const { league, team } = await managerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
-    const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
+    const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season, { fromLiveScores: true });
     const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return teamFixturesFrom({ team: { id: team._id, name: team.name }, format: rules.format, schedule, results, unscored, deadlineOf: deadlineIn, named });
   },

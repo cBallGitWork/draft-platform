@@ -8,6 +8,7 @@ import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "../matchup/thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
+import { anyLiveScores } from "../table/liveRescore";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
@@ -19,9 +20,16 @@ import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCo
  *  it read lacks the full-time line, as "Match ends" can reach the stream after the status flips (#917). */
 export const live = internalQuery({
   args: { now: v.number() },
-  returns: v.array(dueMatch),
-  handler: async (ctx, { now }): Promise<DueMatch[]> =>
-    (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
+  returns: v.object({
+    matches: v.array(dueMatch),
+    /** Whether any league holds a live score row (table/liveScores.ts), which the tick clears once
+     *  none is live: asked in the same read, so a quiet minute costs no more calls. */
+    liveScoresHeld: v.boolean(),
+  }),
+  handler: async (ctx, { now }): Promise<{ matches: DueMatch[]; liveScoresHeld: boolean }> => ({
+    matches: (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
+    liveScoresHeld: await anyLiveScores(ctx),
+  }),
 });
 
 /** A match being played, with its kickoff, which the feeds page judges the tick's lateness from. */
