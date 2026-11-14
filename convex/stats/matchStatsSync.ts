@@ -11,6 +11,7 @@ import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fpl
 import { matchRecords } from "./matchRecords";
 import type { matchWrites } from "./matchStats";
 import { byGameweek, type DueMatch } from "../shared/dueMatches";
+import { FEED_SCHEDULES } from "../shared/feedSchedule";
 import { matchSlots, plStatLines } from "../football/premierLeague/plMatch";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlPlayerStats, type RawPlFixture } from "../football/premierLeague/premierLeague";
 import { matchStatsSyncFields, syncTrigger, type matchSyncOutcome } from "../schema";
@@ -45,18 +46,31 @@ export const run = internalAction({
   returns: v.null(),
   handler: async (ctx, { trigger }) => {
     if (cronRunOff(trigger)) return null;
-    return withHeartbeat(trigger === CRON_TRIGGER ? "lateStats" : null, async () => {
+    const byCron = trigger === CRON_TRIGGER;
+    return withHeartbeat(byCron ? "lateStats" : null, async () => {
       const ranAt = Date.now();
       let teamStats: SideMatchOutcome[] = [];
       let unseenFrom: number | undefined;
+      // With nothing due: the kickoff to store, or null when it hasn't moved enough to store.
+      let idleStore = undefined as number | null | undefined;
       const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
         const due = await ctx.runQuery(internal.stats.matchStatsDue.due, { now: ranAt });
         unseenFrom = due.unseenFrom;
-        if (due.matches.length === 0) return { ok: true as const, matches: [], waiting: [] };
+        if (due.matches.length === 0) {
+          idleStore = due.unseenMoved ? due.unseenFrom : null;
+          return { ok: true as const, matches: [], waiting: [] };
+        }
         const { sides, ...read } = await syncDue(ctx, due.matches, ranAt, "wait");
         teamStats = sides.teamStats;
         return { ok: true as const, ...read };
       });
+      // A cron run with nothing due writes no run row (#2002, the Convex quota): the feeds page owes
+      // late stats a run only while a match is unlocked (admin/feeds.ts), and Healthchecks hears it ran.
+      // A run by hand still writes one, for whoever ran it to read back.
+      if (byCron && idleStore !== undefined) {
+        if (idleStore !== null) await ctx.runMutation(internal.stats.matchStats.recordUnseenFrom, { kickoff: idleStore });
+        return null;
+      }
       await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
       // Only its full-time reads read team stats, and the feed owes none between matches.
       await recordSideMatches(ctx, ranAt, { teamStats }, false);
@@ -65,7 +79,7 @@ export const run = internalAction({
         for (const feed of LIVE_TICK_FEEDS) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: false, busy: null });
       }
       return null;
-    });
+    }, FEED_SCHEDULES.matchStats.every);
   },
 });
 

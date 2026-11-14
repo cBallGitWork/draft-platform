@@ -46,7 +46,7 @@ type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
 /** One team's head-to-head in a gameweek.
  *  The team is the caller's own unless one is named; the gameweek is the one asked, or the screen's
- *  matchupGameweek.ts's `thisGameweek`, and null when that is; the game, in a league playing more
+ *  `thisGameweekAt` of matchupGameweek.ts's `gameweeksOf`, and null when that is; the game, in a league playing more
  *  than one a gameweek, is its number among the team's that gameweek as drawn, the first unless one
  *  is named or when the one named isn't drawn (#521). It takes no minute, so it is read again only
  *  when its data changes (#1550): its commentary's delay is a moment (commentaryAt.ts). */

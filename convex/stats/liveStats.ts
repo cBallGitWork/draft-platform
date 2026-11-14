@@ -1,8 +1,11 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
+import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
-import { matchWrites, statusOf, writeRecords } from "./matchStats";
+import { matchWrites, statusOf, writeRows } from "./matchStats";
 import { matchRecordsOf } from "./matchRecordReads";
+import { livePrintsOf, recordPrint } from "./livePrints";
+import { countedStats, moveSeasonTotals } from "./seasonStats";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -56,7 +59,9 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
  *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
  *  `changed` names the men whose records moved. Nothing is recomputed here: the table works its
  *  points out on read (gameweekScorer/gameweekScores.ts), so the records written move it. The totals each
- *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44). */
+ *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44).
+ *  Each record is checked against the match's compact row, and only a man who moved is read and
+ *  written; season totals, season points and Scouting wait for full time (#2006, livePrints.ts). */
 export const upsertLive = internalMutation({
   args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
   returns: v.object({
@@ -68,12 +73,49 @@ export const upsertLive = internalMutation({
   handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
-    const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its live records' write")).map((row) => [row.playerCode, row]));
-    const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
+    const prints = (await livePrintsOf(ctx, fixtureCode)) ?? (await startPrints(ctx, fixtureCode));
+    const printed = new Map(prints.prints.map(({ playerCode, print }) => [playerCode, print]));
+    const sent = records.map((record) => ({ record, print: recordPrint(record) }));
+    const moved = sent.filter(({ record, print }) => printed.get(record.playerCode) !== print);
+    const held = new Map<number, Doc<"playerMatchStats">>();
+    for (const { record } of moved) {
+      const row = await matchRecordOf(ctx, fixtureCode, record.playerCode);
+      if (row !== null) held.set(row.playerCode, row);
+    }
+    const movedRecords = moved.map(({ record }) => record);
+    const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, movedRecords, held);
     const state = "provisional" as const;
-    return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0, thresholdSteps };
+    const written = await writeRows(ctx, movedRecords, held, state);
+    if (moved.length > 0) {
+      for (const { record, print } of moved) printed.set(record.playerCode, print);
+      const kept = [...printed].map(([playerCode, print]) => ({ playerCode, print }));
+      await ctx.db.patch("liveMatchPrints", prints._id, { prints: kept });
+    }
+    return { state, ...written, lateCorrections: 0, thresholdSteps };
   },
 });
+
+/** The match's compact row, made at its first live write. Records already held with none were
+ *  written live before #2006 and counted in the season totals as they went: taken back out, so
+ *  full time counts them once, as it does every live match's. The row is made first, so a player
+ *  whose totals are rebuilt in that leaves this match out. */
+async function startPrints(ctx: MutationCtx, fixtureCode: number): Promise<Doc<"liveMatchPrints">> {
+  const id = await ctx.db.insert("liveMatchPrints", { fixtureCode, prints: [] });
+  const earlier = await matchRecordsOf(ctx, fixtureCode, "taking its live records out of the season totals");
+  const uncounted = earlier.map(({ playerCode, ...row }) => ({ playerCode, fixtureCode, before: countedStats(row), after: {} }));
+  if (uncounted.length > 0) await moveSeasonTotals(ctx, uncounted);
+  const made = await ctx.db.get("liveMatchPrints", id);
+  if (made === null) throw new Error(`Match ${fixtureCode}'s compact row was made but can't be read`);
+  return made;
+}
+
+/** One man's record in the match, or null with none held. */
+function matchRecordOf(ctx: QueryCtx, fixtureCode: number, playerCode: number) {
+  return ctx.db
+    .query("playerMatchStats")
+    .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode).eq("playerCode", playerCode))
+    .unique();
+}
 
 export const recordTick = internalMutation({
   args: liveStatsTickFields,

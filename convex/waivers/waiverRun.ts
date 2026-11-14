@@ -256,7 +256,7 @@ export const runDue = internalMutation({
     for (const leagueId of await leaguesDue(ctx, "waivers", Date.now())) {
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.runLeagueDue, { leagueId });
     }
-    await scheduleHeartbeat(ctx, "waiverRuns");
+    await scheduleHeartbeat(ctx, "waiverRuns", WAIVER_CHECK_EVERY);
     return null;
   },
 });

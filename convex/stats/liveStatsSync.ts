@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
 import { timedJobsOn, withHeartbeat } from "../heartbeats/heartbeat";
+import { FEED_SCHEDULES } from "../shared/feedSchedule";
 import { syncDue } from "./matchStatsSync";
 import { delayCommentary } from "../football/matchCommentary";
 import { readFplPayloads } from "../football/fpl/fpl";
@@ -10,7 +11,7 @@ import { syncTeamSheets } from "../football/matchTeamSheets";
 import { recordSideMatches, type SideMatches } from "../admin/sideRuns";
 import type { liveStatsTickFields } from "../schema";
 import type { DueMatch } from "../shared/dueMatches";
-import { chainedTick } from "./liveTicks";
+import { chainedTick } from "./liveTicksChained";
 
 // Issue #28: the live poller's tick, run every minute while a match is due and asleep between
 // (#1999, stats/liveTicks.ts). It reads each live match as `matchStatsSync` does, and keeps its
@@ -43,7 +44,7 @@ export const tick = internalAction({
         // After the live matches and apart from them: it never throws, and is on its own feed's row.
         await syncTeamSheets(ctx, ranAt, due.sheets, fpl);
         return due.live.length > 0 || due.sheets.length > 0;
-      }),
+      }, FEED_SCHEDULES.liveStats.every),
     );
   },
 });

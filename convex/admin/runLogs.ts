@@ -56,9 +56,12 @@ export const prune = internalMutation({
     const idOf = (id: string) => ctx.db.normalizeId(table, id) ?? missing(table, id);
     const newestRows: RunRow[] = await ctx.db.query(table).order("desc").take(LATEST_RUNS);
     const newest = new Set(newestRows.map((row) => row._id));
+    // Only rows older than a success's retention, by the index (#2002): a row's `_creationTime` is
+    // never before its `ranAt`, so none younger is read, and a batch never reads past the last old row.
+    const keptFrom = startedAt - SUCCESS_KEPT_MS;
     const rows: RunRow[] = await ctx.db
       .query(table)
-      .withIndex("by_creation_time", (q) => (after === undefined ? q : q.gt("_creationTime", after)))
+      .withIndex("by_creation_time", (q) => (after === undefined ? q : q.gt("_creationTime", after)).lt("_creationTime", keptFrom))
       .take(BATCH_SIZE);
 
     let held = heldSuccess ?? null;
@@ -67,16 +70,7 @@ export const prune = internalMutation({
       await ctx.db.delete(table, idOf(id));
       deleted += 1;
     };
-    let reachedKept = rows.length < BATCH_SIZE;
     for (const row of rows) {
-      if (row.ranAt >= startedAt - SUCCESS_KEPT_MS) {
-        if (held !== null && succeeded(row)) {
-          await remove(held);
-          held = null;
-        }
-        reachedKept = true;
-        break;
-      }
       const expired = row.ranAt < startedAt - (succeeded(row) ? SUCCESS_KEPT_MS : FAILURE_KEPT_MS) && !newest.has(row._id);
       if (succeeded(row)) {
         if (held !== null) await remove(held);
@@ -85,7 +79,15 @@ export const prune = internalMutation({
         await remove(row._id);
       }
     }
-    if (reachedKept && held !== null && newestRows.some(succeeded)) await remove(held);
+    const reachedKept = rows.length < BATCH_SIZE;
+    if (reachedKept && held !== null) {
+      // The held success goes once a newer one is kept: the first row kept for its age, or one among the newest.
+      const firstKept: RunRow | null = await ctx.db
+        .query(table)
+        .withIndex("by_creation_time", (q) => q.gte("_creationTime", keptFrom))
+        .first();
+      if ((firstKept !== null && succeeded(firstKept)) || newestRows.some(succeeded)) await remove(held);
+    }
     console.log(`Pruned ${deleted} ${table} rows`);
 
     const next = PRUNE_ORDER[PRUNE_ORDER.indexOf(feed) + 1];

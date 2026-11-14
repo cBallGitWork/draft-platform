@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 
 const settingsNow = async () => {
-  const view = await (await actingAs(w.t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId: w.leagueId, now: Date.now() });
+  const view = await (await actingAs(w.t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId: w.leagueId });
   if (view === null) throw new Error("The test league has no rules");
   return view.part;
 };

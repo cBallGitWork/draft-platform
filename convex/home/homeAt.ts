@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { thisGameweekOf } from "../gameweeks/nextGameweek";
+import { gameweekDeadline, thisGameweekAt } from "../gameweeks/nextGameweek";
 import { commentaryAt } from "../matchup/commentaryAt";
 import type { HeldCommentary } from "../matchup/matchupShape";
 import { LIVE_WINDOW_MS } from "../shared/dueMatches";
@@ -19,7 +19,7 @@ import { matchdayAt } from "./matchday";
  *  is known), in order; the matchday margins (platformSettings.ts); and the matches kicking off near
  *  its hour, with when a read first found each at full time (null before). */
 export const heldClock = v.object({
-  gameweeks: v.array(v.object({ gameweek: v.number(), deadline: v.union(v.number(), v.null()) })),
+  gameweeks: v.array(gameweekDeadline),
   margins: v.object({ beforeMs: v.number(), afterMs: v.number() }),
   matches: v.array(v.object({ gameweek: v.number(), fixtureCode: v.number(), kickoff: v.number(), fullTimeAt: v.union(v.number(), v.null()) })),
 });
@@ -45,9 +45,8 @@ export const clockHourOf = (now: number): number => now - (now % HOUR_MS);
 
 /** League home's clock at `now`, from `clockOf`'s times. */
 export function clockAt({ gameweeks, margins, matches }: HeldClock, now: number): HomeClock {
-  const deadlines = new Map(gameweeks.map(({ gameweek, deadline }) => [gameweek, deadline]));
   return {
-    gameweek: thisGameweekOf(gameweeks, (gameweek) => deadlines.get(gameweek) ?? null, now)?.gameweek ?? null,
+    gameweek: thisGameweekAt(gameweeks, now),
     matchday: matchdayOpen(matches, margins, now),
   };
 }

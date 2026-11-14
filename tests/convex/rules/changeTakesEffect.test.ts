@@ -4,8 +4,10 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, latestRules, moveFplDeadline, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { changesFromAt } from "../../../convex/gameweeks/nextGameweek";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { leagueSettingsOf } from "../../support/convex/screenReads.harness";
 
 // Which gameweek a commissioner's change takes effect from when it moves the deadline (#25): the
 // next not begun under the old deadline nor the new. A gameweek begins at the league's own
@@ -75,8 +77,17 @@ test("League settings says a change waits for gameweek 10 once one already waits
   const leagueId = await adminCreatesLeague(t);
   await change(leagueId, THREE_HOURS_BEFORE);
 
-  const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
+  const editor = await leagueSettingsOf(await actingAs(t, COMMISSIONER), leagueId);
   expect(editor?.changesFrom).toBe(10);
+});
+
+test("League settings' times take no minute, so a minute passing reads nothing again: only the judging moves on (#2008)", async () => {
+  await holdGameweeks(t, { next: 9, kicksOffIn: 2 * HOUR_MS });
+  const leagueId = await adminCreatesLeague(t);
+
+  const { changesFrom } = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId });
+  expect(changesFromAt(changesFrom, Date.now())).toBe(9);
+  expect(changesFromAt(changesFrom, Date.now() + 2 * HOUR_MS)).toBe(10);
 });
 
 test(`with ${PL_GAMEWEEKS + 1} gameweeks held, League settings and a change still name the next gameweek not begun (#872)`, async () => {
@@ -84,7 +95,7 @@ test(`with ${PL_GAMEWEEKS + 1} gameweeks held, League settings and a change stil
   await holdGameweeksPastTheSeason(t, 1);
   const leagueId = await adminCreatesLeague(t);
 
-  const editor = await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
+  const editor = await leagueSettingsOf(await actingAs(t, COMMISSIONER), leagueId);
   expect(editor?.changesFrom).toBe(9);
   expect(await change(leagueId)).toBe(9);
 });

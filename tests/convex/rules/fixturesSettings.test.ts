@@ -20,7 +20,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const settingsNow = async () => (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() })).part;
+const settingsNow = async () => (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId })).part;
 /** The latest settings with `changed` over them, saved. */
 async function changeTo(changed: Partial<LeagueSettings>) {
   const settings = { ...(await settingsNow()), ...changed };

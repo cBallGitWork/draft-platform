@@ -141,7 +141,8 @@ export const sportmonksTables = {
   /** Each match's newest score and clock, from the six-hourly read or the live one, and which
    *  gave it: missing only on a score held before #1546. */
   sportmonksScores: defineTable(scoreRead.extend({ readAt: v.number(), reader: v.optional(sportmonksReader) })).index("by_fixtureCode", ["fixtureCode"]),
-  /** Each match's lineups and events as the newest live read gave them, replaced whole by each. */
+  /** Each match's lineups and events as the newest live read gave them, replaced whole by each
+   *  that changes them, `readAt` that read's (#2000). */
   sportmonksMatches: defineTable({
     fixtureCode: v.number(),
     men: v.array(sportmonksLineupMan),

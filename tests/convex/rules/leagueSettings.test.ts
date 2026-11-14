@@ -10,6 +10,7 @@ import { HELD_FIRST_RULES, holdGameweeks, NEXT, NO_AREA_MINIMUMS, rulesIn, rules
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { leagueSettingsOf } from "../../support/convex/screenReads.harness";
 
 // League settings (Craig, 22 Oct 2026): the odd team out, games a gameweek and the squad's make-up
 // (spec/03; #341), read and changed as any part of the rules is: from the next gameweek, with a letter, and never over someone else's
@@ -44,7 +45,7 @@ const FIRST: LeagueSettings = {
 };
 /** The fixtures in one round of the four-team leagues the table tests make. */
 const FIXTURES_A_ROUND = 2;
-const read = async (email = COMMISSIONER) => (await actingAs(t, email)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
+const read = async (email = COMMISSIONER) => leagueSettingsOf(await actingAs(t, email), leagueId);
 /** A change made from the latest rules, or from the row `revision` names. */
 const change = async (settings: LeagueSettings, email = COMMISSIONER, revision?: Id<"leagueRules"> | null) =>
   (await actingAs(t, email)).mutation(api.rules.leagueSettings.changeSettings, {

@@ -137,7 +137,7 @@ export const closeDue = internalMutation({
     for (const leagueId of await leaguesDue(ctx, "offers", Date.now())) {
       await ctx.scheduler.runAfter(0, internal.trades.tradeClose.closeLeagueDue, { leagueId });
     }
-    await scheduleHeartbeat(ctx, "tradeOffers");
+    await scheduleHeartbeat(ctx, "tradeOffers", OFFER_CHECK_EVERY);
     return null;
   },
 });
