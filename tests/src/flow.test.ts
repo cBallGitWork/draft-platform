@@ -4,15 +4,12 @@
 
 import { describe, expect, it } from "vitest";
 import flow from "../../docs/design/flow.md?raw";
-import { createShellRouter, type ShellContext } from "../../src/routes/router";
+import { routerPaths } from "../support/src/routerPaths";
 
 /** Every source file in src/, as `src/...`, so the table's File column can be checked. */
 const sourceFiles = Object.keys(import.meta.glob("../../src/**/*.{ts,tsx}")).map((path) =>
   path.replace(/^\.\.\/\.\.\/src\//, "src/"),
 );
-
-/** Every path the router matches, read from its route tree. Building it loads nothing. */
-const routerPaths = Object.keys(createShellRouter({} as ShellContext).routesByPath);
 
 type Row = { screen: string; path: string | null; file: string; status: string };
 

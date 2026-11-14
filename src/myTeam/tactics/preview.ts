@@ -1,6 +1,6 @@
 // The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with four on
-// the bench (fourteen at the league limits, a full 25), under the first rules, the deadline a day and a half off. A save is judged by the
-// server's own check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved
+// the bench (fourteen at the league limits, a full 25), under the first rules, the deadline a day
+// and a half off. A save is judged by the server's own check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved
 // plans start none. A role card prices made-up last matches as the server does (roleCardShape.ts).
 
 import { useMemo, useSyncExternalStore } from "react";
@@ -36,7 +36,7 @@ const LIMITS_BENCH: readonly PreviewPlayer[] = [
   [17, "Van de Ven", "TOT", ["CB"], null],
   [18, "Gusto", "CHE", ["FB", "WB"], null],
   [19, "Caicedo", "CHE", ["CDM", "CM"], null],
-  [20, "Mac Allister", "LIV", ["CM", "CDM"], null],
+  [20, "Szoboszlai", "LIV", ["CM", "CAM"], null],
   [21, "Gibbs-White", "NFO", ["CAM", "CM"], null],
   [22, "Kudus", "TOT", ["W"], null],
   [23, "Semenyo", "BOU", ["W", "ST"], null],
