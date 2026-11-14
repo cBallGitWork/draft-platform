@@ -152,6 +152,8 @@ export const gates: Record<string, Gate> = {
   "mail/mail:open": "addressee",
   "mail/mail:unreadCount": "signedInOrNothing",
   "mail/mail:writeToLeague": "runner",
+  "match/abandonedMatches:mark": "admin",
+  "match/abandonedMatches:unmark": "admin",
   "match/matchPage:ofMatch": "member",
   "matchup/matchup:ofTeam": "member",
   "matchup/matchupGameweek:gameweeksOf": "member",

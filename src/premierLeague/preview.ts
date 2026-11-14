@@ -107,7 +107,11 @@ export const previewPremierLeague: PremierLeagueSeam = {
   useStandings: () => standings,
   useClub: (_leagueId, clubCode) => previewClub(clubCode),
   useClubSquad: (_leagueId, clubCode) => previewClubSquad(clubCode),
+  // The preview changes nothing: the mark goes through as if saved.
+  useAbandonedMark: () => markNothing,
 };
+
+const markNothing = () => Promise.resolve(null);
 
 /** Each preview player's made-up row on his club's Squad tab, by his code (Scouting's preview
  *  players): his group, his points in the last five gameweeks, his starts, minutes and doubt. */

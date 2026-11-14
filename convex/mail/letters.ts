@@ -110,6 +110,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "teamPointsOverridden":
     case "fixturesSwapped":
     case "autoTeamSwitched":
+    case "matchAbandoned":
       return [];
   }
 }
@@ -157,6 +158,7 @@ function kindOf(event: LeagueEvent): LetterKind {
     case "pointsOverrideRemoved":
     case "teamPointsOverridden":
     case "fixturesSwapped":
+    case "matchAbandoned":
       return "commissioner";
   }
 }

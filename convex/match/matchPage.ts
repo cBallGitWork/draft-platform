@@ -19,7 +19,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
 import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
-import { matchRecordsOf } from "../stats/matchRecordReads";
+import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
@@ -93,6 +93,8 @@ const heldMatchPage = v.object({
   /** Held: its delay a moment, which the screen judges at its minute (commentaryAt.ts's
    *  `matchPageAt`), so the page isn't read again every minute (#1550). */
   commentary: heldCommentary,
+  /** Whether the admin marked it abandoned, for his button to take the mark back (#904, S05.46). */
+  abandoned: v.boolean(),
 });
 export type HeldMatchPage = Infer<typeof heldMatchPage>;
 /** The match page as the screen shows it at its minute: its commentary delayed or not. */
@@ -129,6 +131,7 @@ export const ofMatch = query({
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
+      abandoned: await isAbandoned(ctx, fixtureCode),
     };
   },
 });

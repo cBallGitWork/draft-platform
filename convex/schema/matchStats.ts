@@ -138,4 +138,8 @@ export const matchStatsTables = {
    *  with no status row yet (#199). Every current match kicked off before it has one; absent, the
    *  whole season is read. */
   matchStatsUnseenFrom: defineTable({ kickoff: v.number() }),
+  /** A match the admin marked abandoned (#904; spec/05 S05.6, S05.7, S05.46): it counts as never
+   *  played, so its records are gone and the feeds' reads of it write none, until he takes the mark
+   *  back, which deletes the row. `by` is his email. Written only by convex/match/abandonedMatches.ts. */
+  abandonedMatches: defineTable({ fixtureCode: v.number(), by: v.string(), at: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };

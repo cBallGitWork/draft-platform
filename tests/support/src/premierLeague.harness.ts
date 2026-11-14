@@ -42,13 +42,16 @@ export type PremierLeagueData = {
   /** The club page's Squad tab, whichever club is asked for; null for none held. */
   squad?: ClubSquad | null;
   loading?: boolean;
+  /** Why the server refuses the admin's abandoned mark; null while it saves. */
+  markRefusal?: string | null;
 };
 
 /** The fake seam, whose matches and table a test can change as a live query would (`send`,
  *  `sendStandings`): each screen reading them draws again. */
-export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoffs = [], matches = {}, standings = NO_STANDINGS, match = null, club = null, squad = null, loading = false }: PremierLeagueData = {}) {
+export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoffs = [], matches = {}, standings = NO_STANDINGS, match = null, club = null, squad = null, loading = false, markRefusal = null }: PremierLeagueData = {}) {
   const held = serverStore<Record<number, GameweekMatch[] | undefined>>({ ...matches });
   const heldStandings = serverStore(standings);
+  const markAbandoned = vi.fn<ReturnType<PremierLeagueSeam["useAbandonedMark"]>>(() => Promise.resolve(markRefusal));
   return {
     useGameweeks: vi.fn<PremierLeagueSeam["useGameweeks"]>(() => (loading ? undefined : { seasonGameweeks, firstKickoffs })),
     useGameweekMatches: vi.fn<PremierLeagueSeam["useGameweekMatches"]>((gameweek) =>
@@ -58,6 +61,9 @@ export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoff
     useMatch: vi.fn<PremierLeagueSeam["useMatch"]>(() => (loading ? undefined : match)),
     useClub: vi.fn<PremierLeagueSeam["useClub"]>(() => (loading ? undefined : club)),
     useClubSquad: vi.fn<PremierLeagueSeam["useClubSquad"]>(() => (loading ? undefined : squad)),
+    /** Each mark the admin set or took back, as the server was asked: saved unless `markRefusal` says why not. */
+    useAbandonedMark: () => markAbandoned,
+    markAbandoned,
     /** The server's new read of a gameweek's matches; undefined puts them back to loading. */
     send: (gameweek: number, sent: GameweekMatch[] | undefined) => held.set({ ...held.get(), [gameweek]: sent }),
     /** The server's new read of the table. */
