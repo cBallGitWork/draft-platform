@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN } from "../../support/convex/leagues.harness";
@@ -50,6 +50,6 @@ test("a rule change made now takes effect from the gameweek after the one under 
   const commissioner = await actingAs(t, COMMISSIONER);
   const revision = await rulesRevision(t, leagueId);
 
-  expect(await commissioner.mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision })).toBe(NEXT);
+  expect(await commissioner.mutation(internal.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision })).toBe(NEXT);
   expect(await t.run((ctx) => rulesInGameweek(ctx, leagueId, UNDER_WAY))).toEqual(HELD_FIRST_RULES);
 });

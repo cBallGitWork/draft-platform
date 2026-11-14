@@ -8,18 +8,16 @@ import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
-import { CLAUDE_RETRY_MS, CLAUDE_TRIES_MOST, writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, failedTry, tryWriting, writeWithClaude } from "../outbound/claude";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { inTenths } from "../scoring/values";
 import { recapTeamPoints } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { lostPlayerName, playerByCode } from "../shared/players";
-import { MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLetter, type RecapPlayer } from "./recapWords";
@@ -113,20 +111,17 @@ export function performersOf(starters: readonly RecapPlayer[]): { topPerformers:
 export const write = internalAction({
   args: { recapId: v.id("recaps") },
   returns: v.null(),
-  handler: async (ctx, { recapId }) => {
-    let written: { text: string; teamPoints: Infer<typeof recapTeamPoints> };
-    try {
-      const facts = await ctx.runQuery(internal.home.recaps.brief, { recapId });
-      if (facts === null) return null;
-      written = { text: await writeWithClaude({ system: RECAP_SYSTEM, prompt: facts.prompt, maxTokens: RECAP_MAX_TOKENS }), teamPoints: facts.teamPoints };
-    } catch (error) {
-      const failure = logFailure(`Recap ${recapId} wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error);
-      await ctx.runMutation(internal.home.recaps.failed, { recapId, failure });
-      return null;
-    }
-    await ctx.runMutation(internal.home.recaps.landed, { recapId, ...written });
-    return null;
-  },
+  handler: async (ctx, { recapId }): Promise<null> =>
+    tryWriting<{ text: string; teamPoints: Infer<typeof recapTeamPoints> }>(
+      `Recap ${recapId}`,
+      async () => {
+        const facts = await ctx.runQuery(internal.home.recaps.brief, { recapId });
+        if (facts === null) return null;
+        return { written: { text: await writeWithClaude({ system: RECAP_SYSTEM, prompt: facts.prompt, maxTokens: RECAP_MAX_TOKENS }), teamPoints: facts.teamPoints } };
+      },
+      (written) => ctx.runMutation(internal.home.recaps.landed, { recapId, ...written }),
+      (failure) => ctx.runMutation(internal.home.recaps.failed, { recapId, failure }),
+    ),
 });
 
 /** The recap is written, and Mail tells the whole league it is up. Nothing for one written already. */
@@ -152,9 +147,9 @@ export const failed = internalMutation({
   handler: async (ctx, { recapId, failure }) => {
     const recap = await ctx.db.get("recaps", recapId);
     if (recap === null || recap.state !== "writing") return null;
-    const failedTries = (recap.failedTries ?? 0) + 1;
+    const { failedTries, again } = failedTry(recap);
     await ctx.db.patch("recaps", recapId, { failedTries, lastFailure: failure });
-    if (failedTries < CLAUDE_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
+    if (again) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
     return null;
   },
 });

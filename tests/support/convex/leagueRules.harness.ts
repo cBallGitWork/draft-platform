@@ -3,7 +3,7 @@
 import { vi } from "vitest";
 import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
 import { historyOf, seasonRules } from "../../../convex/rules/rulesHistory";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
@@ -36,7 +36,7 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
  *  revision read just before, as a screen opened just now saves them. Returns the save's promise,
  *  for a test to await, keep or expect refused. */
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
-  (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+  (await actingAs(t, by)).mutation(internal.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 
 /** The commissioner saves the first rules with `change` made (rulesWith) as the league's. */
 export const changeRulesTo = (t: TestConvex, leagueId: Id<"leagues">, change: Partial<LeagueRules>) => changeRules(t, leagueId, rulesWith(change));
