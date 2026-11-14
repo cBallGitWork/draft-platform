@@ -161,9 +161,11 @@ export const chaosFailedWords = previewSaid("the save failed");
 /** The chaos the address the app opened at asks for, read once, so it lasts as the manager moves
  *  round the app; none off the dev server. */
 const chaos: ChaosMode | null = (() => {
-  // No window first: Playwright's specs load this file in Node, with no import.meta.env.
-  if (typeof window === "undefined" || !import.meta.env.DEV) return null;
-  const asked = new URLSearchParams(window.location.search).get(CHAOS_KEY);
+  // No address first: Playwright's specs load this file in Node, with no import.meta.env, and the
+  // Convex tests' edge runtime has a window with no location.
+  const search = globalThis.location?.search;
+  if (search === undefined || !import.meta.env.DEV) return null;
+  const asked = new URLSearchParams(search).get(CHAOS_KEY);
   return CHAOS_MODES.find((mode) => mode === asked) ?? null;
 })();
 
