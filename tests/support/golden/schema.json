@@ -27139,6 +27139,13 @@
                     "value": true
                   },
                   "optional": true
+                },
+                "afterBreak": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
                 }
               }
             },

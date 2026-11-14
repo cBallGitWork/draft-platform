@@ -138,6 +138,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   "Auto-pick at once"). `S04.5`
 - After a timed-out pick, the next clock waits the usual 10 seconds, as after every other pick
   (Craig, 4 Nov 2026, on #1091).
+- A draft with a 60-second clock, the site down for 20 minutes: when it comes back, clocks that ran
+  out during the outage fire no auto-picks and count no timeouts. The team that was on the clock
+  gets its full clock again, as after a resume, and everyone sees "Draft resumed after a break"
+  (Craig, 14 Nov 2026, grill batch 2, on #2204). `S04.22`
 - Players the ranking leaves out come after every ranked player, ordered by last season's points,
   then newcomers by name ("rec"). A manager who takes control back has his timeout count reset to
   0 ("ok"). A new manager taking over an empty team mid-draft starts off auto-pick ("ok") (Craig,

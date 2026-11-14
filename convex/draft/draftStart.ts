@@ -158,8 +158,9 @@ async function waitWithNoDate(ctx: MutationCtx, draft: Doc<"drafts">, refusal: s
 
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
 /** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
- *  when it was paused, its time left counted from then. */
-const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()) });
+ *  when it was paused, its time left counted from then; `afterBreak` while the pick is back on its
+ *  full clock after the site was down (draftClock.ts `restartAfterBreak`; S04.22). */
+const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()), afterBreak: v.optional(v.literal(true)) });
 /** The team whose manager made the draft's last pick himself (pickWindow.ts), or null. */
 const ownPickBy = v.union(v.id("teams"), v.null());
 
@@ -210,8 +211,8 @@ export const ofLeague = query({
     const ownPickBy = last?.own === undefined ? null : last.teamId;
     if (turn === null && draft.clock?.closing) return { status: "ending" as const, ...started, endsAt: draft.clock.startsAt, pausedAt: draft.clock.paused?.at, ownPickBy };
     if (turn === null) return { status: "over" as const, ...started };
-    const { startsAt, endsAt, paused } = liveClockOf(draft);
-    const clock = { startsAt, endsAt, pausedAt: paused?.at };
+    const { startsAt, endsAt, paused, afterBreak } = liveClockOf(draft);
+    const clock = { startsAt, endsAt, pausedAt: paused?.at, ...(afterBreak && { afterBreak }) };
     // A traded pick's owner is one of the draft's teams, each named in `order` above.
     const { name } = order.find(({ teamId }) => teamId === turn.team)!;
     return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock, ownPickBy };

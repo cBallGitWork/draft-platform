@@ -10,7 +10,7 @@ import { SECOND_MS } from "../shared/time";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
+import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, ranOutInBreak, restartAfterBreak, scheduleAutoPick, startClock } from "./draftClock";
 import { legalForTurn } from "./draftLegal";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
 import { heldListsOf } from "./draftLists";
@@ -232,6 +232,10 @@ export const autoPick = internalMutation({
       // commissioner's undo put this pick back on its full clock: the clock runs out first. This job
       // is the clock's own, so the clock goes without it: cancelling it would cancel the new one too.
       await scheduleAutoPick(ctx, draft, { ...draft.clock, job: undefined }, team);
+      return null;
+    }
+    if (ranOutInBreak(draft, draft.clock, team)) {
+      await restartAfterBreak(ctx, leagueId, draft.clock);
       return null;
     }
     const player = await autoPickFor(ctx, leagueId, draft, started, turn);
