@@ -32,8 +32,9 @@ import {
 /** The Football section (spec/18), the real competitions: a tab for each the league plays on the
  *  title plate, which is the tabs only, then the competition's fixtures and results, a gameweek at
  *  a time, beside its table (docs/design/approved/premier-league/). No fixture difficulty and no
- *  count of owned players here (spec/18). */
-export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
+ *  count of owned players here (spec/18). Its fixtures open on the gameweek the address `asked` for,
+ *  as the match page's Back does, while the season has it. */
+export function PremierLeaguePage({ seam, asked }: { seam: PremierLeagueSeam; asked?: number }) {
   const gameweeks = seam.useGameweeks();
   const [competition, choose] = useState<Competition>(COMPETITIONS[0]);
   return (
@@ -47,7 +48,11 @@ export function PremierLeaguePage({ seam }: { seam: PremierLeagueSeam }) {
             <Loading className="px-3 py-2">{loadingWords}</Loading>
           </Panel>
         ) : (
-          <GameweekMatches seam={seam} opening={openingGameweek(gameweeks.firstKickoffs, Date.now())} last={gameweeks.seasonGameweeks} />
+          <GameweekMatches
+            seam={seam}
+            opening={asked !== undefined && asked >= FIRST_GAMEWEEK && asked <= gameweeks.seasonGameweeks ? asked : openingGameweek(gameweeks.firstKickoffs, Date.now())}
+            last={gameweeks.seasonGameweeks}
+          />
         )}
         <TablePanel seam={seam} competition={competition} />
       </div>

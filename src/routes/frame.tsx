@@ -17,7 +17,7 @@ import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
 import { MatchPage } from "../premierLeague/MatchPage";
 import { ClubPage } from "../premierLeague/ClubPage";
-import { CLUB_ROUTE, MATCH_ROUTE } from "../premierLeague/paths";
+import { CLUB_ROUTE, footballSearchOf, MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
@@ -113,8 +113,10 @@ const recapRoute = createRoute({
 const premierLeagueRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: PREMIER_LEAGUE_PATH,
+  validateSearch: footballSearchOf,
   component: function PremierLeague() {
-    return <PremierLeaguePage seam={premierLeagueRoute.useRouteContext({ select: (context) => context.premierLeague })} />;
+    const { gameweek } = premierLeagueRoute.useSearch();
+    return <PremierLeaguePage seam={premierLeagueRoute.useRouteContext({ select: (context) => context.premierLeague })} asked={gameweek} />;
   },
 });
 
