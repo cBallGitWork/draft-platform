@@ -83,6 +83,14 @@ const droppedFromFpl = new Set([...FPL_POINTS, ...keptFrom("pl").map((stat) => s
 /** FPL's name for each stat kept from FPL, by the Premier League's name for it. */
 const fplNameForPl = new Map(keptFrom("fpl").map((stat) => [stat.pl, stat.fpl]));
 
+/** The name a record keeps one of FPL's stats under: the Premier League's where its count is the
+ *  one kept (`starts` as `game_started`), FPL's own otherwise, and null for FPL's own points, which
+ *  are never stored. */
+export function storedStatName(fplStat: string): string | null {
+  if (FPL_POINTS.has(fplStat)) return null;
+  return keptFrom("pl").find((stat) => stat.fpl === fplStat)?.pl ?? fplStat;
+}
+
 /** Both feeds' stats in one map: each feed's name for what only it sends, and the kept feed's for
  *  what both send. A feed whose record has not arrived adds nothing. A stat kept from FPL that
  *  FPL's arrived line leaves out takes the Premier League's count, under FPL's name: in a double
