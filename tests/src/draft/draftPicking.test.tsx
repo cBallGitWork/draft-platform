@@ -245,7 +245,8 @@ describe("the Draft button", () => {
     expect(button).toHaveProperty("disabled", false);
 
     await userEvent.click(button);
-    expect(app.draft.changes.makePick).toHaveBeenCalledWith(expect.anything(), SAKA.code);
+    // With the pick on the clock, so a pick arriving after its turn is refused (S04.20).
+    expect(app.draft.changes.makePick).toHaveBeenCalledWith(expect.anything(), draftAt(true).onTheClock.pick, SAKA.code);
   });
 
   it("can't be pressed for a greyed-out player", async () => {

@@ -80,7 +80,7 @@ export function changesTo(
     "draft/draftStart:start": () => admin.mutation(api.draft.draftStart.start, { leagueId }),
     "draft/draftPause:pause": () => admin.mutation(api.draft.draftPause.pause, { leagueId }),
     "draft/draftPause:resume": () => admin.mutation(api.draft.draftPause.resume, { leagueId }),
-    "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
+    "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, pick: 1, playerCode: 1 }),
     "draft/autoPickSwitch:takeControlBack": () => ann.mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId }),
     "draft/autoPickSwitch:turnOn": () => ann.mutation(api.draft.autoPickSwitch.turnOn, { leagueId }),
     "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: annsTeam._id, playerCode: 1 }),

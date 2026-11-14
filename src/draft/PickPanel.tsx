@@ -134,7 +134,7 @@ export function PickPanel({
             aria-label={draftPlayerWords(player.name)}
             aria-describedby={lineId}
             disabled={!canPick}
-            onClick={() => void change.run(() => changes.makePick(leagueId, player.code))}
+            onClick={() => turn.kind === "yours" && void change.run(() => changes.makePick(leagueId, turn.onTheClock.pick, player.code))}
             className="action flex-col justify-center py-3"
           >
             <span className="text-title font-bold">{draftPlayerWords(player.name)}</span>

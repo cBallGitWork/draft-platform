@@ -49,7 +49,7 @@ test(
     }));
     await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
     const [first] = players;
-    await (await actingAs(t, EVERY_MANAGER[0])).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: first.code });
+    await (await actingAs(t, EVERY_MANAGER[0])).mutation(api.draft.draftPicks.makePick, { leagueId, pick: 1, playerCode: first.code });
     // Every other clock runs out in turn; the draft ends the last pick's 10 seconds later (#1458).
     for (let pick = 1; pick < MOST_TEAMS; pick++) await clockRunsTo(t, Date.now() + PICK_MS);
     await clockRunsTo(t, Date.now() + PICK_GAP_MS);

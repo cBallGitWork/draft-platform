@@ -5,7 +5,7 @@ import { pickRefusals } from "../../../convex/draft/draftPicks";
 import type { Area } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
-import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, COVENTRY, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, ANN, BOB, CAT, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
@@ -213,6 +213,30 @@ describe("every reason a pick is refused", () => {
       },
       refused: async ({ as, leagueId }) => [async () => (await as(ANN)).mutation(api.draft.pickWindow.undoMyPick, { leagueId }), pickRefusals.undoOver],
     },
+    // A pick sent for a turn that has passed (S04.20): auto-pick's, the commissioner's or her own.
+    tooLateAuto: {
+      setUp: async ({ start, pass }) => {
+        await start();
+        await pass(FIRST_PICK_MS);
+      },
+      refused: async ({ pick }) => [() => pick(ANN, M2, 1), pickRefusals.tooLateAuto(`Player ${M1}`)],
+    },
+    tooLateFor: {
+      setUp: async ({ start, as, leagueId, t, teams }) => {
+        await start();
+        await (await as(COMMISSIONER)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: teams[0], playerCode: M1 });
+        await pickGapPasses(t);
+      },
+      refused: async ({ pick }) => [() => pick(ANN, M2, 1), pickRefusals.tooLateFor(`Player ${M1}`)],
+    },
+    tooLateOwn: {
+      setUp: async ({ start, pickAndWait }) => {
+        await start();
+        await pickAndWait(ANN, M1);
+      },
+      refused: async ({ pick }) => [() => pick(ANN, M2, 1), pickRefusals.tooLateOwn(`Player ${M1}`)],
+    },
+    notThisPick: { setUp: ({ start }) => start(), refused: async ({ pick }) => [() => pick(ANN, M1, 6), pickRefusals.notThisPick] },
     notOnAutoPick: {
       setUp: ({ start }) => start(),
       refused: async ({ as, leagueId }) => [async () => (await as(ANN)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId }), pickRefusals.notOnAutoPick],
