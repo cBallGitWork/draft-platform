@@ -6,8 +6,8 @@ import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, EVE } from "../../support/convex/leagues.harness";
-import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, EVE, freshLeague } from "../../support/convex/leagues.harness";
+import { ask, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): "Your invite
@@ -17,9 +17,7 @@ let t: TestConvex;
 let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId, sent } = await freshLeague());
 });
 
 /** What `email`'s leagues page is told of their newest invite, at the minute it is now. */

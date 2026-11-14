@@ -3,8 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { putOnTeam } from "../../../convex/leagues/teams";
 import { invite, openLastLinkTo } from "../../support/convex/joining.harness";
-import { actingAs, adminCreatesLeague, LEAGUE_NAME, managersOf, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { actingAs, LEAGUE_NAME, managersOf, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
+import { ask, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 // A fault while taking up an invite at sign-in (Craig, 12 Nov 2026, on #1437: "Signed in, invite
@@ -22,9 +22,7 @@ let t: TestConvex;
 let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId, sent } = await freshLeague());
 });
 
 test("signs them in, keeps the invite live with nothing written, says to open the link again, and the next link joins them", async () => {

@@ -10,8 +10,7 @@ import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { gameModeOf } from "../../../convex/rules/gameMode";
 import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, NEXT, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
 import { ratedRoles } from "../../../convex/stars/stars";
@@ -34,11 +33,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   // The club holdSquad puts every player at.
   await t.run((ctx) => ctx.db.insert("clubs", CLUB));
   await holdSquad(t, leagueId, annsTeam);

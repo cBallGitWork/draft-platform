@@ -4,8 +4,7 @@ import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
 import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { waiverStateOf } from "../../support/convex/waivers.harness";
 
 // The players nobody drafts (#1197; spec/04, The picks, and spec/08): on waivers for the next run
@@ -19,10 +18,7 @@ let leagueId: Id<"leagues">;
 const { start, pickAndWait } = draftSteps(() => ({ t, leagueId }));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, [A1, A2, LEFT].map((code) => midfielder(code)));

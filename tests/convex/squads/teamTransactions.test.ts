@@ -6,9 +6,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -22,10 +21,7 @@ let leagueId: Id<"leagues">;
 let annTeam: Id<"teams">;
 let bobTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams: [annTeam, bobTeam] } = await freshLeague({ managers: [ANN, BOB] }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await ctx.db.insert("players", { code: SAKA, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code });

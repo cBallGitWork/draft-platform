@@ -9,8 +9,7 @@ import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draf
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
@@ -36,10 +35,7 @@ const letterCount = () => lettersCount(t);
 const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [...ARSENAL_MIDS, ...CHELSEA_MIDS]);

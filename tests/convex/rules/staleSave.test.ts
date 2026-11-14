@@ -6,8 +6,7 @@ import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { adminByline } from "../../../convex/mail/letterWords";
 import { holdGameweeks, latestRules, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ADMIN, actingAs, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // Two people editing a league's rules at once (Craig, 22 Oct 2026: the second save warns, never
 // silently replaces the first). A save carries the rules row its screen loaded; if someone saved
@@ -16,10 +15,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: 9 });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: 9 }) }));
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 });
 

@@ -7,8 +7,7 @@ import { DRAFT_OVER_SUBJECT as OVER, UP_NEXT_SUBJECT as UP_NEXT } from "../../..
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The 10 seconds after a pick (spec/04, The draft room; #1458): a manager can undo his own pick in
@@ -34,10 +33,7 @@ const subjectsSince = async (before: number) => (await t.run((ctx) => ctx.db.que
 const letterCount = () => lettersCount(t);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);

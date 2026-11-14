@@ -15,18 +15,14 @@ import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, latestRules, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
-import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // The league's rules reads each have a named cap (#214): past it they throw, never cut short.
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment(undefined, true);
-  fakeResend();
-  await holdGameweeks(t, { next: 9 });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ atConvexLimits: true, before: (t) => holdGameweeks(t, { next: 9 }) }));
 });
 
 const change = (rules = TOTAL_POINTS) => changeRules(t, leagueId, rules);

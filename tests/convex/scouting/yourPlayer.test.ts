@@ -7,9 +7,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { insertSetPositions } from "../../support/convex/footballRows.harness";
 import { losePlayer } from "../../support/convex/gameweekScores.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Whom the selected player's panel on Scouting offers to compare him with (#1028; Craig, 9 Nov
@@ -23,10 +22,7 @@ const SCOUTED = 999;
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: 9 });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: 9 }) }));
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
   await holdSquad(t, leagueId, annsTeam, SQUAD);
   await t.run((ctx) => ctx.db.insert("players", { code: SCOUTED, name: "Scouted", fullName: "Scouted", clubCode: 1 }));

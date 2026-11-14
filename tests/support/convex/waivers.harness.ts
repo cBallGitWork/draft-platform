@@ -9,9 +9,8 @@ import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorde
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { draftStarted } from "./draft.harness";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, lettersTo, teamsIn, type TestConvex, ANN, BOB, CAT } from "./leagues.harness";
+import { actingAs, lettersTo, teamsIn, type TestConvex, ANN, BOB, CAT, freshLeague } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
 
 /** The gameweek holdGameweeks kicks off next: gameweek 4, a day ago, is the latest begun. */
 export const NEXT = 5;
@@ -39,10 +38,7 @@ export const waiverStateOf = async (t: TestConvex, leagueId: Id<"leagues">, play
 
 /** Held to Convex's own limits with `atConvexLimits` (freshConvex). */
 export async function waiverLeague(atConvexLimits = false) {
-  const t: TestConvex = await signInDeployment(undefined, atConvexLimits);
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t);
-  const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  const { t, leagueId, teams: [annsTeam, bobsTeam, catsTeam] } = await freshLeague({ managers: [ANN, BOB, CAT], atConvexLimits });
   const teams = (await teamsIn(t, leagueId)).map(({ _id }) => _id);
   const others = teams.filter((id) => ![annsTeam, bobsTeam, catsTeam].includes(id));
   await t.run((ctx) => ctx.db.patch("leagues", leagueId, { draftOrder: [annsTeam, bobsTeam, catsTeam, ...others] }));

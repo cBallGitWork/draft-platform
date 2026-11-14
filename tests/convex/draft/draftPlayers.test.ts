@@ -6,9 +6,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's players list's legal flag (spec/04, The draft room; #1099): the players the
 // reader's team can't take as its next pick, and why, by the pick's own rule, while the draft runs.
@@ -42,10 +41,7 @@ const greyedOut = async (email: string) => (await as(email)).query(api.draft.dra
 const byCode = (greyed: { code: number }[]) => [...greyed].sort((one, other) => one.code - other.code);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [ARSENAL_MID, ARSENAL_STRIKER, CHELSEA_MID, CHELSEA_KEEPER]);

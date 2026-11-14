@@ -5,8 +5,7 @@ import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, addManagers, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.harness";
 
 // A lineup's two team instructions, saved with it (spec/05, Team instructions; #990): only ones its
@@ -15,10 +14,7 @@ import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
   const [annsTeam] = await addManagers(t, leagueId, [ANN]);
   await t.run((ctx) => ctx.db.insert("clubs", SQUAD_CLUB));
   await holdSquad(t, leagueId, annsTeam);

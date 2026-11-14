@@ -9,8 +9,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ADMIN, COMMISSIONER, actingAs, addManager, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { NEXT } from "../../support/convex/lineupSquad.harness";
 
 // Continue's lineup step (#526; spec/12, The frame): "from 24 hours before each gameweek's deadline
@@ -21,11 +20,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
 });
 
 /** Whether `email`'s lineup is due now, as the top bar judges the times `isDue` sends at its minute. */

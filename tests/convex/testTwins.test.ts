@@ -37,7 +37,6 @@ const SUPPORT = byRepoPath(
  *  "file defines names" for names tests/support/ already exports. */
 const STILL_TWINNED: string[] = [
   // The same run of lines in two test files.
-  "tests/convex/gameweeks/scoringStart.test.ts <-> tests/convex/table/playedFixtures.test.ts",
   "tests/convex/lineup/lineups.squadAtDeadline.test.ts <-> tests/convex/lineup/lineups.storedFirstLineup.test.ts",
   "tests/convex/lineup/lineups.squadAtDeadline.test.ts <-> tests/convex/lineup/lineups.test.ts",
   "tests/convex/lineup/lineups.storedFirstLineup.test.ts <-> tests/convex/lineup/lineups.test.ts",

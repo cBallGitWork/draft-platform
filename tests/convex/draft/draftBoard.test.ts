@@ -5,9 +5,8 @@ import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's reads (spec/04, The draft room; #1098): the board's picks, each with its
 // player's club and position, the caller's team and the pick time; and whether the room is in the
@@ -27,10 +26,7 @@ const board = async (email: string) => (await as(email)).query(api.draft.draftBo
 const inMenu = async (email: string) => (await as(email)).query(api.draft.draftBoard.inMenu, { leagueId });
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER, JACKSON]);

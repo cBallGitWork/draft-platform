@@ -4,7 +4,7 @@
 import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ADMIN } from "./signIn.harness";
+import { ADMIN, fakeResend, signInDeployment } from "./signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 import type { TestConvex } from "./test.harness";
 
@@ -63,6 +63,34 @@ export async function adminCreatesLeague(t: TestConvex, maxTeams = TEST_LEAGUE_T
   const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
   return leagueId;
+}
+
+/** A new league as most server tests open on: sign-in's deployment (stopped at `morning`, held to
+ *  Convex's limits with `atConvexLimits`), Resend faked, whatever `before` holds put in, then the
+ *  admin's league of `maxTeams` called `name`, with `managers` added in order. Its `teams` are
+ *  their new teams' ids, and `sent` the emails the faked Resend was asked to send. */
+export async function freshLeague({
+  managers = [],
+  maxTeams = TEST_LEAGUE_TEAMS,
+  name = LEAGUE_NAME,
+  morning,
+  atConvexLimits = false,
+  before,
+}: {
+  managers?: readonly string[];
+  maxTeams?: number;
+  name?: string;
+  morning?: number;
+  atConvexLimits?: boolean;
+  /** What the deployment holds before the league is made, such as its gameweeks. */
+  before?: (t: TestConvex) => Promise<unknown>;
+} = {}) {
+  const t = await signInDeployment(morning, atConvexLimits);
+  const sent = fakeResend();
+  await before?.(t);
+  const leagueId = await adminCreatesLeague(t, maxTeams, name);
+  const teams = await addManagers(t, leagueId, [...managers]);
+  return { t, leagueId, teams, sent };
 }
 
 /** The admin makes `email` the manager of the vacated team `teamId`, or of a new team: its id. */

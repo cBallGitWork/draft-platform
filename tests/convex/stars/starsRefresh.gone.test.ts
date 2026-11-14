@@ -1,8 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
 import { BLANK, CAMEO, MATCHES, holdStarsPlayers, lockedRecord, refreshEveryone, starsRows } from "../../support/convex/stars.harness";
@@ -16,10 +15,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment(undefined, true);
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], atConvexLimits: true }));
   await holdStarsPlayers(t);
   await refreshEveryone(t);
   await t.run(async (ctx) => {

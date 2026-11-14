@@ -12,8 +12,8 @@ import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, type TestConvex, ANN, BOB, TEAM_1, TEAM_2, freshLeague } from "../../support/convex/leagues.harness";
+import { spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
@@ -40,10 +40,7 @@ const lettersSince = async (before: number) => (await letters()).slice(before);
 const upNextEmails = () => sent.filter(({ subject }) => subject === UP_NEXT);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams, sent } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);

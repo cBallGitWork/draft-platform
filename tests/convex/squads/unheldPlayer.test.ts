@@ -3,9 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, UNHELD, insertClubs } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -20,10 +19,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 2);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 2 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     for (const [code, name] of [[SAKA, "Saka"], [PALMER, "Palmer"]] as const) {

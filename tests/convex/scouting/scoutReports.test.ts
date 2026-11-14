@@ -6,9 +6,8 @@ import { roleIn } from "../../../convex/lineup/roles";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { addManagers, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, NEXT, SQUAD_CLUB, STARTERS } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The manager's formation a scout's report is written from (spec/19, The report; #1738): the
 // lineup every other screen reads, through lineups.ts, so a slot whose starter has left the squad
@@ -26,10 +25,7 @@ let teamId: Id<"teams">;
 let scoutId: Id<"scouts">;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
   [teamId] = (await addManagers(t, leagueId, [ANN])) as [Id<"teams">];
   await holdSquad(t, leagueId, teamId);
   await holdPlayers(t, [SCOUTED]);

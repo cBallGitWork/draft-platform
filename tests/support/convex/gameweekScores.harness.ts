@@ -20,12 +20,11 @@ import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
 import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, CAT } from "./leagues.harness";
+import { actingAs, type TestConvex, ANN, BOB, CAT, freshLeague } from "./leagues.harness";
 import { leagueHomeOf, matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
 import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -111,10 +110,7 @@ export interface ScoresLeague {
  *  nobody in its lineup, plays the league's average. Held to Convex's own limits with
  *  `atConvexLimits` (freshConvex). */
 export async function scoresLeague({ bobSaves = true, catToo = false, atConvexLimits = false } = {}): Promise<ScoresLeague> {
-  const t = await signInDeployment(undefined, atConvexLimits);
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t);
-  const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, catToo ? [ANN, BOB, CAT] : [ANN, BOB]);
+  const { t, leagueId, teams: [annsTeam, bobsTeam, catsTeam] } = await freshLeague({ managers: catToo ? [ANN, BOB, CAT] : [ANN, BOB], atConvexLimits });
   const elements = new Map(recordedGw6().fpl.bootstrap.elements.map((element) => [element.code, element]));
   await t.run(async (ctx) => {
     await insertSeasonGameweeks(ctx);

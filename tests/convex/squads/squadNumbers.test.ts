@@ -6,9 +6,8 @@ import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, EVE } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, type TestConvex, ANN, BOB, EVE, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { SAKA } from "../../support/convex/lineupSquad.harness";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager numbers his own
@@ -21,9 +20,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
   // A season to come, so the pitch has a gameweek to set (#1618).
   await holdGameweeks(t, { next: 1 });
   [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
