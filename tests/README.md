@@ -5,7 +5,8 @@ one of five roots: at the path of the code it tests, or at the root for a test t
 files (`tests/src/flow.test.ts`). The Convex tests that play the whole product through are under
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
 stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
-time, and `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points.
+time, `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points, and
+`clockChange.test.ts`, that chain carried on across the clocks going back on 25 Oct 2026.
 
 **Contents:** [The five roots](#the-five-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
