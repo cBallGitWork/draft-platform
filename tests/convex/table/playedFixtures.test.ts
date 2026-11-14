@@ -4,8 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeRulesTo, holdGameweeks, playUpTo, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
@@ -24,10 +23,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let firstKickoff: number;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN, BOB, CAT] }));
   firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
 });

@@ -10,8 +10,7 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, midfielder, SHORT_PICK_MS, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, teamName, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { addManager, COMMISSIONER, eventsIn, teamName, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The commissioner running the draft (spec/04, The commissioner; #1095): he undoes the last pick,
@@ -51,10 +50,7 @@ const subjects = () => t.run(async (ctx) => (await ctx.db.query("letters").colle
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);

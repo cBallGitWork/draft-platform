@@ -5,16 +5,12 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { afterPlayersDropped } from "../../../convex/football/afterFootballSync";
 import { pendingJobs } from "./test.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "./leagues.harness";
+import { actingAs, type TestConvex, ANN, BOB, freshLeague } from "./leagues.harness";
 import { ARSENAL, CHELSEA, GONE, ODEGAARD, PALMER, SAKA, insertClubs, insertDroppedPlayer, insertPlayerRows } from "./footballRows.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
 
 /** A league for 4 with Ann's and Bob's teams, in that order, and Saka, Palmer, Ødegaard and Gone. */
 export async function listsLeague(): Promise<{ t: TestConvex; leagueId: Id<"leagues">; teams: Id<"teams">[] }> {
-  const t = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t);
-  const teams = await addManagers(t, leagueId, [ANN, BOB]);
+  const { t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB] });
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayerRows(ctx, [SAKA, PALMER, ODEGAARD]);

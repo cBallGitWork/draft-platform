@@ -10,8 +10,7 @@ import { fixtureEditRefusals, swapSides } from "../../../convex/table/fixtureEdi
 import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { LEAGUE_AVERAGE, type Fixture } from "../../../convex/table/roundRobin";
 import { changeRules, rulesWith, holdGameweeks, playUpTo } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, teamName, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, ADMIN, COMMISSIONER, teamName, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The commissioner swaps a side between two games in a gameweek not yet begun (spec/09, Fixture
@@ -32,10 +31,7 @@ let leagueId: Id<"leagues">;
 let firstKickoff: number;
 
 async function leagueOf(emails: string[]): Promise<void> {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, emails);
+  ({ t, leagueId } = await freshLeague({ managers: emails }));
   firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
 }

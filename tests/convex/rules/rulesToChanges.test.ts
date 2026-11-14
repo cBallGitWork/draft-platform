@@ -3,8 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
 // #2009 (Part of #1995, the Convex quota): the rules rows saved whole before #1617 are stored once
@@ -14,10 +13,7 @@ import { clockRunsTo } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: 9 });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: 9 }) }));
 });
 
 const LATER_WAIVERS = { ...HELD_FIRST_RULES.waivers, runs: [{ day: "wednesday" as const, hour: 11, minute: 30 }] };

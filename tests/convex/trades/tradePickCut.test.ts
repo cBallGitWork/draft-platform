@@ -3,9 +3,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, lettersTo, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { lettersTo, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A pick trade with a pick in a round a squad-size cut removed (#1457): when the draft starts, the
 // trade is undone, both picks back with the teams that held them before, and both managers are
@@ -37,10 +36,7 @@ const undoneSubjects = async (email: string) => (await lettersTo(t, email)).map(
 
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  [ann, bob, cat] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId, teams: [ann, bob, cat] } = await freshLeague({ managers: [ANN, BOB, CAT], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, PLAYERS);

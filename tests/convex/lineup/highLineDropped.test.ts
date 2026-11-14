@@ -8,10 +8,9 @@ import { roleIn } from "../../../convex/lineup/roles";
 import { classicFormationsOf, instructionsOf } from "../../../convex/rules/firstRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { changeEveryRules, holdGameweeks, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, ANN, lettersTo, type TestConvex } from "../../support/convex/leagues.harness";
+import { ANN, lettersTo, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { presetNamed } from "../../support/convex/lineup.harness";
 import { holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 
 // #1452's one-off (spec/05 S05.37, S05.42, S05.48): Hold a high line leaves the leagues already
@@ -72,11 +71,7 @@ describe("the one-off", () => {
   let leagueId: Id<"leagues">;
   let annsTeam: Id<"teams">;
   beforeEach(async () => {
-    t = await signInDeployment();
-    fakeResend();
-    await holdGameweeks(t, { next: NEXT });
-    leagueId = await adminCreatesLeague(t);
-    [annsTeam] = await addManagers(t, leagueId, [ANN]);
+    ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
     await t.run((ctx) => ctx.db.insert("clubs", SQUAD_CLUB));
     await holdSquad(t, leagueId, annsTeam);
     await changeEveryRules(t, leagueId, rulesBefore);

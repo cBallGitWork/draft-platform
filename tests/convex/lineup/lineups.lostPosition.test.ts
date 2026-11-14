@@ -8,8 +8,7 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, NEXT, passNextDeadline, REVERSED_BENCH, sent, STARTERS } from "../../support/convex/lineupSquad.harness";
 
 // A starter who loses a position stays where he stands (spec/06, When positions change), and the
@@ -27,11 +26,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   await holdSquad(t, leagueId, annsTeam);
   await save(FOUR_FOUR_TWO);
   await t.run(async (ctx) => {

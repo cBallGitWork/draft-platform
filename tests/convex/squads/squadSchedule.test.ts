@@ -4,10 +4,9 @@ import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { clubsByCode } from "../../../convex/shared/players";
 import { squadSchedule } from "../../../convex/squads/squadSchedule";
-import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { holdGameweeks, KICKS_OFF_IN } from "../../support/convex/leagueRules.harness";
 import { ARSENAL, CHELSEA, insertClubs, PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The Squad tab's Schedule view (#1006): his club's matches in the next six gameweeks, from the one
 // a lineup is being set for; a blank week has none, a double two, and the gameweeks are those the
@@ -16,9 +15,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
   await t.run((ctx) => insertClubs(ctx, [ARSENAL, CHELSEA]));
 });
 

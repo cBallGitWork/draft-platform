@@ -5,8 +5,7 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { draftSteps, midfielder, SHORT_PICK_MS, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The timeout count (spec/04, Auto-pick; #1136): each clock that runs out on a team with a manager
@@ -44,10 +43,7 @@ async function bobPicks() {
 const timeOut = () => pass(PICK_GAP_MS + SHORT_PICK_MS);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, PLAYERS);

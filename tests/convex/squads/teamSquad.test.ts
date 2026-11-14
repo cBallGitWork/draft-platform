@@ -12,11 +12,10 @@ import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadStats } from "../../../convex/squads/teamSquad";
 import { latestRules } from "../../../convex/rules/rulesHistory";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, UNHELD, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Squad tab (#364): every player in the manager's squad with his positions, club, his
@@ -52,10 +51,7 @@ let leagueId: Id<"leagues">;
 let annTeam: Id<"teams">;
 let bobTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment(MADE);
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams: [annTeam, bobTeam] } = await freshLeague({ managers: [ANN, BOB], morning: MADE }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     const players = [SAKA, RAYA, PALMER, BENCHED, NOBODY];

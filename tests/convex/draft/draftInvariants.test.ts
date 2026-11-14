@@ -8,9 +8,8 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, COVENTRY, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, ANN, BOB, CAT, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT, COMMISSIONER, MANAGERS, teamName, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { everyRow, expectRefused, SLOW_TEST } from "../../support/convex/test.harness";
 import { seededRandom } from "../../support/seededRandom";
 
@@ -62,10 +61,7 @@ function leagueFrom(seed: number) {
 
 /** A league with `managers` running its teams, these players and squad rules: its draft not started. */
 async function leagueWith(managers: readonly string[], players: readonly HeldPlayer[], squad: SquadRules) {
-  const t: TestConvex = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t, managers.length);
-  const teams = await addManagers(t, leagueId, [...managers]);
+  const { t, leagueId, teams } = await freshLeague({ managers: [...managers], maxTeams: managers.length });
   await t.run(async (ctx) => {
     await insertClubs(ctx, CLUBS);
     await insertPlayers(ctx, players);

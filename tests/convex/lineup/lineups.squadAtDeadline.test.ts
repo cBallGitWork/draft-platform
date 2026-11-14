@@ -3,8 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, actingAs, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, saved, sent, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
@@ -21,11 +20,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams: [annsTeam, bobsTeam] } = await freshLeague({ managers: [ANN, BOB], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   // Each test writes the lineups it reads.
   await holdSquad(t, leagueId, annsTeam, SQUAD, { withoutLineup: true });
   await holdSquad(t, leagueId, bobsTeam, [BOBS], { withoutLineup: true });

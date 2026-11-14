@@ -6,9 +6,8 @@ import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { JULY, seasonStartYear } from "../../../convex/shared/time";
 import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsLookupIn, starsReadRefusals } from "../../../convex/stars/playerStars";
 import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
-import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, freshLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
 import { BLANK, NEWCOMER, SCORER, STEADY, UNUSED, holdStarsPlayers, refreshEveryone } from "../../support/convex/stars.harness";
 
@@ -24,11 +23,8 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN, BOB] }));
   fakeClaude();
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = (await addManagers(t, leagueId, [ANN, BOB])) as [Id<"teams">];
   await holdStarsPlayers(t);
   await refreshEveryone(t);
   await holdSeason(seasonStartYear(Date.now()));

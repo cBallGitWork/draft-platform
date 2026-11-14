@@ -12,10 +12,9 @@ import type { Start } from "../../../convex/positions/positions";
 import { lostPlayerName } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, pendingJobs } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/lineupSquad.harness";
 
@@ -25,10 +24,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
   annsTeam = await addManager(t, leagueId, ANN);
   await t.run(async (ctx) => {
     await ctx.db.insert("clubs", { code: BARNES.clubCode, name: "Newcastle", shortName: "NEW" });

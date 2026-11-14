@@ -6,8 +6,7 @@ import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draf
 import { listsAs, namesOn } from "../../support/convex/draftLists.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { insertClubs, insertPlayers, ARSENAL } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, ANN, BOB, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ANN, BOB, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Races as orders (#2126): Convex runs mutations one at a time, so a manager's pick and the
@@ -29,10 +28,7 @@ const firstPicks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts ?? []);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 2);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 2 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, [FIRST, SECOND, THIRD, FOURTH].map((code) => midfielder(code)));

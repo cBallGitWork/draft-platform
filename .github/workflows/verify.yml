@@ -8,6 +8,10 @@
 # all of it, the safety net for two merges that pass alone but clash together. A failed nightly run goes red on main's
 # last commit and opens (or comments on) the `nightly-ci` issue. The jobs named `verify` and `smoke` are the results
 # the ruleset requires: `verify` fails when any job it waits on failed, and a skipped job is not a failure.
+# Beside them, on the nightly and manual runs only, `nightly` runs `npm run nightly`: the suites too long for a pull
+# request (scripts/nightly.mjs, where builds add them). A manual run from a branch runs it too, which is how a change
+# to it is tested. GitHub skips or delays scheduled runs (every one, 5-13 Nov 2026), so the lead starts one, with
+# `alert`, when 26 hours pass with none (lead.yml, "The nightly backstop").
 name: verify
 
 on:
@@ -16,6 +20,11 @@ on:
   schedule:
     - cron: '30 3 * * *'  # 03:30 UTC, once a day
   workflow_dispatch:
+    inputs:
+      alert:
+        description: A failure opens or comments on the nightly-ci issue, as a scheduled run's does (the lead's backstop sets it)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -191,12 +200,27 @@ jobs:
             test-results/
           retention-days: 7
 
+  # `npm run nightly`: the long suites (scripts/nightly.mjs), never on a pull request
+  nightly:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run nightly
+
   # a failed nightly run says so in an issue, beside the red mark on main, so nobody has to open the Actions tab
   nightly-alert:
     if: >-
-      always() && github.event_name == 'schedule'
-      && (needs.verify.result != 'success' || (needs.smoke.result != 'success' && needs.smoke.result != 'skipped'))
-    needs: [verify, smoke]
+      always() && (github.event_name == 'schedule' || inputs.alert == true)
+      && (needs.verify.result != 'success' || needs.nightly.result != 'success'
+          || (needs.smoke.result != 'success' && needs.smoke.result != 'skipped'))
+    needs: [verify, smoke, nightly]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:

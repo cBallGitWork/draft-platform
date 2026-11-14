@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, managersOf, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, managersOf, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
+import { ask, type SentEmail } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager who is removed or leaves loses the league at once (spec/13, Leaving), so an older
@@ -13,9 +13,7 @@ let t: TestConvex;
 let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId, sent } = await freshLeague());
 });
 
 describe("a manager who is removed or leaves (#133)", () => {

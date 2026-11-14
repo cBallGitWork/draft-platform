@@ -9,8 +9,7 @@ import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers
 import { changeEveryRules, holdGameweeks, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
-import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ADMIN, COMMISSIONER, eventsIn, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Making a pick (spec/04, The picks; #1090): the manager on the clock picks a legal player, who
@@ -45,10 +44,7 @@ const squadsNow = async () =>
   (await (await as(COMMISSIONER)).query(api.squads.squads.squads, { leagueId })).map(({ teamId, players }) => ({ teamId, players: players.map(({ code, gone }) => ({ code, gone })) }));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB, CAT], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [...ARSENAL_MIDS, CHELSEA_MID, ...KEEPERS]);

@@ -9,8 +9,7 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { undoes } from "../../support/convex/leagueDeletion.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, lettersTo, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
@@ -28,10 +27,7 @@ const { as, read, start, pause, resume, pick, pass, setPickSeconds, setSquadSize
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);

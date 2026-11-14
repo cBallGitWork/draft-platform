@@ -6,11 +6,10 @@ import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
-import { OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { OUTSIDER, actingAs, teamName, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
 import { holdExampleScoring, holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A player's card (#381, spec/12 The player card): who he is, who owns him in the league, FPL's
@@ -58,10 +57,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB] }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     await insertPlayers(ctx, [SAKA, MOVER, FORWARD, SUPPORT]);

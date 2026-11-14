@@ -4,8 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, addManagers, COMMISSIONER, MANAGERS, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The commissioner's draft order (spec/04, Starting it; #1087): it starts as the order the teams
@@ -15,10 +14,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, MANAGERS.slice(0, 3));
+  ({ t, leagueId, teams } = await freshLeague({ managers: MANAGERS.slice(0, 3), maxTeams: 5 }));
 });
 
 const readWhole = async (email = COMMISSIONER) => (await actingAs(t, email)).query(api.draft.draftOrder.teamOrder, { leagueId });
