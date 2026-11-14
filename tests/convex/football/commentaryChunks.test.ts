@@ -8,9 +8,9 @@ import { freshConvex } from "../../support/convex/test.harness";
 
 // A match's commentary in chunks (#2004, the database I/O cut 15 of #1995): a read that adds a
 // line writes only the newest chunk, where one row of every line was rewritten whole, and what a
-// screen reads back is the same lines. The store's own rules are in matchCommentary.test.ts.
+// screen reads back is the same lines (S10.4). The store's own rules are in matchCommentary.test.ts.
 
-const FIXTURE = 1;
+const CHUNKED_MATCH = 1;
 
 /** `count` lines, newest first, the newest numbered `count`. */
 const linesUpTo = (count: number, wording = (n: number) => `${n}' line`) =>
@@ -21,13 +21,13 @@ const heldRows = (lines: ReturnType<typeof linesUpTo>): Doc<"commentaryChunks">[
   chunksOf(lines).map((chunkLines, chunk) => ({
     _id: `chunk${chunk}` as Id<"commentaryChunks">,
     _creationTime: 0,
-    fixtureCode: FIXTURE,
+    fixtureCode: CHUNKED_MATCH,
     chunk,
     lines: chunkLines,
   }));
 
 const store = (t: ReturnType<typeof freshConvex>, lines: ReturnType<typeof linesUpTo> | null, delayed: string | null = null) =>
-  t.mutation(internal.football.matchCommentary.store, { fixtureCode: FIXTURE, readAt: 0, lines, delayed });
+  t.mutation(internal.football.matchCommentary.store, { fixtureCode: CHUNKED_MATCH, readAt: 0, lines, delayed });
 
 test("chunks count from the oldest line, so reading them back gives the lines newest first", () => {
   const lines = linesUpTo(2 * COMMENTARY_LINES_A_CHUNK + 5);
@@ -70,7 +70,7 @@ test("the store keeps the match's lines in chunks and its delay on its row, and 
   await store(t, lines);
   await store(t, lines, "the stream answered 503");
 
-  expect(await t.run((ctx) => heldOf(ctx, FIXTURE))).toMatchObject({ lines, delayed: { reason: "the stream answered 503" } });
+  expect(await t.run((ctx) => heldOf(ctx, CHUNKED_MATCH))).toMatchObject({ lines, delayed: { reason: "the stream answered 503" } });
   expect(await t.run((ctx) => ctx.db.query("commentaryChunks").collect())).toHaveLength(3);
   expect(await t.run((ctx) => ctx.db.query("matchCommentary").unique())).not.toHaveProperty("lines");
 });
@@ -78,13 +78,13 @@ test("the store keeps the match's lines in chunks and its delay on its row, and 
 test("a match stored whole before chunks reads the same, and moves to chunks on its next store", async () => {
   const t = freshConvex();
   const lines = linesUpTo(COMMENTARY_LINES_A_CHUNK + 1);
-  await t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: FIXTURE, lines, delayed: null }));
+  await t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: CHUNKED_MATCH, lines, delayed: null }));
 
-  expect(await t.run((ctx) => heldOf(ctx, FIXTURE))).toEqual({ lines, delayed: null });
+  expect(await t.run((ctx) => heldOf(ctx, CHUNKED_MATCH))).toEqual({ lines, delayed: null });
 
   await store(t, null);
 
-  expect(await t.run((ctx) => heldOf(ctx, FIXTURE))).toEqual({ lines, delayed: null });
+  expect(await t.run((ctx) => heldOf(ctx, CHUNKED_MATCH))).toEqual({ lines, delayed: null });
   expect(await t.run((ctx) => ctx.db.query("commentaryChunks").collect())).toHaveLength(2);
   expect(await t.run((ctx) => ctx.db.query("matchCommentary").unique())).not.toHaveProperty("lines");
 });
@@ -92,11 +92,11 @@ test("a match stored whole before chunks reads the same, and moves to chunks on 
 test("the one-off move puts every finished match's lines in chunks, and running it again does nothing", async () => {
   const t = freshConvex();
   const lines = linesUpTo(COMMENTARY_LINES_A_CHUNK + 1);
-  await t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: FIXTURE, lines, delayed: null }));
+  await t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: CHUNKED_MATCH, lines, delayed: null }));
 
   expect(await t.mutation(internal.football.commentaryChunksMove.moveToChunks, {})).toBe(1);
   expect(await t.mutation(internal.football.commentaryChunksMove.moveToChunks, {})).toBe(0);
 
-  expect(await t.run((ctx) => heldOf(ctx, FIXTURE))).toEqual({ lines, delayed: null });
+  expect(await t.run((ctx) => heldOf(ctx, CHUNKED_MATCH))).toEqual({ lines, delayed: null });
   expect(await t.run((ctx) => ctx.db.query("commentaryChunks").collect())).toHaveLength(2);
 });
