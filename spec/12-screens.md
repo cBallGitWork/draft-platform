@@ -15,6 +15,9 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   joke name like "Fergie time" (22 Oct 2026).
 - A screen that can't load its data says so in the alert strip, in plain words for a manager,
   never the server's, with a way to try again (24 Oct 2026).
+- A release goes out while a manager has a tab open, and the tab's code can't work with the new
+  server: she sees a bar, "A new version is out. Reload". A save that fails because of it shows
+  the same bar, and nothing she typed is saved wrongly (Craig, 14 Nov 2026, #2203). `S12.13`
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an

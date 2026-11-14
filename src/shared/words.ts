@@ -45,6 +45,11 @@ export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
 /** When a change failed before the server could say why: the connection, or the server itself. */
 export const changeFailedWords = failedWords("nothing changed");
 
+/** The bar a tab shows once a release is out that its code can't work with, and its button
+ *  (spec/12, S12.13); a save the tab no longer sends, or that failed for it, says the same. */
+export const newVersionWords = "A new version is out.";
+export const reloadWords = "Reload";
+
 /** What the live app shows when it was built with no Convex deployment to reach (liveApp.tsx). */
 export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";
 
