@@ -14,8 +14,8 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
-import { appPort, localUrl } from "./port.mjs";
 import { FIXED_NOW, TIME_ZONE } from "./fixedClock.mjs";
+import { appPort, localUrl } from "./port.mjs";
 import { tapsUnderTapSize } from "./tap-targets.mjs";
 import { CHECKOUT } from "./thisScript.mjs";
 import { DESK, PHONE } from "./viewports.mjs";
