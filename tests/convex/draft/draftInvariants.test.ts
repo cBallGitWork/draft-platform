@@ -5,7 +5,7 @@ import { pickRefusals } from "../../../convex/draft/draftPicks";
 import type { Area } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
-import { draftSteps } from "../../support/convex/draft.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, COVENTRY, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, ANN, BOB, CAT, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
@@ -53,7 +53,7 @@ function leagueFrom(seed: number) {
     AREAS_USED.flatMap((area, areaIndex) =>
       Array.from({ length: teams * rounds }, (_, index) => {
         const code = 1000 * (clubIndex + 1) + 100 * areaIndex + index;
-        return { code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: club.code, positions: [POSITION_OF[area]!] };
+        return { ...midfielder(code, club), positions: [POSITION_OF[area]!] };
       }),
     ),
   );
@@ -144,8 +144,8 @@ describe("every reason a pick is refused", () => {
   const [M1, M2, M3] = [101, 102, 103];
   const [K1, K2, K3] = [301, 302, 303];
   const PLAYERS: HeldPlayer[] = [
-    ...[M1, M2, M3].map((code) => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM" as Position] })),
-    ...[K1, K2, K3].map((code) => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: CHELSEA.code, positions: ["GK" as Position] })),
+    ...[M1, M2, M3].map((code) => midfielder(code)),
+    ...[K1, K2, K3].map((code): HeldPlayer => ({ ...midfielder(code, CHELSEA), positions: ["GK"] })),
   ];
   /** Squads of 2, with no club or area limits. */
   const TWO_A_SIDE: SquadRules = { size: { minimum: 1, maximum: 2 }, maxPerClub: null, minimumByArea: null };

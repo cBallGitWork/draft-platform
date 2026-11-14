@@ -15,15 +15,15 @@ import { SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waiv
 // Ann's 4-4-2 squad of 15 Arsenal players sits within it, and taking Saka, another of Arsenal's
 // midfielders, for the players named breaks it.
 
-const KEEPER = SQUAD.find((code) => STARTER_POSITIONS.get(code)?.includes("GK"))!;
-const [OUTFIELD_1, OUTFIELD_2] = SQUAD.filter((code) => code !== KEEPER);
+const ANNS_KEEPER = SQUAD.find((code) => STARTER_POSITIONS.get(code)?.includes("GK"))!;
+const [OUTFIELD_1, OUTFIELD_2] = SQUAD.filter((code) => code !== ANNS_KEEPER);
 
 /** Each limit kind: the league's squad rules, and Ann's players that go for Saka to break it. A
  *  claim brings one player in for at most one out, so it can't take a squad under its minimum. */
 const cases: Record<SquadWarning["kind"], { squad: LeagueRules["squad"]; goes: number[]; claimable: boolean }> = {
   overMaximum: { squad: { size: { minimum: 1, maximum: SQUAD.length }, maxPerClub: null, minimumByArea: null }, goes: [], claimable: true },
   overClubMaximum: { squad: { size: null, maxPerClub: SQUAD.length, minimumByArea: null }, goes: [], claimable: true },
-  underAreaMinimum: { squad: { size: null, maxPerClub: null, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } }, goes: [KEEPER], claimable: true },
+  underAreaMinimum: { squad: { size: null, maxPerClub: null, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } }, goes: [ANNS_KEEPER], claimable: true },
   underMinimum: { squad: { size: { minimum: SQUAD.length, maximum: SQUAD.length + 5 }, maxPerClub: null, minimumByArea: null }, goes: [OUTFIELD_1, OUTFIELD_2], claimable: false },
 };
 const kinds = Object.keys(cases) as SquadWarning["kind"][];
