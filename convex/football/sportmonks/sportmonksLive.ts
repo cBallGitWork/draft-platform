@@ -11,7 +11,7 @@ import { MATCH_RECORDS_MOST } from "../../stats/matchRecordReads";
 import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksPlayerMatchRecord, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
 import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sides, sportmonksToken } from "./sportmonks";
 import { mapSportmonksMatch } from "./sportmonksMatch";
-import { halfTimeReached, sportmonksPlayerStats } from "./sportmonksPlayerStats";
+import { halfTimeReached, sportmonksPlayerStats, withLastRead } from "./sportmonksPlayerStats";
 import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
 import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
 import { sameValue } from "../../scouting/scoutingPlayers";
@@ -129,16 +129,22 @@ async function writeLiveMatch(ctx: ActionCtx, fixtureCode: number, read: RawFixt
 /** What a match's failure says, before the error, when its players' stats couldn't be worked out. */
 export const PLAYER_STATS_FAILED = "players' stats";
 
-/** One match's players' stats, replaced whole: a man the newest read no longer names loses his row.
- *  A row the read leaves as it was isn't written again (#2000: the free plan's database I/O). */
+/** One match's players' stats, replaced whole, except that a man who played and has no stats row in
+ *  the newest read keeps his last read (`withLastRead`, `S07.13`): a man it no longer names who
+ *  never played loses his row. A row the read leaves as it was isn't written again (#2000: the free
+ *  plan's database I/O). */
 export const writePlayerStats = internalMutation({
   args: { fixtureCode: v.number(), records: v.array(sportmonksPlayerMatchRecord) },
   returns: v.null(),
-  handler: async (ctx, { fixtureCode, records }) => {
+  handler: async (ctx, { fixtureCode, records: read }) => {
     const held = await takeAllOrThrow(
       ctx.db.query("sportmonksPlayerMatchStats").withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode)),
       MATCH_RECORDS_MOST,
       `Match ${fixtureCode} holds more than ${MATCH_RECORDS_MOST} players' stats, so their rewrite would be cut short`,
+    );
+    const records = withLastRead(
+      read,
+      held.map(({ _id, _creationTime, ...record }) => record),
     );
     const byPlayer = new Map(held.map((row) => [row.playerCode, row]));
     for (const record of records) {

@@ -47,6 +47,10 @@ approved its rows (6 Nov 2026, #454).
   change it by hand (Craig, 12 Nov 2026, on #1415: "Ahead for good"). `S07.11`
 - Only men who played get a win, draw or loss: a man on the bench all match gets none, the same
   as every other stat of his (Craig, 12 Nov 2026, on #1415: "Only men who played"). `S07.12`
+- A player the feed sends twice in one match (two rows for him) is one player: the later row
+  wins. A player who played but has no row in a read keeps his last read until a later read fills
+  it. Still missing at full time, the admin is shown him and can set his stats by hand, as the
+  admin can always override a feed value (Craig, 14 Nov 2026, grill batch 1, #2192). `S07.13`
 
 ### Examples
 

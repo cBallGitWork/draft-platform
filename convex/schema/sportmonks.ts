@@ -123,6 +123,9 @@ export const sportmonksPlayerMatchRecord = v.object({
   arrived: v.boolean(),
   stats: v.record(v.string(), v.number()),
   state: matchStatsState,
+  /** He played but the newest read had no stats row for him, so these are his last read's, kept
+   *  until a read fills them (`S07.13`); absent once one has. */
+  held: v.optional(v.literal(true)),
 });
 
 /** Which Sportmonks read gave a match's held score: the six-hourly sync's or the live tick's. */

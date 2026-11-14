@@ -74,9 +74,10 @@ export function smScoreRead(match: RawFixture): ScoreRead {
 
 /** One match as a live read gives it. Each man's stats are Sportmonks' running totals, kept as
  *  sent; a yes-or-no stat, as `captain` comes (true, in a real read of 8 Nov 2026), is 1 or 0; any
- *  other stat that isn't a number throws, naming it, rather than be dropped. */
+ *  other stat that isn't a number throws, naming it, rather than be dropped. A man sent twice is
+ *  one man, his later row winning, in his first row's place (spec/07 `S07.13`). */
 export function mapSportmonksMatch(match: RawFixture): SportmonksMatch {
-  const men = (match.lineups ?? []).map((man): SportmonksMan => {
+  const sent = (match.lineups ?? []).map((man): SportmonksMan => {
     if (man.type_id !== LINEUP_STARTER && man.type_id !== LINEUP_BENCH) {
       throw new Error(`${SPORTMONKS} sent lineup type ${man.type_id} for player ${man.player_id} in match ${match.id}`);
     }
@@ -95,6 +96,8 @@ export function mapSportmonksMatch(match: RawFixture): SportmonksMatch {
       }),
     };
   });
+  // A Map keeps each key where it was first set, and the value last set.
+  const men = [...new Map(sent.map((man) => [man.playerId, man])).values()];
   const events = [...(match.events ?? [])].sort(byMinute).map(
     (event): SportmonksEvent => ({
       id: event.id,

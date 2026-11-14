@@ -10,6 +10,7 @@ import {
   halfTimeReached,
   sportmonksPlayerStats,
   WORKED_OUT,
+  withLastRead,
   type SportmonksMatchRead,
 } from "../../../../convex/football/sportmonks/sportmonksPlayerStats";
 import { SM_STATE, type RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
@@ -166,6 +167,59 @@ test("a starter missing from lineups.details keeps the match provisional, as doe
   expect(sportmonksPlayerStats(oldFirm())[0].state).toBe("provisional");
 });
 
+test("a man sent twice in one match is one man, the later row winning (S07.13)", () => {
+  const twice = oldFirm(SM_STATE.fullTime, (raw) => {
+    const kyogo = raw.lineups!.find((man) => man.player_id === SM.kyogo)!;
+    raw.lineups!.push({ ...kyogo, details: [{ type_id: 119, data: { value: 70 } }] });
+  });
+  const records = sportmonksPlayerStats(twice);
+  expect(records.map((record) => record.playerCode)).toEqual([SM.schmeichel, SM.kyogo, SM.mcCowan, SM.tavernier]);
+  expect(recordOf(records, SM.kyogo).minutes).toBe(70);
+});
+
+/** The Old Firm's records at `stateId`, McCowan's stats sent, then each change made. */
+const recordsWith = (stateId: number, change: (raw: RawFixture) => void = () => {}) =>
+  sportmonksPlayerStats(oldFirm(stateId, (raw) => (mcCowanSent(raw), change(raw))));
+
+/** Kyogo named in the lineups with no `lineups.details`. */
+const kyogoUnsent = (raw: RawFixture) => delete raw.lineups!.find((man) => man.player_id === SM.kyogo)!.details;
+
+test("a man who played with no row in a read keeps his last read, flagged as held, and the match stays provisional (S07.13)", () => {
+  const last = recordsWith(SM_STATE.secondHalf);
+  const noStats = recordsWith(SM_STATE.fullTime, kyogoUnsent);
+  const kept = withLastRead(noStats, last);
+  expect(sportmonksRecordOf(kept, SM.kyogo)).toMatchObject({ arrived: true, held: true, state: "provisional" });
+  expect(recordOf(kept, SM.kyogo)).toMatchObject({ minutes: 67, goals_scored: 2, [WORKED_OUT.wins]: 1 });
+
+  // Gone from the lineups altogether: his last read is kept whole, and the rest wait on him.
+  const gone = recordsWith(SM_STATE.fullTime, (raw) => (raw.lineups = raw.lineups!.filter((man) => man.player_id !== SM.kyogo)));
+  const held = withLastRead(gone, last);
+  expect(held.map((record) => [record.playerCode, record.held ?? false, record.state])).toEqual([
+    [SM.schmeichel, false, "provisional"],
+    [SM.mcCowan, false, "provisional"],
+    [SM.tavernier, false, "provisional"],
+    [SM.kyogo, true, "provisional"],
+  ]);
+  expect(recordOf(held, SM.kyogo)).toEqual(recordOf(last, SM.kyogo));
+});
+
+test("a later read that fills a held man's row ends the hold; a man who never played or never sent anything has nothing to hold (S07.13)", () => {
+  const last = recordsWith(SM_STATE.secondHalf);
+  const kyogoHeld = withLastRead(recordsWith(SM_STATE.fullTime, kyogoUnsent), last);
+  const filled = withLastRead(recordsWith(SM_STATE.fullTime), kyogoHeld);
+  expect(filled.map((record) => [record.held ?? false, record.state])).toEqual(Array(4).fill([false, "complete"]));
+
+  const unused = (raw: RawFixture) => (raw.events = raw.events!.filter((event) => event.type_id !== SM_EVENT_TYPE.substitution));
+  const benched = recordsWith(SM_STATE.secondHalf, unused);
+  const dropped = withLastRead(recordsWith(SM_STATE.fullTime, (raw) => (unused(raw), (raw.lineups = raw.lineups!.filter((man) => man.player_id !== SM.mcCowan)))), benched);
+  expect(dropped.map((record) => record.playerCode)).toEqual([SM.schmeichel, SM.kyogo, SM.tavernier]);
+  expect(dropped.every((record) => record.state === "complete")).toBe(true);
+
+  const neverSent = sportmonksPlayerStats(oldFirm(SM_STATE.secondHalf));
+  expect(sportmonksRecordOf(withLastRead(sportmonksPlayerStats(oldFirm()), neverSent), SM.mcCowan)).toMatchObject({ arrived: false, state: "provisional" });
+  expect(sportmonksRecordOf(withLastRead(sportmonksPlayerStats(oldFirm()), neverSent), SM.mcCowan).held).toBeUndefined();
+});
+
 test("goals that don't come to the final score throw, naming the match", () => {
   const short = oldFirm(SM_STATE.fullTime, (raw) => {
     raw.events = raw.events!.filter((event) => event.id !== 504);
@@ -188,14 +242,17 @@ test("the live tick stores each man's stats, and a match whose stats can't be wo
     [SM.tavernier, true, "provisional"],
   ]);
 
-  // A newer read replaces the match's records whole: a man it no longer names loses his row.
-  const records = held.filter((row) => row.playerCode !== SM.tavernier).map(({ _id, _creationTime, ...record }) => ({ ...record, played: false }));
+  // A newer read replaces the match's records whole: a man it no longer names who never played
+  // loses his row; one who played keeps his last read, held (S07.13).
+  const records = held.map(({ _id, _creationTime, ...record }) => ({ ...record, played: record.playerCode !== SM.mcCowan }));
   await t.mutation(internal.football.sportmonks.sportmonksLive.writePlayerStats, { fixtureCode: SM.oldFirm, records });
+  const named = records.filter((record) => record.playerCode !== SM.tavernier && record.playerCode !== SM.mcCowan);
+  await t.mutation(internal.football.sportmonks.sportmonksLive.writePlayerStats, { fixtureCode: SM.oldFirm, records: named });
   const rewritten = await t.run((ctx) => ctx.db.query("sportmonksPlayerMatchStats").collect());
-  expect(rewritten.map(({ playerCode, played }) => [playerCode, played])).toEqual([
+  expect(rewritten.map(({ playerCode, held }) => [playerCode, held ?? false])).toEqual([
     [SM.schmeichel, false],
     [SM.kyogo, false],
-    [SM.mcCowan, false],
+    [SM.tavernier, true],
   ]);
 
   const bad = sportmonksLiveRead();

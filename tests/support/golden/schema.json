@@ -29731,6 +29731,13 @@
               ]
             },
             "optional": false
+          },
+          "held": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
+            },
+            "optional": true
           }
         }
       }
