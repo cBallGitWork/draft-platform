@@ -20,7 +20,8 @@ import { drawn, drawnFrom } from "../../../support/seededDraw";
 // benched starters and the save failed in silence): a preset, a classic formation, a saved plan,
 // Quick Pick, a drag (a swap) and a bench reorder. Each is run on random squads under random league
 // rules, and its lineup passes the server's own check (convex/lineup/lineup.ts `lineupProblems`)
-// whenever the squad can fill the shape. Where it can't, the lineup is short of eleven only for the
+// whenever the squad can fill the shape: no slot left empty that someone plays (S05.36), and each
+// on a role he may take (S05.29). Where it can't, the lineup is short of eleven only for the
 // slots nobody can fill, and the save's refusal has words for every problem, which the screen shows
 // under the toolbar (useLineupEdits.ts). The tab has no auto-sub of its own: auto-subs are the
 // server's (convex/lineup/autoSubs.ts), which already judge by lineupProblems.
