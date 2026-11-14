@@ -9,7 +9,8 @@ import { pendingJobs, type TestConvex } from "../../support/convex/test.harness"
 
 // The live ticks run only near matches (#1999, the Convex quota): no cron calls them each minute
 // (crons.test.ts), so a week with no match costs no tick at all. A sync arms the chain at the next
-// match's window, and each tick schedules the next a minute on while it had a match to read.
+// match's window, and each tick schedules the next a minute on while it had a match to read. As
+// every timed feed, it is off on development (S20.8).
 
 beforeEach(() => vi.useFakeTimers());
 

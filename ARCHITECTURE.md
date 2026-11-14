@@ -134,9 +134,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   files each played match's lineups once (`sportmonksLineupsRead`) into each man's newest starts
   and Sportmonks' label for him (`sportmonksPlayerStarts`), each run a row in
   `sportmonksPositionsSyncs`. Our commentary lines from a match's events are worded in
-  `convex/football/sportmonks/sportmonksCommentary.ts` (#1418), which nothing calls yet. Its three
-  crons, the six-hourly run, the live tick and the positions read, do nothing where
-  `SPORTMONKS_API_TOKEN` isn't set (the live deployment). Calls, per competition that is on,
+  `convex/football/sportmonks/sportmonksCommentary.ts` (#1418), which nothing calls yet. Its two
+  crons, the six-hourly run and the positions read, do nothing where `SPORTMONKS_API_TOKEN`
+  isn't set (the live deployment), and its live tick is never scheduled there (#1999). Calls, per competition that is on,
   against the plan's 2,000 an entity an hour (Sportmonks' plan page and livescores docs, checked
   9 Nov 2026, as league 501 was): a six-hourly run makes three (the league with its current
   season, the season's clubs with their squads in one page, the season's schedule), one more per
@@ -172,19 +172,23 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   that) and their status rows, and up to 20 tries. It stays unverified until the Convex usage
   page shows it, once the code is live. It grows only while a match stays unread: one the feed never calls full time holds the fixtures' read at
   its kickoff until it is. The leagues' count changes none of it.
-- Live stats (#28): a cron every minute (`liveStatsSync.tick`) reads each match from kickoff
+- Live stats (#28): a tick every minute (`liveStatsSync.tick`) reads each match from kickoff
   until it is complete, or four hours on, and its team sheets alone in the hour before kickoff
   (#45); outside those windows it reads no feed and writes no row. A complete match whose
   commentary still lacks its full-time line is read on, whole, for up to `FULL_TIME_LINE_WAIT_MS`
   after full time (the stream's lag allowance, `COMMENTARY_BEHIND_MINUTES`), as "Match ends" can
   reach the stream after the status flips (#917).
-  A cron, not a function rescheduling itself, because Convex runs a scheduled action at most
-  once: a chain would end, unseen, at the first tick that failed before scheduling the next, and
-  need re-arming whenever a kickoff moved. Convex runs one tick at a time, skipping one due while
-  another runs, and both feeds send running totals, so the next tick catches up any failed or
-  skipped. Each tick that found a match live is a row in `liveStatsTicks`, failed or not
-  ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Outside matches: one
-  action and one indexed query a minute, about 43,000 calls a month. Inside: FPL's ~1.8 MB
+  A function rescheduling itself, not a cron, since the free plan ran out (#1995, #1999): a
+  cron every minute cost one action and one indexed query a minute between matches too, about
+  43,000 calls a month for each live tick. Each tick schedules the next a minute on while it had
+  a match to read, and otherwise sleeps until the next match's window (`convex/stats/liveTicks.ts`,
+  Sportmonks' tick the same, from kickoff). Convex runs a scheduled action at most once, so a
+  tick schedules its next even when it throws; the six-hourly sync re-arms it when a kickoff
+  moves, and late stats every 10 minutes restart a chain that died (a tick killed before it
+  could schedule), and `liveTickChains` holds each tick's next run, so arming never starts a
+  second chain. Both feeds send running totals, so the next tick catches up any failed one.
+  Each tick that found a match live is a row in `liveStatsTicks`, failed or not
+  ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick: its sheets, each named
   man's stats, its commentary with the sheets again, and its five team stats (#45) in one read,
   kept as one row a match in `matchTeamStats` (`convex/football/matchTeamStats.ts`). In the hour
