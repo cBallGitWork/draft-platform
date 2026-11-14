@@ -7,8 +7,9 @@ import { statChanges, type PlayerMatchRecord } from "./matchRecords";
 // holding each man's record as a print, so each minute's read is checked against one small row
 // rather than the match's forty records, and only the men who moved are read and written. The
 // row's being there also says the match's live records are counted in no season totals, points or
-// Scouting row yet: full time counts them (matchStats.ts's upsertMatch) and deletes it. Plain
-// helpers: no Convex function lives here.
+// Scouting row yet: full time counts them (matchStats.ts's upsertMatch) and deletes it. Beside it,
+// a match's live points delay (the livePointsDelays table, spec/10 `S10.12`). Plain helpers: no
+// Convex function lives here.
 
 /** What the feeds sent is what is held; a stat left out and a stat sent as 0 read the same. */
 export function sameRecord(row: Doc<"playerMatchStats">, record: PlayerMatchRecord): boolean {
