@@ -55,6 +55,8 @@ import type * as football_clubFixtures from "../football/clubFixtures.js";
 import type * as football_clubKits from "../football/clubKits.js";
 import type * as football_clubPage from "../football/clubPage.js";
 import type * as football_commentary from "../football/commentary.js";
+import type * as football_commentaryChunks from "../football/commentaryChunks.js";
+import type * as football_commentaryChunksMove from "../football/commentaryChunksMove.js";
 import type * as football_feedIds from "../football/feedIds.js";
 import type * as football_feeds from "../football/feeds.js";
 import type * as football_football from "../football/football.js";
@@ -461,6 +463,8 @@ declare const fullApi: ApiFromModules<{
   "football/clubKits": typeof football_clubKits;
   "football/clubPage": typeof football_clubPage;
   "football/commentary": typeof football_commentary;
+  "football/commentaryChunks": typeof football_commentaryChunks;
+  "football/commentaryChunksMove": typeof football_commentaryChunksMove;
   "football/feedIds": typeof football_feedIds;
   "football/feeds": typeof football_feeds;
   "football/football": typeof football_football;

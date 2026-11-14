@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl, plCommentaryUrl } from "../../../convex/football/football";
 import { FEED_TYPE } from "../../../convex/football/commentary";
-import { FULL_TIME_LINE_WAIT_MS } from "../../../convex/football/matchCommentary";
+import { FULL_TIME_LINE_WAIT_MS, heldOf } from "../../../convex/football/matchCommentary";
 import type { RawPlCommentary } from "../../../convex/football/premierLeague/premierLeague";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
@@ -24,7 +24,7 @@ const MINUTE = 30;
 const FULL_TIME_LINE = "FT HUL 2–2 EVE";
 
 async function heldCommentary(t: TestConvex) {
-  return t.run((ctx) => ctx.db.query("matchCommentary").unique());
+  return t.run((ctx) => heldOf(ctx, HULL_EVERTON));
 }
 
 /** One tick at `time` against `payloads`, its commentary read as `stream` sends it; its fake fetch. */
@@ -54,7 +54,8 @@ test("a tick stores the live match's commentary, written from its stream, alongs
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] });
   const held = (await heldCommentary(t))!;
-  expect(held).toMatchObject({ fixtureCode: HULL_EVERTON, delayed: null });
+  // Read by its match's code, so held for Hull v Everton.
+  expect(held).toMatchObject({ delayed: null });
   const stream = recordedCommentary(MATCH.hullEverton.pl).events.content;
   expect(held.lines.map((line) => line.sourceId)).toEqual(stream.filter((line) => line.type !== FEED_TYPE.end2).map((line) => line.id));
   expect(held.lines[0]?.text).toBe(FULL_TIME_LINE);
