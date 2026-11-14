@@ -158,6 +158,29 @@ export function isWhole(record: Pick<PlayerMatchRecord, "played" | "arrived">): 
   return record.played === false || (record.arrived.fpl && record.arrived.pl);
 }
 
+/** A read cut off for him: a feed's part of his record that an earlier read brought, this one
+ *  lacks. His points stay as last read until a read brings it again (spec/10 `S10.12`). */
+export function isCutOff(held: Pick<PlayerMatchRecord, "arrived">, sent: Pick<PlayerMatchRecord, "arrived">): boolean {
+  return (held.arrived.fpl && !sent.arrived.fpl) || (held.arrived.pl && !sent.arrived.pl);
+}
+
+/** A read's records with each man it is cut off for (`isCutOff`) keeping his held record, and
+ *  whether any was (`S10.12`). */
+export function withCutOffHeld(
+  records: readonly PlayerMatchRecord[],
+  held: ReadonlyMap<number, PlayerMatchRecord>,
+): { records: PlayerMatchRecord[]; cutOff: boolean } {
+  let cutOff = false;
+  const kept = records.map((record) => {
+    const row = held.get(record.playerCode);
+    if (row === undefined || !isCutOff(row, record)) return record;
+    cutOff = true;
+    const { playerCode, fixtureCode, started, played, arrived, stats } = row;
+    return { playerCode, fixtureCode, started, played, arrived, stats };
+  });
+  return { records: kept, cutOff };
+}
+
 /** His stats once his whole record has arrived (isWhole), or null until then: what scoring prices. */
 export function statsIfWhole(record: Pick<PlayerMatchRecord, "played" | "arrived" | "stats">): Stats | null {
   return isWhole(record) ? record.stats : null;

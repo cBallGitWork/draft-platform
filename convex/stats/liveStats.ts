@@ -4,7 +4,8 @@ import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from
 import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
 import { matchWrites, statusOf, writeRows } from "./matchStats";
 import { matchRecordsOf } from "./matchRecordReads";
-import { livePrintsOf, recordPrint } from "./livePrints";
+import { delayPoints, livePrintsOf, recordPrint, undelayPoints } from "./livePrints";
+import { isCutOff } from "./matchRecords";
 import { countedStats, moveSeasonTotals } from "./seasonStats";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
@@ -63,43 +64,69 @@ export async function liveMatches(ctx: QueryCtx, now: number): Promise<LiveMatch
   return found;
 }
 
-/** One match's records as read before full time, every one provisional. A match already read at
- *  full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes nothing.
- *  `changed` names the men whose records moved. Nothing is recomputed here: the table works its
- *  points out on read (gameweekScorer/gameweekScores.ts), so the records written move it. The totals each
- *  passing a point where a rule's points change are stored as steps with the clock's `minute` (#44).
- *  Each record is checked against the match's compact row, and only a man who moved is read and
- *  written; season totals, season points and Scouting wait for full time (#2006, livePrints.ts). */
+/** One match's records as read at `readAt` before full time, every one provisional. A match already
+ *  read at full time (a status row) is `upsertMatch`'s alone, so a tick racing the sync writes
+ *  nothing; so does a read older than the last one written (spec/10 `S10.12`). `changed` names the
+ *  men whose records moved. Nothing is recomputed here: the table works its points out on read
+ *  (gameweekScorer/gameweekScores.ts), so the records written move it. The totals each passing a
+ *  point where a rule's points change are stored as steps with the clock's `minute` (#44). Each
+ *  record is checked against the match's compact row, and only a man who moved is read and
+ *  written; season totals, season points and Scouting wait for full time (#2006, livePrints.ts).
+ *  A read cut off for a man (`isCutOff`), or leaving out a man it named before, keeps what was
+ *  held and marks the match's live points delayed; the next full read writes and clears it (`S10.12`). */
 export const upsertLive = internalMutation({
-  args: { fixtureCode: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
+  args: { fixtureCode: v.number(), readAt: v.number(), minute: v.union(v.number(), v.null()), records: v.array(playerMatchRecord) },
   returns: v.object({
     ...matchWrites.fields,
     /** How storing the steps went, for the threshold lines feed's row (#522); null when none were
-     *  looked for, the match being the sync's. */
+     *  looked for, the match being the sync's or the read older than the last. */
     thresholdSteps: v.union(sideMatchOutcome, v.null()),
   }),
-  handler: async (ctx, { fixtureCode, minute, records }) => {
+  handler: async (ctx, { fixtureCode, readAt, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
-    if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
+    if (status !== null) return { state: status.state, ...UNWRITTEN };
     const prints = (await livePrintsOf(ctx, fixtureCode)) ?? (await startPrints(ctx, fixtureCode));
+    const state = "provisional" as const;
+    if (prints.readAt !== undefined && readAt < prints.readAt) return { state, ...UNWRITTEN };
     const printed = new Map(prints.prints.map(({ playerCode, print }) => [playerCode, print]));
+    const sentCodes = new Set(records.map(({ playerCode }) => playerCode));
+    const leftOut = prints.prints.some(({ playerCode }) => !sentCodes.has(playerCode));
     const sent = records.map((record) => ({ record, print: recordPrint(record) }));
-    const moved = sent.filter(({ record, print }) => printed.get(record.playerCode) !== print);
+    const changed = sent.filter(({ record, print }) => printed.get(record.playerCode) !== print);
     const held = new Map<number, Doc<"playerMatchStats">>();
-    for (const { record } of moved) {
+    for (const { record } of changed) {
       const row = await matchRecordOf(ctx, fixtureCode, record.playerCode);
       if (row !== null) held.set(row.playerCode, row);
     }
+    const moved = changed.filter(({ record }) => {
+      const row = held.get(record.playerCode);
+      return row === undefined || !isCutOff(row, record);
+    });
     const movedRecords = moved.map(({ record }) => record);
     const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, movedRecords, held);
-    const state = "provisional" as const;
     const written = await writeRows(ctx, movedRecords, held, state);
-    if (moved.length > 0) {
-      for (const { record, print } of moved) printed.set(record.playerCode, print);
-      const kept = [...printed].map(([playerCode, print]) => ({ playerCode, print }));
-      await ctx.db.patch("liveMatchPrints", prints._id, { prints: kept });
-    }
+    for (const { record, print } of moved) printed.set(record.playerCode, print);
+    const kept = moved.length > 0 ? { prints: [...printed].map(([playerCode, print]) => ({ playerCode, print })) } : {};
+    await ctx.db.patch("liveMatchPrints", prints._id, { ...kept, readAt });
+    const cutOff = leftOut || moved.length < changed.length;
+    if (cutOff) await delayPoints(ctx, fixtureCode, readAt);
+    else await undelayPoints(ctx, fixtureCode);
     return { state, ...written, lateCorrections: 0, thresholdSteps };
+  },
+});
+
+/** What a write that writes nothing returns, beside its state. */
+const UNWRITTEN = { inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
+
+/** Each live match's points marked delayed from `readAt`, as when a tick couldn't read it: they stay
+ *  as last read, and the scoreboards say "Live points delayed" until a full read (spec/10 `S10.12`).
+ *  A match with no live write yet has no points to hold. */
+export const delayLivePoints = internalMutation({
+  args: { fixtureCodes: v.array(v.number()), readAt: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { fixtureCodes, readAt }) => {
+    for (const fixtureCode of fixtureCodes) if ((await livePrintsOf(ctx, fixtureCode)) !== null) await delayPoints(ctx, fixtureCode, readAt);
+    return null;
   },
 });
 

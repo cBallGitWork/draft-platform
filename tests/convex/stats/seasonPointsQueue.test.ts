@@ -154,6 +154,7 @@ test("a live-only deployment, its records all waiting on a feed, starts no rebui
   for (const goals of [1, 2, 3]) {
     await t.mutation(internal.stats.liveStats.upsertLive, {
       fixtureCode: GW3.code,
+      readAt: Date.now(),
       minute: null,
       records: [{ ...sakaGw3, arrived: { fpl: true, pl: false }, stats: { minutes: 90, goals_scored: goals } }],
     });

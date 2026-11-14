@@ -1,5 +1,5 @@
 import type { Doc } from "../_generated/dataModel";
-import type { QueryCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { statChanges, type PlayerMatchRecord } from "./matchRecords";
 
 // The live tick's compact row (#2006, the liveMatchPrints table): one a match while it is live,
@@ -38,6 +38,25 @@ export function livePrintsOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"l
     .query("liveMatchPrints")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+/** The match's live points delay (spec/10 `S10.12`), or null while they keep up. */
+export function livePointsDelayOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"livePointsDelays"> | null> {
+  return ctx.db
+    .query("livePointsDelays")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+}
+
+/** The match's live points delayed from `readAt`; one already delayed keeps its moment. */
+export async function delayPoints(ctx: MutationCtx, fixtureCode: number, readAt: number): Promise<void> {
+  if ((await livePointsDelayOf(ctx, fixtureCode)) === null) await ctx.db.insert("livePointsDelays", { fixtureCode, delayedFrom: readAt });
+}
+
+/** The match's live points no longer delayed: a full read, or full time, wrote them. */
+export async function undelayPoints(ctx: MutationCtx, fixtureCode: number): Promise<void> {
+  const delay = await livePointsDelayOf(ctx, fixtureCode);
+  if (delay !== null) await ctx.db.delete("livePointsDelays", delay._id);
 }
 
 /** Whether the match's records are live ones no season row counts yet. */
