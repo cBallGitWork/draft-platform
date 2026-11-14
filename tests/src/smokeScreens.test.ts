@@ -1,7 +1,6 @@
 // The smoke run's built-screens check (tests/smoke/builtScreens.spec.ts), on the phone and the
-// desk, opens every route the router has, so a
-// new screen can't skip its sideways-scroll and console-error check; the few it doesn't open are
-// listed here, each with why.
+// desk, opens every route the router has, so a new screen can't skip its sideways-scroll and
+// console-error check; the few it doesn't open are listed here, each with why.
 
 import { describe, expect, it } from "vitest";
 import { createShellRouter, type ShellContext } from "../../src/routes/router";
