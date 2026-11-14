@@ -14,9 +14,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, PALMER, RICE as CDM_RICE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
@@ -34,10 +33,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment(undefined, true);
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], atConvexLimits: true }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [CHELSEA, ARSENAL, BRENTFORD]);
     await insertPlayers(ctx, [SAKA, RICE, MBEUMO, PALMER]);

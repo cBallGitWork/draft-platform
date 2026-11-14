@@ -6,9 +6,8 @@ import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A gameweek FPL stops sending keeps its last deadline (spec/05, The deadline; Craig, 1 Nov 2026:
 // "Keeps its last deadline"; #202). FPL drops gameweek 9, the next to begin, then moves its only
@@ -21,10 +20,7 @@ const DROPPED = 9;
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: DROPPED });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: DROPPED }) }));
 });
 
 const deadlineOf = (gameweek: number) => t.run(async (ctx) => (await leagueDeadlines(ctx, leagueId)).get(gameweek));

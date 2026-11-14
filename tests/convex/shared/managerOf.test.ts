@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { managerOf, refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, OUTSIDER, actingAs, addManager, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ADMIN, COMMISSIONER, OUTSIDER, actingAs, addManager, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // managerOf: the caller's own team in a league, which My team's pages, the lineup and leaving
@@ -11,9 +10,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
 });
 
 /** A league id that names no league: one made and then removed. */

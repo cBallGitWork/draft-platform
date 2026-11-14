@@ -11,8 +11,7 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 import { recordedSeason } from "../recorded/fpl.payloads";
 import { syncWith } from "./footballSync.harness";
 import { setUsed } from "./leagueRules.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "./leagues.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
+import { actingAs, COMMISSIONER, type TestConvex, freshLeague } from "./leagues.harness";
 
 /** Gameweek 8 in FPL's recorded season, its matches all after the harness's clock starts. */
 export const GAMEWEEK = 8;
@@ -40,9 +39,7 @@ export let leagueId: Id<"leagues">;
 /** Gives each test of the file a fresh deployment with a league, and FPL's recorded season synced. */
 export function useDeadlineRecorderDeployment(): void {
   beforeEach(async () => {
-    t = await signInDeployment();
-    fakeResend();
-    leagueId = await adminCreatesLeague(t);
+    ({ t, leagueId } = await freshLeague());
     await syncWith(t, payloads);
   });
 }

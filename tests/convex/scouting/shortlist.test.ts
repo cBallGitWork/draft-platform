@@ -5,9 +5,8 @@ import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWor
 import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, PALMER, SAKA, UNHELD, insertClubs, insertDroppedPlayer, insertPlayerRows } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -19,10 +18,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB, CAT] }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayerRows(ctx, [SAKA, PALMER]);

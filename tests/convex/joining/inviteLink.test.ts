@@ -6,8 +6,8 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
-import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, eventsIn, onTheList, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
+import { SITE_URL, UNLISTED, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's invite link (#73 story 2; spec/02, spec/13 Joining): made, replaced and switched
@@ -18,9 +18,7 @@ let sent: SentEmail[];
 let leagueId: Id<"leagues">;
 let token: string;
 beforeEach(async () => {
-  t = await signInDeployment();
-  sent = fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId, sent } = await freshLeague());
   token = await makeLink(t, leagueId);
 });
 

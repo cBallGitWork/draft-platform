@@ -4,8 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { HELD_FIRST_RULES, holdGameweeks, NEXT, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, COMMISSIONER, eventsIn, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // The trades' League settings (spec/03, spec/08; #383): who reviews an accepted trade, a
 // commissioner veto by default, and a trade deadline, off by default (Craig, 6 Nov 2026).
@@ -13,10 +12,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: NEXT }) }));
 });
 
 const read = async () => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId });

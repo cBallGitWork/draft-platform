@@ -49,6 +49,8 @@ vi.mock("convex/react", async () => {
         "scoring/patchNotes:banner": unlessSkipped(() => null),
         // Every club's colours, for the shirts and club marks: none held, so the file's first.
         "football/clubKits:all": unlessSkipped(() => undefined),
+        // The server's version, still loading, so no new-version bar (newVersion.test.tsx has it).
+        "release/version:current": () => undefined,
       },
       mutations: {
         "signIn/timeZone:recordZone": convex.recordZone,

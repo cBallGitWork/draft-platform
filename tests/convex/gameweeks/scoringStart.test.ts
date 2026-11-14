@@ -7,8 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks, playUpTo, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The league's scoring start (spec/04, After the draft; #1097): "scoring starts in gameweek N", set
@@ -24,10 +23,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let firstKickoff: number;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN, BOB, CAT] }));
   firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
 });

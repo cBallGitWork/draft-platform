@@ -5,18 +5,14 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import { FPL_SEASON } from "../recorded/plSeasons.payloads";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "./footballRows.harness";
-import { addManagers, adminCreatesLeague, ANN, type TestConvex } from "./leagues.harness";
-import { fakeResend, signInDeployment } from "./signIn.harness";
+import { ANN, type TestConvex, freshLeague } from "./leagues.harness";
 
 /** A league with `managers`' teams, in that order, Arsenal and Chelsea, and `players` with the positions set for them. */
 export async function scoutingLeague(
   players: readonly HeldPlayer[],
   managers: readonly string[] = [ANN],
 ): Promise<{ t: TestConvex; leagueId: Id<"leagues">; teams: Id<"teams">[] }> {
-  const t = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t);
-  const teams = await addManagers(t, leagueId, [...managers]);
+  const { t, leagueId, teams } = await freshLeague({ managers: [...managers] });
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, players);

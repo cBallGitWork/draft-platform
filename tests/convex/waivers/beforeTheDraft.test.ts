@@ -4,9 +4,8 @@ import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, ANN, BOB } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, MANAGERS, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { holdPlayers } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, noDraft, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
@@ -59,10 +58,7 @@ test("once the draft is over, a free agent can be picked up", async () => {
 });
 
 test("a free agent pickup before the draft is refused, so the draft still starts", async () => {
-  const t = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t, 5);
-  await addManagers(t, leagueId, MANAGERS.slice(0, 3));
+  const { t, leagueId } = await freshLeague({ managers: MANAGERS.slice(0, 3), maxTeams: 5 });
   await holdPlayers(t, [9100]);
 
   await expect((await actingAs(t, MANAGERS[0])).mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode: 9100, dropCode: null })).rejects.toThrow(

@@ -44,6 +44,14 @@ test("an emoji counts as one character, though it is two UTF-16 units", () => {
   expect(refusalOf(EMOJI.repeat(MOST + 1))).toBe(REFUSALS.tooLong);
 });
 
+test("S13.2: in a name, an emoji counts as one character as it looks, flags, skin tones and families too", () => {
+  const looksLikeOne = ["\u{1F1EC}\u{1F1E7}", "\u{1F44D}\u{1F3FD}", "\u{1F468}‍\u{1F469}‍\u{1F467}"];
+  for (const emoji of looksLikeOne) {
+    expect(typedName(emoji.repeat(MOST), MOST, REFUSALS)).toBe(emoji.repeat(MOST));
+    expect(() => typedName(emoji.repeat(MOST + 1), MOST, REFUSALS)).toThrow(ConvexError);
+  }
+});
+
 test("a name is kept on one line: line breaks, tabs and runs of spaces inside it become one space", () => {
   expect(typedName(" Red\n\nArmy \t FC ", 11, REFUSALS)).toBe("Red Army FC");
   expect(() => typedName(" \n ", MOST, REFUSALS)).toThrow(ConvexError);

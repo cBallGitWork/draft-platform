@@ -5,9 +5,8 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, TEAM_2 } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, TEAM_2, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer, insertSetPositions } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { squadCodes as joinOrder } from "../../../convex/squads/squadPlace";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -31,10 +30,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  teams = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB, CAT, DAN] }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, CLUBS);
     for (const [i, code] of PLAYER_CODES.entries()) {

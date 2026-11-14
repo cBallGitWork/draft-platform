@@ -10,9 +10,8 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { OUTSIDER, actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ATTACK } from "../../support/convex/teamPoints.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -46,10 +45,7 @@ const MATCHES = Array.from({ length: 7 }, (_, index) => ({
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
-  await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId } = await freshLeague({ managers: [ANN] }));
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     await insertPlayers(ctx, [FORWARD]);

@@ -37,7 +37,6 @@ const SUPPORT = byRepoPath(
  *  "file defines names" for names tests/support/ already exports. */
 const STILL_TWINNED: string[] = [
   // The same run of lines in two test files.
-  "tests/convex/gameweeks/scoringStart.test.ts <-> tests/convex/table/playedFixtures.test.ts",
   "tests/convex/lineup/lineups.squadAtDeadline.test.ts <-> tests/convex/lineup/lineups.storedFirstLineup.test.ts",
   "tests/convex/lineup/lineups.squadAtDeadline.test.ts <-> tests/convex/lineup/lineups.test.ts",
   "tests/convex/lineup/lineups.storedFirstLineup.test.ts <-> tests/convex/lineup/lineups.test.ts",
@@ -119,12 +118,10 @@ const STILL_TWINNED: string[] = [
   "tests/convex/signIn/account.test.ts defines refresh",
   "tests/convex/signIn/signInLinks.test.ts defines REFUSED",
   "tests/convex/squads/areaMinimums.test.ts defines CENTRE_BACK",
-  "tests/convex/squads/squadNumbers.test.ts defines RICE",
   "tests/convex/squads/squadRulesView.test.ts defines CENTRE_BACK, KEEPER",
   "tests/convex/squads/squads.test.ts defines as",
   "tests/convex/squads/teamSquad.test.ts defines GW1, GW2, PALMER, RAYA, SAKA, SAKA_GW1, SAKA_GW2, fixture, rowOf",
-  "tests/convex/squads/teamTransactions.test.ts defines RICE",
-  "tests/convex/squads/unheldPlayer.test.ts defines PALMER, squadRows",
+  "tests/convex/squads/unheldPlayer.test.ts defines squadRows",
   "tests/convex/stars/bestRole.test.ts defines CENTRE_BACK, NUMBER_TEN",
   "tests/convex/stars/deadlineStars.test.ts defines NEXT",
   "tests/convex/stats/matchRecordReads.test.ts defines FIXTURE",

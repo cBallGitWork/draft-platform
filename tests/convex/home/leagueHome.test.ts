@@ -6,9 +6,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, managersNamed, OUTSIDER, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, COMMISSIONER, CO_COMMISSIONER, managersNamed, OUTSIDER, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, RICE, SAKA, insertClubs, insertPlayerRows } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -20,9 +19,7 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 20);
+  ({ t, leagueId } = await freshLeague({ maxTeams: 20 }));
 });
 
 const read = async (email = ANN) => leagueHomeOf(await actingAs(t, email), leagueId, Date.now());

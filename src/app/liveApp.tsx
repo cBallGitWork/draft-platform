@@ -9,6 +9,7 @@ import { liveTrades } from "../trades/liveTrades";
 import { useLiveFeedback } from "../feedback/liveFeedback";
 import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
+import { NewVersionBar, NewVersionWatch } from "../frame/NewVersionBar";
 import { ReadFailed } from "../frame/ReadFailed";
 import { SignOut } from "../frame/topBar/SignOut";
 import { useLiveTopBar } from "../frame/topBar/liveTopBar";
@@ -71,11 +72,19 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
   // would turn a good link into "expired" (liveApp.provider.test.tsx).
   return (
     <ConvexAuthProvider client={client} shouldHandleCode={false}>
+      <LiveNewVersionWatch />
+      <NewVersionBar />
       <ShellFailed>
         <LiveShell linkCode={linkCode} />
       </ShellFailed>
     </ConvexAuthProvider>
   );
+}
+
+/** Compares the server's version with this tab's, live, so a release this tab can't work with
+ *  shows the bar above it, signed in or not (spec/12, S12.13). */
+function LiveNewVersionWatch() {
+  return <NewVersionWatch serverVersion={useQuery(api.release.version.current, {})} />;
 }
 
 /** The thrown value is wrapped, as it can itself be null. */

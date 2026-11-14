@@ -22,6 +22,9 @@ comes to exist, fills, changes and ends.
   stays, for the commissioner to hand to the next person.
 - A team starts as "Team 1", "Team 2" and so on, and its manager renames it. Names are unique
   within the league, up to 30 characters.
+- In a team's or league's name, an emoji counts as 1 character, as it looks, in the browser and
+  the server alike. Spaces at either end are trimmed. Names differing only in capitals are the same
+  name, so "rovers " is refused when "Rovers" exists (Craig, 14 Nov 2026, grill batch 3). `S13.2`
 - The admin can name a team's manager directly, from the command line; the commissioner and
   co-commissioner invite instead (22 Oct 2026).
 
@@ -67,6 +70,10 @@ comes to exist, fills, changes and ends.
 - The admin or the commissioner can remove a manager. A removed manager loses the league at once
   and can be invited back later. The team keeps its name.
 - A manager can leave a league themselves. It works like a removal, and files a Mail letter.
+- A manager removed or leaving mid-season: his trade offers, sent and received, are cancelled, and
+  the other side gets a Mail letter; his waiver claims are withdrawn; his lineup stays, and the
+  auto team keeps it legal until a new manager takes over (Craig, 14 Nov 2026, grill batch 2, on
+  #2202). `S13.2`
 
 ## Gameweeks
 

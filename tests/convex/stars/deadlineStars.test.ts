@@ -5,9 +5,8 @@ import { keptAtDeadline, keptBench } from "../../../convex/stars/deadlineStars";
 import { UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, passNextDeadline } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Stars kept at the deadline (#11, deadlineStars.ts; spec/05 Auto-subs, Craig, 1 Nov 2026): each
@@ -23,11 +22,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN]);
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   await holdSquad(t, leagueId, annsTeam);
   await (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
   const ratings = [RATED, UNSURE_RATING].map((rating) => ({ ...rating, perMatch: 5 }));

@@ -9,10 +9,9 @@ import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, actingAs, addManager, lettersTo, teamName, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, REVERSED_BENCH, sent, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 import { keptAtDeadline } from "../../../convex/stars/deadlineStars";
 import { autoTeamFailedLog } from "../../../convex/lineup/autoTeam";
@@ -38,11 +37,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams: [annsTeam, bobsTeam] } = await freshLeague({ managers: [ANN, BOB], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   await holdSquad(t, leagueId, annsTeam);
   await (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
 });
@@ -253,6 +248,7 @@ describe("an illegal lineup", () => {
   });
 });
 
+// S13.2: the gone manager's lineup stays, and the auto team keeps it legal until the team is handed on.
 describe("a team with no manager", () => {
   test("is on it until handed on, and handing it on switches it off", async () => {
     await switches(ANN, true);

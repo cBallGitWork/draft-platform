@@ -36,6 +36,15 @@ function withDropped(joined: string, dropped: Extract<LeagueEvent, { kind: "play
 export const CLAIM_FAILURES = ["ahead", "playerGone", "dropGone", "dropHeld", "limits"] as const;
 export type ClaimFailure = (typeof CLAIM_FAILURES)[number];
 
+/** To a manager alone when his pending claim is withdrawn as the player he claimed leaves the
+ *  Premier League (S08.24, #2200). */
+export function claimWithdrawnLetter(playerName: string): Words {
+  return {
+    subject: `Your claim for ${playerName} is withdrawn`,
+    body: `${playerName} has left the Premier League, so your claim for him is withdrawn. Nobody joined or left your squad for it.`,
+  };
+}
+
 /** To a manager alone when his claim fails at a waiver run (spec/08, spec/16), saying why. */
 export function claimFailedLetter({ playerName, dropName, why }: { playerName: string; dropName: string | null; why: ClaimFailure }): Words {
   const because = {

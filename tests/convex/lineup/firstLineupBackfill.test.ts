@@ -3,9 +3,8 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
+import { addManagers, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
 import { BOBS, FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The #637 and #1040 migration: every team with players gets a saved lineup and no score moves. A
 // team whose squad was made before teams held a first lineup gets one from the next gameweek not
@@ -21,11 +20,7 @@ let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 let catsTeam: Id<"teams">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: NEXT });
-  leagueId = await adminCreatesLeague(t);
-  [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  ({ t, leagueId, teams: [annsTeam, bobsTeam, catsTeam] } = await freshLeague({ managers: [ANN, BOB, CAT], before: (t) => holdGameweeks(t, { next: NEXT }) }));
   // Ann's written as squads were before #637: players and no lineup row. Bob saved his; Cat holds
   // the first lineup her squad was given.
   await holdSquad(t, leagueId, annsTeam, SQUAD, { withoutLineup: true });

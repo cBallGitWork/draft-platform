@@ -5,8 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { draftSteps, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { COMMISSIONER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The draft room's commissioner panel (#1101; spec/04, The commissioner): what it reads, the pick
@@ -24,10 +23,7 @@ const mark = async (teamId: Id<"teams">) => (await as(COMMISSIONER)).mutation(ap
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));
 
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 5);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
+  ({ t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
   // The squad holds 11, enough for the rules a League settings save checks.
   await changeEveryRules(t, leagueId, (rules) => ({
     ...rules,

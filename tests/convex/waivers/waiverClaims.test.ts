@@ -179,7 +179,7 @@ describe("a manager's claims", () => {
     expect((await w.pending(COMMISSIONER)).map(({ teamId }) => teamId)).toEqual([w.annsTeam, w.bobsTeam]);
   });
 
-  // Craig, 11 Nov 2026, on #1464: withdrawn when the manager goes; the next manager starts with none.
+  // Craig, 11 Nov 2026, on #1464, and S13.2: withdrawn when the manager goes; the next manager starts with none.
   test.each(["removed", "leaves"])("are withdrawn when their manager is %s: none is tried, and whoever takes the team on starts with none", async (how) => {
     await w.onWaivers([SAKA, PALMER]);
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);

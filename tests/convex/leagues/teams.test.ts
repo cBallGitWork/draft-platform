@@ -24,8 +24,8 @@ import {
   TEAM_1,
   TEAM_2,
   TEAM_3,
+  freshLeague,
 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's teams, their names and their managers (#24 stories 4, 5 and 7; spec/13).
@@ -33,9 +33,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
 });
 
 const teamNames = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
@@ -114,6 +112,16 @@ describe("renaming a team", () => {
     await ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "x".repeat(TEAM_NAME_MAX) });
     await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "x".repeat(TEAM_NAME_MAX + 1) }), refusals.teamNameTooLong);
     expect((await teamNames())[0].name).toBe("x".repeat(TEAM_NAME_MAX));
+  });
+
+  test(`S13.2: an emoji counts as one character as it looks, and "rovers " clashes with "Rovers"`, async () => {
+    const ann = await actingAs(t, ANN);
+    const flags = "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}".repeat(TEAM_NAME_MAX);
+    await ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: flags });
+    expect((await teamNames())[0].name).toBe(flags);
+
+    await (await actingAs(t, BOB)).mutation(api.leagues.teams.rename, { teamId: (await teamsIn(t, leagueId))[1]._id, name: "Rovers" });
+    await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "rovers " }), refusals.teamNameTaken("rovers"));
   });
 
   test("its manager changes only its capitals, and it's filed", async () => {

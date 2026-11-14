@@ -1,8 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesWith } from "../../support/convex/leagueRules.harness";
-import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // A save of the rules stores only what it changed (#1617; Craig, 11 Nov 2026: "a save stores only
 // what changed"), so a league's history doesn't copy the formations and classics with each change,
@@ -11,10 +10,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  await holdGameweeks(t, { next: 9 });
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague({ before: (t) => holdGameweeks(t, { next: 9 }) }));
 });
 
 const rulesRows = () =>

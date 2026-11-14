@@ -25,7 +25,8 @@ import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 // answers it; when the trade deadline passes or a break starts; when either team goes on the auto
 // team; and the moment one of its players leaves his squad, by a drop, a claim, a pickup, the
 // commissioner or another trade (Craig, 6 Nov 2026). A trade already accepted and in review isn't
-// closed by any of these: it finishes its review (tradeReview.ts). Its players are held meanwhile:
+// closed by any of these: it finishes its review (tradeReview.ts). A player leaving the Premier
+// League cancels an offer holding him, in review too (S08.25, #2200). Its players are held meanwhile:
 // they can't be dropped, and an accepted trade can't take them. Nothing closes while the league is
 // frozen for deletion; an offer due meanwhile closes at the cron's first check after an undo (#1493).
 
@@ -88,6 +89,18 @@ export async function closeOffersHolding(ctx: MutationCtx, leagueId: Id<"leagues
     const gone = [...offer.gives, ...offer.gets].find((code) => left.has(code));
     if (gone === undefined) continue;
     await closeOffer(ctx, offer, { why: "playerLeft", playerName: await tradedName(ctx, gone), teamName });
+  }
+}
+
+/** Cancels each offer in the league, open or in review, holding a player in `left`, each just gone
+ *  from the Premier League: its review's timer goes with it, and both managers are told (S08.25,
+ *  Craig, 14 Nov 2026, on #2200). */
+export async function cancelOffersHoldingLeavers(ctx: MutationCtx, leagueId: Id<"leagues">, left: ReadonlySet<number>): Promise<void> {
+  for (const offer of await leagueOffers(ctx, leagueId)) {
+    const gone = [...offer.gives, ...offer.gets].find((code) => left.has(code));
+    if (gone === undefined) continue;
+    if (offer.review !== undefined) await ctx.scheduler.cancel(offer.review.scheduledId);
+    await closeOffer(ctx, offer, { why: "leftPremierLeague", playerName: await tradedName(ctx, gone) });
   }
 }
 

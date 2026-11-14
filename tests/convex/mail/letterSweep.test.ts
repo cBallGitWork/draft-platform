@@ -14,7 +14,7 @@ import { askToJoin, invite, makeLink } from "../../support/convex/joining.harnes
 import { changesTo, NEWCOMER, type Caller, type RowsToChange } from "../../support/convex/leagueMutations.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
-import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, teamsIn, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, COMMISSIONER, teamsIn, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { NEXT, PALMER, SAKA } from "../../support/convex/waivers.harness";
@@ -69,10 +69,7 @@ const DRAFTABLE = [701, 702].map((code) => midfielder(code));
 
 /** A league of five teams before its draft, ANN and BOB managing, DRAFTABLE held and each squad two. */
 async function draftLeague() {
-  const t = await signInDeployment();
-  fakeResend();
-  const leagueId = await adminCreatesLeague(t, 5);
-  const teams = await addManagers(t, leagueId, [ANN, BOB]);
+  const { t, leagueId, teams } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 });
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, DRAFTABLE);
