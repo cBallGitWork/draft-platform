@@ -11,6 +11,7 @@ import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { NewVersionBar, NewVersionWatch } from "../frame/NewVersionBar";
 import { ReadFailed } from "../frame/ReadFailed";
+import { syncServerTime } from "../shared/serverClock";
 import { SignOut } from "../frame/topBar/SignOut";
 import { useLiveTopBar } from "../frame/topBar/liveTopBar";
 import type { AuthActions, Session } from "../signIn/seam";
@@ -73,6 +74,7 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
   return (
     <ConvexAuthProvider client={client} shouldHandleCode={false}>
       <LiveNewVersionWatch />
+      <LiveServerTime />
       <NewVersionBar />
       <ShellFailed>
         <LiveShell linkCode={linkCode} />
@@ -85,6 +87,15 @@ export function LiveApp({ linkCode }: { linkCode: string | null }) {
  *  shows the bar above it, signed in or not (spec/12, S12.13). */
 function LiveNewVersionWatch() {
   return <NewVersionWatch serverVersion={useQuery(api.release.version.current, {})} />;
+}
+
+/** Asks the server its time once, as the tab opens, so every countdown goes by it (S04.22, S05.50). */
+function LiveServerTime() {
+  const now = useMutation(api.release.serverTime.now);
+  useEffect(() => {
+    void syncServerTime(() => now({}));
+  }, [now]);
+  return null;
 }
 
 /** The thrown value is wrapped, as it can itself be null. */

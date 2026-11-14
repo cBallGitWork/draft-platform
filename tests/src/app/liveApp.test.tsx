@@ -54,6 +54,8 @@ vi.mock("convex/react", async () => {
       },
       mutations: {
         "signIn/timeZone:recordZone": convex.recordZone,
+        // The server's time, asked once as the app opens: this machine's own (S04.22).
+        "release/serverTime:now": async () => Date.now(),
         // The rest the seams take hold of as the app opens, seam by seam; these tests call none of them.
         ...Object.fromEntries(
           [
