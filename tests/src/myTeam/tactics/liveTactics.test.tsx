@@ -48,6 +48,15 @@ test("a refusal comes back as the server's words; any other failure is said plai
   expect(logged).toHaveBeenCalledOnce();
 });
 
+// #1025: the live site's failed save logged this, and the page must never show it (spec/12, The frame).
+test("a save failing with Convex's Server Error is said plainly, never in the server's words", async () => {
+  convex.save.mockRejectedValue(new Error("[CONVEX M(lineup/lineups:save)] [Request ID: 1a2b3c] Server Error"));
+  silenceConsoleError();
+  const answer = await changes().save(A_LEAGUE_ID, LINEUP);
+  expect(answer).toBe(saveFailedWords);
+  expect(answer).not.toMatch(/Server Error|CONVEX/);
+});
+
 test("opening the tab tells lineup/lineupDue:openedTactics once it shows a gameweek, and not with none", () => {
   const { rerender } = renderHook(({ gameweek }) => liveTactics.useTacticsOpened(A_LEAGUE_ID, gameweek), { initialProps: { gameweek: null as number | null } });
   expect(convex.openedTactics).not.toHaveBeenCalled();
