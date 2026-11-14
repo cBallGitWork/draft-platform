@@ -16,7 +16,7 @@ import { silenceConsoleError } from "../../support/console.setup";
 
 /** What Convex's server answers a tab calling a function the release removed, or with arguments
  *  it no longer takes, as the browser's client throws it. */
-const GONE = new Error("[CONVEX M(lineup/lineups:save)] Server Error\nCould not find public function for 'lineup/lineups:save'.");
+const FUNCTION_GONE = new Error("[CONVEX M(lineup/lineups:save)] Server Error\nCould not find public function for 'lineup/lineups:save'.");
 const OLD_ARGUMENTS = new Error("[CONVEX M(lineup/lineups:save)] Server Error\nArgumentValidationError: Object is missing the required field `formation`.");
 
 afterEach(forgetNewVersion);
@@ -46,7 +46,7 @@ test("once the server's version is ahead of the tab's, the bar shows, and Reload
 });
 
 test.each([
-  ["a function the release removed", GONE],
+  ["a function the release removed", FUNCTION_GONE],
   ["arguments the release changed", OLD_ARGUMENTS],
 ])("a save refused for %s says the bar's words and shows the bar", async (_, failure) => {
   silenceConsoleError();
@@ -63,7 +63,7 @@ test.each([
 
 test("once a new version is out, a save is never sent", async () => {
   silenceConsoleError();
-  await refusalOf(() => Promise.reject(GONE), "Saving the lineup", changeFailedWords);
+  await refusalOf(() => Promise.reject(FUNCTION_GONE), "Saving the lineup", changeFailedWords);
   const save = vi.fn(() => Promise.resolve());
 
   expect(await refusalOf(save, "Saving the squad", changeFailedWords)).toBe(newVersionWords);
@@ -81,7 +81,7 @@ test("a read the server refused as older code's shows the bar over the failed pa
   render(
     <>
       <NewVersionBar />
-      <ReadFailed error={GONE} onRetry={() => {}} />
+      <ReadFailed error={FUNCTION_GONE} onRetry={() => {}} />
     </>,
   );
   expect(screen.getByText(newVersionWords)).toBeTruthy();

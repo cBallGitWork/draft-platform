@@ -29,8 +29,7 @@ export function markNewVersion() {
 export const isOldCall = (error: unknown) => error instanceof Error && OLD_CALL.test(error.message);
 
 /** Whether the server's version, `serverVersion`, is ahead of this tab's; undefined while it loads. */
-export const serverIsNewer = (serverVersion: number | undefined, tabVersion = SITE_VERSION) =>
-  serverVersion !== undefined && serverVersion > tabVersion;
+export const serverIsNewer = (serverVersion: number | undefined) => serverVersion !== undefined && serverVersion > SITE_VERSION;
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
