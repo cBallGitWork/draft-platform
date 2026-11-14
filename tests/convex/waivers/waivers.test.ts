@@ -18,7 +18,7 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // as do those nobody drafts when the league says so; each drop files a Mail letter.
 
 const DROPPED = SQUAD[SQUAD.length - 1];
-/** A player the test holds itself, past waiverLeague's Saka, Palmer and Rice (9001 to 9003). */
+/** A player the test holds itself, none of waiverLeague's Saka, Palmer and Rice. */
 const FREE_AGENT = 9004;
 
 let t: TestConvex;

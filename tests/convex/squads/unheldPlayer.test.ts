@@ -5,15 +5,13 @@ import { squadRefusals } from "../../../convex/squads/squads";
 import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, actingAs, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, UNHELD, insertClubs } from "../../support/convex/footballRows.harness";
-import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { PALMER, SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A squad row whose player the football sync doesn't hold (#323). Players are never deleted, only
 // marked dropped, so it is data gone wrong. The squads page still shows every squad, with his row
 // kept, saying his code, so the fault is easy to spot (Craig, 31 Oct 2026: "b but dont hide the
 // row, mabe an error message. easier to spot/debug"). Moving or releasing him is refused.
-
-const PALMER = 1002;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

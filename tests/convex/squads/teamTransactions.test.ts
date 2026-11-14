@@ -8,13 +8,11 @@ import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTrans
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
-import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { RICE, SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
 // first, from the league's events, which Mail files letters from.
-
-const RICE = 1002;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

@@ -10,11 +10,11 @@ import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { draftStarted } from "./draft.harness";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, lettersTo, teamsIn, type TestConvex, ANN, BOB, CAT, freshLeague } from "./leagues.harness";
-import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
+import { holdPlayers, holdSquad, PALMER, passNextDeadline, RICE, SAKA, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
 
+export { PALMER, RICE, SAKA };
 /** The gameweek holdGameweeks kicks off next: gameweek 4, a day ago, is the latest begun. */
 export const NEXT = 5;
-export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
 
 /** The league's draft row gone, as before its commissioner set a start. */
