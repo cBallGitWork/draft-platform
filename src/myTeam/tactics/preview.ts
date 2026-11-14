@@ -1,7 +1,7 @@
-// The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with four on
-// the bench, under the first rules, the deadline a day and a half off. A save is judged by the
-// server's own check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved
-// plans start none. A role card prices made-up last matches as the server does (roleCardShape.ts).
+// The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with
+// four on the bench (fourteen at the league limits, a full 25), under the first rules, the deadline
+// a day and a half off. A save is judged by the server's own check (lineup.ts) and said in its
+// words, so a refusal shows as it would live. Saved plans start none. A role card prices made-up last matches as the server does (roleCardShape.ts).
 
 import { useMemo, useSyncExternalStore } from "react";
 import { cardRolesOf, pricedMatch } from "../../../convex/lineup/roleCardShape";
@@ -17,7 +17,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { previewGameMode } from "../../shared/preview";
+import { previewAtLimits, previewGameMode } from "../../shared/preview";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
@@ -27,8 +27,28 @@ const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 /** A club's FPL code by its short name, for its shirt's colours. */
 const clubCodeOf = (shortName: string) => Number(Object.entries(CLUB_COLOURS).find(([, club]) => club.shortName === shortName)![0]);
 
+type PreviewPlayer = readonly [number, string, string, Position[], Cell | null];
+
+/** At the league limits (#2136), ten more on the bench, so the squad holds a Premier League
+ *  squad's most; still no more than three from a club. */
+const LIMITS_BENCH: readonly PreviewPlayer[] = [
+  [16, "Verbruggen", "BHA", ["GK"], null],
+  [17, "Van de Ven", "TOT", ["CB"], null],
+  [18, "Gusto", "CHE", ["FB", "WB"], null],
+  [19, "Caicedo", "CHE", ["CDM", "CM"], null],
+  [20, "Szoboszlai", "LIV", ["CM", "CAM"], null],
+  [21, "Gibbs-White", "NFO", ["CAM", "CM"], null],
+  [22, "Kudus", "TOT", ["W"], null],
+  [23, "Semenyo", "BOU", ["W", "ST"], null],
+  [24, "Isak", "LIV", ["ST"], null],
+  [25, "Wood", "NFO", ["ST"], null],
+];
+
+/** The player with no match yet, so his role card and his season say so: Watkins. */
+export const PREVIEW_UNPLAYED = 15;
+
 /** Each player: his code, name, club and positions, and his cell, or none for the bench. */
-const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
+const PLAYERS: readonly PreviewPlayer[] = [
   [1, "Pickford", "EVE", ["GK"], { area: "goalkeeper", lane: "centre" }],
   [2, "Gvardiol", "MCI", ["CB", "FB"], { area: "defence", lane: "left" }],
   [3, "Gabriel", "ARS", ["CB"], { area: "defence", lane: "leftCentre" }],
@@ -44,6 +64,7 @@ const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
   [13, "Murillo", "NFO", ["CB"], null],
   [14, "Mbeumo", "MUN", ["W", "ST"], null],
   [15, "Watkins", "AVL", ["ST"], null],
+  ...(previewAtLimits ? LIMITS_BENCH : []),
 ];
 
 /** Made-up stars, as the preview's points are: a half-star step from his code and the role's place,
@@ -68,7 +89,7 @@ export const previewStarterCodes = PLAYERS.flatMap(([playerCode, , , , cell]) =>
 /** FPL's chance he plays next round, null with no news on him. */
 export const previewChanceOf = (playerCode: number) => NEWS.get(playerCode)?.chanceOfPlaying ?? null;
 
-// Squad numbers are made up too: each player wears his code, the last one none yet (#13).
+// Squad numbers are made up too: each player wears his code, Watkins none yet (#13).
 const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   playerCode,
   name,
@@ -77,7 +98,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   unheld: false,
   positions,
   flagged: [],
-  number: playerCode === 15 ? null : playerCode,
+  number: playerCode === PREVIEW_UNPLAYED ? null : playerCode,
   stars: previewStars(playerCode, positions),
   availability: "available" as const,
   news: NEWS.get(playerCode)?.news ?? null,
@@ -157,10 +178,10 @@ const ROLE_SET = FIRST_SCORING_WITH_ROLES;
 /** Clubs CLUB_COLOURS holds, for their shirts, and none of the squad's own. */
 const OPPONENTS = ["BOU", "SUN", "BHA", "FUL", "BRE"];
 
-/** Made-up last 5 matches for each player, from his code, as the preview's stars are; the last
- *  player (Watkins) has none yet, so his card says so. */
+/** Made-up last 5 matches for each player, from his code, as the preview's stars are; Watkins has
+ *  none yet, so his card says so. */
 function previewMatches(playerCode: number) {
-  if (playerCode === PLAYERS.length) return [];
+  if (playerCode === PREVIEW_UNPLAYED) return [];
   return OPPONENTS.map((shortName, index) => {
     const step = (playerCode * 5 + index * 3) % 7;
     const stats = { minutes: index === 4 ? 23 : 90, goals_scored: step === 6 ? 1 : 0, assists: step === 5 ? 1 : 0, accurate_pass: 20 + step * 6, fwd_pass: 8 + step * 2, ball_recovery: step, interception: step % 3, aerial_won: step % 4, won_tackle: step % 3 };
