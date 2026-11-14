@@ -104,6 +104,7 @@ import type * as gameweekScorer_teamGameweek from "../gameweekScorer/teamGamewee
 import type * as gameweeks_deadline from "../gameweeks/deadline.js";
 import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.js";
 import type * as gameweeks_gameweekEnd from "../gameweeks/gameweekEnd.js";
+import type * as gameweeks_gameweekKickoffs from "../gameweeks/gameweekKickoffs.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
 import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
@@ -513,6 +514,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/deadline": typeof gameweeks_deadline;
   "gameweeks/deadlineRecorder": typeof gameweeks_deadlineRecorder;
   "gameweeks/gameweekEnd": typeof gameweeks_gameweekEnd;
+  "gameweeks/gameweekKickoffs": typeof gameweeks_gameweekKickoffs;
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
   "gameweeks/leagueDeadlines": typeof gameweeks_leagueDeadlines;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;

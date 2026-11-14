@@ -10,6 +10,7 @@ import { repriceMatches } from "../stats/seasonPointsMoves";
 import { followKickoffs } from "../scoring/patchKickoffs";
 import { recordPassedDeadlines } from "./deadlineRecorder";
 import type { ScheduledMatch } from "./deadline";
+import { keepGameweekKickoffs } from "./gameweekKickoffs";
 import { leagueDeadlinesIn, scheduledMatches } from "./leagueDeadlines";
 import { moveOf } from "./roundStarts";
 import { seasonGameweekCount } from "./seasonGameweeks";
@@ -70,6 +71,7 @@ export const move = mutation({
     await ctx.db.insert("matchMoveLog", { fixtureCode, from: match.gameweek, to: gameweek, at: now });
     if (to !== match.gameweek) {
       await ctx.db.patch("fixtures", match._id, { gameweek: to });
+      await keepGameweekKickoffs(ctx, [match.gameweek, to]);
       await repriceMatches(ctx, [match]);
       // A waiting patch follows its gameweek's first kickoff (patchKickoffs.ts, #901).
       await followKickoffs(ctx, now);

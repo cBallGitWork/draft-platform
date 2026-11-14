@@ -31,6 +31,17 @@ export const gameweekTables = {
     firstKickoff: v.number(),
     recordedAt: v.number(),
   }).index("by_season_and_gameweek", ["season", "gameweek"]),
+  /** Each gameweek's first and last kickoff among the matches the feed still sends, one row a
+   *  gameweek and season its kickoffs fall in (#2009): what a deadline reads, in place of the
+   *  season's 380 matches. Kept by gameweeks/gameweekKickoffs.ts in the transaction of every write
+   *  that adds, drops, moves or re-times a match; a gameweek with no kickoff time held has none. */
+  gameweekKickoffs: defineTable({
+    gameweek: v.number(),
+    /** The year the season starts, as shared/time.ts's `seasonStartYear`. */
+    season: v.number(),
+    firstKickoff: v.number(),
+    lastKickoff: v.number(),
+  }).index("by_gameweek_and_season", ["gameweek", "season"]),
   /** A feed's round's first kickoff as first seen (#1416): gameweek N is the date window from round
    *  N's to round N+1's (spec/05 S05.22), so a later move never changes it. One row a season and
    *  round, site-wide, written by gameweeks/roundStarts.ts before the sync writes the matches. */

@@ -5,7 +5,7 @@ import { fixedDeadlinesOf } from "./passedDeadlines";
 import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "./usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { heldGameweeksSeason, seasonGameweekCount } from "./seasonGameweeks";
-import { currentFixtures } from "../shared/fixtures";
+import { heldKickoffs } from "./gameweekKickoffs";
 import { historyOf, inForce } from "../rules/rulesHistory";
 
 // The season's schedule as held, and each league's deadlines over it under its rules in force.
@@ -31,10 +31,11 @@ export async function heldSchedule(ctx: QueryCtx): Promise<HeldSchedule> {
   return { gameweeks: seasonRows.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
 
-/** The season's matches as held, less those the football layer no longer sends: what a deadline
- *  reads, read once by a caller asking for many leagues and handed to `leagueDeadlinesIn`. */
-export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
-  return (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
+/** The season's matches as a deadline reads them, less those the football layer no longer sends:
+ *  each gameweek's first and last kickoff (gameweekKickoffs.ts, #2009), never all 380, read once
+ *  by a caller asking for many leagues and handed to `leagueDeadlinesIn`. */
+export function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
+  return heldKickoffs(ctx);
 }
 
 /** The league's own deadline for each of the season's gameweeks: the one recorded once it passed

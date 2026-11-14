@@ -25032,6 +25032,52 @@
       }
     },
     {
+      "tableName": "gameweekKickoffs",
+      "indexes": [
+        {
+          "indexDescriptor": "by_gameweek_and_season",
+          "fields": [
+            "gameweek",
+            "season"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "firstKickoff": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "lastKickoff": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "roundStarts",
       "indexes": [
         {
