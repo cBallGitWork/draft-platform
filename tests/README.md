@@ -86,6 +86,11 @@ Nothing in it is a test. Each kind of file:
   scoring), `ipswich-forest.commentary.txt` (Ipswich v Forest's written commentary,
   `tests/convex/football/commentary.test.ts`), `round-robin.txt` (the round-robin fixture draws)
   and `schema.json` (the saved tables).
+- **`functionInputs.json`**, each public function's and each internal mutation's and action's
+  arguments, kept in step with the code by `tests/scripts/function-inputs.test.mjs` (`-u` rewrites
+  it). Not add-only, but `scripts/function-inputs.mjs`, which that test runs, fails when a branch
+  drops a function main's copy holds or changes its inputs so a call queued against main may not
+  fit, unless a commit carries `Inputs-changed: <function>: <how queued calls survive>` (#2172).
 
 `recorded/` and `golden/` are add-only: `scripts/recorded-add-only.mjs`, run by `npm run verify`,
 fails on a changed or deleted file unless a commit on the branch carries the trailer

@@ -1,12 +1,14 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { internalQuery, type QueryCtx } from "../_generated/server";
+import { internalQuery, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { matchStatsState } from "../schema";
 import { DAY_MS, HOUR_MS, MINUTE_MS, seasonStartAt, WEEK_MS } from "../shared/time";
 import { CURRENT_FIXTURES_MOST, currentFixtures, fixtureByCode } from "../shared/fixtures";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
+import { rescoreEveryLive } from "../table/liveRescore";
 import { statusOf, triedOf } from "./matchStats";
+import { isAbandoned } from "./matchRecordReads";
 
 // Issue #27, split from matchStats.ts: which held matches `matchStatsSync.run` reads now (#199).
 
@@ -67,7 +69,8 @@ export const due = internalQuery({
     }
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
     for (const { code, gameweek, kickoff } of candidates.values()) {
-      if (gameweek === null || kickoff === null || kickoff > fullTimeBy) continue;
+      // A match marked abandoned counts as never played: nothing is read for it (#904).
+      if (gameweek === null || kickoff === null || kickoff > fullTimeBy || (await isAbandoned(ctx, code))) continue;
       const triedAt = (await triedOf(ctx, code))?.triedAt ?? Number.NEGATIVE_INFINITY;
       found.push({ fixtureCode: code, gameweek, kickoff, triedAt });
     }
@@ -107,4 +110,12 @@ async function statusesDue(ctx: QueryCtx, now: number): Promise<Doc<"matchStatsS
 /** The kickoff the last run that read said to read the fixtures from; none before the first. */
 async function storedUnseenFrom(ctx: QueryCtx): Promise<number | undefined> {
   return (await ctx.db.query("matchStatsUnseenFrom").unique())?.kickoff;
+}
+
+/** A match whose abandoned mark is taken back (match/abandonedMatches.ts, #904): provisional and
+ *  never read, so the next run reads it whatever its last read was, and the live scores move with it. */
+export async function reopenForRead(ctx: MutationCtx, fixtureCode: number): Promise<void> {
+  const status = await statusOf(ctx, fixtureCode);
+  if (status !== null) await ctx.db.patch("matchStatsStatus", status._id, { state: "provisional", completeAt: undefined, lockedAt: undefined, lastReadAt: 0 });
+  await rescoreEveryLive(ctx);
 }

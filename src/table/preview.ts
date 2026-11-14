@@ -23,7 +23,7 @@ export const previewSeason = {
   deadlineOf: (gameweek: number) => firstDeadline + (gameweek - 1) * WEEK_MS,
 } satisfies Drawn;
 /** The team that never saves a lineup: it scores nothing and is on the auto team, so the table shows its chip. */
-export const previewAutoTeam = "Team 5";
+export const previewAutoTeam = previewTeamNames[4];
 const scores = new Map(
   Array.from({ length: BEGUN }, (_, index) => [
     index + 1,

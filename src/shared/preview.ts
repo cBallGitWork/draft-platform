@@ -1,12 +1,47 @@
 // The preview's made-up people and leagues that every feature's preview shares (src/app/preview.ts
-// says how the preview runs, and holds the sessions built from these). Dev server only, as that
-// file is.
+// says how the preview runs, and holds the sessions built from these), and the switch that puts
+// them at the league limits. Dev server only, as that file is.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import { MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { gameModeOf } from "../../convex/rules/gameMode";
 import { SECOND_MS } from "../../convex/shared/time";
+
+/** The address's search key that puts the preview at the league limits (#2136): `?preview=manager&limits`. */
+export const PREVIEW_LIMITS_KEY = "limits";
+
+/** Whether the preview is at the league limits: its league at the most teams, each name, the
+ *  league's too, at the longest, and a manager's squad at the most players (leagueLimits.ts). Read
+ *  once, as the preview loads, so the whole visit stays at the limits. */
+export const previewAtLimits = new URLSearchParams(globalThis.location?.search ?? "").has(PREVIEW_LIMITS_KEY);
+
+/** The Pro League's name at the limits: as long as a league's name may be. */
+export const limitsLeagueName = "Tim Hortons Premier Pro League";
+/** Its teams at the limits: as many as a league may hold, each name as long as a team's may be. */
+export const limitsTeamNames: readonly string[] = [
+  "Saka Potatoes and the Mashers!",
+  "Kroos Control Football Club XI",
+  "Lingard Franca Athletic Wolves",
+  "Neville Wears Prada Wonderwall",
+  "Team 5 With A Much Longer Name",
+  "Murder on Zidane's Dancefloors",
+  "Dinamo Kiev Leave Before Lunch",
+  "Haaland Oates Private Eyes AFC",
+  "Expected Toulouse Dirty Bodies",
+  "Real Sociedad of Gentlemen AFC",
+  "Bayer Neverlusen Again Rangers",
+  "Inter Mi Familia Wolverhampton",
+  "Borussia Teeth Mönchengladbach",
+  "Obi-Wan Kenobi Wednesday Wings",
+  "Ctrl Alt Defeat Wanderers Town",
+  "Lord of the Wings Wanderers XI",
+  "Fantasy Island Galácticos Town",
+  "Hakuna Matip Wanderers Wombles",
+  "Agüero Nights Long Weekend AFC",
+  "The Wrong Trousers Thursday XI",
+];
 
 /** What each made-up person may do in a league, as the server's powersIn would send it. */
 export const managerPowers = { names: false, runs: false };
@@ -16,8 +51,10 @@ export const commissionerPowers = { names: true, runs: true };
 export const adminPowers = commissionerPowers;
 
 /** The Pro League's teams, the preview manager's first: every preview screen of the league draws
- *  these nine, so one plays the league's average each gameweek. */
-export const previewTeamNames: readonly string[] = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
+ *  these nine, so one plays the league's average each gameweek; at the limits, the twenty above. */
+export const previewTeamNames: readonly string[] = previewAtLimits
+  ? limitsTeamNames
+  : ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 
 /** The preview's twenty Premier League clubs, each by its real FPL `code`, so its crest and colours
  *  are its own (#840): the Premier League section plays them, and every other preview's men are
@@ -63,13 +100,13 @@ export const previewGameMode = gameModeOf(FIRST_RULES);
 const unreachedCommissioner = "first.commissioner@example.com";
 export const proLeague: LeagueSummary = {
   leagueId: "preview-pro-league" as Id<"leagues">,
-  name: "Tim Hortons Pro League",
+  name: previewAtLimits ? limitsLeagueName : "Tim Hortons Pro League",
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
   powers: managerPowers,
   teamName: previewTeamNames[0],
   teams: previewTeamNames.length,
-  maxTeams: 12,
+  maxTeams: previewAtLimits ? MOST_TEAMS : 12,
   unsentCommissionerLink: null,
 };
 export const miniBeta: LeagueSummary = {

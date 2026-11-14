@@ -163,6 +163,17 @@ export const leagueEvent = v.union(
     to: v.number(),
     reason: v.union(v.string(), v.null()),
   }),
+  /** The admin marked a Premier League match abandoned, or took the mark back (`abandoned` false;
+   *  #904, spec/05 S05.46, S05.47): `overridesRemoved` names each man whose override in it the mark
+   *  deleted in this league, none on taking it back. */
+  v.object({
+    kind: v.literal("matchAbandoned"),
+    fixtureCode: v.number(),
+    matchName: v.string(),
+    gameweek: v.number(),
+    abandoned: v.boolean(),
+    overridesRemoved: v.array(v.string()),
+  }),
   /** A commissioner's fixture edit (spec/09, Fixture edits; #1208): `swapped` the two sides moved
    *  between two games in the gameweek, and `games` those two games after, each side by name and
    *  the league's average as null. */

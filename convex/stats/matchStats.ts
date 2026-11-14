@@ -12,7 +12,7 @@ import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { datedCodes, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
-import { matchRecordsOf } from "./matchRecordReads";
+import { isAbandoned, matchRecordsOf } from "./matchRecordReads";
 import { rescoreEveryLive } from "../table/liveRescore";
 import { livePrintsOf, sameRecord } from "./livePrints";
 
@@ -34,13 +34,15 @@ export const matchWrites = v.object({
  *  is complete once every record is whole, and its lock is scheduled then. After the lock nothing
  *  is written but the changes, for the feeds page, and a whole record filling a held one's gap.
  *  A read older than the last one written writes nothing, as matchScores.ts's `wins` refuses an
- *  older score: a slow read never undoes a newer one (#2042). */
+ *  older score: a slow read never undoes a newer one (#2042). A match the admin marked abandoned
+ *  is written nothing: it counts as never played (#904, S05.7). */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
   returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
-    if (status !== null && readAt < status.lastReadAt) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
+    const unwritten = status !== null && (readAt < status.lastReadAt || (await isAbandoned(ctx, fixtureCode)));
+    if (unwritten) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
     const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its records' write")).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
@@ -110,7 +112,7 @@ export const lock = internalMutation({
  *  lock the leagues are asked to store only when it was its gameweek's last match to lock, since
  *  nothing is stored before every match in it is (#1547): a Saturday's other locks would only have
  *  every league walk its season for nothing, colliding with one another. A gap filling asks always. */
-async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGameweekFinal }: { onlyIfGameweekFinal: boolean }) {
+export async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGameweekFinal }: { onlyIfGameweekFinal: boolean }) {
   if (!onlyIfGameweekFinal || (await gameweekFinalWith(ctx, fixtureCode))) {
     // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
     // never undoes the lock (finalScores.ts, #418).
