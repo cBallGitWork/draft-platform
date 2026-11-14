@@ -30,7 +30,7 @@ export const tick = internalAction({
     return chainedTick(ctx, "liveStats", () =>
       withHeartbeat("liveStatsTick", async () => {
         const ranAt = Date.now();
-        let due: { live: DueMatch[]; sheets: DueMatch[] };
+        let due: { live: DueMatch[]; sheets: DueMatch[]; liveScoresHeld: boolean };
         try {
           due = await ctx.runQuery(internal.stats.liveStats.due, { now: ranAt });
         } catch (error: unknown) {
@@ -41,6 +41,10 @@ export const tick = internalAction({
         let read: ReturnType<typeof readFplPayloads> | undefined;
         const fpl = () => (read ??= readFplPayloads());
         await tickLive(ctx, ranAt, due.live, fpl);
+        // The matchday is over: the screens work their scores out again (table/liveScores.ts).
+        if (due.live.length === 0 && due.liveScoresHeld) {
+          await ctx.runMutation(internal.table.liveScores.scoreEveryLeague, { gameweeks: [] });
+        }
         // After the live matches and apart from them: it never throws, and is on its own feed's row.
         await syncTeamSheets(ctx, ranAt, due.sheets, fpl);
         return due.live.length > 0 || due.sheets.length > 0;
@@ -76,4 +80,8 @@ async function tickLive(ctx: ActionCtx, ranAt: number, live: DueMatch[], fpl: ty
   }
   await ctx.runMutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
   if (sides !== null && anyMatchRead) await recordSideMatches(ctx, ranAt, sides, true);
+  // Each league's live gameweek scored once for every screen, from what this tick wrote, its
+  // commentary's delay included (#2007).
+  const gameweeks = [...new Set(live.map(({ gameweek }) => gameweek))];
+  await ctx.runMutation(internal.table.liveScores.scoreEveryLeague, { gameweeks });
 }

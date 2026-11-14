@@ -35,6 +35,12 @@ export const isPostponedFixture = (fixture: KicksOff) => fixture.kickoff === nul
 export const datedCodes = (fixtures: readonly (KicksOff & { code: number })[]): number[] =>
   fixtures.flatMap((fixture) => (isPostponedFixture(fixture) ? [] : [fixture.code]));
 
+/** Whether two lists hold the same match codes (or teams), in any order. */
+export function sameCodes<Code>(one: readonly Code[], other: readonly Code[]): boolean {
+  const others = new Set(other);
+  return one.length === others.size && one.every((code) => others.has(code));
+}
+
 /** Two matches in kickoff order, any with no time yet last. */
 export const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
   (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);

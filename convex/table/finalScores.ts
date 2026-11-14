@@ -7,6 +7,7 @@ import { scheduleEveryLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { startRecap } from "../home/recaps";
+import { rescoreLive } from "./liveRescore";
 
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has
@@ -59,6 +60,8 @@ export const rescore = internalMutation({
 /** `rescore`'s work, for a mutation that changes what a gameweek scores. */
 export async function rescoreGameweek(ctx: MutationCtx, league: Doc<"leagues">, gameweek: number): Promise<boolean> {
   await dropGameweek(ctx, league._id, gameweek);
+  // And the live gameweek scored again, where a match is on (liveScores.ts).
+  await rescoreLive(ctx, league._id);
   return (await storeFinal(ctx, league)).includes(gameweek);
 }
 

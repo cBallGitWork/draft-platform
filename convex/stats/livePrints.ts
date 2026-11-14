@@ -1,6 +1,6 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import type { PlayerMatchRecord } from "./matchRecords";
+import { statChanges, type PlayerMatchRecord } from "./matchRecords";
 
 // The live tick's compact row (#2006, the liveMatchPrints table): one a match while it is live,
 // holding each man's record as a print, so each minute's read is checked against one small row
@@ -9,8 +9,19 @@ import type { PlayerMatchRecord } from "./matchRecords";
 // Scouting row yet: full time counts them (matchStats.ts's upsertMatch) and deletes it. Plain
 // helpers: no Convex function lives here.
 
-/** One record as a number: equal for two records the feeds sent the same, as matchStats.ts's
- *  `sameRecord` reads them (a stat left out and one sent as 0 alike). cyrb53, a 53-bit string
+/** What the feeds sent is what is held; a stat left out and a stat sent as 0 read the same. */
+export function sameRecord(row: Doc<"playerMatchStats">, record: PlayerMatchRecord): boolean {
+  return (
+    row.started === record.started &&
+    row.played === record.played &&
+    row.arrived.fpl === record.arrived.fpl &&
+    row.arrived.pl === record.arrived.pl &&
+    statChanges(row.stats, record.stats).length === 0
+  );
+}
+
+/** One record as a number: equal for two records the feeds sent the same, as `sameRecord` above
+ *  reads them (a stat left out and one sent as 0 alike). cyrb53, a 53-bit string
  *  hash, so a moved record reading as unmoved is about one chance in 2^53. */
 export function recordPrint(record: Pick<PlayerMatchRecord, "started" | "played" | "arrived" | "stats">): number {
   const stats = Object.entries(record.stats)

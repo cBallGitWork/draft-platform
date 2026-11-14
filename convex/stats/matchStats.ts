@@ -13,7 +13,8 @@ import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { datedCodes, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { matchRecordsOf } from "./matchRecordReads";
-import { livePrintsOf } from "./livePrints";
+import { rescoreEveryLive } from "../table/liveRescore";
+import { livePrintsOf, sameRecord } from "./livePrints";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -72,14 +73,17 @@ export const upsertMatch = internalMutation({
       const lockAt = lockTime(fullTimeAt, completeAt, await statCorrectionWindowMs(ctx));
       await ctx.scheduler.runAt(lockAt, internal.stats.matchStats.lock, { fixtureCode });
     }
-    return { state, ...(await writeRecords(ctx, records, held, state, counted)), lateCorrections: 0 };
+    const writes = await writeRecords(ctx, records, held, state, counted);
+    // A correction or full time between live ticks moves the live scores (table/liveScores.ts).
+    if (writes.changed.length > 0 || status?.state !== state) await rescoreEveryLive(ctx);
+    return { state, ...writes, lateCorrections: 0 };
   },
 });
 
 /** Locks a complete match once its window has passed, reading the window again in case the admin
- *  changed it, and, its gameweek's last to lock, asks every league to store the scores it made final; too early, it reschedules
- *  itself. A match provisional again has its lock scheduled
- *  anew when it is next complete, and one already locked stays as it is. */
+ *  changed it, and, its gameweek's last to lock, asks every league to store the scores it made final;
+ *  too early, it reschedules itself. A match provisional again has its lock scheduled anew when it
+ *  is next complete, and one already locked stays as it is. */
 export const lock = internalMutation({
   args: { fixtureCode: v.number() },
   returns: v.null(),
@@ -116,6 +120,8 @@ async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGa
   }
   // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
+  // A lock or a filled gap between live ticks moves the live scores (table/liveScores.ts).
+  await rescoreEveryLive(ctx);
 }
 
 /** Whether every dated match held in the locked match's gameweek is locked, a postponed one left
@@ -284,16 +290,5 @@ function sameChanges(held: StatChange[], sent: StatChange[]): boolean {
       const other = sent[index];
       return change.stat === other.stat && change.locked === other.locked && change.sent === other.sent;
     })
-  );
-}
-
-/** What the feeds sent is what is held; a stat left out and a stat sent as 0 read the same. */
-function sameRecord(row: Doc<"playerMatchStats">, record: PlayerMatchRecord): boolean {
-  return (
-    row.started === record.started &&
-    row.played === record.played &&
-    row.arrived.fpl === record.arrived.fpl &&
-    row.arrived.pl === record.arrived.pl &&
-    statChanges(row.stats, record.stats).length === 0
   );
 }

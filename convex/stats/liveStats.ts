@@ -11,6 +11,7 @@ import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "../matchup/thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
+import { anyLiveScores } from "../shared/liveScoreRows";
 import { dueSheetsAt } from "../football/matchTeamSheets";
 
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `due` which matches
@@ -25,10 +26,17 @@ import { dueSheetsAt } from "../football/matchTeamSheets";
  *  as "Match ends" can reach the stream after the status flips (#917). */
 export const due = internalQuery({
   args: { now: v.number() },
-  returns: v.object({ live: v.array(dueMatch), sheets: v.array(dueMatch) }),
-  handler: async (ctx, { now }): Promise<{ live: DueMatch[]; sheets: DueMatch[] }> => ({
+  returns: v.object({
+    live: v.array(dueMatch),
+    sheets: v.array(dueMatch),
+    /** Whether any league holds a live score row (table/liveScores.ts), which the tick clears once
+     *  none is live: asked in the same read, so a quiet minute costs no more calls. */
+    liveScoresHeld: v.boolean(),
+  }),
+  handler: async (ctx, { now }): Promise<{ live: DueMatch[]; sheets: DueMatch[]; liveScoresHeld: boolean }> => ({
     live: (await liveMatches(ctx, now)).map(asDue),
     sheets: (await dueSheetsAt(ctx, now)).map(asDue),
+    liveScoresHeld: await anyLiveScores(ctx),
   }),
 });
 

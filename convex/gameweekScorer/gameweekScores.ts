@@ -6,12 +6,13 @@ import { isGameweekScored, type WithUnusedGameweeks } from "../gameweeks/usedGam
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { leagueLabel, logFailure } from "../shared/errors";
-import { datedCodes } from "../shared/fixtures";
+import { datedCodes, sameCodes } from "../shared/fixtures";
+import { heldLiveScores } from "../shared/liveScoreRows";
 import { readOnce } from "../shared/readOnce";
 import type { MovesSinceOf } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal, isPostponed } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
-import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
+import { storedFinalScores, storedScoresIn } from "./storedScores";
 import {
   gameweekInputs,
   leagueReads,
@@ -98,18 +99,53 @@ export async function hasBegun(ctx: QueryCtx, league: Doc<"leagues">, gameweek: 
   return (await begunGameweeks(ctx, league)).includes(gameweek);
 }
 
-/** Every team's points in each gameweek the league has begun, each from the league's scorer. */
+/** How a screen's query asks for `leagueScores`: the live gameweek from its live row. */
+export const SCREEN_READ = { fromLiveScores: true as boolean };
+
+/** The league's live row (table/liveScores.ts) for the gameweek while it stands for the `teamIds`
+ *  (`standsFor`); null otherwise, when the reader works the gameweek out itself. */
+export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, teamIds: readonly TeamId[]): Promise<Doc<"liveScores"> | null> {
+  const row = await ctx.db
+    .query("liveScores")
+    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek))
+    .unique();
+  return row !== null && (await standsFor(ctx, row, teamIds)) ? row : null;
+}
+
+/** Whether a live row still stands: scored for the same teams, from the same matches the gameweek
+ *  holds. A team added or a match moved in or out since sets it aside until the next tick. */
+async function standsFor(ctx: QueryCtx, row: Doc<"liveScores">, teamIds: readonly TeamId[]): Promise<boolean> {
+  if (!sameCodes(row.teamIds, teamIds)) return false;
+  return sameCodes(row.fixtureCodes, (await heldFixtures(ctx, row.gameweek)).map((fixture) => fixture.code));
+}
+
+/** A live row's teams' points, by team. */
+export const liveTeamScores = (scores: Extract<Doc<"liveScores">["teams"], { kind: "scored" }>["scores"]): TeamScores =>
+  new Map(scores.map(({ teamId, points, provisional }) => [teamId, { points, provisional }]));
+
+/** Every team's points in each gameweek the league has begun, each from the league's scorer. A
+ *  screen's query reads the live gameweek from its live row instead (`SCREEN_READ`;
+ *  table/liveScores.ts, #2007), scored once a tick rather than once a viewer; a change that stores
+ *  scores never does, so works every gameweek out, and only it is told what to store. */
 export async function leagueScores(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
   teamIds: readonly TeamId[],
+  { fromLiveScores = false }: Partial<typeof SCREEN_READ> = {},
 ): Promise<LeagueScores> {
   const gameweeks = await begunGameweeks(ctx, league);
   const result: LeagueScores = { scores: new Map(), unscored: [], finalUnstored: [] };
   if (gameweeks.length === 0 || teamIds.length === 0) return result;
   const scoredGameweek = await gameweekScorer(ctx, league, season);
+  const live = fromLiveScores ? await heldLiveScores(ctx, league._id) : new Map<number, Doc<"liveScores">>();
   for (const gameweek of gameweeks) {
+    const row = live.get(gameweek);
+    if (row !== undefined && (await standsFor(ctx, row, teamIds))) {
+      if (row.teams.kind === "unscored") result.unscored.push({ gameweek, reason: row.teams.reason });
+      else result.scores.set(gameweek, liveTeamScores(row.teams.scores));
+      continue;
+    }
     try {
       const { scores, toStore } = await scoredGameweek(gameweek, teamIds);
       result.scores.set(gameweek, scores);
