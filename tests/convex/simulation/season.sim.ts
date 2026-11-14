@@ -6,7 +6,8 @@ import { ANTHROPIC_KEY_SETTING } from "../../../convex/outbound/deploymentSettin
 import { RESEND_EMAILS_URL } from "../../../convex/outbound/email";
 import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { GOALS } from "../../../convex/scoring/statKeys";
+import { insertClubs, insertPlayers, insertSeasonGameweeks } from "../../support/convex/footballRows.harness";
 import { changeRules, rulesIn } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { RESEND_ACCEPTED, signInDeployment } from "../../support/convex/signIn.harness";
@@ -14,7 +15,7 @@ import { clockRunsTo } from "../../support/convex/test.harness";
 import {
   below,
   changedMidSeason,
-  CLUBS,
+  SEASON_CLUBS,
   coversEveryPair,
   dealSquads,
   FIXTURES,
@@ -23,14 +24,14 @@ import {
   matchRecords,
   pairwiseRules,
   pickOne,
-  PLAYERS,
+  SEASON_PLAYERS,
   RULES_CHANGE_GAMEWEEK,
   SEASON_GAMEWEEKS,
   seededRandom,
-  SETUP_MORNING,
+  LEAGUES_MADE_AT,
   simulationSeed,
   TO_FULL_TIME,
-  type Fixture,
+  type SeasonFixture,
   type MatchRecord,
   type Random,
 } from "../../support/convex/seasonSimulation.harness";
@@ -92,12 +93,9 @@ function worldFetch(sendDays: string[]) {
 /** The football sync's rows, held as it holds them. */
 async function holdTheSeason(t: TestConvex) {
   await t.run(async (ctx) => {
-    await insertClubs(ctx, CLUBS);
-    await insertPlayers(ctx, PLAYERS);
-    for (let number = 1; number <= SEASON_GAMEWEEKS; number += 1) {
-      const first = Math.min(...FIXTURES.filter((fixture) => fixture.gameweek === number).map((fixture) => fixture.kickoff));
-      await ctx.db.insert("gameweeks", { number, deadline: first - 90 * MINUTE_MS });
-    }
+    await insertClubs(ctx, SEASON_CLUBS);
+    await insertPlayers(ctx, SEASON_PLAYERS);
+    await insertSeasonGameweeks(ctx, SEASON_GAMEWEEKS);
     for (const fixture of FIXTURES) await ctx.db.insert("fixtures", fixture);
   });
 }
@@ -118,13 +116,14 @@ async function makeLeague(t: TestConvex, random: Random, index: number): Promise
       ownerOf.set(playerCode, teams[team]);
     }
   }
-  const openOverride = 2 + below(random, SEASON_GAMEWEEKS - 2);
-  const finalOverride = 1 + ((openOverride + below(random, SEASON_GAMEWEEKS - 2)) % SEASON_GAMEWEEKS);
-  return { leagueId, teams, manager: emails[0], ownerOf, openOverride, finalOverride: finalOverride === openOverride ? openOverride - 1 : finalOverride };
+  // Two different gameweeks: the second 1 to 38 on from the first, round the season.
+  const openOverride = 1 + below(random, SEASON_GAMEWEEKS);
+  const finalOverride = 1 + ((openOverride + below(random, SEASON_GAMEWEEKS - 1)) % SEASON_GAMEWEEKS);
+  return { leagueId, teams, manager: emails[0], ownerOf, openOverride, finalOverride };
 }
 
 /** The full-time read of a match, as the match-stats sync writes it. */
-const fullTimeRead = (t: TestConvex, fixture: Fixture, readAt: number, records: MatchRecord[]) =>
+const fullTimeRead = (t: TestConvex, fixture: SeasonFixture, readAt: number, records: MatchRecord[]) =>
   t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: fixture.code, readAt, records });
 
 /** Each team's stored points in the gameweek, by team. */
@@ -155,7 +154,7 @@ test("a whole season: six leagues, 80 teams, 39 gameweeks, within Convex's limit
   expect(coversEveryPair()).toBe(true);
   const random = seededRandom(SEED);
   const sendDays: string[] = [];
-  const t = await signInDeployment(SETUP_MORNING, true);
+  const t = await signInDeployment(LEAGUES_MADE_AT, true);
   worldFetch(sendDays);
   await holdTheSeason(t);
   const leagues: League[] = [];
@@ -201,7 +200,7 @@ test("a whole season: six leagues, 80 teams, 39 gameweeks, within Convex's limit
     }
     if (open.size > 0) {
       const corrected = lastRecords.map((record) =>
-        [...open.values()].some((each) => each.playerCode === record.playerCode) ? { ...record, stats: { ...record.stats, goals_scored: 3 } } : record,
+        [...open.values()].some((each) => each.playerCode === record.playerCode) ? { ...record, stats: { ...record.stats, [GOALS]: (record.stats[GOALS] ?? 0) + 1 } } : record,
       );
       vi.setSystemTime(Date.now() + MINUTE_MS);
       await fullTimeRead(t, last, Date.now(), corrected);
@@ -250,7 +249,7 @@ async function overrideAndRemove(
   random: Random,
   league: League,
   gameweek: number,
-  fixtures: Fixture[],
+  fixtures: SeasonFixture[],
   played: Map<number, MatchRecord[]>,
 ) {
   const fixture = pickOne(random, fixtures);

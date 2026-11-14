@@ -7,6 +7,13 @@ files (`tests/src/flow.test.ts`). The Convex tests that play the whole product t
 stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
 time.
 
+The season simulation, `tests/convex/simulation/season.sim.ts`, is not a test file: no project of
+`vitest.config.ts` runs it, and `npm run simulate` does (`vitest.simulate.config.ts`), for the
+nightly job (#2132). Six leagues of 80 teams play a seeded season of 39 gameweeks, held to Convex's
+limits, in over an hour; it prints its seed, and `SIM_SEED=<seed> npm run simulate` plays one again.
+Its world is `tests/support/convex/seasonSimulation.harness.ts`, which `seasonWorld.test.ts` beside
+it checks on every pull request.
+
 **Contents:** [The five roots](#the-five-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
 [The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)

@@ -11,10 +11,9 @@
 import { WEEK_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ASSISTS, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT, SAVES } from "../../../convex/scoring/statKeys";
 import type { Position } from "../../../convex/positions/positionTables";
-import type { LeagueRules, WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
+import { WAIVER_ORDERS, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../../../convex/scoring/values";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
-import { WAIVER_ORDERS } from "../../../convex/rules/leagueRulesShape";
 import { PL_GAMEWEEKS, type Club, type HeldPlayer } from "./footballRows.harness";
 
 /** The seed the run plays, from SIM_SEED when it is set, so a red run can be played again. */
@@ -53,7 +52,7 @@ const CLUB_CODES = 700;
 const PLAYER_CODES = 40_000;
 const FIXTURE_CODES = 60_000;
 
-export const CLUBS: Club[] = Array.from({ length: CLUB_COUNT }, (_, index) => ({
+export const SEASON_CLUBS: Club[] = Array.from({ length: CLUB_COUNT }, (_, index) => ({
   code: CLUB_CODES + index,
   name: `Sim Club ${index + 1}`,
   shortName: `S${String(index + 1).padStart(2, "0")}`,
@@ -73,7 +72,7 @@ const CLUB_POSITIONS: Position[] = [
   ...Array<Position>(3).fill("ST"),
 ];
 
-export const PLAYERS: HeldPlayer[] = CLUBS.flatMap((club, clubIndex) =>
+export const SEASON_PLAYERS: HeldPlayer[] = SEASON_CLUBS.flatMap((club, clubIndex) =>
   CLUB_POSITIONS.map((position, index) => {
     const code = PLAYER_CODES + clubIndex * 100 + index;
     return { code, name: `Player ${code}`, fullName: `Sim Player ${code}`, clubCode: club.code, positions: [position] };
@@ -81,8 +80,8 @@ export const PLAYERS: HeldPlayer[] = CLUBS.flatMap((club, clubIndex) =>
 );
 
 /** A player's line on the pitch, as his one position puts him: for the squads' shape and his stats. */
-export type Line = "goalkeeper" | "defence" | "midfield" | "attack";
-export const lineOf = (player: HeldPlayer): Line => {
+export type SquadLine = "goalkeeper" | "defence" | "midfield" | "attack";
+export const squadLineOf = (player: HeldPlayer): SquadLine => {
   const [position] = player.positions;
   if (position === "GK") return "goalkeeper";
   if (position === "CB" || position === "FB") return "defence";
@@ -92,9 +91,9 @@ export const lineOf = (player: HeldPlayer): Line => {
 
 /** Each squad's shape: 14, the squad maximum of the biggest league, with enough in each line for
  *  the first lineup's 4-4-2 and a bench. */
-export const SQUAD_SHAPE: Record<Line, number> = { goalkeeper: 2, defence: 4, midfield: 5, attack: 3 };
+export const SQUAD_SHAPE: Record<SquadLine, number> = { goalkeeper: 2, defence: 4, midfield: 5, attack: 3 };
 
-export interface Fixture {
+export interface SeasonFixture {
   code: number;
   gameweek: number;
   homeClubCode: number;
@@ -105,7 +104,7 @@ export interface Fixture {
 /** The first kickoff of the season: a Saturday in August, 15:00 UK time. */
 export const SEASON_START = Date.parse("2026-08-15T14:00:00Z");
 /** The leagues are made, their squads assigned, a fortnight before it. */
-export const SETUP_MORNING = SEASON_START - 2 * WEEK_MS;
+export const LEAGUES_MADE_AT = SEASON_START - 2 * WEEK_MS;
 /** Kickoffs within a gameweek: Saturday 15:00, 17:30, Sunday 14:00 and 16:30 UK time. */
 const KICKOFF_SLOTS = [0, 2.5 * HOUR_MS, 23 * HOUR_MS, 25.5 * HOUR_MS];
 /** From kickoff to the read that finds a match at full time. */
@@ -128,8 +127,8 @@ function round(round: number): [number, number][] {
 
 /** The season's fixtures: 38 rounds of the circle, the 39th the first again, and in
  *  DOUBLE_GAMEWEEK one extra match between the first two clubs, each playing twice. */
-export const FIXTURES: Fixture[] = (() => {
-  const fixtures: Fixture[] = [];
+export const FIXTURES: SeasonFixture[] = (() => {
+  const fixtures: SeasonFixture[] = [];
   for (let gameweek = 1; gameweek <= SEASON_GAMEWEEKS; gameweek += 1) {
     const pairs = round((gameweek - 1) % (2 * (CLUB_COUNT - 1)));
     if (gameweek === DOUBLE_GAMEWEEK) pairs.push([1, 0]);
@@ -137,8 +136,8 @@ export const FIXTURES: Fixture[] = (() => {
       fixtures.push({
         code: FIXTURE_CODES + fixtures.length,
         gameweek,
-        homeClubCode: CLUBS[home].code,
-        awayClubCode: CLUBS[away].code,
+        homeClubCode: SEASON_CLUBS[home].code,
+        awayClubCode: SEASON_CLUBS[away].code,
         kickoff: kickoffAt(gameweek, slot),
       }),
     );
@@ -162,19 +161,19 @@ export interface MatchRecord {
 /** One club's side of a match: its first eleven start (each line's first, by squad order), three of
  *  the rest come on, and the others sit unused. Goals and assists fall at random. */
 function clubRecords(random: Random, fixtureCode: number, clubCode: number, conceded: number): MatchRecord[] {
-  const squad = PLAYERS.filter((player) => player.clubCode === clubCode);
+  const squad = SEASON_PLAYERS.filter((player) => player.clubCode === clubCode);
   const starters = new Set([
-    ...squad.filter((player) => lineOf(player) === "goalkeeper").slice(0, 1),
-    ...squad.filter((player) => lineOf(player) === "defence").slice(0, 4),
-    ...squad.filter((player) => lineOf(player) === "midfield").slice(0, 4),
-    ...squad.filter((player) => lineOf(player) === "attack").slice(0, 2),
+    ...squad.filter((player) => squadLineOf(player) === "goalkeeper").slice(0, 1),
+    ...squad.filter((player) => squadLineOf(player) === "defence").slice(0, 4),
+    ...squad.filter((player) => squadLineOf(player) === "midfield").slice(0, 4),
+    ...squad.filter((player) => squadLineOf(player) === "attack").slice(0, 2),
   ]);
-  const subs = new Set(squad.filter((player) => !starters.has(player) && lineOf(player) !== "goalkeeper").slice(0, 3));
+  const subs = new Set(squad.filter((player) => !starters.has(player) && squadLineOf(player) !== "goalkeeper").slice(0, 3));
   return squad.map((player) => {
     const started = starters.has(player);
     const played = started || subs.has(player);
     const minutes = started ? 60 + below(random, 31) : played ? 1 + below(random, 30) : 0;
-    const line = lineOf(player);
+    const line = squadLineOf(player);
     const stats: Record<string, number> = { [MINUTES_STAT]: minutes };
     if (played) {
       const goals = line === "attack" ? below(random, 3) : line === "midfield" ? below(random, 2) : random() < 0.1 ? 1 : 0;
@@ -192,7 +191,7 @@ function clubRecords(random: Random, fixtureCode: number, clubCode: number, conc
 
 /** Each held player's whole record of the match, both feeds' parts in: what the full-time read
  *  writes. */
-export function matchRecords(random: Random, fixture: Fixture): MatchRecord[] {
+export function matchRecords(random: Random, fixture: SeasonFixture): MatchRecord[] {
   const homeConceded = below(random, 4);
   const awayConceded = below(random, 4);
   return [...clubRecords(random, fixture.code, fixture.homeClubCode, homeConceded), ...clubRecords(random, fixture.code, fixture.awayClubCode, awayConceded)];
@@ -223,7 +222,6 @@ export function coversEveryPair(): boolean {
 
 const FORMATS: LeagueRules["format"][] = ["headToHead", "totalPoints"];
 const GAMES = [1, 2];
-const WAIVER_ORDER_CHOICES: readonly WaiverOrderType[] = WAIVER_ORDERS;
 
 /** The `league`th league's rules: `start`'s, with each of PAIRWISE's choices made. */
 export function pairwiseRules(start: LeagueRules, league: number): LeagueRules {
@@ -233,7 +231,7 @@ export function pairwiseRules(start: LeagueRules, league: number): LeagueRules {
     gamesPerGameweek: GAMES[PAIRWISE.gamesPerGameweek[league]],
     oddTeamOut: ODD_TEAM_OUTS[PAIRWISE.oddTeamOut[league]],
     doubleGameweek: DOUBLE_GAMEWEEK_RULES[PAIRWISE.doubleGameweek[league]],
-    waivers: { ...start.waivers, order: WAIVER_ORDER_CHOICES[PAIRWISE.waiverOrder[league]] },
+    waivers: { ...start.waivers, order: WAIVER_ORDERS[PAIRWISE.waiverOrder[league]] },
   };
 }
 
@@ -252,8 +250,8 @@ export function changedMidSeason(rules: LeagueRules): LeagueRules {
  *  teams from a shuffle of each line, so each league's squads differ. */
 export function dealSquads(random: Random, teams: number): number[][] {
   const squads: number[][] = Array.from({ length: teams }, () => []);
-  for (const [line, each] of Object.entries(SQUAD_SHAPE) as [Line, number][]) {
-    const pool = PLAYERS.filter((player) => lineOf(player) === line).map((player) => player.code);
+  for (const [line, each] of Object.entries(SQUAD_SHAPE) as [SquadLine, number][]) {
+    const pool = SEASON_PLAYERS.filter((player) => squadLineOf(player) === line).map((player) => player.code);
     for (let index = pool.length - 1; index > 0; index -= 1) {
       const other = below(random, index + 1);
       [pool[index], pool[other]] = [pool[other], pool[index]];

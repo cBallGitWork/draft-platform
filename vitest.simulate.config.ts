@@ -7,8 +7,9 @@ import { LONDON_ZONE } from "./convex/shared/moments.ts";
 
 process.env.TZ = LONDON_ZONE;
 
-/** A whole season at 80 teams takes minutes, not vitest's default 5 seconds. */
-const SEASON_MS = 60 * 60 * 1000;
+/** A whole season at 80 teams takes over an hour (about 3 minutes to make the leagues, then 2 a
+ *  gameweek, 14 Nov 2026), not vitest's default 5 seconds: three hours leaves room on a slow runner. */
+const SEASON_MS = 3 * 60 * 60 * 1000;
 
 export default defineConfig({
   test: {
