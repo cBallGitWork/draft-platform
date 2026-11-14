@@ -13,6 +13,7 @@ import { mapSportmonksMatch } from "./sportmonksMatch";
 import { halfTimeReached, sportmonksPlayerStats } from "./sportmonksPlayerStats";
 import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
 import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
+import { sameValue } from "../../scouting/scoutingPlayers";
 import { noteFirstMinutes } from "./fplLinksSync";
 
 // Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each match of
@@ -123,7 +124,8 @@ async function writeLiveMatch(ctx: ActionCtx, fixtureCode: number, read: RawFixt
 /** What a match's failure says, before the error, when its players' stats couldn't be worked out. */
 export const PLAYER_STATS_FAILED = "players' stats";
 
-/** One match's players' stats, replaced whole: a man the newest read no longer names loses his row. */
+/** One match's players' stats, replaced whole: a man the newest read no longer names loses his row.
+ *  A row the read leaves as it was isn't written again (#2000: the free plan's database I/O). */
 export const writePlayerStats = internalMutation({
   args: { fixtureCode: v.number(), records: v.array(sportmonksPlayerMatchRecord) },
   returns: v.null(),
@@ -137,8 +139,12 @@ export const writePlayerStats = internalMutation({
     for (const record of records) {
       const row = byPlayer.get(record.playerCode);
       byPlayer.delete(record.playerCode);
-      if (row === undefined) await ctx.db.insert("sportmonksPlayerMatchStats", record);
-      else await ctx.db.replace("sportmonksPlayerMatchStats", row._id, record);
+      if (row === undefined) {
+        await ctx.db.insert("sportmonksPlayerMatchStats", record);
+        continue;
+      }
+      const { _id, _creationTime, ...stored } = row;
+      if (!sameValue(stored, record)) await ctx.db.replace("sportmonksPlayerMatchStats", _id, record);
     }
     for (const gone of byPlayer.values()) await ctx.db.delete("sportmonksPlayerMatchStats", gone._id);
     return null;
@@ -146,7 +152,8 @@ export const writePlayerStats = internalMutation({
 });
 
 /** One match's live read: its score, and its lineups and events replaced whole, each man playing
- *  his first minute of its competition noted (#1421). */
+ *  his first minute of its competition noted (#1421). Lineups and events a read leaves as they were
+ *  aren't written again only to move `readAt` on, which nothing reads (#2000). */
 export const writeMatch = internalMutation({
   args: { score: scoreRead, men: v.array(sportmonksLineupMan), events: v.array(sportmonksEvent), readAt: v.number() },
   returns: v.null(),
@@ -159,7 +166,9 @@ export const writeMatch = internalMutation({
       .unique();
     await noteFirstMinutes(ctx, fixtureCode, men, held?.men ?? [], readAt);
     if (held === null) await ctx.db.insert("sportmonksMatches", { fixtureCode, men, events, readAt });
-    else await ctx.db.replace("sportmonksMatches", held._id, { fixtureCode, men, events, readAt });
+    else if (!sameValue({ men: held.men, events: held.events }, { men, events })) {
+      await ctx.db.replace("sportmonksMatches", held._id, { fixtureCode, men, events, readAt });
+    }
     return null;
   },
 });
