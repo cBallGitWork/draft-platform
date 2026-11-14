@@ -18,11 +18,11 @@ import { strandedAt } from "./schema-shape.mjs";
 /** Every public function's and every schedulable one's arguments, as Convex's validators export
  *  them, keyed "folder/module:name". */
 export const INPUTS_RECORD = "tests/support/functionInputs.json";
-export const INPUTS_TRAILER = "Inputs-changed";
+const INPUTS_TRAILER = "Inputs-changed";
 
 /** Each function in `before` that `after` lost or takes inputs a call made against `before` may
  *  not fit, with where. */
-export function brokenInputs(before, after) {
+function brokenInputs(before, after) {
   return Object.entries(before).flatMap(([fn, args]) => {
     if (!(fn in after)) return [{ fn, why: "is gone" }];
     const at = strandedAt(args, after[fn], { newRequiredStrands: true });
