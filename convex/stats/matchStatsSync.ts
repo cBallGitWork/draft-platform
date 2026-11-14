@@ -59,6 +59,8 @@ export const run = internalAction({
       await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
       // Only its full-time reads read team stats, and the feed owes none between matches.
       await recordSideMatches(ctx, ranAt, { teamStats }, false);
+      // Every 10 minutes, so a live tick chain that died starts again (#1999, liveTicks.ts).
+      if (trigger === CRON_TRIGGER) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed: "liveStats", ranTick: false, busy: null });
       return null;
     });
   },

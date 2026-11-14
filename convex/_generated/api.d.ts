@@ -353,6 +353,7 @@ import type * as stars_starsRefresh from "../stars/starsRefresh.js";
 import type * as stars_starsShape from "../stars/starsShape.js";
 import type * as stats_liveStats from "../stats/liveStats.js";
 import type * as stats_liveStatsSync from "../stats/liveStatsSync.js";
+import type * as stats_liveTicks from "../stats/liveTicks.js";
 import type * as stats_matchRecordReads from "../stats/matchRecordReads.js";
 import type * as stats_matchRecords from "../stats/matchRecords.js";
 import type * as stats_matchStats from "../stats/matchStats.js";
@@ -759,6 +760,7 @@ declare const fullApi: ApiFromModules<{
   "stars/starsShape": typeof stars_starsShape;
   "stats/liveStats": typeof stats_liveStats;
   "stats/liveStatsSync": typeof stats_liveStatsSync;
+  "stats/liveTicks": typeof stats_liveTicks;
   "stats/matchRecordReads": typeof stats_matchRecordReads;
   "stats/matchRecords": typeof stats_matchRecords;
   "stats/matchStats": typeof stats_matchStats;

@@ -40,6 +40,8 @@ export const run = internalAction({
       const competitions = await ctx.runMutation(internal.football.sportmonks.sportmonksSync.competitionsOn, {});
       // One after another, each its own run row: one the plan refuses fails alone.
       for (const competition of competitions) await syncCompetition(ctx, token, competition, trigger);
+      // Its matches' kickoffs arm the live tick (#1999, stats/liveTicks.ts).
+      if (trigger === CRON_TRIGGER) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed: "sportmonksLive", ranTick: false, busy: null });
       return null;
     });
   },

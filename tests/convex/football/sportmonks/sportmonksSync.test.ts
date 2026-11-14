@@ -7,7 +7,7 @@ import { internal } from "../../../../convex/_generated/api";
 import { scheduleUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
 import { writeScore } from "../../../../convex/football/sportmonks/sportmonksSync";
 import type { ScoreRead } from "../../../../convex/football/scoreReads";
-import { freshConvex, silenceConsoleError, everyJobRuns } from "../../../support/convex/test.harness";
+import { freshConvex, silenceConsoleError, everyJobRuns, clockRunsTo } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
 import { fakeSportmonks, LIVE_NOW, REFUSED, SEASON_ID, sync, syncs, ticks, useSportmonks, WRITES } from "../../../support/convex/sportmonks.harness";
 
@@ -137,7 +137,8 @@ test("a match the live read leaves out fails on its own in the tick's row", asyn
   await sync(t);
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ data: [] })));
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
-  await everyJobRuns(t);
+  // The jobs due now, not the next tick it schedules a minute on (#1999).
+  await clockRunsTo(t, Date.now());
 
   const [row] = await ticks(t);
   expect(row.outcome).toEqual({ ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: false, error: `Sportmonks sent no match ${SM.oldFirm}` }] });

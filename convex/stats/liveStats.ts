@@ -8,21 +8,28 @@ import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "../matchup/thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
+import { dueSheetsAt } from "../football/matchTeamSheets";
 
-// Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
+// Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `due` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
 // time on it goes to `matchStats.upsertMatch`, as the sync's reads do. Each tick is a row.
 
-/** The matches being played at `now`: kicked off within the window, and not yet complete. A match
- *  provisional after full time is still polled, so its last records land within the minute; and
- *  one complete is still polled for `FULL_TIME_LINE_WAIT_MS` after full time while the commentary
- *  it read lacks the full-time line, as "Match ends" can reach the stream after the status flips (#917). */
-export const live = internalQuery({
+/** What the tick reads at `now`, in one query (#1999): `live`, the matches being played, kicked off
+ *  within the window and not yet complete; and `sheets`, those kicking off within the hour, whose
+ *  team sheets it reads (#45, football/matchTeamSheets.ts). A match provisional after full time is
+ *  still polled, so its last records land within the minute; and one complete is still polled for
+ *  `FULL_TIME_LINE_WAIT_MS` after full time while the commentary it read lacks the full-time line,
+ *  as "Match ends" can reach the stream after the status flips (#917). */
+export const due = internalQuery({
   args: { now: v.number() },
-  returns: v.array(dueMatch),
-  handler: async (ctx, { now }): Promise<DueMatch[]> =>
-    (await liveMatches(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
+  returns: v.object({ live: v.array(dueMatch), sheets: v.array(dueMatch) }),
+  handler: async (ctx, { now }): Promise<{ live: DueMatch[]; sheets: DueMatch[] }> => ({
+    live: (await liveMatches(ctx, now)).map(asDue),
+    sheets: (await dueSheetsAt(ctx, now)).map(asDue),
+  }),
 });
+
+const asDue = ({ fixtureCode, gameweek }: DueMatch): DueMatch => ({ fixtureCode, gameweek });
 
 /** A match being played, with its kickoff, which the feeds page judges the tick's lateness from. */
 type LiveMatch = DueMatch & { kickoff: number };

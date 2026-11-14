@@ -21,7 +21,7 @@ import { MATCH, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6
 beforeEach(() => vi.useFakeTimers());
 
 const SHEETS_OPEN = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS;
-const dueAt = (t: TestConvex, now: number) => t.query(internal.football.matchTeamSheets.due, { now });
+const dueAt = async (t: TestConvex, now: number) => (await t.query(internal.stats.liveStats.due, { now })).sheets;
 const heldSheets = (t: TestConvex, fixtureCode = HULL_EVERTON) =>
   t.run((ctx) => ctx.db.query("matchTeamSheets").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)).unique());
 

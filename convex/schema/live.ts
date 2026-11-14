@@ -17,8 +17,13 @@ export const liveStatsTickFields = {
   ),
 };
 
+/** The live ticks that run themselves near matches (#1999, stats/liveTicks.ts): FPL's and Sportmonks'. */
+export const liveTickFeed = v.union(v.literal("liveStats"), v.literal("sportmonksLive"));
+
 export const liveStatsTables = {
   liveStatsTicks: defineTable(liveStatsTickFields),
+  /** Each live tick's next run, one row a feed, so a sync arming it never starts a second chain. */
+  liveTickChains: defineTable({ feed: liveTickFeed, scheduledId: v.id("_scheduled_functions") }).index("by_feed", ["feed"]),
 };
 
 // The live tick's side reads, each its own feed (#522, admin/sideRuns.ts): one row per run with a

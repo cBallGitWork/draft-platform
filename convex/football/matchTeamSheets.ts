@@ -1,12 +1,12 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, internalQuery, type ActionCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, type ActionCtx, type QueryCtx } from "../_generated/server";
 import { recordSideRun, type SideMatchOutcome, type SideRunOutcome } from "../admin/sideRuns";
 import { teamSheetMan } from "../schema";
 import { logFailure } from "../shared/errors";
 import { playerByCode } from "../shared/players";
-import { byGameweek, dueMatch, type DueMatch } from "../shared/dueMatches";
+import { byGameweek, type DueMatch } from "../shared/dueMatches";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { codesByOpta, fixtureCodeIn } from "./feedIds";
 import { fplSeason, type readFplPayloads } from "./fpl/fpl";
@@ -40,29 +40,19 @@ export async function dueSheetsAt(ctx: QueryCtx, now: number): Promise<DueSheets
   return found;
 }
 
-/** `dueSheetsAt`'s matches, for the tick. */
-export const due = internalQuery({
-  args: { now: v.number() },
-  returns: v.array(dueMatch),
-  handler: async (ctx, { now }): Promise<DueMatch[]> =>
-    (await dueSheetsAt(ctx, now)).map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek })),
-});
-
-/** Every due match's sheets read and stored, and the run recorded as the team sheets feed's row
- *  (#522); none while no match is due. The read never throws: a failure is logged and on the row,
- *  and the held sheets stand. `fpl` is the tick's read of FPL, shared with its live matches, for
- *  each man's FPL code. */
-export async function syncTeamSheets(ctx: ActionCtx, now: number, fpl: typeof readFplPayloads): Promise<void> {
-  const outcome = await readTeamSheets(ctx, now, fpl);
-  if (outcome !== null) await recordSideRun(ctx, "teamSheets", now, outcome);
+/** Every due match's sheets (`due`, from the tick's one query, stats/liveStats.ts's `due`) read and
+ *  stored, and the run recorded as the team sheets feed's row (#522); none while no match is due.
+ *  The read never throws: a failure is logged and on the row, and the held sheets stand. `fpl` is
+ *  the tick's read of FPL, shared with its live matches, for each man's FPL code. */
+export async function syncTeamSheets(ctx: ActionCtx, now: number, due: DueMatch[], fpl: typeof readFplPayloads): Promise<void> {
+  if (due.length === 0) return;
+  await recordSideRun(ctx, "teamSheets", now, await readTeamSheets(ctx, due, fpl));
 }
 
-/** Each due match's sheets read and stored, and how each went; null while none is due. */
-async function readTeamSheets(ctx: ActionCtx, now: number, fpl: typeof readFplPayloads): Promise<SideRunOutcome | null> {
+/** Each due match's sheets read and stored, and how each went. */
+async function readTeamSheets(ctx: ActionCtx, due: DueMatch[], fpl: typeof readFplPayloads): Promise<SideRunOutcome> {
   const matches: SideMatchOutcome[] = [];
   try {
-    const due = await ctx.runQuery(internal.football.matchTeamSheets.due, { now });
-    if (due.length === 0) return null;
     const { bootstrap } = await fpl();
     const codeByOpta = codesByOpta(bootstrap.elements);
     const seasons = await readPlSeasons(fplSeason(bootstrap));
