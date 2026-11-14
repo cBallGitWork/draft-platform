@@ -86,7 +86,7 @@ test("home's head-to-head and the table show the row's points while it stands fo
   expect(await annsResult(league)).not.toBe(WRITTEN_OVER);
 });
 
-test("the match locking between ticks scores the row again: final, never left provisional", async () => {
+test("the match locking between ticks scores the row again: final, never left provisional (S07.2)", async () => {
   const league = await liveLeague();
   await tickScores(league);
   await writeOverAnnsLive(league);

@@ -61,8 +61,8 @@ export async function storedScoresIn(
   return sameCodes(held.fixtureCodes, fixtures.map((fixture) => fixture.code)) ? held.scores : new Map();
 }
 
-/** The league's live row (table/liveScores.ts) for the gameweek while it stands for the `teamIds` (`standsFor`); null
- *  otherwise, when the reader works the gameweek out itself. */
+/** The league's live row (table/liveScores.ts) for the gameweek while it stands for the `teamIds`
+ *  (`standsFor`); null otherwise, when the reader works the gameweek out itself. */
 export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, teamIds: readonly TeamId[]): Promise<Doc<"liveScores"> | null> {
   const row = await ctx.db
     .query("liveScores")
