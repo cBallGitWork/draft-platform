@@ -20,7 +20,6 @@ import { squadsPath } from "../../src/squads/paths";
 import { NO_CONVEX_URL } from "../../src/shared/words";
 import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { DESK, PHONE } from "../../scripts/viewports.mjs";
-import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
@@ -246,25 +245,6 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         expect(button.y + button.height, `${name} inside the window`).toBeLessThanOrEqual(box.y + box.height);
       }
     });
-  });
-
-  test.describe("each built screen, on the phone", () => {
-    test.use({ viewport: PHONE });
-
-    for (const [session, path, title] of BUILT_SCREENS) {
-      test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
-        await page.goto(previewUrl(path, session));
-        await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
-        await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
-        const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-          scrollWidth: document.documentElement.scrollWidth,
-          innerWidth: window.innerWidth,
-        }));
-        expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
-        const { tapSize, small } = await page.evaluate(tapsUnderTapSize);
-        expect(small, `taps under ${tapSize}px`).toEqual([]);
-      });
-    }
   });
 });
 

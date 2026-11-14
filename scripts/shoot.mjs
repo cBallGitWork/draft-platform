@@ -2,7 +2,8 @@
 // into the checkout's .shots/ (printing each shot's absolute path), and says what a picture can't:
 // whether the page scrolls sideways, and at 390 which taps are under the tap size
 // (scripts/tap-targets.mjs, the smoke run's check too). The ui-verifier agent's camera. Desk only
-// by default: the phone waits until Craig asks (CLAUDE.md, Decided).
+// by default: the phone waits until Craig asks (CLAUDE.md, Decided). Each page opens on the smoke
+// run's fixed clock and time zone (scripts/fixedClock.mjs), so a shot shows the day a smoke run sees.
 //
 // Usage: node scripts/shoot.mjs <route> [name] [--phone]
 //   node scripts/shoot.mjs / sign-in
@@ -14,6 +15,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { appPort, localUrl } from "./port.mjs";
+import { FIXED_NOW, TIME_ZONE } from "./fixedClock.mjs";
 import { tapsUnderTapSize } from "./tap-targets.mjs";
 import { CHECKOUT } from "./thisScript.mjs";
 import { DESK, PHONE } from "./viewports.mjs";
@@ -36,7 +38,8 @@ mkdirSync(SHOTS_DIR, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome" });
 try {
   for (const viewport of WIDTHS) {
-    const page = await browser.newPage({ viewport });
+    const page = await browser.newPage({ viewport, timezoneId: TIME_ZONE });
+    await page.clock.setFixedTime(FIXED_NOW);
     await page.goto(url, { waitUntil: "networkidle" });
     await page.evaluate(() => document.fonts.ready);
     const path = join(SHOTS_DIR, `${name}-${viewport.width}.png`);

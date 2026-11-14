@@ -1,4 +1,4 @@
-// The screens the smoke run opens on the phone (tests/smoke/smoke.spec.ts), here so
+// The screens the smoke run opens on the phone and the desk (tests/smoke/builtScreens.spec.ts), here so
 // tests/src/smokeScreens.test.ts can fail a route none of them reaches.
 
 import { joinPath } from "../../../convex/joining/joiningShared";
