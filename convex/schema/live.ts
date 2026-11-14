@@ -45,8 +45,8 @@ export const sideRunTables = {
 };
 
 // Each match's commentary as written from the Premier League's stream (#43, spec/10): one row a
-// match, its lines replaced whole by each read, and kept after the gameweek as written
-// (football/matchCommentary.ts).
+// match for its delay and its lines in chunks, each read writing only the chunks it changes, and
+// kept after the gameweek as written (football/matchCommentary.ts, football/commentaryChunks.ts).
 
 /** One of our lines, with the feed line it was written from, and that line's minute, type and men
  *  as FPL codes (null for a man FPL does not list), which the matchup sorts and prices by (#44).
@@ -67,11 +67,22 @@ const commentaryDelay = v.object({ reason: v.string(), since: v.number() });
 export const commentaryTables = {
   matchCommentary: defineTable({
     fixtureCode: v.number(),
-    /** Newest first, as the feed's. */
-    lines: v.array(commentaryLine),
+    /** The lines as stored before #2004, newest first, held whole on this row: read as the match's
+     *  lines while it has no chunks, and moved to them by its next store or
+     *  football/commentaryChunksMove.ts. Absent on every row stored since. */
+    lines: v.optional(v.array(commentaryLine)),
     /** Null while the stream keeps up. */
     delayed: v.union(commentaryDelay, v.null()),
   }).index("by_fixtureCode", ["fixtureCode"]),
+  /** A match's lines, COMMENTARY_LINES_A_CHUNK a row counted from its oldest (#2004), so a read
+   *  that adds a line rewrites only the newest chunk, not every line the match has had. */
+  commentaryChunks: defineTable({
+    fixtureCode: v.number(),
+    /** 0 for the match's oldest lines. */
+    chunk: v.number(),
+    /** Newest first, as the feed's. */
+    lines: v.array(commentaryLine),
+  }).index("by_fixtureCode_and_chunk", ["fixtureCode", "chunk"]),
 };
 
 // The threshold lines' moments (#44, #835, spec/10): each live read that showed a stat move a man's

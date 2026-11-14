@@ -1,6 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { REPLAY_MINUTES, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import { HULL_EVERTON, withHullEverton } from "../../support/convex/matchStats.harness";
+import { heldOf } from "../../../convex/football/matchCommentary";
 import { plScoreRead } from "../../../convex/football/scoreReads";
 import { MATCH, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
 import { LIVE_SCORE, recordedLiveScore } from "../../support/recorded/scores.payloads";
@@ -78,7 +79,7 @@ test("a live match listed with no score is on the tick's row, its stats still re
   expect(await heldScore(t)).toEqual(before);
   // The full-time line needs the score, so the commentary keeps its held lines and says it is delayed.
   expect(errors).toHaveBeenCalledWith(`match ${HULL_EVERTON}'s commentary failed: the Premier League sent score undefined for a match at live`);
-  const commentary = await t.run((ctx) => ctx.db.query("matchCommentary").unique());
+  const commentary = await t.run((ctx) => heldOf(ctx, HULL_EVERTON));
   expect(commentary).toMatchObject({ delayed: { since: stageTime(SERVED_AT.firstGoal + 1) } });
   expect(commentary!.lines.length).toBeGreaterThan(0);
 });
