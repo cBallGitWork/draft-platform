@@ -36,8 +36,8 @@ import {
 import type { TestConvex } from "../../support/convex/test.harness";
 import { seededRandom } from "../../support/seededRandom";
 
-// The season simulation (#2132): `npm run simulate`, which the nightly job calls; never part of
-// `npm test`, being minutes long. Six leagues, 80 teams, a whole season of 39 gameweeks on the
+// The season simulation (#2132): `npm run simulate`, run by hand until a nightly job calls it
+// (#2185); never part of `npm test`, being minutes long. Six leagues, 80 teams, a whole season of 39 gameweeks on the
 // in-memory backend with a fake clock, every function held to Convex's own per-transaction limits.
 // The leagues' rules cover every pair of spec/03's settings between them and change mid-season;
 // commissioners override players' and teams' points among stat corrections and re-syncs.
@@ -183,7 +183,10 @@ test("a whole season: six leagues, 80 teams, 39 gameweeks, within Convex's limit
     const open = new Map<League, { teamId: Id<"teams">; teamPoints: number; playerCode: number; playerPoints: number }>();
     for (const league of leagues.filter((each) => each.openOverride === gameweek)) {
       const held = heldIn(random, league, lastRecords);
-      if (held === null) continue;
+      if (held === null) {
+        progress(`Gameweek ${gameweek}: a league held no played player, so its open override was skipped`);
+        continue;
+      }
       const commissioner = await actingAs(t, COMMISSIONER);
       const teamPoints = overridePoints(random);
       const playerPoints = overridePoints(random);
@@ -253,7 +256,10 @@ async function overrideAndRemove(
 ) {
   const fixture = random.oneOf(fixtures);
   const held = heldIn(random, league, played.get(fixture.code)!);
-  if (held === null) return;
+  if (held === null) {
+    progress(`Gameweek ${gameweek}: a league held no played player, so its override and removal were skipped`);
+    return;
+  }
   const { leagueId } = league;
   const commissioner = await actingAs(t, COMMISSIONER);
   const scored = (await storedIn(t, leagueId, gameweek)).get(held.teamId);

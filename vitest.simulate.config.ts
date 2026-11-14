@@ -1,8 +1,8 @@
 import { defineConfig } from "vitest/config";
 import { LONDON_ZONE } from "./convex/shared/moments.ts";
 
-// The season simulation (#2132, tests/convex/simulation/): `npm run simulate`, which the nightly
-// job calls. Never part of `npm test` (vitest.config.ts), being minutes long. It runs as the convex
+// The season simulation (#2132, tests/convex/simulation/): `npm run simulate`, run by hand until a
+// nightly job calls it (#2185). Never part of `npm test` (vitest.config.ts), being minutes long. It runs as the convex
 // project does, its setup files included, so a console.error fails it and the timed jobs are on.
 
 process.env.TZ = LONDON_ZONE;
