@@ -64,6 +64,11 @@ export const run = internalAction({
         teamStats = sides.teamStats;
         return { ok: true as const, ...read };
       });
+      // Every 10 minutes, matches due or not, so either live tick chain that died starts again
+      // (#1999, liveTicks.ts).
+      if (byCron) {
+        for (const feed of LIVE_TICK_FEEDS) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: false, busy: null });
+      }
       // A cron run with nothing due writes no run row (#2002, the Convex quota): the feeds page owes
       // late stats a run only while a match is unlocked (admin/feeds.ts), and Healthchecks hears it ran.
       // A run by hand still writes one, for whoever ran it to read back.
@@ -74,10 +79,6 @@ export const run = internalAction({
       await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
       // Only its full-time reads read team stats, and the feed owes none between matches.
       await recordSideMatches(ctx, ranAt, { teamStats }, false);
-      // Every 10 minutes, so either live tick chain that died starts again (#1999, liveTicks.ts).
-      if (trigger === CRON_TRIGGER) {
-        for (const feed of LIVE_TICK_FEEDS) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: false, busy: null });
-      }
       return null;
     }, FEED_SCHEDULES.matchStats.every);
   },

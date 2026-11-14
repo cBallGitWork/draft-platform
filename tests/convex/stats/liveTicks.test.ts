@@ -10,7 +10,7 @@ import { LIVE_NOW, sync, TOKEN } from "../../support/convex/sportmonks.harness";
 import { SPORTMONKS_TOKEN_ENV } from "../../../convex/football/sportmonks/sportmonks";
 import { CRON_TRIGGER } from "../../../convex/heartbeats/heartbeat";
 import type { ActionCtx } from "../../../convex/_generated/server";
-import { chainedTick } from "../../../convex/stats/liveTicks";
+import { chainedTick } from "../../../convex/stats/liveTicksChained";
 
 // The live ticks run only near matches (#1999, the Convex quota): no cron calls them each minute
 // (crons.test.ts), so a week with no match costs no tick at all. A sync arms the chain at the next

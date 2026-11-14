@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
-import { internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { liveTickFeed } from "../schema";
 import { timedJobsOn } from "../heartbeats/heartbeat";
 import { everyMs, FEED_SCHEDULES } from "../shared/feedSchedule";
@@ -72,7 +72,7 @@ const TICK_EVERY_MS = everyMs(FEED_SCHEDULES.liveStats.every);
 /** Schedules `feed`'s next tick. From a sync (`ranTick` false), a tick already running or due no
  *  later is left alone; from the tick itself, `busy` says whether it had a match to read, or is
  *  null when it threw before it knew, and is worked out here. */
-export async function arrangeTick(ctx: MutationCtx, feed: LiveTickFeed, ranTick: boolean, busy: boolean | null = null): Promise<void> {
+async function arrangeTick(ctx: MutationCtx, feed: LiveTickFeed, ranTick: boolean, busy: boolean | null = null): Promise<void> {
   const chain = CHAINS[feed];
   if (!chain.on()) return;
   const held = await ctx.db
@@ -96,7 +96,7 @@ export async function arrangeTick(ctx: MutationCtx, feed: LiveTickFeed, ranTick:
   else await ctx.db.patch("liveTickChains", held._id, { scheduledId });
 }
 
-/** `arrangeTick`, for an action: a tick at its end, or Sportmonks' six-hourly sync. */
+/** `arrangeTick`, for an action: a tick at its end (liveTicksChained.ts), or a six-hourly sync. */
 export const arrange = internalMutation({
   args: { feed: liveTickFeed, ranTick: v.boolean(), busy: v.union(v.boolean(), v.null()) },
   returns: v.null(),
@@ -105,15 +105,3 @@ export const arrange = internalMutation({
     return null;
   },
 });
-
-/** Runs a tick's `work`, which says whether it had a match to read (null when it couldn't ask), then
- *  schedules its next, even when `work` threw. */
-export async function chainedTick(ctx: ActionCtx, feed: LiveTickFeed, work: () => Promise<boolean | null>): Promise<null> {
-  let busy: boolean | null = null;
-  try {
-    busy = await work();
-  } finally {
-    await ctx.runMutation(internal.stats.liveTicks.arrange, { feed, ranTick: true, busy });
-  }
-  return null;
-}

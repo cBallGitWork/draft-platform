@@ -14,7 +14,6 @@ import { CRON_TRIGGER, cronRunOff, withHeartbeat } from "../heartbeats/heartbeat
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
-import { arrangeTick } from "../stats/liveTicks";
 import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
 import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -89,6 +88,8 @@ export const run = internalAction({
         };
       });
       await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
+      // Its matches' kickoffs arm the live tick (#1999, stats/liveTicks.ts).
+      if (trigger === CRON_TRIGGER) await ctx.runMutation(internal.stats.liveTicks.arrange, { feed: "liveStats", ranTick: false, busy: null });
       return null;
     });
   },
@@ -191,7 +192,6 @@ export const record = internalMutation({
   handler: async (ctx, row) => {
     await ctx.db.insert("footballSyncs", row);
     await emailIfFailed(ctx, "football", row);
-    if (row.trigger === CRON_TRIGGER) await arrangeTick(ctx, "liveStats", false); // Arms it by its kickoffs (#1999).
     return null;
   },
 });
