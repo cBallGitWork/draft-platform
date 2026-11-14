@@ -97,7 +97,7 @@ export const tableLineWords: Record<TableLine, string> = {
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
-export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
+export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
  *  "Arsenal 2–1 Chelsea: the match". */

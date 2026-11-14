@@ -31,7 +31,14 @@ export const liveStatsTables = {
   liveMatchPrints: defineTable({
     fixtureCode: v.number(),
     prints: v.array(v.object({ playerCode: v.number(), print: v.number() })),
+    /** When the last read written was read, so an older one never overwrites it (spec/10
+     *  `S10.12`); absent on rows from before it. */
+    readAt: v.optional(v.number()),
   }).index("by_fixtureCode", ["fixtureCode"]),
+  /** A live match whose points stay as last read (spec/10 `S10.12`): a tick couldn't read it, or
+   *  its read was cut off. Apart from `liveMatchPrints`, which moves every minute, so a scoreboard
+   *  reading it runs again only when the delay starts or ends. Gone at the next full read. */
+  livePointsDelays: defineTable({ fixtureCode: v.number(), delayedFrom: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
 };
 
 // The live tick's side reads, each its own feed (#522, admin/sideRuns.ts): one row per run with a

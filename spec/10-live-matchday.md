@@ -64,6 +64,10 @@ commentary` (16 Oct 2026).
 - A player traded or released after the deadline shows the team that had him at it: "Yes show the
   old team as for the current games he's on that team" (Craig, 31 Oct 2026).
 - From the lineups, about an hour before kickoff, to full time; kept afterwards.
+- If live stats stop coming mid-match, or a read arrives cut off or repeated, points stay as last
+  read, with "Live points delayed" on the scoreboard. A cut-off or repeated read never lowers or
+  doubles anyone's points: the next full read wins, and an older read never overwrites a newer
+  one, full time included (Craig, 14 Nov 2026, grill batch 3, #2208). `S10.12`
 - Opened from a player's status on the matchup, and from the Premier League's fixtures (`spec/18`).
 
 ## The commentary

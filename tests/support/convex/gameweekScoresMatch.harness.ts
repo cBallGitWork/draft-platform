@@ -15,8 +15,9 @@ import { elapse } from "./test.harness";
 
 /** The match's records as the live tick lands them, before full time, and what the landing did. */
 export async function liveRecords({ t }: ScoresLeague, records: PlayerMatchRecord[], minute: number | null = null) {
-  vi.setSystemTime(LEAGUE_KICKOFF + HOUR_MS);
-  return t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, minute, records });
+  const readAt = LEAGUE_KICKOFF + HOUR_MS;
+  vi.setSystemTime(readAt);
+  return t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: HULL_EVERTON, readAt, minute, records });
 }
 
 /** The match's records as the full-time read lands them: complete, its corrections window open. */

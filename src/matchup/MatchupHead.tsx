@@ -5,6 +5,7 @@ import { BYE, FIRST_GAME } from "../../convex/table/teamGames";
 import type { Matchup } from "./seam";
 import { matchupLink } from "./paths";
 import { onPitch } from "./SidePitch";
+import { Status } from "../ui/Panel";
 import {
   figureWords,
   finalWords,
@@ -12,6 +13,7 @@ import {
   gameSwitchWords,
   gameweekShort,
   gameweekWords,
+  livePointsDelayedWords,
   nextGlyph,
   nextLabel,
   previousGlyph,
@@ -133,11 +135,14 @@ export function ScoredHead({
   opponent,
   gameSwitch,
   overrides,
+  pointsDelayed,
 }: {
   stepper: ReactNode;
   team: MatchupSide;
   opponent: MatchupSide;
   gameSwitch: ReactNode;
+  /** Whether the live points are held as last read: "Live points delayed" (spec/10 `S10.12`). */
+  pointsDelayed: boolean;
   overrides: ((layout: (controlOf: (side: MatchupSide) => ReactNode) => ReactNode) => ReactNode) | null;
 }) {
   const provisional = team.provisional || opponent.provisional;
@@ -152,9 +157,13 @@ export function ScoredHead({
             <ScorePlate points={opponent.points} />
           </span>
         </p>
-        <p aria-live="polite" className={provisional ? "text-soft" : "text-fact"}>
-          {provisional ? provisionalWords : finalWords}
-        </p>
+        {/* One flex item, so the empty status adds no gap while the points keep up. */}
+        <div className="flex flex-col items-center">
+          <p aria-live="polite" className={provisional ? "text-soft" : "text-fact"}>
+            {provisional ? provisionalWords : finalWords}
+          </p>
+          <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
+        </div>
         {gameSwitch}
       </div>
       <TeamHead side={opponent} control={controlOf(opponent)} />

@@ -60,7 +60,7 @@ test("live ticks move no season totals and re-price nobody; full time counts eve
   expect(await printRows(t)).toHaveLength(0);
 });
 
-test("a tick reading nobody moved writes no record and leaves the compact row as it was", async () => {
+test("a tick reading nobody moved writes no record and leaves the compact row's prints as they were, noting only when it read (S10.12)", async () => {
   const t = await withHullEverton();
   await tickAt(t, stageTime(30), stagedGw6(30));
   const [before] = await printRows(t);
@@ -69,7 +69,7 @@ test("a tick reading nobody moved writes no record and leaves the compact row as
   const { latest } = await tickAt(t, stageTime(30) + 1, stagedGw6(30));
 
   expect(latest.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true, inserted: 0, updated: 0, changed: [] }] });
-  expect(await printRows(t)).toEqual([before]);
+  expect(await printRows(t)).toEqual([{ ...before, readAt: stageTime(30) + 1 }]);
   expect((await heldMatch(t)).records).toEqual(records);
 });
 

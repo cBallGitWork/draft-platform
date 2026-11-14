@@ -5,7 +5,7 @@ import { useClubColours } from "../shared/clubColours";
 import { ClubMark } from "../ui/ClubName";
 import { ClubLink } from "./ClubLink";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote, Status } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { OwnerName } from "../ui/OwnerName";
 import { useMinute } from "../shared/useMinute";
@@ -20,6 +20,7 @@ import {
   figureWords,
   goalsWords,
   inGameweekWords,
+  livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
   matchColumns,
@@ -85,7 +86,7 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
 }
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek }, children }: { match: MatchPageData; children: ReactNode }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed }, children }: { match: MatchPageData; children: ReactNode }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -98,6 +99,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek }, children 
         <MatchState score={score} kickoff={kickoff} long />
         {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
+      <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
       {children}
     </section>
   );
