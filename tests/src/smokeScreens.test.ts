@@ -1,6 +1,6 @@
-// The smoke run's phone check (tests/smoke/smoke.spec.ts) opens every route the router has, so a
-// new screen can't skip its sideways-scroll and console-error check; the few it doesn't open are
-// listed here, each with why.
+// The smoke run's built-screens check (tests/smoke/builtScreens.spec.ts), on the phone and the
+// desk, opens every route the router has, so a new screen can't skip its sideways-scroll and
+// console-error check; the few it doesn't open are listed here, each with why.
 
 import { describe, expect, it } from "vitest";
 import { createShellRouter, type ShellContext } from "../../src/routes/router";
@@ -11,7 +11,7 @@ import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 /** Every path the router matches, read from its route tree. Building it loads nothing. */
 const routerPaths = Object.keys(createShellRouter({} as ShellContext).routesByPath);
 
-/** Routes the phone run doesn't open, each with why. */
+/** Routes the built-screens run doesn't open, each with why. */
 const NOT_SMOKED: ReadonlyMap<string, string> = new Map([
   [LANDING_PATH, "it redirects to My team; smoke.spec.ts's ?preview=manager test opens it"],
   [SIGN_IN_PATH, "smoke.spec.ts's ?preview=visitor test opens it"],
