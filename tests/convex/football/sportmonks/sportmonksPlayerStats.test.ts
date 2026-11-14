@@ -181,9 +181,12 @@ test("a man sent twice in one match is one man, the later row winning (S07.13)",
 const recordsWith = (stateId: number, change: (raw: RawFixture) => void = () => {}) =>
   sportmonksPlayerStats(oldFirm(stateId, (raw) => (mcCowanSent(raw), change(raw))));
 
+/** Kyogo named in the lineups with no `lineups.details`. */
+const kyogoUnsent = (raw: RawFixture) => delete raw.lineups!.find((man) => man.player_id === SM.kyogo)!.details;
+
 test("a man who played with no row in a read keeps his last read, flagged as held, and the match stays provisional (S07.13)", () => {
   const last = recordsWith(SM_STATE.secondHalf);
-  const noStats = recordsWith(SM_STATE.fullTime, (raw) => delete raw.lineups!.find((man) => man.player_id === SM.kyogo)!.details);
+  const noStats = recordsWith(SM_STATE.fullTime, kyogoUnsent);
   const kept = withLastRead(noStats, last);
   expect(sportmonksRecordOf(kept, SM.kyogo)).toMatchObject({ arrived: true, held: true, state: "provisional" });
   expect(recordOf(kept, SM.kyogo)).toMatchObject({ minutes: 67, goals_scored: 2, [WORKED_OUT.wins]: 1 });
@@ -202,7 +205,7 @@ test("a man who played with no row in a read keeps his last read, flagged as hel
 
 test("a later read that fills a held man's row ends the hold; a man who never played or never sent anything has nothing to hold (S07.13)", () => {
   const last = recordsWith(SM_STATE.secondHalf);
-  const kyogoHeld = withLastRead(recordsWith(SM_STATE.fullTime, (raw) => delete raw.lineups!.find((man) => man.player_id === SM.kyogo)!.details), last);
+  const kyogoHeld = withLastRead(recordsWith(SM_STATE.fullTime, kyogoUnsent), last);
   const filled = withLastRead(recordsWith(SM_STATE.fullTime), kyogoHeld);
   expect(filled.map((record) => [record.held ?? false, record.state])).toEqual(Array(4).fill([false, "complete"]));
 
