@@ -60,6 +60,29 @@ they spend none of the free plan's database reads (Craig, 13 Nov 2026, #1997). `
   the others (`spec/06`; Craig, 5 Nov 2026, #1194);
 - clearing old run logs, daily.
 
+## The first live-data check
+
+Before anything else is built on live data, one real gameweek is followed on the live site (Craig,
+14 Nov 2026, `/grill #2108`: "We need to test the basics of live data first... it's pre-alpha at
+best").
+
+- It runs on the live site, on the feeds it reads today (FPL and the Premier League), in the
+  28-29 Nov round: after the international break, and not 21 Nov, when Craig is away. `S20.10`
+- It checks the basics: the football sync fills the season's players, clubs and fixtures; the
+  gameweek's deadline locks every lineup; live points tick on the matchup screen while matches
+  play; full-time and late stats store the gameweek's final scores. `S20.11`
+- It plays on a test league of two teams, Craig's and the after-release check's test account. A
+  script makes the league, runs its draft with auto-pick for both and sets each lineup with auto
+  team, once, before that round's deadline. The league is deleted once the check passes. `S20.12`
+- It passes when every player in the league's squads has, for each of his matches, the stats FPL
+  itself gives for that match (minutes, goals, assists, clean sheets, cards and the rest), and his
+  points follow the league's scoring. `S20.13`
+- A session follows the feeds page and the run logs while matches play. Craig looks at the matchup
+  screen at least once live and once after full time. `S20.14`
+- Every fault found is its own bug issue, and the check passes only when a whole gameweek ends
+  with none open against it. `S20.15`
+- Later: the match page and the commentary. `S20.16`
+
 ## Moving to Sportmonks
 
 Sportmonks replaces FPL's and the Premier League's feeds (Craig, 9 Nov 2026, on #1196: "stop with
