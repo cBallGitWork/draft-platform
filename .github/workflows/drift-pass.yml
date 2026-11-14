@@ -7,7 +7,7 @@ name: drift-pass
 
 on:
   schedule:
-    - cron: "0 1 * * 1"  # Mondays 01:00 UTC, before the nightly builds
+    - cron: "0 1 * * 1"  # Mondays 01:00 UTC, overnight, before the day's builds
   workflow_dispatch:
 
 permissions:
