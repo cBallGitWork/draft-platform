@@ -27,7 +27,7 @@ export const TEST_ACCOUNT_PROVIDER = "test-account";
 const NO_ACCOUNT_YET = "InvalidAccountId";
 
 /** The test account's email and secret, or null while either is unset: the path is off. */
-function testAccount(): { email: string; secret: string } | null {
+export function testAccount(): { email: string; secret: string } | null {
   const email = process.env[TEST_ACCOUNT_EMAIL_SETTING];
   const secret = process.env[TEST_ACCOUNT_SECRET_SETTING];
   return email && secret ? { email: normaliseEmail(email), secret } : null;
