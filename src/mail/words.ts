@@ -5,6 +5,7 @@
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import type { LetterKind, LetterLink } from "../../convex/mail/letterShape";
+import { readRecapLink } from "../home/words";
 import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export { MAIL_TITLE } from "../shared/words";
@@ -63,7 +64,7 @@ export const letterLinkWords = {
   table: "Open the table",
   draft: "Open the draft room",
   patchNotes: "Read the patch notes",
-  recap: "Read the recap",
+  recap: readRecapLink,
   settings: "Open League settings",
 } as const satisfies Record<LetterLink["to"], string>;
 /** The kind chip's placeholder, on a letter filed before letters held their kind. */
