@@ -14,7 +14,7 @@ export const PREVIEW_LIMITS_KEY = "limits";
 /** Whether the preview is at the league limits: its league at the most teams, each name, the
  *  league's too, at the longest, and a manager's squad at the most players (leagueLimits.ts). Read
  *  once, as the preview loads, so the whole visit stays at the limits. */
-export const previewAtLimits = typeof window !== "undefined" && new URLSearchParams(window.location.search).has(PREVIEW_LIMITS_KEY);
+export const previewAtLimits = new URLSearchParams(globalThis.location?.search ?? "").has(PREVIEW_LIMITS_KEY);
 
 /** The Pro League's name at the limits: as long as a league's name may be. */
 export const limitsLeagueName = "Tim Hortons Premier Pro League";
