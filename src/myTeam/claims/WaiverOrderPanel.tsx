@@ -44,7 +44,8 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
   );
 }
 
-/** The next runs, soonest first, the first marked Next, and when free agency opens; before the
+/** The next runs, soonest first, the first marked Next, and when free agency opens, under "Waivers
+ *  delayed" while a run still fails after its retries (S08.23); before the
  *  league's draft is over every run is skipped (S08.1), so none is marked Next. A run that may fall
  *  in a gameweek's lock says so in place of Next (#1488). On My team's Transactions tab each run
  *  counts the manager's `claims` in it (#1031). */

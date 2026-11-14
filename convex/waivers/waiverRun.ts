@@ -40,7 +40,7 @@ import { latestRunAt, nextWaiverCheck, wasRunTime } from "./waiverTimes";
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
-// function, `run`, makes a run, for the cron here and for any later caller. At each deadline, as
+// function, `run`, makes a run, every claim or none; the cron here retries it (waiverRunRetries.ts). At each deadline, as
 // the free agent window shuts, every free agent goes back on waivers, so the next run hands him out
 // by the waiver order (`putBackOnWaivers`; Craig, 11 Nov 2026, #1478).
 
