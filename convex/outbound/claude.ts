@@ -1,3 +1,4 @@
+import { logFailure } from "../shared/errors";
 import { DAY_MS, MINUTE_MS } from "../shared/time";
 import { ANTHROPIC_KEY_SETTING } from "./deploymentSettings";
 import { WRITING_TIMEOUT_MS } from "./timeouts";
@@ -22,6 +23,35 @@ export const CLAUDE_RETRY_MS = 30 * MINUTE_MS;
  *  back with no report and a recap stops being tried (Craig, 12 Nov 2026, on #1437: "Retry a day,
  *  then tell him"). */
 export const CLAUDE_TRIES_MOST = Math.ceil(DAY_MS / CLAUDE_RETRY_MS);
+
+/** One try at a scheduled write, a scout's report's or a recap's, as each job makes it: `write`
+ *  reads what it is written from and asks Claude, all inside the try, so a brief that throws is a
+ *  failed write too; it gives null when there is nothing left to write. What it wrote goes to
+ *  `land`; a failure is logged, naming `what`, and goes to `fail`, which keeps it on the row and
+ *  asks again (`failedTry`). */
+export async function tryWriting<Written>(
+  what: string,
+  write: () => Promise<{ written: Written } | null>,
+  land: (written: Written) => Promise<unknown>,
+  fail: (failure: string) => Promise<unknown>,
+): Promise<null> {
+  let done: { written: Written } | null;
+  try {
+    done = await write();
+  } catch (error) {
+    await fail(logFailure(`${what} wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error));
+    return null;
+  }
+  if (done !== null) await land(done.written);
+  return null;
+}
+
+/** A row's failed tries counting the one just failed, and whether it is tried again
+ *  CLAUDE_RETRY_MS later: only while fewer than CLAUDE_TRIES_MOST have failed. */
+export function failedTry(row: { failedTries?: number }): { failedTries: number; again: boolean } {
+  const failedTries = (row.failedTries ?? 0) + 1;
+  return { failedTries, again: failedTries < CLAUDE_TRIES_MOST };
+}
 
 /** Claude's written reply to `prompt` under `system`, trimmed, or throws saying why there is none:
  *  no key on the deployment, the API refused or didn't answer in time, it wrote nothing, or it was
