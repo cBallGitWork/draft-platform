@@ -3453,6 +3453,50 @@
       }
     },
     {
+      "tableName": "liveTickChains",
+      "indexes": [
+        {
+          "indexDescriptor": "by_feed",
+          "fields": [
+            "feed"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "feed": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "liveStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "sportmonksLive"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "scheduledId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "_scheduled_functions"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "liveMatchPrints",
       "indexes": [
         {

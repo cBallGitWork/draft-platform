@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { hasBegun, SCREEN_READ } from "../gameweekScorer/gameweekScores";
-import { liveScoresIn } from "../gameweekScorer/storedScores";
+import { hasBegun, liveScoresIn, SCREEN_READ } from "../gameweekScorer/gameweekScores";
 import { seasonRules } from "../rules/rulesHistory";
 import { commentary, heldCommentary } from "../matchup/matchupShape";
 import { gameModeOf } from "../rules/gameMode";

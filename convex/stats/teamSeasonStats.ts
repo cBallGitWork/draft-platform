@@ -4,11 +4,11 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
-import { sameCodes } from "../gameweekScorer/storedScores";
 import { gameweekInputs, leagueReads, teamInGameweek, type LeagueReads } from "../gameweekScorer/teamGameweek";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { seasonRules } from "../rules/rulesHistory";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
+import { datedCodes, sameCodes } from "../shared/fixtures";
 import { teamsOf } from "../shared/leagueAccess";
 import { allLocked } from "./matchStats";
 import { addStats, type Stats } from "./statTotals";
@@ -79,7 +79,7 @@ async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<numb
   let reads: LeagueReads | null = null;
   for (const gameweek of await begunGameweeks(ctx, league)) {
     const fixtures = await heldFixtures(ctx, gameweek);
-    const fixtureCodes = fixtures.map((fixture) => fixture.code);
+    const fixtureCodes = datedCodes(fixtures);
     const shares = await sharesIn(ctx, league._id, gameweek);
     const stale = teamIds.filter((teamId) => {
       const share = shares.get(teamId);

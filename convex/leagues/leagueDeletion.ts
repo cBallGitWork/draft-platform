@@ -44,6 +44,7 @@ const leagueIndexes: { [Table in TableNames]?: IndexOf<Table> } = {
   playedFixtures: "by_leagueId_and_gameweek",
   fixtureEdits: "by_leagueId_and_gameweek",
   finalScores: "by_leagueId_and_gameweek",
+  liveScores: "by_leagueId_and_gameweek",
   pointsOverrides: "by_leagueId_and_playerCode",
   teamOverrides: "by_leagueId_and_gameweek_and_teamId",
   lastLeagues: "by_leagueId",

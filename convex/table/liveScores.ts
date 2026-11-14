@@ -4,10 +4,9 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { begunGameweeks, gameweekScorer, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
-import { heldLiveScores } from "./liveRescore";
+import { heldLiveScores } from "../shared/liveScoreRows";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { earliestDelay } from "../football/matchCommentary";
-import type { HeldCommentary } from "../matchup/matchupShape";
 import { commentaryByMatch, commentaryReads } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -121,11 +120,12 @@ export async function gameweekVidiprinter(
 }
 
 /** The matchday's Vidiprinter, of its matches `fixtureCodes`, from the gameweek's: their lines,
- *  newest first, and the earliest of their delays. */
-export function matchdayOfLines(priced: LiveVidiprinter, fixtureCodes: ReadonlySet<number>): HeldCommentary {
+ *  newest first, and the earliest of their delays, as `matchdayOf` (home/leagueHome.ts) returns
+ *  them: its validator checks the shape, so this file needs no Matchup import. */
+export function matchdayOfLines(priced: LiveVidiprinter, fixtureCodes: ReadonlySet<number>) {
   if (priced.kind === "unread") return priced;
   return {
-    kind: "read",
+    kind: "read" as const,
     lines: priced.lines.filter((line) => fixtureCodes.has(line.fixtureCode)).map(shownLine),
     delayedFrom: earliestDelay(priced.delays.filter((delay) => fixtureCodes.has(delay.fixtureCode)).map(({ delayedFrom }) => delayedFrom)),
   };

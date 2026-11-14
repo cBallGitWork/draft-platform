@@ -11,7 +11,7 @@ import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats
 import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
-import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
+import { datedCodes, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { matchRecordsOf } from "./matchRecordReads";
 import { rescoreEveryLive } from "../table/liveRescore";
 import { livePrintsOf, sameRecord } from "./livePrints";
@@ -124,16 +124,17 @@ async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGa
   await rescoreEveryLive(ctx);
 }
 
-/** Whether every match held in the locked match's gameweek is locked. A match the football sync
- *  holds no gameweek for can't be told, so it reads as final and the leagues are asked, as before. */
+/** Whether every dated match held in the locked match's gameweek is locked, a postponed one left
+ *  out (#2040). A match the football sync holds no gameweek for can't be told, so it reads as final
+ *  and the leagues are asked, as before. */
 async function gameweekFinalWith(ctx: QueryCtx, fixtureCode: number): Promise<boolean> {
   const gameweek = (await fixtureByCode(ctx, fixtureCode))?.gameweek ?? null;
   if (gameweek === null) return true;
   const fixtures = await gameweekFixtures(ctx, gameweek, "the leagues might never be asked to store it");
-  return allLocked(ctx, fixtures.map((fixture) => fixture.code));
+  return allLocked(ctx, datedCodes(fixtures));
 }
 
-/** Whether the matches hold one and every one is locked: a gameweek with none held (each postponed,
+/** Whether the matches hold one and every one is locked: a gameweek with none dated (each postponed,
  *  say) is never final, as the table has it (gameweekScores.ts). */
 export async function allLocked(ctx: QueryCtx, fixtureCodes: readonly number[]): Promise<boolean> {
   if (fixtureCodes.length === 0) return false;

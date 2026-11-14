@@ -66,11 +66,16 @@ export const writeOverAnns = (league: ScoresLeague) =>
  *  here holds: the table's stored scores and the stat race's shares both reopen for it. */
 export const MOVED_IN = 999_001;
 const MOVED_IN_CLUBS = [901, 902] as const;
-/** The moved-in match held in gameweek 6, as the football sync would put it there. */
-export const holdMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) =>
-    ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: MOVED_IN_CLUBS[0], awayClubCode: MOVED_IN_CLUBS[1], kickoff: Date.now() }),
-  );
+/** The moved-in match held in gameweek 6, as the football sync would put it there: with no
+ *  `kickoff`, postponed there and waiting for a new date (#2040). */
+export const holdMovedIn = ({ t }: ScoresLeague, kickoff: number | null = Date.now()) =>
+  t.run((ctx) => ctx.db.insert("fixtures", { code: MOVED_IN, gameweek: GAMEWEEK, homeClubCode: MOVED_IN_CLUBS[0], awayClubCode: MOVED_IN_CLUBS[1], kickoff }));
+/** The postponed match given a new date inside gameweek 6, as the football sync would. */
+export const rearrangeMovedIn = ({ t }: ScoresLeague) =>
+  t.run(async (ctx) => {
+    const moved = (await ctx.db.query("fixtures").collect()).find((fixture) => fixture.code === MOVED_IN)!;
+    await ctx.db.patch("fixtures", moved._id, { kickoff: Date.now() });
+  });
 /** The moved-in match read at full time, its window passed and locked. */
 export const lockMovedIn = ({ t }: ScoresLeague) =>
   t.run((ctx) => insertLockedStatus(ctx, MOVED_IN, Date.now()));

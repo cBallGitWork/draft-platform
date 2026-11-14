@@ -65,8 +65,9 @@ export type Every = { readonly hours: number } | { readonly minutes: number };
  *  length, and the tick Convex skips while the one before it still runs. */
 export type FeedSchedule = { readonly every: Every; readonly graceMs: number };
 
-/** The live tick's: one reading several matches can outrun its minute, and Convex skips the next
- *  while it runs. Its side reads run on it, so they are late by it too. */
+/** The live tick's, which schedules its next a minute on near matches, not a cron
+ *  (stats/liveTicks.ts): one reading several matches can outrun its minute. Its side reads run on
+ *  it, so they are late by it too. */
 const LIVE_TICK = { every: { minutes: 1 }, graceMs: 4 * MINUTE_MS } as const satisfies FeedSchedule;
 
 /** The football sync's six hours (FPL's and Sportmonks'): a run reads in a minute or two. */

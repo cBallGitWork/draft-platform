@@ -20,8 +20,9 @@ const BY_CRON = { trigger: CRON_TRIGGER } as const;
 // reads every held row to compare, so running it more often costs bandwidth for nothing new.
 crons.interval("football sync", FEED_SCHEDULES.football.every, internal.football.footballSync.run, BY_CRON);
 
-// The live poller's tick (#28): every minute, a no-op outside match windows (ARCHITECTURE.md).
-crons.interval("live stats tick", FEED_SCHEDULES.liveStats.every, internal.stats.liveStatsSync.tick, {});
+// No cron runs the live ticks, FPL's (#28) and Sportmonks' (#1391): each runs every minute only
+// near matches, scheduling its next, and the football syncs and late stats arm it (#1999,
+// stats/liveTicks.ts).
 
 // Late stats (#27): each match past full time and not yet locked, so one still unsettled when the
 // live tick's window ends is still read, corrected and locked (spec/07).
@@ -40,11 +41,9 @@ crons.cron("positions sync", DAILY_RUN_CRON, internal.positions.positionsSync.da
 // Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 
-// Sportmonks' reads (#1391, #1414): each competition that is on, on the football sync's six hours,
-// and each of its matches every minute from kickoff to full time. Only where SPORTMONKS_API_TOKEN is set; each
-// reads nothing where it isn't (football/sportmonks/).
+// Sportmonks' reads (#1391, #1414): each competition that is on, on the football sync's six hours.
+// Only where SPORTMONKS_API_TOKEN is set; it reads nothing where it isn't (football/sportmonks/).
 crons.interval("sportmonks sync", FEED_SCHEDULES.sportmonks.every, internal.football.sportmonks.sportmonksSync.run, BY_CRON);
-crons.interval("sportmonks live tick", FEED_SCHEDULES.sportmonksLive.every, internal.football.sportmonks.sportmonksLive.tick, {});
 // And the Scottish Premiership's lineups, for positions (#1419), at the positions sync's 06:00 UK time.
 crons.cron("sportmonks positions", DAILY_RUN_CRON, internal.football.sportmonks.sportmonksPositionsSync.daily, {});
 

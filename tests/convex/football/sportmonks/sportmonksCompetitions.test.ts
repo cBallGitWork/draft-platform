@@ -5,7 +5,7 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { leagueUrl, liveFixturesUrl, SEEDED_COMPETITIONS } from "../../../../convex/football/sportmonks/sportmonks";
-import { freshConvex, silenceConsoleError, everyJobRuns } from "../../../support/convex/test.harness";
+import { freshConvex, silenceConsoleError, everyJobRuns, clockRunsTo } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead } from "../../../support/recorded/sportmonks.payloads";
 import {
   fakeSportmonks,
@@ -127,7 +127,8 @@ test("during matches in two competitions the tick writes a row for each, one ref
     vi.fn(async (url: string) => (url === refused ? Response.json({ message: REFUSED }, { status: 403 }) : Response.json(sportmonksLiveRead()))),
   );
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
-  await everyJobRuns(t);
+  // The jobs due now, not the next tick it schedules a minute on (#1999).
+  await clockRunsTo(t, Date.now());
 
   expect((await ticks(t)).map(({ competition, outcome }) => ({ competition, outcome }))).toEqual([
     { competition: SCOTTISH, outcome: { ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: true }] } },
