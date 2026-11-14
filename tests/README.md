@@ -8,6 +8,14 @@ stored, `matchPageReplay.test.ts`, a replayed match on its page from the team sh
 time, `seasonChain.test.ts`, two gameweeks from the draft's end to a waiver claim's points, and
 `clockChange.test.ts`, that chain carried on across the clocks going back on 25 Oct 2026.
 
+The season simulation, `tests/convex/simulation/season.sim.ts`, is not a test file: no project of
+`vitest.config.ts` runs it, and `npm run simulate` does (`vitest.simulate.config.ts`), by hand
+until a nightly job calls it (#2185). Six leagues of 80 teams play a seeded season of 39 gameweeks,
+held to Convex's limits, in about an hour (the timings in `vitest.simulate.config.ts`, 14 Nov
+2026); it prints its seed, and `SIM_SEED=<seed> npm run simulate` plays one again.
+Its world is `tests/support/convex/seasonSimulation.harness.ts`, which `seasonWorld.test.ts` beside
+it checks on every pull request.
+
 **Contents:** [The six roots](#the-six-roots) ·
 [What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
 [The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
