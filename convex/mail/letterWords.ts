@@ -128,7 +128,29 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
     case "autoTeamSwitched":
       return autoTeamSwitchedWords(event, who);
+    case "matchAbandoned":
+      return abandonedWords(event, who);
   }
+}
+
+/** "The admin marked Arsenal v Coventry, gameweek 6, abandoned. ..." or, on taking the mark back,
+ *  that its points come back (#904, spec/05 S05.46, S05.47). */
+function abandonedWords({ matchName, gameweek, abandoned, overridesRemoved }: Extract<LeagueEvent, { kind: "matchAbandoned" }>, who: string): Words {
+  if (!abandoned) {
+    return {
+      subject: `${matchName} is no longer abandoned`,
+      body:
+        `${who} took back the abandoned mark on ${matchName}, gameweek ${gameweek}. Its players' points come back from the ` +
+        "feed's next read of it. Overrides removed with the mark stay removed.",
+    };
+  }
+  const removed = overridesRemoved.length === 0 ? "" : `\n\nThe league's overrides in it went with it: ${andListWords(overridesRemoved)}.`;
+  return {
+    subject: `${matchName} was abandoned`,
+    body:
+      `${who} marked ${matchName}, gameweek ${gameweek}, abandoned. It counts as never played: its players' points there are ` +
+      `gone, and each one in a line-up is auto-subbed as if he hadn't played. Only its replay counts.${removed}`,
+  };
 }
 
 /** What a scoring start set or moved means for the league: scoring starts in `to`, not `from` (null

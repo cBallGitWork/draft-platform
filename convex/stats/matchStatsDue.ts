@@ -7,6 +7,7 @@ import { CURRENT_FIXTURES_MOST, currentFixtures, fixtureByCode } from "../shared
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { statusOf, triedOf } from "./matchStats";
+import { isAbandoned } from "./matchRecordReads";
 
 // Issue #27, split from matchStats.ts: which held matches `matchStatsSync.run` reads now (#199).
 
@@ -67,7 +68,8 @@ export const due = internalQuery({
     }
     const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
     for (const { code, gameweek, kickoff } of candidates.values()) {
-      if (gameweek === null || kickoff === null || kickoff > fullTimeBy) continue;
+      // A match marked abandoned counts as never played: nothing is read for it (#904).
+      if (gameweek === null || kickoff === null || kickoff > fullTimeBy || (await isAbandoned(ctx, code))) continue;
       const triedAt = (await triedOf(ctx, code))?.triedAt ?? Number.NEGATIVE_INFINITY;
       found.push({ fixtureCode: code, gameweek, kickoff, triedAt });
     }
