@@ -28794,6 +28794,10 @@
                 },
                 {
                   "type": "literal",
+                  "value": "leftPremierLeague"
+                },
+                {
+                  "type": "literal",
                   "value": "blocked"
                 },
                 {

@@ -91,6 +91,18 @@ export async function closeOffersHolding(ctx: MutationCtx, leagueId: Id<"leagues
   }
 }
 
+/** Cancels each offer in the league, open or in review, holding a player in `left`, each just gone
+ *  from the Premier League: its review's timer goes with it, and both managers are told (S08.25,
+ *  Craig, 14 Nov 2026, on #2200). */
+export async function cancelOffersHoldingLeavers(ctx: MutationCtx, leagueId: Id<"leagues">, left: ReadonlySet<number>): Promise<void> {
+  for (const offer of await leagueOffers(ctx, leagueId)) {
+    const gone = [...offer.gives, ...offer.gets].find((code) => left.has(code));
+    if (gone === undefined) continue;
+    if (offer.review !== undefined) await ctx.scheduler.cancel(offer.review.scheduledId);
+    await closeOffer(ctx, offer, { why: "leftPremierLeague", playerName: await tradedName(ctx, gone) });
+  }
+}
+
 /** Closes each open offer to or from the team, which just went on the auto team. */
 export async function closeOffersOfTeam(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
   for (const offer of await leagueOffers(ctx, team.leagueId)) {

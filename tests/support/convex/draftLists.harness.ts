@@ -1,8 +1,10 @@
 // The draft queue and do-not-draft list tests' shared setup (#1092, #1137): a league with Ann's
 // and Bob's teams, three players and one gone, and each list's mutations as one person.
 
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { afterPlayersDropped } from "../../../convex/football/afterFootballSync";
+import { pendingJobs } from "./test.harness";
 import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "./leagues.harness";
 import { ARSENAL, CHELSEA, GONE, ODEGAARD, PALMER, SAKA, insertClubs, insertDroppedPlayer, insertPlayerRows } from "./footballRows.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
@@ -52,6 +54,17 @@ export const playerLeaves = (t: TestConvex, code: number) =>
       .unique();
     await ctx.db.patch("players", player!._id, { droppedAt: Date.now() });
   });
+
+/** The football sync stops sending the player with `code`, sold abroad say: he is marked gone as
+ *  `playerLeaves` marks him, what follows a sync's drop runs (afterFootballSync.ts), and each
+ *  league's share of it runs as the scheduler runs it (#2200). */
+export async function playerSoldAbroad(t: TestConvex, code: number): Promise<void> {
+  await playerLeaves(t, code);
+  await t.run((ctx) => afterPlayersDropped(ctx, [code]));
+  for (const job of await pendingJobs(t, internal.football.afterFootballSync.playersLeftIn)) {
+    await t.mutation(internal.football.afterFootballSync.playersLeftIn, job.args[0] as { leagueId: Id<"leagues">; playerCodes: number[] });
+  }
+}
 
 /** Writes `count` players, codes 1 up, named "Player <code>", and returns their codes. */
 export async function manyPlayers(t: TestConvex, count: number): Promise<number[]> {

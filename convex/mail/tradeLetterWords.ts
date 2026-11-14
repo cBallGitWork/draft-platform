@@ -50,7 +50,8 @@ export type OfferClosed =
   | { why: "withdrawn" | "rejected" | "deadline" | "tradeDeadline" | "unusedGameweek" | "draftStarted" }
   | { why: "pickTraded"; pickName: string }
   | { why: "autoTeam"; teamName: string }
-  | { why: "playerLeft"; playerName: string; teamName: string };
+  | { why: "playerLeft"; playerName: string; teamName: string }
+  | { why: "leftPremierLeague"; playerName: string };
 
 /** To both managers when an offer closes unaccepted, saying why. */
 export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words {
@@ -70,6 +71,8 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
         return `${closed.teamName} went on the auto team, which trades with nobody.`;
       case "playerLeft":
         return `${closed.playerName} left ${closed.teamName}'s squad.`;
+      case "leftPremierLeague":
+        return `${closed.playerName} has left the Premier League.`;
       case "draftStarted":
         return "The draft started, and picks are traded only before it.";
       case "pickTraded":

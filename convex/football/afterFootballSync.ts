@@ -1,5 +1,11 @@
+import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import type { MutationCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx } from "../_generated/server";
+import { leagueOpens } from "../leagues/leagueOpens";
+import { everyLeague } from "../shared/cappedRead";
+import { cancelOffersHoldingLeavers } from "../trades/tradeClose";
+import { withdrawClaimsForLeavers } from "../waivers/waiverClaims";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { keepGameweekKickoffs } from "../gameweeks/gameweekKickoffs";
 import { repriceMatches } from "../stats/seasonPointsMoves";
@@ -32,10 +38,34 @@ export async function afterPlayersSent(ctx: MutationCtx, newcomers: readonly num
   await keepScoutingPlayers(ctx, sent);
 }
 
-/** Players the feed stopped sending, marked dropped: each leaves Scouting's list with his row (#1559). */
-export function afterPlayersDropped(ctx: MutationCtx, dropped: readonly number[]): Promise<void> {
-  return keepScoutingPlayers(ctx, dropped);
+/** Players the feed stopped sending, marked dropped: each leaves Scouting's list with his row
+ *  (#1559), and every league has its claims and trades for them ended, each league in its own
+ *  transaction once the sync's has saved (`playersLeftIn`, #1558). */
+export async function afterPlayersDropped(ctx: MutationCtx, dropped: readonly number[]): Promise<void> {
+  await keepScoutingPlayers(ctx, dropped);
+  if (dropped.length === 0) return;
+  for (const league of await everyLeague(ctx, "so some would keep claims and trades for players who have left")) {
+    await ctx.scheduler.runAfter(0, internal.football.afterFootballSync.playersLeftIn, { leagueId: league._id, playerCodes: [...dropped] });
+  }
 }
+
+/** One league's share of players leaving the Premier League, sold abroad say (#2200): a pending
+ *  claim for one is withdrawn, its manager told (S08.24), and a pending trade holding one, open or
+ *  in review, is cancelled, both managers told (S08.25). A queue keeps him, greyed out, and
+ *  auto-pick skips him (S04.21), so nothing is done to it here. A league deleted or frozen for
+ *  deletion since is left alone, as its claims and offers are (#1493). */
+export const playersLeftIn = internalMutation({
+  args: { leagueId: v.id("leagues"), playerCodes: v.array(v.number()) },
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCodes }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league === null || !leagueOpens(league)) return null;
+    const left = new Set(playerCodes);
+    await withdrawClaimsForLeavers(ctx, league, left);
+    await cancelOffersHoldingLeavers(ctx, leagueId, left);
+    return null;
+  },
+});
 
 /** Matches moved to another gameweek, sent again or dropped: their season points are repriced,
  *  and a waiting patch follows its gameweek's first kickoff, later or earlier (patchKickoffs.ts,
