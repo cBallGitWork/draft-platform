@@ -47,7 +47,7 @@ import { seededRandom } from "../../support/seededRandom";
 // run plays again with `SIM_SEED=<seed> npm run simulate`.
 //
 // Leagues playing the Scottish Premiership beside the Premier League (S04.10) aren't built yet, so
-// only the Premier League is played (#2132's leftover says so).
+// only the Premier League is played (#2184 adds it once #1429 lets a league pick its competitions).
 
 const SEED = simulationSeed();
 console.log(`Season simulation seed: ${SEED} (play it again with SIM_SEED=${SEED} npm run simulate)`);
