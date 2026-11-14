@@ -32,7 +32,7 @@ const FOUR = MANAGERS.slice(0, 4);
 export const [ANN, BOB, CAT, DAN] = FOUR;
 
 /** The week before gameweek 6: the league is made, its squads assigned and its lineups saved. */
-const SETUP_MORNING = Date.parse("2026-10-05T09:00:00Z");
+export const WEEK_BEFORE_GW6 = Date.parse("2026-10-05T09:00:00Z");
 /** The league's deadline for gameweek 6 under the first rules: before Hull v Everton, its one match. */
 export const DEADLINE = KICKOFF - FIRST_RULES.deadline.minutesBeforeFirstKickoff * MINUTE_MS;
 
@@ -144,8 +144,8 @@ export interface MiniBeta {
  *  four, adds the four managers and gives each starter the position of his cell; the commissioner
  *  assigns each manager his eleven; and each manager saves his lineup. */
 export async function miniBetaLeague(payloads: Gw6Payloads): Promise<MiniBeta> {
-  const t = await signInDeployment(SETUP_MORNING);
-  const synced = await footballSyncAt(t, SETUP_MORNING, payloads);
+  const t = await signInDeployment(WEEK_BEFORE_GW6);
+  const synced = await footballSyncAt(t, WEEK_BEFORE_GW6, payloads);
   if (!synced.outcome.ok) throw new Error(`the football sync failed: ${synced.outcome.error}`);
   const leagueId = await adminCreatesLeague(t);
   const teamIds = await addManagers(t, leagueId, FOUR);
@@ -167,4 +167,4 @@ export async function miniBetaLeague(payloads: Gw6Payloads): Promise<MiniBeta> {
 }
 
 /** The league's table, as Ann's screen reads it. */
-export const tableOf = ({ t, leagueId }: MiniBeta) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
+export const tableOf = ({ t, leagueId }: Pick<MiniBeta, "t" | "leagueId">) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
