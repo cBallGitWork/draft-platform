@@ -253,6 +253,7 @@ describe("an illegal lineup", () => {
   });
 });
 
+// S13.2: the gone manager's lineup stays, and the auto team keeps it legal until the team is handed on.
 describe("a team with no manager", () => {
   test("is on it until handed on, and handing it on switches it off", async () => {
     await switches(ANN, true);
