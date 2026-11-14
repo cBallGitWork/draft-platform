@@ -10,7 +10,7 @@ import { expect } from "@playwright/test";
 import { seededRandom } from "../../convex/table/roundRobin";
 import { DESK } from "../../scripts/viewports.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
-import { CLICKER_SEED_KEY, CLICKER_STEPS_KEY, DEFAULT_STEPS, chaosOf, openAt, takeStep, textsOf, type ClickerRun } from "../support/smoke/clicker";
+import { CLICKER_SEED_KEY, CLICKER_STEPS_KEY, DEFAULT_STEPS, chaosOf, openScreen, takeStep, textsOf, type ClickerRun } from "../support/smoke/clicker";
 import { test } from "../support/smoke/errorsTest";
 import { expectPageSound } from "../support/smoke/pageChecks";
 
@@ -40,7 +40,7 @@ test.describe("random clicker on the dev server's preview", { tag: "@dev" }, () 
       // The steps taken, the last the one a failure followed.
       const stepsSaid = () => said.map((line, index) => `${index}. ${line}`).join("\n");
       try {
-        await openAt(run, start);
+        await openScreen(run, start);
         await checked();
         for (let step = 0; step < steps; step += 1) {
           said.push(await takeStep(run));

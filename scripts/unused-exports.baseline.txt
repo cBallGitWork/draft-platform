@@ -46,7 +46,6 @@ src/premierLeague/words.ts: gameweekWords
 src/scoring/seam.ts: Announced
 src/scouting/seam.ts: Per90Panel
 src/scouting/seam.ts: YourPlayer
-src/shared/preview.ts: managerPowers
 src/squads/words.ts: findLabel
 src/squads/words.ts: findTitle
 src/squads/words.ts: foundListLabel

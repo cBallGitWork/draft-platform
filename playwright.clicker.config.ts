@@ -7,10 +7,12 @@ import { defineConfig } from "@playwright/test";
 import smoke, { DEV_PROJECT, DEV_SERVER } from "./playwright.config";
 import { CLICKER_SEED_KEY } from "./tests/support/smoke/clicker";
 
-// Workers inherit this process's env, so every one reads the seed set here.
+// Workers inherit this process's env, so every one reads the seed set here. Said on stderr: knip
+// loads this file too (scripts/unused-exports.mjs), and reads its stdout as JSON.
 if (!process.env[CLICKER_SEED_KEY]) {
-  process.env[CLICKER_SEED_KEY] = Date.now().toString(36);
-  console.log(`Random clicker seed: ${process.env[CLICKER_SEED_KEY]} (replay with ${CLICKER_SEED_KEY}=${process.env[CLICKER_SEED_KEY]} npm run clicker)`);
+  const seed = Date.now().toString(36);
+  process.env[CLICKER_SEED_KEY] = seed;
+  console.error(`Random clicker seed: ${seed} (replay with ${CLICKER_SEED_KEY}=${seed} npm run clicker)`);
 }
 
 export default defineConfig({

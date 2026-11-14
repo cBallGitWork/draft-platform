@@ -37,7 +37,7 @@ const OPENED_MARK = "__clickerOpened";
 
 /** The chaos each screen's run is under, from its seed: none, or one of the switch's modes. */
 const CHAOS_CHOICES = [null, ...CHAOS_MODES] as const;
-export type ClickerChaos = (typeof CHAOS_CHOICES)[number];
+type ClickerChaos = (typeof CHAOS_CHOICES)[number];
 
 /** A screen's run: what it opens, and what it draws from. */
 export type ClickerRun = {
@@ -62,10 +62,13 @@ function addressOf({ session, chaos }: ClickerRun, path: string) {
   return previewUrl(`${url.pathname}${url.search}`, session);
 }
 
+/** Marks the page's document as one the preview opened. */
+const markOpened = (page: Page) => page.evaluate((mark) => Object.assign(window, { [mark]: true }), OPENED_MARK);
+
 /** Opens `path` afresh, as the run's preview person, and waits for the screen's main part. */
-export async function openAt(run: ClickerRun, path: string) {
+export async function openScreen(run: ClickerRun, path: string) {
   await run.page.goto(addressOf(run, path));
-  await run.page.evaluate((mark) => Object.assign(window, { [mark]: true }), OPENED_MARK);
+  await markOpened(run.page);
   await run.page.getByRole("main").waitFor();
 }
 
@@ -82,52 +85,61 @@ async function anyOf(run: ClickerRun, selector: string): Promise<Locator | null>
   return count === 0 ? null : found.nth(Math.floor(run.random() * count));
 }
 
-/** How a control is named in a step's line, and whether pressing it leaves the app (another site,
- *  or a new window). */
+/** How a control is named in a step's line, whether pressing it leaves the app (another site, or a
+ *  new window), and how many options it has if it's a drop-down. */
 const describe = (control: Locator) =>
-  control.evaluate((element) => {
-    const labels = "labels" in element && element.labels instanceof NodeList ? [...element.labels].map((label) => label.textContent) : [];
-    const name = [element.getAttribute("aria-label"), ...labels, element.getAttribute("placeholder"), element.textContent]
-      .map((text) => text?.trim().replace(/\s+/g, " ").slice(0, 40))
-      .find((text) => text) ?? "";
-    const leaves =
-      element instanceof HTMLAnchorElement && (element.target === "_blank" || new URL(element.href, location.href).origin !== location.origin);
-    return { said: `${element.tagName.toLowerCase()} "${name}"`, leaves };
-  });
+  control.evaluate(
+    (element) => {
+      const labels = "labels" in element && element.labels instanceof NodeList ? [...element.labels].map((label) => label.textContent) : [];
+      const name =
+        [element.getAttribute("aria-label"), ...labels, element.getAttribute("placeholder"), element.textContent]
+          .map((text) => text?.trim().replace(/\s+/g, " ").slice(0, 40))
+          .find((text) => text) ?? "";
+      const leaves =
+        element instanceof HTMLAnchorElement && (element.target === "_blank" || new URL(element.href, location.href).origin !== location.origin);
+      const options = element instanceof HTMLSelectElement ? element.options.length : null;
+      return { said: `${element.tagName.toLowerCase()} "${name}"`, leaves, options };
+    },
+    undefined,
+    { timeout: PRESS_MS },
+  );
 
-/** Runs `press`, saying it missed when its control never took it in time. */
-async function pressed(said: string, press: () => Promise<unknown>) {
+/** Runs `step`, saying `verb` missed when its control went or never took the press in time. */
+async function pressed(verb: string, step: () => Promise<string>) {
   try {
-    await press();
-    return said;
+    return await step();
   } catch (error) {
-    if (error instanceof errors.TimeoutError) return `${said}: missed, covered or gone`;
+    if (error instanceof errors.TimeoutError) return `${verb}: missed, covered or gone`;
     throw error;
   }
 }
 
 async function click(run: ClickerRun, times: 1 | 2) {
-  const control = await anyOf(run, `:is(${PRESSABLE})${LIVE}`);
-  if (control === null) return "click: nothing to press";
-  const { said, leaves } = await describe(control);
   const verb = times === 1 ? "click" : "double-click";
-  if (leaves) return `${verb} ${said}: left alone, it leaves the app`;
-  const options = await control.evaluate((element) => (element instanceof HTMLSelectElement ? element.options.length : null));
-  if (options !== null) {
-    const index = Math.floor(run.random() * options);
-    return pressed(`choose option ${index} of ${said}`, () => control.selectOption({ index }, { timeout: PRESS_MS }));
-  }
-  return pressed(`${verb} ${said}`, () => (times === 1 ? control.click({ timeout: PRESS_MS }) : control.dblclick({ timeout: PRESS_MS })));
+  const control = await anyOf(run, `:is(${PRESSABLE})${LIVE}`);
+  if (control === null) return `${verb}: nothing to press`;
+  return pressed(verb, async () => {
+    const { said, leaves, options } = await describe(control);
+    if (leaves) return `${verb} ${said}: left alone, it leaves the app`;
+    if (options !== null) {
+      const index = Math.floor(run.random() * options);
+      await control.selectOption({ index }, { timeout: PRESS_MS });
+      return `choose option ${index} of ${said}`;
+    }
+    await (times === 1 ? control.click({ timeout: PRESS_MS }) : control.dblclick({ timeout: PRESS_MS }));
+    return `${verb} ${said}`;
+  });
 }
 
 async function type(run: ClickerRun) {
   const box = await anyOf(run, `:is(${TYPABLE})${LIVE}`);
   if (box === null) return "type: nothing to type in";
-  const { said } = await describe(box);
   const text = pickFrom(run.random, run.texts);
-  return pressed(`type ${JSON.stringify(text)} in ${said}`, async () => {
+  return pressed(`type ${JSON.stringify(text)}`, async () => {
+    const { said } = await describe(box);
     await box.fill("", { timeout: PRESS_MS });
     await box.pressSequentially(text, { timeout: PRESS_MS });
+    return `type ${JSON.stringify(text)} in ${said}`;
   });
 }
 
@@ -138,7 +150,7 @@ async function back(run: ClickerRun) {
 
 async function reload(run: ClickerRun) {
   const path = hereOrStart(run);
-  await openAt(run, path);
+  await openScreen(run, path);
   return `reload ${path}`;
 }
 
@@ -161,12 +173,11 @@ export async function takeStep(run: ClickerRun): Promise<string> {
   await run.page.waitForTimeout(SETTLE_MS);
   const opened = await run.page.evaluate((mark) => mark in window, OPENED_MARK);
   if (opened) return said;
-  const url = new URL(run.page.url());
-  if (url.searchParams.has(PREVIEW_KEY)) {
-    await run.page.evaluate((mark) => Object.assign(window, { [mark]: true }), OPENED_MARK);
+  if (new URL(run.page.url()).searchParams.has(PREVIEW_KEY)) {
+    await markOpened(run.page);
     return said;
   }
   const path = hereOrStart(run);
-  await openAt(run, path);
+  await openScreen(run, path);
   return `${said}, then off the preview, so ${path} opened again`;
 }

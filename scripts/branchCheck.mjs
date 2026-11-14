@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 export const BASE = "origin/main";
 
 export const TESTS_ROOT = "tests/";
-/** Every Vitest and Playwright test file's name (tests/README.md, The five roots); files in
+/** Every Vitest and Playwright test file's name (tests/README.md, The six roots); files in
  *  tests/support/ only help. */
 export const TEST_FILE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 
