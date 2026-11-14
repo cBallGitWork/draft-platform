@@ -12,7 +12,7 @@ export default {
   coverageAnalysis: "perTest",
   // A change made as the module loads (an exported arrow function swapped whole) runs with no test
   // list, so Stryker 10.1.1 ran none of the file's tests and called it surviving: roundOf in
-  // convex/draft/snakeOrder.ts, which 67 draft tests fail on by hand (#2173). Ignored, not listed.
+  // convex/draft/snakeOrder.ts, which 67 draft tests fail on by hand (14 Nov 2026, #2173). Ignored, not listed.
   ignoreStatic: true,
   reporters: ["clear-text", "progress"],
   clearTextReporter: { allowEmojis: false, logTests: false },
