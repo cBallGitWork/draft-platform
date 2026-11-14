@@ -1,4 +1,4 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { isLocked, leagueDeadline, type DeadlineOf, type DeadlineRule, type ScheduledMatch } from "./deadline";
 import type { gameweekRecord } from "../schema";
 
@@ -49,4 +49,16 @@ export function thisGameweekOf<Gameweek extends { gameweek: number }>(
   now: number,
 ): Gameweek | undefined {
   return gameweeks.findLast(({ gameweek }) => isLocked(deadlineOf(gameweek), now)) ?? gameweeks[0];
+}
+
+/** A gameweek with the league's own deadline in it, null where none is known: what a query sends
+ *  for the screen to judge at its own minute, as a query taking the minute runs again, uncached,
+ *  every minute for every open screen (#2005, #2008). */
+export const gameweekDeadline = v.object({ gameweek: v.number(), deadline: v.union(v.number(), v.null()) });
+export type GameweekDeadline = Infer<typeof gameweekDeadline>;
+
+/** `thisGameweekOf` among gameweeks sent with their deadlines, in order: null with none. */
+export function thisGameweekAt(gameweeks: readonly GameweekDeadline[], now: number): number | null {
+  const deadlines = new Map(gameweeks.map(({ gameweek, deadline }) => [gameweek, deadline]));
+  return thisGameweekOf(gameweeks, (gameweek) => deadlines.get(gameweek) ?? null, now)?.gameweek ?? null;
 }

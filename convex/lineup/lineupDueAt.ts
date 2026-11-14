@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { nextByDeadlines } from "../gameweeks/nextGameweek";
+import { gameweekDeadline, nextByDeadlines } from "../gameweeks/nextGameweek";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
 
 // Continue's lineup step judged at the screen's minute (#526, #2005). lineupDue.ts's `isDue` sends
@@ -10,7 +10,7 @@ import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
  *  is known), in gameweek order; the last gameweek the league plays; and the gameweek the caller's
  *  team last opened Tactics in, null before any. */
 export const lineupDueTimes = v.object({
-  deadlines: v.array(v.object({ gameweek: v.number(), deadline: v.union(v.number(), v.null()) })),
+  deadlines: v.array(gameweekDeadline),
   lastGameweek: v.number(),
   openedIn: v.union(v.number(), v.null()),
 });

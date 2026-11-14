@@ -6,16 +6,17 @@ import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { teamOverrideRefusals } from "../../../convex/table/teamOverrides";
 import { liveMatchup } from "../../../src/matchup/liveMatchup";
 import { overrideFailedWords } from "../../../src/matchup/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ thisGameweek: vi.fn(), ofTeam: vi.fn(), overrideTeam: vi.fn(), removeTeamOverride: vi.fn() }));
+const convex = vi.hoisted(() => ({ gameweeksOf: vi.fn(), ofTeam: vi.fn(), overrideTeam: vi.fn(), removeTeamOverride: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "matchup/matchupGameweek:thisGameweek": convex.thisGameweek, "matchup/matchup:ofTeam": convex.ofTeam },
+    queries: { "matchup/matchupGameweek:gameweeksOf": convex.gameweeksOf, "matchup/matchup:ofTeam": convex.ofTeam },
     mutations: {
       "table/teamOverrides:overrideTeam": convex.overrideTeam,
       "table/teamOverrides:removeTeamOverride": convex.removeTeamOverride,
@@ -26,22 +27,41 @@ vi.mock("convex/react", async () =>
 const teamId = "team-1" as Id<"teams">;
 const NOW = Date.parse("2026-10-27T16:00:00Z");
 
-// Only the small query saying which gameweek it opens on takes the minute (#1550), and only with
-// none asked: the matchup itself takes the gameweek.
+// No query takes the minute (#1550, #2008): with no gameweek asked, the team's gameweeks come with
+// their deadlines and are judged at the minute; the matchup itself takes the gameweek.
 test("it asks matchup/matchup:ofTeam for the league and the matchup asked for, no minute, and hands on what comes back", () => {
   const matchup = { kind: "totalPoints" };
   convex.ofTeam.mockReturnValue(matchup);
   expect(renderHook(() => liveMatchup.useMatchup(A_LEAGUE_ID, NOW, { teamId, gameweek: 6 })).result.current).toEqual(matchup);
   expect(convex.ofTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, teamId, gameweek: 6 });
-  expect(convex.thisGameweek).toHaveBeenCalledWith("skip");
+  expect(convex.gameweeksOf).toHaveBeenCalledWith("skip");
 });
 
-test("with no gameweek asked, matchup/matchupGameweek:thisGameweek says which at the minute, and ofTeam is asked for that one", () => {
-  convex.thisGameweek.mockReturnValue(4);
+/** Gameweeks 3, 4 and 5, gameweek 4's deadline a minute after NOW. */
+const AROUND_NOW = [
+  { gameweek: 3, deadline: NOW - WEEK_MS },
+  { gameweek: 4, deadline: NOW + MINUTE_MS },
+  { gameweek: 5, deadline: null },
+];
+
+// The read it removes (#2008): a new minute asks the server nothing new, as gameweeksOf's arguments
+// stay as they were; only the judging moves on, so the matchup turns to gameweek 4 at its deadline.
+test("with no gameweek asked, matchup/matchupGameweek:gameweeksOf is asked with no minute, and ofTeam for this gameweek at the minute", () => {
+  convex.gameweeksOf.mockReturnValue(AROUND_NOW);
   convex.ofTeam.mockReturnValue({ kind: "noTeam" });
-  renderHook(() => liveMatchup.useMatchup(A_LEAGUE_ID, NOW, { teamId }));
-  expect(convex.thisGameweek).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: NOW, teamId });
-  expect(convex.ofTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, teamId, gameweek: 4 });
+  const { rerender } = renderHook(({ minute }) => liveMatchup.useMatchup(A_LEAGUE_ID, minute, { teamId }), { initialProps: { minute: NOW } });
+  expect(convex.ofTeam).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, teamId, gameweek: 3 });
+  convex.gameweeksOf.mockClear();
+  rerender({ minute: NOW + MINUTE_MS });
+  expect(convex.gameweeksOf.mock.calls).toEqual([[{ leagueId: A_LEAGUE_ID, teamId }]]);
+  expect(convex.ofTeam).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, teamId, gameweek: 4 });
+});
+
+test("with no head-to-head to show, ofTeam is asked for no gameweek, so it says why", () => {
+  convex.gameweeksOf.mockReturnValue(null);
+  convex.ofTeam.mockReturnValue({ kind: "totalPoints" });
+  renderHook(() => liveMatchup.useMatchup(A_LEAGUE_ID, NOW, {}));
+  expect(convex.ofTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, gameweek: null });
 });
 
 test("the commentary says delayed from the moment ofTeam sends", () => {
@@ -55,7 +75,7 @@ test("the commentary says delayed from the moment ofTeam sends", () => {
 });
 
 test("it is undefined while loading", () => {
-  convex.thisGameweek.mockReturnValue(undefined);
+  convex.gameweeksOf.mockReturnValue(undefined);
   convex.ofTeam.mockReturnValue(undefined);
   expect(renderHook(() => liveMatchup.useMatchup(A_LEAGUE_ID, NOW, {})).result.current).toBeUndefined();
   expect(convex.ofTeam).toHaveBeenCalledWith("skip");
