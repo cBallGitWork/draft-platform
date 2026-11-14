@@ -37,8 +37,9 @@ export const pickUpPlayer = async (t: TestConvex, leagueId: Id<"leagues">, email
 export const waiverStateOf = async (t: TestConvex, leagueId: Id<"leagues">, playerCode: number, email = BOB) =>
   (await actingAs(t, email)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
 
-export async function waiverLeague() {
-  const t: TestConvex = await signInDeployment();
+/** Held to Convex's own limits with `atConvexLimits` (freshConvex). */
+export async function waiverLeague(atConvexLimits = false) {
+  const t: TestConvex = await signInDeployment(undefined, atConvexLimits);
   fakeResend();
   const leagueId = await adminCreatesLeague(t);
   const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);

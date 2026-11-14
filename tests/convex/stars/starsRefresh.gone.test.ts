@@ -16,7 +16,7 @@ let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
 beforeEach(async () => {
   vi.useFakeTimers();
-  t = await signInDeployment();
+  t = await signInDeployment(undefined, true);
   fakeResend();
   leagueId = await adminCreatesLeague(t);
   [annsTeam] = await addManagers(t, leagueId, [ANN]);

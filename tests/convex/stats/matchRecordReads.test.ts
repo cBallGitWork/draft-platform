@@ -10,7 +10,7 @@ const FIXTURE = 700_001;
 const WHY = "its men";
 
 test(`a match's records: ${MATCH_RECORDS_MOST} are read, one more throws saying what would be cut short`, ROWS_TO_THE_CAP, async () => {
-  const t = freshConvex();
+  const t = freshConvex(true);
   const holdTo = (count: number, from: number) =>
     t.run(async (ctx) => {
       for (let index = from; index < count; index += 1) {

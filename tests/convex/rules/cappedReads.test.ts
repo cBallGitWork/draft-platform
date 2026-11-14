@@ -13,7 +13,7 @@ import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { seasonStartYear } from "../../../convex/shared/time";
 import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
-import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, latestRules, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, holdGameweeksPastTheSeason, latestRules, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -23,7 +23,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
+  t = await signInDeployment(undefined, true);
   fakeResend();
   await holdGameweeks(t, { next: 9 });
   leagueId = await adminCreatesLeague(t);
@@ -34,11 +34,14 @@ const countRulesRows = async (ctx: QueryCtx) =>
   (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()).length;
 const rulesRows = () => t.run(countRulesRows);
 
-/** Brings the league's rules rows up to `count`, written straight in, each the first rules. */
+/** Brings the league's rules rows up to `count`, written straight in, the first rules and then
+ *  rows holding only a change, as a save writes them (#1617): a thousand whole rows would read past
+ *  Convex's own limit, as no league's can. */
 const holdRulesRows = (count: number) =>
   t.run(async (ctx) => {
     for (let row = await countRulesRows(ctx); row < count; row += 1) {
-      await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: rulesWith({}) });
+      const held = row === 0 ? { rules: rulesWith({}) } : { changes: { format: HELD_FIRST_RULES.format } };
+      await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, ...held });
     }
   });
 

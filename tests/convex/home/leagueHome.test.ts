@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, managersNamed, OUTSIDER, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { ARSENAL, RICE, SAKA, insertClubs, insertPlayerRows } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -26,7 +26,6 @@ beforeEach(async () => {
 });
 
 const read = async (email = ANN) => leagueHomeOf(await actingAs(t, email), leagueId, Date.now());
-const managersNamed = (count: number) => Array.from({ length: count }, (_, i) => `manager${i + 1}@example.com`);
 
 describe("who may read it", () => {
   beforeEach(() => addManagers(t, leagueId, [ANN, BOB]));
