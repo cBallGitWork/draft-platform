@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { overMostInSquad } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { fileEvent, fileLetter, wholeLeague } from "../mail/letters";
@@ -87,7 +87,7 @@ async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boole
   }
   if (watched || offer.picks !== undefined) return null;
   for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
-    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await teamIn(ctx, offer.leagueId, teamId)).name };
+    if (overMostInSquad(codes)) return { why: "squadFull", teamName: (await teamIn(ctx, offer.leagueId, teamId)).name };
   }
   return null;
 }

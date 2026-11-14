@@ -7,7 +7,7 @@ import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { overMostInSquad } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords";
@@ -70,7 +70,7 @@ export async function joiningBreaksLimits(
 /** `joiningBreaksLimits` for the squad `squad`, its limits read by `limits`. */
 async function joinBreaks(squad: readonly number[], playerCode: number, dropCode: number | null, limits: LimitsBroken): Promise<boolean> {
   const after = [...squad.filter((code) => code !== dropCode), playerCode];
-  if (after.length > MOST_IN_SQUAD) return true;
+  if (overMostInSquad(after)) return true;
   const [before, broken] = await Promise.all([limits(squad), limits(after)]);
   return breaksLimits(before, broken);
 }
