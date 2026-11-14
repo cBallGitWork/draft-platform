@@ -51,7 +51,7 @@ export const LEAGUE_SKIPPED = "was skipped by the football feed, and the other l
  *  deadlines it recorded. */
 export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
-  // Read once for every league: the fixtures are the season's 380, the most of any table here.
+  // Read once for every league: each gameweek's first and last kickoff (gameweekKickoffs.ts, #2009).
   const matches = await scheduledMatches(ctx);
   await recordGameweekStarts(ctx, matches, now);
   const leagues = await everyLeague(ctx, "so some would have their deadlines unrecorded");

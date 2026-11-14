@@ -4,14 +4,15 @@ import { internal } from "../../../convex/_generated/api";
 import { leagueDeadlinesIn, scheduledMatches } from "../../../convex/gameweeks/leagueDeadlines";
 import type { fixtureRecord } from "../../../convex/schema";
 import { currentFixtures } from "../../../convex/shared/fixtures";
-import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
 
 // #2009 (Part of #1995, the Convex quota): a deadline reads each gameweek's first and last kickoff
 // from a row a gameweek, never the season's 380 matches, and those rows follow every match the
-// football sync adds, re-times or drops, so every league's deadlines stay where the matches put them.
+// football sync adds, re-times or drops, so every league's deadlines stay where the matches put them
+// (S05.20).
 
 type Fixture = Infer<typeof fixtureRecord>;
 
@@ -35,7 +36,7 @@ beforeEach(async () => {
 });
 
 const send = (rows: Fixture[]) => t.mutation(internal.football.footballSync.upsertFixtures, { rows });
-const kickoffRows = () =>
+const heldRows = () =>
   t.run(async (ctx) =>
     (await ctx.db.query("gameweekKickoffs").collect()).map(({ gameweek, firstKickoff, lastKickoff }) => ({ gameweek, firstKickoff, lastKickoff })),
   );
@@ -58,7 +59,7 @@ test("a deadline reads two kickoffs a gameweek, not every match, and every leagu
 test("each gameweek's row holds its first and last kickoff", async () => {
   await send(SENT);
 
-  expect(await kickoffRows()).toEqual(
+  expect(await heldRows()).toEqual(
     GAMEWEEKS.map((gameweek) => ({ gameweek, firstKickoff: startOf(gameweek), lastKickoff: startOf(gameweek) + 9 * HOUR_MS })),
   );
 });
@@ -66,9 +67,9 @@ test("each gameweek's row holds its first and last kickoff", async () => {
 test("a first match re-timed later in its gameweek, or into the next one's window, moves the rows it leaves and joins", async () => {
   await send(SENT);
 
-  await send([{ ...SENT[0], kickoff: startOf(12) + DAY_MS }, { ...SENT[10], kickoff: startOf(14) + 30 * 60_000 }]);
+  await send([{ ...SENT[0], kickoff: startOf(12) + DAY_MS }, { ...SENT[10], kickoff: startOf(14) + 30 * MINUTE_MS }]);
 
-  expect(await kickoffRows()).toEqual([
+  expect(await heldRows()).toEqual([
     { gameweek: 12, firstKickoff: startOf(12) + HOUR_MS, lastKickoff: startOf(12) + DAY_MS },
     { gameweek: 13, firstKickoff: startOf(13) + HOUR_MS, lastKickoff: startOf(13) + 9 * HOUR_MS },
     { gameweek: 14, firstKickoff: startOf(14), lastKickoff: startOf(14) + 9 * HOUR_MS },
@@ -86,7 +87,7 @@ test("a gameweek whose matches are all dropped has no row, and its deadline goes
     paginationOpts: { numItems: 100, cursor: null },
   });
 
-  expect((await kickoffRows()).map(({ gameweek }) => gameweek)).toEqual([12, 14]);
+  expect((await heldRows()).map(({ gameweek }) => gameweek)).toEqual([12, 14]);
 });
 
 test("with no rows held yet, as on a deployment before its first sync since, the matches are read", async () => {
@@ -95,5 +96,5 @@ test("with no rows held yet, as on a deployment before its first sync since, the
   });
 
   expect(await t.run((ctx) => scheduledMatches(ctx))).toHaveLength(3);
-  expect(await kickoffRows()).toEqual([]);
+  expect(await heldRows()).toEqual([]);
 });

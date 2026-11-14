@@ -17,7 +17,7 @@ import { historyOf, RULES_CHANGES_MOST, savedForm } from "./rulesHistory";
 //   npx convex run --prod rules/rulesToChanges:convertEveryLeague
 
 /** The parts in which `rules` differ from `before`, whatever their fields' order. Pure. */
-export function changedParts(before: LeagueRules, rules: LeagueRules): (keyof LeagueRules)[] {
+function changedParts(before: LeagueRules, rules: LeagueRules): (keyof LeagueRules)[] {
   const parts = new Set([...Object.keys(before), ...Object.keys(rules)] as (keyof LeagueRules)[]);
   return [...parts].filter((part) => !sameValue(before[part], rules[part]));
 }

@@ -22,7 +22,7 @@ type KickoffRow = { gameweek: number; season: number; firstKickoff: number; last
 
 /** The rows `matches` make: each gameweek's first and last kickoff in each season. A match with no
  *  gameweek or no kickoff time makes none. Pure. */
-export function kickoffRows(matches: readonly ScheduledMatch[]): KickoffRow[] {
+function kickoffRows(matches: readonly ScheduledMatch[]): KickoffRow[] {
   const rows = new Map<string, KickoffRow>();
   for (const { gameweek, kickoff } of matches) {
     if (gameweek === null || kickoff === null) continue;
