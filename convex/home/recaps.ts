@@ -134,7 +134,7 @@ export const landed = internalMutation({
     const league = await ctx.db.get("leagues", recap.leagueId);
     if (league === null) throw new Error(`Recap ${recapId}'s league ${recap.leagueId} doesn't exist`);
     await ctx.db.patch("recaps", recapId, { state: "written", text, writtenAt: Date.now(), teamPoints });
-    await fileLetter(ctx, league, "recap", await wholeLeague(ctx, league), recapUpLetter(recap.gameweek));
+    await fileLetter(ctx, league, "recap", await wholeLeague(ctx, league), { ...recapUpLetter(recap.gameweek), link: { to: "recap", gameweek: recap.gameweek } });
     return null;
   },
 });

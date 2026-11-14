@@ -20,6 +20,9 @@ import { ownerOf } from "../squads/squadPlace";
  *  reading it, as MOST_IN_SQUAD is a squad's. Claude's choice, not yet Craig's. */
 export const SHORTLIST_MOST = 100;
 
+/** A shortlist letter's one link: Scouting, where the shortlist and the player now free show (S16.8). */
+const shortlistLink = { to: "scouting" } as const;
+
 /** A player on a manager's own list: the shortlist, or the draft queue or do-not-draft list. */
 export const ownListPlayer = v.object({
   code: v.number(),
@@ -143,7 +146,8 @@ export async function tellShortlisters(
     ? shortlistedReleasedLetter(player.name, from.name, who)
     : shortlistedDroppedLetter({ playerName: player.name, teamName: from.name, toWaivers: how.toWaivers }, who);
   const entries = await shortlistersOf(ctx, league._id, player.code);
-  await fileLetter(ctx, league, "waivers", [...(await managersHolding(ctx, league._id, entries)).keys()], letter, unread ? undefined : by);
+  const to = [...(await managersHolding(ctx, league._id, entries)).keys()];
+  await fileLetter(ctx, league, "waivers", to, { ...letter, link: shortlistLink }, unread ? undefined : by);
 }
 
 /** The league's shortlist rows holding player `code`: one a team at most. */
@@ -183,6 +187,6 @@ export async function tellShortlistersCleared(ctx: MutationCtx, league: Doc<"lea
   for (const [email, held] of await managersHolding(ctx, league._id, shortlisted)) {
     const players = await Promise.all(held.map((code) => heldPlayerByCode(ctx, code, `Shortlisted player ${code}, cleared from waivers, isn't held`)));
     const names = players.map(({ name }) => name).sort((one, other) => one.localeCompare(other));
-    await fileLetter(ctx, league, "waivers", [email], shortlistedClearedLetter(names));
+    await fileLetter(ctx, league, "waivers", [email], { ...shortlistedClearedLetter(names), link: shortlistLink });
   }
 }

@@ -10,6 +10,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { expectRefused } from "../../support/convex/test.harness";
+import { changeRulesTo } from "../../support/convex/leagueRules.harness";
 
 // Mail (#26, spec/16): a filed letter reaches exactly the right people, unread until opened, and
 // the count matches; the commissioner writes to the whole league.
@@ -145,6 +146,19 @@ describe("letters about the league's events", () => {
       [`${ANN} left ${TEAM_1}`, "league"],
       [`${BOB} joined as manager of ${TEAM_2}`, "commissioner"],
     ]);
+  });
+
+  test("each carries its one link to where what it reports shows: a join or a leaving to the table, a rule change to League settings; one about nothing shown has none (S16.2, S16.8)", async () => {
+    await addManagers(t, leagueId, [ANN, BOB]);
+    vi.advanceTimersByTime(MINUTE_MS);
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
+    vi.advanceTimersByTime(MINUTE_MS);
+    await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });
+    vi.advanceTimersByTime(MINUTE_MS);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 });
+
+    const links = (await (await mailOf(BOB)).letters()).map(({ link }) => link);
+    expect(links).toEqual([null, { to: "settings", leagueId }, { to: "table" }, { to: "table" }]);
   });
 });
 

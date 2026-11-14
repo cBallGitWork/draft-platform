@@ -49,6 +49,10 @@ test("once the gameweek is final, Claude writes the recap from its facts, and Ma
   expect(await recapOf(league)).toMatchObject(recap);
   expect((await homeAt(league, AFTER))!.recap).toMatchObject(recap);
   for (const email of [ANN, BOB]) expect(await lettersTo(league.t, email)).toContainEqual(recapUpLetter(GAMEWEEK));
+  // Its one link is that gameweek's recap, never the latest one a later week's would be (S16.2).
+  const links = await league.t.run(async (ctx) => (await ctx.db.query("letters").collect()).filter(({ kind }) => kind === "recap").map(({ link }) => link));
+  expect(links.length).toBeGreaterThan(0);
+  for (const link of links) expect(link).toEqual({ to: "recap", gameweek: GAMEWEEK });
 });
 
 test("it is written once: the gameweek stored again writes no second recap", async () => {

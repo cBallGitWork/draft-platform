@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { letterKind } from "../mail/letterShape";
+import { letterKind, letterLink } from "../mail/letterShape";
 
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
 // fixed when it's filed: someone who joins later doesn't get the league's old letters.
@@ -16,6 +16,9 @@ export const letterFields = {
   at: v.number(),
   /** What it is about (`LETTER_KINDS`); absent on a letter filed before letters held it (#1030). */
   kind: v.optional(letterKind),
+  /** Its one link, to where you act on it or where what it reports shows (S16.2, S16.8); absent on
+   *  a letter whose news shows nowhere, or one filed before letters held it. */
+  link: v.optional(letterLink),
   /** Who wrote it, by email: absent on a letter the app files about something that happened. */
   from: v.optional(v.string()),
   subject: v.string(),

@@ -7031,6 +7031,96 @@
             },
             "optional": true
           },
+          "link": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "to": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "trades"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "transactions"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "tactics"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "squad"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "scouting"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "table"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "draft"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "patchNotes"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "to": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "recap"
+                      },
+                      "optional": false
+                    },
+                    "gameweek": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "to": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "settings"
+                      },
+                      "optional": false
+                    },
+                    "leagueId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "leagues"
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            },
+            "optional": true
+          },
           "from": {
             "fieldType": {
               "type": "string"

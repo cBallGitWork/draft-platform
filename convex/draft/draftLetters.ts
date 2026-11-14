@@ -13,7 +13,7 @@ import {
   type PickNews,
 } from "../mail/draftLetterWords";
 import type { MovedStart } from "../gameweeks/scoringStart";
-import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
+import { bylineOf, fileLetter, settingsLink, wholeLeague } from "../mail/letters";
 import { tellIn } from "../mail/letterMoments";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
@@ -61,7 +61,7 @@ export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, pi
 
 /** Tells the commissioner the draft's end moved the league's scoring start (scoringStart.ts). */
 export async function tellScoringStartMoved(ctx: MutationCtx, league: Doc<"leagues">, moved: MovedStart): Promise<void> {
-  await fileLetter(ctx, league, "draft", [league.commissionerEmail], scoringStartMovedLetter(moved));
+  await fileLetter(ctx, league, "draft", [league.commissionerEmail], { ...scoringStartMovedLetter(moved), link: settingsLink(league) });
 }
 
 /** Tells the whole league `by`, the commissioner, paused the draft. */
@@ -81,7 +81,7 @@ export async function tellUndone(ctx: MutationCtx, league: Doc<"leagues">, by: s
 
 /** Tells the commissioner the draft didn't start at its date, `startsAt`, for `refusal`. */
 export async function tellNotStarted(ctx: MutationCtx, league: Doc<"leagues">, startsAt: number, refusal: string): Promise<void> {
-  await fileLetter(ctx, league, "draft", [league.commissionerEmail], (tell) => draftNotStartedLetter(startsAt, refusal, tell));
+  await fileLetter(ctx, league, "draft", [league.commissionerEmail], (tell) => ({ ...draftNotStartedLetter(startsAt, refusal, tell), link: settingsLink(league) }));
 }
 
 /** Sends the "you're up next" email, already counted; a refusal is logged. */

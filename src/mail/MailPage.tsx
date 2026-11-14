@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
@@ -11,6 +12,7 @@ import { KindChip } from "../ui/KindChip";
 import { Placeholder } from "../ui/Placeholder";
 import { runs } from "../leagues/access";
 import type { MailSeam } from "./seam";
+import { letterLinkTarget } from "./letterLinks";
 import { WriteToLeague } from "./WriteToLeague";
 import {
   LETTERS_TITLE,
@@ -21,6 +23,7 @@ import {
   kindPlaceholderLabel,
   letterDate,
   letterKindWords,
+  letterLinkWords,
   letterTime,
   letterWhen,
   loadingWords,
@@ -104,7 +107,7 @@ export function MailPage({
         {reading === "writing" ? (
           <WriteToLeague leagues={writableLeagues} cut={leaguesCut} writeToLeague={mail.writeToLeague} />
         ) : openLetter ? (
-          <OpenLetter letter={openLetter} />
+          <OpenLetter letter={openLetter} runs={(id) => writableLeagues.some((league) => league.leagueId === id)} />
         ) : (
           <div className="bg-panel">
             <PanelNote>{noLetterOpenWords}</PanelNote>
@@ -191,8 +194,10 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
   );
 }
 
-/** The open letter: its kind, who it's from and when on the plate, then its subject over its text. */
-function OpenLetter({ letter }: { letter: LetterSummary }) {
+/** The open letter: its kind, who it's from and when on the plate, then its subject over its text,
+ *  and last its one link, where the reader can open it (S16.2). */
+function OpenLetter({ letter, runs }: { letter: LetterSummary; runs: (leagueId: Id<"leagues">) => boolean }) {
+  const target = letter.link === null ? null : letterLinkTarget(letter.link, runs);
   const from = fromWords(senderWords(letter.leagueName, letter.from));
   const title = letter.kind === null ? from : (
     <span className="flex items-center gap-2">
@@ -205,6 +210,11 @@ function OpenLetter({ letter }: { letter: LetterSummary }) {
       <article className="flex flex-col gap-3 p-4">
         <h3 className="text-heading font-bold text-fact">{letter.subject}</h3>
         <p className="whitespace-pre-line wrap-anywhere">{letter.body}</p>
+        {target !== null && letter.link !== null && (
+          <Link {...target} className="secondary-action self-start">
+            {letterLinkWords[letter.link.to]}
+          </Link>
+        )}
       </article>
     </Panel>
   );

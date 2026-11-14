@@ -7,7 +7,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
 import { letterAsRead } from "./letterMoments";
 import type { Doc, Id } from "../_generated/dataModel";
-import { letterKind } from "./letterShape";
+import { letterKind, letterLink } from "./letterShape";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
@@ -29,6 +29,8 @@ const letterSummary = v.object({
   at: v.number(),
   /** What it is about; null on a letter filed before letters held it. */
   kind: v.union(letterKind, v.null()),
+  /** Its one link (S16.2); null on a letter with none. */
+  link: v.union(letterLink, v.null()),
   from: v.union(v.string(), v.null()),
   subject: v.string(),
   body: v.string(),
@@ -80,6 +82,7 @@ const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary
   leagueName: row.leagueName ?? PRODUCT_NAME,
   at: row.at,
   kind: row.kind ?? null,
+  link: row.link ?? null,
   from: row.from ?? null,
   ...letterAsRead(row, zone),
   read: row.readAt !== undefined,

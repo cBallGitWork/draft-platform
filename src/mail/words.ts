@@ -4,7 +4,7 @@
 
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
-import type { LetterKind } from "../../convex/mail/letterShape";
+import type { LetterKind, LetterLink } from "../../convex/mail/letterShape";
 import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export { MAIL_TITLE } from "../shared/words";
@@ -53,6 +53,19 @@ export const letterKindWords = {
   recap: "Recap",
   patch: "Patch",
 } as const satisfies Record<LetterKind, string>;
+/** A letter's one link, its last line (S16.2, the approved picture's "Open the offer in Trades"). */
+export const letterLinkWords = {
+  trades: "Open it in Trades",
+  transactions: "Open your Transactions",
+  tactics: "Open your Tactics",
+  squad: "Open your Squad",
+  scouting: "Open Scouting",
+  table: "Open the table",
+  draft: "Open the draft room",
+  patchNotes: "Read the patch notes",
+  recap: "Read the recap",
+  settings: "Open League settings",
+} as const satisfies Record<LetterLink["to"], string>;
 /** The kind chip's placeholder, on a letter filed before letters held their kind. */
 export const kindPlaceholderLabel = "Kind: not held yet";
 

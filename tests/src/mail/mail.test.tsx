@@ -7,12 +7,13 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
-import { MAIL_PATH } from "../../../src/frame/menu";
+import { MAIL_PATH, TRADES_PATH } from "../../../src/frame/menu";
+import { settingsPath } from "../../../src/leagueSettings/paths";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { league, manager, newcomer, openApp, yourLeaguesHeading } from "../../support/src/shell.harness";
-import { MAIL_TITLE, fromWords, kindPlaceholderLabel, letterKindWords, letterTime, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
+import { commissioner, league, manager, newcomer, openApp, yourLeaguesHeading } from "../../support/src/shell.harness";
+import { MAIL_TITLE, fromWords, kindPlaceholderLabel, letterKindWords, letterLinkWords, letterTime, loadingWords, mailTabWords, mailTabsLabel, noLetterOpenWords, noUnreadWords, unreadFigure, noLettersWords, onlyLatestWords } from "../../../src/mail/words";
 import { letterButton, lettersPanel, letterShown, mailLetter, mailLetters, twoUnread } from "../../support/src/mailScreen.harness";
 
 const tab = (name: string) => within(screen.getByRole("group", { name: mailTabsLabel })).getByRole("button", { name });
@@ -102,6 +103,28 @@ describe("the letters", () => {
 
     await userEvent.click(letterButton("Letter 1"));
     expect(screen.getByRole("region", { name: fromWords(league.name) })).toBeTruthy();
+  });
+
+  it("the open one ends with its one link, to where it shows; a league's settings only for whoever runs it (S16.2, S16.8)", async () => {
+    const rules = { to: "settings", leagueId: league.leagueId } as const;
+    const letters = [mailLetter(3, true, null, "trade", { to: "trades" }), mailLetter(2, true, null, "commissioner", rules), mailLetter(1, true)];
+    openApp(MAIL_PATH, manager, { letters });
+    await lettersPanel();
+    const openOne = async (subject: string) => {
+      await userEvent.click(letterButton(subject));
+      return screen.getByRole("article");
+    };
+
+    const trade = within(await openOne("Letter 3")).getByRole("link", { name: letterLinkWords.trades });
+    expect(trade.getAttribute("href")).toBe(TRADES_PATH);
+    expect(within(await openOne("Letter 2")).queryByRole("link")).toBeNull();
+    expect(within(await openOne("Letter 1")).queryByRole("link")).toBeNull();
+    cleanup();
+
+    openApp(MAIL_PATH, commissioner, { letters });
+    await lettersPanel();
+    const settings = within(await openOne("Letter 2")).getByRole("link", { name: letterLinkWords.settings });
+    expect(settings.getAttribute("href")).toBe(settingsPath(league.leagueId));
   });
 
   it("with none, says so", async () => {
