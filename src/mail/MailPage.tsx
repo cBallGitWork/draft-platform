@@ -12,6 +12,7 @@ import { KindChip } from "../ui/KindChip";
 import { Placeholder } from "../ui/Placeholder";
 import { runs } from "../leagues/access";
 import type { MailSeam } from "./seam";
+import { foldedGlyph } from "../shared/words";
 import { letterLinkTarget } from "./letterLinks";
 import { WriteToLeague } from "./WriteToLeague";
 import {
@@ -212,7 +213,7 @@ function OpenLetter({ letter, runs }: { letter: LetterSummary; runs: (leagueId: 
         <p className="whitespace-pre-line wrap-anywhere">{letter.body}</p>
         {target !== null && letter.link !== null && (
           <Link {...target} className="secondary-action self-start">
-            {letterLinkWords[letter.link.to]}
+            {letterLinkWords[letter.link.to]} {foldedGlyph}
           </Link>
         )}
       </article>

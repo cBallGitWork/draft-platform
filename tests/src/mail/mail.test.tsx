@@ -9,6 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { MAIL_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import { settingsPath } from "../../../src/leagueSettings/paths";
+import { foldedGlyph } from "../../../src/shared/words";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
@@ -115,7 +116,7 @@ describe("the letters", () => {
       return screen.getByRole("article");
     };
 
-    const trade = within(await openOne("Letter 3")).getByRole("link", { name: letterLinkWords.trades });
+    const trade = within(await openOne("Letter 3")).getByRole("link", { name: `${letterLinkWords.trades} ${foldedGlyph}` });
     expect(trade.getAttribute("href")).toBe(TRADES_PATH);
     expect(within(await openOne("Letter 2")).queryByRole("link")).toBeNull();
     expect(within(await openOne("Letter 1")).queryByRole("link")).toBeNull();
@@ -123,7 +124,7 @@ describe("the letters", () => {
 
     openApp(MAIL_PATH, commissioner, { letters });
     await lettersPanel();
-    const settings = within(await openOne("Letter 2")).getByRole("link", { name: letterLinkWords.settings });
+    const settings = within(await openOne("Letter 2")).getByRole("link", { name: `${letterLinkWords.settings} ${foldedGlyph}` });
     expect(settings.getAttribute("href")).toBe(settingsPath(league.leagueId));
   });
 
