@@ -112,7 +112,7 @@ export const everyRow = (t: TestConvex) =>
     return rows;
   });
 
-/** A refusal the person is shown:a ConvexError carrying the reason. A plain Error reaches the
+/** A refusal the person is shown: a ConvexError carrying the reason. A plain Error reaches the
  *  browser as "Server Error", its message lost, so matching the message alone would pass it.
  *  `label` names the case in a failure, for a check run over several. */
 export async function expectRefused(attempt: Promise<unknown>, reason: string, label?: string): Promise<void> {
