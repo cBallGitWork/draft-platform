@@ -6,7 +6,7 @@ import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { POINTS_REBUILD_COMMAND } from "../../../convex/stats/seasonRebuilds";
 import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
-import { pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
+import { clockRunsTo, pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import {
   GW1,
   GW2,
@@ -38,9 +38,11 @@ const runQueued = () => everyJobRuns(league.t);
 const rowsKept = () => league.t.run(async (ctx) => (await ctx.db.query("playerSeasonPoints").collect()).length);
 
 const { state: _state, ...sakaGw3 } = record(SAKA.code, GW3.code, { minutes: 90, goals_scored: 4 });
-const writeLive = async (records: (typeof sakaGw3)[]) => {
-  await league.t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: GW3.code, minute: null, records });
-  await runQueued();
+/** A full-time read of GW3, and the re-pricing it queues: a live read re-prices nobody (#2006).
+ *  Only the jobs due now run, so a complete match's lock waits and the next read still writes. */
+const writeAtFullTime = async (records: (typeof sakaGw3)[]) => {
+  await league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: GW3.code, readAt: Date.now(), records });
+  await clockRunsTo(league.t, Date.now());
 };
 
 describe("kept as records are written", () => {
@@ -48,27 +50,27 @@ describe("kept as records are written", () => {
     await refresh(league);
     const before = (await sakaPoints())!;
 
-    await writeLive([{ ...sakaGw3, arrived: { fpl: true, pl: false }, stats: { minutes: 90, goals_scored: 5 } }]);
+    await writeAtFullTime([{ ...sakaGw3, arrived: { fpl: true, pl: false }, stats: { minutes: 90, goals_scored: 5 } }]);
     expect(await sakaPoints()).toBe(before);
 
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
     expect(await sakaPoints()).toBe(inTenths(before + at(sakaGw3.stats, "W")));
   });
 
   test("a correction re-prices it: a goal taken away comes off", async () => {
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
     const withGoals = (await sakaPoints())!;
 
-    await writeLive([{ ...sakaGw3, stats: { minutes: 90, goals_scored: 3 } }]);
+    await writeAtFullTime([{ ...sakaGw3, stats: { minutes: 90, goals_scored: 3 } }]);
 
     expect(await sakaPoints()).toBe(inTenths(withGoals - at({ goals_scored: 1 }, "W")));
   });
 
   test("a record turned to an unused substitute's, its stats as they were, comes off his season", async () => {
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
     const withGw3 = (await sakaPoints())!;
 
-    await writeLive([{ ...sakaGw3, played: false }]);
+    await writeAtFullTime([{ ...sakaGw3, played: false }]);
 
     expect(await sakaPoints()).toBe(inTenths(withGw3 - at(sakaGw3.stats, "W")));
   });
@@ -124,7 +126,7 @@ describe("started by itself on a deployment with records but no rows", () => {
   });
 
   test("the next record write starts the rebuild, for every player, not just its own", async () => {
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
 
     expect(await rowsKept()).toBe(3);
   });

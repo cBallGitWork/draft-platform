@@ -14,6 +14,7 @@ import { playerByCode } from "../shared/players";
 import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { matchRecordsOf } from "./matchRecordReads";
 import { rescoreEveryLive } from "../table/liveRescore";
+import { livePrintsOf, sameRecord } from "./livePrints";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -54,9 +55,13 @@ export const upsertMatch = internalMutation({
       if (filled.length === 0) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
       const writes = await writeRecords(ctx, filled, held, status.state);
       await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: false });
-      await rescoreEveryLive(ctx);
       return { state: status.state, ...writes, lateCorrections };
     }
+    // A match read live until now is counted nowhere yet (#2006): its compact row goes, so a
+    // totals rebuild from here counts it, and every record it holds is counted below.
+    const prints = await livePrintsOf(ctx, fixtureCode);
+    if (prints !== null) await ctx.db.delete("liveMatchPrints", prints._id);
+    const counted = prints === null ? held : new Map<number, Doc<"playerMatchStats">>();
     const complete = isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
     const fullTimeAt = status?.fullTimeAt ?? readAt;
@@ -68,7 +73,7 @@ export const upsertMatch = internalMutation({
       const lockAt = lockTime(fullTimeAt, completeAt, await statCorrectionWindowMs(ctx));
       await ctx.scheduler.runAt(lockAt, internal.stats.matchStats.lock, { fixtureCode });
     }
-    const writes = await writeRecords(ctx, records, held, state);
+    const writes = await writeRecords(ctx, records, held, state, counted);
     // A correction or full time between live ticks moves the live scores (table/liveScores.ts).
     if (writes.changed.length > 0 || status?.state !== state) await rescoreEveryLive(ctx);
     return { state, ...writes, lateCorrections: 0 };
@@ -76,9 +81,9 @@ export const upsertMatch = internalMutation({
 });
 
 /** Locks a complete match once its window has passed, reading the window again in case the admin
- *  changed it, and, its gameweek's last to lock, asks every league to store the scores it made final; too early, it reschedules
- *  itself. A match provisional again has its lock scheduled
- *  anew when it is next complete, and one already locked stays as it is. */
+ *  changed it, and, its gameweek's last to lock, asks every league to store the scores it made final;
+ *  too early, it reschedules itself. A match provisional again has its lock scheduled anew when it
+ *  is next complete, and one already locked stays as it is. */
 export const lock = internalMutation({
   args: { fixtureCode: v.number() },
   returns: v.null(),
@@ -97,7 +102,6 @@ export const lock = internalMutation({
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
     await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: true });
-    await rescoreEveryLive(ctx);
     return null;
   },
 });
@@ -116,6 +120,8 @@ async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number, { onlyIfGa
   }
   // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
+  // A lock or a filled gap between live ticks moves the live scores (table/liveScores.ts).
+  await rescoreEveryLive(ctx);
 }
 
 /** Whether every match held in the locked match's gameweek is locked. A match the football sync
@@ -154,6 +160,17 @@ export const record = internalMutation({
   },
 });
 
+/** What a cron run with nothing due writes in place of its run row (#2002): only the kickoff to
+ *  read the fixtures from. */
+export const recordUnseenFrom = internalMutation({
+  args: { kickoff: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { kickoff }) => {
+    await storeUnseenFrom(ctx, kickoff);
+    return null;
+  },
+});
+
 /** Stores the kickoff to read the fixtures from, never moving it back: each run's is safe, since a
  *  status row is never deleted, so the later of two runs' is too. */
 async function storeUnseenFrom(ctx: MutationCtx, kickoff: number) {
@@ -179,37 +196,55 @@ export function triedOf(ctx: QueryCtx, fixtureCode: number) {
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
- *  his season totals and season points moved with it. `changed` names every man inserted or updated. */
+ *  his season totals and season points moved with it. `counted` is the rows the season rows
+ *  already count: the held ones, but none at a live match's full time, as its live writes counted
+ *  nothing (#2006), so each of its records, a held one the read leaves out too, is counted then.
+ *  `changed` names every man inserted or updated. */
 export async function writeRecords(
   ctx: MutationCtx,
   records: PlayerMatchRecord[],
   held: Map<number, Doc<"playerMatchStats">>,
   state: State,
+  counted: ReadonlyMap<number, Doc<"playerMatchStats">> = held,
+): Promise<{ inserted: number; updated: number; changed: number[] }> {
+  const written = await writeRows(ctx, records, held, state);
+  const sent = new Set(records.map(({ playerCode }) => playerCode));
+  const leftOut = [...held.values()].filter(({ playerCode }) => !sent.has(playerCode) && !counted.has(playerCode));
+  const moved: RecordChange[] = [...records, ...leftOut].flatMap((record) => {
+    const row = counted.get(record.playerCode);
+    if (row !== undefined && sameRecord(row, record)) return [];
+    return [{ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: row && countedStats(row), after: countedStats(record) }];
+  });
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
+  await moveSeasonTotals(ctx, moved);
+  if (!rebuilding) await repriceChanged(ctx, [...records, ...leftOut], counted);
+  return written;
+}
+
+/** Each record as sent, in the match's state, and nothing else: a new man inserted, a changed one
+ *  replaced whole. The live tick's write (#2006); `writeRecords` moves the season rows with it. */
+export async function writeRows(
+  ctx: MutationCtx,
+  records: readonly PlayerMatchRecord[],
+  held: ReadonlyMap<number, Doc<"playerMatchStats">>,
+  state: State,
 ): Promise<{ inserted: number; updated: number; changed: number[] }> {
   let inserted = 0;
   const changed: number[] = [];
-  const moved: RecordChange[] = [];
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
       await ctx.db.insert("playerMatchStats", { ...record, state, ...(await clubThatDay(ctx, record.playerCode)) });
       inserted += 1;
       changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: countedStats(record) });
       continue;
     }
     const differs = !sameRecord(row, record);
-    if (differs) {
-      changed.push(record.playerCode);
-      moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: countedStats(row), after: countedStats(record) });
-    }
+    if (differs) changed.push(record.playerCode);
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state, clubCode: row.clubCode });
   }
-  // Before any totals move, as their rows would hide a deployment whose older records have none.
-  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
-  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
-  await moveSeasonTotals(ctx, moved);
-  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 
@@ -254,16 +289,5 @@ function sameChanges(held: StatChange[], sent: StatChange[]): boolean {
       const other = sent[index];
       return change.stat === other.stat && change.locked === other.locked && change.sent === other.sent;
     })
-  );
-}
-
-/** What the feeds sent is what is held; a stat left out and a stat sent as 0 read the same. */
-function sameRecord(row: Doc<"playerMatchStats">, record: PlayerMatchRecord): boolean {
-  return (
-    row.started === record.started &&
-    row.played === record.played &&
-    row.arrived.fpl === record.arrived.fpl &&
-    row.arrived.pl === record.arrived.pl &&
-    statChanges(row.stats, record.stats).length === 0
   );
 }

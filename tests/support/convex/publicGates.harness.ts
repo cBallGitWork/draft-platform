@@ -154,7 +154,7 @@ export const gates: Record<string, Gate> = {
   "mail/mail:writeToLeague": "runner",
   "match/matchPage:ofMatch": "member",
   "matchup/matchup:ofTeam": "member",
-  "matchup/matchupGameweek:thisGameweek": "member",
+  "matchup/matchupGameweek:gameweeksOf": "member",
   "playerCard/playerCard:card": "member",
   "playerCard/positionRank:atPosition": "member",
   "positions/playerPositions:approveClub": "admin",

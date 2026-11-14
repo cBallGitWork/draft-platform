@@ -3,6 +3,8 @@ import { internal } from "../_generated/api";
 import { internalAction, type MutationCtx } from "../_generated/server";
 import { TIMED_JOBS_SETTING } from "../outbound/deploymentSettings";
 import { OUTBOUND_TIMEOUT_MS } from "../outbound/timeouts";
+import { everyMs, type Every } from "../shared/feedSchedule";
+import { HOUR_MS } from "../shared/time";
 
 // Each timed job in crons.ts pings Healthchecks.io when it finishes (docs/PLAN.md, "No
 // monitoring": a dead scheduled job would otherwise go unseen). The ping is a heartbeat, not the
@@ -68,11 +70,19 @@ async function ping(check: Check, failed: boolean): Promise<void> {
   }
 }
 
+/** Whether a run finishing at `now`, of a job run every `every`, pings that it finished: Healthchecks
+ *  is pinged hourly (#2002, the Convex quota), so a job run more often than hourly pings only from
+ *  the run in each hour's first `every`; one run hourly or less often, or with no `every` given,
+ *  pings from every run. A failure always pings. */
+function finishPingDue(every: Every | undefined, now: number): boolean {
+  return every === undefined || now % HOUR_MS < everyMs(every);
+}
+
 /** For a job that is an action: runs `work`, then pings `check`, or its failure, with the error
  *  thrown on, if `work` threw. A feed's failed read that `work` catches itself (outcomeOf) is no
  *  throw, so it pings as finished: that failure is on the run row. A null check (a run by hand,
- *  not the cron) only runs `work`. */
-export async function withHeartbeat<Result>(check: Check | null, work: () => Promise<Result>): Promise<Result> {
+ *  not the cron) only runs `work`. `every` is the job's interval, for `finishPingDue`. */
+export async function withHeartbeat<Result>(check: Check | null, work: () => Promise<Result>, every?: Every): Promise<Result> {
   if (check === null) return work();
   let result: Result;
   try {
@@ -81,15 +91,16 @@ export async function withHeartbeat<Result>(check: Check | null, work: () => Pro
     await ping(check, true);
     throw error;
   }
-  await ping(check, false);
+  if (finishPingDue(every, Date.now())) await ping(check, false);
   return result;
 }
 
 /** For a job that is a mutation, which can't fetch: the ping is scheduled for once its writes
  *  commit, so a mutation that throws sends none, and Healthchecks sees the missed beat. A job run
- *  over several actions, each starting the next, schedules it from its last. */
-export async function scheduleHeartbeat(ctx: Pick<MutationCtx, "scheduler">, check: Check): Promise<void> {
-  if (pingUrl(check, false) === null) return;
+ *  over several actions, each starting the next, schedules it from its last. `every` is the job's
+ *  interval, for `finishPingDue`: a run that pings nothing schedules nothing. */
+export async function scheduleHeartbeat(ctx: Pick<MutationCtx, "scheduler">, check: Check, every?: Every): Promise<void> {
+  if (pingUrl(check, false) === null || !finishPingDue(every, Date.now())) return;
   await ctx.scheduler.runAfter(0, internal.heartbeats.heartbeat.beat, { check });
 }
 

@@ -2,11 +2,14 @@ import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { PING_FAILED_LOG, PING_URL_ENV, scheduleHeartbeat, withHeartbeat } from "../../../convex/heartbeats/heartbeat";
 import { freshConvex, pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
+import { MINUTE_MS } from "../../../convex/shared/time";
 
 // The timed jobs' heartbeats to Healthchecks.io (docs/PLAN.md, "No monitoring"): a ping when a
 // job finishes, a failure ping when it throws, and nothing at all with no ping address set.
 
 const BASE = "https://hc-ping.com/ping-key";
+/** The top of an hour, when a job run more often than hourly pings (#2002). */
+const TOP_OF_HOUR = Date.parse("2026-11-10T12:00:00Z");
 
 /** A fetch that answers every ping with `status`, recording each URL. */
 function pings(status = 200) {
@@ -58,6 +61,7 @@ const pinged = (fetch: ReturnType<typeof pings>) => fetch.mock.calls.map(([url])
 test("each sync pings its check when the cron runs it, and not when it's run by hand", async () => {
   vi.stubEnv(PING_URL_ENV, BASE);
   const fetch = pings();
+  vi.useFakeTimers({ now: TOP_OF_HOUR });
   const t = freshConvex();
   // The football sync's read of an empty faked feed fails, and is logged.
   silenceConsoleError();
@@ -83,11 +87,32 @@ test("the daily clean-up pings once its last run log is pruned", async () => {
 test("the waiver runs and trade offers jobs each ping their check once they finish (#1346, S20.1, S20.2)", async () => {
   vi.stubEnv(PING_URL_ENV, BASE);
   const fetch = pings();
-  vi.useFakeTimers();
+  vi.useFakeTimers({ now: TOP_OF_HOUR });
   const t = freshConvex();
   await t.mutation(internal.waivers.waiverRun.runDue, {});
   await everyJobRuns(t);
   await t.mutation(internal.trades.tradeClose.closeDue, {});
   await everyJobRuns(t);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([`${BASE}/waiver-runs`, `${BASE}/trade-offers`]);
+});
+
+// Healthchecks is pinged hourly (#2002, the Convex quota): a job run more often pings only from
+// its run in the hour's first interval, so the waiver and trade checks schedule no ping job the
+// rest of the hour. Each Healthchecks check's period is an hour to match.
+test("a job run more often than hourly pings only from the run in each hour's first interval; a failure always pings", async () => {
+  vi.stubEnv(PING_URL_ENV, BASE);
+  const fetch = pings();
+  vi.useFakeTimers({ now: TOP_OF_HOUR + 10 * MINUTE_MS });
+  await withHeartbeat("lateStats", async () => null, { minutes: 10 });
+  await withHeartbeat("footballSync", async () => null, { hours: 6 });
+  await expect(withHeartbeat("liveStatsTick", () => Promise.reject(new Error("the read broke")), { minutes: 1 })).rejects.toThrow("the read broke");
+  vi.setSystemTime(TOP_OF_HOUR + 10 * MINUTE_MS - 1);
+  await withHeartbeat("lateStats", async () => null, { minutes: 10 });
+  expect(pinged(fetch)).toEqual([`${BASE}/football-sync`, `${BASE}/live-stats-tick/fail`, `${BASE}/late-stats`]);
+
+  vi.setSystemTime(TOP_OF_HOUR + 5 * MINUTE_MS);
+  const t = freshConvex();
+  await t.mutation(internal.waivers.waiverRun.runDue, {});
+  await t.mutation(internal.trades.tradeClose.closeDue, {});
+  expect(await pendingJobs(t, internal.heartbeats.heartbeat.beat)).toEqual([]);
 });

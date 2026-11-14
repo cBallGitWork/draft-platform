@@ -12,10 +12,12 @@ import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommenta
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 import { MINUTE_MS } from "../shared/time";
+import { heldChunks, linesOf, writeChunks } from "./commentaryChunks";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by
-// `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each read replaces the
-// lines whole, so a reworded line is rewritten and a deleted one goes; once the match is no longer
+// `commentary.ts` and stored one row a match, its lines in chunks (#43, #2004, spec/10, The
+// commentary). Each read replaces the lines whole, writing only the chunks that change, so a
+// reworded line is rewritten and a deleted one goes; once the match is no longer
 // polled they stay as written. A failed read, a stream behind the clock or an unworded line marks
 // the commentary delayed, logged, while the points carry on; should the tick itself stop, the
 // screens judge the held lines against the clock (`delayedFrom`). The full-time line carries the score
@@ -152,7 +154,7 @@ function newestMinuteOf(lines: readonly TimedLine[]): number {
  *  after the read at which the clock, run on from the read, first trails the newest held line by
  *  more than `COMMENTARY_BEHIND_MINUTES`, which says so when the tick itself has stopped, as nothing
  *  then reads the stream to mark it (#917); never (null) while the match isn't in play. */
-export function delayedFrom(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null): number | null {
+export function delayedFrom(held: StoredCommentary, score: Doc<"matchScores"> | null): number | null {
   if (held.delayed !== null) return ALWAYS;
   if (score === null || score.state !== "live" || score.minutes === null) return null;
   if (trails(held.lines, score.minutes)) return ALWAYS;
@@ -187,12 +189,26 @@ function unworded(lines: readonly CommentaryLine[]): string | null {
   return `${lines.length} lines of a type with no wording (${types.join(", ")})`;
 }
 
-/** A match's stored commentary; null before its first read. */
-export function heldOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchCommentary"> | null> {
+/** A match's commentary as stored: its lines, newest first, and its delay. */
+export type StoredCommentary = Pick<Doc<"matchCommentary">, "delayed"> & { lines: CommentaryLineRow[] };
+
+/** A match's commentary row, which holds its delay; null before its first read. */
+function headOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchCommentary"> | null> {
   return ctx.db
     .query("matchCommentary")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+/** The match's lines from its `chunks`, or from its row as stored before #2004 while it has none. */
+function linesHeld(head: Doc<"matchCommentary"> | null, chunks: readonly Doc<"commentaryChunks">[]): CommentaryLineRow[] {
+  return chunks.length === 0 ? (head?.lines ?? []) : linesOf(chunks);
+}
+
+/** A match's stored commentary; null before its first read. */
+export async function heldOf(ctx: QueryCtx, fixtureCode: number): Promise<StoredCommentary | null> {
+  const [head, chunks] = await Promise.all([headOf(ctx, fixtureCode), heldChunks(ctx, fixtureCode)]);
+  return head === null ? null : { lines: linesHeld(head, chunks), delayed: head.delayed };
 }
 
 /** Whether the match's commentary, as the live tick read it, still lacks its full-time line,
@@ -206,30 +222,26 @@ export async function fullTimeLineMissing(ctx: QueryCtx, fixtureCode: number): P
  *  line is not taken at its word, as a match's lines never all go. */
 export const EMPTY_STREAM = "the stream sent no lines";
 
-/** One read stored over the match's row. Lines replace the held ones whole, but an empty stream
- *  never wipes held lines. A delay keeps the time it began; a read that changes nothing is not
- *  written, so a screen reading the row is not woken each minute. */
+/** One read stored over the match's. Lines replace the held ones whole, but an empty stream
+ *  never wipes held lines. A delay keeps the time it began. Only what changes is written (#2004):
+ *  the chunks whose lines change (commentaryChunks.ts), and the row only when its delay's reason
+ *  does or it still holds its lines as stored before chunks, so a read that changes nothing wakes
+ *  no screen and a new line rewrites one chunk, not every line the match has had. */
 export const store = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), lines: v.union(v.array(commentaryLine), v.null()), delayed: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { fixtureCode, readAt, lines, delayed }) => {
-    const held = await heldOf(ctx, fixtureCode);
-    const heldLines = held?.lines ?? [];
+    const [head, chunks] = await Promise.all([headOf(ctx, fixtureCode), heldChunks(ctx, fixtureCode)]);
+    const heldLines = linesHeld(head, chunks);
     const wipes = lines !== null && lines.length === 0 && heldLines.length > 0;
-    const nextLines = lines === null || wipes ? heldLines : lines;
     const reason = joinedReasons([wipes ? EMPTY_STREAM : null, delayed]);
     if (wipes) logDelay(fixtureCode, EMPTY_STREAM);
-    const next = {
-      fixtureCode,
-      lines: nextLines,
-      delayed: reason === null ? null : { reason, since: held?.delayed?.since ?? readAt },
-    };
-    if (held === null) {
-      await ctx.db.insert("matchCommentary", next);
-      return null;
+    const nextDelayed = reason === null ? null : { reason, since: head?.delayed?.since ?? readAt };
+    await writeChunks(ctx, fixtureCode, chunks, lines === null || wipes ? heldLines : lines);
+    if (head === null) await ctx.db.insert("matchCommentary", { fixtureCode, delayed: nextDelayed });
+    else if (head.lines !== undefined || nextDelayed?.reason !== head.delayed?.reason) {
+      await ctx.db.patch("matchCommentary", head._id, { lines: undefined, delayed: nextDelayed });
     }
-    if (JSON.stringify(next.lines) === JSON.stringify(held.lines) && next.delayed?.reason === held.delayed?.reason) return null;
-    await ctx.db.patch("matchCommentary", held._id, next);
     return null;
   },
 });

@@ -23,7 +23,7 @@ import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks"
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
 import {
   afterKickoffsChanged,
-  afterMatchesMoved,
+  afterMatchesDropped,
   afterMatchesSent,
   afterPlayersDropped,
   afterPlayersSent,
@@ -130,15 +130,18 @@ export const upsertFixtures = internalMutation({
     const rows = await placeInWindows(ctx, sent, Date.now());
     const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
     let kickoffsChanged = false;
+    const touched: (number | null)[] = [];
     const held = async (row: WithoutSystemFields<Doc<"fixtures">>) => {
       const fixture = await fixtureByCode(ctx, row.code);
-      if (fixture === null || fixture.kickoff !== row.kickoff) kickoffsChanged = true;
+      kickoffsChanged ||= fixture === null || fixture.kickoff !== row.kickoff;
+      // Where each match new, moved, re-timed or sent again was and now is.
+      if (fixture?.kickoff !== row.kickoff || fixture.gameweek !== row.gameweek || fixture.droppedAt !== undefined) touched.push(fixture?.gameweek ?? null, row.gameweek);
       return fixture;
     };
     const upserted = await upsertEach(ctx, "fixtures", rows, held, (fixture, row) => {
       if (fixture.gameweek !== row.gameweek || fixture.droppedAt !== undefined) moved.push(row);
     });
-    await afterMatchesSent(ctx, moved);
+    await afterMatchesSent(ctx, moved, touched);
     if (kickoffsChanged && moved.length === 0) await afterKickoffsChanged(ctx);
     return upserted;
   },
@@ -178,8 +181,7 @@ export const markDropped = internalMutation({
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     // On the players table, its page holds players: each leaves Scouting's list with his row (#1559).
     if (table === "players") await afterPlayersDropped(ctx, (dropped as Doc<"players">[]).map(({ code }) => code));
-    // On the fixtures table, its page holds fixtures.
-    if (table === "fixtures") await afterMatchesMoved(ctx, dropped as Doc<"fixtures">[]);
+    if (table === "fixtures") await afterMatchesDropped(ctx, dropped as Doc<"fixtures">[]); // Its page holds fixtures.
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });

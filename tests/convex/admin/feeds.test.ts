@@ -7,7 +7,8 @@ import { lateAfterMs, FEED_SCHEDULES, FEEDS } from "../../../convex/shared/feedS
 import { RUNS_READ } from "../../../convex/admin/feeds";
 import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, JULY, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { HOUR_MS, JULY, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
 import { feedAt, feedsAt, holdMatch, holdStatus, recordRun, T0 } from "../../support/convex/feeds.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
@@ -132,13 +133,33 @@ test("the positions sync is late once a day and its grace pass with no success, 
   expect(await feedAt(t, "positions", T0 + POSITIONS_LATE_AFTER + 1)).toMatchObject({ state: "late", lastSuccessAt: T0 });
 });
 
-// A late-stats run with no match due still records a success, so a quiet week is never late.
-test("late stats that stop are late once their 10-minute schedule passes with no success, and fine up to then", async () => {
+// A late-stats run with no match due writes no row (#2002), so late stats owe a run only while a
+// match this season is past full time and not locked: a quiet week is never late.
+test("late stats that stop while a match is unlocked are late once their 10-minute schedule passes with no success, and fine up to then", async () => {
   const t = freshConvex();
   await recordRun(t, "matchStats", T0);
+  await holdStatus(t, 1, T0 - HOUR_MS, "complete");
 
   expect(await feedAt(t, "matchStats", T0 + MATCH_STATS_LATE_AFTER)).toMatchObject({ state: "fine", lastSuccessAt: T0 });
   expect(await feedAt(t, "matchStats", T0 + MATCH_STATS_LATE_AFTER + 1)).toMatchObject({ state: "late", lastSuccessAt: T0 });
+});
+
+test("with every match locked, late stats owe nothing, so they are fine however long since their last run", async () => {
+  const t = freshConvex();
+  await recordRun(t, "matchStats", T0);
+  await t.run((ctx) => insertLockedStatus(ctx, 1, T0 - HOUR_MS));
+
+  expect(await feedAt(t, "matchStats", T0 + WEEK_MS)).toMatchObject({ state: "fine", lastSuccessAt: T0 });
+});
+
+test("a match newly at full time is owed from its full time, not from the last quiet run", async () => {
+  const t = freshConvex();
+  await recordRun(t, "matchStats", T0);
+  const fullTime = T0 + WEEK_MS;
+  await holdStatus(t, 1, fullTime);
+
+  expect(await feedAt(t, "matchStats", fullTime + MATCH_STATS_LATE_AFTER)).toMatchObject({ state: "fine" });
+  expect(await feedAt(t, "matchStats", fullTime + MATCH_STATS_LATE_AFTER + 1)).toMatchObject({ state: "late" });
 });
 
 test("a success further back than the runs read is not found, and the feed is failing", async () => {

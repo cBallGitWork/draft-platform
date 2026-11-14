@@ -12,6 +12,7 @@ import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
 import { groupedBy } from "../shared/groupedBy";
 import { keepScoutingPlayer, keepScoutingPlayers } from "../scouting/scoutingPlayers";
+import { countedNowhere } from "./livePrints";
 
 // Each player's season totals (#373, the playerSeasonStats table): his match records added up, so
 // Scouting can sort every player by any stat with one small row a player, where adding up a
@@ -46,14 +47,14 @@ export const countedStats = (record: Pick<PlayerMatchRecord, "played" | "arrived
  *  changed record with stats to take away but no totals row to take them from (one held before the
  *  table existed, until `rebuild` has run) sets his totals from his records afresh instead, as it is
  *  already written. One that counted nothing yet (not whole) has nothing to take away, so its new
- *  stats are added alone, never re-reading his every season on each live write (#1565). */
+ *  stats are added alone, never re-reading his every season on each write (#1565). */
 export async function moveSeasonTotals(ctx: MutationCtx, changes: readonly RecordChange[]): Promise<void> {
-  const seasonOf = matchSeasons(ctx);
+  const reads = matchReads(ctx);
   for (const { playerCode, fixtureCode, before, after } of changes) {
-    const season = await seasonOf(fixtureCode);
+    const season = await reads.seasonOf(fixtureCode);
     const row = await seasonRowOf(ctx, "playerSeasonStats", season, playerCode);
     if (row === null && before !== undefined && Object.keys(before).length > 0) {
-      await rebuildPlayer(ctx, playerCode, seasonOf);
+      await rebuildPlayer(ctx, playerCode, reads);
       continue;
     }
     const stats = addStats(addStats(row?.stats ?? {}, before ?? {}, -1), after);
@@ -98,9 +99,9 @@ export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const seasonOf = matchSeasons(ctx);
+    const reads = matchReads(ctx);
     const rebuildPage = async (playerCodes: number[]) => {
-      for (const playerCode of playerCodes) await rebuildPlayer(ctx, playerCode, seasonOf);
+      for (const playerCode of playerCodes) await rebuildPlayer(ctx, playerCode, reads);
     };
     const lastPage = await eachPlayerPage(ctx, cursor, rebuildPage, internal.stats.seasonStats.rebuild);
     if (lastPage) await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
@@ -108,16 +109,26 @@ export const rebuild = internalMutation({
   },
 });
 
-/** The season of each match, each read once. */
-function matchSeasons(ctx: QueryCtx): (fixtureCode: number) => Promise<number> {
-  return readOnce((fixtureCode: number) => seasonOfMatch(ctx, fixtureCode));
+/** What the totals read of each match, each read once: its season, and whether it is still live,
+ *  so counted nowhere yet (#2006, livePrints.ts). */
+type MatchReads = { seasonOf: (fixtureCode: number) => Promise<number>; live: (fixtureCode: number) => Promise<boolean> };
+
+function matchReads(ctx: QueryCtx): MatchReads {
+  return {
+    seasonOf: readOnce((fixtureCode: number) => seasonOfMatch(ctx, fixtureCode)),
+    live: readOnce((fixtureCode: number) => countedNowhere(ctx, fixtureCode)),
+  };
 }
 
-/** One player's totals, each season's set to his records in it added up. */
-async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fixtureCode: number) => Promise<number>): Promise<void> {
+/** One player's totals, each season's set to his records in it added up, a match still live left
+ *  for its full time to count. */
+async function rebuildPlayer(ctx: MutationCtx, playerCode: number, { seasonOf, live }: MatchReads): Promise<void> {
   const records = await playerRecords(ctx, playerCode, "totals");
   const seasoned: { season: number; stats: Stats }[] = [];
-  for (const record of records) seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
+  for (const record of records) {
+    if (await live(record.fixtureCode)) continue;
+    seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
+  }
   for (const [season, each] of groupedBy(seasoned, ({ season }) => season)) {
     const stats = sumStats(each.map((one) => one.stats));
     const row = await seasonRowOf(ctx, "playerSeasonStats", season, playerCode);

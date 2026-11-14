@@ -11,7 +11,7 @@ import { liveMatches } from "../stats/liveStats";
 import { dueSheetsAt } from "../football/matchTeamSheets";
 import { sportmonksLiveMatches } from "../football/sportmonks/sportmonksLive";
 import { competitionsHeld } from "../football/sportmonks/sportmonksSync";
-import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
+import { LINEUPS_OUT_BEFORE_KICKOFF_MS, seasonStartAt } from "../shared/time";
 import { lateStatChange } from "../schema";
 
 // The admin's feeds page (#35; spec/15 The admin): when each feed last arrived and whether it is
@@ -118,15 +118,22 @@ export const feeds = query({
 
 /** From when each feed owes a success (`judgeFeed`): the live tick, and the team stats and
  *  threshold lines it reads, from the first kickoff of the matches live now; the team sheets from
- *  the first due match's hour before kickoff; none of those between matches; every other feed
- *  always. */
+ *  the first due match's hour before kickoff; late stats from the first full time of this season's
+ *  matches not yet locked, as a run with none due writes no row (#2002); none of those otherwise;
+ *  every other feed always. */
 async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Exclude<Feed, SportmonksFeed>, number | null>> {
   const liveStats = earliest((await liveMatches(ctx, now)).map((match) => match.kickoff));
   const teamSheets = earliest((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
+  const firstUnlocked = (state: "provisional" | "complete") =>
+    ctx.db
+      .query("matchStatsStatus")
+      .withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", state).gte("fullTimeAt", seasonStartAt(now)))
+      .first();
+  const unlocked = [await firstUnlocked("provisional"), await firstUnlocked("complete")];
   return {
     football: ALWAYS_OWED,
     positions: ALWAYS_OWED,
-    matchStats: ALWAYS_OWED,
+    matchStats: earliest(unlocked.flatMap((status) => (status === null ? [] : [status.fullTimeAt]))),
     liveStats,
     teamSheets,
     teamStats: liveStats,

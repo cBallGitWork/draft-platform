@@ -3,6 +3,7 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { writeChunks } from "../../../convex/football/commentaryChunks";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { matchPageAt } from "../../../convex/matchup/commentaryAt";
@@ -40,7 +41,10 @@ export const STREAM_BEHIND_SINCE_KICKOFF = { reason: STREAM_BEHIND, since: LEAGU
 
 /** Hull v Everton's commentary as just these `lines`, newest first, not delayed unless `delayed`. */
 export const holdLines = ({ t }: ScoresLeague, lines: ReturnType<typeof storedLine>[], delayed: Doc<"matchCommentary">["delayed"] = null) =>
-  t.run((ctx) => ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, lines, delayed }));
+  t.run(async (ctx) => {
+    await ctx.db.insert("matchCommentary", { fixtureCode: HULL_EVERTON, delayed });
+    await writeChunks(ctx, HULL_EVERTON, [], lines);
+  });
 
 export const manOf = (men: readonly MatchMan[], playerCode: number) => men.find((man) => man.playerCode === playerCode)!;
 

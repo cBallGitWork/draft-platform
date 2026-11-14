@@ -19,7 +19,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const read = async () => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() });
+const read = async () => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueSettings.settings, { leagueId });
 const change = async (trades: TradeRules) => {
   const settings = (await read())!.part;
   return (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueSettings.changeSettings, {

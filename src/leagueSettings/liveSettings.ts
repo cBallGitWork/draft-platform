@@ -1,14 +1,20 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { changesFromAt } from "../../convex/gameweeks/nextGameweek";
 import { answerOf, refusalOf } from "../shared/refusal";
 import { useMinute } from "../shared/useMinute";
 import type { LeagueSettingsSeam } from "./seam";
 import { liveClaims } from "../myTeam/claims/liveClaims";
 import { draftStartFailedWords, saveFailedWords, scoringStartFailedWords, teamOrderFailedWords } from "./words";
 
-/** Asked again each minute, so the gameweek a change takes effect from moves on at a deadline. */
-const useSettings: LeagueSettingsSeam["useSettings"] = (leagueId) => useQuery(api.rules.leagueSettings.settings, { leagueId, now: useMinute() });
+/** The settings, read with no minute, so they are asked again only when they change; the gameweek a
+ *  change takes effect from is judged here at the minute, so it moves on at a deadline (#2008). */
+const useSettings: LeagueSettingsSeam["useSettings"] = (leagueId) => {
+  const held = useQuery(api.rules.leagueSettings.settings, { leagueId });
+  const minute = useMinute();
+  return useMemo(() => (held === undefined ? undefined : { ...held, changesFrom: changesFromAt(held.changesFrom, minute) }), [held, minute]);
+};
 
 const useTeamOrder: LeagueSettingsSeam["useTeamOrder"] = (leagueId) => useQuery(api.draft.draftOrder.teamOrder, { leagueId });
 

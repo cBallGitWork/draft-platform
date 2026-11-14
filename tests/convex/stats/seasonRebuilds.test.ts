@@ -43,7 +43,9 @@ const totalsKept = async () => new Map(await league.t.run(async (ctx) => [...(aw
 const sync = () => league.t.mutation(internal.football.footballSync.upsertFixtures, { rows: [] });
 
 const { state: _state, ...sakaGw3 } = record(SAKA.code, GW3.code, { minutes: 90, goals_scored: 4 });
-const writeLive = (records: (typeof sakaGw3)[]) => league.t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: GW3.code, minute: null, records });
+/** A full-time read of GW3: where totals move, a live read moving none (#2006). */
+const writeAtFullTime = (records: (typeof sakaGw3)[]) =>
+  league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: GW3.code, readAt: Date.now(), records });
 /** Saka's whole records this season added up, GW3's included. */
 const sakaWithGw3 = addStats(addStats(SAKA_GW1, SAKA_GW2), sakaGw3.stats);
 
@@ -67,7 +69,7 @@ describe("started by itself once a match of the season held is whole", () => {
   });
 
   test("the next record write starts it before moving any totals, so every player is counted, not just its own", async () => {
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
     expect(await totalsRebuilds()).toHaveLength(1);
     // The rebuild re-prices every season when it finishes, so the write queues no re-pricing.
     expect(await pointsJobs()).toHaveLength(0);
@@ -84,7 +86,7 @@ describe("started by itself once a match of the season held is whole", () => {
     await league.t.run((ctx) => ctx.db.insert("playerSeasonStats", { season: SEASON, playerCode: SAKA.code, stats: { minutes: 1 } }));
 
     await sync();
-    await writeLive([sakaGw3]);
+    await writeAtFullTime([sakaGw3]);
 
     expect(await totalsRebuilds()).toHaveLength(0);
   });
@@ -95,7 +97,7 @@ describe("no rebuild while it would write no row", () => {
     await holdGw1("provisional");
 
     for (const goals of [1, 2, 3]) {
-      await writeLive([{ ...sakaGw3, stats: { minutes: 90, goals_scored: goals } }]);
+      await writeAtFullTime([{ ...sakaGw3, stats: { minutes: 90, goals_scored: goals } }]);
       await sync();
     }
 

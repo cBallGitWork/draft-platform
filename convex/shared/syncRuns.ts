@@ -33,8 +33,9 @@ export function* inBatches<Row>(rows: readonly Row[]): Generator<Row[]> {
 }
 
 /** How long a run row is kept once it is not among a feed's newest `LATEST_RUNS` (Craig, 22 Oct
- *  2026, #146): a success for 30 days, a failure for 180, so an old fault stays on record. */
-export const SUCCESS_KEPT_MS = 30 * DAY_MS;
+ *  2026, #146): a success for 7 days (Craig, 13 Nov 2026, #2002, the Convex quota; it was 30), a
+ *  failure for 180, so an old fault stays on record. */
+export const SUCCESS_KEPT_MS = 7 * DAY_MS;
 export const FAILURE_KEPT_MS = 180 * DAY_MS;
 
 /** How often `admin/runLogs:prune` clears the rows past those times (spec/20): daily, as they are
