@@ -181,7 +181,7 @@ describe("the commentary", () => {
 });
 
 describe("live points delayed (S10.12)", () => {
-  it("says Live points delayed on the scoreboard while the points are held as last read", async () => {
+  it("says the live points are delayed on the scoreboard while the points are held as last read", async () => {
     openMatch({ match: matchOf({ pointsDelayed: true }) });
     const status = await within(await screen.findByRole("region", { name: SCORE_LABEL })).findByText(livePointsDelayedWords);
     expect(status.getAttribute("role")).toBe("status");

@@ -32,7 +32,7 @@ describe("the matchup's heads", () => {
     expect(within(theirs).getByText(autoTeamWords)).toBeTruthy();
   });
 
-  it("says Live points delayed under the score while a match the lineups' men play in has its points held as last read (S10.12)", async () => {
+  it("says the live points are delayed under the score while a match the lineups' men play in has its points held as last read (S10.12)", async () => {
     const sides = { team: teamSide("Team 1", [], []), opponent: teamSide("Team 2", [], []) };
     openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", ...sides, pointsDelayed: true }) } });
     const status = await within(await screen.findByRole("region", { name: SCORE_LABEL })).findByText(livePointsDelayedWords);

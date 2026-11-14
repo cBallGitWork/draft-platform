@@ -29,7 +29,7 @@ const delayedFrom = (t: TestConvex) =>
 
 const { mcBurnie, belloumi } = FULL_STATS;
 
-test("a read cut off for a man keeps his last read and says Live points delayed, and the next full read wins (S10.12)", async () => {
+test("a read cut off for a man keeps his last read and flags the points as delayed, and the next full read wins (S10.12)", async () => {
   const t = await withHullEverton();
   await tickAt(t, stageTime(80), stagedGw6(80));
   const before = await heldRecords(t);
@@ -47,7 +47,7 @@ test("a read cut off for a man keeps his last read and says Live points delayed,
   expect(await delayedFrom(t)).toBeNull();
 });
 
-test("a read that leaves out a man it named before keeps his record and says Live points delayed (S10.12)", async () => {
+test("a read that leaves out a man it named before keeps his record and flags the points as delayed (S10.12)", async () => {
   const t = await withHullEverton();
   await tickAt(t, stageTime(30), stagedGw6(30));
   const before = await heldRecords(t);
@@ -74,7 +74,7 @@ test("a repeated read, or a man sent twice in one, never doubles anyone's points
   expect(await delayedFrom(t)).toBeNull();
 });
 
-test("a tick that can't read the stats keeps the points as last read and says Live points delayed until a read (S10.12)", async () => {
+test("a tick that can't read the stats keeps the points as last read and flags them as delayed until a read (S10.12)", async () => {
   silenceConsoleError();
   const t = await withHullEverton();
   await tickAt(t, stageTime(30), stagedGw6(30));
