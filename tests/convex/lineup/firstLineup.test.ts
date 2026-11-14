@@ -4,6 +4,7 @@ import type { RoleStars } from "../../../convex/stars/starsShape";
 import { FIRST_PRESETS } from "../../../convex/lineup/presets";
 import type { Position } from "../../../convex/positions/positionTables";
 import { KEEPER_CELL, openLimits, presetNamed } from "../../support/convex/lineup.harness";
+import { drawn } from "../../support/seededDraw";
 
 // A team's first lineup (spec/05, The pitch; #637, #836): each pick goes onto the pitch as it is
 // made, into the deepest open 4-4-2 slot he can play, or onto the bench in pick order; if the
@@ -74,17 +75,6 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     expect(firstLineup([], new Map(), RULES)).toEqual({ starters: [], bench: [] });
   });
 
-  /** A seeded draw, so a failure can be run again: the C library's linear congruential steps. */
-  const MULTIPLIER = 1103515245;
-  const INCREMENT = 12345;
-  const MODULUS = 2 ** 31;
-  const drawn = (seed: number) => {
-    let state = seed;
-    return (count: number) => {
-      state = (state * MULTIPLIER + INCREMENT) % MODULUS;
-      return state % count;
-    };
-  };
   const DRAWN_POSITIONS: Position[][] = [["GK"], ["CB"], ["FB"], ["WB"], ["CM"], ["WM"], ["ST"], ["SS"], ["CB", "CDM"], ["WM", "W"], []];
   const SQUADS = 200;
   const SQUAD_SIZE = 18;
