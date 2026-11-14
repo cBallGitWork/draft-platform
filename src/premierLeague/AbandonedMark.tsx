@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Confirm } from "../ui/Confirm";
 import { Problem } from "../ui/Panel";
+import { useChange } from "../shared/useChange";
 import { cancelWords } from "../shared/words";
 import type { PremierLeagueSeam } from "./seam";
 import { abandonedWords, markAbandonedQuestion, markAbandonedWords, unmarkAbandonedWords } from "./words";
@@ -11,14 +12,10 @@ import { abandonedWords, markAbandonedQuestion, markAbandonedWords, unmarkAbando
 export function AbandonedMark({ seam, fixtureCode, abandoned }: { seam: PremierLeagueSeam; fixtureCode: number; abandoned: boolean }) {
   const setMark = seam.useAbandonedMark();
   const [asking, setAsking] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { busy, problem, run } = useChange();
   const change = async (mark: boolean) => {
-    setBusy(true);
-    const refused = await setMark(fixtureCode, mark);
-    setBusy(false);
+    await run(() => setMark(fixtureCode, mark));
     setAsking(false);
-    setProblem(refused);
   };
   return (
     <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-2">
