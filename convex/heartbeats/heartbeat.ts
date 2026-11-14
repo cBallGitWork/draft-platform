@@ -74,7 +74,7 @@ async function ping(check: Check, failed: boolean): Promise<void> {
  *  is pinged hourly (#2002, the Convex quota), so a job run more often than hourly pings only from
  *  the run in each hour's first `every`; one run hourly or less often, or with no `every` given,
  *  pings from every run. A failure always pings. */
-export function finishPingDue(every: Every | undefined, now: number): boolean {
+function finishPingDue(every: Every | undefined, now: number): boolean {
   return every === undefined || now % HOUR_MS < everyMs(every);
 }
 

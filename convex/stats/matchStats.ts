@@ -148,7 +148,8 @@ export const record = internalMutation({
   },
 });
 
-/** A cron run's with nothing due, which writes no run row (#2002): only the kickoff to read from. */
+/** What a cron run with nothing due writes in place of its run row (#2002): only the kickoff to
+ *  read the fixtures from. */
 export const recordUnseenFrom = internalMutation({
   args: { kickoff: v.number() },
   returns: v.null(),
