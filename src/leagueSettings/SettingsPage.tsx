@@ -1,6 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import { AREAS } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
@@ -49,7 +50,8 @@ import {
  *  format, the deadline, double gameweeks and the table's tie-breaks (spec/03), the round robin's
  *  two (spec/09), the squad's make-up (spec/03; #341), how the draft runs and when
  *  it starts (spec/04; #1087, #1476), how waivers run, beside the waiver order (spec/08; #1200),
- *  how trades do (spec/08; #383), and the commissioner's draft order, which saves at once. */
+ *  how trades do (spec/08; #383), and the commissioner's draft order, which saves at once. The way
+ *  back to Your leagues sits beside the league's name, as on the league's other runner pages (#2348). */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   // The settings are asked again each minute (liveSettings.ts), and the next minute's load mustn't
   // unmount the editor and throw its unsaved edits away; another league's loads afresh.
@@ -61,6 +63,7 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
     <>
       <PlateTabs label={settingsTabsLabel} tabs={SETTINGS_TABS} words={settingsTabWords} chosen={tab} choose={choose} />
       <span className="self-center text-soft">{league.name}</span>
+      <BackToLeagues className="self-center" />
     </>
   );
   return (
