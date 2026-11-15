@@ -10,7 +10,7 @@ import type { DraftList } from "./seam";
 export { DRAFT_TITLE } from "../shared/words";
 export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", ending: "Ending", over: "Over" } as const;
 export const loadingWords = "Loading the draft…";
-/** A queued player who has left the Premier League, greyed out in his place (S04.21), as the shortlist says it. */
+/** A queued player who has left the Premier League, greyed out in his place (S04.25), as the shortlist says it. */
 export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The header's heads and readings, before the start. */

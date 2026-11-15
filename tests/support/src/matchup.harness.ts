@@ -140,9 +140,10 @@ export const commentaryLine = (key: string, text: string, rest: Partial<Omit<Tea
 });
 
 /** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
- *  commentary, scored under the first set, unless it gives some. */
+ *  commentary, scored under the first set, its live points keeping up, unless it gives otherwise. */
+type Defaulted = "commentary" | "version" | "pointsDelayed";
 export const headToHead = (
-  game: Exclude<Game, Scored> | (Omit<Scored, "commentary" | "version"> & Partial<Pick<Scored, "commentary" | "version">>),
+  game: Exclude<Game, Scored> | (Omit<Scored, Defaulted> & Partial<Pick<Scored, Defaulted>>),
   {
     gameweek = 6,
     gameweeks = [5, 6, 7],
@@ -159,6 +160,6 @@ export const headToHead = (
   deadline,
   gameNumber,
   games,
-  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
+  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, pointsDelayed: false, ...game } : game,
   mode: previewGameMode,
 });

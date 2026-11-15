@@ -141,6 +141,7 @@ export async function syncDue(
       if (beforeFullTime === "live") {
         sides.teamStats.push(...failed);
         sides.thresholdSteps.push(...failed);
+        await delayLivePoints(ctx, codes, readAt);
       }
       if (commentary !== null) await delayCommentary(ctx, codes, message, readAt);
       continue;
@@ -155,6 +156,7 @@ export async function syncDue(
         }
       } catch (error: unknown) {
         matches.push({ fixtureCode, ok: false, error: logFailure(`match ${fixtureCode} failed`, error) });
+        if (beforeFullTime === "live") await delayLivePoints(ctx, [fixtureCode], readAt);
       }
       const listed = reads.listed.get(fixtureCode);
       if (commentary !== null) await syncCommentary(ctx, fixtureCode, listed, commentary, readAt);
@@ -163,6 +165,16 @@ export async function syncDue(
     }
   }
   return { matches, waiting, scores: await writeDueScores(ctx, readAt, scores), sides };
+}
+
+/** Each live match's points marked delayed, its read having failed (spec/10 `S10.12`). Never
+ *  throws: a failure is logged, and stops neither the tick nor another match. */
+export async function delayLivePoints(ctx: ActionCtx, fixtureCodes: number[], readAt: number): Promise<void> {
+  try {
+    await ctx.runMutation(internal.stats.liveStats.delayLivePoints, { fixtureCodes, readAt });
+  } catch (error: unknown) {
+    logFailure(`marking match ${fixtureCodes.join(", ")}'s live points delayed failed`, error);
+  }
 }
 
 /** The due matches' scores written; a failed write fails each read's score on the run row, not
@@ -220,6 +232,7 @@ async function syncMatch(
   }
   const { thresholdSteps, ...written } = await ctx.runMutation(internal.stats.liveStats.upsertLive, {
     fixtureCode,
+    readAt,
     minute: clocks.get(fixtureCode) ?? null,
     records,
   });

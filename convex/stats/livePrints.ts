@@ -1,13 +1,15 @@
-import type { Doc } from "../_generated/dataModel";
-import type { QueryCtx } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { GameweekTeams } from "../gameweekScorer/gameweekScores";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { statChanges, type PlayerMatchRecord } from "./matchRecords";
 
 // The live tick's compact row (#2006, the liveMatchPrints table): one a match while it is live,
 // holding each man's record as a print, so each minute's read is checked against one small row
 // rather than the match's forty records, and only the men who moved are read and written. The
 // row's being there also says the match's live records are counted in no season totals, points or
-// Scouting row yet: full time counts them (matchStats.ts's upsertMatch) and deletes it. Plain
-// helpers: no Convex function lives here.
+// Scouting row yet: full time counts them (matchStats.ts's upsertMatch) and deletes it. Beside it,
+// a match's live points delay (the livePointsDelays table, spec/10 `S10.12`). Plain helpers: no
+// Convex function lives here.
 
 /** What the feeds sent is what is held; a stat left out and a stat sent as 0 read the same. */
 export function sameRecord(row: Doc<"playerMatchStats">, record: PlayerMatchRecord): boolean {
@@ -38,6 +40,36 @@ export function livePrintsOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"l
     .query("liveMatchPrints")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
+}
+
+/** The match's live points delay (spec/10 `S10.12`), or null while they keep up. */
+export function livePointsDelayOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"livePointsDelays"> | null> {
+  return ctx.db
+    .query("livePointsDelays")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+}
+
+/** Whether any match the teams' lineups' men play in has its live points delayed: the matchup's
+ *  scoreboard then says "Live points delayed" (spec/10 `S10.12`). */
+export async function lineupPointsDelayed(ctx: QueryCtx, inGameweek: GameweekTeams, teamIds: readonly Id<"teams">[]): Promise<boolean> {
+  const codes = new Set<number>();
+  for (const teamId of teamIds) {
+    for (const matches of (await inGameweek.slotsOf(teamId)).matchesOf.values()) for (const { fixture } of matches) codes.add(fixture.code);
+  }
+  for (const code of codes) if ((await livePointsDelayOf(ctx, code)) !== null) return true;
+  return false;
+}
+
+/** The match's live points delayed from `readAt`; one already delayed keeps its moment. */
+export async function delayPoints(ctx: MutationCtx, fixtureCode: number, readAt: number): Promise<void> {
+  if ((await livePointsDelayOf(ctx, fixtureCode)) === null) await ctx.db.insert("livePointsDelays", { fixtureCode, delayedFrom: readAt });
+}
+
+/** The match's live points no longer delayed: a full read, or full time, wrote them. */
+export async function undelayPoints(ctx: MutationCtx, fixtureCode: number): Promise<void> {
+  const delay = await livePointsDelayOf(ctx, fixtureCode);
+  if (delay !== null) await ctx.db.delete("livePointsDelays", delay._id);
 }
 
 /** Whether the match's records are live ones no season row counts yet. */

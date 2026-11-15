@@ -4,7 +4,7 @@ import { internalAction, type ActionCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
 import { timedJobsOn, withHeartbeat } from "../heartbeats/heartbeat";
 import { FEED_SCHEDULES } from "../shared/feedSchedule";
-import { syncDue } from "./matchStatsSync";
+import { delayLivePoints, syncDue } from "./matchStatsSync";
 import { delayCommentary } from "../football/matchCommentary";
 import { readFplPayloads } from "../football/fpl/fpl";
 import { syncTeamSheets } from "../football/matchTeamSheets";
@@ -77,6 +77,8 @@ async function tickLive(ctx: ActionCtx, ranAt: number, live: DueMatch[], fpl: ty
     outcome = { ok: false, error: logFailure("live stats tick failed", error) };
     // A tick that read nothing read no commentary either: each live match's is delayed (#43).
     await delayCommentary(ctx, live.map(({ fixtureCode }) => fixtureCode), outcome.error, ranAt);
+    // And no points: each live match's stay as last read, delayed (spec/10 `S10.12`).
+    await delayLivePoints(ctx, live.map(({ fixtureCode }) => fixtureCode), ranAt);
   }
   await ctx.runMutation(internal.stats.liveStats.recordTick, { ranAt, outcome });
   if (sides !== null && anyMatchRead) await recordSideMatches(ctx, ranAt, sides, true);
