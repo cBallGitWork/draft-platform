@@ -14,7 +14,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { WAIVER_ORDERS, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../../../convex/scoring/values";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
-import type { seededRandom } from "../seededRandom";
+import type { seededRandom } from "../seededDraw";
 import { PL_GAMEWEEKS, type Club, type HeldPlayer } from "./footballRows.harness";
 
 /** The seed the run plays, from SIM_SEED when it is set, so a red run can be played again. */
@@ -23,7 +23,7 @@ export const simulationSeed = (): number => {
   return set === undefined || set === "" ? Math.floor(Math.random() * 2 ** 31) : Number(set);
 };
 
-/** The seeded random source the run draws from (../seededRandom.ts): the same seed plays the same
+/** The seeded random source the run draws from (../seededDraw.ts): the same seed plays the same
  *  season. */
 export type Random = ReturnType<typeof seededRandom>;
 /** A whole number from 0 to `count` - 1. */
