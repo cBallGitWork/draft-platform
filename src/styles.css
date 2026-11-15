@@ -154,6 +154,7 @@
   --grid-template-columns-sign-in: minmax(0, 1fr) 21.25rem;
   /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
+  --grid-template-columns-setting-row: 12.75rem minmax(0, 1fr); /* League settings' label, then its control (approved/settings) */
   /* Mail: the letters and the open one; a letter's row: kind, sender over subject, time (approved/mail) */
   --grid-template-columns-mail: minmax(0, 2fr) minmax(0, 3fr);
   --grid-template-columns-letter-row: 6rem minmax(0, 1fr) auto;

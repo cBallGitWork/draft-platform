@@ -23,13 +23,14 @@ export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
 
 export const fixturesTitle = "Fixtures";
-export const oddTeamOutLabel = "With an odd number of teams, the team left over plays";
+export const oddTeamOutLabel = "Odd team out plays";
 export const oddTeamOutWords: Record<OddTeamOut, string> = { leagueAverage: "The league's average", bye: "No one (a bye)" };
-export const gamesLabel = "Head-to-head games each team plays a gameweek";
+export const gamesLabel = "Games a gameweek";
+export const gamesUnit = "head-to-heads per team";
 export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer other teams than that, each team plays every other once a gameweek.`;
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
 export const redrawWords = "Saving either redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
-export const blankGamesWords = noNumberWords("Games a gameweek");
+export const blankGamesWords = noNumberWords(gamesLabel);
 /** The format (spec/03, S03.1): its lock, and why, is said again by the server's refusal. */
 export const formatLabel = "Format";
 export const formatWords: Record<LeagueRules["format"], string> = { headToHead: "Head-to-head", totalPoints: "Total points" };
@@ -38,14 +39,18 @@ export const formatHint = "Locked once the league's first scored gameweek begins
 export const doubleGameweekLabel = "Double gameweeks";
 export const doubleGameweekWords: Record<DoubleGameweekRule, string> = { bothMatches: "Both matches count", bestMatch: "Best match" };
 /** The deadline (spec/03, S03.3). */
-export const deadlineLabel = "Deadline, in minutes before the gameweek's first kickoff";
+export const deadlineLabel = "Deadline";
+export const deadlineUnit = "minutes before the gameweek's first kickoff";
 export const deadlineHint = "A whole number, 0 or more.";
-export const blankDeadlineWords = noNumberWords("Deadline");
+export const blankDeadlineWords = noNumberWords(deadlineLabel);
 
 /** The table's tie-breaks, whose order the commissioner changes (spec/03, S03.2). */
 export const tableTitle = "Table";
 export const tieBreaksLabel = "Tie-breaks, in order";
 export const tieBreakWords: Record<TieBreak, string> = { pointsFor: pointsForWords, headToHead: formatWords.headToHead, pointsAgainst: pointsAgainstWords };
+/** spec/03's play-offs, which no rule holds yet: placeholders in their place (the approved picture). */
+export const playOffTeamsLabel = "Play-off teams";
+export const playOffLegsLabel = "Play-off legs";
 
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
