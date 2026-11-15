@@ -42,7 +42,7 @@ vi.mock("convex/react", async () =>
   }),
 );
 
-const settings: LeagueSettings = { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 };
+const settings: LeagueSettings = { ...leagueSettingsOf(FIRST_RULES), gamesPerGameweek: 2 };
 const seam = () => renderHook(() => useLiveLeagueSettings()).result.current;
 
 // The read it removes (#2008): a new minute asks the server nothing new, as settings' arguments stay

@@ -59,11 +59,11 @@ function checkWholeNumberWithin(value: number, what: string, least: number, most
 export const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
 
 /** Why `maxTeams` teams play at most so many games a gameweek: one against each other team, and
- *  with an odd number, one more for the team left over, against the league's average or a bye. */
+ *  with an odd number, one more for the team left over, against the league's average (S03.4). */
 export function whyMostGames(maxTeams: number): string {
   const others = maxTeams - 1;
   const eachOther = others === 1 ? "one against the other team" : `one against each of the other ${others}`;
-  return maxTeams % 2 === 0 ? eachOther : `${eachOther}, and one left over, against the league's average or a bye`;
+  return maxTeams % 2 === 0 ? eachOther : `${eachOther}, and one left over, against the league's average`;
 }
 
 /** A league asking more games a gameweek than `maxTeams` teams have rounds for would quietly play

@@ -1,7 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { DOUBLE_GAMEWEEK_RULES } from "../../convex/scoring/values";
-import type { OddTeamOut } from "../../convex/table/roundRobin";
 import type { TieBreak } from "../../convex/table/standings";
 import { NumberBox } from "../rules/NumberBox";
 import { Choice } from "../ui/Choice";
@@ -26,8 +25,6 @@ import {
   moveDownWords,
   moveUpLabel,
   moveUpWords,
-  oddTeamOutLabel,
-  oddTeamOutWords,
   playOffLegsLabel,
   playOffTeamsLabel,
   redrawWords,
@@ -44,14 +41,13 @@ const TIE_BREAKS_LABEL_ID = "settings-tie-breaks-label";
  *  approved picture). */
 const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
 const FORMATS = ["headToHead", "totalPoints"] as const satisfies readonly LeagueSettings["format"][];
-/** The odd team out's keys, the league's average first (the approved picture). */
-const ODD_TEAM_OUT_KEYS = ["leagueAverage", "bye"] as const satisfies readonly OddTeamOut[];
 
 type Edit = { draft: LeagueSettings; edit: (settings: LeagueSettings) => void };
 
 /** The Fixtures tab (docs/design/approved/settings/1440.png): the format, locked once the season
  *  has begun, which the server refuses with why (spec/03, S03.1); the scoring start, saved at once;
- *  the round robin's two (spec/09); double gameweeks; the deadline (S03.3); and the table's
+ *  the round robin's games a gameweek (spec/09; the odd team out always plays the league's
+ *  average, S03.4, so it is no setting); double gameweeks; the deadline (S03.3); and the table's
  *  tie-breaks (S03.2). */
 export function FixturesPanels({ league, seam, draft, edit }: Edit & { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   return (
@@ -68,17 +64,6 @@ export function FixturesPanels({ league, seam, draft, edit }: Edit & { league: L
             <p id={GAMES_HINT_ID} className="text-muted">
               {gamesHint}
             </p>
-          </SettingRow>
-          <SettingRow label={oddTeamOutLabel}>
-            <Choice
-              label={oddTeamOutLabel}
-              labelShown={false}
-              name="odd-team-out"
-              options={ODD_TEAM_OUT_KEYS}
-              words={oddTeamOutWords}
-              chosen={draft.oddTeamOut}
-              onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
-            />
             <p className="text-muted">{redrawWords}</p>
           </SettingRow>
           <SettingRow label={doubleGameweekLabel}>

@@ -5,7 +5,7 @@ import { LEAGUE_AVERAGE } from "../table/roundRobin";
 /** A gameweek's head-to-head fixtures, and the teams left over with a bye. */
 const gameweekGames = {
   fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
-  /** The teams left over with a bye, in a league whose odd team out has one. */
+  /** The teams left over with a bye: only in a gameweek stored before Craig dropped the bye (S03.4). */
   byes: v.array(v.id("teams")),
 };
 

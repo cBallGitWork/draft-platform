@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { changeRulesTo, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { changeRulesTo, holdGameweeks, storeWithBye } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -73,10 +73,11 @@ describe("the games", () => {
 
   test("with byes, the team sits one out instead of meeting the league's average", async () => {
     await holdGameweeks(t, { next: 1 });
-    await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    await changeRulesTo(t, leagueId, { oddTeamOut: "bye" });
-    const kinds = (await read())!.games.slice(0, 3).map(({ against }) => against.kind);
-    expect(kinds.toSorted()).toEqual(["bye", "team", "team"]);
+    // A gameweek played with a bye before S03.4 keeps it: Ann's team sat gameweek 1 out.
+    const [anns, bobs, cats] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+    await storeWithBye(t, leagueId, 1, [bobs, cats, anns]);
+    const [first] = (await read())!.games;
+    expect(first).toMatchObject({ gameweek: 1, against: { kind: "bye" } });
   });
 
   test("with two games a gameweek, there are two in each", async () => {

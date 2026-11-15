@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
+import { heldChanges, heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
 
 // A league's rules history (spec/03; #25), read: its rows, and the rules in force in a gameweek.
 // leagueRules.ts saves the changes, each in the form `savedForm` gives.
@@ -49,12 +49,12 @@ export function savedForm(rules: LeagueRules, changed: readonly (keyof LeagueRul
 function rulesOfRow(
   before: LeagueRules | undefined,
   whole: Doc<"leagueRules">["rules"],
-  changes: RulesChanges | undefined,
+  changes: Doc<"leagueRules">["changes"],
   rowId: Id<"leagueRules">,
 ): LeagueRules {
   if (whole !== undefined) return heldRules(whole);
   if (changes === undefined || before === undefined) throw new Error(`Rules row ${rowId} holds changes with no rules before them`);
-  return { ...before, ...changes };
+  return { ...before, ...heldChanges(changes) };
 }
 
 /** The row in force in this gameweek: the latest to take effect at or before it, and of two from
