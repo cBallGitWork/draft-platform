@@ -392,9 +392,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 
 The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 
-- The studio kit: the files `.studio/kit.json` lists (hook helpers and checks every studio project shares)
-  are copies from the private `cBallGitWork/studio` repository, pinned to the commit it names.
-  Change them there and copy the kit in again (`node bin/copy-kit.mjs <this checkout>` in studio);
+- The Forge kit: the files `.studio/kit.json` lists (hook helpers and checks every Forge project shares)
+  are copies from the private `cBallGitWork/forge` repository, pinned to the commit it names.
+  Change them there and copy the kit in again (`node bin/copy-kit.mjs <this checkout>` in Forge);
   `scripts/studio-kit.mjs`, in verify, fails a copy edited here (11 Nov 2026).
 
 - `src/shared/`: non-visual code every screen uses: the hooks, refusal handling, the common words.
