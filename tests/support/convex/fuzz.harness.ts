@@ -3,8 +3,12 @@
 // single one and those of several code points that look like one (a flag, a skin tone, a family;
 // S13.2; #2141). The ranking file's tests add Excel's byte-order mark themselves.
 
+// The random clicker types these texts too (tests/support/smoke/clicker.ts), so this file imports
+// nothing that loads vitest.
 import { seededRandom } from "../../../convex/table/roundRobin";
-import { EMOJI } from "./test.harness";
+
+/** A football: an emoji of one code point. */
+const FOOTBALL = "\u{26BD}";
 
 /** How many random texts each fuzz test tries. */
 export const FUZZ_RUNS = 500;
@@ -15,7 +19,7 @@ export const LOOKS_LIKE_ONE = ["\u{1F1EC}\u{1F1E7}", "\u{1F44D}\u{1F3FD}", "\u{1
 
 /** Letters, digits, punctuation, a comma and a semicolon, the white space a keyboard or a
  *  spreadsheet types, and emoji. */
-const TYPED = [..."abcxyzABCXYZ0123456789 .,;'-_!?()&\t\n\r", EMOJI, ...LOOKS_LIKE_ONE];
+const TYPED = [..."abcxyzABCXYZ0123456789 .,;'-_!?()&\t\n\r", FOOTBALL, ...LOOKS_LIKE_ONE];
 
 /** A random pick from a seeded draw. */
 export const pickFrom = <Item>(random: () => number, items: readonly Item[]): Item => items[Math.floor(random() * items.length)];
