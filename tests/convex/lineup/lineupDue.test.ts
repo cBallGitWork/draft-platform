@@ -6,7 +6,7 @@ import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
 import { lineupDueAt } from "../../../convex/lineup/lineupDueAt";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, COMMISSIONER, actingAs, addManager, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
@@ -75,6 +75,12 @@ describe("whether his lineup is due", () => {
     expect(await isDue(COMMISSIONER)).toBe(false);
     expect(await isDue(ADMIN)).toBe(false);
     expect(await t.query(api.lineup.lineupDue.isDue, { leagueId })).toBeNull();
+  });
+
+  test("UI-088 (spec/12 The frame: no team, no lineup step): two hours before the deadline, the commissioner with no team has nothing due while his manager does", async () => {
+    clockTo(nextDeadline() - 2 * HOUR_MS);
+    expect(await isDue(ANN)).toBe(true);
+    expect(await (await actingAs(t, COMMISSIONER)).query(api.lineup.lineupDue.isDue, { leagueId })).toBeNull();
   });
 
   test("its times take no minute, so a minute passing reads nothing again: only the judging moves on (#2005)", async () => {
