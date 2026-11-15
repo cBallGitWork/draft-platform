@@ -1,16 +1,18 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { DOUBLE_GAMEWEEK_RULES } from "../../convex/scoring/values";
-import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
+import type { OddTeamOut } from "../../convex/table/roundRobin";
 import type { TieBreak } from "../../convex/table/standings";
+import { NumberBox } from "../rules/NumberBox";
 import { Choice } from "../ui/Choice";
-import { PANEL_BODY, Panel } from "../ui/Panel";
-import { NumberRow } from "./NumberRow";
+import { Panel } from "../ui/Panel";
 import { ScoringStartRow } from "./ScoringStartRow";
 import type { LeagueSettingsSeam } from "./seam";
+import { SETTING_LINE, SETTING_ROWS, SettingRow } from "./SettingRow";
 import {
   deadlineHint,
   deadlineLabel,
+  deadlineUnit,
   doubleGameweekLabel,
   doubleGameweekWords,
   fixturesTitle,
@@ -19,12 +21,15 @@ import {
   formatWords,
   gamesHint,
   gamesLabel,
+  gamesUnit,
   moveDownLabel,
   moveDownWords,
   moveUpLabel,
   moveUpWords,
   oddTeamOutLabel,
   oddTeamOutWords,
+  playOffLegsLabel,
+  playOffTeamsLabel,
   redrawWords,
   tableTitle,
   tieBreaksLabel,
@@ -39,6 +44,8 @@ const TIE_BREAKS_LABEL_ID = "settings-tie-breaks-label";
  *  approved picture). */
 const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
 const FORMATS = ["headToHead", "totalPoints"] as const satisfies readonly LeagueSettings["format"][];
+/** The odd team out's keys, the league's average first (the approved picture). */
+const ODD_TEAM_OUT_KEYS = ["leagueAverage", "bye"] as const satisfies readonly OddTeamOut[];
 
 type Edit = { draft: LeagueSettings; edit: (settings: LeagueSettings) => void };
 
@@ -50,50 +57,78 @@ export function FixturesPanels({ league, seam, draft, edit }: Edit & { league: L
   return (
     <>
       <Panel title={fixturesTitle}>
-        <div className={PANEL_BODY}>
-          <div className="flex flex-col gap-1">
-            <Choice label={formatLabel} name="format" options={FORMATS} words={formatWords} chosen={draft.format} onChoose={(format) => edit({ ...draft, format })} />
+        <div className={SETTING_ROWS}>
+          <SettingRow label={formatLabel}>
+            <Choice label={formatLabel} labelShown={false} name="format" options={FORMATS} words={formatWords} chosen={draft.format} onChoose={(format) => edit({ ...draft, format })} />
             <p className="text-muted">{formatHint}</p>
-          </div>
+          </SettingRow>
           <ScoringStartRow leagueId={league.leagueId} seam={seam} />
-          <Choice
-            label={oddTeamOutLabel}
-            name="odd-team-out"
-            options={ODD_TEAM_OUTS}
-            words={oddTeamOutWords}
-            chosen={draft.oddTeamOut}
-            onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
-          />
-          <NumberRow label={gamesLabel} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
-          <p id={GAMES_HINT_ID} className="text-muted">
-            {gamesHint}
-          </p>
-          <p className="text-muted">{redrawWords}</p>
-          <Choice
-            label={doubleGameweekLabel}
-            name="double-gameweek"
-            options={DOUBLE_GAMEWEEK_RULES}
-            words={doubleGameweekWords}
-            chosen={draft.doubleGameweek}
-            onChoose={(doubleGameweek) => edit({ ...draft, doubleGameweek })}
-          />
-          <NumberRow
-            label={deadlineLabel}
-            hintId={DEADLINE_HINT_ID}
-            value={draft.deadline.minutesBeforeFirstKickoff}
-            onChange={(minutesBeforeFirstKickoff) => edit({ ...draft, deadline: { minutesBeforeFirstKickoff } })}
-          />
-          <p id={DEADLINE_HINT_ID} className="text-muted">
-            {deadlineHint}
-          </p>
+          <SettingRow label={gamesLabel}>
+            <NumberWithUnit label={gamesLabel} unit={gamesUnit} hintId={GAMES_HINT_ID} value={draft.gamesPerGameweek} onChange={(gamesPerGameweek) => edit({ ...draft, gamesPerGameweek })} />
+            <p id={GAMES_HINT_ID} className="text-muted">
+              {gamesHint}
+            </p>
+          </SettingRow>
+          <SettingRow label={oddTeamOutLabel}>
+            <Choice
+              label={oddTeamOutLabel}
+              labelShown={false}
+              name="odd-team-out"
+              options={ODD_TEAM_OUT_KEYS}
+              words={oddTeamOutWords}
+              chosen={draft.oddTeamOut}
+              onChoose={(oddTeamOut) => edit({ ...draft, oddTeamOut })}
+            />
+            <p className="text-muted">{redrawWords}</p>
+          </SettingRow>
+          <SettingRow label={doubleGameweekLabel}>
+            <Choice
+              label={doubleGameweekLabel}
+              labelShown={false}
+              name="double-gameweek"
+              options={DOUBLE_GAMEWEEK_RULES}
+              words={doubleGameweekWords}
+              chosen={draft.doubleGameweek}
+              onChoose={(doubleGameweek) => edit({ ...draft, doubleGameweek })}
+            />
+          </SettingRow>
+          <SettingRow label={deadlineLabel}>
+            <NumberWithUnit
+              label={deadlineLabel}
+              unit={deadlineUnit}
+              hintId={DEADLINE_HINT_ID}
+              value={draft.deadline.minutesBeforeFirstKickoff}
+              onChange={(minutesBeforeFirstKickoff) => edit({ ...draft, deadline: { minutesBeforeFirstKickoff } })}
+            />
+            <p id={DEADLINE_HINT_ID} className="text-muted">
+              {deadlineHint}
+            </p>
+          </SettingRow>
         </div>
       </Panel>
       <Panel title={tableTitle}>
-        <div className={PANEL_BODY}>
-          <TieBreaks tieBreaks={draft.tieBreaks} reorder={(tieBreaks) => edit({ ...draft, tieBreaks })} />
+        <div className={SETTING_ROWS}>
+          <SettingRow label={tieBreaksLabel} labelId={TIE_BREAKS_LABEL_ID}>
+            <TieBreaks tieBreaks={draft.tieBreaks} reorder={(tieBreaks) => edit({ ...draft, tieBreaks })} />
+          </SettingRow>
+          {[playOffTeamsLabel, playOffLegsLabel].map((label) => (
+            <SettingRow key={label} label={label} muted>
+              <input type="text" disabled aria-label={label} className="number-box" />
+            </SettingRow>
+          ))}
         </div>
       </Panel>
     </>
+  );
+}
+
+/** A number's box with its unit after it ("90 minutes before the gameweek's first kickoff"). */
+function NumberWithUnit({ unit, ...box }: { label: string; unit: string; hintId: string; value: number; onChange: (value: number) => void }) {
+  return (
+    <div className={SETTING_LINE}>
+      <NumberBox {...box} />
+      <span className="text-soft">{unit}</span>
+    </div>
   );
 }
 
@@ -106,30 +141,19 @@ function TieBreaks({ tieBreaks, reorder }: { tieBreaks: readonly TieBreak[]; reo
     reorder(moved);
   }
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span id={TIE_BREAKS_LABEL_ID} className="text-soft">
-        {tieBreaksLabel}
-      </span>
-      <ol aria-labelledby={TIE_BREAKS_LABEL_ID} className="flex flex-col gap-1">
-        {tieBreaks.map((tieBreak, place) => (
-          <li key={tieBreak} className="flex items-center gap-3">
-            <span className="w-4 text-right text-figure tabular-nums">{place + 1}</span>
-            <span className="w-32">{tieBreakWords[tieBreak]}</span>
-            <button type="button" aria-label={moveUpLabel(tieBreakWords[tieBreak])} disabled={place === 0} onClick={() => move(place, place - 1)} className={MOVE_ACTION}>
-              {moveUpWords}
-            </button>
-            <button
-              type="button"
-              aria-label={moveDownLabel(tieBreakWords[tieBreak])}
-              disabled={place === tieBreaks.length - 1}
-              onClick={() => move(place, place + 1)}
-              className={MOVE_ACTION}
-            >
-              {moveDownWords}
-            </button>
-          </li>
-        ))}
-      </ol>
-    </div>
+    <ol aria-labelledby={TIE_BREAKS_LABEL_ID} className="flex flex-col gap-1">
+      {tieBreaks.map((tieBreak, place) => (
+        <li key={tieBreak} className="flex items-center gap-3">
+          <span className="w-4 text-right text-figure tabular-nums">{place + 1}</span>
+          <span className="w-32">{tieBreakWords[tieBreak]}</span>
+          <button type="button" aria-label={moveUpLabel(tieBreakWords[tieBreak])} disabled={place === 0} onClick={() => move(place, place - 1)} className={MOVE_ACTION}>
+            {moveUpWords}
+          </button>
+          <button type="button" aria-label={moveDownLabel(tieBreakWords[tieBreak])} disabled={place === tieBreaks.length - 1} onClick={() => move(place, place + 1)} className={MOVE_ACTION}>
+            {moveDownWords}
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }

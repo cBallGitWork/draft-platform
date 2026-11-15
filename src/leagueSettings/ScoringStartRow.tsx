@@ -6,6 +6,7 @@ import { useChange } from "../shared/useChange";
 import { useNowEachMinute } from "../shared/useMinute";
 import { gameweekShort, whenWords } from "../shared/when/words";
 import type { LeagueSettingsSeam } from "./seam";
+import { SETTING_LINE, SettingRow } from "./SettingRow";
 import {
   noScoringStartChoicesWords,
   noScoringStartHint,
@@ -32,17 +33,19 @@ export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; s
   const saving = useChange();
   // A gameweek that begins while the page is open leaves the picker.
   const now = useNowEachMinute();
-  if (view === undefined) return <Loading>{scoringStartLoadingWords}</Loading>;
+  if (view === undefined)
+    return (
+      <SettingRow label={scoringStartLabel}>
+        <Loading>{scoringStartLoadingWords}</Loading>
+      </SettingRow>
+    );
   const startDeadline = view.ticked.find(({ gameweek }) => gameweek === view.start)?.deadline ?? null;
   const fixedAtNone = view.start === null && view.seasonBegun;
   const fixed = view.start !== null && isLocked(startDeadline, now);
   const choices = choicesOf(view, now);
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span aria-hidden className="text-soft">
-          {scoringStartLabel}
-        </span>
+    <SettingRow label={scoringStartLabel}>
+      <div className={SETTING_LINE}>
         {fixed ? (
           <span className="font-semibold">{gameweekShort(view.start!)}</span>
         ) : fixedAtNone ? (
@@ -75,7 +78,7 @@ export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; s
         {fixedAtNone ? seasonBegunStartHint : hintOf(view.start, startDeadline, fixed)}
       </p>
       <Problem problem={saving.problem} />
-    </div>
+    </SettingRow>
   );
 }
 
