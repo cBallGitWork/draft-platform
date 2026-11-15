@@ -143,6 +143,7 @@ test("a live write racing the sync's full-time read changes nothing", async () =
 
   const written = await t.mutation(internal.stats.liveStats.upsertLive, {
     fixtureCode: HULL_EVERTON,
+    readAt: FULL_TIME_READ,
     minute: null,
     records: mergedHullEverton(stagedGw6(30)),
   });

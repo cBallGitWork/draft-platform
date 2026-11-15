@@ -8,13 +8,13 @@ import { addManagers, adminCreatesLeague, ANN, BOB } from "../../support/convex/
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A queued player who leaves the Premier League, sold abroad say (spec/04, The queue and the
-// ranking; #2200, S04.21): he stays listed, marked gone so the queue greys him out, and auto-pick
+// ranking; #2200, S04.25): he stays listed, marked gone so the queue greys him out, and auto-pick
 // skips him for the next in the queue.
 
 const SOLD = 101;
 const KEPT = 102;
 
-test("a queued player who leaves stays listed, gone, and auto-pick takes the next in the queue (S04.21)", async () => {
+test("a queued player who leaves stays listed, gone, and auto-pick takes the next in the queue (S04.25)", async () => {
   const t = await signInDeployment();
   fakeResend();
   const leagueId = await adminCreatesLeague(t, 5);
