@@ -86,7 +86,7 @@ function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"sit
 /** Adds a version taking effect at `takesEffectAt`, numbered next in its season, and files the
  *  letter from `by` telling every manager what it changes (spec/14: a patch is announced by a Mail
  *  letter, and a fix is announced as a fix, so it gets one too; #356). `by` is null for the one
- *  version with no letter, the roles' first values (Craig, 5 Nov 2026; firstRolesVersion.ts).
+ *  version with no letter, the roles' first values (Craig, 5 Nov 2026; migrations/firstRolesVersion.ts).
  *  Returns its name and the first gameweek it reaches. */
 export async function addVersion(
   ctx: MutationCtx,

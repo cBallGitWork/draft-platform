@@ -54,7 +54,7 @@ import {
 // catalogue stat Sportmonks sends (football/sportmonks/sportmonksStats.ts), or an own stat made of
 // them (`S05.28`): a test holds that. The bars are Claude's draft, each aimed at its slot's target
 // role bonus a start (spec/05's table), and the backtest refits them (`S05.10`). This file is only
-// where they start: they go into the site's set by firstRolesVersion.ts, and change by patch after.
+// where they start: they go into the site's set by migrations/firstRolesVersion.ts, and change by patch after.
 
 type OwnStat = NonNullable<StoredScoringSet["ownStats"]>[number];
 type RoleScoring = NonNullable<StoredScoringSet["roles"]>[number];
@@ -149,6 +149,6 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
   role("libero", side([4, 5, 6], [DRIBBLES_WON, 1], [ACCURATE_PASSES, 0.1]), side([1, 2, 3], [DISPOSSESSED, 1])),
 ];
 
-/** The first scoring with these values in it, as firstRolesVersion.ts puts them into a new
+/** The first scoring with these values in it, as migrations/firstRolesVersion.ts puts them into a new
  *  deployment's set: what the Tactics preview and its tests price a role card under (#848). */
 export const FIRST_SCORING_WITH_ROLES: StoredScoringSet = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };
