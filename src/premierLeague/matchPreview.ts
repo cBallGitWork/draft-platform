@@ -196,6 +196,8 @@ export const previewMatch: MatchPageData = {
   pointsProblem: null,
   abandoned: false,
   pointsDelayed: false,
+  // Full time, but not yet locked, so its points are still provisional.
+  provisional: true,
   // The recording's final read, as football/premierLeague/plTeamStats.ts maps it.
   teamStats: {
     home: { shots: 7, shotsOnTarget: 3, possession: 49.4, corners: 0, yellowCards: 1, redCards: 0 },

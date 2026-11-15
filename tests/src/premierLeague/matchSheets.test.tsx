@@ -2,7 +2,7 @@
 // man's points and the team they're for, or "Free agent", and the team stats side by side. The
 // rest of the page is matchPage.test.tsx's.
 
-import { screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import {
@@ -17,6 +17,8 @@ import {
   noTeamStatsWords,
   pointsProblemWords,
   possessionWords,
+  provisionalWords,
+  provWords,
   sheetLabel,
   STAT_COLUMN,
   SUBSTITUTES_TITLE,
@@ -122,6 +124,17 @@ describe("the team sheets", () => {
     expect(within(await rowOf("Raya")).getByText(MY_TEAM_NAME).closest("td")!.className).toContain("text-fact");
     expect((await rowOf("Saka")).className).not.toContain("bg-row-lit");
     expect(within(await rowOf("Saka")).getByText(THEIR_TEAM_NAME).closest("td")!.className).toContain("text-soft");
+  });
+
+  // "Live points carry a small 'prov.' tag until the gameweek's points are final" (Craig, 10 Nov 2026, on #1032).
+  it("S10.10: each sheet's plate says prov. while its points are live, and nothing once they are final", async () => {
+    openMatch({ match: matchOf() });
+    await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
+    expect(screen.getAllByTitle(provisionalWords).map((tag) => tag.textContent)).toEqual([provWords, provWords]);
+    cleanup();
+    openMatch({ match: matchOf({ provisional: false }) });
+    await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
+    expect(screen.queryByText(provWords)).toBeNull();
   });
 
   it("when the league's points can't be worked out, says why in the alert strip", async () => {

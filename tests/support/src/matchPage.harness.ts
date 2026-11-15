@@ -47,6 +47,7 @@ export const matchOf = (more: Partial<MatchPageData> = {}): MatchPageData => ({
   pointsProblem: null,
   abandoned: false,
   pointsDelayed: false,
+  provisional: true,
   teamStats: null,
   commentary: {
     kind: "read",
