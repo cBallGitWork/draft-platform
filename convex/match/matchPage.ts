@@ -20,6 +20,7 @@ import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } 
 import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
+import { livePointsDelayOf } from "../stats/livePrints";
 import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
@@ -94,6 +95,7 @@ const heldMatchPage = v.object({
   commentary: heldCommentary,
   /** Whether the admin marked it abandoned, for his button to take the mark back (#904, S05.46). */
   abandoned: v.boolean(),
+  pointsDelayed: v.boolean(), // its live points held as last read: "Live points delayed" (S10.12)
   /** Its men's points live, "prov." (S10.10): from kickoff until its gameweek is final (matchStats.ts). */
   provisional: v.boolean(),
 });
@@ -133,6 +135,7 @@ export const ofMatch = query({
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
       abandoned: await isAbandoned(ctx, fixtureCode),
+      pointsDelayed: (await livePointsDelayOf(ctx, fixtureCode)) !== null,
       provisional: held !== null && fixture.gameweek !== null && !(await isGameweekFinal(ctx, fixture.gameweek, "its points can't be told final")),
     };
   },
@@ -265,16 +268,12 @@ async function menOf(
 }
 
 /** The side of the match the club plays on; null for a club playing in neither. */
-function sideOf({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: number): "home" | "away" | null {
-  if (clubCode === homeClubCode) return "home";
-  return clubCode === awayClubCode ? "away" : null;
-}
+const sideOf = ({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: number): "home" | "away" | null =>
+  clubCode === homeClubCode ? "home" : clubCode === awayClubCode ? "away" : null;
 
 /** A man the match names, by name; or, for one the football data has lost, whose saved record stays
  *  (spec/14 S14.5), the error words every screen gives his row, so the rest of the page still shows. */
-function nameOf(player: Doc<"players"> | null, playerCode: PlayerCode): string {
-  return player === null ? unheldPlayerWords(playerCode) : player.name;
-}
+const nameOf = (player: Doc<"players"> | null, playerCode: PlayerCode): string => (player === null ? unheldPlayerWords(playerCode) : player.name);
 
 /** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
  *  or why they can't be read, while the rest still shows. Delayed from the moment the match's held

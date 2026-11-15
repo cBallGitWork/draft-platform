@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
+import { isMatchComplete, isWhole, lockTime, statChanges, withCutOffHeld, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
@@ -14,7 +14,7 @@ import { playerByCode } from "../shared/players";
 import { datedCodes, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { isAbandoned, matchRecordsOf } from "./matchRecordReads";
 import { rescoreEveryLive } from "../table/liveRescore";
-import { livePrintsOf, sameRecord } from "./livePrints";
+import { livePrintsOf, sameRecord, undelayPoints } from "./livePrints";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -34,15 +34,17 @@ export const matchWrites = v.object({
  *  is complete once every record is whole, and its lock is scheduled then. After the lock nothing
  *  is written but the changes, for the feeds page, and a whole record filling a held one's gap.
  *  A read older than the last one written writes nothing, as matchScores.ts's `wins` refuses an
- *  older score: a slow read never undoes a newer one (#2042). A match the admin marked abandoned
- *  is written nothing: it counts as never played (#904, S05.7). */
+ *  older score: a slow read never undoes a newer one, a live one included (#2042, spec/10 `S10.12`).
+ *  A match the admin marked abandoned is written nothing: it counts as never played (#904, S05.7). */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
   returns: matchWrites,
-  handler: async (ctx, { fixtureCode, readAt, records }) => {
+  handler: async (ctx, { fixtureCode, readAt, records: sent }) => {
     const status = await statusOf(ctx, fixtureCode);
-    const unwritten = status !== null && (readAt < status.lastReadAt || (await isAbandoned(ctx, fixtureCode)));
-    if (unwritten) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
+    const prints = await livePrintsOf(ctx, fixtureCode);
+    const older = status === null ? prints?.readAt !== undefined && readAt < prints.readAt : readAt < status.lastReadAt;
+    const unwritten = older || (status !== null && (await isAbandoned(ctx, fixtureCode)));
+    if (unwritten) return { state: status?.state ?? "provisional", inserted: 0, updated: 0, changed: [], lateCorrections: 0 };
     const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its records' write")).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
@@ -52,8 +54,8 @@ export const upsertMatch = internalMutation({
         const row = held.get(record.playerCode);
         return row !== undefined && !isWhole(row) && isWhole(record);
       };
-      const filled = records.filter(fillsGap);
-      const lateCorrections = await recordLateCorrections(ctx, records.filter((record) => !fillsGap(record)), held, readAt);
+      const filled = sent.filter(fillsGap);
+      const lateCorrections = await recordLateCorrections(ctx, sent.filter((record) => !fillsGap(record)), held, readAt);
       if (filled.length === 0) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
       const writes = await writeRecords(ctx, filled, held, status.state);
       await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: false });
@@ -61,10 +63,12 @@ export const upsertMatch = internalMutation({
     }
     // A match read live until now is counted nowhere yet (#2006): its compact row goes, so a
     // totals rebuild from here counts it, and every record it holds is counted below.
-    const prints = await livePrintsOf(ctx, fixtureCode);
     if (prints !== null) await ctx.db.delete("liveMatchPrints", prints._id);
+    await undelayPoints(ctx, fixtureCode);
     const counted = prints === null ? held : new Map<number, Doc<"playerMatchStats">>();
-    const complete = isMatchComplete(records);
+    // A read cut off for a man keeps his held record, and the match provisional (`S10.12`).
+    const { records, cutOff } = withCutOffHeld(sent, held);
+    const complete = !cutOff && isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
     const fullTimeAt = status?.fullTimeAt ?? readAt;
     const completeAt = complete ? (status?.completeAt ?? readAt) : undefined;

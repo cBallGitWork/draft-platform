@@ -19,11 +19,13 @@ import {
   gameweekWords,
   halfTime,
   kickoffDayWords,
+  livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
   matchLinkLabel,
   noLinesWords,
   noMatchWords,
+  SCORE_LABEL,
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
@@ -175,5 +177,19 @@ describe("the commentary", () => {
     openMatch({ match: matchOf({ commentary: { kind: "read", lines: [], delayed: true } }) });
     expect((await screen.findByText(commentaryDelayedWords)).getAttribute("role")).toBe("status");
     expect(screen.getByText(noLinesWords)).toBeTruthy();
+  });
+});
+
+describe("live points delayed (S10.12)", () => {
+  it("says the live points are delayed on the scoreboard while the points are held as last read", async () => {
+    openMatch({ match: matchOf({ pointsDelayed: true }) });
+    const status = await within(await screen.findByRole("region", { name: SCORE_LABEL })).findByText(livePointsDelayedWords);
+    expect(status.getAttribute("role")).toBe("status");
+  });
+
+  it("says nothing while they keep up", async () => {
+    openMatch({ match: matchOf() });
+    await screen.findByRole("region", { name: SCORE_LABEL });
+    expect(screen.queryByText(livePointsDelayedWords)).toBeNull();
   });
 });
