@@ -1,21 +1,31 @@
 import { useEffect, useState } from "react";
 import { MINUTE_MS } from "../../convex/shared/time";
+import { onServerTime, serverNow } from "./serverClock";
 
 /** The start of the current minute, moving on at the next: the time a query that must judge the
  *  clock is asked at, as a query may not read it (why, in convex/admin/feeds.ts). Each timer sets
- *  the next, so one that fires before its minute is up (the clock put back) still ticks on (#1437). */
+ *  the next, so one that fires before its minute is up (the clock put back) still ticks on (#1437).
+ *  It goes by the server's time, and moves to it the moment the server answers (S05.50). */
 export function useMinute(): number {
-  const [minute, setMinute] = useState(() => startOfMinute(Date.now()));
+  const [minute, setMinute] = useState(() => startOfMinute(serverNow()));
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     const next = () => {
       timer = setTimeout(() => {
-        setMinute(startOfMinute(Date.now()));
+        setMinute(startOfMinute(serverNow()));
         next();
-      }, MINUTE_MS - (Date.now() % MINUTE_MS));
+      }, MINUTE_MS - (serverNow() % MINUTE_MS));
     };
     next();
-    return () => clearTimeout(timer);
+    const stopHearing = onServerTime(() => {
+      clearTimeout(timer);
+      setMinute(startOfMinute(serverNow()));
+      next();
+    });
+    return () => {
+      clearTimeout(timer);
+      stopHearing();
+    };
   }, []);
   return minute;
 }
@@ -25,7 +35,7 @@ export function useMinute(): number {
  *  deadline still open up to 59s past. */
 export function useNowEachMinute(): number {
   useMinute();
-  return Date.now();
+  return serverNow();
 }
 
 function startOfMinute(at: number): number {

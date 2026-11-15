@@ -429,6 +429,8 @@ From Craig, 1 Nov 2026.
   9 Nov 2026, on #1196). `S05.20`
 - A gameweek the feed (Sportmonks, from 9 Nov 2026, #1196) stops sending keeps its last deadline
   (Craig, 1 Nov 2026: "Keeps its last deadline"; #202). `S05.21`
+- Ann's laptop clock is 2 minutes slow. The deadline countdown goes by the server's time, so she
+  sees the same time left as everyone else (Craig, 14 Nov 2026, grill batch 3, on #2211). `S05.50`
 - Gameweek N is Sportmonks' round N as first scheduled, a date window running from its deadline
   to the next gameweek's; each match counts in the gameweek it kicks off in (`spec/07`; Craig,
   9 Nov 2026, on #1196). `S05.22`

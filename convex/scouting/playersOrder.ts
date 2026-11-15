@@ -4,7 +4,8 @@
 import { SHOTS_ON_TARGET } from "../scoring/statKeys";
 import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import type { Stats } from "../stats/statTotals";
-import type { FirstRunOfPlayer, HeldByFilter, ListedPlayer, ListedRow, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
+import type { FirstRunOf } from "../waivers/runsAhead";
+import type { HeldByFilter, ListedPlayer, ListedRow, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
 
 /** The figures every row of the list shows as season totals (the approved picture: Mins, G, A and
  *  SOT), by the stat each is kept under. Shots on target are Sportmonks' SHOTS_ON_TARGET, kept
@@ -87,10 +88,10 @@ function sortedPlayers<Row extends OrderedRow>(players: readonly Row[], { by, de
 }
 
 /** The list's rows as the screens show them: each on waivers with the run that can first take him,
- *  from `firstRuns` (#1467), or null while that loads or where it doesn't hold him. */
-export function withFirstRuns(rows: readonly ListedRow[], runs: readonly FirstRunOfPlayer[] | undefined): ListedPlayer[] {
-  const runOf = new Map((runs ?? []).map(({ playerCode, firstRun }) => [playerCode, firstRun]));
-  return rows.map((row) => ({ ...row, onWaivers: row.onWaivers === null ? null : { firstRun: runOf.get(row.code) ?? null } }));
+ *  worked out from his `claimableFrom` by `firstRunOf` (../waivers/runsAhead.ts's `firstRunsAt`,
+ *  #1467, #2008), or null while the runs' times load. */
+export function withFirstRuns(rows: readonly ListedRow[], firstRunOf: FirstRunOf | undefined): ListedPlayer[] {
+  return rows.map((row) => ({ ...row, onWaivers: row.onWaivers === null ? null : { firstRun: firstRunOf?.(row.onWaivers.claimableFrom) ?? null } }));
 }
 
 /** Two figures in `direction`, a null one after any number whichever way. */

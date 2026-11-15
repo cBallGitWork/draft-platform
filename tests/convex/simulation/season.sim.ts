@@ -34,7 +34,7 @@ import {
   type Random,
 } from "../../support/convex/seasonSimulation.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
-import { seededRandom } from "../../support/seededRandom";
+import { seededRandom } from "../../support/seededDraw";
 
 // The season simulation (#2132): `npm run simulate`, run by hand until a nightly job calls it
 // (#2185); never part of `npm test`, being minutes long. Six leagues, 80 teams, a whole season of 39 gameweeks on the
