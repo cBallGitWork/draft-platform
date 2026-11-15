@@ -133,10 +133,8 @@ const SWEPT: Record<string, Sweep<World>> = {
   "squads/squads:move": sweep({ world: seasonLeague, change: ({ leagueId, annsTeam }, by) => by.mutation(api.squads.squads.move, { leagueId, playerCode: SAKA, teamId: annsTeam }) }),
   "squads/squads:release": sweep({ world: seasonLeague, change: ({ leagueId }, by) => by.mutation(api.squads.squads.release, { leagueId, playerCode: PALMER }) }),
   "lineup/autoTeam:set": sweep({ world: seasonLeague, change: ({ leagueId, catsTeam }, by) => by.mutation(api.lineup.autoTeam.set, { leagueId, teamId: catsTeam, on: true }) }),
-  // Only the trade's reviewer may block it, not the admin: whether he should is Craig's call, #2148.
   "trades/tradeReview:block": sweep({
     world: seasonLeague,
-    onlyBy: COMMISSIONER,
     first: ({ annTradesForSaka }) => annTradesForSaka(),
     change: async ({ leagueId, offers }, by) => by.mutation(api.trades.tradeReview.block, { leagueId, offerId: (await offers())[0]._id }),
   }),

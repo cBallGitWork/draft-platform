@@ -123,6 +123,9 @@ From `/grill trades` (25 Oct 2026).
 - When the commissioner or co-commissioner changes during a review, whoever holds the role now
   reviews the trade: he gets the review letter with Block in it and sees it in To review, the one
   who left can't block it, and the 24 hours don't restart (Craig, 11 Nov 2026, #1472). `S08.12`
+- Under a veto, the admin can block a trade in review in any league, as its reviewer can, and the
+  blocked letter names the admin as who blocked it (spec/15, The admin; Craig, 15 Nov 2026,
+  #2148). `S08.28`
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).
