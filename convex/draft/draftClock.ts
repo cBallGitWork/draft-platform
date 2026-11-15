@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { SECOND_MS } from "../shared/time";
+import { MINUTE_MS, SECOND_MS } from "../shared/time";
 import { pickSecondsNow } from "./draftPickTime";
 import { draftOf, turnAfter, turnNow, type Clock } from "./draftRow";
 import { picksAtOnce } from "./draftTimeouts";
@@ -21,9 +21,9 @@ import { picksAtOnce } from "./draftTimeouts";
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
 /** How late the draft's pick can run before the draft takes it that the site was down when its
- *  clock ran out (S04.22; #2204): Convex runs a job within a second or two of its time, so one this
- *  late waited out an outage. Claude's choice. */
-export const AFTER_BREAK_LATE_MS = 30 * SECOND_MS;
+ *  clock ran out (S04.22; #2204): a minute (Craig, 15 Nov 2026, on #2241). Convex runs a job within
+ *  a second or two of its time, so one this late waited out an outage. */
+export const AFTER_BREAK_LATE_MS = MINUTE_MS;
 
 /** The pick a clock was started for: its number and round, its team, when its clock starts and
  *  runs out, `atOnce` when the draft picks for the team as it starts (`picksAtClockStart`), and
