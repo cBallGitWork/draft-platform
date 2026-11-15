@@ -208,7 +208,7 @@ on #454). Rules can change many times a season (`spec/03`); when a change takes 
   such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
 - Can a manager contest a change, and who settles it?
 
-**Classic scoring, a league with tactics off**: a note kept for when it's built (Craig, 9 Nov
+**Classic mode, a league with tactics off**: a note kept for when it's built (Craig, 9 Nov
 2026: "we dont build, we keep this work as a note for when we build"). A league setting turns
 player and team tactics off ("essentially classic"), and classic needs a base scoring set. Worked
 out in a talk session against five Premier League seasons (21-22 to 25-26) of the
@@ -249,7 +249,17 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
 - Why lines and one line each: a player is scored by the slot he plays in (`spec/14`). With
   detailed positions, any slot that paid more for the same player (a deeper slot's clean sheet or
   defcon) drew attackers back; in the data no stat tells a W from a WM, or a CM from a DM.
+- No formations: "classic mode doesnt use formations, its the classic fpl style drag players into
+  valid formations etc, auto sub just fits them etc" (Craig, 15 Nov 2026). No presets, roles or
+  team instructions. Any eleven that keep each line inside its minimum and maximum stand
+  (`spec/03` already holds each area's minimum and maximum as a league rule). An auto-sub brings on
+  the first bench player, in bench order, who keeps the lineup valid.
+- One switch: the whole mode sits behind one league setting ("one feature flag", Craig, 15 Nov
+  2026). The code's one place that asks whether a league plays roles (#1582) is where it hangs.
 - Questions for the grill:
+  - Each line's minimum and maximum on the pitch, and the squad's makeup by line.
+  - The auto-sub when no bench player keeps the lineup valid: does the slot stay empty?
+  - Whether a league can switch modes mid-season, and what happens to saved lineups and plans.
   - Cards, own goals, missed and saved penalties: the talk assumed FPL's -1, -3, -2, -2 and +5.
   - How a player's one line is chosen (his most-started line, over what window), whether it can
     change mid-season, and whether the admin can override it.
