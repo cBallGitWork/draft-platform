@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { footballLink } from "./paths";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
 import { ClubMark } from "../ui/ClubName";
 import { ClubLink } from "./ClubLink";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote, Status } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { OwnerName } from "../ui/OwnerName";
 import { useMinute } from "../shared/useMinute";
@@ -15,14 +17,18 @@ import { MatchMarks } from "./MatchMarks";
 import { MatchState } from "./MatchState";
 import { AbandonedMark } from "./AbandonedMark";
 import {
+  backLabel,
+  backWords,
   cameOnWords,
   COMMENTARY_TITLE,
   figureWords,
   goalsWords,
   inGameweekWords,
+  livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
   matchColumns,
+  matchWhereWords,
   MOVED_TITLE,
   noFigureWords,
   noLinesWords,
@@ -32,6 +38,9 @@ import {
   noTeamStatsWords,
   pointsProblemWords,
   possessionWords,
+  previousGlyph,
+  provisionalWords,
+  provWords,
   SCORE_LABEL,
   sheetLabel,
   STAT_COLUMN,
@@ -64,28 +73,53 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
 
 /** `mark` is the admin's abandoned mark, at the scoreboard's foot; null for anyone else. */
 function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
-  const { home, away, men, pointsProblem, teamStats, commentary } = match;
+  const { home, away, men, pointsProblem, teamStats, commentary, gameweek, provisional } = match;
   const moved = men.filter((man) => man.side === null);
+  const prov = provisional ? <ProvTag /> : undefined;
   return (
     <>
+      <BackRow gameweek={gameweek} />
       <Scoreboard match={match}>{mark}</Scoreboard>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
       <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
-        <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} />
-        <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} />
+        <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} aside={prov} />
+        <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} aside={prov} />
         {/* Side by side under the sheets on the desk, stacked in the third column on a wide one. */}
         <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
           <TeamStats home={home} away={away} stats={teamStats} />
           <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
         </div>
-        {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} />}
+        {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
       </div>
     </>
   );
 }
 
+/** Back to Football's fixtures in the match's gameweek, and where the match is (the approved
+ *  picture's Back row): "◄ Back  Premier League, GW11". */
+function BackRow({ gameweek }: { gameweek: number | null }) {
+  return (
+    <p className="flex items-center gap-3">
+      <Link {...footballLink(gameweek)} aria-label={backLabel(gameweek)} className="flex min-h-tap min-w-tap items-center gap-1 text-soft hover:text-fact lg:min-h-0 lg:min-w-0">
+        <span aria-hidden="true">{previousGlyph}</span>
+        {backWords}
+      </Link>
+      <span className="text-muted">{matchWhereWords(gameweek)}</span>
+    </p>
+  );
+}
+
+/** The sheets' points are live until the gameweek's are final (spec/10 S10.10). */
+function ProvTag() {
+  return (
+    <span title={provisionalWords} className="font-normal text-muted">
+      {provWords}
+    </span>
+  );
+}
+
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek }, children }: { match: MatchPageData; children: ReactNode }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed }, children }: { match: MatchPageData; children: ReactNode }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -98,6 +132,7 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek }, children 
         <MatchState score={score} kickoff={kickoff} long />
         {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
+      <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
       {children}
     </section>
   );
@@ -161,11 +196,11 @@ function statWords(side: SideStats, stat: keyof SideStats): string {
 }
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */
-function TeamSheet({ title, men }: { title: string; men: MatchMan[] }) {
+function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; aside: ReactNode }) {
   const starters = men.filter((man) => man.started);
   const substitutes = men.filter((man) => !man.started);
   return (
-    <Panel title={title}>
+    <Panel title={title} aside={aside}>
       {men.length === 0 ? (
         <PanelNote>{noMenWords}</PanelNote>
       ) : (

@@ -50,7 +50,7 @@ test("the full-time write throws on a match holding one record past the cap, and
 
 test("the live write throws on a match holding one record past the cap, and writes nothing", async () => {
   // Only its first write reads the match's every record (#2006, liveStats.ts's startPrints).
-  await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: FIXTURE, minute: 10, records: [SENT] })).rejects.toThrow(
+  await expect(t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: FIXTURE, readAt: Date.now(), minute: 10, records: [SENT] })).rejects.toThrow(
     tooMany("taking its live records out of the season totals"),
   );
   expect(await held()).toEqual({ records: UNTOUCHED, status: null });

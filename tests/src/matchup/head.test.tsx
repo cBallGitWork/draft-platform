@@ -6,7 +6,7 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { autoTeamWords, customFormationWords, SCORE_LABEL, standingWords } from "../../../src/matchup/words";
+import { autoTeamWords, customFormationWords, livePointsDelayedWords, SCORE_LABEL, standingWords } from "../../../src/matchup/words";
 import { headToHead, playing, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -30,5 +30,18 @@ describe("the matchup's heads", () => {
     const theirs = screen.getByRole("region", { name: `Team 2 ${autoTeamWords}` });
     expect(within(theirs).getByText(customFormationWords)).toBeTruthy();
     expect(within(theirs).getByText(autoTeamWords)).toBeTruthy();
+  });
+
+  it("says the live points are delayed under the score while a match the lineups' men play in has its points held as last read (S10.12)", async () => {
+    const sides = { team: teamSide("Team 1", [], []), opponent: teamSide("Team 2", [], []) };
+    openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", ...sides, pointsDelayed: true }) } });
+    const status = await within(await screen.findByRole("region", { name: SCORE_LABEL })).findByText(livePointsDelayedWords);
+    expect(status.getAttribute("role")).toBe("status");
+  });
+
+  it("says nothing of delayed points while they keep up (S10.12)", async () => {
+    openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [], []), opponent: teamSide("Team 2", [], []) }) } });
+    await screen.findByRole("region", { name: SCORE_LABEL });
+    expect(screen.queryByText(livePointsDelayedWords)).toBeNull();
   });
 });
