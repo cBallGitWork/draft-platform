@@ -157,7 +157,7 @@ const PER_MAN_LINES = 250;
 /** The worst match's most steps under `set`, its per-man lines added. */
 const busiest = (set: ScoringSet) => Math.max(...BUSY_MATCHES.map((plId) => mostSteps(matchTotals(plId, set), set))) + PER_MAN_LINES;
 
-/** The site's set as the roles' first values made it (firstRolesVersion.ts). */
+/** The site's set as the roles' first values made it (migrations/firstRolesVersion.ts). */
 const WITH_FIRST_ROLES: ScoringSet = { ...SET, ownStats: [...(SET.ownStats ?? []), ...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };
 
 /** Every catalogue stat priced a point an action. */

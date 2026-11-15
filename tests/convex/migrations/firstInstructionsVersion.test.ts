@@ -12,7 +12,7 @@ import { holdSiteScoring, inGameweek, lettersCount, NOTICE, patch, t, TODAY, use
 
 useSiteScoringDeployment();
 
-const addFirstInstructions = () => t.mutation(internal.scoring.firstInstructionsVersion.addFirstInstructions, {});
+const addFirstInstructions = () => t.mutation(internal.migrations.firstInstructionsVersion.addFirstInstructions, {});
 const letters = () => lettersCount(t);
 
 test("they score from the next gameweek not begun, the gameweeks before keeping their set, with no letter", async () => {
@@ -48,7 +48,7 @@ test("run again on a set that scores some of them, it adds only those it lacks, 
   expect(await addFirstInstructions()).toBeNull();
 });
 
-const redraw = () => t.mutation(internal.scoring.firstInstructionsVersion.redrawForSportmonks, {});
+const redraw = () => t.mutation(internal.migrations.firstInstructionsVersion.redrawForSportmonks, {});
 
 test("Shoot on sight and Press high take their redrawn lines (#1452), every other instruction as the set holds it, with no letter, and only once", async () => {
   await holdGameweeks(t, { next: 9 });

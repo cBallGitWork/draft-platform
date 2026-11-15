@@ -2,11 +2,11 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import type { FirstInstructionKey } from "../lineup/instructions";
 import { sameValue } from "../scouting/scoutingPlayers";
-import { FIRST_INSTRUCTION_SCORING } from "./draftedInstructionScoring";
+import { FIRST_INSTRUCTION_SCORING } from "../scoring/draftedInstructionScoring";
 import { latestInForce, withFirstOwnStats } from "./firstRolesVersion";
-import type { StoredScoringSet } from "./scoringSetShape";
-import { addVersion, checkScoringSet } from "./siteScoring";
-import { setOf } from "./siteVersions";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
+import { addVersion, checkScoringSet } from "../scoring/siteScoring";
+import { setOf } from "../scoring/siteVersions";
 
 // The one-off that puts the team instructions' first values (draftedInstructionScoring.ts) into the
 // site's scoring set (#990; Craig, 9 Nov 2026: "as roles: into the site's set from the next gameweek
@@ -16,8 +16,8 @@ import { setOf } from "./siteVersions";
 // on each deployment, and again when an instruction joins the first values (Keep it tight early
 // did, once records held the half-time score): it adds only those the set doesn't score yet, the
 // rest as the set holds them, and once it scores every one it does nothing.
-//   npx convex run scoring/firstInstructionsVersion:addFirstInstructions
-//   npx convex run --prod scoring/firstInstructionsVersion:addFirstInstructions
+//   npx convex run migrations/firstInstructionsVersion:addFirstInstructions
+//   npx convex run --prod migrations/firstInstructionsVersion:addFirstInstructions
 
 /** Adds the version, returning its name and the first gameweek it reaches, or null when the site's
  *  set already scores every first instruction. Throws while a patch waits to take effect, as that patch was
@@ -44,8 +44,8 @@ export const addFirstInstructions = internalMutation({
 // holds, the same way: a fix taking effect now, no letter, everything else as the set holds it. The
 // site isn't live (Craig, 12 Nov 2026: "the site isint live yet"), so no gameweek under way is
 // protected beyond what a fix already keeps. Run it once on each deployment:
-//   npx convex run scoring/firstInstructionsVersion:redrawForSportmonks
-//   npx convex run --prod scoring/firstInstructionsVersion:redrawForSportmonks
+//   npx convex run migrations/firstInstructionsVersion:redrawForSportmonks
+//   npx convex run --prod migrations/firstInstructionsVersion:redrawForSportmonks
 
 type InstructionScoring = NonNullable<StoredScoringSet["instructions"]>[number];
 

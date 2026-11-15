@@ -40,7 +40,7 @@ describe("a set's runs", () => {
 // S05.8
 describe("the first runs go into the site's set (addFirstRuns)", () => {
   useSiteScoringDeployment();
-  const addFirstRuns = () => t.mutation(internal.scoring.firstRolesVersion.addFirstRuns, {});
+  const addFirstRuns = () => t.mutation(internal.migrations.firstRolesVersion.addFirstRuns, {});
 
   test("from the next gameweek not begun, the set as it stands kept, with no letter, and only once", async () => {
     await holdGameweeks(t, { next: 9 });
