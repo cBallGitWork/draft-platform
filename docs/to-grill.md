@@ -254,12 +254,15 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   team instructions. Any eleven that keep each line inside its minimum and maximum stand
   (`spec/03` already holds each area's minimum and maximum as a league rule). An auto-sub brings on
   the first bench player, in bench order, who keeps the lineup valid.
+- Each line on the pitch (Craig, 15 Nov 2026): DEF 3 to 5, CM 1 to 5, AM 0 to 4, FWD 1 to 3.
+- When no bench player keeps the lineup valid, the slot stays empty: "yes empty like classic fpl
+  autosub logic" (Craig, 15 Nov 2026).
 - One switch: the whole mode sits behind one league setting ("one feature flag", Craig, 15 Nov
   2026). The code's one place that asks whether a league plays roles (#1582) is where it hangs.
+  Classic or not is picked when the league is created, never switched mid-season ("classic/non
+  classic is set up in league creation", Craig, 15 Nov 2026).
 - Questions for the grill:
-  - Each line's minimum and maximum on the pitch, and the squad's makeup by line.
-  - The auto-sub when no bench player keeps the lineup valid: does the slot stay empty?
-  - Whether a league can switch modes mid-season, and what happens to saved lineups and plans.
+  - GK on the pitch (not given with the other lines), and the squad's makeup by line.
   - Cards, own goals, missed and saved penalties: the talk assumed FPL's -1, -3, -2, -2 and +5.
   - How a player's one line is chosen (his most-started line, over what window), whether it can
     change mid-season, and whether the admin can override it.
