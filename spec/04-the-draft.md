@@ -143,7 +143,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A draft with a 60-second clock, the site down for 20 minutes: when it comes back, clocks that ran
   out during the outage fire no auto-picks and count no timeouts. The team that was on the clock
   gets its full clock again, as after a resume, and everyone sees "Draft resumed after a break"
-  (Craig, 14 Nov 2026, grill batch 2, on #2204). `S04.22`
+  (Craig, 14 Nov 2026, grill batch 2, on #2204). The site counts as down when a pick runs 1 minute
+  or more late; a team with no manager whose clock ran out in the outage is auto-picked for at once
+  when the site comes back. Only the web host down while the draft's server runs is no outage: the
+  commissioner can pause and undo (Craig, 15 Nov 2026, on #2241). `S04.22`
 - Players the ranking leaves out come after every ranked player, ordered by last season's points,
   then newcomers by name ("rec"). A manager who takes control back has his timeout count reset to
   0 ("ok"). A new manager taking over an empty team mid-draft starts off auto-pick ("ok") (Craig,

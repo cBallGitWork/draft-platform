@@ -177,6 +177,24 @@ describe("after the site was down", () => {
     expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { startsAt: back, endsAt: back + FIRST_PICK_MS, afterBreak: true } });
   });
 
+  test("S04.22 a pick running under a minute late is no outage: it is made and its timeout counted (Craig, 15 Nov 2026, on #2241)", async () => {
+    await start();
+    siteDown(45 * SECOND_MS);
+    await pass(FIRST_PICK_MS);
+
+    expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1]);
+    expect(await timeouts()).toMatchObject([{ teamId: teams[0], count: 1 }]);
+  });
+
+  test("S04.22 a pick running a minute late means the site was down: its clock restarts (Craig, 15 Nov 2026, on #2241)", async () => {
+    await start();
+    siteDown(MINUTE_MS);
+    await pass(FIRST_PICK_MS);
+
+    expect(await picks()).toEqual([]);
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { afterBreak: true } });
+  });
+
   test("S04.22 the restarted clock runs out as any other: the pick is made, a timeout counted, and the next clock is no longer after a break", async () => {
     await start();
     siteDown(OUTAGE_MS);
