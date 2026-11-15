@@ -207,6 +207,7 @@ import type * as outbound_claude from "../outbound/claude.js";
 import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
 import type * as outbound_email from "../outbound/email.js";
 import type * as outbound_emailLimit from "../outbound/emailLimit.js";
+import type * as outbound_outsideWorld from "../outbound/outsideWorld.js";
 import type * as outbound_resend from "../outbound/resend.js";
 import type * as outbound_sender from "../outbound/sender.js";
 import type * as outbound_timeouts from "../outbound/timeouts.js";
@@ -633,6 +634,7 @@ declare const fullApi: ApiFromModules<{
   "outbound/deploymentSettings": typeof outbound_deploymentSettings;
   "outbound/email": typeof outbound_email;
   "outbound/emailLimit": typeof outbound_emailLimit;
+  "outbound/outsideWorld": typeof outbound_outsideWorld;
   "outbound/resend": typeof outbound_resend;
   "outbound/sender": typeof outbound_sender;
   "outbound/timeouts": typeof outbound_timeouts;

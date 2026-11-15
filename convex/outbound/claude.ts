@@ -1,6 +1,7 @@
 import { logFailure } from "../shared/errors";
 import { DAY_MS, MINUTE_MS } from "../shared/time";
 import { ANTHROPIC_KEY_SETTING } from "./deploymentSettings";
+import { outsideUrl } from "./outsideWorld";
 import { WRITING_TIMEOUT_MS } from "./timeouts";
 
 // What the app has AI write goes through Anthropic's Messages API, with one `fetch` and no SDK
@@ -59,7 +60,7 @@ export function failedTry(row: { failedTries?: number }): { failedTries: number;
 export async function writeWithClaude({ system, prompt, maxTokens }: { system: string; prompt: string; maxTokens: number }): Promise<string> {
   const apiKey = process.env[ANTHROPIC_KEY_SETTING];
   if (!apiKey) throw new Error(`${ANTHROPIC_KEY_SETTING} isn't set on this deployment, so Claude can't be asked to write`);
-  const response = await fetch(ANTHROPIC_MESSAGES_URL, {
+  const response = await fetch(outsideUrl(ANTHROPIC_MESSAGES_URL), {
     method: "POST",
     headers: { "x-api-key": apiKey, "anthropic-version": ANTHROPIC_VERSION, "content-type": "application/json" },
     body: JSON.stringify({ model: WRITING_MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: prompt }] }),

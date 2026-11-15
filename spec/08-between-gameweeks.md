@@ -5,8 +5,8 @@ Feature 8 of [SPEC.md](../SPEC.md). Only Craig's answers.
 **Contents:** [Waivers and free agency](#waivers-and-free-agency) · [Trades](#trades)
 
 - Waivers in the league's waiver order, then free agents, first come first served, until the deadline.
-- Trades between managers: players and picks in the current draft, plus next season's picks in
-  keeper and dynasty leagues.
+- Trades between managers: players and picks in the current draft. Next season's picks, for
+  keeper and dynasty leagues, wait for Later (Craig, 15 Nov 2026: "Later"). `S08.26`
 - Trade review is a league setting: none, a commissioner veto, or a league vote.
 
 ## Waivers and free agency

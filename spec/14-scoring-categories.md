@@ -48,6 +48,10 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   | attacking midfield | W | CAM |
   | attack | ST | ST |
 
+- A sending-off for a second yellow costs what a straight red does, never the first yellow on top:
+  -3 in all under the first scoring set, not -4 (Craig, 15 Nov 2026, on the regression pack's open
+  questions). `S14.27`
+
   SS will have its own price, so a support striker can score differently (Craig, 22 Oct 2026);
   how a slot becomes SS is to grill (`spec/06`).
 - Three kinds of rule:

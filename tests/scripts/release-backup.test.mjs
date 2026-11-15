@@ -14,14 +14,16 @@ import {
   FINGERPRINT_ENV,
   SHAPE_ENV_PREFIX,
   SHAPE_PARTS_MAX,
+  TEST_ONLY_SETTINGS,
   TIMED_JOBS_ON,
   VERCEL_ENV,
   VERCEL_PRODUCTION,
   release,
   schemaJson,
+  testSettingRefusal,
 } from "../../scripts/release.mjs";
 import { fingerprintOf, savedShape, shapeFingerprint, shapeParts } from "../../scripts/schema-shape.mjs";
-import { TIMED_JOBS_SETTING } from "../../convex/outbound/deploymentSettings.ts";
+import { OUTSIDE_WORLD_SETTING, TIMED_JOBS_SETTING } from "../../convex/outbound/deploymentSettings.ts";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { scratchDir } from "../support/scripts/scratchDir.mjs";
@@ -257,19 +259,20 @@ function runScript(variables) {
   });
   return { status: result.status, output: result.stdout + result.stderr, calls: readFileSync(callLog, "utf8").trim().split("\n") };
 }
+/** The build command's first calls: each test-only setting looked for on the live deployment (S20.17). */
+const TEST_SETTINGS_READ = TEST_ONLY_SETTINGS.map((name) => ["env", "get", name]);
+const asRun = (call) => `convex ${call.join(" ")}`;
 
 test("run as the build command, a schema that matches the live one deploys with no backup", () => {
   const { status, calls } = runScript(recordOf(NOW));
   expect(status).toBe(0);
-  expect(calls).toEqual([`convex env get ${FINGERPRINT_ENV}`, `convex ${JOBS_ON.join(" ")}`, `convex ${DEPLOY_ARGS.join(" ")}`]);
+  expect(calls).toEqual([...TEST_SETTINGS_READ, readFingerprint, JOBS_ON, DEPLOY_ARGS].map(asRun));
 });
 
 test("run as the build command, a schema that only adds to the live one deploys with no backup", () => {
   const { status, output, calls } = runScript(recordOf(FEWER));
   expect(status).toBe(0);
-  expect(calls).toEqual(
-    [readFingerprint, ...reading(FEWER), JOBS_ON, DEPLOY_ARGS, ...recording(NOW)].map((call) => `convex ${call.join(" ")}`),
-  );
+  expect(calls).toEqual([...TEST_SETTINGS_READ, readFingerprint, ...reading(FEWER), JOBS_ON, DEPLOY_ARGS, ...recording(NOW)].map(asRun));
   expect(output).toContain("strands nothing: no backup needed");
 });
 
@@ -277,9 +280,15 @@ test("run as the build command, a schema that differs from the live one is backe
   const { status, output, calls } = runScript({ [FINGERPRINT_ENV]: "a".repeat(64) });
   expect(status).toBe(0);
   expect(calls.map((call) => command(call.split(" ").slice(1)))).toEqual(
-    commandsOf([readFingerprint, ["env", "get", partEnv(1)], BACKUP, JOBS_ON, DEPLOY_ARGS, ...recording(NOW)]),
+    commandsOf([...TEST_SETTINGS_READ, readFingerprint, ["env", "get", partEnv(1)], BACKUP, JOBS_ON, DEPLOY_ARGS, ...recording(NOW)]),
   );
   expect(output).toContain(`Backup taken: snapshot ${SNAPSHOT}`);
+});
+
+test("S20.17: run as the build command, a live deployment carrying a test-only setting stops before anything deploys", () => {
+  const { status, calls } = runScript({ ...recordOf(NOW), [OUTSIDE_WORLD_SETTING]: "http://127.0.0.1:3999" });
+  expect(status).toBe(1);
+  expect(calls).toEqual(TEST_SETTINGS_READ.slice(0, TEST_ONLY_SETTINGS.indexOf(OUTSIDE_WORLD_SETTING) + 1).map(asRun));
 });
 
 test("run as the build command, the recorded shape isn't printed to the build log", () => {

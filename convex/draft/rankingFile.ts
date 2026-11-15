@@ -1,22 +1,23 @@
 // The admin's ranking file read and checked (spec/04, The queue and the ranking; #1093): a CSV of
-// `code,rank` (or `code;rank`, S04.23), one player a line, `code` his FPL code (Craig, 4 Nov 2026,
-// on #1093). No two lines may share a player or a rank; gaps between ranks are fine, as auto-pick needs only the order.
-// Pure: whether each code is a player the football sync holds is draftRanking.ts's check.
+// `player,rank` (or `player;rank`, S04.23), one player a line, `player` his Sportmonks player id,
+// not FPL's code (S04.8; Craig, 9 Nov 2026, on #1196). No two lines may share a player or a rank;
+// gaps between ranks are fine, as auto-pick needs only the order. Pure: whether each id is a player
+// the site holds is draftRanking.ts's check.
 
-/** One line of the file, read: the player's FPL code and his rank. */
-export type RankedLine = { line: number; code: number; rank: number };
+/** One line of the file, read: the player's Sportmonks id and his rank. */
+export type RankedLine = { line: number; player: number; rank: number };
 
 /** A line the file can't be stored with, and why, in the words the admin is shown. */
 export type RankingProblem = { line: number; words: string };
 
 /** Why a line is bad, in the words the admin is shown. */
 export const rankingProblems = {
-  notTwoColumns: "isn't a code and a rank, with a comma or a semicolon between.",
-  badCode: (code: string) => `has "${code}" as its code, which isn't an FPL player code.`,
+  notTwoColumns: "isn't a player and a rank, with a comma or a semicolon between.",
+  badPlayer: (player: string) => `has "${player}" as its player, which isn't a Sportmonks player id.`,
   badRank: (rank: string) => `has "${rank}" as its rank, which isn't a whole number of 1 or more.`,
-  sameCode: (code: number, line: number) => `ranks player ${code}, who is also ranked on line ${line}.`,
+  samePlayer: (player: number, line: number) => `ranks player ${player}, who is also ranked on line ${line}.`,
   sameRank: (rank: number, line: number) => `has rank ${rank}, which line ${line} has too.`,
-  unknownCode: (code: number) => `has code ${code}, and no player has that code.`,
+  unknownPlayer: (player: number) => `has player ${player}, and no player has that Sportmonks id.`,
 };
 
 /** Digits a number holds exactly: past 2^53 two different ranks could read as the same. */
@@ -30,7 +31,7 @@ export const BYTE_ORDER_MARK = String.fromCharCode(0xfeff);
 const separatorOf = (text: string) => (text.includes(",") || !text.includes(";") ? "," : ";");
 
 /** A line naming the columns, which a spreadsheet writes first. */
-const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerCase() === "code" && fields[1].toLowerCase() === "rank";
+const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerCase() === "player" && fields[1].toLowerCase() === "rank";
 
 /** The file's lines, each read or its problem, numbered from 1 as a spreadsheet numbers them. A
  *  byte-order mark at the start is ignored, and ";" divides the values when the whole file uses it
@@ -39,7 +40,7 @@ const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerC
 export function readRankingFile(text: string): { ranked: RankedLine[]; problems: RankingProblem[] } {
   const ranked: RankedLine[] = [];
   const problems: RankingProblem[] = [];
-  const lineOfCode = new Map<number, number>();
+  const lineOfPlayer = new Map<number, number>();
   const lineOfRank = new Map<number, number>();
   const body = text.startsWith(BYTE_ORDER_MARK) ? text.slice(BYTE_ORDER_MARK.length) : text;
   const separator = separatorOf(body);
@@ -54,22 +55,22 @@ export function readRankingFile(text: string): { ranked: RankedLine[]; problems:
       problem(rankingProblems.notTwoColumns);
       continue;
     }
-    const [codeText, rankText] = fields;
-    const codeOk = isWhole(codeText);
+    const [playerText, rankText] = fields;
+    const playerOk = isWhole(playerText);
     const rankOk = isWhole(rankText) && Number(rankText) >= 1;
-    if (!codeOk) problem(rankingProblems.badCode(codeText));
+    if (!playerOk) problem(rankingProblems.badPlayer(playerText));
     if (!rankOk) problem(rankingProblems.badRank(rankText));
-    if (!codeOk || !rankOk) continue;
-    const code = Number(codeText);
+    if (!playerOk || !rankOk) continue;
+    const player = Number(playerText);
     const rank = Number(rankText);
-    const codeLine = lineOfCode.get(code);
+    const playerLine = lineOfPlayer.get(player);
     const rankLine = lineOfRank.get(rank);
-    if (codeLine !== undefined) problem(rankingProblems.sameCode(code, codeLine));
+    if (playerLine !== undefined) problem(rankingProblems.samePlayer(player, playerLine));
     if (rankLine !== undefined) problem(rankingProblems.sameRank(rank, rankLine));
-    if (codeLine !== undefined || rankLine !== undefined) continue;
-    lineOfCode.set(code, line);
+    if (playerLine !== undefined || rankLine !== undefined) continue;
+    lineOfPlayer.set(player, line);
     lineOfRank.set(rank, line);
-    ranked.push({ line, code, rank });
+    ranked.push({ line, player, rank });
   }
   return { ranked, problems };
 }

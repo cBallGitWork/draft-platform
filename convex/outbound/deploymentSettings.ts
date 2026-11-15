@@ -32,3 +32,8 @@ export const LEAD_WAKE_TOKEN_SETTING = "LEAD_WAKE_GITHUB_TOKEN";
  *  the live deployment only, by every release (scripts/release.mjs); development leaves it unset, so
  *  its crons spend none of the free plan's database reads (Craig, 13 Nov 2026, #1997). */
 export const TIMED_JOBS_SETTING = "TIMED_JOBS_ON";
+
+/** Where every outside service is reached instead (outsideWorld.ts): set only on an e2e run's
+ *  throwaway server, pointing it at the run's one fake server (spec/20, S20.17; #2288). A release
+ *  refuses a live deployment that carries it (scripts/release.mjs). */
+export const OUTSIDE_WORLD_SETTING = "OUTSIDE_WORLD_URL";
