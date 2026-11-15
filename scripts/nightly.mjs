@@ -7,7 +7,11 @@
 import { spawnSync } from 'node:child_process';
 
 /** Each nightly suite: its name and the command that runs it, as [program, ...arguments]. */
-const NIGHTLY_SUITES = [];
+const NIGHTLY_SUITES = [
+  // #2126: the fast-check rule tests (*.rules.test.ts) at 10,000 runs a property; a failure prints
+  // RULE_TEST_SEED and RULE_TEST_PATH to replay it (tests/support/ruleRuns.ts).
+  { name: 'rule tests, long run', command: ['npm', 'run', 'test:rules-long'] },
+];
 
 if (NIGHTLY_SUITES.length === 0) {
   console.log('No nightly suites yet: a build adds one to NIGHTLY_SUITES in scripts/nightly.mjs.');
