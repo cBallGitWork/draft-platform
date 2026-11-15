@@ -398,6 +398,10 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `scripts/studio-kit.mjs`, in verify, fails a copy edited here (11 Nov 2026).
 
 - `src/shared/`: non-visual code every screen uses: the hooks, refusal handling, the common words.
+  The common words sit in `words.ts` and, by job, three sub-folders' `words.ts` (#2232):
+  `when/` (times and days, countdowns, gameweeks, seasons), `match/` (a match's sides, score and
+  clock, results and form, commentary) and `controls/` (Cancel and Delete, the stepper and folding
+  glyphs, Back, sortable column heads).
 - `src/ui/`: `docs/design/plate.md`'s controls and panel parts that no feature owns. It imports only
   `src/shared/` and convex's pure modules.
 - Code one feature owns but others import stays with its owner: `src/matchup/MatchupLink.tsx`,
@@ -462,7 +466,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   | `src/premierLeague` | `convex/football` and `convex/match` |
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
   (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
-  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
+  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, `src/shared/when/`,
+  `src/shared/match/` and `src/shared/controls/` (#2232), and inside Tactics the pitch's drawing in `pitch/`, the formation window
   in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026, and the role card in `roleCard/`). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 
@@ -485,7 +490,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    Link component, its seam's types, its `paths.ts`, its `live<Feature>.ts` (into another's
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
-   features say move to `src/shared/words.ts` (#1330). Only `convex/schema.ts` imports a
+   features say move to `src/shared/words.ts`, or the `when/`, `match/` or `controls/` one
+   beside it that fits their job (#1330, #2232). Only `convex/schema.ts` imports a
    `convex/schema/` file. `tests/src/featureImports.test.ts` holds all three, with the imports
    still to move on lists that only shrink (#1581, #1815). No import cycles
    (`tests/convex/importCycles.test.ts`).
