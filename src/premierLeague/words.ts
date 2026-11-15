@@ -4,6 +4,7 @@ import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
 import {
   ascendingGlyph,
+  backWords,
   awayWords,
   dateWords,
   descendingGlyph,
@@ -97,13 +98,21 @@ export const tableLineWords: Record<TableLine, string> = {
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
-export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
+export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
  *  "Arsenal 2–1 Chelsea: the match". */
 export const matchLinkLabel = (home: string, away: string, goals: string | null) => `${home} ${goals ?? versusWords} ${away}: the match`;
 
 export const MATCH_TITLE = "Match";
+export { backWords, previousGlyph } from "../shared/words";
+/** Back's link, read out: "Back to Premier League GW11's fixtures"; to its fixtures for none. */
+export const backLabel = (gameweek: number | null) => `${backWords} to ${PREMIER_LEAGUE_TITLE}${gameweek === null ? "" : ` ${gameweekShort(gameweek)}`}'s fixtures`;
+/** Beside Back, where the match is: "Premier League, GW11" (the approved picture). */
+export const matchWhereWords = (gameweek: number | null) => (gameweek === null ? PREMIER_LEAGUE_TITLE : `${PREMIER_LEAGUE_TITLE}, ${gameweekShort(gameweek)}`);
+/** Beside the sheets' points while they are live, until the gameweek's are final (spec/10 S10.10);
+ *  "Provisional" on hovering it. */
+export const provWords = "prov.";
 export const loadingMatchWords = "Loading the match…";
 export const noMatchWords = "No match with this code is held.";
 /** After where the match stands, the gameweek it is in. */

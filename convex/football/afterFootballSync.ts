@@ -52,7 +52,7 @@ export async function afterPlayersDropped(ctx: MutationCtx, dropped: readonly nu
 /** One league's share of players leaving the Premier League, sold abroad say (#2200): a pending
  *  claim for one is withdrawn, its manager told (S08.24), and a pending trade holding one, open or
  *  in review, is cancelled, both managers told (S08.25). A queue keeps him, greyed out, and
- *  auto-pick skips him (S04.21), so nothing is done to it here. A league deleted or frozen for
+ *  auto-pick skips him (S04.25), so nothing is done to it here. A league deleted or frozen for
  *  deletion since is left alone, as its claims and offers are (#1493). */
 export const playersLeftIn = internalMutation({
   args: { leagueId: v.id("leagues"), playerCodes: v.array(v.number()) },
