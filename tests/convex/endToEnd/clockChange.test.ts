@@ -11,8 +11,8 @@ import { waiverStateOf } from "../../support/convex/waivers.harness";
 // The clock-change weekend (#2134): the season chain (../../support/convex/seasonChain.harness.ts)
 // carried on from gameweek 7 across Sunday 25 Oct 2026, when the clocks go back at 01:00 UTC and UK
 // time goes from UTC+1 to UTC. It asserts only the times the spec sets: the waiver runs at 18:00 UK
-// (S08.22) and the positions sync at 06:00 UK (S06.8). Deadlines across the change wait for
-// Craig's answer, so gameweek 8's is only passed, never checked. Each moment is written in UTC,
+// (S08.22, S03.5; case LG-186 in #2302) and the positions sync at 06:00 UK (S06.8). Deadlines
+// across the change wait for Craig's answer, so gameweek 8's is only passed, never checked. Each moment is written in UTC,
 // with what it is in the UK. The in-memory backend only.
 
 /** Gameweek 8, Hull v Everton a week on again, on the Sunday the clocks go back, and its code. */

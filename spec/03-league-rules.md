@@ -17,7 +17,7 @@ Among them:
   has begun, and League settings says why: one table with one meaning all season (Craig, 6 Nov
   2026: "Locked once the season starts"; #275). With a scoring start (`spec/04`, After the
   draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW"). `S03.1`
-- Play-offs: how many teams, how many legs.
+- Play-offs: how many teams, how many legs. `S03.6`
 - Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down"). `S03.2`
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
@@ -40,7 +40,7 @@ Among them:
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
   at 18:00 UK time by default. The waiver order: reverse table order (the default), or rotating,
-  which never resets (`spec/08`).
+  which never resets (`spec/08`). `S03.5`
 - The draft clock (see [4. The draft](04-the-draft.md)).
 - Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).
