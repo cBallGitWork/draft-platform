@@ -11,7 +11,8 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { standingsOf } from "../table/leagueTable";
 import { tableOf } from "../table/sentTables";
 import type { TableRow } from "../table/standings";
-import { latestEnded, mayFallInLock, runAhead, underWayIn } from "./waiverLock";
+import { mayFallInLock, runAhead } from "./runsAhead";
+import { latestEnded, underWayIn } from "./waiverLock";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver order (#1198, spec/08 Waivers and free agency): who a run tries first. Its starting
