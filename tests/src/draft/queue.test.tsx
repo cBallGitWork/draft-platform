@@ -75,7 +75,7 @@ describe("the queue", () => {
     expect(await autoPickPanel()).toBeTruthy();
   });
 
-  it("keeps a player who has left the Premier League in his place, greyed out and saying so (S04.21)", async () => {
+  it("keeps a player who has left the Premier League in his place, greyed out and saying so (S04.25)", async () => {
     openDraft({ lists: { ...LISTS, queue: [FERNANDES, { ...MITOMA, gone: true }, KUDUS] } });
     const rows = await queueRows();
     expect(rows[1].textContent).toBe(`⠿2WMitomaARS${goneWords}✕`);

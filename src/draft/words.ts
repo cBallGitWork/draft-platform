@@ -13,7 +13,7 @@ export const loadingWords = "Loading the draft…";
 /** Beside the state while the pick on the clock is back on its full clock after the site was down
  *  (Craig, 14 Nov 2026, on #2204; S04.22). */
 export const afterBreakWords = "Draft resumed after a break";
-/** A queued player who has left the Premier League, greyed out in his place (S04.21), as the shortlist says it. */
+/** A queued player who has left the Premier League, greyed out in his place (S04.25), as the shortlist says it. */
 export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The header's heads and readings, before the start. */

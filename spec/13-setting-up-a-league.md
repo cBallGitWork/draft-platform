@@ -73,7 +73,7 @@ comes to exist, fills, changes and ends.
 - A manager removed or leaving mid-season: his trade offers, sent and received, are cancelled, and
   the other side gets a Mail letter; his waiver claims are withdrawn; his lineup stays, and the
   auto team keeps it legal until a new manager takes over (Craig, 14 Nov 2026, grill batch 2, on
-  #2202). `S13.2`
+  #2202). `S13.3`
 
 ## Gameweeks
 
