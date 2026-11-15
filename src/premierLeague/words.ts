@@ -2,9 +2,9 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { backWords } from "../playerCard/words";
 import {
   ascendingGlyph,
+  backWords,
   awayWords,
   dateWords,
   descendingGlyph,
@@ -105,8 +105,7 @@ export { commentaryDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared
 export const matchLinkLabel = (home: string, away: string, goals: string | null) => `${home} ${goals ?? versusWords} ${away}: the match`;
 
 export const MATCH_TITLE = "Match";
-export { backWords } from "../playerCard/words";
-export { previousGlyph } from "../shared/words";
+export { backWords, previousGlyph } from "../shared/words";
 /** Back's link, read out: "Back to Premier League GW11's fixtures"; to its fixtures for none. */
 export const backLabel = (gameweek: number | null) => `${backWords} to ${PREMIER_LEAGUE_TITLE}${gameweek === null ? "" : ` ${gameweekShort(gameweek)}`}'s fixtures`;
 /** Beside Back, where the match is: "Premier League, GW11" (the approved picture). */

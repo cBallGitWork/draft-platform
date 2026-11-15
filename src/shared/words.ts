@@ -85,6 +85,8 @@ export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
+/** Back to where a page was opened from: the player card's, the match page's (S10.9's picture). */
+export const backWords = "Back";
 /** A panel's or a window's cross, decoration, as its button carries its label. */
 export const closeGlyph = "✕";
 /** A control drawn as a button that opens a list of choices, decoration, as its label says it. */
