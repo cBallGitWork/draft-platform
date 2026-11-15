@@ -30,7 +30,7 @@ it("counts down, stands still while paused, and draws the time left the moment i
   expect(screen.getByText(timeLeftWords(40 * SECOND_MS))).toBeTruthy();
 });
 
-it("S04.22: Ann's laptop clock 2 minutes slow, her draft clock shows the time left by the server's", async () => {
+it("S04.24: Ann's laptop clock 2 minutes slow, her draft clock shows the time left by the server's", async () => {
   vi.setSystemTime(STARTS - 2 * MINUTE_MS);
   await syncServerTime(async () => STARTS);
   try {

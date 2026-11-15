@@ -1,4 +1,4 @@
-// The server's time, as an open tab reads it (S04.22, S05.50): Ann's laptop clock 2 minutes slow,
+// The server's time, as an open tab reads it (S04.24, S05.50): Ann's laptop clock 2 minutes slow,
 // her draft clock and deadline countdown still show the time left everyone else sees. The tab asks
 // the server for its time once (convex/release/serverTime.ts) and keeps how far its own clock is
 // from it; every countdown reads `serverNow`. Until the server answers, the tab's own clock stands.

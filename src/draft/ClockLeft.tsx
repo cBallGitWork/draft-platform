@@ -42,7 +42,7 @@ export function useUndoLeft(window: UndoWindow | null): number | null {
   return left > 0 ? left : null;
 }
 
-/** The time now by the server's clock (S04.22), read again each second while `ticking`, and in the
+/** The time now by the server's clock (S04.24), read again each second while `ticking`, and in the
  *  render it starts, so a clock resumed never draws the time it held from before its pause (#1437). */
 function useNowWhile(ticking: boolean): number {
   const [now, setNow] = useState(serverNow);

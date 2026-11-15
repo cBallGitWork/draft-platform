@@ -89,7 +89,7 @@ function LiveNewVersionWatch() {
   return <NewVersionWatch serverVersion={useQuery(api.release.version.current, {})} />;
 }
 
-/** Asks the server its time once, as the tab opens, so every countdown goes by it (S04.22, S05.50). */
+/** Asks the server its time once, as the tab opens, so every countdown goes by it (S04.24, S05.50). */
 function LiveServerTime() {
   const now = useMutation(api.release.serverTime.now);
   useEffect(() => {
