@@ -76,6 +76,17 @@ export const insertDroppedPlayer = async (ctx: MutationCtx, player: PlayerRow, d
   await ctx.db.insert("players", { ...player, droppedAt });
 };
 
+/** A test player's Sportmonks id: his FPL code shifted, so a file naming him by code reads as no one. */
+export const sportmonksIdOf = (player: Pick<PlayerRow, "code">) => player.code + 500_000;
+
+/** Each player's link from his Sportmonks id (`sportmonksIdOf`) to his FPL code, as the link run
+ *  makes it (#1421). */
+export const insertPlayerLinks = async (ctx: MutationCtx, players: readonly Pick<PlayerRow, "code">[]) => {
+  for (const { code } of players) {
+    await ctx.db.insert("sportmonksFplLinks", { kind: "player", code: sportmonksIdOf({ code }), fplCode: code, candidates: [], since: 0 });
+  }
+};
+
 /** A match record both feeds' parts are in, of a player who started and played, unless `parts` says. */
 export const completeRecord = (
   playerCode: number,
