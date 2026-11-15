@@ -32,9 +32,10 @@ const h1 = (page: Page, name: string) => page.getByRole("main").getByRole("headi
 async function breaksOnEachBuiltScreen(page: Page, breaks: () => Promise<string[]>) {
   const found: string[] = [];
   for (const [session, path, title] of BUILT_SCREENS) {
-    await page.goto(previewUrl(path, session));
+    const url = previewUrl(path, session);
+    await page.goto(url);
     await expect(h1(page, title)).toBeVisible();
-    found.push(...(await breaks()).map((each) => `?preview=${session} at ${path}: ${each}`));
+    found.push(...(await breaks()).map((each) => `${url}: ${each}`));
   }
   return found;
 }

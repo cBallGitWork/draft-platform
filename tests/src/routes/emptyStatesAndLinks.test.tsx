@@ -158,8 +158,8 @@ describe("interaction notes", () => {
     expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
   });
 
-  // A letter holds no link on main: its one link, to where you act on it, isn't built (#2307 files
-  // it). Marked to fail until it is.
+  // A letter holds no link on main: its one link, to where you act on it, isn't built (#2361).
+  // Marked to fail until it is.
   it.fails("UI-189 (approved/mail README:44, spec/16): a trade-offer letter ends with its one link, opening the offer in Trades", async () => {
     const app = openApp(MAIL_PATH, manager, { letters: [mailLetter(1, false, null, "trade")] });
     await userEvent.click(await screen.findByRole("button", { name: /Letter 1/ }));
