@@ -1,5 +1,5 @@
 // The admin's ranking file read and checked (spec/04, The queue and the ranking; #1093): a CSV of
-// `code,rank` (or `code;rank`, S04.22), one player a line, `code` his FPL code (Craig, 4 Nov 2026,
+// `code,rank` (or `code;rank`, S04.23), one player a line, `code` his FPL code (Craig, 4 Nov 2026,
 // on #1093). No two lines may share a player or a rank; gaps between ranks are fine, as auto-pick needs only the order.
 // Pure: whether each code is a player the football sync holds is draftRanking.ts's check.
 
@@ -22,11 +22,11 @@ export const rankingProblems = {
 /** Digits a number holds exactly: past 2^53 two different ranks could read as the same. */
 const isWhole = (text: string) => /^\d+$/.test(text) && Number.isSafeInteger(Number(text));
 
-/** Excel's byte-order mark, which it writes at the start of a CSV it saves as UTF-8 (S04.22). */
+/** Excel's byte-order mark, which it writes at the start of a CSV it saves as UTF-8 (S04.23). */
 export const BYTE_ORDER_MARK = String.fromCharCode(0xfeff);
 
 /** What divides a line's values: ";" when the whole file uses it, as Excel saves a CSV where the
- *  decimal point is a comma, otherwise "," (S04.22). */
+ *  decimal point is a comma, otherwise "," (S04.23). */
 const separatorOf = (text: string) => (text.includes(",") || !text.includes(";") ? "," : ";");
 
 /** A line naming the columns, which a spreadsheet writes first. */
@@ -34,7 +34,7 @@ const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerC
 
 /** The file's lines, each read or its problem, numbered from 1 as a spreadsheet numbers them. A
  *  byte-order mark at the start is ignored, and ";" divides the values when the whole file uses it
- *  (S04.22). Blank lines, and a spreadsheet's empty rows (a lone separator), are passed over, and a
+ *  (S04.23). Blank lines, and a spreadsheet's empty rows (a lone separator), are passed over, and a
  *  first line naming the columns is the header. */
 export function readRankingFile(text: string): { ranked: RankedLine[]; problems: RankingProblem[] } {
   const ranked: RankedLine[] = [];

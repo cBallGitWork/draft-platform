@@ -26,11 +26,11 @@ describe("a good file", () => {
     ]);
   });
 
-  test("S04.22: a byte-order mark at the start, as Excel saves one, is ignored", () => {
+  test("S04.23: a byte-order mark at the start, as Excel saves one, is ignored", () => {
     expect(readRankingFile(`${BYTE_ORDER_MARK}code,rank\r\n1001,1`)).toEqual({ ranked: [{ line: 2, code: 1001, rank: 1 }], problems: [] });
   });
 
-  test('S04.22: ";" works like "," when the whole file uses it', () => {
+  test('S04.23: ";" works like "," when the whole file uses it', () => {
     expect(readRankingFile(`${BYTE_ORDER_MARK}Code;Rank\r\n1001 ; 1\r\n;\r\n1002;2`)).toEqual({
       ranked: [
         { line: 2, code: 1001, rank: 1 },
@@ -40,7 +40,7 @@ describe("a good file", () => {
     });
   });
 
-  test('S04.22: in a file mixing ";" and ",", a line using ";" is a bad line', () => {
+  test('S04.23: in a file mixing ";" and ",", a line using ";" is a bad line', () => {
     expect(readRankingFile("1001,1\n1002;2").problems).toEqual([{ line: 2, words: rankingProblems.notTwoColumns }]);
   });
 
