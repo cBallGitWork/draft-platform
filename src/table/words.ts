@@ -3,13 +3,17 @@
 import { andListWords } from "../../convex/shared/moments";
 import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
-import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, pointsAgainstWords, pointsForWords, signedWords, TABLE_TITLE } from "../shared/words";
+import { failedWords, fewestTeamsWords, pointsAgainstWords, pointsForWords, signedWords, TABLE_TITLE } from "../shared/words";
+import { gameweekShort, gameweekWords } from "../shared/when/words";
 
-export { figureWords, gameweekWords, liveWords, scoreWords } from "../shared/words";
+export { figureWords } from "../shared/words";
+export { liveWords, scoreWords } from "../shared/match/words";
+export { gameweekWords } from "../shared/when/words";
 /** The table's title, said while every team has played nothing, beside points a live match still
  *  moves (spec/07), a gameweek begun that couldn't be scored (#287), the reader's own team for
  *  screen readers, and the league average: src/shared/words.ts, as other screens say them too. */
-export { leagueAverageWords, noResultsWords, provisionalWords, TABLE_TITLE, unscoredWords, yourTeamWords } from "../shared/words";
+export { leagueAverageWords, noResultsWords, TABLE_TITLE, unscoredWords, yourTeamWords } from "../shared/words";
+export { provisionalWords } from "../shared/match/words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const FIXTURES_TITLE = "Fixtures";
@@ -77,7 +81,7 @@ export const noGameweeksWords = "The league plays no gameweeks, so it has no fix
 export const editingWords = "Editing";
 export const pickAnotherWords = "Pick a team in another game. Only this gameweek changes.";
 export const saveSwapWords = "Save swap";
-export { cancelWords } from "../shared/words";
+export { cancelWords } from "../shared/controls/words";
 export const pickSideLabel = (side: string) => `Swap ${side}`;
 /** What a failed swap leaves, live or in the preview. */
 export const swapUnsavedOutcome = "the fixtures didn't change";

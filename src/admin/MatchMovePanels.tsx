@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Loading, Notice, PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote } from "../ui/Panel";
-import { whenWords } from "../shared/words";
+import { whenWords } from "../shared/when/words";
 import { NumberField } from "./fields";
 import type { PanelProps } from "./panelProps";
 import type { GameweekMatch } from "./seam";

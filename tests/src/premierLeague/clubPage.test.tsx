@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
-import { formLabel } from "../../../src/shared/words";
+import { formLabel } from "../../../src/shared/match/words";
 import { clubPath, matchPath } from "../../../src/premierLeague/paths";
 import type { ClubPageData, ClubPageFixture } from "../../../src/premierLeague/seam";
 import {

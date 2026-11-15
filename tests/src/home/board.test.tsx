@@ -43,7 +43,7 @@ import {
   youWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
-import { formLabel } from "../../../src/shared/words";
+import { formLabel } from "../../../src/shared/match/words";
 import { gameweekOneRecap, homeFixture, homeRow, quietYours } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";
 import { commissioner, league, manager, openApp, panel } from "../../support/src/shell.harness";

@@ -7,7 +7,8 @@ import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, ROWS_SHOWN, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
 import { capitalised } from "../../convex/shared/moments";
-import { dateWords, noManagerWords } from "../shared/words";
+import { noManagerWords } from "../shared/words";
+import { dateWords } from "../shared/when/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const INVITES_TITLE = "Invites and join requests";

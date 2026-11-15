@@ -1,7 +1,7 @@
 // The head row of every data table: each column has a short and a long word (Craig, 31 Oct 2026:
 // "Colums should all have a long and short version"; plate.md, Colour roles: the head band).
 
-import { ascendingGlyph, columnHeadName, descendingGlyph, sortByLabel } from "../shared/words";
+import { ascendingGlyph, columnHeadName, descendingGlyph, sortByLabel } from "../shared/controls/words";
 
 /** A column's cells left off a phone, which has no room for them (#424). */
 export const DESK_ONLY_CELL = "hidden sm:table-cell";

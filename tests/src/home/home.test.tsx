@@ -25,7 +25,8 @@ import {
   yourTeamWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
-import { formLabel, menuWords } from "../../../src/shared/words";
+import { menuWords } from "../../../src/shared/words";
+import { formLabel } from "../../../src/shared/match/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { homeFixture, homeRow } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";

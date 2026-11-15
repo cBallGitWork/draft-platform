@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Confirm } from "../ui/Confirm";
 import { Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
-import { cancelWords } from "../shared/words";
+import { cancelWords } from "../shared/controls/words";
 import type { PremierLeagueSeam } from "./seam";
 import { abandonedWords, markAbandonedQuestion, markAbandonedWords, unmarkAbandonedWords } from "./words";
 

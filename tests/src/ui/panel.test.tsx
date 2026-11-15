@@ -5,7 +5,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
-import { closeGlyph } from "../../../src/shared/words";
+import { closeGlyph } from "../../../src/shared/controls/words";
 import { CloseButton, Notice, PageSection, Panel, PanelNote, Problem, Status } from "../../../src/ui/Panel";
 
 it("names a page's section by its title, with the aside on the plate and the caller's classes kept", () => {

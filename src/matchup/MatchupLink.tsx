@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import { matchupLink } from "./paths";
-import { liveWords } from "../shared/words";
+import { liveWords } from "../shared/match/words";
 import { matchupLinkLabel, scoreWords, versusWords } from "./words";
 
 /** A fixture's middle cell, its score or "v", as a link to the team's matchup in the gameweek, that

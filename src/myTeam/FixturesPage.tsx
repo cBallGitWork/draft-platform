@@ -10,7 +10,7 @@ import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";
-import { dateWords } from "../shared/words";
+import { dateWords } from "../shared/when/words";
 import type { LeagueTable } from "../table/seam";
 import { afterWords, noResultsWords } from "../table/words";
 import { ResultChip } from "./header/FormChips";

@@ -22,7 +22,7 @@ import {
   tacticsLoadingWords,
 } from "../../../../src/myTeam/tactics/words";
 import { deadlineHead, noDeadlineWords } from "../../../../src/myTeam/header/words";
-import { whenWords } from "../../../../src/shared/words";
+import { whenWords } from "../../../../src/shared/when/words";
 import { noTeamWords } from "../../../../src/myTeam/words";
 import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";

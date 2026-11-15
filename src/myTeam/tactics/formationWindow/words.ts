@@ -1,7 +1,7 @@
 // What the formation window says (the approved formation window), in one place for Craig to change
 // in the pull request.
 
-export { cancelWords } from "../../../shared/words";
+export { cancelWords } from "../../../shared/controls/words";
 export { inUseWords, savePresetWords } from "../words";
 
 export const WINDOW_TITLE = "Formation and presets";

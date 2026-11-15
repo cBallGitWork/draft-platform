@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { closeGlyph } from "../shared/words";
+import { closeGlyph } from "../shared/controls/words";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 

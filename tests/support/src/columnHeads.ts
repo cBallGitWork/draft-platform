@@ -3,7 +3,7 @@
 
 import { within } from "@testing-library/react";
 import { expect } from "vitest";
-import { columnHeadName, sortByLabel } from "../../../src/shared/words";
+import { columnHeadName, sortByLabel } from "../../../src/shared/controls/words";
 import type { ColumnWords } from "../../../src/ui/ColumnHeads";
 
 /** The head in `scope` named by `words`, as a screen reader finds it. */

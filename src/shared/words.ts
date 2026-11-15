@@ -1,15 +1,15 @@
-// What every screen says alike, in one place for Craig to change in the pull request.
+// What every screen says alike, in one place for Craig to change in the pull request. Its
+// neighbours hold the rest by job: when things happen (when/words.ts), a match and its points
+// (match/words.ts), and the controls' buttons, glyphs and heads (controls/words.ts).
 
-import type { PlayingState } from "../../convex/football/matchScores";
 import { AREA_WORDS } from "../../convex/lineup/pitchWords";
 import type { Position } from "../../convex/positions/positionTables";
 import type { TradedSide } from "../../convex/schema";
 import { LOCALE } from "../../convex/shared/moments";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import type { SquadWarning } from "../../convex/squads/squads";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
-import type { Result } from "../../convex/table/standings";
+import { gameweekWords, seasonShortWords } from "./when/words";
 
 /** A squad's row whose player the football sync doesn't hold, in place of his name: the Tactics
  *  tab has it from the server, which words it. */
@@ -38,10 +38,6 @@ export const POSITION_NAMES: Record<Position, string> = {
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/shared/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
-/** Closes what was opened to change something, changing nothing. */
-export const cancelWords = "Cancel";
-/** The two answers to "Delete this?": deleting a league and the admin's feedback both ask it. */
-export const confirmDeleteWords = { yes: "Delete it", no: "Keep it" };
 /** When a change failed before the server could say why: the connection, or the server itself. */
 export const changeFailedWords = failedWords("nothing changed");
 
@@ -53,63 +49,11 @@ export const reloadWords = "Reload";
 /** What the live app shows when it was built with no Convex deployment to reach (liveApp.tsx). */
 export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach Convex: `npm run setup` writes it to .env.local (docs/setup.md).";
 
-/** A gameweek by name, as its tick box and the fixtures' stepper say it. */
-export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
-/** A gameweek, short, as a head says it: "GW9" (My team's header band, the player card). */
-export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
-/** A table's Gameweek column head (the player card, My team's fixtures, Gameweeks). */
-export const gameweekColumn = { short: "GW", long: "Gameweek" } as const;
-/** When a waiver run or an offer's close falls in `gameweek`'s lock: after its last match, whose
- *  time isn't known ahead (Craig, 11 Nov 2026, on #1467 and #1492): "after GW12's last match". A
- *  line starting with it takes `firstUpper`. */
-export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
-/** Words that start a line, their first letter a capital. */
 /** A setting nobody has made yet. */
 export const notSetWords = "Not set";
 
-/** "in 1d 17h", "in 5h 12m", "in 12m": the two largest units, counted down a minute at a time. */
-export function countdownWords(left: number): string {
-  if (left < MINUTE_MS) return "in under a minute";
-  const days = Math.floor(left / DAY_MS);
-  const hours = Math.floor((left % DAY_MS) / HOUR_MS);
-  const minutes = Math.floor((left % HOUR_MS) / MINUTE_MS);
-  if (days > 0) return `in ${days}d ${hours}h`;
-  if (hours > 0) return `in ${hours}h ${minutes}m`;
-  return `in ${minutes}m`;
-}
-
-export const firstUpper =(words: string) => words.charAt(0).toUpperCase() + words.slice(1);
-/** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
- *  decoration, as each button carries its label. */
-export const previousGameweekLabel = "Previous gameweek";
-export const nextGameweekLabel = "Next gameweek";
-export const previousGlyph = "◄";
-export const nextGlyph = "►";
-/** Back to where a page was opened from: the player card's, the match page's (S10.9's picture). */
-export const backWords = "Back";
-/** A panel's or a window's cross, decoration, as its button carries its label. */
-export const closeGlyph = "✕";
-/** A control drawn as a button that opens a list of choices, decoration, as its label says it. */
-export const menuGlyph = "▾";
-/** A folding panel's mark, open or folded, decoration, as its button carries its label; the folded
- *  one also ends a link onwards ("Run the league ▸"). */
-export const openGlyph = menuGlyph;
-export const foldedGlyph = "▸";
 /** The link from a player's panel to his card (Squad and Tactics). */
 export const playerCardWords = "Player card";
-/** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as
- *  decoration, since the head says so to screen readers through aria-sort; and, for screen
- *  readers, what pressing a head does. */
-export const ascendingGlyph = "▲";
-export const descendingGlyph = "▼";
-export const sortByLabel = (column: string) => `Sort by ${column}`;
-/** The spoken name of anything showing short words with long ones on hover: the short words it
- *  shows, then its long ones, "GW, Gameweek", or the words once where they're the same, so a
- *  voice-control user can say the words they see (WCAG 2.5.3, label in name; decided 31 Oct 2026,
- *  #775; the Squad's next match, #790). */
-export const shortThenLongName = ({ short, long }: { short: string; long: string }) => (short === long ? long : `${short}, ${long}`);
-/** A column head's spoken name (src/ui/ColumnHeads.tsx). */
-export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
 /** The season stats' column heads the draft list and My team's squad table both show. */
@@ -145,20 +89,6 @@ export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeaso
 export const ownStatsGroupWords = "The site's own stats";
 export const catalogueGroupWords = "The feeds' stats";
 
-const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-/** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
-export const whenWords = (at: number) => whenFormat.format(at);
-const dayFormat = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
-/** A day in the viewer's own zone, e.g. "20 Oct": when a letter was filed, or a report written. */
-export const dayWords = (at: number) => dayFormat.format(at);
-const dateFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
-/** A day with its weekday, in the viewer's own zone, e.g. "Tue 27 Oct": when an invite ends, the
- *  day of a league's game. */
-export const dateWords = (at: number) => dateFormat.format(at);
-const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
-/** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
-export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
-
 /** Every number a screen shows, with the one minus sign: "−3", and signed, "+4". */
 export { figureWords, signedWords } from "../../convex/shared/numberWords";
 
@@ -174,57 +104,6 @@ export const freeAgentWords = "Free agent";
 /** Between the items of a short list in a line: a player's positions, "CDM, CM". */
 export const listSeparator = ", ";
 
-/** Between the two sides of a match or a fixture: "Hull City v Everton". */
-export const versusWords = "v";
-/** Where his club plays a match, after the opponent's code (My team's tables and the player card). */
-export const homeWords = "(H)";
-export const awayWords = "(A)";
-/** A match as its cell shows it: "CHE (H)". */
-export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
-/** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:
- *  Status chips' data). Only a player FPL holds a doubt about gets one. */
-export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
-/** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
-export const difficultyNotRatedWords = "difficulty not rated yet";
-/** A match's or a fixture's score, the first side's then the other's: "2–1", or a matchup's
- *  points, which can fall below 0: "−2–5". */
-export const scoreWords = (first: number, second: number) => `${figureWords(first)}–${figureWords(second)}`;
-/** Beside what is still being played: a live match's clock before it has a minute, a score that
- *  may still move (spec/07). */
-export const liveWords = "Live";
-/** Under points, or a table, that a live match may still move: the state, not how it works. */
-export const provisionalWords = "Provisional";
-/** A match at half-time and at full time, short as a column says it and in full. */
-export const halfTime = { short: "HT", long: "Half-time" } as const;
-export const fullTime = { short: "FT", long: "Full time" } as const;
-/** A match's one clock while it is played, on the matchup and the Premier League's pages alike:
- *  "HT" at half-time; otherwise the Premier League's label, with stoppage time ("45+1'"), or the
- *  newest read's whole minutes where it has none (FPL's: "46'"); "Live" before either (spec/10,
- *  The matchup, as a live match; #563, #781). */
-export const clockWords = (state: PlayingState, clockLabel: string | null, minutes: number | null) => {
-  if (state === "halfTime") return halfTime.short;
-  const label = clockLabel?.split("'")[0];
-  if (label) return `${label}'`;
-  return minutes === null ? liveWords : `${minutes}'`;
-};
-
-/** A result as form shows it, and as a screen reader says it: league home's table and My team's
- *  header alike. */
-export const resultWords: Record<Result, { short: string; long: string }> = {
-  won: { short: "W", long: "won" },
-  drawn: { short: "D", long: "drawn" },
-  lost: { short: "L", long: "lost" },
-};
-export const formLabel = (results: readonly Result[]) =>
-  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
-/** Form whose last result is still live: "Form: won, lost, Provisional". */
-export const liveFormLabel = (results: readonly Result[]) => `${formLabel(results)}${listSeparator}${provisionalWords}`;
-/** A live result's chip, on hover: "won, Provisional". */
-export const liveResultWords = (result: Result) => `${resultWords[result].long}${listSeparator}${provisionalWords}`;
-/** The heads over a team's form and table place: My team's header and a club's page. */
-export const formHead = "Form";
-export const tableHead = "Table";
-
 /** The bench's title, on Tactics and under a matchup's lineup alike. */
 export const BENCH_TITLE = "Bench";
 
@@ -232,13 +111,6 @@ export const BENCH_TITLE = "Bench";
 export const fewestTeamsWords = `${countInWords(FEWEST_TO_DRAW)} teams`;
 /** Why a league playing total points has no head-to-heads, on the matchup and league home alike. */
 export const noHeadToHeadsTotalPointsWords = "The league plays total points, so it has no head-to-heads.";
-
-const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
-/** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
-export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);
-const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short" });
-/** The day alone, in the viewer's own zone: "Sun", as a matchup tile's badge says a kickoff. */
-export const weekdayWords = (at: number) => weekdayFormat.format(at);
 
 const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
 const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st", two: "nd", few: "rd", many: "th", other: "th" };
@@ -324,35 +196,6 @@ export const underSiteScoringWords = "under the site's scoring";
 /** A trade review rule by name, as League settings offers it and a trade's Review fact says it. */
 export const commissionerVetoWords = "Commissioner veto";
 export const leagueVoteWords = "League vote";
-
-/** A season, short: "25/26" (the draft's list, Scouting, the player card, patch notes, a role card). */
-export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
-
-/** A matchup's score head, and a player whose points don't count (the matchup and the Premier
- *  League's match page). */
-export const SCORE_LABEL = "Score";
-export const notCountingLabel = "not counting";
-/** The vidiprinter (the matchup, league home, the Premier League's pages): its title, and when the
- *  stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
-export const VIDIPRINTER_TITLE = "Vidiprinter";
-export const commentaryDelayedWords = "Commentary delayed";
-export const noCommentaryWords = "No lines yet.";
-/** The matchup's and match page's scoreboards, while live points are held as last read (S10.12). */
-export const livePointsDelayedWords = "Live points delayed";
-
-/** A commissioner's override (spec/14 S14.3 to S14.6; #32, #903), of a player's points on his card
- *  and of a team's total on the matchup alike. */
-export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
-export const overrideHint = "The whole league gets a letter saying what changed and why.";
-export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
-export const overrideWords = "Override";
-export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
-export const overrideFailedWords = "The override couldn't be saved. Try again.";
-/** Taking an override off (#903, spec/14 S14.5): "remove override button". */
-export const removeOverrideWords = "Remove override";
-export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
-/** A player's points for a match whose record hasn't fully arrived, on hover. */
-export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
 
 /** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
  *  card and a shortlist. */

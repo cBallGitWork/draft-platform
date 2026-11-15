@@ -1,5 +1,6 @@
 import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogueList";
-import { catalogueGroupWords, menuGlyph, ownStatsGroupWords } from "../shared/words";
+import { catalogueGroupWords, ownStatsGroupWords } from "../shared/words";
+import { menuGlyph } from "../shared/controls/words";
 
 /** The select's value for no stat. */
 const NO_STAT = "";

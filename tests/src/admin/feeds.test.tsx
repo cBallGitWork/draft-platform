@@ -29,7 +29,7 @@ import {
   positionsTabWords,
   seenWords,
 } from "../../../src/admin/words";
-import { whenWords } from "../../../src/shared/words";
+import { whenWords } from "../../../src/shared/when/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { admin, commissioner, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 

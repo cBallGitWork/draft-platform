@@ -123,7 +123,7 @@ export const moveLabel = (name: string, place: number) => `Move ${name}, ${place
 /** A queued row's handle, decoration, as moveLabel says it. */
 export const dragGlyph = "⠿";
 /** A row's cross and a link onwards ("Player card ▸"), decoration, as each carries its label. */
-export { closeGlyph, foldedGlyph } from "../shared/words";
+export { closeGlyph, foldedGlyph } from "../shared/controls/words";
 export const listChangeFailedWords = failedWords("your draft lists didn't change");
 
 /** The auto-pick panel (spec/04, Auto-pick; #1100). */

@@ -1,30 +1,20 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
 import type { MatchBreakdown, MatchupSide, SlotStatus } from "../../convex/matchup/matchupShape";
-import {
-  clockWords,
-  fewestTeamsWords,
-  fullTime,
-  gameweekWords,
-  halfTime,
-  leagueAverageWords,
-  noHeadToHeadsTotalPointsWords,
-  overrideLabels,
-  removeOverrideWords,
-  scoreWords,
-  versusWords,
-  weekdayTimeWords,
-  weekdayWords,
-  whenWords,
-} from "../shared/words";
+import { fewestTeamsWords, leagueAverageWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
+import { clockWords, fullTime, halfTime, overrideLabels, removeOverrideWords, scoreWords, versusWords } from "../shared/match/words";
+import { gameweekWords, weekdayTimeWords, weekdayWords, whenWords } from "../shared/when/words";
 
-export { figureWords, gameweekShort, gameweekWords, noFigureWords, versusWords } from "../shared/words";
-export { leagueAverageWords, scoreWords } from "../shared/words";
-export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
+export { versusWords } from "../shared/match/words";
+export { gameweekShort, gameweekWords } from "../shared/when/words";
+export { leagueAverageWords } from "../shared/words";
+export { scoreWords } from "../shared/match/words";
+export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/controls/words";
 
 export const MATCHUP_TITLE = "Matchup";
 /** The totals at the top, the score of the matchup (spec/10). */
-export { SCORE_LABEL } from "../shared/words";
+export { SCORE_LABEL } from "../shared/match/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
 export { noTeamWords } from "../shared/words";
@@ -41,7 +31,7 @@ export const sideName = (side: { kind: "team"; teamName: string } | { kind: Excl
   side.kind === "team" ? side.teamName : leagueAverageWords;
 
 /** Under the score: live and moving, or settled. */
-export { provisionalWords } from "../shared/words";
+export { provisionalWords } from "../shared/match/words";
 export const finalWords = "Final";
 
 /** A fixture's link to its matchup, from the table's fixtures and league home's head-to-heads. */
@@ -122,7 +112,7 @@ export const autoSubWords = {
 } as const;
 
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
-export { notCountingLabel } from "../shared/words";
+export { notCountingLabel } from "../shared/match/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
@@ -148,21 +138,12 @@ export const overrideTotalLabel = (teamName: string) => `${OVERRIDE_TOTAL_TITLE}
 export const removeTotalOverrideLabel = (teamName: string) => `${removeOverrideWords}: ${teamName}`;
 export const overrideTotalLabels = { points: "Total", reason: overrideLabels.reason } as const;
 export const totalOverrideRemovedWords = "Override removed: the scored total is back, and the league has a letter.";
-export {
-  cancelWords as cancelOverrideWords,
-  notArrivedWords,
-  overriddenDoneWords,
-  overriddenWords,
-  overrideFailedWords,
-  overrideHint,
-  overrideWords,
-  removeOverrideFailedWords,
-  removeOverrideWords,
-} from "../shared/words";
+export { cancelWords as cancelOverrideWords } from "../shared/controls/words";
+export { notArrivedWords, overriddenDoneWords, overriddenWords, overrideFailedWords, overrideHint, overrideWords, removeOverrideFailedWords, removeOverrideWords } from "../shared/match/words";
 
 /** The matchup's commentary (spec/10): every line of every match either team's men play in; when
  *  the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
-export { commentaryDelayedWords, livePointsDelayedWords, noCommentaryWords, VIDIPRINTER_TITLE } from "../shared/words";
+export { commentaryDelayedWords, livePointsDelayedWords, noCommentaryWords, VIDIPRINTER_TITLE } from "../shared/match/words";
 export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
 /** Its head row over the lines, and each team's column of what a line moves its score by (the
  *  approved picture's "Commentary", "Saka P", "Kroos C"): a team's first word and the first

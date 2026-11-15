@@ -5,7 +5,8 @@
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import type { LetterKind } from "../../convex/mail/letterShape";
-import { dateWords, dayWords, failedWords, timeOfDayWords } from "../shared/words";
+import { failedWords } from "../shared/words";
+import { dateWords, dayWords, timeOfDayWords } from "../shared/when/words";
 
 export { MAIL_TITLE } from "../shared/words";
 export const noLettersWords = "No letters yet.";

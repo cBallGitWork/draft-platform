@@ -1,5 +1,5 @@
 import { ClubShort } from "../ui/ClubName";
-import { versusWords } from "../shared/words";
+import { versusWords } from "../shared/match/words";
 import type { PlayedMatch } from "./seam";
 
 /** "ARS v COV", each club's full name on hover. */

@@ -6,7 +6,7 @@ import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import type { RunAhead } from "../../../convex/waivers/runsAhead";
 import { placeWords, pointsShort } from "../header/words";
 import { capitalised } from "../../../convex/shared/moments";
-import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
+import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/when/words";
 
 export { placeWords, pointsShort };
 

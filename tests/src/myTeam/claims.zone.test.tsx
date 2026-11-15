@@ -24,7 +24,7 @@ describe("a run in the manager's own zone", () => {
     process.env.TZ = NEW_YORK;
     vi.resetModules();
     const claims = await import("../../../src/myTeam/claims/words");
-    const shared = await import("../../../src/shared/words");
+    const shared = await import("../../../src/shared/when/words");
     expect(claims.runShort(WED)).toBe("Wed 13:00");
     expect(claims.runShort(WED)).toBe(shared.weekdayTimeWords(WED));
     expect(claims.runWords(WED)).toBe(shared.whenWords(WED));

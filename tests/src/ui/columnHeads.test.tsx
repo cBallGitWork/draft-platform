@@ -6,7 +6,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { ascendingGlyph, descendingGlyph } from "../../../src/shared/words";
+import { ascendingGlyph, descendingGlyph } from "../../../src/shared/controls/words";
 import { ColumnHeads, type ColumnWords } from "../../../src/ui/ColumnHeads";
 import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 

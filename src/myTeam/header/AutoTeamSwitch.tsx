@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { useChange } from "../../shared/useChange";
-import { menuGlyph } from "../../shared/words";
+import { menuGlyph } from "../../shared/controls/words";
 import { Panel, PANEL_BODY, Problem } from "../../ui/Panel";
 import type { MyAutoTeam, MyTeamSeam } from "../seam";
 import {

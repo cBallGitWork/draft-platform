@@ -8,7 +8,7 @@ import { BackToLeagues } from "../leagues/LeagueLinks";
 import { TickBox } from "../ui/TickBox";
 import { useChange } from "../shared/useChange";
 import { useNowEachMinute } from "../shared/useMinute";
-import { gameweekWords, whenWords } from "../shared/words";
+import { gameweekWords, whenWords } from "../shared/when/words";
 import type { LeagueGameweeksView } from "./seam";
 import {
   begunWords,

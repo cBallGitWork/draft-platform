@@ -4,7 +4,7 @@
 
 import { expect } from "@playwright/test";
 import { MATCHUP_PATH, TABLE_PATH } from "../../src/frame/menu";
-import { previousGameweekLabel } from "../../src/shared/words";
+import { previousGameweekLabel } from "../../src/shared/controls/words";
 import { competitionsLabel, competitionWords, CUP_TITLE, cupRounds, FIXTURES_TITLE, TABLE_PAGE_TITLE, TABLE_TITLE, type Competition } from "../../src/table/words";
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";

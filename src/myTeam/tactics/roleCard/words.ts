@@ -2,12 +2,15 @@
 // for Craig to change in the pull request.
 
 import { ROLE_BARS_MOST } from "../../../../convex/scoring/scoringSet";
-import { listSeparator, seasonShortWords, signedWords } from "../../../shared/words";
+import { listSeparator, signedWords } from "../../../shared/words";
+import { seasonShortWords } from "../../../shared/when/words";
 import { gameweekShort } from "../../header/words";
 import { ROLE_FIT_SUBJECT } from "../words";
 
 export { inUseWords, pointsHead } from "../words";
-export { cancelWords, figureWords, nextFixtureShort, noFigureWords, signedWords } from "../../../shared/words";
+export { figureWords, noFigureWords, signedWords } from "../../../shared/words";
+export { cancelWords } from "../../../shared/controls/words";
+export { nextFixtureShort } from "../../../shared/match/words";
 
 /** The card's plate: "Caicedo CHE, his role", then his slot's chip and its position in words. */
 export const cardTitle = (name: string) => `${name}, his role`;

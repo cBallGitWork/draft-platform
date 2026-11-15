@@ -1,7 +1,7 @@
 import type { DragEvent } from "react";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { roleIn, type Formation } from "../../../convex/lineup/roles";
-import { menuGlyph } from "../../shared/words";
+import { menuGlyph } from "../../shared/controls/words";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { PositionChip } from "../../ui/PositionChip";
 import { StarRating } from "../../ui/StarRating";

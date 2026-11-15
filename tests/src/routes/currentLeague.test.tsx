@@ -9,7 +9,7 @@ import { HOME_PATH, MATCHUP_PATH, MY_TEAM_PATH, SCOUTING_PATH, TABLE_PATH } from
 import { matchPath } from "../../../src/premierLeague/paths";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { gameweekWords } from "../../../src/table/words";
-import { nextGameweekLabel } from "../../../src/shared/words";
+import { nextGameweekLabel } from "../../../src/shared/controls/words";
 import { league, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
 const inTwo = managerIn(league, miniBeta);

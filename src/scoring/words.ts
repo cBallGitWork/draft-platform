@@ -45,7 +45,7 @@ const removeGlyph = "×";
 export const removePartWords = removeGlyph;
 export const addPartWords = "Add a stat";
 export const makeWords = "Make it";
-export { cancelWords } from "../shared/words";
+export { cancelWords } from "../shared/controls/words";
 /** Why an own stat as typed can't be made yet. */
 export const ownStatProblemWords = {
   name: "Give it a name.",

@@ -2,7 +2,7 @@
 // matches and his club's postponed ones in one list, newest first, each named from his club's side.
 
 import { inTenths } from "../../convex/scoring/values";
-import { nextFixtureShort, scoreWords } from "../shared/words";
+import { nextFixtureShort, scoreWords } from "../shared/match/words";
 import type { PlayedMatch, PlayerCard } from "./seam";
 
 type Fixture = PlayerCard["postponed"][number];

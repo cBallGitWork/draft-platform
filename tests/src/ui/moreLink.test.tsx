@@ -5,7 +5,7 @@ import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } fr
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { expect, it } from "vitest";
-import { nextGlyph } from "../../../src/shared/words";
+import { nextGlyph } from "../../../src/shared/controls/words";
 import { MoreLink, NextGlyph } from "../../../src/ui/MoreLink";
 
 function renderInRouter(node: ReactNode) {

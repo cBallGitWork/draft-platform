@@ -3,11 +3,16 @@
 import { TOP_ROWS } from "../../convex/home/glance";
 import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, tradedNames } from "../shared/words";
+import { fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, tradedNames } from "../shared/words";
+import { foldedGlyph } from "../shared/controls/words";
+import { gameweekShort } from "../shared/when/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, foldedGlyph, gameweekShort, openGlyph, scoreWords, tradedNames, whenWords, withTeamWords } from "../shared/words";
+export { figureWords, tradedNames, withTeamWords } from "../shared/words";
+export { foldedGlyph, openGlyph } from "../shared/controls/words";
+export { scoreWords } from "../shared/match/words";
+export { gameweekShort, whenWords } from "../shared/when/words";
 export { andListWords };
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../shared/words";
 
@@ -31,7 +36,9 @@ export const moreFlaggedWords = (more: number) => ` and ${more} more`;
 export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
 /** The Table box: "2nd, 18 pts", then the gap: "1 behind 1st", or "3 ahead of 2nd" on top. */
 export const gapWords = (gap: number, onTop: boolean) => (onTop ? `${gap} ahead of 2nd` : `${gap} behind 1st`);
-export { countdownWords, noFigureWords, placeWords, versusWords, weekdayTimeWords } from "../shared/words";
+export { noFigureWords, placeWords } from "../shared/words";
+export { versusWords } from "../shared/match/words";
+export { countdownWords, weekdayTimeWords } from "../shared/when/words";
 export const pointsShortWords = "pts";
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
@@ -88,7 +95,7 @@ export { yourTeamWords } from "../shared/words";
 export const wholeTableLink = "Whole table and fixtures";
 
 /** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
-export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../shared/words";
+export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../shared/match/words";
 
 /** The chip on the commissioner's latest letter, pinned on top of News. */
 export const LETTER_TITLE = "From the commissioner";

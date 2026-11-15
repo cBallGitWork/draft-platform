@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { gameweekWords } from "../../../src/shared/words";
+import { gameweekWords } from "../../../src/shared/when/words";
 import {
   addCategoryWords,
   bandFromWords,
