@@ -3,7 +3,7 @@ import { internalMutation } from "../_generated/server";
 import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
-import { RULES_CHANGES_MOST } from "./rulesHistory";
+import { RULES_CHANGES_MOST } from "../rules/rulesHistory";
 
 // The one-off migration for #1412: leagues made with the old default deadline, FPL's 90 minutes
 // before the first kickoff, move to the platform's 15 (spec/03 S03.3, spec/05 S05.20), and so does
@@ -13,8 +13,8 @@ import { RULES_CHANGES_MOST } from "./rulesHistory";
 // Every rules row holding 90 moves, past ones included, as a passed gameweek reads its recorded
 // deadline, never its rule; a row holding any other time is a commissioner's and stays. Running
 // it again does nothing. Run it once on each deployment:
-//   npx convex run rules/deadlineDefaultBackfill:moveDeadlinesToDefault
-//   npx convex run --prod rules/deadlineDefaultBackfill:moveDeadlinesToDefault
+//   npx convex run migrations/deadlineDefaultBackfill:moveDeadlinesToDefault
+//   npx convex run --prod migrations/deadlineDefaultBackfill:moveDeadlinesToDefault
 
 /** The old default: FPL's own timing, which leagues were made with before #1412. */
 const OLD_DEFAULT_MINUTES = 90;

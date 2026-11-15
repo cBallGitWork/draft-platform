@@ -25,7 +25,7 @@ beforeEach(async () => {
 const minutesOf = async (leagueId: Id<"leagues">, gameweek: number) =>
   (await t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek))).deadline.minutesBeforeFirstKickoff;
 const deadlinesOf = async (leagueId: Id<"leagues">) => new Map(await t.run(async (ctx) => [...(await leagueDeadlines(ctx, leagueId))]));
-const migrate = () => t.mutation(internal.rules.deadlineDefaultBackfill.moveDeadlinesToDefault, {});
+const migrate = () => t.mutation(internal.migrations.deadlineDefaultBackfill.moveDeadlinesToDefault, {});
 
 /** A league as the old default made it: every rules row, and the admin's defaults, on 90. */
 async function alphaLeague(): Promise<Id<"leagues">> {
