@@ -1,13 +1,12 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { delayedFrom, heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
-import { heldCommentary, type HeldCommentary, type MatchupCommentary } from "../matchup/matchupShape";
+import { heldCommentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinterTeam } from "../matchup/instructionLines";
-import { shownLine, storedLineKey, vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
+import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
@@ -17,7 +16,6 @@ import { leagueLabel, logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
-import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
 import { livePointsDelayOf } from "../stats/livePrints";
@@ -25,6 +23,8 @@ import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
+import { commentaryOf } from "./matchPageCommentary";
+import { matchScorers, scorersOf } from "./matchScorers";
 import { bySheetOrder } from "./sheetOrder";
 import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 
@@ -87,6 +87,8 @@ const heldMatchPage = v.object({
   men: v.array(matchMan),
   /** Why the league's points can't be worked out, while the rest still shows; null when they can. */
   pointsProblem: v.union(v.string(), v.null()),
+  /** Each side's goals, oldest first, for the line under the scoreboard (S10.7). */
+  scorers: matchScorers,
   /** Shots, shots on target, possession, corners and cards, each side's; null until a read has
    *  given any. */
   teamStats: v.union(v.object({ home: sideTeamStats, away: sideTeamStats }), v.null()),
@@ -123,6 +125,7 @@ export const ofMatch = query({
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null }, priced, unownedPoints);
+    const { commentary, lines } = await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -132,8 +135,9 @@ export const ofMatch = query({
       score: held === null ? null : scoreOnly(held),
       men,
       pointsProblem: priced.problem,
+      scorers: scorersOf(lines, new Map(men.map((man) => [man.playerCode, man]))),
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
-      commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
+      commentary,
       abandoned: await isAbandoned(ctx, fixtureCode),
       pointsDelayed: (await livePointsDelayOf(ctx, fixtureCode)) !== null,
       provisional: held !== null && fixture.gameweek !== null && !(await isGameweekFinal(ctx, fixture.gameweek, "its points can't be told final")),
@@ -274,26 +278,3 @@ const sideOf = ({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: numbe
 /** A man the match names, by name; or, for one the football data has lost, whose saved record stays
  *  (spec/14 S14.5), the error words every screen gives his row, so the rest of the page still shows. */
 const nameOf = (player: Doc<"players"> | null, playerCode: PlayerCode): string => (player === null ? unheldPlayerWords(playerCode) : player.name);
-
-/** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
- *  or why they can't be read, while the rest still shows. Delayed from the moment the match's held
- *  `score` gives (`delayedFrom`). */
-async function commentaryOf(
-  ctx: QueryCtx,
-  fixture: Doc<"fixtures">,
-  set: ScoringSet | null,
-  players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
-  score: Doc<"matchScores"> | null,
-): Promise<HeldCommentary> {
-  try {
-    const row = await heldOf(ctx, fixture.code);
-    if (row === null) return { kind: "read", lines: [], delayedFrom: null };
-    const lines =
-      set === null
-        ? row.lines.map((line) => ({ key: storedLineKey(fixture.code, line.sourceId), text: line.text, points: null }))
-        : vidiprinter([{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps: await thresholdStepsOf(ctx, fixture.code) }], players, set).map(shownLine);
-    return { kind: "read", lines, delayedFrom: delayedFrom(row, score) };
-  } catch (error) {
-    return { kind: "unread", reason: logFailure(`Match ${fixture.code}'s commentary can't be read`, error) };
-  }
-}

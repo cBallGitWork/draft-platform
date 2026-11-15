@@ -25,7 +25,9 @@ import {
   matchLinkLabel,
   noLinesWords,
   noMatchWords,
+  ownGoalWords,
   SCORE_LABEL,
+  scorersLabel,
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
@@ -156,6 +158,25 @@ describe("the score and clock", () => {
       const ink = side.className.includes("text-fact") ? INKS.light : INKS.dark;
       expect(contrast(primary, ink)).toBeGreaterThanOrEqual(4.5);
     }
+  });
+
+  // "keep the scorers line under the match scoreboard" (Craig, 10 Nov 2026, on #1032).
+  it("S10.7: each side's scorers under it, home's left and away's right, a man's goals after his name once, an own goal marked", async () => {
+    const scorers = {
+      home: [
+        { name: "Saka", minute: "23'", ownGoal: false },
+        { name: "Gyökeres", minute: "58'", ownGoal: false },
+        { name: "Saka", minute: "90+2'", ownGoal: false },
+      ],
+      away: [{ name: "Saliba", minute: "44'", ownGoal: true }],
+    };
+    openMatch({ match: matchOf({ scorers }) });
+    const home = await screen.findByLabelText(scorersLabel(ARSENAL.name));
+    expect(home.textContent).toBe("Saka 23', 90+2', Gyökeres 58'");
+    expect(home.className).toContain("text-left");
+    const away = screen.getByLabelText(scorersLabel(CHELSEA.name));
+    expect(away.textContent).toBe(`Saliba 44' ${ownGoalWords}`);
+    expect(away.className).toContain("text-right");
   });
 
   it("before kickoff: v and the day and time it kicks off", async () => {

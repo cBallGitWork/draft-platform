@@ -193,6 +193,8 @@ export const previewMatch: MatchPageData = {
   away: previewClub("NFO"),
   score: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 90, clockLabel: null },
   men: MEN,
+  // The recording's two goals, as match/matchScorers.ts reads them from its lines.
+  scorers: { home: [{ name: "Enciso", minute: "41'", ownGoal: false }], away: [{ name: "N.Williams", minute: "13'", ownGoal: false }] },
   pointsProblem: null,
   abandoned: false,
   pointsDelayed: false,
@@ -215,6 +217,7 @@ export const previewMatch: MatchPageData = {
 export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
+  scorers: { home: [], away: [] },
   men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },

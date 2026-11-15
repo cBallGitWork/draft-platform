@@ -42,6 +42,8 @@ import {
   provisionalWords,
   provWords,
   SCORE_LABEL,
+  scorersLabel,
+  scorersWords,
   sheetLabel,
   STAT_COLUMN,
   SUBSTITUTES_TITLE,
@@ -119,7 +121,7 @@ function ProvTag() {
 }
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed }, children }: { match: MatchPageData; children: ReactNode }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed, scorers }, children }: { match: MatchPageData; children: ReactNode }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -128,13 +130,27 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelay
         {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
         <ScoreboardSide club={away} className="justify-self-start" />
       </p>
-      <p aria-live="polite" className="px-3 pb-2 text-center">
-        <MatchState score={score} kickoff={kickoff} long />
-        {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
-      </p>
+      <div className="grid grid-cols-sides items-baseline gap-3 px-3 pb-2">
+        <Scorers club={home} goals={scorers.home} className="text-left" />
+        <p aria-live="polite" className="text-center">
+          <MatchState score={score} kickoff={kickoff} long />
+          {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
+        </p>
+        <Scorers club={away} goals={scorers.away} className="text-right" />
+      </div>
       <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
       {children}
     </section>
+  );
+}
+
+/** A side's scorers under its name (S10.7; the approved picture: home's left, away's right); an
+ *  empty cell before its first goal, keeping the clock in the middle. */
+function Scorers({ club, goals, className }: { club: Club; goals: MatchPageData["scorers"]["home"]; className: string }) {
+  return (
+    <p aria-label={scorersLabel(club.name)} className={`text-soft ${className}`}>
+      {scorersWords(goals)}
+    </p>
   );
 }
 

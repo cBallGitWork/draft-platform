@@ -2,7 +2,7 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { lastSeasonPointsColumn, menuWords, STAT_WORD } from "../shared/words";
+import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
@@ -101,6 +101,19 @@ export const matchWhereWords = (gameweek: number | null) => (gameweek === null ?
 /** Beside the sheets' points while they are live, until the gameweek's are final (spec/10 S10.10);
  *  "Provisional" on hovering it. */
 export const provWords = "prov.";
+/** Under the scoreboard, a side's scorers in the order they scored, a man's goals after his name
+ *  once: "Saka 23', 58', Gyökeres 67'"; an own goal counts for the other side and says so (S10.7). */
+export const ownGoalWords = "(og)";
+export const scorersWords = (goals: readonly { name: string; minute: string; ownGoal: boolean }[]) => {
+  const minutesByName = new Map<string, string[]>();
+  for (const { name, minute, ownGoal } of goals) {
+    const minutes = minutesByName.get(name) ?? [];
+    minutes.push(ownGoal ? `${minute} ${ownGoalWords}` : minute);
+    minutesByName.set(name, minutes);
+  }
+  return [...minutesByName].map(([name, minutes]) => `${name} ${minutes.join(listSeparator)}`).join(listSeparator);
+};
+export const scorersLabel = (club: string) => `${club}'s scorers`;
 export const loadingMatchWords = "Loading the match…";
 export const noMatchWords = "No match with this code is held.";
 /** After where the match stands, the gameweek it is in. */
