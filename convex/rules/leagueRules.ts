@@ -118,12 +118,13 @@ async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximu
 }
 
 /** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, every tie-break
- *  among them (`tieBreaksOf`), its squad maximum the site's for that many teams. Refused if that many teams can't play their games a gameweek, or
- *  if that maximum leaves the rules unsound. The first league a deployment makes writes the first
- *  rules (firstRules.ts) as those defaults. */
+ *  among them (`tieBreaksOf`), its squad maximum the site's for that many teams. Refused if that
+ *  many teams can't play their games a gameweek, or if that maximum leaves the rules unsound. The
+ *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const row = await defaultsRow(ctx);
-  const defaults = row === null ? undefined : { ...heldRules(row.rules), tieBreaks: tieBreaksOf(heldRules(row.rules)) };
+  const held = row === null ? undefined : heldRules(row.rules);
+  const defaults = held && { ...held, tieBreaks: tieBreaksOf(held) };
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
   const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
