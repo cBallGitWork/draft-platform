@@ -10,7 +10,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/conv
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
-import { siteDown } from "../../support/convex/test.harness";
+import { silenceConsoleWarn, siteDown } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
@@ -234,6 +234,19 @@ describe("a manager who goes while his pick is on the clock", () => {
     await leave(ANN);
     await pass(0);
     expect(await pickedCodes()).toEqual([A1]);
+  });
+
+  // #2236: a clock begun 40 seconds ago is no outage, so the at-once pick is made, with no restart.
+  test("S04.22 leaves 40 seconds into a 60-second clock: the pick is made at once, and the draft didn't resume after a break", async () => {
+    const warned = silenceConsoleWarn();
+    await setPickSeconds(60);
+    await start();
+    await pass(40 * SECOND_MS);
+
+    await leave(ANN);
+    await pass(0);
+    expect(await pickedCodes()).toEqual([A1]);
+    expect(warned).not.toHaveBeenCalled();
   });
 
   test("is removed by the commissioner: the draft picks for his team at once", async () => {

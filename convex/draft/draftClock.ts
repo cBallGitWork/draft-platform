@@ -122,9 +122,11 @@ export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, c
 }
 
 /** Whether the draft's pick for `team`, whose pick is `clock`'s, is running `AFTER_BREAK_LATE_MS` or
- *  more past its time: its clock ran out while the site was down (S04.22). */
+ *  more past its time: its clock ran out while the site was down (S04.22). A pick made as its clock
+ *  starts never is: no clock ran out, and one rescheduled at once on a clock begun long ago, as its
+ *  manager leaves or turns auto-pick on (`rescheduleIfOnTheClock`), would otherwise read as late (#2236). */
 export function ranOutInBreak(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): boolean {
-  return Date.now() - autoPickAt(draft, clock, team) >= AFTER_BREAK_LATE_MS;
+  return !picksAtClockStart(draft, clock, team) && Date.now() - clock.endsAt >= AFTER_BREAK_LATE_MS;
 }
 
 /** The site is back after its clock ran out while it was down (Craig, 14 Nov 2026, grill batch 2,

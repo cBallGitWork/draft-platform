@@ -216,7 +216,8 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"d
  *  manager whose clock ran out it is one of its timeouts, against the league's limit now
  *  (draftTimeouts.ts); one made as its clock starts isn't. Does nothing once
  *  `pick` is no longer on the clock: its team picked, or the league is gone. Scheduled at once for a
- *  team that has since gained a manager or taken control back, it waits for the clock's end. */
+ *  team that has since gained a manager or taken control back, it waits for the clock's end. A clock
+ *  that ran out while the site was down gets no pick: it restarts in full (`restartAfterBreak`; S04.22). */
 export const autoPick = internalMutation({
   args: { leagueId: v.id("leagues"), pick: v.number() },
   returns: v.null(),
