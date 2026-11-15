@@ -8,7 +8,7 @@
 
 session=test-session-$$
 said() { printf '%s' "$("$jq" -nc --arg s "$session" --arg p "$1" '{session_id:$s,prompt:$p}')" | "$hooks/last_prompt.py" || fail "last_prompt.py failed on: $1"; }
-call() { "$jq" -nc --arg s "$session" --arg t "$1" --argjson i "$2" '{session_id:$s,tool_name:$t,tool_input:$i}'; }
+call() { tool_call "$1" "$2" "$session"; }
 bash_call() { call Bash "$("$jq" -nc --arg c "$1" '{command:$c}')"; }
 edit() { call Edit "$("$jq" -nc --arg f "$1" '{file_path:$f,old_string:"a",new_string:"b"}')"; }
 
@@ -133,7 +133,4 @@ other=$("$jq" -nc --arg s "other-$$" --arg t Bash '{session_id:$s,tool_name:$t,t
 check allow guard_mode.py "$other"  # no record for it
 
 denies_unreadable guard_mode.py
-for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" last_prompt.py "${bad_payloads[i]}"
-done
-rm -f "$tmp/draft-last-prompt/$session"
+rejects_bad_payloads last_prompt.py

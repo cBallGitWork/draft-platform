@@ -39,9 +39,7 @@ silent guard_ask.py "$("$jq" -nc '{tool_name:"mcp__ccd_turn__wrap_up",tool_input
 silent guard_ask.py "$("$jq" -nc '{tool_name:"Bash",tool_input:{command:"echo shall I merge"}}')"  # not a question
 
 # an unreadable payload is said, and the question goes ahead
-for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" guard_ask.py "${bad_payloads[i]}"
-done
+rejects_bad_payloads guard_ask.py
 fails_loudly "questions is str" guard_ask.py '{"tool_name":"AskUserQuestion","tool_input":{"questions":"x"}}'
 
 # at most five questions in one batch
