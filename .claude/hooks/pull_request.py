@@ -32,6 +32,7 @@ PLACEHOLDER = "{owner}/{repo}"  # gh api fills it from the folder's remote
 PR_URL = re.compile(r"github\.com/([^/\s]+/[^/\s]+)/pull/(\d+)")
 WHICH_PR = "Can't tell which pull request this merges"
 ADMIN_OPT = "--admin"
+AUTO_OPTS = {"--auto", "--disable-auto"}  # gh pr merge that only sets auto-merge, which waits on the rules: no judge (#2032)
 API_VALUE_OPTS = GH_VALUE_OPTS | {"-F", "--field", "-H", "--header", "--input", "--template", "--cache",
                                  "--preview", "--hostname"}  # gh api's options that take a value
 METHOD_OPTS = {"-X", "--method"}
@@ -130,6 +131,17 @@ def api(folder, path):
         raise Unread(f"gh api {path} gave no JSON ({error})") from error
 
 
+def sets_auto(args):
+    """True if these gh pr merge args only turn auto-merge on or off (--auto, --disable-auto), other
+    than as the value of an option such as --body."""
+    i = 0
+    while i < len(args):
+        if args[i].partition("=")[0] in AUTO_OPTS:
+            return True
+        i += 2 if args[i] in MERGE_VALUE_OPTS else 1
+    return False
+
+
 def uses_admin(args):
     """True if these gh pr merge args pass --admin (anywhere, or as --admin=value), other than as
     the value of an option such as --body."""
@@ -195,6 +207,8 @@ def merges_problem(cmds, judge):
             continue
         if uses_admin(args):
             return ADMIN_BYPASS
+        if sets_auto(args):  # auto-merge waits on the main ruleset itself (Craig, 14 Nov 2026, #2032: left alone)
+            continue
         try:
             repo, number = _target(args, here)
         except (Unread, KeyError, TypeError) as error:
