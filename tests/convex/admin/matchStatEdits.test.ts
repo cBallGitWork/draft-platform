@@ -81,7 +81,7 @@ test.fails("SC-087 S07.11: the admin moves the winning goal from Saka to Havertz
   expect(havertz.points).toBe(havertzBefore.points! + WINNING_GOAL_POINTS);
 });
 
-test.fails("SC-094S07.13: the stats the admin sets by hand for a man missing at full time are the ones he scores from", async () => {
+test.fails("SC-094 S07.13: the stats the admin sets by hand for a man missing at full time are the ones he scores from", async () => {
   await t.run(async (ctx) => {
     const havertz = await ctx.db
       .query("playerMatchStats")
@@ -97,7 +97,7 @@ test.fails("SC-094S07.13: the stats the admin sets by hand for a man missing at 
   expect(await gameweek1Of(HAVERTZ_PLAYER.code)).toMatchObject({ stats: { minutes: 90 }, points: 2 });
 });
 
-test.fails("SC-095S07.13: a commissioner trying to set a man's stats is refused, as the admin sets feed values, and nothing changes", async () => {
+test.fails("SC-095 S07.13: a commissioner trying to set a man's stats is refused, as the admin sets feed values, and nothing changes", async () => {
   const before = await gameweek1Of(SAKA.code);
 
   await expectRefused(

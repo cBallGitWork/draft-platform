@@ -6,18 +6,27 @@
 
 import { expect } from "@playwright/test";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
+import { ASSISTS, GOALS, KEY_PASSES, TACKLES_WON } from "../../convex/scoring/statKeys";
 import { MATCHUP_PATH } from "../../src/frame/menu";
 import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDIPRINTER_TITLE } from "../../src/matchup/words";
 import { DESK } from "../../scripts/viewports.mjs";
 import { previewGameweek, proLeague } from "../../src/shared/preview";
 import { scoringPath } from "../../src/scoring/paths";
+import { PER90_STAT_NAMES } from "../../src/scouting/words";
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A starter of the preview opponent's. */
 const OPPONENTS_STRIKER = "Haaland";
-/** Dense tables' short codes and the full name each gives on hover, as spec/14 (On screen) names them. */
-const SHORT_CODES = { G: "Goals", A: "Assists", CS: "Clean sheet", KP: "Key passes", TW: "Tackles won" };
+/** Dense tables' short codes and the full name each gives on hover, as spec/14 (On screen) names them;
+ *  "Clean sheet" stays singular so "Clean sheets" matches it too. */
+const SHORT_CODES = {
+  G: PER90_STAT_NAMES[GOALS],
+  A: PER90_STAT_NAMES[ASSISTS],
+  CS: "Clean sheet",
+  KP: PER90_STAT_NAMES[KEY_PASSES],
+  TW: PER90_STAT_NAMES[TACKLES_WON],
+};
 
 test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () => {
   test.use({ viewport: DESK });
