@@ -189,7 +189,7 @@ test.describe("League home, My team's Squad tab and the draft room, on the dev s
     await expect(page).toHaveURL((url) => url.pathname === MAIL_PATH);
   });
 
-  test("UI-188 (approved/team-squad README:29-32, spec/12 My team): Saka's row opens his season; Set his role, Player card and the cross do as they say", async ({ page }) => {
+  test(`UI-188 (approved/team-squad README:29-32, spec/12 My team): Saka's row opens his season; ${setRoleWords}, ${playerCardWords} and the cross do as they say`,async ({ page }) => {
     await page.goto(previewUrl(MY_TEAM_SQUAD_PATH, "manager"));
     const open = () => page.getByRole("button", { name: openPanelLabel(SAKA.name), exact: true }).click();
     const panel = page.getByRole("region", { name: SAKA.name, exact: true });
@@ -213,7 +213,7 @@ test.describe("League home, My team's Squad tab and the draft room, on the dev s
     await expect(panel).toHaveCount(0);
   });
 
-  test("UI-190 (approved/draft-room README:36-42): a player's Player card opens his card, Back returns to the live room, and Add to queue queues him", async ({ page }) => {
+  test(`UI-190 (approved/draft-room README:36-42): a player's ${playerCardWords} opens his card, Back returns to the live room, and ${addToQueueWords} queues him`,async ({ page }) => {
     await page.goto(previewUrl(DRAFT_PATH, "manager"));
     const players = page.getByRole("region", { name: new RegExp(`^${PLAYERS_TITLE}`) });
     const select = () => players.getByRole("button", { name: selectLabel(SALAH.name) }).click();
