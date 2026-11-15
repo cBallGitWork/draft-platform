@@ -3,15 +3,12 @@
 // (`gh workflow run verify.yml --ref <branch>`), and a failure opens or comments on the `nightly-ci` issue.
 // A build adds its suite to NIGHTLY_SUITES here, never to the workflow, which builds can't edit (testing plan v3,
 // 14 Nov 2026: #2126, #2132, #2138). Each suite prints its seed, so a failure replays. Every suite runs, a failed one
-// included, and the run fails if any did.
+// included, and the run fails if any did. The fast-check rule tests' long run (`npm run test:rules-long`, #2126) is
+// not one of these: the `nightly` job runs it as its own step just before this script (#2255), so it runs once a night.
 import { spawnSync } from 'node:child_process';
 
 /** Each nightly suite: its name and the command that runs it, as [program, ...arguments]. */
-const NIGHTLY_SUITES = [
-  // #2126: the fast-check rule tests (*.rules.test.ts) at 10,000 runs a property; a failure prints
-  // RULE_TEST_SEED and RULE_TEST_PATH to replay it (tests/support/ruleRuns.ts).
-  { name: 'rule tests, long run', command: ['npm', 'run', 'test:rules-long'] },
-];
+const NIGHTLY_SUITES = [];
 
 if (NIGHTLY_SUITES.length === 0) {
   console.log('No nightly suites yet: a build adds one to NIGHTLY_SUITES in scripts/nightly.mjs.');
