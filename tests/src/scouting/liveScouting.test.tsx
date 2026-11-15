@@ -3,16 +3,17 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import type { PlayersFilters, PlayersSort } from "../../../convex/scouting/playersList";
 import { liveScouting } from "../../../src/scouting/liveScouting";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 import { PALMER, RICE, SAKA } from "../../support/src/scoutingScreen.harness";
+import { GAMEWEEK_12_CLOCK, THURSDAYS_RUN, WEDNESDAY_NOON } from "../../support/src/waiverClock.harness";
 
-const convex = vi.hoisted(() => ({ list: vi.fn(), runs: vi.fn(), compare: vi.fn() }));
+const convex = vi.hoisted(() => ({ list: vi.fn(), clock: vi.fn(), compare: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "scouting/playersList:list": convex.list, "scouting/playersList:firstRuns": convex.runs, "scouting/compare:players": convex.compare },
+    queries: { "scouting/playersList:list": convex.list, "waivers/waiverClock:clockOf": convex.clock, "scouting/compare:players": convex.compare },
   }),
 );
 
@@ -45,28 +46,29 @@ test("it keeps the players the filters keep, in the sort's order, and a new sort
   for (const [asked] of convex.list.mock.calls) expect(asked).toEqual(ask);
 });
 
-test("a player on waivers gets the run that can first take him from scouting/playersList:firstRuns, asked at the minute, so the list isn't asked again (#1467)", () => {
-  const run = { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: 12 };
+const onWaivers = { availability: "onWaivers", position: null, clubCode: null } as const;
+
+test("a player on waivers gets the run that can first take him, judged at the minute from waivers/waiverClock:clockOf asked for the hour, so the list isn't asked again (S08.14)", () => {
+  vi.useFakeTimers({ now: WEDNESDAY_NOON });
   convex.list.mockClear().mockReturnValue({ clubs: [], players: [SAKA, { ...RICE, onWaivers: { claimableFrom: 0 } }, PALMER] });
-  convex.runs.mockClear().mockReturnValue([{ playerCode: RICE.code, firstRun: run }]);
-  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, { availability: "onWaivers", position: null, clubCode: null }, { by: "name", descending: false }, null));
-  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: run } }]);
-  expect(convex.runs).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: expect.any(Number) });
+  convex.clock.mockClear().mockReturnValue(GAMEWEEK_12_CLOCK);
+  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, onWaivers, { by: "name", descending: false }, null));
+  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: THURSDAYS_RUN } }]);
+  expect(convex.clock).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, hour: WEDNESDAY_NOON });
+  vi.useRealTimers();
 });
 
-test("a waiver player keeps his run as the minute turns, while firstRuns answers nothing yet for the new minute (#1777)", () => {
-  vi.useFakeTimers();
-  const run = { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: 12 };
+test("a minute passing asks the waiver clock for the same hour, and a waiver player keeps his run across the hour's turn while the next hour's answer loads (S08.14)", () => {
+  vi.useFakeTimers({ now: WEDNESDAY_NOON });
   convex.list.mockClear().mockReturnValue({ clubs: [], players: [{ ...RICE, onWaivers: { claimableFrom: 0 } }] });
-  let answered: number | undefined;
-  convex.runs.mockClear().mockImplementation(({ now }: { now: number }) => {
-    answered ??= now;
-    return now === answered ? [{ playerCode: RICE.code, firstRun: run }] : undefined;
-  });
-  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, { availability: "onWaivers", position: null, clubCode: null }, { by: "name", descending: false }, null));
+  convex.clock.mockClear().mockImplementation(({ hour }: { hour: number }) => (hour === WEDNESDAY_NOON ? GAMEWEEK_12_CLOCK : undefined));
+  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, onWaivers, { by: "name", descending: false }, null));
   act(() => vi.advanceTimersByTime(MINUTE_MS));
-  expect(convex.runs.mock.lastCall![0].now).not.toBe(answered);
-  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: run } }]);
+  expect(new Set(convex.clock.mock.calls.map(([asked]) => asked.hour))).toEqual(new Set([WEDNESDAY_NOON]));
+  act(() => vi.advanceTimersByTime(HOUR_MS));
+  expect(convex.clock.mock.lastCall![0].hour).toBe(WEDNESDAY_NOON + HOUR_MS);
+  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: THURSDAYS_RUN } }]);
+  vi.useRealTimers();
 });
 
 test("it asks scouting/compare:players for the two codes, and hands on what comes back", () => {

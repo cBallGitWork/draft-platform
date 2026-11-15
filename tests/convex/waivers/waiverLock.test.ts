@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { firstRunTaking, mayFallInLock } from "../../../convex/waivers/waiverLock";
+import { firstRunTaking, mayFallInLock } from "../../../convex/waivers/runsAhead";
 
 // The waiver lock's forecast of a run (#1198, spec/08), pure: whether a run may fall in a
 // gameweek's lock, and the run that can first take a player on waivers.

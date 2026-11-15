@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "convex/react";
 import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { cardActionAt } from "../../convex/waivers/runsAhead";
 import { refusalOf } from "../shared/refusal";
-import { useMinute } from "../shared/useMinute";
+import { useFirstRuns } from "../myTeam/claims/useFirstRuns";
 import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
@@ -15,8 +16,17 @@ export const livePlayerCard: PlayerCardSeam = {
   ...liveShortlist,
   ...liveScouts,
   usePlayerCard: (leagueId, playerCode, now) => useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }),
-  // At the minute, as a query may not read the clock: the run that can first take him moves on with it.
-  useCardAction: (leagueId, playerCode) => useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode, now: useMinute() }),
+  // The action doesn't take the minute: the run that can first take him is worked out here at it
+  // (useFirstRuns.ts, #2008), so it is read again only when it changes.
+  useCardAction: function useCardAction(leagueId, playerCode) {
+    const held = useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode });
+    const firstRunOf = useFirstRuns(leagueId);
+    // Anything but a claim is shown at once; a claim waits for the runs' times.
+    return useMemo(() => {
+      if (held === undefined || held.kind !== "claim") return held;
+      return firstRunOf === undefined ? undefined : cardActionAt(held, firstRunOf);
+    }, [held, firstRunOf]);
+  },
   usePositionRank: (leagueId, playerCode, position) =>
     useQuery(api.playerCard.positionRank.atPosition, position === null ? "skip" : { leagueId, playerCode, position }),
   useWaiverChanges: function useWaiverChanges() {
