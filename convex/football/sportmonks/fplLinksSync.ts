@@ -93,7 +93,7 @@ async function fplRows(ctx: QueryCtx): Promise<LinkRows> {
 }
 
 /** One row's link, null for one the link run hasn't held yet. */
-function linkOf(ctx: QueryCtx, kind: LinkKind, code: number) {
+export function linkOf(ctx: QueryCtx, kind: LinkKind, code: number) {
   return ctx.db
     .query("sportmonksFplLinks")
     .withIndex("by_kind_and_code", (q) => q.eq("kind", kind).eq("code", code))
