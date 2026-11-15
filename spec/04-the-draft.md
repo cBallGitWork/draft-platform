@@ -239,10 +239,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - An undo or pick-for while the draft is paused sends the next manager's "you're up next" at
     once, with no deadline: "You're up next. The draft is paused; your clock starts when it
     resumes." Resume still sends none (Craig, 11 Nov 2026, on #1461: "Accept all"). `S04.14`
-  - The commissioner putting the teams in draft order, drawing it at random (each draw), setting
-    or clearing the start date, and marking or unmarking a team "I'll pick for this one" each send
-    a letter to the whole league, as every commissioner action does (`spec/15`; Craig, 15 Nov
-    2026, on #2149: "All four actions file a letter"). `S04.31`
+- The commissioner putting the teams in draft order, drawing it at random (each draw), setting or
+  clearing the start date, and marking or unmarking a team "I'll pick for this one" each send a
+  letter to the whole league, as every commissioner action does (`spec/15`; Craig, 15 Nov 2026,
+  on #2149: "All four actions file a letter"). `S04.31`
 
 ## The commissioner
 

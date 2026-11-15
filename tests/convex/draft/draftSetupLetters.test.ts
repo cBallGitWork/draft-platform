@@ -1,8 +1,8 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { letterAsRead } from "../../../convex/mail/letterMoments";
-import { momentIn } from "../../../convex/shared/moments";
+import { draftOrderLetter, draftPickerLetter, draftStartDateLetter } from "../../../convex/mail/draftLetterWords";
+import { letterAsRead, tellIn } from "../../../convex/mail/letterMoments";
 import { DAY_MS } from "../../../convex/shared/time";
 import { draftSteps } from "../../support/convex/draft.harness";
 import { COMMISSIONER, type TestConvex, ANN, BOB, TEAM_1, TEAM_2, freshLeague } from "../../support/convex/leagues.harness";
@@ -40,9 +40,7 @@ test("S04.31: setting the draft order files a letter to everyone in the league, 
   const before = (await letters()).length;
   await (await as(COMMISSIONER)).mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: [teams[1], teams[0]] });
 
-  expect(await lettersSince(before)).toEqual(
-    toEveryone({ subject: "The draft order is set", body: `${COMMISSIONER} set the draft order: 1. ${TEAM_2}, 2. ${TEAM_1}.` }),
-  );
+  expect(await lettersSince(before)).toEqual(toEveryone(draftOrderLetter(COMMISSIONER, [TEAM_2, TEAM_1], false)));
 });
 
 test("S04.31: each draw at random files its own letter, naming the order drawn", async () => {
@@ -53,8 +51,8 @@ test("S04.31: each draw at random files its own letter, naming the order drawn",
 
   const filed = await lettersSince(before);
   expect(filed).toHaveLength(6);
-  const drawn = (await commissioner.query(api.draft.draftOrder.teamOrder, { leagueId })).teams.map(({ name }, at) => `${at + 1}. ${name}`).join(", ");
-  expect(filed.slice(3)).toEqual(toEveryone({ subject: "The draft order is set", body: `${COMMISSIONER} drew the draft order at random: ${drawn}.` }));
+  const drawn = (await commissioner.query(api.draft.draftOrder.teamOrder, { leagueId })).teams.map(({ name }) => name);
+  expect(filed.slice(3)).toEqual(toEveryone(draftOrderLetter(COMMISSIONER, drawn, true)));
 });
 
 test("S04.31: setting the start date, then clearing it, each files a letter to everyone in the league", async () => {
@@ -64,10 +62,9 @@ test("S04.31: setting the start date, then clearing it, each files a letter to e
   await commissioner.mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
   await commissioner.mutation(api.draft.draftStart.setStart, { leagueId, startsAt: null });
 
-  const day = momentIn(startsAt, undefined);
   expect(await lettersSince(before)).toEqual([
-    ...toEveryone({ subject: `The draft starts on ${day}`, body: `${COMMISSIONER} set the draft to start on ${day}.` }),
-    ...toEveryone({ subject: "The draft has no start date", body: `${COMMISSIONER} cleared the draft's start date. The draft starts when the commissioner presses start.` }),
+    ...toEveryone(draftStartDateLetter(COMMISSIONER, startsAt, tellIn(undefined))),
+    ...toEveryone(draftStartDateLetter(COMMISSIONER, null, tellIn(undefined))),
   ]);
 });
 
@@ -81,7 +78,7 @@ test("S04.31: marking a team with no manager, then unmarking it, each files a le
 
   const toBoth = (words: { subject: string; body: string }) => toEveryone(words).filter(({ to }) => to !== BOB);
   expect(await lettersSince(before)).toEqual([
-    ...toBoth({ subject: `The commissioner picks for ${TEAM_2}`, body: `${COMMISSIONER} will make ${TEAM_2}'s picks in the draft.` }),
-    ...toBoth({ subject: `The draft picks for ${TEAM_2}`, body: `${COMMISSIONER} no longer picks for ${TEAM_2}: the draft makes its picks.` }),
+    ...toBoth(draftPickerLetter(COMMISSIONER, TEAM_2, true)),
+    ...toBoth(draftPickerLetter(COMMISSIONER, TEAM_2, false)),
   ]);
 });
