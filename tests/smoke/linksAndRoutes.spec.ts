@@ -15,6 +15,7 @@ import { inviteLinkWords, joinPageWords } from "../../src/joining/words";
 import { gameweekWords, nextLabel, openBreakdownLabel, previousLabel } from "../../src/matchup/words";
 import { otherTeamPath } from "../../src/myTeam/paths";
 import { previewSquad } from "../../src/myTeam/tactics/preview";
+import { setRoleWords } from "../../src/myTeam/squad/words";
 import { closeSelectedLabel, pitchLabel, playerOnPitchLabel } from "../../src/myTeam/tactics/words";
 import { joinPath } from "../../convex/joining/joiningShared";
 import { playerCardPath } from "../../src/playerCard/paths";
@@ -68,7 +69,7 @@ test.describe("links and routes, on the dev server's preview", { tag: "@dev" }, 
     await expect(page.getByRole("navigation", { name: gameweekWords(gameweek) })).toBeVisible();
   });
 
-  test("UI-093 (flow.md:117-118): a manager on League home clicks Read the recap, then Back to League home", async ({ page }) => {
+  test(`UI-093 (flow.md:117-118): a manager on League home clicks ${readRecapLink}, then ${backHomeLink}`, async ({ page }) => {
     await page.goto(previewUrl(HOME_PATH, "manager"));
     await page.getByRole("link", { name: readRecapLink, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === RECAP_PATH);
@@ -77,7 +78,7 @@ test.describe("links and routes, on the dev server's preview", { tag: "@dev" }, 
     await expect(page.getByRole("link", { name: readRecapLink, exact: true })).toBeVisible();
   });
 
-  test("UI-094 (flow.md:119-120, home README News): a manager on League home clicks More, on News, then the pinned letter, and lands in Mail", async ({ page }) => {
+  test(`UI-094 (flow.md:119-120, home README News): a manager on League home clicks ${moreOnNewsLink}, then the pinned letter, and lands in Mail`, async ({ page }) => {
     await page.goto(previewUrl(HOME_PATH, "manager"));
     await page.getByRole("link", { name: moreOnNewsLink, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === HOME_NEWS_PATH);
@@ -158,7 +159,7 @@ test.describe("links and routes, on the dev server's preview", { tag: "@dev" }, 
 
   // Selecting him on the pitch opens his role card and leaves the address as it is, so only a
   // selection the address names comes back after a refresh: the one Set his role opens (spec/12).
-  test("UI-105 (spec/12 My team, Set his role): a refresh of Tactics opened with Saka selected reopens it with him selected and the lineup unchanged", async ({ page }) => {
+  test(`UI-105 (spec/12 My team, ${setRoleWords}): a refresh of Tactics opened with Saka selected reopens it with him selected and the lineup unchanged`, async ({ page }) => {
     const saka = previewSquad.find(({ name }) => name === SAKA.name)!;
     await page.goto(previewUrl(`${MY_TEAM_PATH}?player=${saka.playerCode}`, "manager"));
     const close = page.getByRole("button", { name: closeSelectedLabel(SAKA.name) });

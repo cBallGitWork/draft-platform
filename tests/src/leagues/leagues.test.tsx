@@ -108,7 +108,7 @@ describe("someone signed in, in no league", () => {
 
 describe("the regression catalogue's empty states (#2306)", () => {
   // On main the admin sees the not-in-a-league words above Create a league, not in their place
-  // (#2306 says so): marked to fail until Craig says which spec/02's "instead" means.
+  // (#2306 says so): marked to fail until Craig says which spec/02's "instead" means (#2358).
   it.fails("UI-142 (spec/02 Signed in but in no league): the admin in no league opening /leagues sees Create a league in place of the not-in-a-league words", async () => {
     openApp(LEAGUES_PATH, admin);
     expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
