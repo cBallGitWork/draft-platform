@@ -225,6 +225,7 @@ import type * as positions_positionWarnings from "../positions/positionWarnings.
 import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as positions_unplacedAreas from "../positions/unplacedAreas.js";
+import type * as release_serverTime from "../release/serverTime.js";
 import type * as release_version from "../release/version.js";
 import type * as rules_deadlineDefaultBackfill from "../rules/deadlineDefaultBackfill.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
@@ -648,6 +649,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positions": typeof positions_positions;
   "positions/positionsSync": typeof positions_positionsSync;
   "positions/unplacedAreas": typeof positions_unplacedAreas;
+  "release/serverTime": typeof release_serverTime;
   "release/version": typeof release_version;
   "rules/deadlineDefaultBackfill": typeof rules_deadlineDefaultBackfill;
   "rules/firstRules": typeof rules_firstRules;
