@@ -3,9 +3,9 @@ import { useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
 import { pendingClaimsAt } from "../../../convex/waivers/runsAhead";
 import { refusalOf } from "../../shared/refusal";
+import { useFirstRuns } from "../../shared/useFirstRuns";
 import { useMinute } from "../../shared/useMinute";
 import type { ClaimChanges, ClaimsSeam } from "./seam";
-import { useFirstRuns } from "./useFirstRuns";
 import { claimFailedWords } from "./words";
 
 /** The claims' seam filled in by Convex. A refusal comes back as the server's own words

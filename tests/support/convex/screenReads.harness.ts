@@ -30,7 +30,7 @@ export async function leagueSettingsOf(caller: Caller, leagueId: Id<"leagues">, 
 }
 
 /** The run that can first take a player, judged at `now` from the hour's waiver clock, as `caller`
- *  reads it (src/myTeam/claims/useFirstRuns.ts, #2008). */
+ *  reads it (src/shared/useFirstRuns.ts, #2008). */
 export async function firstRunsOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
   return firstRunsAt(await caller.query(api.waivers.waiverClock.clockOf, { leagueId, hour: clockHourOf(now) }), now);
 }

@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { cardActionAt } from "../../convex/waivers/runsAhead";
 import { refusalOf } from "../shared/refusal";
-import { useFirstRuns } from "../myTeam/claims/useFirstRuns";
+import { useFirstRuns } from "../shared/useFirstRuns";
 import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
