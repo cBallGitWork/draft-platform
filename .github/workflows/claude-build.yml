@@ -92,7 +92,7 @@ jobs:
         --model claude-opus-5-5
         --effort medium
         --max-turns 150
-        --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git rm:*),Bash(git mv:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue create:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh pr checks:*),Bash(gh run view:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr ready:*),Bash(git ls-remote:*),Bash(git fetch:*),Bash(git merge:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
+        --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git rm:*),Bash(git mv:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue create:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh pr checks:*),Bash(gh run view:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr ready:*),Bash(git ls-remote:*),Bash(git fetch:*),Bash(git merge:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*),Bash(cmp:*)"
         --disallowedTools "Bash(gh pr merge:*),Bash(gh pr edit:*--remove-label*),Bash(gh api:*),Bash(git push --force:*),Edit(.github/**),Write(.github/**),Edit(.claude/**),Write(.claude/**),Edit(CLAUDE.md),Write(CLAUDE.md),ScheduleWakeup,CronCreate,CronDelete,Monitor,RemoteTrigger"
       BUILD_PROMPT: |
         Build GitHub issue #${{ inputs.issue || github.event.issue.number }} in this repository: read it with `gh issue view ${{ inputs.issue || github.event.issue.number }} --comments`.
@@ -114,7 +114,7 @@ jobs:
         Open the pull request with the repo's template (.github/pull_request_template.md): `## What` in a few plain lines, then `Closes #${{ inputs.issue || github.event.issue.number }}` alone on its line, so the issue closes when it merges; only when the issue names work this pull request leaves undone, `Part of #${{ inputs.issue || github.event.issue.number }}` instead, and say in `## What` what is left. No label is needed: lane-auto.yml approves it and this job turns on auto-merge.
         A leftover is its own issue, never only a sentence in a comment or a pull request (13 Nov 2026: 17 issues sat open on leftovers nobody owned). Whatever you find that this run leaves undone and someone must still do: a change in `.github/`, `.claude/` or CLAUDE.md, a run on a deployment, a picture, Craig's check or decision, a follow-up the issue names. For each, search first (`gh issue list --state open --search "<key words> in:title"`); if none covers it, file it: `gh issue create --title "<what is wrong or wanted, plain words>" --label <owner> --body "<what, where (files), why, and Part of #${{ inputs.issue || github.event.issue.number }}>"`, the owner `lane:session` for work in `.github/`, `.claude/`, CLAUDE.md or on a deployment, `lane:craig` for his check, decision or a picture. At most 5 a run; name each in your final comment or pull request.
         Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
-        This run is headless: it ends for good the moment you end a turn, and anything still running dies with it. Never start a background command or agent, or end a turn to wait for one; run each subagent (ui-verifier included) in the foreground and use its answer in the same run.
+        This run is headless: it ends for good the moment you end a turn, and anything still running dies with it. Never start a background command or agent, or end a turn to wait for one; run each subagent (ui-verifier included) in the foreground and use its answer in the same run. The ui-verifier needs no server of its own: this job started this checkout's app and origin/main's in `../main-app` before you ran.
     steps:
       - name: Refuse an issue number that is not a number
         run: '[[ "$ISSUE" =~ ^[0-9]+$ ]]'
@@ -163,6 +163,31 @@ jobs:
           cache: npm
       - if: steps.gate.outputs.go == 'true'
         run: npm ci
+      # The ui-verifier's two apps, started here because the headless build can't start a background server (#2162:
+      # `&` and a log redirect both need approval, so every row came back UNVERIFIED). This checkout's on its own port
+      # (scripts/port.mjs), which follows the builder's branch as it edits, and origin/main's in ../main-app, on that
+      # folder's port, for the agent's unchanged-from-main check. Vite's dev server alone, never Convex, as
+      # .claude/agents/ui-verifier.md says. A server that won't start costs the build nothing: the verifier says
+      # UNVERIFIED, as before.
+      - name: Start the apps the ui-verifier shoots
+        if: steps.gate.outputs.go == 'true'
+        continue-on-error: true
+        env:
+          MAIN_APP: ${{ github.workspace }}/../main-app
+          PID_DIR: ${{ runner.temp }}
+          VITE_CONVEX_URL: ""  # no deployment, as the smoke run (playwright.config.ts)
+        run: |
+          git worktree add --detach "$MAIN_APP" origin/main
+          cp -al node_modules "$MAIN_APP/node_modules"  # hard links: main's lock is the one npm ci just installed
+          serve() {  # serve <folder> <name>: Vite on the folder's own port, its pid and log in PID_DIR
+            local port
+            port=$(cd "$1" && node scripts/port.mjs)
+            (cd "$1" && nohup npx vite --port "$port" --strictPort > "$PID_DIR/$2.log" 2>&1 & echo $! > "$PID_DIR/$2.pid")
+            for _ in $(seq 60); do curl -sf -o /dev/null "http://localhost:$port/" && { echo "$2 app on $port"; return 0; }; sleep 1; done
+            echo "::warning::The $2 app didn't answer on $port; the ui-verifier will say UNVERIFIED."; cat "$PID_DIR/$2.log"
+          }
+          serve . branch
+          serve "$MAIN_APP" main
       - id: subscription
         if: steps.gate.outputs.go == 'true'
         continue-on-error: true
@@ -366,6 +391,11 @@ jobs:
               "",
               "Last message: \(($r.result // "none") | tostring | split("\n")[0] | .[0:300])"
           ' "$file" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Stop the apps the ui-verifier shot
+        if: always()
+        env:
+          PID_DIR: ${{ runner.temp }}
+        run: for pid in "$PID_DIR"/*.pid; do [ -e "$pid" ] && kill "$(cat "$pid")" 2>/dev/null; done; true
       # continue-on-error keeps the subscription step's failure off the job, so a real failure is turned red here
       - name: Fail when the build failed
         if: steps.subscription.outcome == 'failure' && steps.decide.outputs.finished != 'true'
