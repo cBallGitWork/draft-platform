@@ -33,6 +33,11 @@ server you didn't start, and never 5173: another worktree's app may be on it, an
 would be passed off as this branch's. If the port is taken, say so and stop. Stop the server
 when you are done.
 
+**In a build** (`claude-build.yml`; `node -e "console.log(!!process.env.GITHUB_ACTIONS)"` prints
+`true`), start nothing: the headless run refuses a background server (#2162), so the workflow has
+already started this checkout's app on its port and origin/main's in `../main-app` on that folder's.
+Shoot them as they are; if one doesn't answer, its rows are UNVERIFIED.
+
 **2. Shoot 1440, every route the change could reach.**
 
 ```bash
@@ -44,7 +49,10 @@ It uses the Mac's Chrome, and prints for each width where the page landed and wh
 sideways, and at 390 every tap under the tap size (`--spacing-tap`; plate.md, The phone):
 measured, not eyeballed. The phone waits until Craig asks (CLAUDE.md, Decided), so shoot 390
 (`--phone`) only when your caller asks for it. The smoke run in CI still loads each built screen
-at 390 and fails on sideways scroll or a tap under the tap size (`tests/smoke/smoke.spec.ts`).
+at 390 and fails on sideways scroll or a tap under the tap size, and at 1440 lists plate.md's
+look-rule breaks as notes that never fail (`tests/smoke/builtScreens.spec.ts`,
+`tests/support/smoke/lookRules.ts`). Each shot opens on the smoke run's fixed clock in Europe/London
+(`scripts/fixedClock.mjs`), so dates and countdowns are the same in every run.
 
 - **A visitor** sees only the sign-in page: shoot `/`.
 - **A manager**: add `?preview=manager` (`src/app/preview.ts`): the signed-in frame with made-up
@@ -66,7 +74,8 @@ Differences in the made-up figures themselves don't count. No difference is a fi
 
 First, though, check whether this branch changed the screen at all. A branch often reaches a screen
 only through an import (a shared words file), and nothing it draws changes. Shoot the route on main
-too, from a worktree of `origin/main` on its own port, and compare the two 1440 PNGs byte for byte
+too, from a worktree of `origin/main` on its own port (in a build, `node ../main-app/scripts/shoot.mjs
+<route> <name>`, which writes into `../main-app/.shots/`), and compare the two 1440 PNGs byte for byte
 (`cmp`). If they are identical, write "<route>: unchanged from main" and list no differences: the
 ones main already has aren't this branch's, and listing them puts them on its record for the reskin
 (Craig, 4 Nov 2026, on #1128). If they differ at all, compare with the picture as above.
