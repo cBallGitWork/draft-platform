@@ -145,7 +145,7 @@ describe("S14.27 a sending-off for a second yellow costs what a straight red doe
     return { cards: cards.reduce((sum, points) => sum + points, 0), total };
   };
 
-  test("S14.27 -3 in all under the first scoring set, not -4", () => {
+  test("S14.27 -3 in all under FIRST_SCORING, not -4", () => {
     expect(cardsIn({ [YELLOW_CARDS]: 1, [RED_CARDS]: 1, [SECOND_YELLOWS]: 1 })).toEqual({ cards: -3, total: cardsIn({ [RED_CARDS]: 1 }).total });
   });
 
