@@ -23,7 +23,7 @@ import { waiverLeague, type WaiverLeague } from "../../support/convex/waivers.ha
 
 const NEWS = "news" as Feed;
 /** Ann's player, the catalogue's Saka. */
-const SAKA = STARTERS[0];
+const ANNS_PLAYER = STARTERS[0];
 
 let w: WaiverLeague;
 beforeEach(async () => {
@@ -51,37 +51,37 @@ const cardOf = async (email: string, playerCode: number) => {
 };
 
 test.fails("BG-223 S21.1 S21.2: the card's News holds his three latest notes, newest first, each with its date and link", async () => {
-  for (const hoursAgo of [5, 1, 4, 2, 3]) await writeNote(SAKA, hoursAgo);
+  for (const hoursAgo of [5, 1, 4, 2, 3]) await writeNote(ANNS_PLAYER, hoursAgo);
 
-  const notes = (await cardOf(ANN, SAKA))?.notes;
+  const notes = (await cardOf(ANN, ANNS_PLAYER))?.notes;
   expect(notes?.map(({ text }) => text)).toEqual(["Note 1", "Note 2", "Note 3"]);
   for (const note of notes ?? []) expect(note).toEqual(expect.objectContaining({ at: expect.any(Number), source: expect.stringMatching(/^https:/) }));
 });
 
 test.fails("BG-224 S21.5: only the admin hides a note, and a hidden note is gone from the card", async () => {
-  const noteId = await writeNote(SAKA, 1);
+  const noteId = await writeNote(ANNS_PLAYER, 1);
 
   await expectRefused(hideNote(await actingAs(w.t, ANN), noteId), refusals.notAdmin);
   await hideNote(await asAdmin(w.t), noteId);
-  expect((await cardOf(ANN, SAKA))?.notes).toEqual([]);
+  expect((await cardOf(ANN, ANNS_PLAYER))?.notes).toEqual([]);
 });
 
 test.fails("BG-225 S21.3: one Mail letter for real news about a player in your squad; none for another squad's or for a match note", async () => {
-  await writeNote(SAKA, 1);
+  await writeNote(ANNS_PLAYER, 1);
   await writeNote(PALMER, 1);
-  await writeNote(SAKA, 2, "match");
+  await writeNote(ANNS_PLAYER, 2, "match");
 
-  const letters = (await w.lettersTo(ANN)).filter(({ subject, body }) => `${subject} ${body}`.includes(nameOf(SAKA)) || `${subject} ${body}`.includes(nameOf(PALMER)));
+  const letters = (await w.lettersTo(ANN)).filter(({ subject, body }) => `${subject} ${body}`.includes(nameOf(ANNS_PLAYER)) || `${subject} ${body}`.includes(nameOf(PALMER)));
   expect(letters).toHaveLength(1);
-  expect(letters[0].subject).toContain(nameOf(SAKA));
+  expect(letters[0].subject).toContain(nameOf(ANNS_PLAYER));
 });
 
 test.fails("BG-227 S21.4: a news job stalled three hours shows late on the feeds page, and the card keeps its last notes", async () => {
   const now = Date.now();
-  await writeNote(SAKA, 4);
+  await writeNote(ANNS_PLAYER, 4);
   await recordRun(w.t, NEWS, now - 3 * HOUR_MS);
   vi.setSystemTime(now);
 
   expect((await feedAt(w.t, NEWS, now)).state).toBe("late");
-  expect((await cardOf(ANN, SAKA))?.notes).toHaveLength(1);
+  expect((await cardOf(ANN, ANNS_PLAYER))?.notes).toHaveLength(1);
 });
