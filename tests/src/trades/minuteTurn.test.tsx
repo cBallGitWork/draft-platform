@@ -5,7 +5,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { menuWords } from "../../../src/shared/words";
@@ -31,8 +31,12 @@ vi.mock("convex/react", async () =>
   }),
 );
 
+/** Just past a minute's start, so the real time the test takes (the fake clock advances with it)
+ *  never carries it over into a third minute. */
+const START = Date.parse("2026-11-14T12:00:00Z") + SECOND_MS;
+
 beforeEach(() => {
-  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.useFakeTimers({ shouldAdvanceTime: true, now: START });
   convex.ofMyTeam.mockReset();
 });
 afterEach(() => vi.useRealTimers());
