@@ -112,6 +112,13 @@ env:
   STOPPED_HOURS: 24  # how long a build that stopped without a pull request waits before it is tried again
   STUCK_HOURS: 3  # how long a builder pull request may stay red after its fix round before it is closed
   STUCK_LABEL: "lead:stuck"
+  # main is red: CI runs on pull requests and nightly, never on every merge (Craig, 4 Nov 2026), so two merges that
+  # clash leave main red unseen and every open pull request burns its one fix round on main's bug, then closes stuck
+  # (12 Nov 2026: eight branches red at once, four closed stuck). When MAIN_CHECK_RED or more builder pull requests
+  # are red, the lead runs verify.yml on main once for that commit; while main's run is red it gives no red pull
+  # request a fix round or a stuck close, and files one MAIN_RED_TITLE issue, labelled to build first
+  MAIN_CHECK_RED: 2
+  MAIN_RED_TITLE: "Main is red: verify fails on main"
   REVIEW_STARTED_LABEL: "lead:review-started"  # the lead started review.yml for this pull request, whose own never ran
   REVIEW_WAIT_MINUTES: 30  # how long a ready pull request may go with no review before the lead starts one
   CONFLICT_LABEL: "lead:conflict-round"  # the lead gave this builder pull request a round for main's conflicts
@@ -215,6 +222,7 @@ jobs:
           DISPATCH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
           # here, not in the workflow's env, which can't read another env value
           SWEEP: ${{ github.event.schedule == env.SWEEP_CRON || inputs.sweep == true }}
+          MAIN: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           # builds run from the lead's own ref, so a branch's lead dispatches that branch's claude-build.yml
@@ -271,6 +279,29 @@ jobs:
           jq_defs='def builder: (.isDraft | not) and .author.login != env.OWNER;
             def red: any(.statusCheckRollup[]?; (.name | IN(env.RED_CHECKS | split(" ")[])) and .conclusion == "FAILURE");'
 
+          # is main red? Checked once per main commit, only once MAIN_CHECK_RED builder pull requests are red (env block)
+          main_red=false
+          red_prs=$(jq "$jq_defs"'[.[] | select(builder) | select(red)] | length' <<<"$prs")
+          main_sha=$(gh api "repos/$GH_REPO/commits/$MAIN" --jq .sha)
+          main_run=$(gh run list --workflow verify.yml --branch "$MAIN" --commit "$main_sha" --limit 10 --json event,status,conclusion,url \
+                       --jq '[.[] | select(.event != "pull_request")][0] // {} | "\(.status // "none") \(.conclusion // "-") \(.url // "-")"')
+          read -r main_status main_conclusion main_url <<<"$main_run"
+          if [ "$main_status" = completed ] && [ "$main_conclusion" = failure ]; then
+            main_red=true
+            echo "::warning::Main is red ($main_url): no fix rounds or stuck closes for red pull requests until it is green"
+            halt_line="${halt_line}**Main is red** ($main_url): red pull requests wait for it, with no fix round or stuck close."$'\n\n'
+            main_issue=$(gh issue list --state open --search "\"$MAIN_RED_TITLE\" in:title" --json number,title \
+                           --jq '[.[] | select(.title == env.MAIN_RED_TITLE)][0].number // empty')
+            if [ -z "$main_issue" ]; then
+              echo "Filing: $MAIN_RED_TITLE"
+              [ "$DRY_RUN" = true ] || gh issue create --title "$MAIN_RED_TITLE" --label "$AUTO_LABEL" --label "$NEXT_LABEL" \
+                --body "verify.yml fails on main at $main_sha: $main_url. Two merges likely clashed. Fix main itself, in one pull request; red builder pull requests wait for it. Filed by the lead." > /dev/null
+            fi
+          elif [ "$main_status" = none ] && [ "$red_prs" -ge "$MAIN_CHECK_RED" ]; then
+            echo "$red_prs builder pull requests are red: checking main at $main_sha"
+            [ "$DRY_RUN" = true ] || GH_TOKEN="$DISPATCH_TOKEN" gh workflow run verify.yml --ref "$MAIN" || echo "::warning::couldn't start verify on main: the next pass tries again"
+          fi
+
           # each fix run's issue and start time ("N 2026-11-07T20:15:26Z"), to tell whether one ran since a head's last commit
           fix_runs=$(gh run list --workflow claude-build.yml --limit 200 --json displayTitle,createdAt \
                        --jq '.[] | select(.displayTitle | startswith("fix #")) | "\(.displayTitle | ltrimstr("fix #")) \(.createdAt)"')
@@ -296,7 +327,8 @@ jobs:
             last=$(head_date "$pr")
             [ "$(date -u -d "$last" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
             case $kind in
-              red) why="still red ${STUCK_HOURS} hours after its one fix round" ;;
+              red) [ "$main_red" = false ] || continue  # main's own failure, not its
+                why="still red ${STUCK_HOURS} hours after its one fix round" ;;
               conflict)  # stuck only once a conflict round, not a review round, ran on this head and left it (1b)
                 { [ "$rounded" = true ] && fixed_since "$n" "$last"; } || continue
                 why="still conflicting with main after a round to resolve it" ;;
@@ -322,6 +354,7 @@ jobs:
             [ "$slots" -gt 0 ] || break
             IFS=: read -r pr red n <<<"$row"
             [ -n "$n" ] || continue
+            [ "$red" = true ] && [ "$main_red" = true ] && continue  # its round would only meet main's own failure
             if [ "$red" != true ]; then
               # its review's verdict, read as review-gate.yml reads it (#1570): the last comment signed REVIEWER_SIGNATURE,
               # its own **Verdict:** line only (the brief's template names both), any case, and "fine to merge" wins.

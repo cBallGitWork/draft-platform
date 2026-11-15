@@ -42,14 +42,14 @@ export const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
 const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
-const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
+const DRAW_DEFAULTS = { gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
 
 /** The head-to-head schedule `drawn` says for `teams`, made in this order: none in total points.
  *  The draw hangs on the teams' order, never on what they are, so League home's preview draws it
  *  by name and plays the table's fixtures (#1969). */
 export function drawnSchedule<Team>(teams: readonly Team[], drawn: Drawn = {}): GameweekFixtures<Team>[] {
-  const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
-  return gameModeOf({ format: drawn.format ?? "headToHead" }).hasMatchups ? drawFixtures(teams, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const { gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
+  return gameModeOf({ format: drawn.format ?? "headToHead" }).hasMatchups ? drawFixtures(teams, gameweeks, () => ({ gamesPerGameweek }), seed) : [];
 }
 
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the

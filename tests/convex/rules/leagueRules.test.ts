@@ -134,13 +134,10 @@ describe("a commissioner's change", () => {
     },
   );
 
-  test("the odd team out is changed like any other rule, and only to a bye or the league's average", async () => {
+  test("S03.4: the odd team out is no rule, so a save naming a bye is refused", async () => {
     const leagueId = await adminCreatesLeague(t);
-    await change(leagueId, rulesWith({ oddTeamOut: "bye" }));
-    expect((await latestRules(t, leagueId))?.rules.oddTeamOut).toBe("bye");
-
-    const unknown = { ...FIRST_RULES, oddTeamOut: "sitOut" } as unknown as LeagueRules;
-    await expect(change(leagueId, unknown)).rejects.toThrow(/sitOut/);
+    const withBye = { ...FIRST_RULES, oddTeamOut: "bye" } as unknown as LeagueRules;
+    await expect(change(leagueId, withBye)).rejects.toThrow(/oddTeamOut/);
   });
 
   test("games a gameweek are changed like any other rule, and refused, with the reason, below 1", async () => {

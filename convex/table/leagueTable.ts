@@ -58,7 +58,8 @@ const gameweekFixtures = v.object({
   /** Each with its opponent's own id too, null for the league's average: a commissioner's fixture
    *  swap names both sides of each game (spec/09, Fixture edits). */
   fixtures: v.array(v.object({ ...scoredFixture.fields, opponentId: v.union(v.id("teams"), v.null()) })),
-  /** The teams with a bye, in a league whose odd team out has one: one a game. */
+  /** The teams with a bye, one a game: only in a gameweek played before Craig dropped the bye
+   *  (S03.4). */
   byes: v.array(v.string()),
 });
 

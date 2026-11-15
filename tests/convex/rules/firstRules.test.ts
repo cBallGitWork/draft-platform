@@ -79,6 +79,7 @@ test.each(NO_DEFENSIVE_CONTRIBUTION)("the first scoring set gives nothing for de
 });
 
 test("the team left over plays the league's average, one game a gameweek, in the first rules", () => {
-  expect(drawRulesOf(FIRST_RULES)).toEqual({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 });
-  expect(drawRulesOf({ ...FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 })).toEqual({ oddTeamOut: "bye", gamesPerGameweek: 2 });
+  // The league's average is no rule (S03.4): the draw always plays it (roundRobin.test.ts).
+  expect(drawRulesOf(FIRST_RULES)).toEqual({ gamesPerGameweek: 1 });
+  expect(drawRulesOf({ ...FIRST_RULES, gamesPerGameweek: 2 })).toEqual({ gamesPerGameweek: 2 });
 });

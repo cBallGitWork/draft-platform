@@ -2,11 +2,11 @@ import { expect, expectTypeOf, test } from "vitest";
 import type { DeadlineRule } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { lineupProblems, type LineupRules } from "../../../convex/lineup/lineup";
-import { heldRules, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import { heldChanges, heldRules, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { FIRST_PRESETS, type Preset } from "../../../convex/lineup/presets";
-import type { DrawRules, OddTeamOut } from "../../../convex/table/roundRobin";
+import type { DrawRules } from "../../../convex/table/roundRobin";
 import { scoreGameweek, scoreMatch } from "../../../convex/scoring/scoring";
 import type { DoubleGameweekRule } from "../../../convex/scoring/values";
 import { centreOf } from "../../support/convex/scoring.example";
@@ -31,7 +31,6 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["deadline"]>().toEqualTypeOf<DeadlineRule>();
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
   expectTypeOf<LeagueRules["tieBreaks"]>().toEqualTypeOf<TieBreak[]>();
-  expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut>();
   expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawRules["gamesPerGameweek"]>();
 });
 
@@ -79,6 +78,11 @@ test("rules saved with the draft order's dropped switch (#1087 to #1089) are hel
 test("rules saved with a preset's dropped centre role (#988 to #1159) are held without it", () => {
   const [first, ...rest] = FIRST_RULES.presets;
   expect(heldRules({ ...FIRST_RULES, presets: [{ ...first, centreRole: "sweeper" }, ...rest] })).toEqual(FIRST_RULES);
+});
+
+test("S03.4: rules and changes saved with the dropped oddTeamOut setting are held without it", () => {
+  expect(heldRules({ ...FIRST_RULES, oddTeamOut: "bye" })).toEqual(FIRST_RULES);
+  expect(heldChanges({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toEqual({ gamesPerGameweek: 2 });
 });
 
 test("the first rules' presets are the ones every league starts with", () => {

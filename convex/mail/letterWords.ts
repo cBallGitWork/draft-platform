@@ -181,9 +181,10 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 /** A match as a letter names it: "Arsenal v Chelsea". */
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
 
-/** Each part of a league's rules as a letter names it, and the scoring, which letters filed before
- *  it became the site's (#354) name. */
-const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
+/** Each part of a league's rules as a letter names it, the scoring, which letters filed before it
+ *  became the site's (#354) name, and the odd team out, which those filed before the bye was
+ *  dropped (S03.4) do. */
+const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring" | "oddTeamOut", string> = {
   format: "format",
   squad: "squad limits",
   areaLimits: "limits on the pitch",
