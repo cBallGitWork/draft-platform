@@ -1,0 +1,94 @@
+# Mutation testing once a week (#2189): `npm run mutation -- <file>` (Stryker, stryker.config.mjs, scripts/mutation.mjs)
+# plants small changes in each scoring and draft file below, runs its own folder's tests, and lists every change no
+# test caught. Each surviving change is posted on the `mutation-weekly` issue with its file:line and the nearest spec
+# answer ID cited above that line in the source, which a missing test would likely cite. Read, never gated: no ruleset
+# requires it and the score is never a target (docs/PHILOSOPHY.md). It goes red only when a run itself breaks.
+# About 8 min a week: npm ci, then values.ts 67s, priced.ts 33s and snakeOrder.ts 268s (#2173, 14 Nov 2026).
+name: mutation
+
+on:
+  schedule:
+    - cron: '0 5 * * 0'  # 05:00 UTC on Sundays
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation
+  cancel-in-progress: false
+
+env:
+  MUTATION_FILES: convex/scoring/values.ts convex/scoring/priced.ts convex/draft/snakeOrder.ts
+  MUTATION_LABEL: mutation-weekly
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Stryker's clear-text report lists each survivor as "[Survived] <mutator>", then "<file>:<line>:<column>",
+      # then the "-" and "+" lines it swapped
+      - name: Plant changes in each file
+        shell: bash
+        run: |
+          : > survivors.md
+          : > broken.txt
+          for file in $MUTATION_FILES; do
+            log="mutation-$(basename "$file" .ts).log"
+            npm run mutation -- "$file" 2>&1 | tee "$log" || echo "$file" >> broken.txt
+            sed -i 's/\x1b\[[0-9;]*m//g' "$log"
+            took=$(grep -oE 'took [0-9]+s' "$log" | tail -1 || true)
+            found=$(awk '
+              /^\[Survived\] / { mutator = substr($0, 12); getline loc; print loc "\t" mutator; next }
+            ' "$log")
+            if [ -z "$found" ]; then
+              echo "- \`$file\` ($took): no survivors" >> survivors.md
+              continue
+            fi
+            echo "- \`$file\` ($took):" >> survivors.md
+            while IFS=$'\t' read -r loc mutator; do
+              line=$(echo "$loc" | cut -d: -f2)
+              id=$(head -n "$line" "$file" | grep -oE '\bS[0-9]{2}\.[0-9]+' | tail -1 || true)
+              swap=$(awk -v loc="$loc" '
+                $0 == loc { on = 1; next }
+                on && /^[-+] / { sub(/^[-+] +/, "", $0); gsub(/`/, "", $0); out = out (out ? " -> " : "") $0; next }
+                on { exit }
+                END { print out }
+              ' "$log")
+              echo "  - \`${loc%:*}\` $mutator: \`$swap\` (${id:-no spec ID cited above it})" >> survivors.md
+            done <<< "$found"
+          done
+          cat survivors.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Post the survivors
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body="Mutation run ($RUN_URL): each file against its own folder's tests. A survivor is a planted change no test caught.
+
+          $(cat survivors.md 2>/dev/null)"
+          if [ -s broken.txt ]; then
+            body="$body
+
+          These runs broke before they finished: $(tr '\n' ' ' < broken.txt)"
+          fi
+          gh label create "$MUTATION_LABEL" --color FBCA04 --description "the weekly mutation run's survivors" --force
+          open=$(gh issue list --label "$MUTATION_LABEL" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "Weekly mutation run: surviving planted changes" --label "$MUTATION_LABEL" --body "$body"
+          fi
+          if [ -s broken.txt ]; then exit 1; fi

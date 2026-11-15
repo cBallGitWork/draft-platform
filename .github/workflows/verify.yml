@@ -9,8 +9,10 @@
 # last commit and opens (or comments on) the `nightly-ci` issue. The jobs named `verify` and `smoke` are the results
 # the ruleset requires: `verify` fails when any job it waits on failed, and a skipped job is not a failure.
 # Beside them, on the nightly and manual runs only, `nightly` runs `npm run nightly`: the suites too long for a pull
-# request (scripts/nightly.mjs, where builds add them). A manual run from a branch runs it too, which is how a change
-# to it is tested. GitHub skips or delays scheduled runs (every one, 5-13 Nov 2026), so the lead starts one, with
+# request (scripts/nightly.mjs, where builds add them), after the rule tests at 10,000 runs a property
+# (`npm run test:rules-long`, #2139); `clicker` runs the random clicker (`npm run clicker`, #2180), in smoke's
+# Playwright image, and a red night's issue names its seed and the screens that failed. A manual run from a branch
+# runs both too, which is how a change to them is tested. GitHub skips or delays scheduled runs (every one, 5-13 Nov 2026), so the lead starts one, with
 # `alert`, when 26 hours pass with none (lead.yml, "The nightly backstop").
 name: verify
 
@@ -200,7 +202,8 @@ jobs:
             test-results/
           retention-days: 7
 
-  # `npm run nightly`: the long suites (scripts/nightly.mjs), never on a pull request
+  # the long rule tests, then `npm run nightly`: the long suites (scripts/nightly.mjs), never on a pull request.
+  # About 3 min a night today (npm ci, then the rule tests, 12s on a Mac); it grows as builds add suites.
   nightly:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -212,15 +215,64 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run nightly
+      # a failure prints its seed, replayed with RULE_TEST_SEED and RULE_TEST_PATH (tests/support/ruleRuns.ts)
+      - run: npm run test:rules-long
+      - if: ${{ !cancelled() }}
+        run: npm run nightly
+
+  # `npm run clicker`: the random clicker round every built screen on preview data (#2138), never on a pull request.
+  # About 8 min a night (6.7 min on 2 workers, 14 Nov 2026). The seed is set here, so the log, the run's summary and
+  # a red night's issue all name it: `CLICKER_SEED=<seed> npm run clicker -g "<screen>"` replays one screen.
+  clicker:
+    needs: changes
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.changes.outputs.playwright_version }}-noble
+    outputs:
+      seed: ${{ steps.seed.outputs.seed }}
+      failed: ${{ steps.failed.outputs.screens }}
+    env:
+      CLICKER_SEED: nightly-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - id: seed
+        run: |
+          echo "seed=$CLICKER_SEED" >> "$GITHUB_OUTPUT"
+          echo "Random clicker seed: \`$CLICKER_SEED\` (replay with \`CLICKER_SEED=$CLICKER_SEED npm run clicker\`)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - run: npm ci
+      - shell: bash
+        run: npm run clicker 2>&1 | tee clicker.log
+      # each failed screen's test prints "<screen>, CLICKER_SEED=<seed>, failed after:" (tests/clicker/clicker.spec.ts)
+      - id: failed
+        if: failure()
+        shell: bash
+        run: |
+          screens=$(grep -oE '\?preview=.*, CLICKER_SEED=[^,]*, failed after:' clicker.log | sed 's/, CLICKER_SEED=.*//' | sort -u || true)
+          { echo 'screens<<CLICKER_EOF'; echo "${screens:-none named, see the run log}"; echo 'CLICKER_EOF'; } >> "$GITHUB_OUTPUT"
+          { echo; echo "Failed screens:"; echo "${screens:-none named, see the run log}"; } >> "$GITHUB_STEP_SUMMARY"
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: clicker-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   # a failed nightly run says so in an issue, beside the red mark on main, so nobody has to open the Actions tab
   nightly-alert:
     if: >-
       always() && (github.event_name == 'schedule' || inputs.alert == true)
       && (needs.verify.result != 'success' || needs.nightly.result != 'success'
+          || needs.clicker.result != 'success'
           || (needs.smoke.result != 'success' && needs.smoke.result != 'skipped'))
-    needs: [verify, smoke, nightly]
+    needs: [verify, smoke, nightly, clicker]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:
@@ -231,8 +283,19 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ALERT_LABEL: nightly-ci
+          CLICKER_RESULT: ${{ needs.clicker.result }}
+          CLICKER_SEED: ${{ needs.clicker.outputs.seed }}
+          CLICKER_FAILED: ${{ needs.clicker.outputs.failed }}
         run: |
           body="The nightly CI run on main failed: $RUN_URL"
+          if [ "$CLICKER_RESULT" = "failure" ]; then
+            body="$body
+
+          The random clicker failed with seed \`$CLICKER_SEED\` on:
+          $CLICKER_FAILED
+
+          Replay one screen with \`CLICKER_SEED=$CLICKER_SEED npm run clicker -g \"<screen>\"\`."
+          fi
           gh label create "$ALERT_LABEL" --color B60205 --description "the nightly CI run on main failed" --force
           open=$(gh issue list --label "$ALERT_LABEL" --state open --json number --jq '.[0].number // empty')
           if [ -n "$open" ]; then
