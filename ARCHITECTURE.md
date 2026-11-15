@@ -151,8 +151,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
   `convex/stats/matchStatsSync.ts` reads each match the Premier League calls full time; every run,
-  failed or not, is a row in `matchStatsSyncs`. Each match's place in the window, provisional to
-  locked, is its row in `matchStatsStatus`, and a correction seen after it locked a row in
+  failed or not, is a row in `matchStatsSyncs`, except a cron run with no match due, which writes
+  none (#2002). Each match's place in the window, provisional to locked, is its row in `matchStatsStatus`, and a correction seen after it locked a row in
   `lateStatCorrections` (`convex/schema/matchStats.ts`). A run reads ten matches at most, the least
   lately tried first (`matchStatsTries`), so ones that fail or wait every run hold up no newer
   match. The lock is a scheduled function, so it fires
@@ -160,10 +160,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   A cron runs it every 10 minutes (spec/20): full time counts from the first
   read that finds it, so a match locks up to one interval after its true hour. A run with no
   match due reads no feed; one due reads about 40 Premier League URLs per match (its sheets,
-  each named man's stats, and its team stats), and a locked match is read again hourly for a day
-  to catch late corrections. Finding the due matches (`matchStatsDue.due`, #199) reads only
-  what can still be due: this season's status rows not yet locked, those locked within the day's
-  watch, each with its match, and the matches kicked off since the oldest one not yet read at
+  each named man's stats, and its team stats), and a locked match is read again hourly for the
+  late-correction watch (`LATE_CORRECTION_WATCH_MS`, 6 hours) to catch late corrections. Finding
+  the due matches (`matchStatsDue.due`, #199) reads only what can still be due: this season's
+  status rows not yet locked, those locked within the watch, each with its match, and the matches kicked off since the oldest one not yet read at
   full time, or a week back (`matchStatsUnseenFrom`, one row), each with its status row, and
   each match due's last try: at most about 100 reads a run on a weekend of ten matches, whenever
   in the season, where it was about 760 a run by May (counted 28 Oct 2026). Both are hand
