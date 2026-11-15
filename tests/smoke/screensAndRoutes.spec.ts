@@ -30,8 +30,6 @@ import { previewUrl } from "../support/smoke/previewUrl";
 const L1 = proLeague.leagueId;
 const SAKA = previewPlayers.find((player) => player.name === "Saka")!;
 
-/** The address the page is at, without its search (the preview's name). */
-const pathOf = (page: Page) => new URL(page.url()).pathname;
 const h1 = (page: Page, name: string) => page.getByRole("heading", { level: 1, name, exact: true });
 
 test.use({ viewport: DESK });
