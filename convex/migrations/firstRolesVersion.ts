@@ -7,11 +7,11 @@ import { isRole } from "../lineup/roles";
 import { droppedStarter } from "../stars/bestRole";
 import { starsOfPlayers } from "../stars/playerStars";
 import { sortedJson } from "../shared/sortedJson";
-import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "./draftedRoleAdjustments";
-import { FIRST_RUNS } from "./draftedRoleRuns";
-import type { StoredScoringSet } from "./scoringSetShape";
-import { addVersion, checkScoringSet } from "./siteScoring";
-import { isWaiting, setOf, siteVersions, versionName } from "./siteVersions";
+import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../scoring/draftedRoleAdjustments";
+import { FIRST_RUNS } from "../scoring/draftedRoleRuns";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
+import { addVersion, checkScoringSet } from "../scoring/siteScoring";
+import { isWaiting, setOf, siteVersions, versionName } from "../scoring/siteVersions";
 
 // The one-offs that put the roles' values (draftedRoleAdjustments.ts) into the site's scoring set.
 // Each adds a version to the site's set as it stands, its rules untouched, taking effect now, so as
@@ -19,16 +19,16 @@ import { isWaiting, setOf, siteVersions, versionName } from "./siteVersions";
 // - addFirstRoles (#10; Craig, 5 Nov 2026: "put roles-first-values.md into the site's set now as the
 //   starting rules, taking effect from the next gameweek that hasn't begun, with no letter. Later
 //   changes go by patch"): once, into a set that scores no role.
-//     npx convex run scoring/firstRolesVersion:addFirstRoles
+//     npx convex run migrations/firstRolesVersion:addFirstRoles
 // - addRedrawnRoles (#1445; spec/05 `S05.27`, `S05.3`): the mixes redrawn around Sportmonks' stats
 //   (#1196), in place of the set's, from the next gameweek not begun. Every starter on a role the
 //   set no longer holds moves to the role he'd get dropped into that slot, his lineup never refused
 //   (spec/05, Roles' patch rule). Run it again and it does nothing.
-//     npx convex run scoring/firstRolesVersion:addRedrawnRoles
+//     npx convex run migrations/firstRolesVersion:addRedrawnRoles
 // - addFirstRuns (#886; spec/05 `S05.8`): each moving role's run (draftedRoleRuns.ts) into the
 //   set, beside the roles, so the pitch draws them and a patch can change one. It adds only the runs
 //   the set doesn't hold yet; run it again and it does nothing.
-//     npx convex run scoring/firstRolesVersion:addFirstRuns
+//     npx convex run migrations/firstRolesVersion:addFirstRuns
 // Add --prod to run any of them on production.
 
 const added = v.object({ name: v.string(), fromGameweek: v.number() });

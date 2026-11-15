@@ -29,7 +29,7 @@ import {
 // The team instructions' first values (spec/05 Team instructions; #990): docs/roles-first-values.md's
 // Team instructions, Claude's draft fitted on 5 Nov 2026, as the site's scoring holds them. Like the
 // roles' (draftedRoleAdjustments.ts), this file is only where they start: they go into the site's
-// set by firstInstructionsVersion.ts (Craig, 9 Nov 2026, on #990: "as roles: into the site's set
+// set by migrations/firstInstructionsVersion.ts (Craig, 9 Nov 2026, on #990: "as roles: into the site's set
 // from the next gameweek that hasn't begun, no letter, changed by patch after that"). Each stat is
 // the live feed's own key (statCatalogueList.ts); failed long balls and crosses are the roles' own
 // stats (FIRST_ROLE_OWN_STATS).

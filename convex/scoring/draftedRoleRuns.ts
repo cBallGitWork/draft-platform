@@ -6,7 +6,7 @@ type RoleRun = NonNullable<StoredScoringSet["runs"]>[number];
 // Each moving role's first run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026), researched role by
 // role in docs/role-runs.md. Held in the site's scoring set beside the roles' scoring, so an
 // announced patch can change one (spec/05 `S05.8`; Craig, 7 Nov 2026, on #886: "Yes change role
-// arrow allowed"): these are only what firstRolesVersion.ts's addFirstRuns puts into the set once.
+// arrow allowed"): these are only what migrations/firstRolesVersion.ts's addFirstRuns puts into the set once.
 // A role not listed holds its place.
 
 /** A run through these points, each [forward, across] in metres from his place. The pitch's rows

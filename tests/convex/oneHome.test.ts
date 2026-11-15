@@ -58,7 +58,6 @@ const STILL_RESTATED: string[] = [
   "tests/convex/lineup/lineup.test.ts OTHER_STRIKER -> tests/support/convex/autoSubs.harness.ts",
   "tests/convex/lineup/lineup.test.ts STRIKER -> tests/support/convex/autoSubs.harness.ts",
   "tests/convex/scoring/ownStats.test.ts fplLines -> tests/support/convex/teamPoints.harness.ts",
-  "tests/convex/scoring/redrawnRolesVersion.test.ts NEXT -> tests/support/convex/lineupSquad.harness.ts",
   "tests/convex/scouting/scoutingPlayers.test.ts KICKOFF -> tests/support/convex/matchStats.harness.ts",
   "tests/convex/stars/deadlineStars.test.ts NEXT -> tests/support/convex/lineupSquad.harness.ts",
   "tests/convex/stats/matchRecordsCap.test.ts MADE_UP_CODES -> tests/support/convex/test.harness.ts",

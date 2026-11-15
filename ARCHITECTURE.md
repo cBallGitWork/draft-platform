@@ -419,7 +419,9 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
   lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
   `lineup` (a team's lineup: its pitch, roles, instructions, saved plans and auto-subs), `mail`,
-  `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app: email
+  `match` (one Premier League match's page), `matchup`, `migrations` (the one-offs run by hand on
+  each deployment, `npx convex run migrations/<file>:<name>`, each deleted once every deployment
+  has run it, #1581), `outbound` (what leaves the app: email
   through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and points,
   #1113), `playerCard`, `positions`, `rules` (a league's rules: its settings, their checks, history
   and locks), `scoring` (the site's scoring set, its versions and patches, and a team's points),

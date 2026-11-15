@@ -19,7 +19,7 @@ export const waitingDraft: DraftState = { status: "waiting", startsAt: null, rou
 /** A live draft of the three teams over `rounds`, `picksMade` made (by default Team 1's first, so
  *  the reader's Team 2 is on the clock), the next on the clock with 48 seconds left of 90, or
  *  paused then. */
-export function liveDraft({ picksMade = 1, rounds = 2, paused = false } = {}): Extract<DraftState, { status: "live" }> {
+export function liveDraft({ picksMade = 1, rounds = 2, paused = false, afterBreak = false } = {}): Extract<DraftState, { status: "live" }> {
   const now = Date.now();
   const round = Math.floor(picksMade / 3) + 1;
   const inRound = picksMade % 3;
@@ -32,7 +32,7 @@ export function liveDraft({ picksMade = 1, rounds = 2, paused = false } = {}): E
     picksMade,
     ownPickBy: null,
     onTheClock: { pick: picksMade + 1, round, teamId: team.teamId, name: team.name },
-    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
+    clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined, ...(afterBreak && { afterBreak: true as const }) },
   };
 }
 

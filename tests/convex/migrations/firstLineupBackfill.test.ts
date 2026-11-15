@@ -31,7 +31,7 @@ beforeEach(async () => {
   await passNextDeadline(t);
 });
 
-const migrate = () => t.mutation(internal.lineup.firstLineupBackfill.saveTeamsTheirLineup, {});
+const migrate = () => t.mutation(internal.migrations.firstLineupBackfill.saveTeamsTheirLineup, {});
 const lineupOf = (teamId: Id<"teams">, gameweek: number) => t.run((ctx) => lineupInGameweek(ctx, leagueId, teamId, gameweek));
 const rowsOf = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === teamId));
 
