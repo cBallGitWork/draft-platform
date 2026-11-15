@@ -295,6 +295,18 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   locked, then stored in `finalScores` (#418, `convex/table/finalScores.ts`) and read from there,
   while the gameweek holds the matches they were scored from. `rescore` drops a gameweek's stored
   scores and stores them again, for when scoring code or a player's positions change after.
+- Live scores (#2007): while a match is on, each live tick (`liveStatsSync.tick`) scores each
+  league's live gameweek once into a row a league and gameweek in `liveScores`
+  (`convex/table/liveScores.ts`): each team's points and the gameweek's Vidiprinter lines, priced,
+  with the teams and matches it was scored from. A row is rewritten only when it changes, so a
+  minute where nothing moves re-runs no viewer's query. The screens' queries read it, never the
+  match records, by passing `SCREEN_READ` to `leagueScores` (`convex/gameweekScorer/gameweekScores.ts`;
+  the Table, Fixtures and Home); Home's matchday takes its lines, and the matchup its league
+  average, working out only its own two sides. A row stands only while the league's teams and the gameweek's matches are those it was
+  scored from; otherwise the screen works the gameweek out as before. A change between ticks that
+  moves scores (a match's records, full time or lock, an override, a squad move) asks for the row
+  again at once (`convex/table/liveRescore.ts`), and the first tick with no match live clears every
+  row. A change that stores scores never reads the row.
 - Points overrides (#32): a commissioner's override of one player's points in one locked match is a
   row in `pointsOverrides`, a second replacing the first, and it rescores that gameweek
   (`convex/table/pointsOverrides.ts`). His override of one team's total in one gameweek (#903) is a
