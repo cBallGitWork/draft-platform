@@ -94,8 +94,9 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
       continue;
     }
     const { area, lane } = cell;
-    // A role no slot offers was removed from the set: he plays the slot's first and is never
-    // refused for it (spec/05 Roles; #841). One another slot offers is the manager's mistake.
+    // A role no slot offers was removed from the set: he is saved on the role he'd get dropped into
+    // his slot on and is never refused for it (spec/05 `S05.51`; lineups.ts). One another slot
+    // offers is the manager's mistake.
     if (role !== undefined && isRole(role) && !everyRoleOf(cell).some(({ key }) => key === role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     } else if (role !== undefined && needsBackThree(role) && centreBacks < BACK_THREE) {
