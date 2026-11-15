@@ -88,6 +88,20 @@ describe("a saved lineup", () => {
     expect(await lineupRows()).toHaveLength(1);
   });
 
+  test("TC-058 (S05.53): saved from two tabs, the later save, made from the lineup before the earlier, replaces it, naming every squad player once", async () => {
+    const ann = await as(ANN);
+    // Tab A reorders the bench; tab B, not reloaded, still holds the 4-4-2 and moves its second sub up.
+    await ann.save(REVERSED_BENCH);
+    const [first, second, ...rest] = FOUR_FOUR_TWO.bench;
+    const fromTabB: Lineup = { ...FOUR_FOUR_TWO, bench: [second, first, ...rest] };
+    expect(await ann.save(fromTabB)).toBe(NEXT);
+
+    const final = await ann.mine(NEXT);
+    expect(final).toEqual(saved(fromTabB, NEXT));
+    expect([...final.starters.map((starter) => starter.playerCode), ...final.bench].toSorted()).toEqual(SQUAD.toSorted());
+    expect(await lineupRows()).toHaveLength(1);
+  });
+
   test("saved once the deadline has passed is from the gameweek after, and the begun one keeps the old", async () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);

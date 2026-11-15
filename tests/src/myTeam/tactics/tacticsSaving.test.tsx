@@ -147,6 +147,27 @@ describe("saving", () => {
   });
 });
 
+// TC-056 (S05.53): Bob swaps, then loses the network before the save answers. Convex holds the
+// save until he is back, so the fake server holds its answer; one that fails instead reaches the
+// page as saveFailedWords (liveTactics.test.tsx turns an offline error into them).
+describe("TC-056 (S05.53): a save cut off by the network", () => {
+  it("never says saved while it waits, and says when it landed once it does", async () => {
+    const app = openTacticsTab({ tactics: SAVED, saveHeld: true });
+    await whiteForSaliba();
+    expect(screen.queryByText(SAVED_LINE)).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    await act(async () => app.myTeam.letSaveGo());
+    expect(await screen.findByText(SAVED_LINE)).toBeTruthy();
+  });
+
+  it("that fails says so, and never says saved", async () => {
+    const { alert } = await refusedWith(saveFailedWords);
+    expect(alert.textContent).toBe(saveFailedWords);
+    expect(screen.queryByText(SAVED_LINE)).toBeNull();
+  });
+});
+
 describe("Undo (spec/05, Moving players)", () => {
   it("has nothing to undo when the tab opens", async () => {
     await openedPitch();

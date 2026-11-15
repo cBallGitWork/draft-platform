@@ -111,6 +111,9 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   - his name, club and positions, who owns him in the league, his injuries and suspensions from
     Sportmonks, judged in the trial (`spec/20`; Craig, 9 Nov 2026, on #1196: "ive heard its not
     great but lets see"), and his three latest news notes (`spec/21`); `S12.2`
+  - his owner's name opens "a read-only page of that team, its Squad table (players, positions,
+    club, season points), with nothing changeable and no tactics shown" (Craig, 9 Nov 2026, on
+    #1027); `S12.14`
   - this season's matches, each broken down by category (`spec/14`), at his base points: "The
     player card should be showing their base points as squad/live could be showing their
     role/tactics adjustment" (Craig, 31 Oct 2026). Every match shows the site's scoring for what he

@@ -9,6 +9,7 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
 import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
+import { pitchLabel, selectionTableLabel } from "../../../src/myTeam/tactics/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
@@ -56,6 +57,16 @@ describe("the page", () => {
     const page = within(screen.getByRole("main"));
     expect(page.queryByRole("button")).toBeNull();
     expect(page.queryByRole("combobox")).toBeNull();
+  });
+
+  it("TC-061 (S12.14): shows no tactics, and no move, preset or plan control", async () => {
+    openTeam();
+    await table();
+    const page = within(screen.getByRole("main"));
+    expect(page.queryByRole("group", { name: pitchLabel })).toBeNull();
+    expect(page.queryByRole("table", { name: selectionTableLabel })).toBeNull();
+    expect(page.queryByRole("button")).toBeNull();
+    expect(page.queryByRole("link", { name: /tactics/i })).toBeNull();
   });
 
   it("a player's name opens his card", async () => {
