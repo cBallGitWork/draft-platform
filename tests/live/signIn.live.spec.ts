@@ -6,8 +6,8 @@ import { expect, test } from "@playwright/test";
 import { SIGN_IN_SUBJECT_START } from "../../convex/signIn/signInEmail";
 import { receivedSignInLink } from "../../scripts/sign-in-inbox.mjs";
 import { signOutWords } from "../../src/frame/words";
-import { replyWords, signInWords } from "../../src/signIn/words";
-import { checkSecrets, SKIPPED_NO_SECRETS } from "./releaseCheck";
+import { signInWords } from "../../src/signIn/words";
+import { checkSecrets, expectLinkSent, SKIPPED_NO_SECRETS } from "./releaseCheck";
 
 /** How long opening the link may take to sign in: the app loads, then Convex redeems the code. */
 const SIGNED_IN_WAIT_MS = 30_000;
@@ -29,11 +29,7 @@ test("the live site sends a sign-in link, and the link signs in", async ({ page,
   const askedAt = Date.now();
   await page.getByRole("button", { name: signInWords.send }).click();
 
-  const reply = page.getByRole("status");
-  await expect(reply).not.toBeEmpty();
-  // The hour's limit on links for one address, reached by a run of releases, stops the check too,
-  // and that goes red like any other failure (Craig, 1 Nov 2026: "sure"; #908).
-  await expect(reply, `the site sent no link ("${replyWords.tryLater}" is the hour's sign-in link limit)`).toHaveText(replyWords.checkYourEmail);
+  await expectLinkSent(page.getByRole("status"));
 
   const link = await receivedSignInLink({ apiKey: secrets.resendKey, to: secrets.email, subject: SIGN_IN_SUBJECT_START, siteUrl: baseURL, since: askedAt });
   await page.goto(link);
