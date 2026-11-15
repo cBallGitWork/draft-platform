@@ -79,8 +79,8 @@ async function markable(ctx: MutationCtx, fixtureCode: number): Promise<Doc<"fix
 }
 
 /** Deletes the match's records, taking what they added off each man's season totals and season
- *  points; returns whose they were. Records written live and counted nowhere yet (livePrints.ts)
- *  have nothing to take off. */
+ *  points; returns its team sheets, whose they were and any live print's. Records written live and
+ *  counted nowhere yet (livePrints.ts) have nothing to take off. */
 async function dropRecords(ctx: MutationCtx, fixtureCode: number): Promise<number[]> {
   const rows = await matchRecordsOf(ctx, fixtureCode, "its abandonment");
   for (const row of rows) await ctx.db.delete("playerMatchStats", row._id);
@@ -88,7 +88,7 @@ async function dropRecords(ctx: MutationCtx, fixtureCode: number): Promise<numbe
   const prints = await livePrintsOf(ctx, fixtureCode);
   if (prints !== null) {
     await ctx.db.delete("liveMatchPrints", prints._id);
-    return playerCodes;
+    return [...new Set([...playerCodes, ...prints.prints.map((print) => print.playerCode)])];
   }
   await moveSeasonTotals(
     ctx,
@@ -110,7 +110,7 @@ async function lockUnplayed(ctx: MutationCtx, fixtureCode: number, now: number):
 
 /** Schedules each league's share of the mark, or of taking it back, in its own transaction, so one
  *  league's fault leaves the rest (cappedRead.ts's scheduleEveryLeague, #1558). `teamSheet` names
- *  the men whose records the mark deleted: the match's players, and only theirs (S05.47). */
+ *  the men whose records the mark deleted: the match's players, and only theirs (S05.54). */
 async function tellLeagues(ctx: MutationCtx, fixture: Doc<"fixtures"> & { gameweek: number }, by: string, abandoned: boolean, teamSheet: readonly number[]) {
   const [home, away] = await Promise.all([clubByCode(ctx, fixture.homeClubCode), clubByCode(ctx, fixture.awayClubCode)]);
   const playerCodes = [...new Set(teamSheet)];

@@ -476,6 +476,8 @@ From Craig, 1 Nov 2026.
   13 Nov 2026, on #904: yes to both recommendations). `S05.46`
 - A match marked abandoned, by the admin or the feed, files one Mail letter in each league with a
   player in that match (Craig, 13 Nov 2026, on #904). `S05.47`
+- That letter goes only to leagues holding a man on that match's team sheets, never to one holding
+  only other men of either club: "Only who played" (Craig, 15 Nov 2026, on #2166). `S05.54`
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
   not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
