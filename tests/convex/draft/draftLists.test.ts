@@ -31,10 +31,10 @@ describe("a manager's own queue", () => {
   });
 
   test("a player added goes to the bottom, with his club and who owns him", async () => {
-    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: PALMER.code }));
     const ann = await as(ANN);
     await ann.queue(SAKA.code);
     await ann.queue(PALMER.code);
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: PALMER.code }));
     expect((await ann.mine())?.queue).toEqual([
       { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false, position: null },
       { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: teamNumbered(2), gone: false, position: null },
@@ -71,6 +71,12 @@ describe("a manager's own queue", () => {
     await ann.queue(PALMER.code);
     await expectRefused(ann.move(SAKA.code, 1), draftListRefusals.notQueued("Saka"));
     await expectRefused(ann.move(UNHELD, 1), refusals.noPlayer);
+  });
+
+  test("refuses a player added by hand who is already on a team, saying he's taken (S04.26)", async () => {
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: PALMER.code }));
+    await expectRefused((await as(ANN)).queue(PALMER.code), draftListRefusals.taken("Palmer", teamNumbered(2)));
+    expect((await namesOn(ANN))?.queue).toEqual([]);
   });
 
   test("a player removed is off it, the rest keeping their order; removing one not on it changes nothing", async () => {
