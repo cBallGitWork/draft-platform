@@ -9,15 +9,15 @@ import { holdLines, manOf, matchAs, matchLeague, storedLine } from "../../suppor
 // The scorers' line under the match page's scoreboard (spec/10 S10.7: "Under the scoreboard, each
 // side's scorers"; Craig, 10 Nov 2026, on #1032), read from the match's stored lines, newest first.
 
-const SAKA = 1;
-const GYOKERES = 2;
-const PALMER = 3;
-const CUCURELLA = 4;
-const MEN = new Map<number, ScorerMan>([
-  [SAKA, { name: "Saka", side: "home" }],
-  [GYOKERES, { name: "Gyökeres", side: "home" }],
-  [PALMER, { name: "Palmer", side: "away" }],
-  [CUCURELLA, { name: "Cucurella", side: "away" }],
+const HOME_WINGER = 1;
+const HOME_STRIKER = 2;
+const AWAY_MIDFIELDER = 3;
+const AWAY_DEFENDER = 4;
+const PAGE_MEN = new Map<number, ScorerMan>([
+  [HOME_WINGER, { name: "Saka", side: "home" }],
+  [HOME_STRIKER, { name: "Gyökeres", side: "home" }],
+  [AWAY_MIDFIELDER, { name: "Palmer", side: "away" }],
+  [AWAY_DEFENDER, { name: "Cucurella", side: "away" }],
 ]);
 
 let sourceId = 0;
@@ -33,13 +33,13 @@ const line = (type: string, minute: number | null, playerCodes: (number | null)[
 test("S10.7: each side's goals under it, oldest first, an added-time goal with its added minutes", () => {
   const newestFirst = [
     line(FEED_TYPE.matchEnds, 90, []),
-    line(FEED_TYPE.penaltyGoal, 90, [GYOKERES], 3),
-    line(FEED_TYPE.goal, 67, [GYOKERES, SAKA]),
-    line(FEED_TYPE.goal, 44, [PALMER]),
-    line(FEED_TYPE.yellowCard, 31, [SAKA]),
-    line(FEED_TYPE.goal, 23, [SAKA, GYOKERES]),
+    line(FEED_TYPE.penaltyGoal, 90, [HOME_STRIKER], 3),
+    line(FEED_TYPE.goal, 67, [HOME_STRIKER, HOME_WINGER]),
+    line(FEED_TYPE.goal, 44, [AWAY_MIDFIELDER]),
+    line(FEED_TYPE.yellowCard, 31, [HOME_WINGER]),
+    line(FEED_TYPE.goal, 23, [HOME_WINGER, HOME_STRIKER]),
   ];
-  expect(scorersOf(newestFirst, MEN)).toEqual({
+  expect(scorersOf(newestFirst, PAGE_MEN)).toEqual({
     home: [
       { name: "Saka", minute: "23'", ownGoal: false },
       { name: "Gyökeres", minute: "67'", ownGoal: false },
@@ -50,8 +50,8 @@ test("S10.7: each side's goals under it, oldest first, an added-time goal with i
 });
 
 test("S10.7: an own goal counts for the other side, and a goal VAR took away goes", () => {
-  const newestFirst = [line(FEED_TYPE.varCancelledGoal, 52, [SAKA]), line(FEED_TYPE.goal, 51, [SAKA]), line(FEED_TYPE.ownGoal, 12, [CUCURELLA])];
-  expect(scorersOf(newestFirst, MEN)).toEqual({ home: [{ name: "Cucurella", minute: "12'", ownGoal: true }], away: [] });
+  const newestFirst = [line(FEED_TYPE.varCancelledGoal, 52, [HOME_WINGER]), line(FEED_TYPE.goal, 51, [HOME_WINGER]), line(FEED_TYPE.ownGoal, 12, [AWAY_DEFENDER])];
+  expect(scorersOf(newestFirst, PAGE_MEN)).toEqual({ home: [{ name: "Cucurella", minute: "12'", ownGoal: true }], away: [] });
 });
 
 test("S10.7: the match page carries the scorers its stored lines give, under the side the man played for", async () => {
@@ -63,7 +63,7 @@ test("S10.7: the match page carries the scorers its stored lines give, under the
 });
 
 test("S10.7: no goals, no scorers; a goal by a man the page can't place is left off, not guessed", () => {
-  expect(scorersOf([], MEN)).toEqual({ home: [], away: [] });
-  const unplaced = new Map<number, ScorerMan>([[SAKA, { name: "Saka", side: null }]]);
-  expect(scorersOf([line(FEED_TYPE.goal, 10, [SAKA]), line(FEED_TYPE.goal, 20, [null])], unplaced)).toEqual({ home: [], away: [] });
+  expect(scorersOf([], PAGE_MEN)).toEqual({ home: [], away: [] });
+  const unplaced = new Map<number, ScorerMan>([[HOME_WINGER, { name: "Saka", side: null }]]);
+  expect(scorersOf([line(FEED_TYPE.goal, 10, [HOME_WINGER]), line(FEED_TYPE.goal, 20, [null])], unplaced)).toEqual({ home: [], away: [] });
 });
