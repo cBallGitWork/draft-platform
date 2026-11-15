@@ -166,7 +166,7 @@ function QueueRow({
 }
 
 /** A listed player's position chip, name and club; one who has left the Premier League dimmed and
- *  saying so, as auto-pick skips him (S04.21). */
+ *  saying so, as auto-pick skips him (S04.25). */
 function ListedName({ player }: { player: Listed }) {
   return (
     <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
