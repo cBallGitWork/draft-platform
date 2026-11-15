@@ -75,13 +75,11 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
     });
   }
 
-  // flow.md:69 draws Back to your leagues on League settings too, but the page has none on main
-  // (#2348): marked to fail until it does.
   test(`UI-074 (flow.md:69): the admin's ${backToLeaguesWords} on League settings lands on Your leagues`, async ({ page }) => {
-    test.fail();
     await page.goto(previewUrl(settingsPath(L1), "admin"));
-    await page.getByRole("link", { name: backToLeaguesWords, exact: true }).click({ timeout: 5_000 });
+    await page.getByRole("link", { name: backToLeaguesWords, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === LEAGUES_PATH);
+    await expect(h1(page, LEAGUES_TITLE)).toBeVisible();
   });
 
   // The preview treats every invite link as a live one but "gone", which it treats as one that no
