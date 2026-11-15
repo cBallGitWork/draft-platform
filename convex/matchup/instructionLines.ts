@@ -4,7 +4,7 @@
 // Pure: vidiprinter.ts prices every line, and asks this for the instructions' own.
 
 import { positionOfSlot } from "../lineup/pitch";
-import { withOwnStats } from "../scoring/ownStats";
+import { scoredRecord } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { instructionPoints } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
@@ -54,7 +54,7 @@ export function instructionLines(
   if (team === undefined) return [];
   const position = positionOfSlot(player.cell);
   const pointsOf = (stats: MatchStats, instruction: string) => {
-    const record = withOwnStats(stats, set);
+    const record = scoredRecord(stats, set);
     return instructionPoints(record, set, instruction, position, statIn(record, MINUTES_STAT))?.points ?? 0;
   };
   return team.scoring.instructions.flatMap((instruction) => {

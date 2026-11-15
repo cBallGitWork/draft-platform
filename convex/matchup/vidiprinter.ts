@@ -27,7 +27,7 @@ import type { ScoringSet } from "../scoring/scoringSet";
 import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
-import { EVENT_STATS } from "../stats/matchRecords";
+import { EVENT_STATS, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../stats/matchRecords";
 import { stepPoints } from "./thresholdSteps";
 import { signedWords } from "../shared/numberWords";
 import type { PlayerCode } from "../shared/players";
@@ -187,15 +187,16 @@ function priced(
     if (code === undefined || code === null) return [];
     const nth = (counted.get(tallyKey(code, stat)) ?? 0) + 1;
     counted.set(tallyKey(code, stat), nth);
+    if (stored.type === FEED_TYPE.secondYellow) counted.set(tallyKey(code, SECOND_YELLOWS), (counted.get(tallyKey(code, SECOND_YELLOWS)) ?? 0) + 1);
     const player = players.get(code);
     const stats = player?.inMatch.get(fixtureCode)?.stats ?? null;
     // Not a man it is priced for, or his record not yet whole: nothing to price him by yet. The
     // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
     const when = stored.minute == null ? "" : `${stored.minute}${stored.addedMinute ? `+${stored.addedMinute}` : ""}' `;
-    const moved = { before: { ...stats, [stat]: nth - 1 }, after: { ...stats, [stat]: nth } };
+    const moved = CARD_STATS.includes(stat) ? cardMove(stats, code, stat, stored.type === FEED_TYPE.secondYellow, counted) : { before: { ...stats, [stat]: nth - 1 }, after: { ...stats, [stat]: nth } };
     instructed.push(...instructionLines(moved, { key: `:${stat}:${nth}`, when, fixtureCode, playerCode: code }, player, set));
-    const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
+    const points = inTenths(totalOf(moved.after, player, set) - totalOf(moved.before, player, set));
     return points === 0 ? [] : [{ playerCode: code, name: player.name, points }];
   });
   return { text: stored.text, points: worth(moves, codes.length), priced: { fixtureCode, about, moves } };
@@ -204,10 +205,20 @@ function priced(
 /** One man's count of one stat, as a match's lines and steps tally them. */
 const tallyKey = (playerCode: PlayerCode, stat: string) => `${playerCode}/${stat}`;
 
-/** His match's total with `stat` at `actions`, the rest of his record as it stands, at his cell and
- *  in his role. */
-function totalWith(stats: MatchStats, stat: string, actions: number, { cell, role }: VidiprinterPlayer, set: ScoringSet): number {
-  return scoreMatch({ ...stats, [stat]: actions }, set, cell, role).total ?? 0;
+/** The stats a card line moves, the sending-off for a second yellow among them. */
+const CARD_STATS: readonly string[] = [YELLOW_CARDS, RED_CARDS, SECOND_YELLOWS];
+
+/** A card line's man's record before and after it, his cards as the lines so far have shown them,
+ *  never his whole match's: a second yellow's line then costs the red less the first yellow's
+ *  line, −1 then −2 under the first set, −3 in all (spec/14 `S14.27`). */
+function cardMove(stats: MatchStats, code: PlayerCode, stat: string, sentOff: boolean, counted: ReadonlyMap<string, number>) {
+  const after = { ...stats, ...Object.fromEntries(CARD_STATS.map((card) => [card, counted.get(tallyKey(code, card)) ?? 0])) };
+  return { before: { ...after, [stat]: after[stat] - 1, ...(sentOff && { [SECOND_YELLOWS]: after[SECOND_YELLOWS] - 1 }) }, after };
+}
+
+/** His match's total with this record, at his cell and in his role. */
+function totalOf(stats: MatchStats, { cell, role }: VidiprinterPlayer, set: ScoringSet): number {
+  return scoreMatch(stats, set, cell, role).total ?? 0;
 }
 
 /** The lineups' men who played in the match, most points first. */

@@ -1,7 +1,7 @@
 // A player's points for one match under a scoring set (spec/14, How a rule scores; #29): the
 // site's in force that gameweek (siteVersions.ts), data the admin saves, so always an argument.
 
-import { MINUTES_STAT } from "../stats/matchRecords";
+import { MINUTES_STAT, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { priceFor, pricingOf, type Priced } from "./priced";
@@ -93,7 +93,7 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
     return { total: null, categories: set.rules.map((rule) => ({ stat: rule.stat, points: null })) };
   }
   const slot = { area: cell.area, position: positionOfSlot(cell) };
-  record = withOwnStats(record, set);
+  record = scoredRecord(record, set);
   const minutes = statIn(record, MINUTES_STAT);
   const backLine = backLineAt(team, slot.area);
   const rules = backLine === null ? set.rules : withBackLine(set.rules, backLine.scoring);
@@ -110,18 +110,27 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   return { total, categories, ...(adjusted !== undefined && { role: adjusted }), ...(instructed.length > 0 && { instructions: instructed }) };
 }
 
+/** His record as a set scores it: a sending-off for a second yellow counted as a straight red,
+ *  never his first yellow on top, whether or not the feed's red cards count it (spec/14 `S14.27`);
+ *  then the site's own stats worked out (ownStats.ts). */
+export function scoredRecord(record: MatchStats, set: ScoringSet): MatchStats {
+  const sentOff = statIn(record, SECOND_YELLOWS);
+  const cards = sentOff === 0 ? record : { ...record, [YELLOW_CARDS]: 0, [RED_CARDS]: Math.max(statIn(record, RED_CARDS), sentOff) };
+  return withOwnStats(cards, set);
+}
+
 /** What `role` gives a man with this record under `set`, own stats worked out: 0 for no role, or
  *  one the set doesn't score. What a threshold line adds for his role (vidiprinter.ts). */
 export function roleTotal(record: MatchStats, set: ScoringSet, role: string | undefined): number {
   if (role === undefined) return 0;
-  return rolePoints(withOwnStats(record, set), set, role)?.points ?? 0;
+  return rolePoints(scoredRecord(record, set), set, role)?.points ?? 0;
 }
 
 /** What team instruction `key` gives a man with this record at a slot standing for `position`
  *  under `set`, own stats worked out, on his whole match's minutes: 0 for one the set doesn't
  *  score. A club XI's test in the rule balance lab (spec/14 S14.9). */
 export function instructionTotal(record: MatchStats, set: ScoringSet, key: string, position: SlotPosition): number {
-  const own = withOwnStats(record, set);
+  const own = scoredRecord(record, set);
   return instructionPoints(own, set, key, position, statIn(own, MINUTES_STAT))?.points ?? 0;
 }
 

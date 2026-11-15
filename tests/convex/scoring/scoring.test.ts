@@ -5,6 +5,8 @@ import { centreOf, everyArea, EXAMPLE_SET, MINUTES_BANDS } from "../../support/c
 import { scoreGameweek, scoreMatch } from "../../../convex/scoring/scoring";
 import { statIn, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/values";
 import { AREAS, type Area, type Band, type ScoringSet } from "../../../convex/scoring/scoringSet";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../../../convex/stats/matchRecords";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27 (teamPoints.harness).
 // FPL's lines keep every stat for all 40 men; `FULL_STATS` names the men whose Premier League
@@ -134,6 +136,26 @@ test("FPL's bonus in a record scores nothing: no rule names it", () => {
 
   expect(scored.total).toBe(10);
   expect(scored.categories.map((category) => category.stat)).not.toContain("bonus");
+});
+
+describe("S14.27 a sending-off for a second yellow costs what a straight red does, never the first yellow on top", () => {
+  const cardsIn = (record: MatchStats) => {
+    const { categories, total } = scoreMatch({ minutes: 70, ...record }, FIRST_SCORING, centreOf("midfield"));
+    const cards = categories.filter((category) => [YELLOW_CARDS, RED_CARDS].includes(category.stat)).map((category) => category.points ?? 0);
+    return { cards: cards.reduce((sum, points) => sum + points, 0), total };
+  };
+
+  test("S14.27 -3 in all under the first scoring set, not -4", () => {
+    expect(cardsIn({ [YELLOW_CARDS]: 1, [RED_CARDS]: 1, [SECOND_YELLOWS]: 1 })).toEqual({ cards: -3, total: cardsIn({ [RED_CARDS]: 1 }).total });
+  });
+
+  test("S14.27 -3 too where the feed's red cards leave out the second yellow's", () => {
+    expect(cardsIn({ [YELLOW_CARDS]: 1, [SECOND_YELLOWS]: 1 }).cards).toBe(-3);
+  });
+
+  test("S14.27 the same as a straight red", () => {
+    expect(cardsIn({ [YELLOW_CARDS]: 2, [RED_CARDS]: 1, [SECOND_YELLOWS]: 1 }).cards).toBe(cardsIn({ [RED_CARDS]: 1 }).cards);
+  });
 });
 
 describe("bad data throws rather than score", () => {
