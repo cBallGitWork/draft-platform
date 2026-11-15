@@ -1,7 +1,7 @@
 // The live app's wiring to Convex Auth, with Convex's React hooks faked by name: opening the app
 // from a link, who it then thinks is signed in, and the reply to asking for a link.
 
-import { act, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConvexError } from "convex/values";
 import { StrictMode } from "react";
@@ -157,6 +157,19 @@ test("a link that can't be checked says so, and the error is logged", async () =
 
   expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.unchecked);
   expect(logged).toHaveBeenCalledWith(LINK_CHECK_FAILED_LOG,expect.any(Error));
+});
+
+test("LG-023 S02.2: a link opened while the server can't be reached says so, and opened again once it can, it still signs in", async () => {
+  convex.signIn.mockRejectedValueOnce(new Error("network down")).mockResolvedValueOnce({ signingIn: true });
+  silenceConsoleError();
+  openAt("/?code=fresh-code");
+  expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.unchecked);
+  cleanup();
+
+  await act(async () => openAt("/?code=fresh-code"));
+
+  expect(convex.signIn).toHaveBeenNthCalledWith(2, undefined, { code: "fresh-code" });
+  expect(screen.queryByText(linkProblemWords.unchecked)).toBeNull();
 });
 
 test("signed in, in no league, the app opens on the leagues page", async () => {

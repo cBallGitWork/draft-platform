@@ -72,3 +72,40 @@ test("a session keeps a device signed in for 30 days, and no longer", async () =
   vi.advanceTimersByTime(2 * DAY_MS);
   expect(await refresh(day29!.refreshToken)).toBeNull();
 });
+
+/** Every device signed in: Convex Auth's sessions. */
+const sessions = () => t.run((ctx) => ctx.db.query("authSessions").collect());
+
+test("LG-006 S02.1: an empty email sent past the browser is told to check its email, with no email sent and nothing stored", async () => {
+  const sent = fakeResend();
+
+  expect(await ask(t, "")).toBe("checkYourEmail");
+
+  expect(sent).toEqual([]);
+  expect(await t.run((ctx) => ctx.db.query("signInAsks").collect())).toEqual([]);
+  expect(await t.run((ctx) => ctx.db.query("users").collect())).toEqual([]);
+});
+
+test("LG-016 S02.2: a link asked for on the laptop and opened on the phone signs the phone in, and only it", async () => {
+  const sent = fakeResend();
+  // The laptop's ask is answered with words, never a session.
+  expect(await ask(t, LISTED)).toBe("checkYourEmail");
+  expect(await sessions()).toEqual([]);
+
+  expect(await openLink(t, linkCode(sent[0]))).not.toBeNull();
+
+  const phone = await sessions();
+  expect(phone).toHaveLength(1);
+  const asPhone = t.withIdentity({ subject: `${phone[0].userId}|${phone[0]._id}` });
+  expect(await asPhone.query(api.signIn.account.signedInAs, {})).toMatchObject({ email: LISTED });
+});
+
+test("LG-020 S02.3: signed out in one tab, the session ends, so another tab can't renew it and is seen as nobody", async () => {
+  const { tokens, asUser } = await signIn(LISTED);
+
+  await asUser.action(api.auth.signOut, {});
+
+  expect(await sessions()).toEqual([]);
+  expect(await refresh(tokens.refreshToken)).toBeNull();
+  expect(await t.query(api.signIn.account.signedInAs, {})).toBeNull();
+});
