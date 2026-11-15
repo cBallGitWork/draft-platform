@@ -72,6 +72,12 @@ test("a production build with no deploy key fails, saying why in the log", () =>
   expect(keyless.said).toContain(`${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment`);
 });
 
+// The case opens https://fantasydraftmanager.net/team/squad on the live site; the live run waits
+// on #2306's follow-up. Here, the rule that makes it load: the host answers every path with the app.
+test("UI-109 (spec/20 The domain): a deep link such as /team/squad loads the app, the host serving it for every path, never the host's 404", () => {
+  expect(vercel.rewrites).toEqual([{ source: "/(.*)", destination: "/index.html" }]);
+});
+
 test("only main deploys from git: every other branch is off", () => {
   expect(vercel.git.deploymentEnabled).toEqual({ "**": false, main: true });
 });

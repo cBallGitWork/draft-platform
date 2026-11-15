@@ -106,6 +106,22 @@ describe("someone signed in, in no league", () => {
   });
 });
 
+describe("the regression catalogue's empty states (#2306)", () => {
+  // On main the admin sees the not-in-a-league words above Create a league, not in their place
+  // (#2306 says so): marked to fail until Craig says which spec/02's "instead" means.
+  it.fails("UI-142 (spec/02 Signed in but in no league): the admin in no league opening /leagues sees Create a league in place of the not-in-a-league words", async () => {
+    openApp(LEAGUES_PATH, admin);
+    expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
+    expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
+  });
+
+  it("UI-143 (spec/13 Joining): a newcomer whose invite to L1 expired is told on signing in that it expired, and to ask the commissioner for a new one", async () => {
+    const app = openApp(SIGN_IN_PATH, newcomer, { joining: { endedInvite: { leagueName: "L1", ended: "expired", reason: null } } });
+    expect(await screen.findByText("Your invite to L1 expired. Ask the commissioner for a new one.")).toBeTruthy();
+    expect(app.path()).toBe(LEAGUES_PATH);
+  });
+});
+
 describe("the admin, with no part in a league", () => {
   it("is offered Create a league, which opens its form", async () => {
     const app = openApp("/", admin);

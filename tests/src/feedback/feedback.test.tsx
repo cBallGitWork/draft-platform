@@ -22,7 +22,7 @@ import {
 } from "../../../src/admin/words";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import type { FeedbackList } from "../../../src/feedback/seam";
-import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendWords, sentWords } from "../../../src/feedback/words";
+import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendFailedWords, sendWords, sentWords } from "../../../src/feedback/words";
 import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
@@ -91,6 +91,20 @@ describe("sending", () => {
     expect(await screen.findByRole("alert")).toHaveProperty("textContent", feedbackRefusals.blank);
     expect(screen.queryByText(sentWords)).toBeNull();
     expect(box()).toHaveProperty("value", "   ");
+  });
+});
+
+describe("a send that fails (#2306)", () => {
+  // The live seam answers a failed send with sendFailedWords (liveFeedback.test.tsx).
+  it("UI-131 (spec/12 The frame, the alert strip): plain words say the send failed, and what was typed stays to send again", async () => {
+    const app = openApp(FEEDBACK_PATH, manager);
+    app.feedback.send.mockResolvedValue(sendFailedWords);
+    await userEvent.type(await screen.findByRole("textbox", { name: messageLabel }), "Scores look wrong");
+    await userEvent.click(screen.getByRole("button", { name: sendWords }));
+
+    expect(await screen.findByRole("alert")).toHaveProperty("textContent", sendFailedWords);
+    expect(screen.queryByText(sentWords)).toBeNull();
+    expect(box()).toHaveProperty("value", "Scores look wrong");
   });
 });
 
