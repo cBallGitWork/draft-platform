@@ -5,7 +5,8 @@ Denies staging everything, force pushes, committing while on main (a local commi
 see: a push or write to main GitHub's main ruleset refuses itself), publishing a word on Craig's
 private list (private_words.py), a pull request body that breaks the template's rules or a title
 far too long (pr_body.py), a gh pr merge with --admin or of
-no pull request it can name (approval_gate.py), and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
+no pull request it can name (approval_gate.py), a build's git rm or git mv of the pipeline's own files (.github/,
+.claude/, CLAUDE.md), which a build may not Edit or Write either, and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
 checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
 group around one), find -exec or ssh included, whatever its redirections (commands.py; where.py
 lists what it can't see), each in the folder it runs in (the shell's cwd, any cd before it, its
@@ -17,6 +18,8 @@ Reads the hook payload (JSON) on stdin; prints a deny, a note, or nothing. Stdli
 
 from __future__ import annotations
 
+import fnmatch
+import os
 import re
 import sys
 
@@ -55,6 +58,13 @@ UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take 
 CUT_A_BRANCH = ("Cut a branch first: git switch -c <type>/<thing> origin/main. "
                 "Prefixes: feat/ fix/ refactor/ docs/ chore/.")
 ON_MAIN = "You are on main. " + CUT_A_BRANCH
+# a build (claude-build.yml, in GitHub Actions) may not delete or move these, as its --disallowedTools keeps it from
+# editing them (Craig, 15 Nov 2026, #2240: "Block it")
+IN_ACTIONS = "GITHUB_ACTIONS"
+PIPELINE_FILES = (".github", ".claude", "CLAUDE.md")
+REMOVES_OR_MOVES = {"rm", "mv"}
+PIPELINE_FILES_DENY = ("A build may not git rm or git mv the pipeline's own files (.github/, .claude/, CLAUDE.md), "
+                       "as it may not edit them. File it as a lane:session issue for a session to do.")
 SWITCHED_TO_MAIN = ("That switches to main before it commits (a git switch - counts as main "
                     "where the guard can't tell which branch it goes back to). " + CUT_A_BRANCH)
 
@@ -145,6 +155,22 @@ def force_pushes(args):
     return any(ref.startswith("+") for ref in refs)
 
 
+def touches_pipeline_files(args, folder, root):
+    """True if any path these git rm/mv args name is, holds or matches one of PIPELINE_FILES, read from root."""
+    paths, after_dashes = [], False
+    for arg in args:
+        if after_dashes or not arg.startswith("-"):
+            paths.append(arg)
+        elif arg == "--":
+            after_dashes = True
+    for path in paths:
+        rel = os.path.relpath(os.path.normpath(os.path.join(folder or root, path)), root)
+        for kept in PIPELINE_FILES:
+            if rel in {".", kept} or rel.startswith(kept + "/") or fnmatch.fnmatch(kept, rel):
+                return True
+    return False
+
+
 def decide(cmd, cwd, agent_type=None):
     """A deny reason, or None to allow; cwd is where the shell starts, agent_type the subagent's."""
     try:
@@ -178,6 +204,8 @@ def decide(cmd, cwd, agent_type=None):
             return "xargs adds the paths stdin holds, so the guard can't tell what that stages. " + STAGE_NAMED
         if sub == "commit" and commits_all(args):
             return "git commit -a stages every tracked change. Stage named paths with git add, then commit."
+        if sub in REMOVES_OR_MOVES and os.environ.get(IN_ACTIONS) == "true" and touches_pipeline_files(args, folder, cwd):
+            return PIPELINE_FILES_DENY
         if sub == "push" and force_pushes(args):
             return "No force pushes. If a branch has diverged, say so and let Craig decide."
         if sub == "commit":
