@@ -135,7 +135,7 @@ export const ofMatch = query({
       score: held === null ? null : scoreOnly(held),
       men,
       pointsProblem: priced.problem,
-      scorers: scorersOf(lines, new Map(men.map((man) => [man.playerCode, man]))),
+      scorers: scorersOf(lines, new Map(men.map((man) => [man.playerCode, man])), `Match ${fixture.code}`),
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary,
       abandoned: await isAbandoned(ctx, fixtureCode),

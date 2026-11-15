@@ -19,25 +19,32 @@ export type ScorerMan = { name: string; side: "home" | "away" | null };
 
 const SCORING = new Set<string>([FEED_TYPE.goal, FEED_TYPE.penaltyGoal, FEED_TYPE.ownGoal]);
 
-/** Each side's goals from the stored lines (newest first, as the feed's). A goal whose man the page
- *  can't place on a side, or a line with no minute, is left off the line rather than guessed. */
-export function scorersOf(lines: StoredCommentary["lines"], menByCode: ReadonlyMap<PlayerCode, ScorerMan>): MatchScorers {
+/** Each side's goals from the stored lines (newest first, as the feed's). A goal line naming no
+ *  scorer, with no minute, or whose man the page can't place on a side is left off the line rather
+ *  than guessed, and logged under `match` ("Match 7"). */
+export function scorersOf(lines: StoredCommentary["lines"], menByCode: ReadonlyMap<PlayerCode, ScorerMan>, match: string): MatchScorers {
+  const leftOff = (goal: string, why: string) => console.warn(`${match}'s goal${goal} is left off the scorers: ${why}`);
   const goals: { scorer: PlayerCode; minute: string; ownGoal: boolean }[] = [];
   for (const line of lines.toReversed()) {
-    const scorer = line.playerCodes?.[0];
-    if (line.type === undefined || scorer === undefined || scorer === null) continue;
+    const scorer = line.playerCodes?.[0] ?? null;
+    const minute = line.minute === undefined || line.minute === null ? null : minuteOf(line.minute, line.addedMinute ?? null);
     if (line.type === FEED_TYPE.varCancelledGoal) {
       const cancelled = goals.findLastIndex((goal) => goal.scorer === scorer);
       if (cancelled >= 0) goals.splice(cancelled, 1);
       continue;
     }
-    if (!SCORING.has(line.type) || line.minute === undefined || line.minute === null) continue;
-    goals.push({ scorer, minute: minuteOf(line.minute, line.addedMinute ?? null), ownGoal: line.type === FEED_TYPE.ownGoal });
+    if (line.type === undefined || !SCORING.has(line.type)) continue;
+    if (scorer === null) leftOff(minute === null ? "" : ` at ${minute}`, "its line names no scorer");
+    else if (minute === null) leftOff(` by player ${scorer}`, "its line has no minute");
+    else goals.push({ scorer, minute, ownGoal: line.type === FEED_TYPE.ownGoal });
   }
   const scorers: MatchScorers = { home: [], away: [] };
   for (const { scorer, minute, ownGoal } of goals) {
     const man = menByCode.get(scorer);
-    if (man === undefined || man.side === null) continue;
+    if (man === undefined || man.side === null) {
+      leftOff(` at ${minute} by player ${scorer}`, "he is on neither side");
+      continue;
+    }
     const countsFor = ownGoal ? (man.side === "home" ? "away" : "home") : man.side;
     scorers[countsFor].push({ name: man.name, minute, ownGoal });
   }
