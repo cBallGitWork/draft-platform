@@ -138,7 +138,7 @@ test("a full-time read cut off for a man keeps his last read and the match provi
   expect(await heldRecords(t)).toEqual(recordsIn(recordedGw6(), "complete"));
 });
 
-test("a full-time read cut off for a man keeps \"Live points delayed\" on until the next full read (S10.12)", async () => {
+test("a full-time read cut off for a man keeps the points flagged as delayed until the next full read (S10.12)", async () => {
   const t = await withHullEverton();
   await tickAt(t, stageTime(80), stagedGw6(80));
 
