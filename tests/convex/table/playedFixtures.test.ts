@@ -155,7 +155,7 @@ describe("a gameweek played keeps its fixtures", () => {
     expect(toCome(after)).not.toEqual(toCome(before));
   });
 
-  test("S03.4: a league saved with a bye plays the league's average from its next gameweek, and its gameweeks played keep their byes", async () => {
+  test("S03.4: a league saved with a bye plays the league average from its next gameweek, and its gameweeks played keep their byes", async () => {
     // Written straight in: a bye is no longer a rule a league can choose (Craig, 15 Nov 2026), but
     // a league that chose one before still holds it, and played gameweeks with byes.
     await t.run(async (ctx) => {

@@ -22,7 +22,7 @@ it("opens with Save in the plain border, disabled, and no Discard", async () => 
   expect(screen.queryByRole("button", { name: discardWords })).toBeNull();
 });
 
-it("moves the double gameweek rule with the arrow keys, which makes Save the action beside Discard", async () => {
+it("moves the double gameweek choice with the arrow keys, which makes Save the action beside Discard", async () => {
   openSettings();
   await screen.findByRole("radiogroup", { name: doubleGameweekLabel });
   const start = FIRST_RULES.doubleGameweek;

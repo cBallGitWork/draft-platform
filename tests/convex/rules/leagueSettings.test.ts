@@ -71,7 +71,7 @@ describe("changing them", () => {
     ]);
   });
 
-  test("S03.4: hold no odd team out, so a save naming a bye is refused and saves nothing", async () => {
+  test("S03.4: hold no oddTeamOut setting, so a save naming a bye is refused and saves nothing", async () => {
     expect(Object.keys((await read()).part)).not.toContain("oddTeamOut");
     const withBye = { ...FIRST, oddTeamOut: "bye" } as LeagueSettings;
     await expect(change(withBye)).rejects.toThrow(/oddTeamOut/);

@@ -119,7 +119,7 @@ describe("editing them", () => {
     expect(saveButton().disabled).toBe(true);
   });
 
-  it("S03.4: offers no bye, as the team left over always plays the league's average", async () => {
+  it("S03.4: offers no bye, as the team left over always plays the league average", async () => {
     await openedSettings();
     expect(screen.queryByRole("radio", { name: /bye/i })).toBeNull();
   });

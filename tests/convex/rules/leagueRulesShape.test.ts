@@ -80,7 +80,7 @@ test("rules saved with a preset's dropped centre role (#988 to #1159) are held w
   expect(heldRules({ ...FIRST_RULES, presets: [{ ...first, centreRole: "sweeper" }, ...rest] })).toEqual(FIRST_RULES);
 });
 
-test("S03.4: rules and changes saved with the dropped odd team out are held without it", () => {
+test("S03.4: rules and changes saved with the dropped oddTeamOut setting are held without it", () => {
   expect(heldRules({ ...FIRST_RULES, oddTeamOut: "bye" })).toEqual(FIRST_RULES);
   expect(heldChanges({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toEqual({ gamesPerGameweek: 2 });
 });

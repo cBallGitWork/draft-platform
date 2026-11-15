@@ -8,7 +8,7 @@ import { TIE_BREAKS } from "../table/standings";
 
 // The shape a league's rules are stored in (spec/03; #25). Each part is the input type of the pure
 // module that reads it, so a stored rule passes straight in: the area limits to lineup.ts, the
-// deadline to deadline.ts, the tie-breaks to standings.ts and the odd team out to roundRobin.ts.
+// deadline to deadline.ts and the tie-breaks to standings.ts.
 // leagueRulesShape.test.ts holds them equal. The pitch's validators are ../lineup/pitchShape.ts's,
 // and the site's scoring set's, which a league's rules held until #354, ../scoring/scoringSetShape.ts's.
 // What makes a rule sound beyond its shape (a minimum above its maximum) is leagueRulesCheck.ts's.
