@@ -10,7 +10,7 @@ import { EDITED, holdSiteScoring, inGameweek, lettersCount, NOTICE, patch, t, TO
 
 useSiteScoringDeployment();
 
-const addFirstRoles = () => t.mutation(internal.scoring.firstRolesVersion.addFirstRoles, {});
+const addFirstRoles = () => t.mutation(internal.migrations.firstRolesVersion.addFirstRoles, {});
 const letters = () => lettersCount(t);
 
 // S05.3

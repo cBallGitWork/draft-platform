@@ -4,7 +4,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
-import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, NEXT } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, MANAGERS } from "../../support/convex/leagues.harness";
 import { EDITED, holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
 import { ATTACK, LEFT_BACK } from "../../support/convex/teamPoints.harness";
@@ -15,7 +15,6 @@ import { ATTACK, LEFT_BACK } from "../../support/convex/teamPoints.harness";
 
 useSiteScoringDeployment();
 
-const NEXT = 9;
 /** The 5 Nov mixes as the site's set held them: here, one old role. */
 const OLD_SET: StoredScoringSet = {
   ...FIRST_SCORING,
@@ -24,7 +23,7 @@ const OLD_SET: StoredScoringSet = {
 };
 const CENTRE_MIDFIELD = { area: "midfield", lane: "centre" } as const;
 
-const addRedrawnRoles = () => t.mutation(internal.scoring.firstRolesVersion.addRedrawnRoles, {});
+const addRedrawnRoles = () => t.mutation(internal.migrations.firstRolesVersion.addRedrawnRoles, {});
 const rowsOf = (teamId: Id<"teams">) =>
   t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === teamId).map(({ fromGameweek, starters }) => ({ fromGameweek, starters })));
 

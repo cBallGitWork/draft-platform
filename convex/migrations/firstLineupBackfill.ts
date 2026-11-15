@@ -6,7 +6,7 @@ import { FINAL_SCORES_MOST } from "../gameweekScorer/storedScores";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
-import { pickFirstLineupAgain, saveFirstLineup } from "./lineups";
+import { pickFirstLineupAgain, saveFirstLineup } from "../lineup/lineups";
 
 // The one-off migration for #637 and #1040: every team with players gets a saved lineup, as the
 // draft's end now gives it one (draftPicks.ts), and no score moves.
@@ -19,8 +19,8 @@ import { pickFirstLineupAgain, saveFirstLineup } from "./lineups";
 // - A final score marked as held by no lineup loses the mark; its points, 0, stay.
 // A team with nobody in its squad is left alone, and running it again does nothing. Run it once
 // on each deployment:
-//   npx convex run lineup/firstLineupBackfill:saveTeamsTheirLineup
-//   npx convex run --prod lineup/firstLineupBackfill:saveTeamsTheirLineup
+//   npx convex run migrations/firstLineupBackfill:saveTeamsTheirLineup
+//   npx convex run --prod migrations/firstLineupBackfill:saveTeamsTheirLineup
 
 /** Whether the team has any lineup row, from any gameweek. */
 async function hasLineupRow(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<boolean> {

@@ -25,7 +25,7 @@ import {
 // scoring"), keyed on FPL's stat names as #27 stores them. FPL scores a player by his
 // position and this by the area he starts in, so all three midfield areas take FPL's midfielder
 // values. It scores no role (spec/05): the roles' first values came in a version of their own
-// (firstRolesVersion.ts), so the gameweeks before them keep this set.
+// (migrations/firstRolesVersion.ts), so the gameweeks before them keep this set.
 
 /** FPL's four positions spread over the six areas: every midfield area is FPL's midfielder. */
 function fplPositions<Value>(goalkeeper: Value, defender: Value, midfielder: Value, forward: Value): Record<Area, Value> {
