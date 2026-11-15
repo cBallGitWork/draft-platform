@@ -10,6 +10,8 @@ on:
   schedule:
     - cron: '0 5 * * 0'  # 05:00 UTC on Sundays
   workflow_dispatch:
+  push:  # TEMP: test from the branch; removed before merge
+    branches: [chore/nightly-rules-clicker-mutation]
 
 permissions:
   contents: read
