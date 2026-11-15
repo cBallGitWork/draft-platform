@@ -128,7 +128,7 @@ export type LeagueRules = Infer<typeof leagueRulesShape>;
 /** What a save of the rules stores (#1617): only the parts it changed, each whole, the rest as the
  *  row before holds them (Craig, 11 Nov 2026: "a save stores only what changed"), so a change of a
  *  waiver time doesn't copy the formations and classics again. */
-export const rulesChangesShape = leagueRulesShape.partial();
+const rulesChangesShape = leagueRulesShape.partial();
 export type RulesChanges = Infer<typeof rulesChangesShape>;
 
 /** What the odd team out played, as rows saved before Craig dropped the bye hold it (15 Nov 2026,

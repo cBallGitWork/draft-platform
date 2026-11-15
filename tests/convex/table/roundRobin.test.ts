@@ -147,7 +147,7 @@ test("an unplayed gameweek has no fixtures, and the rounds it would have had mov
   expect(withBreak.find((each) => each.gameweek === 20)?.fixtures).toEqual(straight[16].fixtures);
 });
 
-test("S03.4: the team left over plays the league's average, never a bye", () => {
+test("S03.4, S09.4: the team left over plays the league's average, never a bye", () => {
   const [week] = drawn(teamsOf(3), [1], options());
   expect(week.byes).toEqual([]);
   expect(week.fixtures).toHaveLength(2);
