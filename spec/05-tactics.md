@@ -334,7 +334,7 @@ From Craig, 1 Nov 2026.
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
   goes, each starter holding it moves to the role he would get dropped into that slot, when the
   change takes effect, and never has his lineup refused; the patch's letter tells each manager
-  which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher").
+  which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher"). `S05.51`
 - The default set, drafted slot by slot with Craig on 4 and 5 Nov 2026 from FM's and real
   football's roles; it replaces the first list of 21 Oct 2026:
   - goalkeeper: shot-stopper, sweeper keeper, distributor, commanding keeper (added 5 Nov 2026).

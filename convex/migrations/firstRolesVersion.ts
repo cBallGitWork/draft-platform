@@ -1,10 +1,13 @@
 import { v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
+import { leagueOpens } from "../leagues/leagueOpens";
 import { heldPositionsOf } from "../lineup/lineups";
-import type { PlayerPositions } from "../lineup/lineup";
-import { isRole } from "../lineup/roles";
-import { droppedStarter } from "../stars/bestRole";
+import { changedRolesLetter } from "../lineup/lineupWords";
+import { roleIn } from "../lineup/roles";
+import { fileLetter } from "../mail/letters";
+import { lostPlayerName, playerByCode } from "../shared/players";
+import { onCutRole, withCutRolesDropped } from "../stars/bestRole";
 import { starsOfPlayers } from "../stars/playerStars";
 import { sortedJson } from "../shared/sortedJson";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../scoring/draftedRoleAdjustments";
@@ -22,8 +25,8 @@ import { isWaiting, setOf, siteVersions, versionName } from "../scoring/siteVers
 //     npx convex run migrations/firstRolesVersion:addFirstRoles
 // - addRedrawnRoles (#1445; spec/05 `S05.27`, `S05.3`): the mixes redrawn around Sportmonks' stats
 //   (#1196), in place of the set's, from the next gameweek not begun. Every starter on a role the
-//   set no longer holds moves to the role he'd get dropped into that slot, his lineup never refused
-//   (spec/05, Roles' patch rule). Run it again and it does nothing.
+//   set no longer holds moves to the role he'd get dropped into that slot, his lineup never refused,
+//   and his manager gets a Mail naming who moved (spec/05 `S05.51`). Run it again and it does nothing.
 //     npx convex run migrations/firstRolesVersion:addRedrawnRoles
 // - addFirstRuns (#886; spec/05 `S05.8`): each moving role's run (draftedRoleRuns.ts) into the
 //   set, beside the roles, so the pitch draws them and a patch can change one. It adds only the runs
@@ -113,37 +116,46 @@ async function addRoles(ctx: MutationCtx, { history, version }: { history: Doc<"
 /** Each lineup from `gameweek` on with a starter on a role no slot offers now, that starter moved to
  *  the role he'd get dropped into his slot on (stars/bestRole.ts): a row from `gameweek` or later
  *  changed in place, and the row in force before it copied to start at `gameweek`, so no gameweek
- *  begun changes. Returns how many starters moved. Reads every lineup in one mutation: run once, when
- *  the beta's one or two leagues hold a few hundred rows, far inside Convex's per-mutation read
- *  and write limits; a site with many leagues would need it in batches. */
+ *  begun changes. Each manager whose starters moved gets a Mail saying which, from what to what
+ *  (spec/05 `S05.51`). Returns how many starters moved. Reads every lineup in one mutation: run
+ *  once, when the beta's one or two leagues hold a few hundred rows, far inside Convex's
+ *  per-mutation read and write limits; a site with many leagues would need it in batches. */
 async function moveOffCutRoles(ctx: MutationCtx, gameweek: number): Promise<number> {
   const rows = (await ctx.db.query("lineups").collect()).toSorted((one, other) => one.fromGameweek - other.fromGameweek);
   const reached = rows.filter((row, index) => row.fromGameweek >= gameweek || !rows.slice(index + 1).some((later) => sameTeam(later, row) && later.fromGameweek <= gameweek));
   let moved = 0;
+  // Each team's moves, one a player however many of its rows held him there.
+  const changesOf = new Map<Id<"teams">, { leagueId: Id<"leagues">; moves: Map<number, { from: string; to: string }> }>();
   for (const row of reached.filter((each) => each.starters.some(onCutRole))) {
     const codes = row.starters.filter(onCutRole).map(({ playerCode }) => playerCode);
-    const starters = movedStarters(row.starters, await heldPositionsOf(ctx, row.leagueId, codes), await starsOfPlayers(ctx, codes));
+    const stars = await starsOfPlayers(ctx, codes);
+    const starters = withCutRolesDropped(row.starters, await heldPositionsOf(ctx, row.leagueId, codes), (playerCode) => stars.get(playerCode) ?? []);
     moved += codes.length;
     if (row.fromGameweek >= gameweek) await ctx.db.patch("lineups", row._id, { starters });
     else {
       const { _id, _creationTime, ...copied } = row;
       await ctx.db.insert("lineups", { ...copied, fromGameweek: gameweek, starters });
     }
+    const team = changesOf.get(row.teamId) ?? { leagueId: row.leagueId, moves: new Map() };
+    changesOf.set(row.teamId, team);
+    row.starters.forEach((before, index) => {
+      if (before.role !== undefined && onCutRole(before)) team.moves.set(before.playerCode, { from: before.role, to: roleIn(starters[index], starters[index].role).key });
+    });
   }
+  for (const [teamId, { leagueId, moves }] of changesOf) await tellManager(ctx, leagueId, teamId, moves);
   return moved;
 }
 
-const sameTeam = (one: Doc<"lineups">, other: Doc<"lineups">) => one.leagueId === other.leagueId && one.teamId === other.teamId;
-
-const onCutRole = ({ role }: { role?: string }) => role !== undefined && !isRole(role);
-
-/** The starters, each on a cut role dropped into his slot again in this formation. */
-function movedStarters(
-  starters: Doc<"lineups">["starters"],
-  positions: PlayerPositions,
-  stars: Awaited<ReturnType<typeof starsOfPlayers>>,
-): Doc<"lineups">["starters"] {
-  return starters.map((starter) =>
-    onCutRole(starter) ? droppedStarter(starter.playerCode, starter, starters, stars.get(starter.playerCode) ?? [], positions.get(starter.playerCode) ?? []) : starter,
+/** The Mail to the team's manager naming each starter moved off a cut role. None for a team with
+ *  no manager, or a league being deleted. */
+async function tellManager(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, moves: ReadonlyMap<number, { from: string; to: string }>) {
+  const league = await ctx.db.get("leagues", leagueId);
+  const team = await ctx.db.get("teams", teamId);
+  if (league === null || !leagueOpens(league) || team?.managerEmail === undefined) return;
+  const changes = await Promise.all(
+    [...moves].map(async ([playerCode, move]) => ({ name: (await playerByCode(ctx, playerCode))?.name ?? lostPlayerName(playerCode), ...move })),
   );
+  await fileLetter(ctx, league, "lineup", [team.managerEmail], changedRolesLetter(changes));
 }
+
+const sameTeam = (one: Doc<"lineups">, other: Doc<"lineups">) => one.leagueId === other.leagueId && one.teamId === other.teamId;

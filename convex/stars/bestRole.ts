@@ -3,7 +3,8 @@
 // does without loading the scorer.
 
 import type { Cell } from "../lineup/pitch";
-import { rolesFor, rolesOfSlot, type Formation, type Role } from "../lineup/roles";
+import type { PlayerPositions } from "../lineup/lineup";
+import { isRole, rolesFor, rolesOfSlot, type Formation, type Role } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { NO_DATA, type RoleStars, type Stars } from "./starsShape";
 
@@ -45,4 +46,22 @@ export function droppedStarter(
 ): Cell & { playerCode: number; role?: string } {
   const role = droppedRole({ area, lane }, formation, ratings, positions);
   return { playerCode, area, lane, ...(role !== undefined && { role }) };
+}
+
+type Starter = Cell & { playerCode: number; role?: string };
+
+/** Whether the starter holds a role no slot offers: one removed from the set (spec/05 `S05.51`). */
+export const onCutRole = ({ role }: { role?: string }): boolean => role !== undefined && !isRole(role);
+
+/** The starters, each on a removed role dropped into his slot again in their formation, so he moves
+ *  to the role he'd get dropped into it on and his lineup is never refused (spec/05 `S05.51`); the
+ *  rest as they were. */
+export function withCutRolesDropped(
+  starters: readonly Starter[],
+  positions: PlayerPositions,
+  ratingsOf: (playerCode: number) => readonly RoleStars[],
+): Starter[] {
+  return starters.map((starter) =>
+    onCutRole(starter) ? droppedStarter(starter.playerCode, starter, starters, ratingsOf(starter.playerCode), positions.get(starter.playerCode) ?? []) : starter,
+  );
 }

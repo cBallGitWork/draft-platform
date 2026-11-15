@@ -67,6 +67,17 @@ test("a starter on a cut role moves to the role he'd be dropped on from that gam
   expect(await rowsOf(bobsTeam)).toEqual([{ fromGameweek: 10, starters: [{ playerCode: 3, ...ATTACK }] }]);
 });
 
+test("S05.51 each manager whose starters moved off a cut role gets a Mail naming each, from what to what", async () => {
+  await holdLeague();
+  await addRedrawnRoles();
+
+  const letters = await t.run((ctx) => ctx.db.query("letters").collect());
+  const to = (email: string) => letters.filter((letter) => letter.to === email && letter.kind === "lineup").map(({ subject, body }) => ({ subject, body }));
+  expect(to(MANAGERS[0])).toEqual([{ subject: "Your starters' roles changed", body: expect.stringContaining("- Player 1: Late runner → Box-to-box") }]);
+  expect(to(MANAGERS[0])[0].body).not.toContain("Player 2");
+  expect(to(MANAGERS[1])).toEqual([{ subject: "Your starters' roles changed", body: expect.stringContaining("- Player 3: ") }]);
+});
+
 test("while a patch made without them waits to take effect, they aren't added", async () => {
   await holdGameweeks(t, { next: NEXT });
   await patch(EDITED, TODAY + NOTICE);
