@@ -112,6 +112,11 @@ export async function holdGameweeks(
   });
 }
 
+/** Stores `gameweek` as begun with `team` v `opponent` and `bye` on a bye: a gameweek played before
+ *  Craig dropped the bye (S03.4), which keeps it, as no draw now gives one. */
+export const storeWithBye = (t: TestConvex, leagueId: Id<"leagues">, gameweek: number, [team, opponent, bye]: readonly Id<"teams">[]) =>
+  t.run((ctx) => ctx.db.insert("playedFixtures", { leagueId, gameweek, fixtures: [{ team, opponent }], byes: [bye], storedAt: Date.now() }));
+
 /** Moves the clock on to just after `gameweek` kicks off, holdGameweeks' gameweek 1 kicking off at
  *  `firstKickoff` and each next a week on: it and every one before have begun, and the next hasn't. */
 export const playUpTo = (firstKickoff: number, gameweek: number) => vi.setSystemTime(firstKickoff + (gameweek - 1) * WEEK_MS);

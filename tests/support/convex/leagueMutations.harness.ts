@@ -73,7 +73,7 @@ export function changesTo(
     "gameweeks/leagueGameweeks:setUsed": () => admin.mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId, gameweek: PL_GAMEWEEKS, used: false }),
     "gameweeks/scoringStart:setScoringStart": () => admin.mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId, gameweek: PL_GAMEWEEKS }),
     "rules/leagueSettings:changeSettings": () =>
-      admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
+      admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), gamesPerGameweek: 2 }, revision }),
     "draft/draftOrder:setTeamOrder": () => admin.mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: reversedTeamIds }),
     "draft/draftOrder:drawTeamOrder": () => admin.mutation(api.draft.draftOrder.drawTeamOrder, { leagueId }),
     "draft/draftStart:setStart": () => admin.mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS }),

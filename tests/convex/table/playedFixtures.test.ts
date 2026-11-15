@@ -148,7 +148,7 @@ describe("a gameweek played keeps its fixtures", () => {
 
   test("a rule change leaves the stored gameweeks as they were, and draws those to come by it", async () => {
     const before = await read();
-    expect(await changeRulesTo(t, leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(PLAYED + 1);
+    expect(await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 })).toBe(PLAYED + 1);
     const after = await read();
 
     expect(played(after)).toEqual(played(before));

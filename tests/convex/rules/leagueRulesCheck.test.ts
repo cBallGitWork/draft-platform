@@ -4,7 +4,6 @@ import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
-import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
@@ -41,10 +40,6 @@ test("no squad limits, no club limit, no presets and no tie-breaks are all sound
 test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {
   const oneEach = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 20 }, maxPerClub: 1 } });
   expect(() => check(oneEach)).not.toThrow();
-});
-
-test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
-  expect(() => check(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
 test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {

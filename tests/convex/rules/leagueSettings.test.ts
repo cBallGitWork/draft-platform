@@ -30,7 +30,6 @@ const FIRST: LeagueSettings = {
   deadline: HELD_FIRST_RULES.deadline,
   doubleGameweek: "bothMatches",
   tieBreaks: HELD_FIRST_RULES.tieBreaks,
-  oddTeamOut: "leagueAverage",
   gamesPerGameweek: 1,
   squadMaximum: HELD_FIRST_RULES.squad.size!.maximum,
   minimumByArea: null,
@@ -63,13 +62,20 @@ describe("reading them", () => {
 
 describe("changing them", () => {
   test("applies from the next gameweek only, keeps the rest of the rules, and files one letter", async () => {
-    expect(await change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(NEXT);
+    expect(await change({ ...FIRST, doubleGameweek: "bestMatch", gamesPerGameweek: 2 })).toBe(NEXT);
 
     expect(await rulesIn(t, leagueId, NEXT - 1)).toEqual(HELD_FIRST_RULES);
-    expect(await rulesIn(t, leagueId, NEXT)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual({ ...HELD_FIRST_RULES, doubleGameweek: "bestMatch", gamesPerGameweek: 2 });
     expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged")).toEqual([
-      { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: NEXT, changed: ["oddTeamOut", "gamesPerGameweek"] },
+      { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: NEXT, changed: ["doubleGameweek", "gamesPerGameweek"] },
     ]);
+  });
+
+  test("S03.4: hold no odd team out, so a save naming a bye is refused and saves nothing", async () => {
+    expect(Object.keys((await read()).part)).not.toContain("oddTeamOut");
+    const withBye = { ...FIRST, oddTeamOut: "bye" } as LeagueSettings;
+    await expect(change(withBye)).rejects.toThrow(/oddTeamOut/);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test.each([0, 1.5])("refuses %s games a gameweek with the reason, and saves nothing", async (games) => {
@@ -124,7 +130,7 @@ describe("changing them", () => {
     const events = await eventsIn(t, leagueId);
 
     const reason = rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined);
-    await expectRefused(change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened), reason);
+    await expectRefused(change({ ...FIRST, gamesPerGameweek: 3 }, COMMISSIONER, opened), reason);
     expect((await rulesIn(t, leagueId, NEXT)).gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });

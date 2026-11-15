@@ -13,7 +13,6 @@ import { ASSISTS, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT, SAVES } fro
 import type { Position } from "../../../convex/positions/positionTables";
 import { WAIVER_ORDERS, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../../../convex/scoring/values";
-import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import type { seededRandom } from "../seededDraw";
 import { PL_GAMEWEEKS, type Club, type HeldPlayer } from "./footballRows.harness";
 
@@ -197,7 +196,6 @@ export const LEAGUE_SIZES = [20, 17, 15, 13, 9, 6];
 const PAIRWISE: Record<string, number[]> = {
   format: [0, 1, 1, 1, 0, 0],
   gamesPerGameweek: [0, 1, 0, 0, 1, 1],
-  oddTeamOut: [0, 0, 1, 0, 1, 1],
   doubleGameweek: [0, 0, 0, 1, 1, 1],
   waiverOrder: [0, 1, 1, 0, 1, 0],
 };
@@ -219,7 +217,6 @@ export function pairwiseRules(start: LeagueRules, league: number): LeagueRules {
     ...start,
     format: FORMATS[PAIRWISE.format[league]],
     gamesPerGameweek: GAMES[PAIRWISE.gamesPerGameweek[league]],
-    oddTeamOut: ODD_TEAM_OUTS[PAIRWISE.oddTeamOut[league]],
     doubleGameweek: DOUBLE_GAMEWEEK_RULES[PAIRWISE.doubleGameweek[league]],
     waivers: { ...start.waivers, order: WAIVER_ORDERS[PAIRWISE.waiverOrder[league]] },
   };
