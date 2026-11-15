@@ -43,7 +43,7 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
     expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
   });
 
-  test("UI-071 (flow.md:55): the admin's Create a league on Your leagues lands on /leagues/new", async ({ page }) => {
+  test(`UI-071 (flow.md:55): the admin's ${NEW_LEAGUE_TITLE} on Your leagues lands on /leagues/new`, async ({ page }) => {
     await page.goto(previewUrl(LEAGUES_PATH, "admin"));
     await page.getByRole("link", { name: NEW_LEAGUE_TITLE, exact: true }).click();
     await expect(page).toHaveURL((url) => url.pathname === NEW_LEAGUE_PATH);
@@ -67,7 +67,7 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
   });
 
   for (const path of [gameweeksPath(L1), squadsPath(L1), scoringPath(L1), invitesPath(L1), ADMIN_PATH, ADMIN_FEEDS_PATH, ADMIN_FEEDBACK_PATH, ADMIN_AVAILABILITY_PATH, NEW_LEAGUE_PATH]) {
-    test(`UI-074 (flow.md:68, 70): the admin's Back to your leagues on ${path} lands on Your leagues`, async ({ page }) => {
+    test(`UI-074 (flow.md:68, 70): the admin's ${backToLeaguesWords} on ${path} lands on Your leagues`, async ({ page }) => {
       await page.goto(previewUrl(path, "admin"));
       await page.getByRole("link", { name: backToLeaguesWords, exact: true }).click();
       await expect(page).toHaveURL((url) => url.pathname === LEAGUES_PATH);
@@ -76,8 +76,8 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
   }
 
   // flow.md:69 draws Back to your leagues on League settings too, but the page has none on main
-  // (#2305 says so): marked to fail until it does.
-  test("UI-074 (flow.md:69): the admin's Back to your leagues on League settings lands on Your leagues", async ({ page }) => {
+  // (#2348): marked to fail until it does.
+  test(`UI-074 (flow.md:69): the admin's ${backToLeaguesWords} on League settings lands on Your leagues`, async ({ page }) => {
     test.fail();
     await page.goto(previewUrl(settingsPath(L1), "admin"));
     await page.getByRole("link", { name: backToLeaguesWords, exact: true }).click({ timeout: 5_000 });
@@ -101,7 +101,7 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
   });
 
   // On main a name on My team's Tactics tab is a button that picks him out; his card is the
-  // "Player card" link beside it, not the name (#2305 says so): marked to fail until the name opens it.
+  // "Player card" link beside it, not the name (#2349): marked to fail until the name opens it.
   test("UI-091 (flow.md:94): a manager on My team clicks a player's name and lands on his card", async ({ page }) => {
     test.fail();
     await page.goto(previewUrl(MY_TEAM_PATH, "manager"));
