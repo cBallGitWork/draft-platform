@@ -13,7 +13,7 @@ performance and news". After the mini beta. It must hold for many leagues, up to
 - A note states facts only, in our own words, and never advises.
 - A note never mentions our game: no fantasy terms, no managers or owners, no points.
 - A note the AI can't tie to one player for sure is dropped.
-- Every note carries its date and a link to the article it came from.
+- Every note carries its date and a link to the article it came from. `S21.2`
 - When two sources disagree, both notes show, each with its link.
 - A note is the player's, written once and read by every league, so its cost doesn't grow with
   teams or leagues.
@@ -24,7 +24,7 @@ performance and news". After the mini beta. It must hold for many leagues, up to
   (`spec/20`; Craig, 9 Nov 2026, on #1196: "ive heard its not great but lets see"; `spec/12`), and
   his three latest notes, newest first. `S21.1`
 - Mail: a letter for each real-news note about a player in your squad. Not your next opponent's
-  players, and not match notes (`spec/16`).
+  players, and not match notes (`spec/16`). `S21.3`
 
 ## Running it
 
@@ -33,6 +33,6 @@ performance and news". After the mini beta. It must hold for many leagues, up to
 - Claude picks the news sites, from feeds published for reuse; the admin's feeds page
   (`spec/15`) lists them.
 - If the news job stops, it shows late on the feeds page like any feed (`spec/15`), and the card
-  keeps its last notes.
+  keeps its last notes. `S21.4`
 - Only the admin hides a wrong note, with a Hide button on the note on the player card, shown only
-  to the admin. A hidden note is gone from every league.
+  to the admin. A hidden note is gone from every league. `S21.5`
