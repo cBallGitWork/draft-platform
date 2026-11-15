@@ -29,13 +29,14 @@ export function beforeMatchesWritten(ctx: MutationCtx): Promise<number> {
   return recordPassedDeadlines(ctx);
 }
 
-/** Players sent, `newcomers` new or sent again after a gap (#1489): a newcomer goes on waivers in
- *  his row's transaction, so no league sees a free agent first (#1197), and every one sent,
- *  changed or not, keeps his Scouting row, so a player held from before Scouting's rows gets his
- *  (#1559). */
-export async function afterPlayersSent(ctx: MutationCtx, newcomers: readonly number[], sent: readonly number[]): Promise<void> {
+/** Players sent, `newcomers` new or sent again after a gap (#1489), `written` those whose row the
+ *  sync inserted or patched: a newcomer goes on waivers in his row's transaction, so no league sees
+ *  a free agent first (#1197), and each one written keeps his Scouting row (#1559). One sent
+ *  unchanged is skipped, his Scouting row already in step, so a sync that changes no player reads
+ *  and writes no Scouting row (#2010). */
+export async function afterPlayersSent(ctx: MutationCtx, newcomers: readonly number[], written: readonly number[]): Promise<void> {
   await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
-  await keepScoutingPlayers(ctx, sent);
+  await keepScoutingPlayers(ctx, written);
 }
 
 /** Players the feed stopped sending, marked dropped: each leaves Scouting's list with his row

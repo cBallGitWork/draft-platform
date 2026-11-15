@@ -1,10 +1,16 @@
 import { expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { checkScoutingPlayersHeld, sameValue, SCOUTING_REBUILD_COMMAND, scoutingPlayerByCode } from "../../../convex/scouting/scoutingPlayers";
+import {
+  checkScoutingPlayersHeld,
+  keepScoutingPlayers,
+  sameValue,
+  SCOUTING_REBUILD_COMMAND,
+  scoutingPlayerByCode,
+} from "../../../convex/scouting/scoutingPlayers";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { moveSeasonTotals } from "../../../convex/stats/seasonStats";
 import { seasonStartYear } from "../../../convex/shared/time";
-import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, PALMER, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 
 // Each player's Scouting row (#1559, scoutingPlayers.ts): his name, club, what his positions are
@@ -13,6 +19,7 @@ import { freshConvex, type TestConvex } from "../../support/convex/test.harness"
 // playersList.test.ts's.
 
 const { positions: _, ...SAKA_ROW } = SAKA;
+const { positions: __, ...PALMER_ROW } = PALMER;
 const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 const NEXT_SEASON_KICKOFF = Date.parse("2027-09-11T14:00:00Z");
 
@@ -92,6 +99,64 @@ test("players held with no row at all is refused, naming the rebuild, never an e
   await expect(t.run((ctx) => checkScoutingPlayersHeld(ctx))).rejects.toThrow(SCOUTING_REBUILD_COMMAND);
   await t.mutation(internal.scouting.scoutingPlayers.rebuild, { cursor: null });
   await expect(t.run((ctx) => checkScoutingPlayersHeld(ctx))).resolves.not.toThrow();
+});
+
+/** Written onto a Scouting row by hand, so a later keep that reads it puts it right. */
+const STALE_NAME = "Stale";
+const stale = (t: TestConvex, code: number) =>
+  t.run(async (ctx) => {
+    const row = await scoutingPlayerByCode(ctx, code);
+    await ctx.db.patch("scoutingPlayers", row!._id, { name: STALE_NAME });
+  });
+
+test("a sync sending players unchanged leaves their Scouting rows alone; one changed has just his kept (#2010)", async () => {
+  const t = await withClubs();
+  await sent(t, SAKA_ROW, PALMER_ROW);
+  await stale(t, SAKA.code);
+  await stale(t, PALMER.code);
+
+  await sent(t, SAKA_ROW, PALMER_ROW);
+  expect((await rowOf(t))?.name).toBe(STALE_NAME);
+  expect((await rowOf(t, PALMER.code))?.name).toBe(STALE_NAME);
+
+  await sent(t, { ...SAKA_ROW, clubCode: CHELSEA.code }, PALMER_ROW);
+  expect(await rowOf(t)).toMatchObject({ name: SAKA.name, clubCode: CHELSEA.code });
+  expect((await rowOf(t, PALMER.code))?.name).toBe(STALE_NAME);
+});
+
+const WRITE_METHODS: ReadonlySet<PropertyKey> = new Set(["insert", "patch", "replace", "delete"]);
+
+/** Keeps these players' rows with every database write counted, by table. */
+const keptWritesOf = (t: TestConvex, codes: number[]) =>
+  t.run(async (ctx) => {
+    const written: string[] = [];
+    const db = new Proxy(ctx.db, {
+      get(target, key) {
+        const method = Reflect.get(target, key) as (...args: unknown[]) => unknown;
+        if (!WRITE_METHODS.has(key)) return typeof method === "function" ? method.bind(target) : method;
+        return (table: string, ...rest: unknown[]) => {
+          written.push(table);
+          return method.call(target, table, ...rest);
+        };
+      },
+    });
+    await keepScoutingPlayers({ ...ctx, db }, codes);
+    return written;
+  });
+
+test("a keep with nothing changed writes nothing; a changed value writes just that player's row (#2010)", async () => {
+  const t = await withClubs();
+  await t.run((ctx) => insertPlayers(ctx, [SAKA, PALMER]));
+  expect(await keptWritesOf(t, [SAKA.code, PALMER.code])).toEqual(["scoutingPlayers", "scoutingPlayers"]);
+
+  expect(await keptWritesOf(t, [SAKA.code, PALMER.code])).toEqual([]);
+
+  await t.run(async (ctx) => {
+    const saka = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", SAKA.code)).unique();
+    await ctx.db.patch("players", saka!._id, { clubCode: CHELSEA.code });
+  });
+  expect(await keptWritesOf(t, [SAKA.code, PALMER.code])).toEqual(["scoutingPlayers"]);
+  expect((await rowOf(t))?.clubCode).toBe(CHELSEA.code);
 });
 
 test("two rows are the same whatever their fields' order, an absent field and an undefined one alike", () => {
