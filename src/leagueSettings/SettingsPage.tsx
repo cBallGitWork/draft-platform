@@ -62,8 +62,10 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
   const aside = (
     <>
       <PlateTabs label={settingsTabsLabel} tabs={SETTINGS_TABS} words={settingsTabWords} chosen={tab} choose={choose} />
-      <span className="self-center text-soft">{league.name}</span>
-      <BackToLeagues className="self-center" />
+      <span className="flex items-center gap-4 self-center">
+        <span className="text-soft">{league.name}</span>
+        <BackToLeagues className="lg:min-h-0" />
+      </span>
     </>
   );
   return (
