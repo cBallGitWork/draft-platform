@@ -44,6 +44,7 @@ export const matchOf = (more: Partial<MatchPageData> = {}): MatchPageData => ({
   away: CHELSEA,
   score: { state: "live", homeGoals: 2, awayGoals: 1, minutes: 67, clockLabel: "67'12" },
   men: MEN,
+  scorers: { home: [], away: [] },
   pointsProblem: null,
   abandoned: false,
   pointsDelayed: false,
