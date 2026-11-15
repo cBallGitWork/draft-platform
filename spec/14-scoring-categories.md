@@ -111,6 +111,13 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - A patch is announced by a Mail letter to every manager (`spec/16`), and by a site banner from the
   announcement until it takes effect, which each manager can dismiss. The banner links to the patch
   notes, a page listing every version's changes.
+- Player scoring shows a manager only the values in force now; a waiting patch's values stay in
+  its patch notes until it takes effect: "dont confuse player, just show the values that are live"
+  (Craig, 11 Nov 2026, on #1591). `S14.28`
+- Until it takes effect, the admin can withdraw an announced patch: it goes back to a draft, its
+  banner goes, and every manager gets a Mail letter saying so; announcing it again gives a fresh 7
+  days. An announced patch is never edited in place (Craig, 6 Nov 2026, on #368: "Build take
+  recs"). `S14.29`
 - A commissioner can override one player's points for one match, with a reason. It re-scores that
   head-to-head and sends Mail to the whole league saying what changed and why.
 - Any player's or team's score can be overridden, in any match or gameweek, open ones included,
