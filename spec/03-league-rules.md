@@ -36,6 +36,9 @@ Among them:
 - The deadline: when it falls, as a time before the gameweek's first kickoff, starting at 15
   minutes before: "i have said multiple times we dont use fpls time, its 15 minutes" (Craig,
   9 Nov 2026, on #1196; see [5. Tactics](05-tactics.md)). `S03.3`
+- Across a clock change, the deadline keeps the same real-time gap before the first kickoff: a
+  24-hour deadline before a 14:00 UK kickoff on the Sunday the clocks go back falls at 15:00 UK on
+  the Saturday (Craig, 15 Nov 2026, on #2168: "Same gap"). `S03.7`
 - Each area's minimum and maximum on the pitch, and the formation presets.
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
