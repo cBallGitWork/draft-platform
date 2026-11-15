@@ -5,10 +5,12 @@ import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import { capitalised } from "../../convex/shared/moments";
-import { afterLastMatchWords, changeFailedWords, commissionerVetoWords, gameweekShort, leagueVoteWords } from "../shared/words";
+import { changeFailedWords, commissionerVetoWords, leagueVoteWords } from "../shared/words";
+import { afterLastMatchWords, gameweekShort } from "../shared/when/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
-export { dateWords, noTeamWords, whenWords } from "../shared/words";
+export { noTeamWords } from "../shared/words";
+export { dateWords, whenWords } from "../shared/when/words";
 export { warningWords } from "../shared/words";
 export { NOTE_MOST, pickWords };
 export { viaWords } from "../shared/words";

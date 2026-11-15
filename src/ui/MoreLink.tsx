@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { nextGlyph } from "../shared/words";
+import { nextGlyph } from "../shared/controls/words";
 
 /** The glyph after a way on ("Player card ›"), hidden from screen readers. A control that isn't a
  *  MoreLink but ends in the same glyph puts it after its words with `gap-1`, as here. */

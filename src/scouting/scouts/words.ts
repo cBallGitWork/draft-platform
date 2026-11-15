@@ -4,7 +4,7 @@
 
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { hoursLeftWords } from "../../draft/words";
-import { dayWords, whenWords } from "../../shared/words";
+import { dayWords, whenWords } from "../../shared/when/words";
 
 /** The card's action, and how many of the team's scouts are free (the approved card: "Send a scout
  *  2 of 3 free"). */

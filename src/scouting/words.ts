@@ -18,16 +18,8 @@ import {
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
 import { runNameWords, type FirstRun } from "../myTeam/claims/words";
-import {
-  afterLastMatchWords,
-  gameweekShort,
-  lastSeasonPointsColumn,
-  PLAYERS_TITLE,
-  seasonShortWords,
-  STAT_WORD,
-  underSiteScoringWords,
-  weekdayTimeWords,
-} from "../shared/words";
+import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, underSiteScoringWords } from "../shared/words";
+import { afterLastMatchWords, gameweekShort, seasonShortWords, weekdayTimeWords } from "../shared/when/words";
 import type { HeldByFilter, Period } from "./seam";
 
 export { figureWords, noFigureWords } from "../shared/words";

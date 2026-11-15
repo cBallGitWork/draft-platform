@@ -4,7 +4,7 @@ import type { ScoringStartView } from "../../convex/gameweeks/scoringStart";
 import { Loading, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useNowEachMinute } from "../shared/useMinute";
-import { gameweekShort, whenWords } from "../shared/words";
+import { gameweekShort, whenWords } from "../shared/when/words";
 import type { LeagueSettingsSeam } from "./seam";
 import {
   noScoringStartChoicesWords,

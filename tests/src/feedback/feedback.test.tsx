@@ -26,7 +26,7 @@ import { FEEDBACK_TITLE, feedbackHint, feedbackLinkWords, messageLabel, sendWord
 import { TABLE_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
-import { whenWords } from "../../../src/shared/words";
+import { whenWords } from "../../../src/shared/when/words";
 import { descriptionOf } from "../../support/src/describedBy";
 import { admin, commissioner, expectSentToLeagues, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
 

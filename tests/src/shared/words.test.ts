@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { letterTime } from "../../../src/mail/words";
 import { statusWords } from "../../../src/matchup/words";
 import { clockWords as matchClockWords, kickoffWords } from "../../../src/premierLeague/words";
-import { clockWords, halfTime, liveWords, scoreWords, timeOfDayWords } from "../../../src/shared/words";
+import { clockWords, halfTime, liveWords, scoreWords } from "../../../src/shared/match/words";
+import { timeOfDayWords } from "../../../src/shared/when/words";
 
 describe("scoreWords", () => {
   it("writes a matchup's points below 0 with the true minus (#564)", () => {

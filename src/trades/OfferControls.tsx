@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ScreenTeam } from "./seam";
-import { menuGlyph } from "../shared/words";
+import { menuGlyph } from "../shared/controls/words";
 import { noteLabel, NOTE_MOST, partnerLabel } from "./words";
 
 // The New offer tab's two controls besides its ticks (docs/design/approved/trades/1440-new.png):

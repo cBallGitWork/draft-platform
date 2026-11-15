@@ -4,7 +4,8 @@
 
 import { LOCALE, screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
-import { failedWords, seasonShortWords, thousandsWords } from "../shared/words";
+import { failedWords, thousandsWords } from "../shared/words";
+import { seasonShortWords } from "../shared/when/words";
 import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import type { VersionNotes } from "./seam";
 

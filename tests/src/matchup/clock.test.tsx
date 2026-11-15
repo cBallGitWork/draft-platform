@@ -6,7 +6,8 @@ import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { notCountingLabel, sidePitchLabel, statusLabels } from "../../../src/matchup/words";
-import { halfTime, liveWords, weekdayTimeWords, weekdayWords } from "../../../src/shared/words";
+import { halfTime, liveWords } from "../../../src/shared/match/words";
+import { weekdayTimeWords, weekdayWords } from "../../../src/shared/when/words";
 import { headToHead, lineupRows, playing, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 

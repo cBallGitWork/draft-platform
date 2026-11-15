@@ -2,7 +2,8 @@
 // server refused a change is in convex/gameweeks/leagueGameweeks.ts (`gameweekRefusals`), and reaches the
 // screen as is.
 
-import { failedWords, gameweekColumn } from "../shared/words";
+import { failedWords } from "../shared/words";
+import { gameweekColumn } from "../shared/when/words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
 

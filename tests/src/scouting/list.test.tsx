@@ -24,7 +24,8 @@ import {
   seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
-import { columnHeadName, freeAgentWords, menuWords, noPointsYetWords, notLastSeasonWords, POSITION_NAMES } from "../../../src/shared/words";
+import { freeAgentWords, menuWords, noPointsYetWords, notLastSeasonWords, POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName } from "../../../src/shared/controls/words";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";

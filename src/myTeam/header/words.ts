@@ -1,14 +1,18 @@
 // What My team's header band says (spec/12, My team; the approved Tactics picture's header), in one
 // place for Craig to change in the pull request.
 
-import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
+import { figureWords } from "../../shared/words";
+import { scoreWords } from "../../shared/match/words";
+import { gameweekShort, gameweekWords } from "../../shared/when/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result, type Winner } from "../../../convex/table/standings";
 import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
-export { countdownWords, formHead, gameweekShort, placeWords, tableHead } from "../../shared/words";
+export { placeWords } from "../../shared/words";
+export { formHead, tableHead } from "../../shared/match/words";
+export { countdownWords, gameweekShort } from "../../shared/when/words";
 
 /** The band's heads over each reading. */
 export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
@@ -40,7 +44,7 @@ export const endGameweekLabel = "The gameweek it ends after";
 export const untilSwitchedOffWords = "Until I switch it off";
 export const switchOnWords = "Switch on";
 export const switchOffWords = "Switch off";
-export { cancelWords } from "../../shared/words";
+export { cancelWords } from "../../shared/controls/words";
 
 /** Points, short as the band says them: "18 pts". */
 export const pointsShort = (points: number) => `${figureWords(points)} pts`;

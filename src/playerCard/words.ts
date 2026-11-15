@@ -3,9 +3,12 @@
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekColumn, gameweekShort, gameweekWords, signedWords, thousandsWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
+import { AREA_WORDS, figureWords, signedWords, thousandsWords, underSiteScoringWords } from "../shared/words";
+import { versusWords } from "../shared/match/words";
+import { afterLastMatchWords, gameweekColumn, gameweekShort, gameweekWords, whenWords } from "../shared/when/words";
 
-export { backWords, figureWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
+export { backWords } from "../shared/controls/words";
 
 export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
@@ -55,7 +58,7 @@ export const logViewLabel = "Columns";
 export const logViews = { scoring: "Scoring", all: "All stats" } as const;
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
-export { liveWords, provisionalWords } from "../shared/words";
+export { liveWords, provisionalWords } from "../shared/match/words";
 export const columns = {
   gameweek: gameweekColumn,
   opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
@@ -63,7 +66,7 @@ export const columns = {
   minutes: { short: "Min", long: "Minutes played" },
   points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
-export { notArrivedWords } from "../shared/words";
+export { notArrivedWords } from "../shared/match/words";
 /** A match his club's postponement took out, kept as its row, naming the side he'd have met:
  *  "Postponed: Newcastle". No reason, as no feed gives one (Craig, 12 Nov 2026, on #1496). */
 export const postponedWords = "Postponed";
@@ -134,21 +137,12 @@ export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 
 /** His club's next fixtures, in a single row (Craig, 7 Nov 2026). */
 export const nextFixturesTitle = (club: string) => `${club}'s next fixtures`;
-export { difficultyNotRatedWords, statusNotSettledLabel } from "../shared/words";
+export { difficultyNotRatedWords, statusNotSettledLabel } from "../shared/match/words";
 export const noFixturesWords = "No fixtures ahead with a date.";
 
 /** A commissioner's override of his points in a match (#32, spec/14). */
-export {
-  cancelWords as cancelOverrideWords,
-  overriddenDoneWords,
-  overriddenWords,
-  overrideFailedWords,
-  overrideHint,
-  overrideLabels,
-  overrideWords,
-  removeOverrideFailedWords,
-  removeOverrideWords,
-} from "../shared/words";
+export { cancelWords as cancelOverrideWords } from "../shared/controls/words";
+export { overriddenDoneWords, overriddenWords, overrideFailedWords, overrideHint, overrideLabels, overrideWords, removeOverrideFailedWords, removeOverrideWords } from "../shared/match/words";
 export const OVERRIDE_TITLE = "Override points";
 export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
   `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;

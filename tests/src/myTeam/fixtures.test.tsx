@@ -17,7 +17,8 @@ import type { TeamFixtures } from "../../../src/myTeam/seam";
 import { countdownWords, pointsShort } from "../../../src/myTeam/header/words";
 import { standingOf } from "../../../src/myTeam/header/teamStanding";
 import { competitionsLabel } from "../../../src/table/words";
-import { dateWords, formLabel, resultWords } from "../../../src/shared/words";
+import { formLabel, resultWords } from "../../../src/shared/match/words";
+import { dateWords } from "../../../src/shared/when/words";
 import {
   byeWords,
   deadlineWords,

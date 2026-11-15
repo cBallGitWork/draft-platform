@@ -2,25 +2,13 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import {
-  ascendingGlyph,
-  backWords,
-  awayWords,
-  dateWords,
-  descendingGlyph,
-  gameweekShort,
-  gameweekWords,
-  homeWords,
-  lastSeasonPointsColumn,
-  menuWords,
-  scoreWords,
-  seasonShortWords,
-  STAT_WORD,
-  timeOfDayWords,
-  versusWords,
-} from "../shared/words";
+import { lastSeasonPointsColumn, menuWords, STAT_WORD } from "../shared/words";
+import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
+import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
+import { dateWords, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
-export { clockWords, fullTime, gameweekWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/words";
+export { clockWords, fullTime, halfTime, liveWords, scoreWords, versusWords } from "../shared/match/words";
+export { gameweekWords } from "../shared/when/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { signedWords as goalDifferenceWords } from "../shared/words";
 
@@ -60,7 +48,7 @@ export const loadingTableWords = "Loading the Premier League table…";
 /** Said before the football sync has held the season's clubs. */
 export const noClubsWords = "No clubs are held yet, so there is no table to show.";
 /** Said while a match in the table is being played: its result counts as it stands (spec/18). */
-export { provisionalWords } from "../shared/words";
+export { provisionalWords } from "../shared/match/words";
 
 /** The table's columns: a short head, and what it stands for. */
 export const tableColumns = {
@@ -98,14 +86,14 @@ export const tableLineWords: Record<TableLine, string> = {
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
-export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/words";
+export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/match/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
  *  "Arsenal 2–1 Chelsea: the match". */
 export const matchLinkLabel = (home: string, away: string, goals: string | null) => `${home} ${goals ?? versusWords} ${away}: the match`;
 
 export const MATCH_TITLE = "Match";
-export { backWords, previousGlyph } from "../shared/words";
+export { backWords, previousGlyph } from "../shared/controls/words";
 /** Back's link, read out: "Back to Premier League GW11's fixtures"; to its fixtures for none. */
 export const backLabel = (gameweek: number | null) => `${backWords} to ${PREMIER_LEAGUE_TITLE}${gameweek === null ? "" : ` ${gameweekShort(gameweek)}`}'s fixtures`;
 /** Beside Back, where the match is: "Premier League, GW11" (the approved picture). */
@@ -149,7 +137,7 @@ export const cameOnWords = "On";
 export const unusedLabel = "unused substitute";
 
 export const COMMENTARY_TITLE = "Commentary";
-export { noCommentaryWords as noLinesWords } from "../shared/words";
+export { noCommentaryWords as noLinesWords } from "../shared/match/words";
 
 export const TEAM_STATS_TITLE = "Team stats";
 export const teamStatsLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: team stats`;
@@ -207,7 +195,7 @@ export function daysAwayWords(kickoff: number, now: number): string {
 
 // The club page's Squad tab and top scorers (#1937; spec/18 `S18.7`, `S18.8`).
 
-export { statusNotSettledLabel } from "../shared/words";
+export { statusNotSettledLabel } from "../shared/match/words";
 /** The club's top three scorers, under its table place and form: "Saka 42". */
 export const topScorersHead = "Top scorers";
 export const loadingSquadWords = "Loading the squad…";

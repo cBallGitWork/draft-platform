@@ -1,5 +1,6 @@
 import type { Result } from "../../convex/table/standings";
-import { formLabel, liveFormLabel, liveResultWords, noFigureWords, resultWords } from "../shared/words";
+import { noFigureWords } from "../shared/words";
+import { formLabel, liveFormLabel, liveResultWords, resultWords } from "../shared/match/words";
 
 const CHIP = "inline-block min-w-chip-tight text-center font-bold no-underline";
 /** A result locked, solid in the figure colour; one still live, a 1px muted outline until it locks

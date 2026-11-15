@@ -4,7 +4,7 @@ import type { FeedbackList, FeedbackSeam } from "../feedback/seam";
 import { Confirm } from "../ui/Confirm";
 import { Loading, PAGE_STACK, Panel, PanelNote } from "../ui/Panel";
 import { useChange, type Changing } from "../shared/useChange";
-import { whenWords } from "../shared/words";
+import { whenWords } from "../shared/when/words";
 import { AdminHeader } from "./AdminHeader";
 import { feedbackListTitle, feedbackLoadingWords, feedbackWords, moreFeedbackWords, noFeedbackWords } from "./words";
 

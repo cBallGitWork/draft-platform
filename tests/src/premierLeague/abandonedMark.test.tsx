@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { abandonedWords, markAbandonedQuestion, markAbandonedWords, unmarkAbandonedWords } from "../../../src/premierLeague/words";
-import { cancelWords } from "../../../src/shared/words";
+import { cancelWords } from "../../../src/shared/controls/words";
 import { FIXTURE, matchOf, openMatch } from "../../support/src/matchPage.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 

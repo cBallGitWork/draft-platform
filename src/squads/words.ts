@@ -1,7 +1,8 @@
 // What the squads screen says, in one place for Craig to change in the pull request. Why the
 // server refused a change is in convex/squads/squads.ts (`squadRefusals`), and reaches the screen as is.
 
-import { failedWords, gameweekShort } from "../shared/words";
+import { failedWords } from "../shared/words";
+import { gameweekShort } from "../shared/when/words";
 
 export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../shared/words";
 

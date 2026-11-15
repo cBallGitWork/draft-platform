@@ -7,7 +7,8 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { menuWords } from "../../../src/shared/words";
+import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/controls/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { expectColumnHeads } from "../../support/src/columnHeads";
@@ -37,7 +38,8 @@ import {
   tooFewTeamsWords,
   yourTeamWords,
 } from "../../../src/table/words";
-import { autoTeamWhatWords, autoTeamWords, formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
+import { autoTeamWhatWords, autoTeamWords, noFigureWords } from "../../../src/shared/words";
+import { formLabel, liveFormLabel } from "../../../src/shared/match/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const fixtureLines = (gameweek: number) =>

@@ -40,7 +40,8 @@ import {
   yourSquadWords,
 } from "../../../src/draft/words";
 import { columns } from "../../../src/scouting/words";
-import { columnHeadName, POSITION_NAMES, sortByLabel } from "../../../src/shared/words";
+import { POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName, sortByLabel } from "../../../src/shared/controls/words";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { draftOrder, emptyBoard, liveDraft, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";

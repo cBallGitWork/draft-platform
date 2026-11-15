@@ -84,7 +84,7 @@ export const leaveFailedWords = failedWords("you're still in the league, running
 // Deleting a league (#75, spec/13, Deleting).
 
 export const deleteLeagueWords = "Delete league";
-export { confirmDeleteWords } from "../shared/words";
+export { confirmDeleteWords } from "../shared/controls/words";
 export const confirmDelete = (leagueName: string) =>
   `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
   `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;

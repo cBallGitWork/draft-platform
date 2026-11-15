@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { useMinute } from "../shared/useMinute";
-import { gameweekShort, whenWords } from "../shared/words";
+import { gameweekShort, whenWords } from "../shared/when/words";
 import { CardHead } from "./CardHead";
 import { opponentWords } from "./gameLog";
 import { MatchBreakdown } from "./MatchBreakdown";
