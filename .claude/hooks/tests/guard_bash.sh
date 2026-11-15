@@ -25,6 +25,7 @@ allow_cmds=(
   'git push --force-if-includes origin chore/x'  # alone it forces nothing
   'git push origin main' 'git push origin HEAD:refs/heads/main'  # GitHub's main ruleset refuses these itself
   'git status' 'ls -a' 'echo "git add -A"'
+  'git rm src/old.ts' 'git rm -r src/old' 'git mv src/a.ts src/b.ts'  # builds delete and move files (#2112)
 )
 for c in "${deny_cmds[@]}"; do check deny guard_bash.py "$(bash_cmd "$c")"; done
 for c in "${allow_cmds[@]}"; do check allow guard_bash.py "$(bash_cmd "$c")"; done
