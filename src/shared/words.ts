@@ -52,8 +52,6 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 /** A setting nobody has made yet. */
 export const notSetWords = "Not set";
 
-/** Words that start a line, their first letter a capital. */
-export const firstUpper = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 /** The link from a player's panel to his card (Squad and Tactics). */
 export const playerCardWords = "Player card";
 /** A stat, as a column of stats or the choice of one is headed. */

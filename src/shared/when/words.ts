@@ -12,7 +12,7 @@ export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
 export const gameweekColumn = { short: "GW", long: "Gameweek" } as const;
 /** When a waiver run or an offer's close falls in `gameweek`'s lock: after its last match, whose
  *  time isn't known ahead (Craig, 11 Nov 2026, on #1467 and #1492): "after GW12's last match". A
- *  line starting with it takes `firstUpper`. */
+ *  line starting with it takes `capitalised` (convex/shared/moments.ts). */
 export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
 
 /** A season, short: "25/26" (the draft's list, Scouting, the player card, patch notes, a role card). */
