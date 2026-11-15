@@ -12,6 +12,7 @@ import { firstKickoffs } from "../../gameweeks/gameweekStarts";
 import { readEach } from "../scoreReads";
 import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
+import { outsideUrl } from "../../outbound/outsideWorld";
 import { smScoreRead } from "./sportmonksMatch";
 import { AWAY, HOME, SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type RawTeamCoach, type SportmonksPayloads } from "./sportmonksRaw";
 
@@ -85,7 +86,7 @@ export function sportmonksToken(): string | null {
  *  log line ever holds it. A status that is not OK, or a body with no `data`, throws, naming the
  *  URL and Sportmonks' own message. */
 export async function getData<T>(url: string, token: string): Promise<{ data: T; hasMore: boolean }> {
-  const res = await fetch(url, { headers: { Authorization: token, Accept: "application/json" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  const res = await fetch(outsideUrl(url), { headers: { Authorization: token, Accept: "application/json" }, signal: AbortSignal.timeout(TIMEOUT_MS) });
   const body = (await res.json().catch(() => null)) as { data?: T | null; message?: string; pagination?: { has_more?: boolean } } | null;
   const message = body?.message ? `: ${body.message}` : "";
   if (!res.ok) throw new Error(`${url} answered ${res.status}${message}`);
