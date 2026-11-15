@@ -81,13 +81,12 @@ export function LeaguesPage({
           {leaguesCut && <Notice>{leaguesCutWords}</Notice>}
           {/* The admin in no league sees his leagues, none yet, and Create a league instead of the
               words (spec/02, S02.4). */}
-          {leagues.length === 0 && !isAdmin ? (
+          {(listed.length > 0 || isAdmin) && <LeagueTable leagues={listed} actions={actions} />}
+          {leagues.length === 0 && (
             <div className={PANEL_BODY}>
-              <p className="text-lead">{notInALeagueWords(email)}</p>
+              {!isAdmin && <p className="text-lead">{notInALeagueWords(email)}</p>}
               <EndedInviteLine useEndedInvite={joining.useEndedInvite} />
             </div>
-          ) : (
-            (listed.length > 0 || isAdmin) && <LeagueTable leagues={listed} actions={actions} />
           )}
         </Panel>
         {leagues.map(
