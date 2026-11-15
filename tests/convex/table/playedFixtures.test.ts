@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeRulesTo, holdGameweeks, playUpTo, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, freshLeague, teamsIn } from "../../support/convex/leagues.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
@@ -153,6 +153,30 @@ describe("a gameweek played keeps its fixtures", () => {
 
     expect(played(after)).toEqual(played(before));
     expect(toCome(after)).not.toEqual(toCome(before));
+  });
+
+  test("S03.4: a league saved with a bye plays the league's average from its next gameweek, and its gameweeks played keep their byes", async () => {
+    // Written straight in: a bye is no longer a rule a league can choose (Craig, 15 Nov 2026), but
+    // a league that chose one before still holds it, and played gameweeks with byes.
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("leagueRules").collect()) {
+        if (row.leagueId === leagueId && row.rules !== undefined) await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, oddTeamOut: "bye" } });
+      }
+    });
+    const [one, two, three] = (await teamsIn(t, leagueId)).map(({ _id }) => _id);
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("playedFixtures").collect()) {
+        if (row.leagueId === leagueId) await ctx.db.patch("playedFixtures", row._id, { fixtures: [{ team: one, opponent: two }], byes: [three] });
+      }
+    });
+    const after = await read();
+
+    expect(played(after).map(({ byes }) => byes)).toEqual(upTo(PLAYED).map(() => [teamNumbered(3)]));
+    expect(toCome(after).length).toBeGreaterThan(0);
+    for (const { byes, fixtures } of toCome(after)) {
+      expect(byes).toEqual([]);
+      expect(fixtures.filter(({ opponent }) => opponent === null)).toHaveLength(1);
+    }
   });
 
   test("a team joining leaves the stored gameweeks as they were, and plays only those to come", async () => {
