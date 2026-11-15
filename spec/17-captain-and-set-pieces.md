@@ -5,16 +5,21 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
 
 ## The captain
 
-- The manager picks a captain from his starters, and a vice-captain from his starters.
+Dropped 15 Nov 2026: "we dont have captrain and vice thats fpl" (Craig, 15 Nov 2026, on the regression pack's open questions). There is no captain and no vice-captain. The
+answers below stay for the record.
+
+- The manager picks a captain from his starters, and a vice-captain from his starters. Dropped with
+  the captain. `S17.9 withdrawn`
 - The captain leads by example, like a real club captain: a role-style adjustment, give and take,
   as a league rule. He gains for playing the full 90 and for his club winning; he loses more than
   usual for a yellow card, and far more for a red. The defaults are priced against last season, as
-  roles are, so the armband earns only for a captain who suits it.
+  roles are, so the armband earns only for a captain who suits it. Dropped with the captain. `S17.10 withdrawn`
 - His club's result is not a per-player stat in the feeds: it comes from the match's score, so
-  scoring takes it in as a new category (`spec/14`).
+  scoring takes it in as a new category (`spec/14`). Dropped with the captain. `S17.11 withdrawn`
 - There is no points multiplier.
 - The vice-captain takes the armband when the captain's match ends with him on 0 minutes: the same
-  trigger as an auto-sub (`spec/05`).
+  trigger as an auto-sub (`spec/05`). Dropped with the captain.
+  `S17.12 withdrawn`
 
 ## Set-piece takers
 
@@ -39,8 +44,8 @@ answers below stay for the record.
 
 ## Both
 
-- The captain's adjustments stack on his role's adjustments. `S17.6`
+- The captain's adjustments stack on his role's adjustments. `S17.6 withdrawn`
 - The club captain, from Sportmonks' lineups, shows as a hint on the player card and in the
   picker, as stars do. It never changes points (Craig, 9 Nov 2026, on #1196). `S17.7`
 - The deadline locks the captain and the vice-captain with the rest of the lineup (`spec/05`).
-  `S17.8`
+  `S17.8 withdrawn`
