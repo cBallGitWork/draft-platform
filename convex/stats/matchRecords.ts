@@ -45,8 +45,6 @@ export const GOALS = "goals_scored";
 export const ASSISTS = "assists";
 export const YELLOW_CARDS = "yellow_cards";
 export const RED_CARDS = "red_cards";
-/** Sendings-off for a second yellow, as the Premier League and Sportmonks both name them. */
-export const SECOND_YELLOWS = "second_yellow";
 export const SAVES = "saves";
 export const CLEAN_SHEETS = "clean_sheets";
 export const GOALS_CONCEDED = "goals_conceded";

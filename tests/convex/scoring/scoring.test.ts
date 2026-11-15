@@ -6,7 +6,7 @@ import { scoreGameweek, scoreMatch } from "../../../convex/scoring/scoring";
 import { statIn, type DoubleGameweekRule, type MatchStats } from "../../../convex/scoring/values";
 import { AREAS, type Area, type Band, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../../../convex/stats/matchRecords";
+import { RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../../../convex/scoring/statKeys";
 
 // Every record is a recorded line from Hull v Everton, gameweek 6 of 2026/27 (teamPoints.harness).
 // FPL's lines keep every stat for all 40 men; `FULL_STATS` names the men whose Premier League

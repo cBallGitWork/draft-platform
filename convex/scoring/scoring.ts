@@ -1,7 +1,7 @@
 // A player's points for one match under a scoring set (spec/14, How a rule scores; #29): the
 // site's in force that gameweek (siteVersions.ts), data the admin saves, so always an argument.
 
-import { MINUTES_STAT, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "../stats/matchRecords";
+import { MINUTES_STAT, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "./statKeys";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { priceFor, pricingOf, type Priced } from "./priced";
