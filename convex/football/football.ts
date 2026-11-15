@@ -5,6 +5,7 @@
 import type { Infer } from "convex/values";
 import type { clubRow, fixtureRecord, gameweekRecord, playerRecord } from "../schema";
 import type { ScoreReads } from "./scoreReads";
+import { outsideUrl } from "../outbound/outsideWorld.ts";
 
 /** The football layer's one seam: the real Premier League as any feed hands it to the platform.
  *  FPL's feed fills it today (`fpl.ts`); a paid feed replaces it by returning the same. */
@@ -98,7 +99,7 @@ export const TIMEOUT_MS = 15_000;
 
 /** The body as JSON; a status that is not OK throws, naming the URL and the status. */
 export async function getJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
+  const res = await fetch(outsideUrl(url), {
     headers: { "User-Agent": USER_AGENT },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });

@@ -22,14 +22,16 @@
 //
 // Before any of that, it refuses a build that isn't production's, or that has no deploy key, and
 // says why in the build log: a preview (a `vercel deploy` from the CLI, say) must never put its
-// code on the live deployment, and without the key `convex deploy` can't reach it.
+// code on the live deployment, and without the key `convex deploy` can't reach it. It refuses too
+// when the live deployment carries a setting only an e2e run's throwaway server may hold
+// (TEST_ONLY_SETTINGS; spec/20, S20.17; #2288), such as one pointing its feeds and emails at a fake.
 
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { TIMED_JOBS_SETTING } from "../convex/outbound/deploymentSettings.ts";
+import { OUTSIDE_WORLD_SETTING, TIMED_JOBS_SETTING } from "../convex/outbound/deploymentSettings.ts";
 import { fingerprintOf, savedShape, shapeFromParts, shapeParts, strandedIn } from "./schema-shape.mjs";
 import { ranDirectly } from "./thisScript.mjs";
 
@@ -70,6 +72,23 @@ export function refusal(env) {
       `${STOPPED}: ${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment. ` +
       `Vercel holds it for ${VERCEL_PRODUCTION} builds only; \`npm run setup:live\` puts it there (docs/setup.md).`
     );
+  }
+  return null;
+}
+
+/** The settings only an e2e run's throwaway server carries (spec/20, S20.17; #2288): the live
+ *  deployment must hold none of them. */
+export const TEST_ONLY_SETTINGS = [OUTSIDE_WORLD_SETTING];
+
+/** Why the live deployment mustn't be released to, as it carries a test-only setting or can't be
+ *  read for one, or null when it holds none. Each is read on its own, so no other value is printed. */
+export function testSettingRefusal(convex) {
+  for (const name of TEST_ONLY_SETTINGS) {
+    const read = convex(["env", "get", name], { capture: true, quiet: true });
+    if (read.status !== 0) return `${STOPPED}: couldn't read ${name} from the live deployment (${failure(read)}).`;
+    if (read.stdout.trim()) {
+      return `${STOPPED}: the live deployment carries ${name}, a setting only an e2e run's throwaway server may hold. Remove it (\`npx convex env remove ${name} --prod\`), then redeploy from Vercel.`;
+    }
   }
   return null;
 }
@@ -220,7 +239,7 @@ export function release({ convex, shape, backupPath, log = console.log }) {
 }
 
 async function main() {
-  const refused = refusal(process.env);
+  const refused = refusal(process.env) ?? testSettingRefusal(convexCli);
   if (refused) {
     console.log(refused);
     return 1;

@@ -14,6 +14,8 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 - Craig is the admin on the live site.
 - For the beta, the live site is the shared environment: a change is done only once it is seen
   working there. No staging site.
+- A test run may start its own throwaway Convex server inside the job. It is not a staging site:
+  no address, timed jobs off, deleted when the job ends (Craig, 15 Nov 2026, #2288). `S20.17`
 
 ## Setting it up
 
