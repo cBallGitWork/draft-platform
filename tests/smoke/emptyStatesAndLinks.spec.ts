@@ -42,7 +42,7 @@ async function breaksOnEachBuiltScreen(page: Page, breaks: () => Promise<string[
 /** The plate's Shape rules for the bevel and the tabs, read off the page (plate.md:91-95): the top bar
  *  and the page's title plate carry the 2px bevel; the menu's and a section's tabs are butted, ruled
  *  1px apart, 44px and 36px tall. Each break, in words. Self-contained, for page.evaluate. */
-function shapeBreaks([menuLabel, sectionLabel]: [string, string]): string[] {
+function shapeBreaks([menuLabel, sectionLabel]: string[]): string[] {
   const bevelled = (element: Element | null) => {
     const shadow = element === null ? "" : getComputedStyle(element).boxShadow;
     return shadow.includes("0px 2px 0px 0px inset") && shadow.includes("0px -2px 0px 0px inset");
