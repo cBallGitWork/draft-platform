@@ -450,6 +450,9 @@ From Craig, 1 Nov 2026.
   slot and its role. If none can, the first who keeps the area limits legal comes on in his own
   area, on his best-star role, and the formation changes. If no one can come on without breaking the
   limits, no one does: the slot scores nothing.
+- With several empty slots, they are filled one at a time in lineup order, goalkeeper first, each
+  by the first bench player in bench order who fits, as FPL does: "bench order by slot, fpl rules"
+  (Craig, 15 Nov 2026, on the regression pack's open questions). `S05.52`
 - His best-star role is the one he had the most stars for when the lineup locked at the
   gameweek's deadline, so scoring the gameweek again never moves it: Saka at 4 stars as an inside
   forward at Saturday's deadline still comes on as an inside forward after Monday's match makes
@@ -483,7 +486,9 @@ From Craig, 1 Nov 2026.
 
 ## Captain and set pieces
 
-- The captain and the vice-captain: [17](17-captain-and-set-pieces.md). `S05.26`
+- No captain and no vice-captain: "we dont have captrain and vice thats fpl" (Craig, 15 Nov 2026,
+  on the regression pack's open questions; [17](17-captain-and-set-pieces.md)). `S05.51`
+- The captain and the vice-captain: [17](17-captain-and-set-pieces.md). `S05.26 withdrawn`
 - No set-piece lists: "we didthced set piece taker (unless its a role)" (Craig, 9 Nov 2026, on
   #1196). A set-piece duty can only come back as a role. `S05.24`
 

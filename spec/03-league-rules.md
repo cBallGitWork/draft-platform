@@ -22,8 +22,8 @@ Among them:
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
-- With an odd number of teams, whether the team left over plays the league's average
-  (`spec/09`).
+- With an odd number of teams, the team left over plays the league's average (`spec/09`); there is
+  no bye (Craig, 15 Nov 2026: "Drop the bye"). `S03.4`
 - Squad make-up (24 Oct 2026): a minimum squad size, and a maximum the commissioner sets in League
   settings. The maximum starts from a default by the league's size, which Craig keeps and edits ("an
   8 man league would have 16 id say ish"; "we can edit that ourselves"), and is never above 25, a
