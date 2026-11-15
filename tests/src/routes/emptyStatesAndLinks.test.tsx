@@ -111,7 +111,7 @@ describe("empty states", () => {
     expect(within(await panel(BOARD_TITLE)).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Rd", "Team 1", "Team 2, you", "Team 3"]);
     expect(fact(youPickHead)).toBe("2nd, then 5th");
     expect(fact(clockHead)).toBeTruthy();
-    // The countdown goes by the minute's start (useMinute), so each bound is floored to its minute.
+    // The countdown runs from the minute's start (useMinute), so the test reads from it too (#2374).
     const minuteOf = (at: number) => at - (at % MINUTE_MS);
     expect([inWords(startsAt - minuteOf(before)), inWords(startsAt - minuteOf(Date.now()))]).toContain(fact(startsHead(screenMoment(startsAt))));
     expect(within(await panel(new RegExp(`^${QUEUE_TITLE}`))).getByText(emptyQueueWords)).toBeTruthy();

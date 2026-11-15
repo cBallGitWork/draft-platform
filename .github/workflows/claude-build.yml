@@ -195,8 +195,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
-          # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a pipeline change is tested
-          # before it merges) runs as the pipeline's own account (BUILD_TOKEN, CBHelper180): the action's app token is
+          # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a change to the build prompts
+          # outside .github/workflows/ is tested; a workflow change is tested by lead.yml's dry run, as BUILD_TOKEN
+          # can't push one: CLAUDE.md) runs as the pipeline's own account (BUILD_TOKEN, CBHelper180): the action's app token is
           # refused for any workflow file that differs from main's, and the action then skips without building. Its
           # pull request runs CI and lane-auto can approve it. On main the app token is kept.
           github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}

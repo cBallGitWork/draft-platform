@@ -418,7 +418,8 @@ jobs:
 
           # 3. new builds: Craig's `next` first, then the oldest ready issue
           # each open issue with what it is: `build` (lane:auto, or the sweep found it settled), `sweep` (a candidate
-          # the sweep hasn't checked), `rules` (waits on Craig's answers), `craig` (lane:craig), or nothing
+          # the sweep hasn't checked), `rules` (waits on Craig's answers), `craig` (lane:craig), or nothing; the loop below
+          # then marks a ready one `waits` (an issue it names is still open) or `stopped` (its last build stopped)
           issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
           ready=$(jq -r '
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)

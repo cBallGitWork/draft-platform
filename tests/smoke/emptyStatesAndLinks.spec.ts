@@ -25,6 +25,10 @@ const L1 = proLeague.leagueId;
 const SAKA = previewPlayers.find((player) => player.name === "Saka")!;
 const SALAH = previewPlayers.find((player) => player.name === "Salah")!;
 
+/** The time a look test may take on each built screen it walks: its whole walk's budget grows with
+ *  the list, so a newly built screen can't tip it past a fixed limit (#2374). */
+const SCREEN_MS = 6_000;
+
 const h1 = (page: Page, name: string) => page.getByRole("main").getByRole("heading", { level: 1, name, exact: true });
 
 /** Each built screen opened on the preview, its title shown, and what `breaks` finds on it, each
@@ -135,7 +139,7 @@ function yellowControls(): string[] {
 test.use({ viewport: DESK });
 
 test.describe("the plate's look on every built screen, on the dev server's preview", { tag: "@dev" }, () => {
-  test.slow();
+  test.describe.configure({ timeout: BUILT_SCREENS.length * SCREEN_MS });
 
   test("UI-175 (plate.md:91-95): the top bar and the title plates carry the 2px bevel; tabs are butted with 1px rules, 44px tall, a section's 36px", async ({ page }) => {
     expect(await breaksOnEachBuiltScreen(page, () => page.evaluate(shapeBreaks, [mainMenuLabel, sectionTabsLabel]))).toEqual([]);
