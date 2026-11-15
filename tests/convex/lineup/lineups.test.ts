@@ -79,7 +79,7 @@ describe("a saved lineup", () => {
     expect(await ann.mine(NEXT)).toEqual(saved(onFirst, NEXT));
   });
 
-  test("S05.51 saves a starter on a removed role on the role he'd get dropped into that slot: his best-star one", async () => {
+  test("S05.53 saves a starter on a removed role on the role he'd get dropped into that slot: his best-star one", async () => {
     const ann = await as(ANN);
     const [keeper, ...rest] = FOUR_FOUR_TWO.starters;
     const ratings = [

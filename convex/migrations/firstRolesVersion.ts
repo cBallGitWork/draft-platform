@@ -26,7 +26,7 @@ import { isWaiting, setOf, siteVersions, versionName } from "../scoring/siteVers
 // - addRedrawnRoles (#1445; spec/05 `S05.27`, `S05.3`): the mixes redrawn around Sportmonks' stats
 //   (#1196), in place of the set's, from the next gameweek not begun. Every starter on a role the
 //   set no longer holds moves to the role he'd get dropped into that slot, his lineup never refused,
-//   and his manager gets a Mail naming who moved (spec/05 `S05.51`). Run it again and it does nothing.
+//   and his manager gets a Mail naming who moved (spec/05 `S05.53`). Run it again and it does nothing.
 //     npx convex run migrations/firstRolesVersion:addRedrawnRoles
 // - addFirstRuns (#886; spec/05 `S05.8`): each moving role's run (draftedRoleRuns.ts) into the
 //   set, beside the roles, so the pitch draws them and a patch can change one. It adds only the runs
@@ -117,7 +117,7 @@ async function addRoles(ctx: MutationCtx, { history, version }: { history: Doc<"
  *  the role he'd get dropped into his slot on (stars/bestRole.ts): a row from `gameweek` or later
  *  changed in place, and the row in force before it copied to start at `gameweek`, so no gameweek
  *  begun changes. Each manager whose starters moved gets a Mail saying which, from what to what
- *  (spec/05 `S05.51`). Returns how many starters moved. Reads every lineup in one mutation: run
+ *  (spec/05 `S05.53`). Returns how many starters moved. Reads every lineup in one mutation: run
  *  once, when the beta's one or two leagues hold a few hundred rows, far inside Convex's
  *  per-mutation read and write limits; a site with many leagues would need it in batches. */
 async function moveOffCutRoles(ctx: MutationCtx, gameweek: number): Promise<number> {

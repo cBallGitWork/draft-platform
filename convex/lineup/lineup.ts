@@ -95,7 +95,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     }
     const { area, lane } = cell;
     // A role no slot offers was removed from the set: he is saved on the role he'd get dropped into
-    // his slot on and is never refused for it (spec/05 `S05.51`; lineups.ts). One another slot
+    // his slot on and is never refused for it (spec/05 `S05.53`; lineups.ts). One another slot
     // offers is the manager's mistake.
     if (role !== undefined && isRole(role) && !everyRoleOf(cell).some(({ key }) => key === role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });

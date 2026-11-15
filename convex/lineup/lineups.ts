@@ -192,7 +192,7 @@ function checkInstructions(lineup: SentLineup, rules: LeagueRules): void {
 
 /** The starters as saved. lineupProblems refused any role another slot offers; a starter on a role
  *  removed from the set is saved on the role he'd get dropped into his slot on, his best-star one
- *  (spec/05 `S05.51`; #841, #2299). */
+ *  (spec/05 `S05.53`; #841, #2299). */
 async function withRolesFixed(ctx: QueryCtx, starters: SentLineup["starters"], positions: PlayerPositions, rules: LeagueRules) {
   const placed = starters.map(({ playerCode, role, ...cell }) => ({ playerCode, ...heldCell(cell), ...(role !== undefined && { role }) }));
   const onCut = placed.filter(onCutRole).map(({ playerCode }) => playerCode);

@@ -3,6 +3,7 @@
 
 import type { Words } from "../mail/letterShape";
 import { andListWords } from "../shared/moments";
+import { PICK_ANOTHER } from "./instructionsWords";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
@@ -78,14 +79,14 @@ function cutRoleWords(key: string): string {
 export type RoleChange = { name: string; from: string; to: string };
 
 /** The Mail to a manager whose starters moved off a role removed from the set: which of them
- *  changed role, from what to what (spec/05 `S05.51`: "Saka: shadow striker → poacher"). */
+ *  changed role, from what to what (spec/05 `S05.53`: "Saka: shadow striker → poacher"). */
 export function changedRolesLetter(changes: readonly RoleChange[]): Words {
   return {
     subject: "Your starters' roles changed",
     body: [
       "A role left the game, so each of your starters who held it moved to the role he'd get dropped into his slot on:",
       ...changes.map(({ name, from, to }) => `- ${name}: ${cutRoleWords(from)} → ${roleName(to)}`),
-      "Pick another on the Tactics tab if you'd rather.",
+      PICK_ANOTHER,
     ].join("\n"),
   };
 }

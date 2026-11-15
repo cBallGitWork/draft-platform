@@ -50,11 +50,11 @@ export function droppedStarter(
 
 type Starter = Cell & { playerCode: number; role?: string };
 
-/** Whether the starter holds a role no slot offers: one removed from the set (spec/05 `S05.51`). */
+/** Whether the starter holds a role no slot offers: one removed from the set (spec/05 `S05.53`). */
 export const onCutRole = ({ role }: { role?: string }): boolean => role !== undefined && !isRole(role);
 
 /** The starters, each on a removed role dropped into his slot again in their formation, so he moves
- *  to the role he'd get dropped into it on and his lineup is never refused (spec/05 `S05.51`); the
+ *  to the role he'd get dropped into it on and his lineup is never refused (spec/05 `S05.53`); the
  *  rest as they were. */
 export function withCutRolesDropped(
   starters: readonly Starter[],
