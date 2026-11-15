@@ -4,7 +4,6 @@ import { instructionPairShape, instructionShape } from "../lineup/instructionsSh
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
-import { ODD_TEAM_OUTS } from "../table/roundRobin";
 import { TIE_BREAKS } from "../table/standings";
 
 // The shape a league's rules are stored in (spec/03; #25). Each part is the input type of the pure
@@ -45,9 +44,6 @@ export const classicFormationShape = v.object({
 
 export const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
-
-/** roundRobin.ts's OddTeamOut. */
-export const oddTeamOutShape = v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)));
 
 /** The draft's rules (spec/04; #1087): its limits are ../draft/draftLimits.ts's. */
 export const draftRulesShape = v.object({
@@ -111,11 +107,8 @@ export const leagueRulesShape = v.object({
   doubleGameweek: v.union(...DOUBLE_GAMEWEEK_RULES.map((name) => v.literal(name))),
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
-  /** roundRobin.ts's OddTeamOut. Required since #147 backfilled the rows saved before #33
-   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). */
-  oddTeamOut: oddTeamOutShape,
-  /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Required, as
-   *  `oddTeamOut` is. */
+  /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Required since #147
+   *  backfilled the rows saved before #33 (ARCHITECTURE.md's Data, "Changing a saved shape"). */
   gamesPerGameweek: v.number(),
   waivers: waiverRulesShape,
   /** How the draft runs (spec/04; #1087). Absent only from rules saved before
@@ -138,6 +131,19 @@ export type LeagueRules = Infer<typeof leagueRulesShape>;
 export const rulesChangesShape = leagueRulesShape.partial();
 export type RulesChanges = Infer<typeof rulesChangesShape>;
 
+/** What the odd team out played, as rows saved before Craig dropped the bye hold it (15 Nov 2026,
+ *  S03.4): a rule then, which nothing reads now (`heldRules`, `heldChanges` drop it), as the team
+ *  left over always plays the league's average; optional so those rows need no migration. */
+const droppedOddTeamOut = { oddTeamOut: v.optional(v.union(v.literal("bye"), v.literal("leagueAverage"))) };
+
+/** A save's changes as rows hold them: one saved before S03.4 may name the odd team out. */
+export const storedRulesChangesShape = v.object({ ...rulesChangesShape.fields, ...droppedOddTeamOut });
+
+/** A rules row's changes without the odd team out one saved before S03.4 may hold. */
+export function heldChanges({ oddTeamOut: _oddTeamOut, ...changes }: Infer<typeof storedRulesChangesShape>): RulesChanges {
+  return changes;
+}
+
 /** The draft's rules as rows hold them: rows saved between #1087 and #1089 also carry how the draft
  *  order was set, a switch Craig dropped ("Drop it", 4 Nov 2026, on #1089), which nothing reads
  *  (`heldRules` drops it), optional so they need no migration. */
@@ -145,18 +151,20 @@ const storedDraftRulesShape = v.object({ ...draftRulesShape.fields, order: v.opt
 
 /** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
  *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration;
- *  the draft's, its dropped order (`storedDraftRulesShape`); and the presets', their dropped centre
- *  role (`storedPreset`). */
+ *  the draft's, its dropped order (`storedDraftRulesShape`); the presets', their dropped centre
+ *  role (`storedPreset`); and rows saved before S03.4, the odd team out (`droppedOddTeamOut`). */
 export const storedLeagueRulesShape = v.object({
   ...leagueRulesShape.fields,
   presets: v.array(storedPreset),
   draft: v.optional(storedDraftRulesShape),
   scoring: v.optional(scoringSetShape),
+  ...droppedOddTeamOut,
 });
 
 /** A rules row's rules without the scoring a row saved before #354 carries, the draft order a row
- *  saved before #1089 does, or the presets' centre role one saved after #988 may. */
-export function heldRules({ scoring: _scoring, draft, presets: stored, ...rest }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+ *  saved before #1089 does, the presets' centre role one saved after #988 may, or the odd team out
+ *  one saved before S03.4 does. */
+export function heldRules({ scoring: _scoring, oddTeamOut: _oddTeamOut, draft, presets: stored, ...rest }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
   const rules = { ...rest, presets: stored.map(({ centreRole: _centreRole, ...preset }) => preset) };
   if (draft === undefined) return rules;
   const { order: _order, ...held } = draft;

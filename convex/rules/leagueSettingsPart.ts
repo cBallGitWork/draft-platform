@@ -1,11 +1,11 @@
 import { v, type Infer } from "convex/values";
 import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
 import { squadMaximumOf } from "./squadMaximums";
-import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
+import { draftRulesShape, leagueRulesShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
 // league; players' points are the site's (spec/14, Who owns it). The format, the deadline, the
-// double gameweek rule and the table's tie-breaks (spec/03; #1034), the round robin's two (spec/09),
+// double gameweek rule and the table's tie-breaks (spec/03; #1034), the round robin's games a gameweek (spec/09),
 // the squad's make-up (spec/03, Squad make-up; #341), how the draft runs (spec/04; #1087), how
 // trades do (spec/08; #383) and how waivers do (spec/08; #1200). Pure, so the screens' previews read it too; leagueSettings.ts reads
 // and saves it.
@@ -20,7 +20,6 @@ export const leagueSettingsShape = v.object({
   doubleGameweek: rules.doubleGameweek,
   /** In the league's order, which the commissioner changes (S03.2). */
   tieBreaks: rules.tieBreaks,
-  oddTeamOut: oddTeamOutShape,
   gamesPerGameweek: v.number(),
   /** The squad size's maximum; null for rules with no squad size limit, which keep none. */
   squadMaximum: v.union(v.number(), v.null()),

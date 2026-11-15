@@ -53,7 +53,6 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     deadline: settings.deadline,
     doubleGameweek: settings.doubleGameweek,
     tieBreaks: settings.tieBreaks,
-    oddTeamOut: settings.oddTeamOut,
     gamesPerGameweek: settings.gamesPerGameweek,
     draft: settings.draft,
     trades: settings.trades,

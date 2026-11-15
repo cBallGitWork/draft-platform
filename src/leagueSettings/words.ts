@@ -11,7 +11,6 @@ import type { Area } from "../../convex/lineup/pitch";
 import type { LeagueRules, TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
 import type { DoubleGameweekRule } from "../../convex/scoring/values";
 import { hoursWords } from "../../convex/shared/time";
-import type { OddTeamOut } from "../../convex/table/roundRobin";
 import type { TieBreak } from "../../convex/table/standings";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
@@ -23,13 +22,11 @@ export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
 
 export const fixturesTitle = "Fixtures";
-export const oddTeamOutLabel = "Odd team out plays";
-export const oddTeamOutWords: Record<OddTeamOut, string> = { leagueAverage: "The league's average", bye: "No one (a bye)" };
 export const gamesLabel = "Games a gameweek";
 export const gamesUnit = "head-to-heads per team";
 export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer other teams than that, each team plays every other once a gameweek.`;
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
-export const redrawWords = "Saving either redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
+export const redrawWords = "Saving it redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
 export const blankGamesWords = noNumberWords(gamesLabel);
 /** The format (spec/03, S03.1): its lock, and why, is said again by the server's refusal. */
 export const formatLabel = "Format";
