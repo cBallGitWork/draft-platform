@@ -77,6 +77,10 @@ How invites, the invite link and join requests work in detail is in
 - The commissioner and the admin can both put any player on any team, one at a time (search, pick
   a team), move a player between teams, and release one to free agency.
 - The league's squad limits warn but don't block. `S15.8`
+- Except the platform's own ceiling: no squad ever holds more than 25, whatever the league's
+  limits, so an assignment, a trade, a waiver claim or a free agent pickup that would make a 26th
+  is refused: "squad should have an absolute hard max of 25 on our end" (Craig, 15 Nov 2026, on
+  #2298). `S15.9`
 - A squad holding a player the football data no longer has: a notice says the data is broken, and
   his row stays, as an error message (Craig, 31 Oct 2026, #323: "b but dont hide the row, mabe an
   error message. easier to spot/debug"). A player who has left his fantasy league's competition is
