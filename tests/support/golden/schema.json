@@ -7761,22 +7761,6 @@
                   },
                   "optional": false
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": false
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -11778,6 +11762,22 @@
                     }
                   },
                   "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
+                  },
+                  "optional": true
                 }
               }
             },
@@ -12348,22 +12348,6 @@
                   },
                   "optional": true
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": true
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -12621,6 +12605,22 @@
                         }
                       }
                     }
+                  },
+                  "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
                   },
                   "optional": true
                 }
@@ -13213,22 +13213,6 @@
                   },
                   "optional": false
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": false
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -17228,6 +17212,22 @@
                         "optional": true
                       }
                     }
+                  },
+                  "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
                   },
                   "optional": true
                 }
