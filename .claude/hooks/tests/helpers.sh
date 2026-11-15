@@ -60,13 +60,14 @@ stand_in_gh() { # the stand-in's bash script on stdin: it runs as gh, first on P
 }
 stand_in_api() { # every stand-in's answer to gh api's reads of a pull request (pull_request.py): the open
   # pull requests ($FAKE_OPEN_PRS, one on feat/x by default), and one titled $FAKE_TITLE with $FAKE_BODY's file
-  # for its body and $FAKE_LABELS
+  # for its body, $FAKE_LABELS and GitHub's mergeable_state $FAKE_STATE (clean by default)
   cat <<'EOF'
 if [ "$1" = api ]; then
   case "$2" in
     *"pulls?"*) open_prs=${FAKE_OPEN_PRS:-'[{"number":5,"head":{"ref":"feat/x"}}]'}; echo "$open_prs";;
     */pulls/*) /usr/bin/jq -nc --arg t "${FAKE_TITLE:-feat: x}" --rawfile b "${FAKE_BODY:-/dev/null}" \
-      --argjson l "${FAKE_LABELS:-[]}" '{title:$t,body:$b,labels:$l,head:{sha:"abc"},base:{ref:"main"}}';;
+      --argjson l "${FAKE_LABELS:-[]}" --arg m "${FAKE_STATE:-clean}" \
+      '{title:$t,body:$b,labels:$l,head:{sha:"abc"},base:{ref:"main"},mergeable_state:$m}';;
     *) echo "stand-in gh: no answer for $2" >&2; exit 1;;
   esac
   exit 0

@@ -116,10 +116,24 @@ echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF2
 tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 git -C "$repo" switch -q main
-# one check a route: the merge's only judge (approval_gate.py's _no_wait) reads no pull request, so the four bodies
-# (differs, pasted, matches, plain) the loop here once fed never reached a check; #2032 may bring a judge back
+# the merge's judge reads GitHub's mergeable_state, by either route: one GitHub would block without Craig's admin
+# bypass is refused, unknown asks to retry, and auto-merge is left alone, as it waits on the rules (#2032)
 check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
 check allow guard_github.py "$tool"
+for state in unstable has_hooks; do
+  FAKE_STATE=$state check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
+  FAKE_STATE=$state check allow guard_github.py "$tool"
+done
+for state in blocked behind dirty draft; do
+  FAKE_STATE=$state check deny guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
+  FAKE_STATE=$state check deny guard_github.py "$tool"
+  FAKE_STATE=$state check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash --auto")"
+  FAKE_STATE=$state check allow guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --disable-auto")"
+done
+FAKE_STATE=blocked says "mergeable_state blocked" guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash")"
+FAKE_STATE=unknown says "still working out" guard_github.py "$tool"
+FAKE_STATE=blocked check deny guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash --body '--auto'")"  # a body, not the flag
+FAKE_STATE=blocked says "bypasses the main ruleset" guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --auto --admin")"
 # gh pr merge with no number merges the branch's pull request: one open on it is named, none or two can't be
 git -C "$repo" switch -q -c feat/x
 check allow guard_bash.py "$(bash_in "$repo" "gh pr merge --squash")"

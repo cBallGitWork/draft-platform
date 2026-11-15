@@ -6,7 +6,10 @@ changes later in our ui reskin"). Before that, a layout difference waited for Cr
 `craig-approved` label (5 Nov 2026).
 
 What stays is the merge's own guard, through pull_request.py: a gh pr merge with --admin, or one
-whose pull request can't be named, is refused, by gh or the GitHub tool alike.
+whose pull request can't be named, is refused, by gh or the GitHub tool alike. So is a merge GitHub
+would block for anyone without Craig's admin bypass: its REST `mergeable_state` must be clean, unstable
+or has_hooks, and unknown (GitHub still working it out) is a refusal to retry (Craig, 14 Nov 2026, #2032,
+option 1). Turning auto-merge on or off is left alone: it waits on the rules itself.
 
 Run as a script, it is the `look-approved` check the `main` ruleset requires: it reads the pull
 request from the event GitHub hands the job, lists any layout differences in the log for the reskin,
@@ -20,24 +23,38 @@ import json
 import os
 import sys
 
-from pull_request import merges_problem, tool_merge_problem
+from pull_request import Unread, merges_problem, pull, tool_merge_problem
 from pr_body import layout_differences
 
 
-def _no_wait(repo, number, folder):
-    """No pull request waits on its differences from an approved picture."""
-    return None
+MERGEABLE = {"clean", "unstable", "has_hooks"}  # GitHub's mergeable_state values that need no bypass
+STILL_WORKING = "unknown"
+
+
+def _mergeable(repo, number, folder):
+    """A deny reason unless GitHub would merge this pull request without the admin bypass. No pull
+    request waits on its differences from an approved picture."""
+    try:
+        state = pull(repo, number, folder).get("mergeable_state")
+    except Unread as error:
+        return f"Can't read whether #{number} is mergeable: {error}."
+    if state in MERGEABLE:
+        return None
+    if state == STILL_WORKING:
+        return f"GitHub is still working out whether #{number} can merge (mergeable_state unknown): try again in a minute."
+    return (f"#{number} can't merge yet without the admin bypass (mergeable_state {state}): its checks, review or "
+            f"branch aren't done. Turn on auto-merge (gh pr merge --auto) to merge it once they are.")
 
 
 def approval_problem(cmds):
     """A deny reason if any of cmds (each (words, folder)) is a gh pr merge pull_request.py refuses
-    (--admin, or no pull request it can name), else None."""
-    return merges_problem(cmds, _no_wait)
+    (--admin, or no pull request it can name) or GitHub would block without the bypass, else None."""
+    return merges_problem(cmds, _mergeable)
 
 
 def mcp_approval_problem(tool, tool_input, folder):
     """The same, for the GitHub tool's merge_pull_request."""
-    return tool_merge_problem(tool, tool_input, folder, _no_wait)
+    return tool_merge_problem(tool, tool_input, folder, _mergeable)
 
 
 def main():
