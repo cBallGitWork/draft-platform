@@ -120,6 +120,8 @@ describe("the admin, with no part in a league", () => {
     openApp(LEAGUES_PATH, admin);
     expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
+    expect(screen.queryAllByRole("rowheader")).toEqual([]);
+    expectColumnHeads(screen.getByRole("table"), Object.values(leagueColumns));
   });
 
   it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
