@@ -389,7 +389,7 @@ jobs:
           issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
           ready=$(jq -r '
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.SESSION_LABEL and .name != env.STUCK_LABEL))
+              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.DONE_LABEL and .name != env.SESSION_LABEL and .name != env.STUCK_LABEL and .name != env.BOARD_LABEL))  # the board names spec files, but is no work (#2244)
               | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
               | if any(.labels[]?; .name == env.OPEN_LABEL) then "\($prio):\(.number):rules"
                 elif any(.labels[]?; .name == env.CRAIG_LABEL) then "\($prio):\(.number):craig"
