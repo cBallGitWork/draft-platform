@@ -36,6 +36,10 @@ export interface LostInstruction {
 /** A manager's own line-up, as this Mail and league home's strip (src/home/words.ts) name it. */
 export const YOUR_LINEUP = "Your line-up";
 
+/** A Mail's last line when the app changed a manager's pick for him: this one's and the changed
+ *  roles one (lineupWords.ts). */
+export const PICK_ANOTHER = "Pick another on the Tactics tab if you'd rather.";
+
 /** Why each pick #1452 took off went, by its key, after its name (spec/05 S05.37, S05.42). */
 const WHY_LOST: Record<string, string> = {
   holdAHighLine: "is gone until Sportmonks sends offsides won.",
@@ -51,7 +55,7 @@ export function lostInstructionsLetter(lost: readonly LostInstruction[]): Words 
   );
   return {
     subject: "Your team instructions changed",
-    body: [...why, ...switched, "Pick another on the Tactics tab if you'd rather."].join(" "),
+    body: [...why, ...switched, PICK_ANOTHER].join(" "),
   };
 }
 

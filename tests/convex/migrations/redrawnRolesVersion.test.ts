@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import { changedRolesLetter } from "../../../convex/lineup/lineupWords";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
@@ -65,6 +66,18 @@ test("a starter on a cut role moves to the role he'd be dropped on from that gam
     { fromGameweek: NEXT, starters: [{ playerCode: 1, ...CENTRE_MIDFIELD }, { playerCode: 2, ...LEFT_BACK, role: "invertedFullBack" }] },
   ]);
   expect(await rowsOf(bobsTeam)).toEqual([{ fromGameweek: 10, starters: [{ playerCode: 3, ...ATTACK }] }]);
+});
+
+test("S05.53 each manager whose starters moved off a cut role gets a Mail naming each, from what to what", async () => {
+  await holdLeague();
+  await addRedrawnRoles();
+
+  const { subject: CHANGED } = changedRolesLetter([]);
+  const letters = await t.run((ctx) => ctx.db.query("letters").collect());
+  const to = (email: string) => letters.filter((letter) => letter.to === email && letter.kind === "lineup").map(({ subject, body }) => ({ subject, body }));
+  expect(to(MANAGERS[0])).toEqual([{ subject: CHANGED, body: expect.stringContaining("- Player 1: Late runner → Box-to-box") }]);
+  expect(to(MANAGERS[0])[0].body).not.toContain("Player 2");
+  expect(to(MANAGERS[1])).toEqual([{ subject: CHANGED, body: expect.stringContaining("- Player 3: ") }]);
 });
 
 test("while a patch made without them waits to take effect, they aren't added", async () => {
