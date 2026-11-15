@@ -117,8 +117,8 @@ export async function checkScoutingPlayersHeld(ctx: QueryCtx): Promise<void> {
 
 /** Copies a page of players' rows, from `cursor` (null for the first), afresh, then runs on to the
  *  next page until every player is done. Safe to run again: each row is set, never added to. The
- *  football sync copies every player it sends too, so a deployment from before the table is put
- *  right by its next run if no one runs this by hand. */
+ *  football sync copies only the players whose row it writes (#2010), so a deployment from before
+ *  the table is put right only by this, which `checkScoutingPlayersHeld` names. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),

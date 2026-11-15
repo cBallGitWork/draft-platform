@@ -111,13 +111,15 @@ export const upsertPlayers = internalMutation({
   returns: upserted,
   handler: async (ctx, { rows }): Promise<Upserted> => {
     const newcomers: number[] = [];
+    const written: number[] = [];
     const upserted = await upsertEach(ctx, "players", rows, async (row) => {
       const held = await playerByCode(ctx, row.code);
       if (held === null || held.droppedAt !== undefined) newcomers.push(row.code);
+      if (held === null) written.push(row.code);
       return held;
-    });
-    // New, or sent again after a gap (#1489).
-    await afterPlayersSent(ctx, newcomers, rows.map(({ code }) => code));
+    }, ({ code }) => written.push(code));
+    // New, or sent again after a gap (#1489); only the rows written move Scouting's (#2010).
+    await afterPlayersSent(ctx, newcomers, written);
     return upserted;
   },
 });

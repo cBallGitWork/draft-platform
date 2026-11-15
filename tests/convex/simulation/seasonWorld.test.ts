@@ -12,7 +12,7 @@ import {
   SEASON_GAMEWEEKS,
   SQUAD_SHAPE,
 } from "../../support/convex/seasonSimulation.harness";
-import { seededRandom } from "../../support/seededRandom";
+import { seededRandom } from "../../support/seededDraw";
 
 // The season simulation's world (#2132), checked on every pull request: `npm run simulate` plays it
 // for about an hour, so a world that couldn't be played would only show there.

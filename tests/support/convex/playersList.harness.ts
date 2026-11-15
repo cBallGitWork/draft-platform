@@ -7,10 +7,11 @@ import type { ListedRows, PlayersFilters, PlayersList, PlayersSort } from "../..
 import { listOf, withFirstRuns } from "../../../convex/scouting/playersOrder";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import type { actingAs } from "./leagues.harness";
+import { firstRunsOf } from "./screenReads.harness";
 
 // Scouting's players list as the screen shows it (#1552): the server asked for the club, the stat
 // and the period, and the filters and the sort worked on what it sends, and the runs that can first
-// take the players on waivers added from their own query (#1467), as liveScouting.ts does.
+// take the players on waivers added from the hour's waiver clock (#1467, #2008), as liveScouting.ts does.
 
 /** All players, by name. */
 export const ALL: PlayersFilters = { availability: "all", position: null, clubCode: null };
@@ -25,7 +26,7 @@ export async function playersListed(
   { filters = ALL, sort = BY_NAME, stat = null, period }: { filters?: PlayersFilters; sort?: PlayersSort; stat?: string | null; period?: Period },
 ): Promise<PlayersList> {
   const list = await serverList(as, { leagueId, clubCode: filters.clubCode, stat, period });
-  const runs = await as.query(api.scouting.playersList.firstRuns, { leagueId, now: Date.now() });
+  const runs = await firstRunsOf(as, leagueId);
   return { ...list, players: withFirstRuns(listOf(list.players, filters, sort), runs), kept: undefined };
 }
 

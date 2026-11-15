@@ -228,6 +228,7 @@ import type * as positions_positionWarnings from "../positions/positionWarnings.
 import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as positions_unplacedAreas from "../positions/unplacedAreas.js";
+import type * as release_serverTime from "../release/serverTime.js";
 import type * as release_version from "../release/version.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
 import type * as rules_formatLock from "../rules/formatLock.js";
@@ -414,7 +415,9 @@ import type * as trades_tradeWords from "../trades/tradeWords.js";
 import type * as trades_tradedPlayers from "../trades/tradedPlayers.js";
 import type * as waivers_backOnWaivers from "../waivers/backOnWaivers.js";
 import type * as waivers_freeAgents from "../waivers/freeAgents.js";
+import type * as waivers_runsAhead from "../waivers/runsAhead.js";
 import type * as waivers_waiverClaims from "../waivers/waiverClaims.js";
+import type * as waivers_waiverClock from "../waivers/waiverClock.js";
 import type * as waivers_waiverLimits from "../waivers/waiverLimits.js";
 import type * as waivers_waiverLock from "../waivers/waiverLock.js";
 import type * as waivers_waiverOrder from "../waivers/waiverOrder.js";
@@ -651,6 +654,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positions": typeof positions_positions;
   "positions/positionsSync": typeof positions_positionsSync;
   "positions/unplacedAreas": typeof positions_unplacedAreas;
+  "release/serverTime": typeof release_serverTime;
   "release/version": typeof release_version;
   "rules/firstRules": typeof rules_firstRules;
   "rules/formatLock": typeof rules_formatLock;
@@ -837,7 +841,9 @@ declare const fullApi: ApiFromModules<{
   "trades/tradedPlayers": typeof trades_tradedPlayers;
   "waivers/backOnWaivers": typeof waivers_backOnWaivers;
   "waivers/freeAgents": typeof waivers_freeAgents;
+  "waivers/runsAhead": typeof waivers_runsAhead;
   "waivers/waiverClaims": typeof waivers_waiverClaims;
+  "waivers/waiverClock": typeof waivers_waiverClock;
   "waivers/waiverLimits": typeof waivers_waiverLimits;
   "waivers/waiverLock": typeof waivers_waiverLock;
   "waivers/waiverOrder": typeof waivers_waiverOrder;

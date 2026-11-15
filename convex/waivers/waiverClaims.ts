@@ -12,7 +12,8 @@ import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
-import { firstRunsIn, outOfLockFor, runAhead, waiversOpenFor } from "./waiverLock";
+import type { RunAhead } from "./runsAhead";
+import { outOfLockFor, waiversOpenFor } from "./waiverLock";
 import { CLAIMS_PER_TEAM_MOST } from "./waiverLimits";
 import { waiverRowOf } from "./waiverPlayers";
 import { dropRefusals } from "./waivers";
@@ -193,19 +194,24 @@ const pendingClaim = v.object({
   claim: claimedPlayer,
   /** Who goes if it succeeds, or null for nobody. */
   drop: v.union(claimedPlayer, v.null()),
-  /** The run that can first take the player, still to come, and the gameweek whose lock it may fall
-   *  in (waiverLock.ts `firstRunTaking`): null with no run times set, or once he is no longer on
-   *  waivers, when the next run fails the claim. */
-  run: v.union(runAhead, v.null()),
+  /** From when a run may take the player, or null once he is no longer on waivers, when the next
+   *  run fails the claim. The run that can first take him moves with the clock, which this query
+   *  doesn't take, so the browser works it out at its minute from waiverClock.ts's `clockOf` and
+   *  adds it (`PendingClaim`, #2008). */
+  claimableFrom: v.union(v.number(), v.null()),
 });
-export type PendingClaim = Infer<typeof pendingClaim>;
+export type HeldPendingClaim = Infer<typeof pendingClaim>;
+/** A pending claim as the screens show it: with the run that can first take the player, still to
+ *  come, and the gameweek whose lock it may fall in (runsAhead.ts `firstRunTaking`), null with no
+ *  run times set, or once he is no longer on waivers. */
+export type PendingClaim = Omit<HeldPendingClaim, "claimableFrom"> & { run: RunAhead | null };
 
-/** Pending claims at `now`, team by team in the order the teams were made, each team's first
- *  first: the caller's own team's, or every team's for whoever runs the league. */
+/** Pending claims, team by team in the order the teams were made, each team's first first: the
+ *  caller's own team's, or every team's for whoever runs the league. */
 export const pending = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: v.array(pendingClaim),
-  handler: async (ctx, { leagueId, now }): Promise<PendingClaim[]> => {
+  handler: async (ctx, { leagueId }): Promise<HeldPendingClaim[]> => {
     const { email, league, team } = await memberOf(ctx, leagueId);
     const teams = await teamsOf(ctx, leagueId);
     const shown = powersIn(league, email).runs ? teams : teams.filter(({ _id }) => _id === team?._id);
@@ -213,7 +219,6 @@ export const pending = query({
     const codes = [...new Set(claims.flatMap(({ claim }) => (claim.dropCode === null ? [claim.playerCode] : [claim.playerCode, claim.dropCode])))];
     const positionsOf = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
-    const firstRunOf = await firstRunsIn(ctx, leagueId, now);
     const described = async (playerCode: number) => {
       const player = await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode));
       const positions = await positionsOf(playerCode);
@@ -229,7 +234,7 @@ export const pending = query({
           yours: owner._id === team?._id,
           claim: await described(claim.playerCode),
           drop: claim.dropCode === null ? null : await described(claim.dropCode),
-          run: onWaivers === null ? null : firstRunOf(onWaivers.claimableFrom),
+          claimableFrom: onWaivers?.claimableFrom ?? null,
         };
       }),
     );

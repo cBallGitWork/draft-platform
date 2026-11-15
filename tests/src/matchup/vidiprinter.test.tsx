@@ -117,7 +117,8 @@ describe("the vidiprinter", () => {
 
   it("says when the commentary is delayed, keeping the lines it has", async () => {
     openMatchup({ matchup: scored({ kind: "read", lines: [kickoffLine], delayed: true }) });
-    expect((await screen.findByRole("status")).textContent).toBe(commentaryDelayedWords);
+    // The scoreboard's "Live points delayed" is a status too, empty while they keep up (S10.12).
+    expect((await screen.findByText(commentaryDelayedWords)).getAttribute("role")).toBe("status");
     expect(vidiprinterLines()).toEqual(["KO HUL v EVE"]);
   });
 

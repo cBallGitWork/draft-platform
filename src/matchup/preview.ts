@@ -236,6 +236,7 @@ function matchupAt(minute: number, gameweek: number): Matchup {
       team: sideAt(MINE, SAKA_POTATOES, minute),
       opponent: sideAt(OPPONENT, KROOS_CONTROL, minute),
       commentary: commentaryAt(minute),
+      pointsDelayed: false,
       version: null,
     },
     mode: previewGameMode,

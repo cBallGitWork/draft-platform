@@ -11,7 +11,7 @@ import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueR
 import { actingAs, ANN, BOB, CAT, COMMISSIONER, MANAGERS, teamName, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { everyRow, expectRefused, SLOW_TEST } from "../../support/convex/test.harness";
-import { seededRandom } from "../../support/seededRandom";
+import { seededRandom } from "../../support/seededDraw";
 
 // The draft's invariants, held under every league's rules (#2127): whatever the teams, rounds and
 // squad rules, the picks run the snake over as many rounds as the squad's maximum (S04.18), each

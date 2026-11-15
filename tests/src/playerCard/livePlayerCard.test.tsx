@@ -13,11 +13,17 @@ import { overrideFailedWords, waiverFailedWords } from "../../../src/playerCard/
 import { liveShortlist } from "../../../src/scouting/shortlist/liveShortlist";
 import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
+import { GAMEWEEK_12_CLOCK, THURSDAYS_RUN, WEDNESDAY_NOON } from "../../support/src/waiverClock.harness";
 
-const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
+const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), clock: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "playerCard/playerCard:card": convex.card, "playerCard/positionRank:atPosition": convex.rank, "waivers/waivers:cardActionOn": convex.action },
+    queries: {
+      "playerCard/playerCard:card": convex.card,
+      "playerCard/positionRank:atPosition": convex.rank,
+      "waivers/waivers:cardActionOn": convex.action,
+      "waivers/waiverClock:clockOf": convex.clock,
+    },
     mutations: {
       "table/pointsOverrides:override": convex.override,
       "table/pointsOverrides:removeOverride": convex.removeOverride,
@@ -69,10 +75,21 @@ test("any other failure is logged and said plainly", async () => {
   expect(consoleError).toHaveBeenCalledWith("Overriding a player's points failed:", expect.any(Error));
 });
 
-test("the waiver action is read from waivers/waivers:cardActionOn with the league and the player", () => {
+test("the waiver action is read from waivers/waivers:cardActionOn with the league and the player, no minute", () => {
   convex.action.mockReturnValue({ kind: "drop" });
   expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "drop" });
-  expect(convex.action).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, now: expect.any(Number) });
+  expect(convex.action).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE });
+});
+
+test("a claim on the card says the run that can first take him, judged at the minute from the hour's waiver clock, and waits for the clock to load (S08.14)", () => {
+  vi.useFakeTimers({ now: WEDNESDAY_NOON });
+  convex.action.mockReturnValue({ kind: "claim", claimableFrom: 0, squad: [] });
+  convex.clock.mockReturnValue(undefined);
+  expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toBeUndefined();
+  convex.clock.mockReturnValue(GAMEWEEK_12_CLOCK);
+  expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "claim", firstRun: THURSDAYS_RUN, squad: [] });
+  expect(convex.clock).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, hour: WEDNESDAY_NOON });
+  vi.useRealTimers();
 });
 
 test("his rank is read from playerCard/positionRank:atPosition at the position asked, and skipped with none", () => {

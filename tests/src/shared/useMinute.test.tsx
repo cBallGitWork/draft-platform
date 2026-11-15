@@ -4,7 +4,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
-import { useMinute } from "../../../src/shared/useMinute";
+import { forgetServerTime, syncServerTime } from "../../../src/shared/serverClock";
+import { useMinute, useNowEachMinute } from "../../../src/shared/useMinute";
 
 const NOON = Date.parse("2026-11-14T12:00:00Z");
 
@@ -27,4 +28,17 @@ it("keeps ticking after its timer fires with the minute not yet up, as when the 
   expect(result.current).toBe(NOON);
   act(() => vi.advanceTimersByTime(2 * MINUTE_MS));
   expect(result.current).toBe(NOON + 2 * MINUTE_MS);
+});
+
+it("S05.50: a laptop clock 2 minutes slow counts to the deadline by the server's time, from the moment it answers", async () => {
+  const { result } = renderHook(() => useNowEachMinute());
+  expect(result.current).toBe(NOON + 30 * SECOND_MS);
+  try {
+    await act(() => syncServerTime(async () => NOON + 2 * MINUTE_MS + 30 * SECOND_MS));
+    expect(result.current).toBe(NOON + 2 * MINUTE_MS + 30 * SECOND_MS);
+    act(() => vi.advanceTimersByTime(30 * SECOND_MS));
+    expect(result.current).toBe(NOON + 3 * MINUTE_MS);
+  } finally {
+    forgetServerTime();
+  }
 });
