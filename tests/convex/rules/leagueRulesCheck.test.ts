@@ -242,7 +242,7 @@ test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => 
 
 describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
   // One against each other team, and with an odd number, one more for the team left over.
-  const LEFT_OVER = ", and one left over, against the league's average or a bye";
+  const LEFT_OVER = ", and one left over, against the league's average";
   test.each([
     [2, "at most 1 game a gameweek, not 2: one against the other team."],
     [4, "at most 3 games a gameweek, not 4: one against each of the other 3."],
