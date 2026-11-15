@@ -1,9 +1,9 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { BackToLeagues } from "../leagues/LeagueLinks";
 import { AREAS } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
+import { BackToLeagues } from "../leagues/LeagueLinks";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { SETTINGS_DRAFT_HASH } from "./paths";
