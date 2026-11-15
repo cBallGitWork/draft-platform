@@ -92,8 +92,8 @@ export const mine = query({
 const playerInLeague = { leagueId: v.id("leagues"), playerCode: v.number() };
 
 /** Puts a player on the caller's own queue, at the bottom, or do-not-draft list, taking him off the
- *  other; one already on it keeps his place. Any player still in the Premier League, whoever owns
- *  him. */
+ *  other; one already on it keeps his place. Any player still in the Premier League; the queue
+ *  refuses one already on a team (S04.26; Craig, 4 Nov 2026, on #1137). */
 export const add = mutation({
   args: { ...playerInLeague, list: draftList },
   returns: v.null(),
@@ -101,10 +101,18 @@ export const add = mutation({
     const team = await ownTeam(ctx, leagueId);
     const player = await playerOrRefuse(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(draftListRefusals.playerGone(player.name));
+    if (list === "queue") await refuseTaken(ctx, leagueId, player);
     await putOn(ctx, team, list, [playerCode]);
     return null;
   },
 });
+
+/** Refuses `player` for a queue when he is already on a team in the league: a drafted player never
+ *  goes in by hand (S04.26; Craig, 4 Nov 2026, on #1137). */
+async function refuseTaken(ctx: QueryCtx, leagueId: Id<"leagues">, player: Doc<"players">): Promise<void> {
+  const place = await placeOf(ctx, leagueId, player.code);
+  if (place !== null) refuse(draftListRefusals.taken(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
+}
 
 /** Puts `codes` at the bottom of the team's `list`, in their order, taking each off the other list;
  *  one already on `list` keeps his place. Refuses the lot if they would take it past
@@ -152,8 +160,7 @@ export const addFromShortlist = mutation({
       refuse(draftListRefusals.notShortlisted(player.name));
     }
     if (player.droppedAt !== undefined) refuse(draftListRefusals.playerGone(player.name));
-    const place = await placeOf(ctx, leagueId, playerCode);
-    if (place !== null) refuse(draftListRefusals.taken(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
+    await refuseTaken(ctx, leagueId, player);
     await putOn(ctx, team, "queue", [playerCode]);
     return null;
   },

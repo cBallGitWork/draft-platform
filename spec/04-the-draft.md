@@ -179,7 +179,7 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   players already in the queue keep their place; any on the do-not-draft list move off it. The
   button adds as many as fit under 250 and tells the manager how many were left out. Neither puts
   an already-drafted player in the queue; adding one by hand says he's already taken (Craig, 4 Nov
-  2026, on #1137).
+  2026, on #1137). `S04.26`
 - The admin's ranking is a file the admin uploads, a list of players with a rank number, from
   research the admin does himself. It is one ranking for the whole platform. Last season's points
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
