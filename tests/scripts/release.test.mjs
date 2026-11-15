@@ -7,7 +7,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../../scripts/live-site.mjs";
-import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, VERCEL_ENV, VERCEL_PRODUCTION, refusal } from "../../scripts/release.mjs";
+import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, TEST_ONLY_SETTINGS, VERCEL_ENV, VERCEL_PRODUCTION, refusal, testSettingRefusal } from "../../scripts/release.mjs";
+import { OUTSIDE_WORLD_SETTING } from "../../convex/outbound/deploymentSettings.ts";
 import { BUILD, PREVIOUS_SHA, SKIP, decide } from "../../scripts/release-skip.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
@@ -77,4 +78,38 @@ test("only main deploys from git: every other branch is off", () => {
 
 test("the workflow passes the check every setting it reads, by the check's names", () => {
   for (const name of Object.values(CHECK_ENV)) expect(workflow).toContain(`${name}:`);
+});
+
+// The live deployment carrying a setting only an e2e run's throwaway server may hold (S20.17; #2288).
+/** A fake `npx convex env get`, each setting answered from `held`, one in `failing` unreadable. */
+function liveHolding(held, failing = new Set()) {
+  const asked = [];
+  const convex = (args) => {
+    asked.push(args[2]);
+    if (failing.has(args[2])) return { status: 1, stdout: "", stderr: "no deploy key" };
+    return { status: 0, stdout: `${held[args[2]] ?? ""}\n`, stderr: "" };
+  };
+  return { convex, asked };
+}
+
+test("S20.17: the outside-world setting is one the live deployment must never carry", () => {
+  expect(TEST_ONLY_SETTINGS).toContain(OUTSIDE_WORLD_SETTING);
+});
+
+test("S20.17: a live deployment holding no test-only setting isn't refused, each looked for alone", () => {
+  const { convex, asked } = liveHolding({});
+  expect(testSettingRefusal(convex)).toBeNull();
+  expect(asked).toEqual(TEST_ONLY_SETTINGS);
+});
+
+test("S20.17: a live deployment carrying one is refused, saying which and how to remove it", () => {
+  const said = testSettingRefusal(liveHolding({ [OUTSIDE_WORLD_SETTING]: "http://127.0.0.1:3999" }).convex);
+  expect(said).toContain("Release stopped, nothing went live");
+  expect(said).toContain(`npx convex env remove ${OUTSIDE_WORLD_SETTING} --prod`);
+});
+
+test("S20.17: a test-only setting that can't be read refuses the release, saying why", () => {
+  const said = testSettingRefusal(liveHolding({}, new Set([OUTSIDE_WORLD_SETTING])).convex);
+  expect(said).toContain(`couldn't read ${OUTSIDE_WORLD_SETTING}`);
+  expect(said).toContain("no deploy key");
 });
