@@ -30,6 +30,16 @@ allow_cmds=(
 for c in "${deny_cmds[@]}"; do check deny guard_bash.py "$(bash_cmd "$c")"; done
 for c in "${allow_cmds[@]}"; do check allow guard_bash.py "$(bash_cmd "$c")"; done
 
+# a build (in GitHub Actions) may not delete or move the pipeline's own files; a session may (#2240).
+# CI sets GITHUB_ACTIONS for this whole run, so the session's case empties it
+pipeline_cmds=(
+  'git rm .github/workflows/lead.yml' 'git rm -r .claude' 'git rm -r -- .claude/hooks' 'git mv CLAUDE.md x.md'
+  'git mv src/a.ts .github/a.ts' 'git rm ./.github/x.yml' 'git rm -r .' 'git rm "*.md"' 'git rm src/../.github/x'
+)
+for c in "${pipeline_cmds[@]}"; do GITHUB_ACTIONS=true check deny guard_bash.py "$(bash_cmd "$c")"; done
+for c in "${pipeline_cmds[@]}"; do GITHUB_ACTIONS= check allow guard_bash.py "$(bash_cmd "$c")"; done
+for c in 'git rm src/old.ts' 'git mv src/a.ts src/b.ts' 'git rm -r src/github'; do GITHUB_ACTIONS=true check allow guard_bash.py "$(bash_cmd "$c")"; done
+
 # the private-words list: a made-up word, so this file names nothing real
 export DRAFT_PRIVATE_WORDS="$tmp/private-words.txt"
 printf '# private\nacmecorp\n' > "$DRAFT_PRIVATE_WORDS"
