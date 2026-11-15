@@ -104,7 +104,7 @@ function pickedMan(sides: readonly MatchupSide[], picked: number | null) {
 
 function ScoredMatchup({
   leagueId,
-  game: { team, opponent, commentary, version },
+  game: { team, opponent, commentary, version, pointsDelayed },
   stepper,
   gameSwitch,
   overrides,
@@ -121,7 +121,7 @@ function ScoredMatchup({
   const open = pickedMan([team, opponent], picked);
   return (
     <>
-      <ScoredHead stepper={stepper} team={team} opponent={opponent} gameSwitch={gameSwitch} overrides={overrides} />
+      <ScoredHead stepper={stepper} team={team} opponent={opponent} gameSwitch={gameSwitch} overrides={overrides} pointsDelayed={pointsDelayed} />
       <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-3">
         <SidePanel side={team} picking={picking} />
         <div className="flex min-w-0 flex-col gap-2">

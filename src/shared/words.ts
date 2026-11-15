@@ -85,6 +85,8 @@ export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
+/** Back to where a page was opened from: the player card's, the match page's (S10.9's picture). */
+export const backWords = "Back";
 /** A panel's or a window's cross, decoration, as its button carries its label. */
 export const closeGlyph = "✕";
 /** A control drawn as a button that opens a list of choices, decoration, as its label says it. */
@@ -335,6 +337,8 @@ export const notCountingLabel = "not counting";
 export const VIDIPRINTER_TITLE = "Vidiprinter";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
+/** The matchup's and match page's scoreboards, while live points are held as last read (S10.12). */
+export const livePointsDelayedWords = "Live points delayed";
 
 /** A commissioner's override (spec/14 S14.3 to S14.6; #32, #903), of a player's points on his card
  *  and of a team's total on the matchup alike. */
