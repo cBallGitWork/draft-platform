@@ -11,6 +11,7 @@ import { draftStarted } from "./draft.harness";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, lettersTo, teamsIn, type TestConvex, ANN, BOB, CAT, freshLeague } from "./leagues.harness";
 import { holdPlayers, holdSquad, PALMER, passNextDeadline, RICE, SAKA, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
+import { pendingClaimsOf } from "./screenReads.harness";
 
 export { PALMER, RICE, SAKA };
 /** The gameweek holdGameweeks kicks off next: gameweek 4, a day ago, is the latest begun. */
@@ -69,7 +70,7 @@ export async function waiverLeague(atConvexLimits = false) {
     claim: async (email: string, playerCode: number, dropCode: number | null = null) =>
       (await actingAs(t, email)).mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode, dropCode }),
     /** `email`'s pending claims, as at `now` (the test's clock unless given). */
-    pending: async (email: string, now = Date.now()) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId, now }),
+    pending: async (email: string, now = Date.now()) => pendingClaimsOf(await actingAs(t, email), leagueId, now),
     stateOf: (playerCode: number) => waiverStateOf(t, leagueId, playerCode),
     drop: (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode),
     pickUp: (email: string, playerCode: number, dropCode: number | null = null) => pickUpPlayer(t, leagueId, email, playerCode, dropCode),

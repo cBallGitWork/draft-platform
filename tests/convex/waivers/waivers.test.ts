@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
@@ -7,6 +7,7 @@ import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, TEAM_1 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { cardActionOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { NEXT, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -173,8 +174,7 @@ describe("players no team holds", () => {
 });
 
 describe("the player card's action (#1200)", () => {
-  const actionOn = async (email: string, playerCode: number, now = Date.now()) =>
-    (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode, now });
+  const actionOn = async (email: string, playerCode: number, now = Date.now()) => cardActionOf(await actingAs(t, email), leagueId, playerCode, now);
   const annsSquad = () => [...SQUAD].map((playerCode) => ({ playerCode, playerName: nameOf(playerCode) })).sort((one, other) => one.playerName.localeCompare(other.playerName));
 
   test("is a drop for the manager's own player, and nothing for another team's", async () => {
