@@ -20,6 +20,7 @@ import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } 
 import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
+import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
@@ -36,10 +37,8 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 // the matchup shows lineups only then. A man in no lineup, and before then every man, shows his
 // card's points, counted for no team, and his lines are priced there (unownedPoints.ts; #1533).
 //
-// The men come from the match's records, which the live poller writes from kickoff (#28); before
-// any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
-// five team stats are as the live poller last read them (football/matchTeamStats.ts).
-
+// The men come from the match's records, written from kickoff (#28), or before any from the team
+// sheets (football/matchTeamSheets.ts); the team stats as last read (football/matchTeamStats.ts).
 
 /** A man the match names: from his record, or before any, from the sheets, not yet played and
  *  with no stats. */
@@ -95,6 +94,8 @@ const heldMatchPage = v.object({
   commentary: heldCommentary,
   /** Whether the admin marked it abandoned, for his button to take the mark back (#904, S05.46). */
   abandoned: v.boolean(),
+  /** Its men's points live, "prov." (S10.10): from kickoff until its gameweek is final (matchStats.ts). */
+  provisional: v.boolean(),
 });
 export type HeldMatchPage = Infer<typeof heldMatchPage>;
 /** The match page as the screen shows it at its minute: its commentary delayed or not. */
@@ -132,6 +133,7 @@ export const ofMatch = query({
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
       commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
       abandoned: await isAbandoned(ctx, fixtureCode),
+      provisional: held !== null && fixture.gameweek !== null && !(await isGameweekFinal(ctx, fixture.gameweek, "its points can't be told final")),
     };
   },
 });
