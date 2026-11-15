@@ -175,6 +175,17 @@ test("an own goal is priced like a card: the set's own-goal points", () => {
   expect(line?.points).toBe("−2");
 });
 
+test("S14.27 a second yellow's line costs the red less the first yellow's: −1 then −2, −3 in all", () => {
+  const secondYellow = { sourceId: 901, text: "80' RED Murillo, second yellow", minute: 80, addedMinute: 0, type: "secondyellow card", playerCodes: [CODE.murillo] };
+  const players = new Map(PLAYERS);
+  players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1, red_cards: 1, second_yellow: 1 }, -2)]]) });
+  const lines = vidiprinter([{ ...MATCH, lines: [secondYellow, ...STORED] }], players, FIRST_SCORING as ScoringSet).filter((line) => line.text.includes("Murillo"));
+  expect(lines.filter((line) => line.points !== null && /RED|YELLOW/.test(line.text)).map((line) => `${line.text} | ${line.points}`)).toEqual([
+    "80' RED Murillo, second yellow | −2",
+    "54' YELLOW Murillo | −1",
+  ]);
+});
+
 test("a defender's clean sheet shows +4 at the read that shows it and −4 when a goal ends it; goals conceded crossing 2 shows −1", () => {
   const steps = [murillo("clean_sheets", 0, 1, 61), murillo("clean_sheets", 1, 0, 70), murillo("goals_conceded", 0, 1, 70), murillo("goals_conceded", 1, 2, 85)];
   expect(murillosLines(steps)).toEqual(["~85' Murillo: 2 goals conceded | −1", "~70' Murillo: 0 clean sheets | −4", "~61' Murillo: 1 clean sheets | +4"]);

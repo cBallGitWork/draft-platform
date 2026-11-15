@@ -3,8 +3,7 @@ import type { StoredStep } from "./vidiprinter";
 import type { SideMatchOutcome } from "../admin/sideRuns";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
-import { withOwnStats } from "../scoring/ownStats";
-import { rulePointsIn } from "../scoring/scoring";
+import { rulePointsIn, scoredRecord } from "../scoring/scoring";
 import { ANY_BACK_LINE, rulesAt, withBackLine, type TeamScoring } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
 import { checkedOnce, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
@@ -82,8 +81,8 @@ function statPoints(rules: readonly ScoringRule[], cell: Cell, actions: number, 
  *  step though its count stayed 1. A step whose count stayed put while his minutes fell (a feed's
  *  correction) isn't stored: priced on read, it would show the wrong way round. */
 export function thresholdSteps(before: MatchStats, after: MatchStats, set: ScoringSet): ThresholdStep[] {
-  const was = withOwnStats(before, set);
-  const now = withOwnStats(after, set);
+  const was = scoredRecord(before, set);
+  const now = scoredRecord(after, set);
   const minutesWere = statIn(was, MINUTES_STAT);
   const minutesNow = statIn(now, MINUTES_STAT);
   const byStat = rulesByStat(set);
