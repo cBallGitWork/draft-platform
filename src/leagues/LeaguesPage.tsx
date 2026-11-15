@@ -52,7 +52,7 @@ const managerLinks = (leagueId: string) => [{ to: scoringPath(leagueId), title: 
 
 /** "Your leagues" (spec/12), built to its approved pictures (docs/design/approved/leagues): each
  *  league the person has a part in, or, for the admin, every league, with each being deleted as a
- *  strip under them; with none, a page saying so (spec/02), and what became of their newest invite
+ *  strip under them; with none, a page saying so (spec/02), or the admin's empty table, and what became of their newest invite
  *  if it ended without them joining (spec/13, Joining). Beside it, their waiting join requests,
  *  how joining goes when they're in none, and the admin's panel offering "Create a league", as only
  *  the admin creates leagues in the beta. Switching between leagues is the top bar's
@@ -79,13 +79,15 @@ export function LeaguesPage({
       <div className={`flex flex-col gap-2 ${LEAGUE_DESK_MAIN}`}>
         <Panel title={LEAGUES_TITLE} pageTitle>
           {leaguesCut && <Notice>{leaguesCutWords}</Notice>}
-          {leagues.length === 0 ? (
+          {/* The admin in no league sees his leagues, none yet, and Create a league instead of the
+              words (spec/02, S02.4). */}
+          {leagues.length === 0 && !isAdmin ? (
             <div className={PANEL_BODY}>
               <p className="text-lead">{notInALeagueWords(email)}</p>
               <EndedInviteLine useEndedInvite={joining.useEndedInvite} />
             </div>
           ) : (
-            listed.length > 0 && <LeagueTable leagues={listed} actions={actions} />
+            (listed.length > 0 || isAdmin) && <LeagueTable leagues={listed} actions={actions} />
           )}
         </Panel>
         {leagues.map(
