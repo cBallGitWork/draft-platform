@@ -32,10 +32,17 @@ test("the first rules are sound", () => {
   expect(() => check(FIRST_RULES)).not.toThrow();
 });
 
-test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
+test("no squad limits, no club limit and no presets are all sound", () => {
   // With no presets, no classic formation has one to stand in, so there are none.
-  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
+  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [] });
   expect(() => check(free)).not.toThrow();
+});
+
+test("S03.2 every league has all three tie-breaks, in any order, and leaving one out is unsound", () => {
+  expect(FIRST_RULES.tieBreaks).toEqual(["pointsFor", "headToHead", "pointsAgainst"]);
+  expect(() => check(rulesWith({ tieBreaks: ["pointsAgainst", "headToHead", "pointsFor"] }))).not.toThrow();
+  expect(() => check(rulesWith({ tieBreaks: ["pointsFor"] }))).toThrow(new Error("The tie-break headToHead is missing: every league has all 3."));
+  expect(() => check(rulesWith({ tieBreaks: [] }))).toThrow(new Error("The tie-break pointsFor is missing: every league has all 3."));
 });
 
 test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {

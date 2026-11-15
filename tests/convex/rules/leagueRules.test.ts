@@ -9,7 +9,7 @@ import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, REORDERED_TIE_BREAKS, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import {
   actingAs,
@@ -110,9 +110,9 @@ describe("a commissioner's change", () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId);
-    await change(leagueId, rulesWith({ tieBreaks: ["headToHead"] }));
+    await change(leagueId, rulesWith({ tieBreaks: REORDERED_TIE_BREAKS }));
 
-    expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ tieBreaks: ["headToHead"] }));
+    expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ tieBreaks: REORDERED_TIE_BREAKS }));
     expect(await rulesIn(t, leagueId, 8)).toEqual(HELD_FIRST_RULES);
     const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged");
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);

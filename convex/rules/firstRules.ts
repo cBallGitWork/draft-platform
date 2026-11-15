@@ -5,6 +5,7 @@ import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { FIRST_PRESETS } from "../lineup/presets";
 import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classicFormations";
 import type { DrawRules, OddTeamOut } from "../table/roundRobin";
+import { TIE_BREAKS } from "../table/standings";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
@@ -58,6 +59,15 @@ export const FIRST_RUN_TIME = { hour: 18, minute: 0 } as const;
 /** How the league's trades run: the first rules' for rules saved before #383 made it a rule. */
 export const tradeRulesOf = (rules: LeagueRules): TradeRules => rules.trades ?? FIRST_TRADE_RULES;
 
+/** The league's tie-breaks with each it lacks added after its own (Craig, 15 Nov 2026, on #1034):
+ *  every league has all three, and rules saved with fewer keep theirs first. A save puts them in
+ *  the rules from the next gameweek (../migrations/everyTieBreak.ts); the table reads the rules'
+ *  own until then. */
+export const tieBreaksOf = ({ tieBreaks }: LeagueRules): LeagueRules["tieBreaks"] => [
+  ...tieBreaks,
+  ...TIE_BREAKS.filter((tieBreak) => !tieBreaks.includes(tieBreak)),
+];
+
 /** How the league's round robin is drawn: its odd team out and games a gameweek. */
 export const drawRulesOf = ({ oddTeamOut, gamesPerGameweek }: LeagueRules): DrawRules => ({ oddTeamOut, gamesPerGameweek });
 
@@ -85,9 +95,9 @@ export const FIRST_RULES: LeagueRules = {
   classics: firstClassicFormations(),
   deadline: { ...DEFAULT_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
-  // A starting value (spec/01): the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
-  // the standings' these are; it has no standings value.
-  tieBreaks: ["pointsFor"],
+  // Craig's (15 Nov 2026, on #1034): every league has all three tie-breaks, in its own order, these
+  // to start.
+  tieBreaks: [...TIE_BREAKS],
   oddTeamOut: FIRST_ODD_TEAM_OUT,
   gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
   // Craig's (spec/03, spec/08; 5 Nov 2026): Wednesday and Thursday at 18:00 UK time, "for now",

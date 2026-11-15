@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
+import { draftRulesOf, drawRulesOf, tieBreaksOf, tradeRulesOf } from "./firstRules";
 import { squadMaximumOf } from "./squadMaximums";
 import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
@@ -35,12 +35,12 @@ export type LeagueSettings = Infer<typeof leagueSettingsShape>;
 
 /** The league's settings as League settings shows them: the draw's as it plays by them, so rules
  *  saved before they were rules read as the first rules' values (`drawRulesOf`), and the draft's
- *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`). */
+ *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`), and every tie-break (`tieBreaksOf`). */
 export const leagueSettingsOf = (rules: LeagueRules): LeagueSettings => ({
   format: rules.format,
   deadline: rules.deadline,
   doubleGameweek: rules.doubleGameweek,
-  tieBreaks: rules.tieBreaks,
+  tieBreaks: tieBreaksOf(rules),
   ...drawRulesOf(rules),
   squadMaximum: squadMaximumOf(rules),
   minimumByArea: rules.squad.minimumByArea,
