@@ -85,7 +85,7 @@ function gameweekAt(gameweek: number, clock: Clock) {
   const goals = new Map(played.map((match) => [match.fixtureCode, goalsOf(match, EVERY_MAN, ({ code }) => cardAtFullTime.get(code)?.stats?.[GOALS] ?? 0)]));
   /** His card's match as it stands at `clock` once his match is over or, now, while it is played. */
   const cardOf = (code: number) => (clock.kind === "now" ? cardNow : cardAtFullTime).get(code) ?? null;
-  return { gameweek, clock, matchOf, playedIn, when, played, goals, cardOf, cardAtFullTime };
+  return { clock, matchOf, playedIn, when, played, goals, cardOf, cardAtFullTime };
 }
 type GameweekAt = ReturnType<typeof gameweekAt>;
 

@@ -11,7 +11,7 @@ import type { TableScreenSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";
 import { swapUnsavedOutcome } from "./words";
 
-export { previewIdOf, previewOpponent, previewOpponentOf, previewSchedule, previewSeason };
+export { previewIdOf, previewOpponent, previewOpponentOf, previewSchedule };
 
 /** The gameweeks begun, scored: up to the preview's own, the last still live. */
 const BEGUN = previewGameweek;

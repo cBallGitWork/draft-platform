@@ -170,6 +170,9 @@ function cardOf(player: PreviewPlayer): PlayerCard {
 }
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
+/** A match's points on his card, at his first position, an override in. */
+export const previewCardPoints = (match: PlayedMatch) => pointsOf(match, 0);
+
 /** A preview player's season on his card, by his code, for My team's Squad tab to add up (#2455):
  *  his matches, his season points as the card totals them at his first position, and his points
  *  in a gameweek, null ("—") with no match there. */
@@ -177,13 +180,10 @@ export function previewSeasonOf(playerCode: number) {
   const matches = cards.get(playerCode)?.matches ?? [];
   const pointsIn = (gameweek: number) => {
     const there = matches.filter((match) => match.gameweek === gameweek);
-    return there.length === 0 ? null : there.reduce((sum, match) => sum + (pointsOf(match, 0) ?? 0), 0);
+    return there.length === 0 ? null : there.reduce((sum, match) => sum + (previewCardPoints(match) ?? 0), 0);
   };
   return { matches, seasonPoints: seasonFigures(matches, 0).seasonPoints, pointsIn };
 }
-
-/** A match's points on his card, at his first position, an override in. */
-export const previewCardPoints = (match: PlayedMatch) => pointsOf(match, 0);
 
 /** A preview player's match in `gameweek` as his card has it, null where it has none (he sat it
  *  out, or it is to come), for the matchup's men (#2478). `atFullTime` asks for it as his card will
