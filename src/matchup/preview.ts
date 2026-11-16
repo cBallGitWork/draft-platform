@@ -14,10 +14,11 @@ import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, Ma
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
-import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
-import { previewPlayers } from "../scouting/preview";
 import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previewSeason } from "../table/preview";
+import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
+import { previewPlayers } from "../scouting/preview";
+import { matchOf, MY_BALANCER, MY_MATCHES, THEIR_AREAS, THEIR_BALANCER, THEIR_MATCHES, type Man, type Men } from "./previewMen";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** How long a man's match runs, stoppage time in, and when the second match kicks off. */
@@ -31,56 +32,7 @@ const FULL_TIME_MINUTE = LAST_MINUTE + 1;
 const TICK_MS = 500;
 const startedAt = Date.now();
 
-/** A man: his code, name, club and squad number, his area and, a starter, his cell (a starter
- *  with none takes his area's next lane), which match he plays (0 first, 1 second), and his points
- *  at full time; a keeper with no match minutes didn't play. */
-type Man = { code: number; name: string; clubCode: number; number: number | null; area: Area; cell: Cell | null; match: 0 | 1; points: number };
-type Men = { starters: Man[]; bench: Man[] };
 const [MINE] = previewTeamNames;
-
-/** The manager's men's match and points at full time, by name, so League home's recap holds
- *  (Haaland 18, Saka 15, Palmer 12); one not named plays the second match for a point. */
-const MY_MATCHES: Record<string, readonly [0 | 1, number]> = {
-  Pickford: [0, 0],
-  Gvardiol: [1, 1],
-  Gabriel: [0, 2],
-  "Van Dijk": [1, 1],
-  Muñoz: [0, 1],
-  Guimarães: [1, 2],
-  Rice: [0, 1],
-  Rogers: [1, 2],
-  Palmer: [0, 12],
-  Saka: [0, 15],
-  Haaland: [1, 18],
-  Henderson: [1, 2],
-  Murillo: [0, 0],
-  Mbeumo: [1, 2],
-  Watkins: [0, 0],
-};
-/** His opponent's, likewise. */
-const THEIR_MATCHES: Record<string, readonly [0 | 1, number]> = {
-  Sánchez: [1, 5],
-  Konaté: [0, 7],
-  Cucurella: [0, 1],
-  Saliba: [0, 5],
-  "Mac Allister": [1, 3],
-  "Enzo Fernández": [1, 4],
-  "Bruno Fernandes": [0, 9],
-  Ødegaard: [1, 3],
-  Ekitiké: [0, 4],
-  Mateta: [1, 10],
-  Bowen: [1, 3],
-  Pope: [0, 2],
-  Timber: [1, 1],
-  Kluivert: [0, 3],
-  Thiago: [1, 2],
-};
-/** The man on each side whose points make the side's total the table's for the gameweek. */
-const [MY_BALANCER, THEIR_BALANCER] = ["Rogers", "Mateta"];
-/** The opponent's eleven's areas, in Scouting's order, a 3-4-3; the rest are his bench. */
-const THEIR_AREAS: readonly Area[] = ["goalkeeper", "defence", "defence", "defence", "midfield", "midfield", "midfield", "midfield", "attack", "attack", "attack"];
-
-const matchOf = (table: Record<string, readonly [0 | 1, number]>, name: string): readonly [0 | 1, number] => table[name] ?? [1, 1];
 
 /** The manager's men: My team's first lineup (../myTeam/tactics/preview.ts), each in his cell. */
 function myMan(playerCode: number, cell: Cell | null): Man {
@@ -123,7 +75,7 @@ const codeOf = (name: string) => [...MY_MEN.starters, ...MY_MEN.bench, ...THEIR_
 /** A man `minute` minutes into the replay. */
 function slotAt({ code, name, area, clubCode, number, match, points: finalPoints }: Man, minute: number, onBench: boolean): MatchupSlot {
   const played = minute - match * SECOND_KICKOFF;
-  // The Premier League preview's code for the match, whose page every fixture there opens.
+  // The Premier League preview's code for the gameweek's match, whose page it opens.
   const fixtureCode = previewFixtureCode(previewGameweek, match);
   const kickoff = startedAt + match * SECOND_KICKOFF * MINUTE_MS;
   const status: MatchupSlot["status"] =
@@ -230,7 +182,7 @@ function sideAt(teamName: string, men: Men, minute: number): MatchupSide {
 const LINES: [0 | 1, number, string, string | null, about: string[], columns: [string | null, string | null]][] = [
   [0, 0, "KO ARS v LIV", null, [], [null, null]],
   [0, 12, "12' YELLOW Cucurella", "-1", ["Cucurella"], [null, "-1"]],
-  [0, 23, "23' GOAL Saka, assist Palmer", "Saka +5, Palmer +3", ["Saka", "Palmer"], ["+8", null]],
+  [0, 23, "23' GOAL Saka, assist Rice", "Saka +5, Rice +3", ["Saka", "Rice"], ["+8", null]],
   [1, 0, "KO CHE v MCI", null, [], [null, null]],
   [0, 38, "38' Corner, conceded by Konaté", null, ["Konaté"], [null, null]],
   [1, 17, "17' GOAL Haaland", "+4", ["Haaland"], ["+4", null]],

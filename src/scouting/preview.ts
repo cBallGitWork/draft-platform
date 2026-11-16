@@ -69,7 +69,7 @@ const MINE = previewSquad
 type Man = readonly [number, string, string, ListedPlayer["positions"]];
 /** The preview manager's opponent this gameweek (previewOpponent): the matchup plays these fifteen,
  *  eleven starters, then the bench. */
-export const OPPONENT_MEN: readonly Man[] = [
+const OPPONENT_MEN: readonly Man[] = [
   [30, "Sánchez", "CHE", ["GK"]],
   [31, "Konaté", "LIV", ["CB"]],
   [32, "Cucurella", "CHE", ["FB", "WB"]],
