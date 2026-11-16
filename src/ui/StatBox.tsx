@@ -39,7 +39,7 @@ export function StatBox({
   noneWords: string;
   ownStats?: readonly CatalogueStat[];
   scored?: readonly string[];
-  stat:CatalogueStat | null;
+  stat: CatalogueStat | null;
   show: (chosen: CatalogueStat | null) => void;
   look?: keyof typeof STAT_BOX_LOOKS;
 }) {
