@@ -142,7 +142,10 @@ describe("the waiver order", () => {
     // Reverse table order would put Bob back above Ann, as a gameweek has ended since he won.
     expect(await order()).toEqual(bobLast);
 
+    // Every score 0: the team that met the league's average is below the two that met each other
+    // on Head-to-head, a tie-break every league has (S03.2).
     await w.gameweekEnds(NEXT + 1);
-    expect(await order()).toEqual(w.teams.toReversed());
+    const { table } = await (await actingAs(w.t, BOB)).query(api.table.leagueTable.ofLeague, { leagueId: w.leagueId });
+    expect(await order()).toEqual(table.map(({ teamId }) => teamId).toReversed());
   });
 });

@@ -2,7 +2,7 @@ import { v, type Validator } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
-import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tradeRulesOf } from "./firstRules";
+import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tieBreaksOf, tradeRulesOf } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { bylineOf, recordEvent } from "../mail/letters";
 import { checkSoon } from "../leagues/leagueChecks";
@@ -117,13 +117,14 @@ async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximu
   return STARTING_SQUAD_MAXIMUMS;
 }
 
-/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, its squad maximum
- *  the site's for that many teams. Refused if that many teams can't play their games a gameweek, or
- *  if that maximum leaves the rules unsound. The first league a deployment makes writes the first
- *  rules (firstRules.ts) as those defaults. */
+/** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, every tie-break
+ *  among them (`tieBreaksOf`), its squad maximum the site's for that many teams. Refused if that
+ *  many teams can't play their games a gameweek, or if that maximum leaves the rules unsound. The
+ *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. */
 export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
   const row = await defaultsRow(ctx);
-  const defaults = row === null ? undefined : heldRules(row.rules);
+  const held = row === null ? undefined : heldRules(row.rules);
+  const defaults = held && { ...held, tieBreaks: tieBreaksOf(held) };
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
   const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
@@ -143,7 +144,7 @@ export function refuseTooFewForGames(rules: LeagueRules, maxTeams: number): void
  *  side is read as it plays (firstRules.ts's fallbacks), so rules saved before the draft, the
  *  trades, the team instructions or the classic formations were rules differ from the first rules'
  *  values in none (#147, #1742). */
-function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
+export function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
   const parts = Object.keys(leagueRulesShape.fields) as (keyof LeagueRules)[];
   if (from === undefined) return parts;
   const asPlayed = (rules: LeagueRules): LeagueRules => ({
@@ -174,7 +175,7 @@ export const latest = query({
  *  its own deadline, and never earlier than a change already waiting. A later deadline must not
  *  reopen a gameweek the old one locked, nor an earlier one lock a gameweek the moment it is saved;
  *  and a row from before a waiting one would be overridden by it. */
-async function changesFromTimesOf(ctx: QueryCtx, leagueId: Id<"leagues">, history: readonly RulesRow[], rules: LeagueRules): Promise<ChangesFromTimes> {
+export async function changesFromTimesOf(ctx: QueryCtx, leagueId: Id<"leagues">, history: readonly RulesRow[], rules: LeagueRules): Promise<ChangesFromTimes> {
   // The season's gameweeks by count, as leagueDeadlines and siteVersions walk them (#1764).
   const gameweeks = seasonGameweeks(await seasonGameweekCount(ctx)).map((number) => ({ number }));
   const matches = await scheduledMatches(ctx);
@@ -246,7 +247,7 @@ export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, p
 export const editorViewOf = <Part extends Validator<unknown, "required", string>>(part: Part) =>
   v.object({ part, revision: v.id("leagueRules"), changesFrom: changesFromTimes });
 
-/** A screen's change to part of the rules: the league's latest with `changed` applied, saved as
+/** A screen's change to part of the rules: the league's latest, with every tie-break, with `changed` applied, saved as
  *  `change` saves them, made from the rules `revision` names, so a change to the rest made
  *  meanwhile is neither undone nor saved over. Returns the gameweek it takes effect from. Refused,
  *  with the reason, if they changed since, or if unsound. */
@@ -258,7 +259,9 @@ export async function changeLatest(
 ): Promise<number> {
   const { email } = await runnerOf(ctx, leagueId);
   const latest = await latestRules(ctx, leagueId);
-  return await changeRules(ctx, leagueId, email, changed(latest), revision);
+  // Every tie-break (`tieBreaksOf`), so a league saved with fewer isn't refused a save of another
+  // part, but gets them with it (S03.8; #2266).
+  return await changeRules(ctx, leagueId, email, changed({ ...latest, tieBreaks: tieBreaksOf(latest) }), revision);
 }
 
 /** The admin changes the rules new leagues get. Leagues already made keep their own. */

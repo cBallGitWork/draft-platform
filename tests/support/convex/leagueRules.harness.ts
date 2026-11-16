@@ -21,6 +21,9 @@ export const HELD_FIRST_RULES = withSquadMaximum(FIRST_RULES, squadMaximumFor(ST
 /** A squad's minimum in each area, every one 0: to set a few on (#317). */
 export const NO_AREA_MINIMUMS: Record<Area, number> = { goalkeeper: 0, defence: 0, defensiveMidfield: 0, midfield: 0, attackingMidfield: 0, attack: 0 };
 
+/** Every tie-break, as every league has them (S03.2), in an order other than the first rules'. */
+export const REORDERED_TIE_BREAKS: LeagueRules["tieBreaks"] = ["headToHead", "pointsFor", "pointsAgainst"];
+
 /** The first rules as a test league holds them, with some parts changed, as a copy the test may
  *  change further. */
 export function rulesWith(change: Partial<LeagueRules>): LeagueRules {
