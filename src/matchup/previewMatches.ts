@@ -1,9 +1,12 @@
 // The matchup preview's matches (preview.ts): Football's gameweek (../premierLeague/preview.ts),
-// each match's clock, score and lines as the matchup reads them now or in its replay (#2455).
+// each match's clock, score and lines as the matchup reads them now or in its replay (#2455). Each
+// match comes with its goals at full time, home first, which preview.ts reads from Football's.
 
 import type { MatchBreakdown } from "../../convex/matchup/matchupShape";
-import { previewFullTimeGoals } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
+
+/** A match of Football's gameweek and its goals at full time, home first. */
+export type ReplayMatch = GameweekMatch & { fullTime: readonly [number, number] };
 import type { Man } from "./previewMen";
 
 /** How long a man's match runs, stoppage time in, and how far apart the replay kicks Football's
@@ -19,16 +22,16 @@ export const kickoffsOf = (matches: readonly GameweekMatch[]) => [...new Set(mat
 
 /** The minutes each side of a match scores in, home first: its full-time goals spread over the
  *  match, all before Football's clock while it is being played, so its score stands as Football's. */
-function goalMinutes(match: GameweekMatch): [number[], number[]] {
+function goalMinutes(match: ReplayMatch): [number[], number[]] {
   const playing = match.score?.state === "live" || match.score?.state === "halfTime";
   const upTo = playing ? (match.score?.minutes ?? 90) : 90;
   const spread = (goals: number, side: number) => Array.from({ length: goals }, (_, goal) => 1 + Math.floor(((upTo - 2) * (2 * goal + 1 + side)) / (2 * goals + 2)));
-  const [home, away] = previewFullTimeGoals(match);
+  const [home, away] = match.fullTime;
   return [spread(home, 0), spread(away, 1)];
 }
 
 /** A match's score `played` minutes in: Football's now; in the replay, its goals so far. */
-export function scoreAt(match: GameweekMatch, played: number, clock: Clock): MatchBreakdown["score"] {
+export function scoreAt(match: ReplayMatch, played: number, clock: Clock): MatchBreakdown["score"] {
   const { score } = match;
   if (played < 0 || score === null || (score.state === "upcoming" && clock.kind === "now")) return null;
   if (clock.kind === "now" && score.state !== "upcoming") return { ...score, state: score.state };
@@ -53,10 +56,10 @@ export function categoriesOf(points: number | null): MatchBreakdown["categories"
 
 /** A match's lines, by its minute: kickoff, each goal, named for one of `men` at the scoring club
  *  where it has one (forwards first), half-time and full time. */
-export function linesOf(match: GameweekMatch, men: readonly Man[]): { minute: number; text: string; about: number[] }[] {
+export function linesOf(match: ReplayMatch, men: readonly Man[]): { minute: number; text: string; about: number[] }[] {
   const { home, away } = match;
   const [homeGoals, awayGoals] = goalMinutes(match);
-  const [homeAtFullTime, awayAtFullTime] = previewFullTimeGoals(match);
+  const [homeAtFullTime, awayAtFullTime] = match.fullTime;
   const forwardsFirst = (man: Man) => (man.area === "attack" ? 0 : 1);
   const goalLines = (minutes: number[], club: GameweekMatch["home"]) => {
     const scorers = men.filter((man) => man.clubCode === club.code && man.area !== "goalkeeper").toSorted((one, other) => forwardsFirst(one) - forwardsFirst(other));

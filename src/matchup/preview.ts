@@ -14,7 +14,7 @@ import { areasOf, positionOfSlot, type Area, type Cell, type Lane } from "../../
 import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
-import { previewClubMatch, previewGameweekMatches } from "../premierLeague/preview";
+import { previewClubMatch, previewFullTimeGoals, previewGameweekMatches } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
 import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
@@ -22,7 +22,7 @@ import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previ
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
 import { MY_POINTS, pointsOf, THEIR_AREAS, THEIR_POINTS, type Man, type Men } from "./previewMen";
-import { categoriesOf, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, scoreAt, type Clock } from "./previewMatches";
+import { categoriesOf, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** The replay's last minute of play, then a minute at full time before the result is final. */
@@ -67,7 +67,10 @@ const BENCH_KEEPER = MY_MEN.bench.find(({ area }) => area === "goalkeeper")!;
 function gameweekAt(gameweek: number, clock: Clock) {
   const matches = previewGameweekMatches(gameweek);
   const kickoffs = kickoffsOf(matches);
-  const matchOf = (clubCode: number) => previewClubMatch(gameweek, clubCode)!;
+  const matchOf = (clubCode: number): ReplayMatch => {
+    const match = previewClubMatch(gameweek, clubCode)!;
+    return { ...match, fullTime: previewFullTimeGoals(match) };
+  };
   const playedIn = (match: GameweekMatch): number => {
     if (clock.kind === "replay") return clock.minute - kickoffs.indexOf(match.kickoff) * KICKOFF_GAP;
     const { score } = match;
@@ -77,8 +80,8 @@ function gameweekAt(gameweek: number, clock: Clock) {
   /** When a moment of a match falls, to put the lines in order: the replay's minute, or the time. */
   const when = (match: GameweekMatch, minute: number) =>
     clock.kind === "replay" ? kickoffs.indexOf(match.kickoff) * KICKOFF_GAP + minute : (match.kickoff ?? 0) + minute * MINUTE_MS;
-  const played = [...new Map(EVERY_MAN.map(({ clubCode }) => [clubCode, matchOf(clubCode)])).values()];
-  return { clock, matchOf, playedIn, when, played: [...new Map(played.map((match) => [match.fixtureCode, match])).values()] };
+  const played = new Map(EVERY_MAN.map(({ clubCode }) => matchOf(clubCode)).map((match) => [match.fixtureCode, match]));
+  return { clock, matchOf, playedIn, when, played: [...played.values()] };
 }
 type GameweekAt = ReturnType<typeof gameweekAt>;
 

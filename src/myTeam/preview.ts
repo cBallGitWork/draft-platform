@@ -9,8 +9,7 @@ import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { ASSISTS, CLEAN_SHEETS, GOALS, MINUTES_STAT, RED_CARDS, SAVES, YELLOW_CARDS } from "../../convex/stats/matchRecords";
 import type { GameweekMatch } from "../premierLeague/seam";
 import { previewClubMatch, previewClubUpcoming } from "../premierLeague/preview";
-import { pointsOf, seasonFigures } from "../playerCard/gameLog";
-import { previewCardOf } from "../playerCard/preview";
+import { previewSeasonOf } from "../playerCard/preview";
 import type { PlayedMatch } from "../playerCard/seam";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadLimits";
 import { squadLimits } from "../../convex/squads/squadRulesView";
@@ -76,11 +75,6 @@ const scheduleOf = (clubCode: number) =>
     return match === undefined ? [] : [fromHisSide(clubCode, { ...match, gameweek })];
   });
 
-/** His points in a gameweek on his card, or null ("—") with none there. */
-const pointsIn = (matches: readonly PlayedMatch[], gameweek: number) => {
-  const there = matches.filter((match) => match.gameweek === gameweek);
-  return there.length === 0 ? null : there.reduce((sum, match) => sum + (pointsOf(match, 0) ?? 0), 0);
-};
 /** His season's totals from his card's matches. */
 const totalOf = (matches: readonly PlayedMatch[], stat: string) => matches.reduce((sum, { stats }) => sum + (stats?.[stat] ?? 0), 0);
 /** The preview league's squad limits, for the Rules view: at the league limits, its squads hold a
@@ -97,8 +91,7 @@ const PREVIEW_SQUAD_RULES = {
  *  played nothing yet, and two carry FPL news. */
 const LAST_GAMEWEEK = PREVIEW_GAMEWEEK - 1;
 const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number, news }) => {
-  const matches = previewCardOf(code)?.matches ?? [];
-  const played = matches.length > 0;
+  const { matches, seasonPoints, pointsIn } = previewSeasonOf(code);
   return {
     code,
     name,
@@ -109,11 +102,11 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
     number,
     nextFixtures: nextMatches(clubCode),
     schedule: scheduleOf(clubCode),
-    seasonPoints: seasonFigures(matches, 0).seasonPoints,
-    lastGameweekPoints: pointsIn(matches, LAST_GAMEWEEK),
-    form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => pointsIn(matches, LAST_GAMEWEEK - FORM_GAMEWEEKS + 1 + week)),
+    seasonPoints,
+    lastGameweekPoints: pointsIn(LAST_GAMEWEEK),
+    form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => pointsIn(LAST_GAMEWEEK - FORM_GAMEWEEKS + 1 + week)),
     started: matches.filter(({ minutes }) => (minutes ?? 0) >= 60).length,
-    rolePoints: played ? (code % 7) - 2 : null,
+    rolePoints: matches.length > 0 ? (code % 7) - 2 : null,
     // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
     stats: {
       appearances: matches.length,

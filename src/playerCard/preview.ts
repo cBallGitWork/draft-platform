@@ -18,7 +18,7 @@ import { previewIdOf } from "../table/preview";
 import { PREVIEW_SAKA_NEWS, PREVIEW_UNPLAYED } from "../myTeam/tactics/preview";
 import { previewClubMatch, previewClubUpcoming } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
-import { seasonFigures } from "./gameLog";
+import { pointsOf, seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
 
 type PreviewPlayer = (typeof previewPlayers)[number];
@@ -163,8 +163,17 @@ function cardOf(player: PreviewPlayer): PlayerCard {
 }
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
-/** A preview player's card by his code: My team's Squad tab adds up his season from its matches. */
-export const previewCardOf = (playerCode: number) => cards.get(playerCode);
+/** A preview player's season on his card, by his code, for My team's Squad tab to add up (#2455):
+ *  his matches, his season points as the card totals them at his first position, and his points
+ *  in a gameweek, null ("—") with no match there. */
+export function previewSeasonOf(playerCode: number) {
+  const matches = cards.get(playerCode)?.matches ?? [];
+  const pointsIn = (gameweek: number) => {
+    const there = matches.filter((match) => match.gameweek === gameweek);
+    return there.length === 0 ? null : there.reduce((sum, match) => sum + (pointsOf(match, 0) ?? 0), 0);
+  };
+  return { matches, seasonPoints: seasonFigures(matches, 0).seasonPoints, pointsIn };
+}
 
 /** His rank at a position among the preview's players holding it, by their cards' base points
  *  there, placed by the server's own rule (positionRank.ts). */
