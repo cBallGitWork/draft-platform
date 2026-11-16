@@ -409,7 +409,10 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - The Forge kit: the files `.studio/kit.json` lists (hook helpers and checks every Forge project shares)
   are copies from the private `cBallGitWork/forge` repository, pinned to the commit it names.
   Change them there and copy the kit in again (`node bin/copy-kit.mjs <this checkout>` in Forge);
-  `scripts/studio-kit.mjs`, in verify, fails a copy edited here (11 Nov 2026).
+  `scripts/studio-kit.mjs`, in verify, fails a copy edited here (11 Nov 2026). The QA panel is kit
+  (`/qa-panel`, the `qa-tester` agent, `scripts/qa-walk.mjs`, forge#27; Craig, 16 Nov 2026); this
+  project's own panel, its start command, personas and jobs, is `.studio/qa-panel.json`. knip skips
+  `scripts/qa-walk.mjs`, whose tests are Forge's.
 
 - `src/shared/`: non-visual code every screen uses: the hooks, refusal handling, the common words.
   The common words sit in `words.ts` and, by job, three sub-folders' `words.ts` (#2232):
