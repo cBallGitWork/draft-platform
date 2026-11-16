@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { squadGroupOf, topScorersOf, type SquadPlayer } from "../../../convex/scouting/clubSquad";
+import { topScorersOf, type SquadPlayer } from "../../../convex/scouting/clubSquad";
+import { squadGroupOf } from "../../../convex/positions/positionTables";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTES_STAT, STARTS_STAT } from "../../../convex/stats/matchRecords";

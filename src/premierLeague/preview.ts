@@ -12,7 +12,7 @@ import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, MatchPageData, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
 import { previewPlayers } from "../scouting/preview";
 import { previewChanceOf } from "../myTeam/tactics/preview";
-import { squadGroupOf } from "../../convex/scouting/clubSquad";
+import { squadGroupOf } from "../../convex/positions/positionTables";
 import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
 const CLUBS = previewClubs;
