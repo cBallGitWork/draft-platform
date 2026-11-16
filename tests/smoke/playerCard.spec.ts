@@ -1,7 +1,7 @@
 // The player card in a real browser on the dev server's preview: opened from Scouting, its game
 // log's Scoring | All stats switch and a match row's breakdown (#1027); and its claim or drop
 // (#1200): the preview manager drops his own Saka, claims James off waivers naming Saka to go, and
-// picks up Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
+// picks up Raya; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
 import { previewSaid, proLeague } from "../../src/shared/preview";
@@ -14,11 +14,11 @@ import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pick
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
-/** A Scouting preview player's code, by his name: the preview manager's own Saka, Rice a free agent
+/** A Scouting preview player's code, by his name: the preview manager's own Saka, Raya a free agent
  *  and James on waivers. */
 const codeOf = (name: string) => previewPlayers.find((player) => player.name === name)!.code;
 const SAKA = codeOf("Saka");
-const RICE = codeOf("Rice");
+const RAYA = codeOf("Raya");
 const JAMES = codeOf("James");
 
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
@@ -58,7 +58,7 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await page.getByRole("button", { name: claimWords }).click();
     await said(previewWaiverOutcomes.claim);
 
-    await card(RICE);
+    await card(RAYA);
     await page.getByRole("button", { name: pickUpWords }).click();
     await said(previewWaiverOutcomes.pickUp);
   });

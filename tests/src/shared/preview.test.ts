@@ -10,6 +10,10 @@ import { previewPlayerCard } from "../../../src/playerCard/preview";
 import { previewPlayers } from "../../../src/scouting/preview";
 import { previewGameweek, previewTeamNames, proLeague } from "../../../src/shared/preview";
 import { previewTable } from "../../../src/table/preview";
+import { WEEK_MS } from "../../../convex/shared/time";
+import { previewMail } from "../../../src/mail/preview";
+import { previewFirstLineup, previewSquad } from "../../../src/myTeam/tactics/preview";
+import { previewTrades } from "../../../src/trades/preview";
 
 // The preview's one made-up league (#1779): every preview screen of it shows the same teams and is
 // on the same gameweek, so a man playing on one screen isn't at full time on the next.
@@ -76,4 +80,62 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(openingGameweek(previewPremierLeague.useGameweeks()!.firstKickoffs, now)).toBe(previewGameweek);
   // The card's newest match is the one still being played.
   expect(card.matches[0].gameweek).toBe(previewGameweek);
+});
+
+/** The matchup preview's head-to-head as it opens, with no minute asked. */
+function openedHeadToHead() {
+  window.history.replaceState(null, "", "/?preview=manager");
+  const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, {})).result.current;
+  if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored") throw new Error("the matchup preview is a scored head-to-head");
+  const { team, opponent } = matchup.game;
+  if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+  return { team, opponent };
+}
+
+/** The preview manager's game this gameweek on League home: whom he plays, and the score from his side. */
+function homeGame() {
+  const fixtures = previewHome.useLeagueHome(leagueId, now)!.thisGameweek!.fixtures;
+  const game = fixtures.find(({ team, opponent }) => team === proLeague.teamName || opponent === proLeague.teamName)!;
+  const his = game.team === proLeague.teamName;
+  return { opponent: his ? game.opponent : game.team, mine: his ? game.points!.team : game.points!.opponent, theirs: his ? game.points!.opponent : game.points!.team };
+}
+
+it("names the same opponent and score for the manager's game on League home and the matchup (#2450)", () => {
+  const game = openedHeadToHead();
+  const home = homeGame();
+
+  expect(game.opponent.teamName).toBe(home.opponent);
+  expect([game.team.points, game.opponent.points]).toEqual([home.mine, home.theirs]);
+});
+
+it("plays My team's lineup in the matchup, his squad his own on Scouting, the player card and Trades (#2450)", () => {
+  const game = openedHeadToHead();
+  const squad = previewSquad.map(({ playerCode }) => playerCode).toSorted();
+  const owners = new Map(previewPlayers.map(({ code, ownerTeamName }) => [code, ownerTeamName]));
+  const traded = previewTrades.useTrades(leagueId)!.teams.find(({ teamName }) => teamName === proLeague.teamName)!;
+
+  expect(game.team.lineup.starters.map(({ playerCode }) => playerCode)).toEqual(previewFirstLineup.starters.map(({ playerCode }) => playerCode));
+  expect(game.team.lineup.bench.map(({ playerCode }) => playerCode)).toEqual(previewFirstLineup.bench);
+  for (const code of squad) {
+    expect(owners.get(code)).toBe(proLeague.teamName);
+    expect(previewPlayerCard.usePlayerCard(leagueId, code, now)?.ownerTeamName).toBe(proLeague.teamName);
+  }
+  expect(traded.players.map(({ code }) => code).toSorted()).toEqual(squad);
+  // The opponent's men are his on Scouting too.
+  for (const { playerCode } of [...game.opponent.lineup.starters, ...game.opponent.lineup.bench]) expect(owners.get(playerCode)).toBe(game.opponent.teamName);
+});
+
+it("opens each Premier League match pressed on its own clubs, gameweek and score (#2450)", () => {
+  for (const gameweek of [previewGameweek - 1, previewGameweek, previewGameweek + 1]) {
+    for (const { fixtureCode, home, away, score } of previewPremierLeague.useGameweekMatches(gameweek)!) {
+      const page = previewPremierLeague.useMatch(leagueId, now, fixtureCode)!;
+      expect({ gameweek: page.gameweek, home: page.home, away: page.away, score: page.score }).toEqual({ gameweek, home, away, score: score?.state === "upcoming" ? null : score });
+    }
+  }
+});
+
+it("dates Mail's unread letters this week (#2450)", () => {
+  const unread = previewMail.useLetters(leagueId)!.filter(({ read }) => !read);
+  expect(unread.length).toBeGreaterThan(0);
+  for (const { at } of unread) expect(now - at).toBeLessThan(WEEK_MS);
 });
