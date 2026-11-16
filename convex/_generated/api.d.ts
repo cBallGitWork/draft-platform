@@ -340,6 +340,7 @@ import type * as shared_time from "../shared/time.js";
 import type * as shared_typedText from "../shared/typedText.js";
 import type * as signIn_account from "../signIn/account.js";
 import type * as signIn_allowedEmails from "../signIn/allowedEmails.js";
+import type * as signIn_nextPath from "../signIn/nextPath.js";
 import type * as signIn_signInEmail from "../signIn/signInEmail.js";
 import type * as signIn_signInLimits from "../signIn/signInLimits.js";
 import type * as signIn_signInLinks from "../signIn/signInLinks.js";
@@ -769,6 +770,7 @@ declare const fullApi: ApiFromModules<{
   "shared/typedText": typeof shared_typedText;
   "signIn/account": typeof signIn_account;
   "signIn/allowedEmails": typeof signIn_allowedEmails;
+  "signIn/nextPath": typeof signIn_nextPath;
   "signIn/signInEmail": typeof signIn_signInEmail;
   "signIn/signInLimits": typeof signIn_signInLimits;
   "signIn/signInLinks": typeof signIn_signInLinks;
