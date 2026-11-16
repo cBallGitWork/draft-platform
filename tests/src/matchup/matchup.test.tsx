@@ -155,7 +155,9 @@ describe("a replayed gameweek plays out on screen", () => {
       `Pandur, ${keeper}, 3, ${statusLabels.finished} ${statusWords.finished}, ${autoSubWords.on("Phillips")}`,
       `Phillips, ${keeper}, 0, ${statusLabels.finished} ${statusWords.finished}, ${notCountingLabel}, ${autoSubWords.off("Pandur")}`,
     ]);
-    expect(within(screen.getByRole("list", { name: benchLabel("Team 1") })).getByText(offWords)).toBeTruthy();
+    const off = within(screen.getByRole("list", { name: benchLabel("Team 1") })).getByText(offWords);
+    // The bench tile is greyed, but its orange "Off" is not: dimmed, it fails WCAG 2.1 AA's contrast (S12.14).
+    expect(off.closest(".opacity-50")).toBeNull();
     expect(screen.getByText(provisionalWords)).toBeTruthy();
 
     live.play(final);
