@@ -57,7 +57,7 @@ export function YourMatchup({ home: { thisGameweek, table } }: { home: LeagueHom
         {points === null ? (
           <Placeholder label={scoreToComeLabel} className="h-11 w-30" />
         ) : (
-          <Link {...link} aria-label={matchupLinkLabel(mine.teamName, opponent, gameweek)} className="flex h-11 min-w-30 items-center justify-center border border-muted px-3 text-title font-bold text-figure">
+          <Link {...link} aria-label={matchupLinkLabel(scoreWords(points.team, points.opponent), mine.teamName, opponent, gameweek)} className="flex h-11 min-w-30 items-center justify-center border border-muted px-3 text-title font-bold text-figure">
             {scoreWords(points.team, points.opponent)}
           </Link>
         )}

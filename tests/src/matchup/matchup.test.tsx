@@ -39,6 +39,7 @@ import {
   statusWords,
   totalPointsWords,
   unscoredWords,
+  versusWords,
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
@@ -92,7 +93,7 @@ describe("reaching it", () => {
     const [{ gameweek, fixtures }] = leagueTable.gameweeks;
     const app = openApp(TABLE_PATH, manager, { table: { leagueTable } });
     const [{ teamId, team, opponent }] = fixtures;
-    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel(team, opponent, gameweek) }));
+    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel(versusWords, team, opponent, gameweek) }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCHUP_TITLE })).toBeTruthy();
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId, gameweek });
@@ -100,7 +101,7 @@ describe("reaching it", () => {
 
   it("opens from a head-to-head on league home", async () => {
     const app = openApp(HOME_PATH, manager, { home: { leagueHome: { ...quietHome, thisGameweek: { gameweek: 4, fixtures: [homeFixture("Cat's", null)], byes: [] } } } });
-    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel("Cat's", null, 4) }));
+    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel(versusWords, "Cat's", null, 4) }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCHUP_TITLE })).toBeTruthy();
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Cat's" as Id<"teams">, gameweek: 4 });
@@ -109,7 +110,7 @@ describe("reaching it", () => {
   it("with two games a gameweek, each game's link opens its own matchup (#913)", async () => {
     const twoGames = { gameweek: 4, fixtures: [homeFixture("Cat's", "Ann's"), homeFixture("Cat's", "Bob's", null, 2)], byes: [] };
     const app = openApp(HOME_PATH, manager, { home: { leagueHome: { ...quietHome, thisGameweek: twoGames } } });
-    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel("Cat's", "Bob's", 4) }));
+    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel(versusWords, "Cat's", "Bob's", 4) }));
     expect(await screen.findByRole("heading", { level: 1, name: MATCHUP_TITLE })).toBeTruthy();
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Cat's" as Id<"teams">, gameweek: 4, game: 2 });
   });

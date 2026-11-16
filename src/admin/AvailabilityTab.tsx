@@ -97,7 +97,7 @@ function SetByHand({ rows, picked, pick }: { rows: readonly AvailabilityRow[]; p
                     </span>
                   </td>
                   <th scope="row" className="px-2 text-left font-normal">
-                    <button type="button" aria-pressed={current} aria-label={pickPlayerLabel(row.name)} onClick={() => pick(row.code)} className="min-h-tap text-left lg:min-h-0">
+                    <button type="button" aria-pressed={current} aria-label={pickPlayerLabel(row.name, row.clubShortName)} onClick={() => pick(row.code)} className="min-h-tap text-left lg:min-h-0">
                       <span className="font-semibold">{row.name}</span> <span className="text-soft">{row.clubShortName}</span>
                     </button>
                   </th>

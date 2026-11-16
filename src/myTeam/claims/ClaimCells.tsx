@@ -21,6 +21,7 @@ export function PlayerName({ player }: { player: Player }) {
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
       <span className="font-semibold text-lead">{player.playerName}</span>
+      {/* A space between his name and club for whatever reads the words, as the gap draws one. */}{" "}
       <ClubShort club={player.club} className="text-soft" />
     </span>
   );

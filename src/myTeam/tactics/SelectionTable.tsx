@@ -234,15 +234,16 @@ function PositionCell({ player, place }: { player: SquadMember; place: { starter
 /** A starter's Role ▾: his role, which opens his role card, where another his slot offers is picked
  *  (spec/05 Roles; #848). */
 function RoleButton({ player, starter, onRoleCard }: { player: SquadMember; starter: Starter; onRoleCard(playerCode: number): void }) {
+  const role = roleIn(starter, starter.role).name;
   return (
     <button
       type="button"
-      aria-label={roleLabel(player.name)}
+      aria-label={roleLabel(player.name, role)}
       {...markOf("role", player.playerCode)}
       onClick={() => onRoleCard(player.playerCode)}
       className="text-box flex w-full items-center justify-between gap-1 text-left lg:min-h-0"
     >
-      <span className="truncate">{roleIn(starter, starter.role).name}</span>
+      <span className="truncate">{role}</span>
       <span aria-hidden="true">{menuGlyph}</span>
     </button>
   );
