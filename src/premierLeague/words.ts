@@ -5,7 +5,7 @@ import type { TableLine } from "../../convex/football/tableLines";
 import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
-import { dateWords, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
+import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
 export { clockWords, fullTime, halfTime, liveWords, scoreWords, versusWords } from "../shared/match/words";
 export { gameweekWords } from "../shared/when/words";
@@ -238,7 +238,7 @@ export function squadColumns(gameweeks: readonly number[], pointsSeason: number 
 
 /** The Fixtures tab's columns: a short head, and what it stands for. */
 export const clubFixtureColumns = {
-  gameweek: { short: "GW", long: "Gameweek" },
+  gameweek: gameweekColumn,
   opponent: { short: "Opponent", long: "Opponent, home or away" },
   result: { short: "Result", long: "Result or kick-off" },
 } as const;

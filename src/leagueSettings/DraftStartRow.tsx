@@ -3,6 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useChange } from "../shared/useChange";
 import { Loading, Problem } from "../ui/Panel";
 import type { LeagueSettingsSeam } from "./seam";
+import { SETTING_LINE } from "./SettingRow";
 import { clearDraftStartWords, draftStartedFixedWords, draftStartHint, draftStartLabel, draftStartLoadingWords } from "./words";
 
 const HINT_ID = "settings-draft-start-hint";
@@ -68,7 +69,7 @@ export function DraftStartRow({ start }: { start: DraftStartEdit }) {
   if (start.view === undefined) return <Loading>{draftStartLoadingWords}</Loading>;
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className={SETTING_LINE}>
         <span aria-hidden className="text-soft">
           {draftStartLabel}
         </span>

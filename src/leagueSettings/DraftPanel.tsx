@@ -8,6 +8,7 @@ import { TickBox } from "../ui/TickBox";
 import { DraftStartRow, type DraftStartEdit } from "./DraftStartRow";
 import { NumberRow } from "./NumberRow";
 import { SETTINGS_DRAFT_HASH } from "./paths";
+import { SETTING_LINE } from "./SettingRow";
 import { inUnit, PICK_CLOCK_UNITS, toSeconds, unitFor, type PickClockUnit } from "./pickClock";
 import {
   autoPickWords,
@@ -84,7 +85,7 @@ function PickClock({ seconds, onChange }: { seconds: number; onChange: (seconds:
   const amount = inUnit(seconds, unit);
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div className={SETTING_LINE}>
         <NumberRow label={pickClockLabel} hintId={PICK_CLOCK_HINT_ID} value={amount} onChange={(next) => hand(next, unit)} />
         <Choice
           label={pickClockUnitLabel}
