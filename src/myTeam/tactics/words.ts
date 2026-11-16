@@ -68,8 +68,10 @@ export const quickPickWords = "Quick Pick";
 
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
 export const undoWords = "Undo";
-/** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
-export const savedWords = (at: number) => `Line-up saved ${timeOfDayWords(at)}`;
+/** When the lineup last saved, by the server's clock (spec/05, Moving players); `forGameweek`, the
+ *  next gameweek, when the deadline passed before it landed (TC-065). */
+export const savedWords = (at: number, forGameweek?: number) =>
+  `Line-up saved ${timeOfDayWords(at)}${forGameweek === undefined ? "" : ` for ${gameweekShort(forGameweek)}`}`;
 export const saveFailedWords = failedWords("the line-up wasn't saved");
 /** Said once the tab reloads a line-up another tab saved (spec/05 `S05.55`); a move this tab sent
  *  meanwhile is refused in the server's words (lineupWords.ts `changedElsewhere`). */

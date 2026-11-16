@@ -50,7 +50,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
   const [runsShown, setRunsShown] = useState(true);
   const squadCodes = useMemo(() => tactics.squad.map(({ playerCode }) => playerCode), [tactics.squad]);
-  const edits = useLineupEdits({ leagueId: league.leagueId, opening, lineupEdit: tactics.lineupEdit, squadCodes, changes: seam.useLineupChanges(), onShown: () => setPickedCode(null) });
+  const edits = useLineupEdits({ leagueId: league.leagueId, gameweek: tactics.gameweek, opening, lineupEdit: tactics.lineupEdit, squadCodes, changes: seam.useLineupChanges(), onShown: () => setPickedCode(null) });
   const { draft } = edits;
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
   const rules: MoveRules = useMemo(
@@ -169,7 +169,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
         canUndo={edits.canUndo}
         onUndo={edits.undo}
         onQuickPick={() => edits.edit(quickPick(draft, shape, tactics.squad))}
-        savedAt={edits.savedAt}
+        saved={edits.saved}
         switchedNote={edits.switchedNote}
         problem={edits.problem}
         cells={shape}

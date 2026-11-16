@@ -7,7 +7,8 @@
 import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { HOUR_MS } from "../../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
+import { forgetServerTime, serverNow, syncServerTime } from "../../../../src/shared/serverClock";
 import { lineupRefusals } from "../../../../convex/lineup/lineupWords";
 import { reloadedWords, saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
@@ -68,12 +69,32 @@ describe("saving", () => {
     expect(statusesBefore).toContain(saved);
   });
 
-  it("says when the save landed, by the manager's own clock: \"Lineup saved 14:02\" (spec/05, Moving players)", async () => {
+  it("says when the save landed: \"Lineup saved 14:02\" (spec/05, Moving players)", async () => {
     await openedPitch({ tactics: SAVED });
     const before = Date.now();
     await whiteForSaliba();
     const line = (await screen.findByText(SAVED_LINE)).textContent;
     expect([savedWords(before), savedWords(Date.now())]).toContain(line);
+  });
+
+  it("TC-053 (S05.50: the server's clock, not the laptop's): with the laptop two hours slow, the line says the server's time", async () => {
+    await openedPitch({ tactics: SAVED });
+    await act(() => syncServerTime(async () => Date.now() + 2 * HOUR_MS));
+    try {
+      await whiteForSaliba();
+      const line = (await screen.findByText(SAVED_LINE)).textContent;
+      expect([savedWords(serverNow() - MINUTE_MS), savedWords(serverNow())]).toContain(line);
+      expect(line).not.toBe(savedWords(Date.now()));
+    } finally {
+      forgetServerTime();
+    }
+  });
+
+  it("TC-065 (spec/05 Moving players): a move saved after the deadline, for the next gameweek, says which", async () => {
+    await openedPitch({ tactics: SAVED, saveAnswer: TACTICS_GAMEWEEK + 1 });
+    await whiteForSaliba();
+    expect(await screen.findByText(savedWords(Date.now(), TACTICS_GAMEWEEK + 1))).toBeTruthy();
+    expect(savedWords(Date.now(), TACTICS_GAMEWEEK + 1)).toContain(`for GW${TACTICS_GAMEWEEK + 1}`);
   });
 
   it("shows the server's refusal in its words, keeping the move", async () => {

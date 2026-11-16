@@ -9,7 +9,6 @@ import {
   presetsWords,
   quickPickWords,
   runsWords,
-  savedWords,
   savePresetWords,
   SIDE_WORDS,
   instructionLabel,
@@ -55,7 +54,7 @@ export function TacticsToolbar({
   canUndo,
   onUndo,
   onQuickPick,
-  savedAt,
+  saved,
   switchedNote,
   problem,
   cells,
@@ -83,7 +82,8 @@ export function TacticsToolbar({
   onUndo: () => void;
   /** Fills the formation with the best eleven by stars (spec/05, Moving players). */
   onQuickPick: () => void;
-  savedAt: number | null;
+  /** When the last save landed, in words (words.ts `savedWords`); null with none since the last move. */
+  saved: string | null;
   problem: string | null;
 }) {
   const keyed = keyedPresets(presets, inUse);
@@ -113,7 +113,7 @@ export function TacticsToolbar({
           </button>
         </span>
       </div>
-      <Status words={savedAt === null ? null : savedWords(savedAt)} className="px-3 pb-2" />
+      <Status words={saved} className="px-3 pb-2" />
       <Status words={switchedNote} className="px-3 pb-2" />
       <Problem problem={problem} />
     </div>

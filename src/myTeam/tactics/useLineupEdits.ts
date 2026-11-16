@@ -5,7 +5,8 @@ import { isOwnEdit } from "../../../convex/lineup/lineupRows";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { sameLineup, shownLineup, type EditedLineup } from "./lineupEdits";
 import type { LineupChanges } from "./seam";
-import { reloadedWords } from "./words";
+import { serverNow } from "../../shared/serverClock";
+import { reloadedWords, savedWords } from "./words";
 
 /** The lineup the Tactics tab shows and each move to it (spec/05, Moving players): every move saves
  *  itself, with the server's refusal kept in its words; Undo goes back through every move since the
@@ -14,12 +15,15 @@ import { reloadedWords } from "./words";
 export function useLineupEdits({
   leagueId,
   opening,
+  gameweek,
   lineupEdit,
   squadCodes,
   changes,
   onShown,
 }: {
   leagueId: Id<"leagues">;
+  /** The gameweek the tab sets the lineup for. */
+  gameweek: number;
   opening: EditedLineup;
   /** The live mark of the save the lineup was last left by (tactics.ts `lineupEdit`). */
   lineupEdit: string | undefined;
@@ -38,8 +42,9 @@ export function useLineupEdits({
   const [undoable, setUndoable] = useState<readonly EditedLineup[]>([]);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
-  // When the last save landed, by the manager's own clock: the line under the toolbar says it.
-  const [savedAt, setSavedAt] = useState<number | null>(null);
+  // When the last save landed, by the server's clock (TC-053), and past the deadline the gameweek
+  // it is for: the line under the toolbar.
+  const [saved, setSaved] = useState<string | null>(null);
   // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
   // one, about a lineup no longer on the pitch, says nothing (#642).
   const sent = useRef<EditedLineup | null>(null);
@@ -59,7 +64,7 @@ export function useLineupEdits({
     setUndoable([]);
     setShape("");
     onShown();
-    setSavedAt(null);
+    setSaved(null);
     setSwitchedNote(null);
     clear();
     setRefused(words);
@@ -75,17 +80,20 @@ export function useLineupEdits({
     sent.current = lineup;
     const movedSince = () => sent.current !== lineup;
     let changedElsewhere = false;
+    let savedFor = gameweek;
     const made = await run(async () => {
       const answer = await changes.save(leagueId, lineup, { tab, ...(lineupEdit !== undefined && { seen: lineupEdit }) });
       changedElsewhere = answer === lineupRefusals.changedElsewhere;
+      if (typeof answer === "number") savedFor = answer;
       // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below;
       // and another tab's save, by reloading.
       return typeof answer === "string" && !movedSince() && !changedElsewhere ? answer : null;
     });
     if (changedElsewhere) return reload(lineupRefusals.changedElsewhere);
     if (movedSince()) return;
-    // A refusal leaves no saved line; a save says when it landed ("Line-up saved 14:02"; spec/05).
-    setSavedAt(made ? Date.now() : null);
+    // A refusal leaves no saved line; a save says when it landed ("Line-up saved 14:02"; spec/05),
+    // and, landing past the deadline, the next gameweek it is saved for (TC-065).
+    setSaved(made ? savedWords(serverNow(), savedFor === gameweek ? undefined : savedFor) : null);
     // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
     if (made) setShape("");
   };
@@ -96,7 +104,7 @@ export function useLineupEdits({
     const shown = shownLineup(next, opening, squadCodes);
     setEdited(shown);
     onShown();
-    setSavedAt(null);
+    setSaved(null);
     setRefused(null);
     setSwitchedNote(null);
     clear();
@@ -105,7 +113,7 @@ export function useLineupEdits({
   /** A drop refused, in words: the lineup stays as it is, and the line under the toolbar says why. */
   const refuse = (words: string) => {
     onShown();
-    setSavedAt(null);
+    setSaved(null);
     clear();
     setRefused(words);
   };
@@ -131,5 +139,5 @@ export function useLineupEdits({
     setSwitchedNote(switched);
     setRefused(said);
   };
-  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, switchedNote, problem: refused ?? problem, shape };
+  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, saved, switchedNote, problem: refused ?? problem, shape };
 }
