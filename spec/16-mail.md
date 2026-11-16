@@ -7,6 +7,8 @@ letters, newest first. It reports; it never advises.
 
 - Its own screen, and also down the side of My team.
 - An unread count in the menu.
+- The count stops at 99: past it, the menu shows "99+" (Craig, 7 Nov 2026, on #906: "sure keep";
+  #2351). `S16.6`
 - It files: the next deadline; your results; injury doubts, yours and your next opponent's (from
   Sportmonks' injuries and suspensions, judged in the trial (`spec/20`; Craig, 9 Nov 2026, on
   #1196: "ive heard its not great but lets see"));

@@ -479,6 +479,11 @@ From Craig, 1 Nov 2026.
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
   not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
+- A gameweek with a postponed match and no new date goes final once its other matches lock, the
+  postponed match's players auto-subbed as not having played. If the match is later rearranged
+  into that gameweek's window, the gameweek reopens and is scored again: gameweek 12's Arsenal v
+  Spurs postponed, the rest locked by Monday night, so gameweek 12 is final on Monday night (Craig,
+  14 Nov 2026, on #2040). `S05.54`
 - A goalkeeper is replaced only by a goalkeeper, and never comes on for an outfield player, even
   where the league's limits allow two in goal: "dont allow 2 in goal" (Craig, 1 Nov 2026; #900). `S05.5`
 - In a double gameweek, a starter who plays in either match is not subbed.
