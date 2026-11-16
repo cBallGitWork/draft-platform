@@ -62,6 +62,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club, season points or any catalogue or own stat (#910), and two players compared side by side, built (#373); the Players tab to its approved picture: free agents first, the selected player's panel with his area's stats per 90 and percentile bars, Compare with yours, and a Period picker for the last 4 or 6 gameweeks (#1028), built; season points, each player's card total in the league at his main position with the league's overrides (#525), and last season's under today's scoring before the new season's first match (#956), built; Role fit stars, hidden outside the squad until a player is scouted (#11, #375); the shortlist (#374), Mail telling a manager when one is dropped or clears waivers, and feeding the draft queue (#1137), built; who is on waivers (#1200); scouts, three a team, sent from the player card, each report written 24 hours on, and Scouting's Scouts panel opening the reports (#375), built; the stat race's team season totals (#808), and its Stat race tab ranking every team's season totals by a category (#800), built | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; Craig's setup run in docs/setup.md done (#511, #512, #514), the site live, the after-release check passing on it | a merge to `main` is live on `fantasydraftmanager.net` with its server code, and the check after it signs in there |
 | 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
+| 22 | [Classic mode](spec/22-classic-mode.md) | not built; waits for Craig's go to build (9 Nov 2026) | a classic league refuses an eleven outside a line's limits, and a player scores by his line's row |
 
 ## Second release
 
@@ -109,6 +110,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   with the player-by-player detail marked unavailable, in place of "can't be scored" (Craig,
   29 Oct 2026; spec/07).
 - **Player news**: a note on every player, from his matches and from real news (spec/21).
+- **Classic mode's rates checked on Sportmonks' stats**, once the paid API is back (spec/22).
 - **Preview sites** for unmerged changes (spec/20).
 - **A staging site**, if real leagues arrive (spec/20).
 - **A team's total explained** on the matchup: who started, and who came off the bench for whom
@@ -156,6 +158,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Public league pages: no league is visible without signing in.
 - FPL's bonus points, and any scoring set for a league to pick: there is one set, the site's,
   changed by patch (spec/14, 25 Oct 2026). It starts from FPL's values as a draft Craig changes.
+  Classic mode, picked when a league is created, has its own one set (spec/22).
 - A limit on a player's whole match, or on a team's gameweek total.
 - A lock at each player's kickoff: there is one deadline per gameweek.
 - A squad ceiling above a Premier League squad's 25 (spec/03).
@@ -176,6 +179,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - Claim limits per season, week or team (spec/08).
 - A can't-drop list (spec/08).
 - Moving a game to another gameweek, or adding or removing one: a fixture edit only swaps opponents (spec/09).
+- In classic mode: formations, presets, roles and team instructions; FPL's bonus; switching a league in or out of classic mid-season; squad limits by line (spec/22).
 
 ## Glossary
 
