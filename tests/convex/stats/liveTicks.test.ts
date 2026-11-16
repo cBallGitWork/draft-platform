@@ -43,6 +43,20 @@ test("a kickoff moved earlier moves the armed tick with it", async () => {
   expect(await ticksDue(t)).toEqual([earlier - LINEUPS_OUT_BEFORE_KICKOFF_MS]);
 });
 
+// November's Premier League kickoffs, UK time and UTC alike: lunchtime, three o'clock, teatime, evening.
+test.each(["12:30", "15:00", "17:30", "20:00"])(
+  "SC-134 (spec/10: from the lineups, about an hour before kickoff): a %s kickoff arms the tick an hour before it",
+  async (time) => {
+    const t = await withHullEverton();
+    const kickoff = Date.parse(`2026-11-21T${time}:00Z`);
+    await t.run(async (ctx) => ctx.db.patch("fixtures", (await ctx.db.query("fixtures").unique())!._id, { kickoff }));
+    vi.setSystemTime(kickoff - 2 * 24 * 60 * MINUTE_MS);
+
+    await armFromSync(t);
+    expect(await ticksDue(t)).toEqual([kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS]);
+  },
+);
+
 test("a tick before any window reads nothing and sleeps until the team sheets' hour", async () => {
   const t = await withHullEverton();
 
