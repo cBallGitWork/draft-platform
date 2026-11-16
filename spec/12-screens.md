@@ -18,6 +18,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - A release goes out while a manager has a tab open, and the tab's code can't work with the new
   server: she sees a bar, "A new version is out. Reload". A save that fails because of it shows
   the same bar, and nothing she typed is saved wrongly (Craig, 14 Nov 2026, #2203). `S12.13`
+- Every screen meets the whole of WCAG 2.1 AA, not only the plate's contrast and link rules
+  (Craig, 15 Nov 2026, #2176: "Full WCAG 2.1 AA"). `S12.14`
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
