@@ -8,7 +8,7 @@ import { ROWS_DRAWN } from "../../../src/ui/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, selectionTableLabel, swapLabel, undoWords, whoseRoleWords } from "../../../src/myTeam/tactics/words";
+import { allFormationsWords, BENCH_TITLE, moveLabel, onPitchWords, pitchLabel, selectionTableLabel, swapLabel, undoWords, whoseRoleWords } from "../../../src/myTeam/tactics/words";
 import { applyWords, backGroupPattern } from "../../../src/myTeam/tactics/formationWindow/words";
 import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -102,8 +102,21 @@ export async function pickFormation(name: string) {
   }
   throw new Error(`No formation called ${name}`);
 }
-export const blockOf = (player: Member, cell: Cell) => within(pitch()).getByRole("button", { name: playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane) });
-/** The swap a lit player's name ends with, after the words his row shows (`swapInTableLabel`). */
+/** A player's block on the pitch: its name opens with the words it shows, his name among them, and
+ *  ends with his positions and cell (`playerOnPitchLabel`). */
+export const blockOf = (player: Member, cell: Cell) =>
+  within(pitch()).getByRole("button", {
+    name: (label) => {
+      const ending = `, ${onPitchWords(player.positions, cell.area, cell.lane)}`;
+      return label.endsWith(ending) && ` ${label.slice(0, -ending.length)} `.includes(` ${player.name} `);
+    },
+  });
+/** A player's block on the pitch, wherever he stands, or null: his name among the words it shows,
+ *  which come before the name's first comma (`playerOnPitchLabel`). */
+export const onPitchNamed = (name: string) =>
+  within(pitch()).queryByRole("button", { name: (label) => ` ${label.split(", ")[0]} `.includes(` ${name} `) });
+/** The swap a lit player's name ends with, after the words his pitch block or table row shows
+ *  (`swapOnPitchLabel`, `swapInTableLabel`). */
 const swapOf = (label: string | null) => label?.replace(/^.*?(?=Swap )/, "") ?? null;
 const SWAP = /(^|, )Swap /;
 /** A lit player, on the pitch or in the Selection table, to swap the one picked up with. */

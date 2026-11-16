@@ -148,7 +148,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back brought on
         // into its gap by the preset itself (presets only, #1022; the bench fills the shape, #1025).
         await pickFormation(page, "5-3-2");
-        await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
+        // His block's name opens with the words it shows, his name among them (S12.14).
+        await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`\\b${OFF_THE_BENCH}\\b`) })).toHaveCount(1);
         await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
       });
 

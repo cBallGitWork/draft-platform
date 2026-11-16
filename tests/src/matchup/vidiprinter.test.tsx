@@ -15,14 +15,13 @@ import {
   markedLineLabel,
   minuteColumnWords,
   noCommentaryWords,
-  openBreakdownLabel,
   SCORE_LABEL,
   scoreWords,
   unreadCommentaryWords,
   VIDIPRINTER_TITLE,
 } from "../../../src/matchup/words";
 import { commentaryLine, headToHead, liveMatchup, slot, teamSide } from "../../support/src/matchup.harness";
-import { openMatchup } from "../../support/src/matchupScreen.harness";
+import { openMatchup, tileOf } from "../../support/src/matchupScreen.harness";
 
 describe("the vidiprinter", () => {
   const COYLE = slot("Coyle", { area: "attack" });
@@ -96,7 +95,7 @@ describe("the vidiprinter", () => {
         .map((item) => item.textContent);
     expect(marked()).toEqual([]);
 
-    await userEvent.click(screen.getByRole("button", { name: openBreakdownLabel("Coyle") }));
+    await userEvent.click(screen.getByRole("button", { name: tileOf("Coyle") }));
     expect(marked()).toEqual([`~61' Coyle: 60 minutes ${markedLineLabel("Coyle")}Team 1 +1`]);
     await userEvent.click(screen.getByRole("button", { name: closeBreakdownLabel }));
     expect(marked()).toEqual([]);

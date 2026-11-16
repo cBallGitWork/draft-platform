@@ -30,8 +30,13 @@ const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS
 export const swapLabel = (name: string, other: string) => `Swap ${name} with ${other}`;
 /** What a lit player's stars rate: the player who would land in that slot, on his role there (#11). */
 export const landingSubject = (name: string, role: string) => `${name} as ${role}`;
-export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
-  `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
+/** A player on the pitch, for screen readers: the words his block shows first, in its order, so a
+ *  voice saying what it sees reaches him (WCAG 2.5.3; S12.14), then his positions and his cell:
+ *  "11 PCH ST Haaland IPS (A), ST, in Attack, centre". */
+export const playerOnPitchLabel = (shown: string, positions: readonly string[], area: Area, lane: Lane) => `${shown}, ${onPitchWords(positions, area, lane)}`;
+export const onPitchWords = (positions: readonly string[], area: Area, lane: Lane) => `${positionsWords(positions)}, in ${cellWords(area, lane)}`;
+/** A lit player on the pitch: what his block shows, then the swap (WCAG 2.5.3; S12.14). */
+export const swapOnPitchLabel = (shown: string, name: string, other: string) => `${shown}, ${swapLabel(name, other)}`;
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
 
 /** The desk's switch for the roles' runs on the pitch (spec/05 Runs). */

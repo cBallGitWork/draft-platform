@@ -65,7 +65,7 @@ describe("moving a player", () => {
     expect(swaps()).toEqual([swapLabel(WHITE.name, SALIBA.name)]);
     expect(within(pitch()).queryAllByRole("button", { name: /^Put / })).toEqual([]);
 
-    await userEvent.click(within(pitch()).getByRole("button", { name: swapLabel(WHITE.name, SALIBA.name) }));
+    await userEvent.click(within(pitch()).getByRole("button", { name: swapNamed(WHITE.name, SALIBA.name) }));
     expect(document.activeElement).toBe(blockOf(WHITE, SALIBAS_CELL));
     expect(swaps()).toEqual([]);
     expect(screen.getByText(pickHintWords)).toBeTruthy();
@@ -87,7 +87,7 @@ describe("moving a player", () => {
     const whitesStars = starsLabel(landingSubject(WHITE.name, roleIn(SALIBAS_CELL, "ballPlayingDefender").name), 4);
     await pickUp(WHITE);
 
-    const lit = within(pitch()).getByRole("button", { name: swapLabel(WHITE.name, SALIBA.name) });
+    const lit = within(pitch()).getByRole("button", { name: swapNamed(WHITE.name, SALIBA.name) });
     expect(within(lit).getByRole("img", { name: whitesStars })).toBeTruthy();
     expect(within(lit).getByText(WHITE.name)).toBeTruthy();
     // The Selection table keeps each row's own Role fit.
@@ -135,7 +135,7 @@ describe("moving a player", () => {
   it("swaps a bench player for a starter by a tap on the lit starter: the starter takes his place on the bench", async () => {
     const app = await openedPitch();
     await pickUp(ARRIZABALAGA);
-    await userEvent.click(within(pitch()).getByRole("button", { name: swapLabel(ARRIZABALAGA.name, RAYA.name) }));
+    await userEvent.click(within(pitch()).getByRole("button", { name: swapNamed(ARRIZABALAGA.name, RAYA.name) }));
     expect(document.activeElement).toBe(blockOf(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }));
     expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, {
       starters: [at(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }), ...STARTERS.slice(1)],
