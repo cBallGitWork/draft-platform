@@ -81,9 +81,15 @@ describe("Read the recap's page", () => {
     expect(await screen.findByText(loadingRecapWords)).toBeTruthy();
   });
 
-  it("says so when the gameweek has none", async () => {
-    openRecap(2, { recaps: [gameweekOneRecap] });
-    expect(await screen.findByText(noRecapWords(2))).toBeTruthy();
+  it("says so when a played gameweek has none", async () => {
+    openRecap(1, { recaps: [{ ...gameweekOneRecap, gameweek: 2 }] });
+    expect(await screen.findByText(noRecapWords(1))).toBeTruthy();
+  });
+
+  it.each([0, 2, 99])("UI-061 (spec/12 League home: the weekly recap): gameweek %i, with no recap yet, opens the latest, titled as its own", async (asked) => {
+    openRecap(asked, { recaps: [gameweekOneRecap] });
+    expect(await screen.findByRole("heading", { level: 1, name: TITLE })).toBeTruthy();
+    expect(screen.getByText(/Saka scored 15\./)).toBeTruthy();
   });
 
   it("with no gameweek named, opens the latest recap, so its own address opens it (#1967)", async () => {

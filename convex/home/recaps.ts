@@ -218,15 +218,25 @@ async function nextMatchdayStart(ctx: QueryCtx, gameweek: number): Promise<numbe
   return Infinity;
 }
 
-/** The league's recap of the gameweek, whole, for Read the recap: with no gameweek named, its
- *  latest written, so the recap's own address opens it (#1967); null while there is none. For
- *  anyone with a part in the league. */
+/** The recap an address asking for `gameweek` opens: that gameweek's own; with none named, or one
+ *  no recap can be of yet (before the first, or after the latest written: unplayed or made up), the
+ *  latest written, so the recap's own address opens it (#1967, UI-061). A played gameweek with no
+ *  recap of its own has none. */
+async function askedRecap(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number | undefined): Promise<Doc<"recaps"> | null> {
+  const own = gameweek === undefined ? null : await recapOf(ctx, leagueId, gameweek);
+  if (own !== null) return own;
+  const latest = await latestWritten(ctx, leagueId);
+  return gameweek === undefined || latest === null || gameweek < 1 || gameweek > latest.gameweek ? latest : null;
+}
+
+/** The league's recap of the gameweek, whole, for Read the recap (`askedRecap`); null while there
+ *  is none. For anyone with a part in the league. */
 export const ofGameweek = query({
   args: { leagueId: v.id("leagues"), gameweek: v.optional(v.number()) },
   returns: v.union(shownRecap, v.null()),
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league } = await memberOf(ctx, leagueId);
-    const recap = gameweek === undefined ? await latestWritten(ctx, leagueId) : await recapOf(ctx, leagueId, gameweek);
+    const recap = await askedRecap(ctx, leagueId, gameweek);
     if (recap === null || recap.state !== "written") return null;
     const season = await seasonRules(ctx, leagueId);
     const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);

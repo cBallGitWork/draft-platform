@@ -49,10 +49,10 @@ export function RecapPanel({ recap }: { recap: Recap }) {
 }
 
 /** Read the recap's page: the league's recap of the gameweek, whole, dated; with no gameweek named,
- *  its latest (#1967). */
+ *  or one with no recap yet, its latest (#1967, UI-061), titled with its own gameweek. */
 export function RecapPage({ league, seam, gameweek }: { league: LeagueSummary; seam: HomeSeam; gameweek: number | undefined }) {
   const recap = seam.useRecap(league.leagueId, gameweek);
-  const shownGameweek = gameweek ?? recap?.gameweek;
+  const shownGameweek = recap?.gameweek ?? gameweek;
   return (
     <PageSection title={shownGameweek === undefined ? latestRecapTitle : recapTitle(shownGameweek)} className={PAGE_STACK}>
       <div className="bg-panel">

@@ -111,6 +111,21 @@ test("with no gameweek named, the recap page opens the latest written, even once
   expect((await latestRecapOf(league))?.gameweek).toBe(GAMEWEEK);
 });
 
+test.each([
+  ["a gameweek not yet played", GAMEWEEK + 1],
+  ["a gameweek past the season's end", 99],
+  ["gameweek 0", 0],
+])("UI-061 (spec/12 League home: the weekly recap): %s in the address opens the latest written", async (_, asked) => {
+  const { league } = await finalLeague();
+  expect(await recapOf(league, asked)).toEqual(await latestRecapOf(league));
+  expect((await recapOf(league, asked))?.gameweek).toBe(GAMEWEEK);
+});
+
+test("UI-061: a played gameweek before the latest, with no recap of its own, still has none to show", async () => {
+  const { league } = await finalLeague();
+  expect(await recapOf(league, GAMEWEEK - 1)).toBeNull();
+});
+
 test("before it is written there is none to show", async () => {
   const league = await scoresLeague();
   expect((await homeAt(league, AFTER))!.recap).toBeNull();

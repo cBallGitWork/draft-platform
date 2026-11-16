@@ -59,12 +59,9 @@ flowchart TD
   AFB -- "Positions / Feeds" --> ADMIN & FEEDS
   ADMIN & FEEDS & AFB -- "Availability (tab)" --> AAV
   AAV -- "Positions / Feeds / Feedback" --> ADMIN & FEEDS & AFB
-  LEAGUES -- "Gameweeks" --> GW
-  LEAGUES -- "Invites and join requests" --> INV
-  LEAGUES -- "Squads" --> SQ
-  LEAGUES -- "Player scoring" --> SC
+  LEAGUES -- "a row's Gameweeks, Invites and join requests, Squads, League settings (built today; the approved picture has no links on its rows, to-grill: Run the league)" --> GW & INV & SQ & SET
+  LEAGUES -- "a row's Player scoring (built today; off the rows in the approved picture)" --> SC
   SC -- "Patch notes" --> PN
-  LEAGUES -- "League settings" --> SET
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
   GW & SQ & SC & SET & ADMIN & FEEDS & AFB & AAV & INV -- "Back to your leagues" --> LEAGUES
   JOIN -- "Your leagues" --> LEAGUES
@@ -120,7 +117,6 @@ flowchart TD
   NEWS -- "the pinned letter" --> MAIL
   TRADES -- "New offer / Counter" --> NEWOFFER
   NEWOFFER -- "Send offer" --> TRADES
-  RECAP -.->|"no gameweek named"| HOME
   TFX -- "a game's result or v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
   SCOUTING & SQ -- "a player's name" --> CARD
