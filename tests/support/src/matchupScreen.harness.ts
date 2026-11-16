@@ -10,4 +10,4 @@ import { manager, openApp } from "./shell.harness";
  *  (`tileButtonLabel`): the button that opens his breakdown. */
 export const tileOf = (name: string) => (label: string) => label.endsWith(`, ${openBreakdownLabel(name)}`);
 
-export const openMatchup =(matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
+export const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
