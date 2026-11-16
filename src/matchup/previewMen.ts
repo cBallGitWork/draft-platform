@@ -10,8 +10,7 @@ import type { Area, Cell } from "../../convex/lineup/pitch";
 export type Man = { code: number; name: string; clubCode: number; number: number | null; area: Area; cell: Cell | null; points: number };
 export type Men = { starters: Man[]; bench: Man[] };
 
-/** The manager's men's points at full time, by name, so League home's recap holds (Haaland 18,
- *  Saka 15, Palmer 12); one not named scores a point. */
+/** The manager's men's points at full time, by name; one not named scores a point. */
 export const MY_POINTS: Record<string, number> = {
   Pickford: 0,
   Gvardiol: 1,

@@ -1,5 +1,5 @@
 // The player card in the preview (src/app/preview.ts): a card for each of Scouting's preview players,
-// with his season in his club's matches in Football's preview and a postponed one, each at his base
+// with his season in his club's matches in Football's preview and any it postponed, each at his base
 // points at each of his positions under the first scoring set by the server's own rule
 // (cardPoints), and his club's next fixtures, Football's too. My team's Squad tab adds up the same
 // season (#2455). Saka carries FPL's news, and an override on one match.
@@ -13,10 +13,10 @@ import type { MatchStats } from "../../convex/scoring/values";
 import { ASSISTS, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT, SAVES, YELLOW_CARDS } from "../../convex/stats/matchRecords";
 import { previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
-import { previewClubs, previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
+import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import { PREVIEW_SAKA_NEWS, PREVIEW_UNPLAYED } from "../myTeam/tactics/preview";
-import { previewClubMatch, previewClubUpcoming } from "../premierLeague/preview";
+import { previewClubMatch, previewClubPostponed, previewClubUpcoming } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
 import { pointsOf, seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
@@ -24,11 +24,6 @@ import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank,
 type PreviewPlayer = (typeof previewPlayers)[number];
 /** The season's gameweeks so far, the current one in. */
 const SO_FAR = Array.from({ length: previewGameweek }, (_, index) => index + 1);
-
-/** The gameweek his club's postponed match was in, and whom against: a match waiting for a new
- *  date, which Football's preview doesn't list. */
-const POSTPONED_GAMEWEEK = previewGameweek - 2;
-const postponedOpponentOf = (clubCode: number) => previewClubs.find(({ code }) => code !== clubCode)!;
 
 /** How many matches in ten a man in each area scores in, where his club scores; a keeper never. */
 const SCORES_IN_TEN: Partial<Record<Area, number>> = { attack: 4, attackingMidfield: 4, midfield: 2, defensiveMidfield: 1, defence: 1 };
@@ -143,15 +138,8 @@ function cardOf(player: PreviewPlayer): PlayerCard {
     news: injured ? PREVIEW_SAKA_NEWS : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),
-    postponed: [
-      {
-        fixtureCode: player.code * 100 + 40,
-        gameweek: POSTPONED_GAMEWEEK,
-        kickoff: null,
-        home: postponedOpponentOf(player.club.code),
-        away: player.club,
-      },
-    ],
+    // His club's matches Football's preview has postponed, waiting for a new date (#2466).
+    postponed: previewClubPostponed(player.club.code).map(({ fixtureCode, gameweek, kickoff, home, away }) => ({ fixtureCode, gameweek, kickoff, home, away })),
     categories: logCategories(FIRST_SCORING, cardPositions(player.positions)),
     lastSeason: lastSeasonOf(player),
     // His club's next matches in Football's preview, as My team's Squad tab has them.

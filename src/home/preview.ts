@@ -1,8 +1,9 @@
 // League home in the preview (src/app/preview.ts): the Pro League's nine teams, its table, fixtures
 // and scores the table preview's (src/table/preview.ts) so the two screens agree, the server's own
 // rules picking this gameweek (nextGameweek.ts) and the rows (glance.ts), its head-to-heads scored, a
-// matchday open with a few Vidiprinter lines, a pinned letter, a few squad moves, the News tab's two
-// pages of them and the last gameweek's recap. Made up.
+// matchday open with the matchup's Vidiprinter lines, a pinned letter, a few squad moves, the News
+// tab's two pages of them and the last finished gameweek's recap, its men's points their cards'.
+// Made up.
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
@@ -15,7 +16,10 @@ import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewLatestMail } from "../mail/preview";
 import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/tactics/preview";
 import { previewGameweek, previewTeamNames } from "../shared/preview";
-import { previewIdOf, previewLeagueTable, previewOpponent, previewSchedule, previewScored } from "../table/preview";
+import { previewIdOf, previewLeagueTable, previewOpponent, previewOpponentOf, previewSchedule, previewScored } from "../table/preview";
+import { previewMatchdayLines } from "../matchup/preview";
+import { previewSeasonOf } from "../playerCard/preview";
+import { RECAP_PLAYERS } from "../../convex/home/recapWords";
 import { previewPlayers, previewRivals } from "../scouting/preview";
 import { playsIn, previewGameweekMatches } from "../premierLeague/preview";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -39,8 +43,9 @@ const TRADED = {
 } as const satisfies LeagueHome["squadMoves"][number];
 
 const [MINE] = previewTeamNames;
-const SCORED = previewGameweek;
-/** The gameweek whose recap the preview has: the last one scored. */
+/** The gameweek whose recap the preview has: the last one over, the one before Football's live
+ *  gameweek (#2466). */
+const SCORED = previewGameweek - 1;
 export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 
 /** The table preview's fixtures and scores, so League home and the table agree (#1969). */
@@ -92,19 +97,8 @@ const home: LeagueHome = {
   },
   deadline,
   yours,
-  // A matchday open, its lines made up.
-  matchday: {
-    gameweek: current.gameweek,
-    commentary: {
-      kind: "read",
-      delayed: false,
-      lines: [
-        { key: "3", text: "78' GOAL Haaland", points: "+9" },
-        { key: "2", text: "71' YELLOW Rice", points: "−1" },
-        { key: "1", text: "52' GOAL Saka", points: "Saka +5, Palmer +3" },
-      ],
-    },
-  },
+  // A matchday open, its lines the matchup's as Football's gameweek stands (#2466).
+  matchday: { gameweek: current.gameweek, commentary: previewMatchdayLines(current.gameweek) },
   table: shownRows(
     previewLeagueTable.table.map(({ teamName, ...row }) => ({ ...row, teamId: teamName })),
     MINE,
@@ -137,9 +131,32 @@ const home: LeagueHome = {
     gameweek: SCORED,
     writtenAt: Date.now() - 2 * DAY_MS,
     changedTeamId: null,
-    text: `${MINE} met ${previewOpponent} in the game of Gameweek ${SCORED}. Haaland led the performers with 18 for ${MINE}, ahead of Saka's 15 and Palmer's 12.Cucurella managed only 1 for ${previewOpponent}. Expected Toulouse left 14 on the bench, the most of anyone.`,
+    text: recapText(),
   },
 };
+
+/** The recap's words, its men's points their cards' in the gameweek (#2466): the manager's three
+ *  top starters, and his opponent's man who scored least. The bench line is made up. */
+function recapText(): string {
+  const opponent = previewOpponentOf(SCORED) ?? previewOpponent;
+  const pointsOf = (codes: readonly { code: number; name: string }[]) =>
+    codes.flatMap(({ code, name }) => {
+      const points = previewSeasonOf(code).pointsIn(SCORED);
+      return points === null ? [] : [{ name, points }];
+    });
+  const mine = pointsOf(previewSquad.filter(({ playerCode }) => startersOf.has(playerCode)).map(({ playerCode, name }) => ({ code: playerCode, name }))).toSorted((one, other) => other.points - one.points);
+  const [lowest] = pointsOf(previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === opponent)).toSorted((one, other) => one.points - other.points);
+  const [top, ...next] = mine.slice(0, RECAP_PLAYERS);
+  const ahead = next.map(({ name, points }) => `${name}'s ${points}`).join(" and ");
+  return [
+    `${MINE} met ${opponent} in the game of Gameweek ${SCORED}.`,
+    top === undefined ? null : `${top.name} led the performers with ${top.points} for ${MINE}${ahead === "" ? "" : `, ahead of ${ahead}`}.`,
+    lowest === undefined ? null : `${lowest.name} managed only ${lowest.points} for ${opponent}.`,
+    "Expected Toulouse left 14 on the bench, the most of anyone.",
+  ]
+    .filter((sentence) => sentence !== null)
+    .join(" ");
+}
 
 /** The News tab's moves (#1356), made up: a page of the newest, and one older page behind it. */
 type PlayerNewsMove = Exclude<NewsMove, { kind: "tradeMade" }>;

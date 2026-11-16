@@ -1,7 +1,7 @@
 // The Premier League section in the preview (src/app/preview.ts): twenty clubs over a made-up season,
 // the current gameweek kicked off today, with a match at full time, one live, one at half-time and
-// the rest to come; earlier gameweeks finished, later ones to come; the table worked out from
-// them. Made-up scores.
+// the rest to come; earlier gameweeks finished but one match postponed, later ones to come; the
+// table worked out from them. Made-up scores.
 
 import { placesMoved, plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
@@ -35,6 +35,11 @@ const CURRENT_STATES = [
   { state: "halfTime", minutes: 45, clockLabel: "45+2'00" },
 ] as const;
 
+/** The one match postponed and waiting for a new date, by its gameweek and place: the first of two
+ *  gameweeks back, Arsenal's, so Saka's card shows how one reads (#2466). It keeps its gameweek, as
+ *  the server holds one, with no kickoff time and no score. */
+const POSTPONED = { gameweek: CURRENT - 2, index: 0 } as const;
+
 const goals = (gameweek: number, index: number, side: number) => (gameweek * 3 + index * 5 + side * 7) % 4;
 
 /** The preview's code for a gameweek's match, by its place in the gameweek. */
@@ -48,6 +53,7 @@ function matchesOf(gameweek: number): GameweekMatch[] {
     const pair = [CLUBS[index], CLUBS[10 + ((index + gameweek) % 10)]];
     const [home, away] = gameweek % 2 === 0 ? pair.toReversed() : pair;
     const fixtureCode = previewFixtureCode(gameweek, index);
+    if (gameweek === POSTPONED.gameweek && index === POSTPONED.index) return { fixtureCode, kickoff: null, home, away, score: null };
     const kickoff = startOf(gameweek) + offset;
     const finished = gameweek < CURRENT;
     const current = gameweek === CURRENT ? CURRENT_STATES[index] : undefined;
@@ -85,6 +91,10 @@ export const previewClubUpcoming = (clubCode: number) =>
   [...matches].flatMap(([gameweek, gameweekMatches]) =>
     gameweekMatches.filter((match) => match.score?.state === "upcoming" && playsIn(clubCode, match)).map((match) => ({ ...match, gameweek, kickoff: match.kickoff ?? 0 })),
   );
+/** A club's matches postponed and waiting for a new date, each with its gameweek: held with no
+ *  kickoff time, as the player card reads them (playerCard.ts, `postponedFixtures`). */
+export const previewClubPostponed = (clubCode: number) =>
+  [...matches].flatMap(([gameweek, gameweekMatches]) => gameweekMatches.filter((match) => match.kickoff === null && playsIn(clubCode, match)).map((match) => ({ ...match, gameweek })));
 /** A match's goals at full time, home side first: its score once over, the made-up result it is
  *  heading for before then, which the matchup's replay plays it to. */
 export function previewFullTimeGoals({ fixtureCode }: Pick<GameweekMatch, "fixtureCode">): readonly [number, number] {
@@ -110,7 +120,7 @@ const pages = new Map(
     }),
   ),
 );
-const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
+const unplayed = [...matches.values()].flat().filter(({ score }) => score === null || score.state === "upcoming");
 const tableOf = (counted: typeof results) => plTable(CLUBS, counted, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: false, unplayed });
 const rows = tableOf(results);
 /** The current gameweek is live: each club's places moved since it began, by the server's rule
