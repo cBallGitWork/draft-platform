@@ -72,6 +72,26 @@ const firstKickoffs: FirstKickoff[] = SEASON.map((gameweek) => ({
 }));
 const matches = new Map(SEASON.map((gameweek) => [gameweek, matchesOf(gameweek)]));
 
+/** A gameweek's matches, as Football lists them: every other preview reads its Premier League
+ *  matches here, so a club's match is the same on every screen (#2455). */
+export const previewGameweekMatches = (gameweek: number): readonly GameweekMatch[] => matches.get(gameweek) ?? [];
+/** Whether `match` is one of the club's. */
+export const playsIn = (clubCode: number, { home, away }: Pick<GameweekMatch, "home" | "away">) => home.code === clubCode || away.code === clubCode;
+/** A club's match in a gameweek: every club plays once in each. */
+export const previewClubMatch = (gameweek: number, clubCode: number): GameweekMatch | undefined =>
+  previewGameweekMatches(gameweek).find((match) => playsIn(clubCode, match));
+/** A club's matches still to come, soonest first, each with its gameweek. */
+export const previewClubUpcoming = (clubCode: number) =>
+  [...matches].flatMap(([gameweek, gameweekMatches]) =>
+    gameweekMatches.filter((match) => match.score?.state === "upcoming" && playsIn(clubCode, match)).map((match) => ({ ...match, gameweek, kickoff: match.kickoff ?? 0 })),
+  );
+/** A match's goals at full time, home side first: its score once over, the made-up result it is
+ *  heading for before then, which the matchup's replay plays it to. */
+export function previewFullTimeGoals({ fixtureCode }: Pick<GameweekMatch, "fixtureCode">): readonly [number, number] {
+  const [gameweek, index] = [Math.floor(fixtureCode / 100), fixtureCode % 100];
+  return [goals(gameweek, index, 0), goals(gameweek, index, 1)];
+}
+
 /** The table from the made-up results by the server's own rules (plTable.ts): the current
  *  gameweek's live and half-time matches count as they stand, so it is provisional. */
 const resultsOf = (played: readonly GameweekMatch[]) =>

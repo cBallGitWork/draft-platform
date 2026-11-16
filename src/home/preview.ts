@@ -17,6 +17,7 @@ import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/ta
 import { previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewLeagueTable, previewOpponent, previewSchedule, previewScored } from "../table/preview";
 import { previewPlayers, previewRivals } from "../scouting/preview";
+import { playsIn, previewGameweekMatches } from "../premierLeague/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
@@ -54,24 +55,22 @@ const current = thisGameweekOf(schedule, deadlineOf, Date.now())!;
 const deadline = deadlineOf(current.gameweek);
 
 /** The reader's own panels (#1976): Tactics' squad, its news and its lineup, made-up claims, and
- *  this gameweek's matches pairing his players' clubs, his opponent's men Scouting's at those clubs
- *  (#2450). */
+ *  Football's matches this gameweek with one of his players or his opponent's, Scouting's, by the
+ *  server's rule (yourGameweek.ts; #2450, #2455). */
 const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
 const startersOf = new Set(previewStarterCodes);
-const clubs = [...new Map(previewSquad.map(({ clubCode, clubShortName }) => [clubCode, { code: clubCode, name: clubShortName, shortName: clubShortName }])).values()];
 const theirs = previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === previewOpponent);
-const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, index) => {
-  const [home, away] = [clubs[2 * index], clubs[2 * index + 1]];
-  const playing = new Set([home.code, away.code]);
-  return {
-    fixtureCode: 9000 + index,
-    kickoff: deadline + (2 + (index % 3) * 3) * HOUR_MS,
+const premierLeague = previewGameweekMatches(current.gameweek)
+  .map(({ fixtureCode, kickoff, home, away }) => ({
+    fixtureCode,
+    kickoff,
     home,
     away,
-    you: previewSquad.filter(({ clubCode }) => playing.has(clubCode)).map(({ name }) => name),
-    them: theirs.filter(({ club }) => playing.has(club.code)).map(({ name }) => name),
-  };
-});
+    you: previewSquad.filter(({ clubCode }) => playsIn(clubCode, { home, away })).map(({ name }) => name),
+    them: theirs.filter(({ club }) => playsIn(club.code, { home, away })).map(({ name }) => name),
+  }))
+  .filter(({ you, them }) => you.length > 0 || them.length > 0)
+  .toSorted((one, other) => (one.kickoff ?? 0) - (other.kickoff ?? 0));
 const yours: LeagueHome["yours"] = {
   squadNews,
   lineup: { set: true, flagged: squadNews.filter(({ playerCode }) => startersOf.has(playerCode)) },
