@@ -46,7 +46,7 @@ function recording() {
 }
 
 /** Gameweek 6's deadline as recorded, in ms: the moment `deadlineAt` moves. */
-export function recordedDeadline(bootstrap) {
+function recordedDeadline(bootstrap) {
   const event = bootstrap.events.find((each) => each.id === RECORDED_GAMEWEEK);
   return Date.parse(event.deadline_time);
 }
@@ -75,7 +75,7 @@ export function shiftTimes(payload, byMs, parentKey = null) {
 
 /** The recorded answer to a GET of `https://<host><pathAndQuery>`, its times unmoved, or null when
  *  none was recorded. */
-export function recordedAnswer(recorded, host, pathAndQuery) {
+function recordedAnswer(recorded, host, pathAndQuery) {
   const url = new URL(pathAndQuery, `https://${host}`);
   const path = url.pathname;
   if (host === FPL_HOST) {
@@ -102,7 +102,7 @@ export function recordedAnswer(recorded, host, pathAndQuery) {
 }
 
 /** One caught email as `newestMatch` reads it: `to` a list, `created_at` when it was caught. */
-export function caughtEmail(body, caughtAt) {
+function caughtEmail(body, caughtAt) {
   const to = Array.isArray(body.to) ? body.to : [body.to];
   return { to, from: body.from, subject: body.subject, text: body.text, created_at: new Date(caughtAt).toISOString() };
 }
