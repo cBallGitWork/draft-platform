@@ -9,8 +9,10 @@ import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { previewClubs, previewDone, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
-import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
+import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, MatchPageData, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
 import { previewPlayers } from "../scouting/preview";
+import { previewChanceOf } from "../myTeam/tactics/preview";
+import { squadGroupOf } from "../../convex/positions/positionTables";
 import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
 const CLUBS = previewClubs;
@@ -77,13 +79,15 @@ const resultsOf = (played: readonly GameweekMatch[]) =>
     score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
   );
 const results = resultsOf([...matches.values()].flat());
-/** Each match still to come, opening the recorded match as it stood before kickoff, on its own
- *  day and in its own gameweek. */
-const upcoming = new Map(
+/** Each match's own page: its clubs, gameweek, kickoff and score as the gameweek lists them, so
+ *  the score pressed is the score opened (#2450); the sheets and lines are the recorded match's
+ *  alone, so none here. */
+const pages = new Map(
   [...matches].flatMap(([gameweek, gameweekMatches]) =>
-    gameweekMatches.flatMap(({ fixtureCode, kickoff, score }) =>
-      score?.state === "upcoming" ? [[fixtureCode, { ...previewMatchBeforeKickoff, fixtureCode, gameweek, kickoff }] as const] : [],
-    ),
+    gameweekMatches.map(({ fixtureCode, kickoff, home, away, score }) => {
+      const page: MatchPageData = { ...previewMatchBeforeKickoff, men: [], fixtureCode, gameweek, kickoff, home, away, score: score?.state === "upcoming" ? null : score };
+      return [fixtureCode, page] as const;
+    }),
   ),
 );
 const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
@@ -102,8 +106,8 @@ const standings = {
 export const previewPremierLeague: PremierLeagueSeam = {
   useGameweeks: () => ({ seasonGameweeks: previewSeasonGameweeks, firstKickoffs }),
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
-  // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
-  useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
+  // Each fixture opens its own page; the recorded match (matchPreview.ts) opens by its own code.
+  useMatch: (_leagueId, _now, fixtureCode) => pages.get(fixtureCode) ?? (fixtureCode === previewMatch.fixtureCode ? previewMatch : null),
   useStandings: () => standings,
   useClub: (_leagueId, clubCode) => previewClub(clubCode),
   useClubSquad: (_leagueId, clubCode) => previewClubSquad(clubCode),
@@ -122,6 +126,14 @@ const SQUAD_ROWS: Record<number, Pick<SquadPlayer, "group" | "lastGameweeks" | "
   6: { group: "AM", lastGameweeks: [13, 2, 8, 9, 2], starts: 9, minutes: 800, chanceOfPlaying: null },
   7: { group: "DEF", lastGameweeks: [6, 1, 2, 6, 1], starts: 9, minutes: 810, chanceOfPlaying: null },
 };
+/** A row for a preview player SQUAD_ROWS leaves out, made up from his code, his doubt My team's. */
+const madeUpRow = (code: number, positions: SquadPlayer["positions"]): (typeof SQUAD_ROWS)[number] => ({
+  group: squadGroupOf(positions),
+  lastGameweeks: [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
+  starts: 4 + (code % 6),
+  minutes: 500 + ((code * 37) % 310),
+  chanceOfPlaying: previewChanceOf(code),
+});
 const SQUAD_GROUP_ORDER: readonly (SquadGroup | null)[] = ["GK", "DEF", "MID", "AM", "FWD", null];
 
 /** A club's Squad tab from Scouting's preview players at it: his season points the five gameweeks
@@ -131,7 +143,7 @@ function previewClubSquad(clubCode: number): ClubSquad | null {
   const players: SquadPlayer[] = previewPlayers
     .filter(({ club }) => club.code === clubCode)
     .map(({ code, name, fullName, positions, ownerTeamName, onWaivers }) => {
-      const row = SQUAD_ROWS[code];
+      const row = SQUAD_ROWS[code] ?? madeUpRow(code, positions);
       return { code, name, fullName, positions, ownerTeamName, onWaivers: onWaivers !== null, seasonPoints: row.lastGameweeks.reduce<number>((sum, points) => sum + (points ?? 0), 0), ...row };
     })
     .toSorted((one, other) => SQUAD_GROUP_ORDER.indexOf(one.group) - SQUAD_GROUP_ORDER.indexOf(other.group) || one.name.localeCompare(other.name));

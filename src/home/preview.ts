@@ -15,22 +15,23 @@ import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { previewLatestMail } from "../mail/preview";
 import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/tactics/preview";
 import { previewGameweek, previewTeamNames } from "../shared/preview";
-import { previewIdOf, previewLeagueTable, previewSchedule, previewScored } from "../table/preview";
+import { previewIdOf, previewLeagueTable, previewOpponent, previewSchedule, previewScored } from "../table/preview";
+import { previewPlayers, previewRivals } from "../scouting/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
-/** A trade that went through (#1491): Lingard Franca's Watkins for Expected Toulouse's Rogers and
- *  Isak, made up. */
+/** A trade that went through (#1491): Lingard Franca's Strand Larsen for Expected Toulouse's Neto
+ *  and Ouattara, none of them a man another screen places, made up. */
 const TRADED = {
   at: Date.now() - 10 * HOUR_MS,
   kind: "tradeMade",
   fromTeamName: "Lingard Franca",
   toTeamName: "Expected Toulouse",
-  gives: { players: [{ playerCode: 9001, playerName: "Watkins" }], picks: [] },
+  gives: { players: [{ playerCode: 9001, playerName: "Strand Larsen" }], picks: [] },
   gets: {
     players: [
-      { playerCode: 9002, playerName: "Rogers" },
-      { playerCode: 9003, playerName: "Isak" },
+      { playerCode: 9002, playerName: "Neto" },
+      { playerCode: 9003, playerName: "Ouattara" },
     ],
     picks: [],
   },
@@ -53,11 +54,12 @@ const current = thisGameweekOf(schedule, deadlineOf, Date.now())!;
 const deadline = deadlineOf(current.gameweek);
 
 /** The reader's own panels (#1976): Tactics' squad, its news and its lineup, made-up claims, and
- *  this gameweek's matches pairing his players' clubs, his opponent's men made up. */
+ *  this gameweek's matches pairing his players' clubs, his opponent's men Scouting's at those clubs
+ *  (#2450). */
 const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
 const startersOf = new Set(previewStarterCodes);
 const clubs = [...new Map(previewSquad.map(({ clubCode, clubShortName }) => [clubCode, { code: clubCode, name: clubShortName, shortName: clubShortName }])).values()];
-const THEIRS = ["Raya, Saliba", "Dias", "Jones, Gravenberch, Salah", "Gusto", ""];
+const theirs = previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === previewOpponent);
 const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, index) => {
   const [home, away] = [clubs[2 * index], clubs[2 * index + 1]];
   const playing = new Set([home.code, away.code]);
@@ -67,7 +69,7 @@ const premierLeague = Array.from({ length: Math.floor(clubs.length / 2) }, (_, i
     home,
     away,
     you: previewSquad.filter(({ clubCode }) => playing.has(clubCode)).map(({ name }) => name),
-    them: (THEIRS[index] ?? "").split(", ").filter(Boolean),
+    them: theirs.filter(({ club }) => playing.has(club.code)).map(({ name }) => name),
   };
 });
 const yours: LeagueHome["yours"] = {
@@ -123,8 +125,8 @@ const home: LeagueHome = {
   squadMoves: [
     { at: Date.now() - 2 * HOUR_MS, kind: "playerAssigned", playerName: "Saka", teamName: MINE, fromTeamName: null },
     TRADED,
-    { at: Date.now() - DAY_MS, kind: "playerMoved", playerName: "Palmer", teamName: "Kroos Control", fromTeamName: "Haaland Oates" },
-    { at: Date.now() - 3 * DAY_MS, kind: "playerReleased", playerName: "Rice", teamName: "Lingard Franca", fromTeamName: null },
+    { at: Date.now() - DAY_MS, kind: "playerMoved", playerName: "Reijnders", teamName: previewRivals[0], fromTeamName: "Haaland Oates" },
+    { at: Date.now() - 3 * DAY_MS, kind: "playerReleased", playerName: "Minteh", teamName: "Expected Toulouse", fromTeamName: null },
   ],
   pinnedLetter: {
     at: Date.now() - 5 * HOUR_MS,
@@ -136,7 +138,7 @@ const home: LeagueHome = {
     gameweek: SCORED,
     writtenAt: Date.now() - 2 * DAY_MS,
     changedTeamId: null,
-    text: `Saka Potatoes edged Kroos Control in the game of Gameweek ${SCORED}, while Haaland Oates ran away with the week's top score. Haaland led the performers with 18 for Haaland Oates, ahead of Saka's 15 and Palmer's 12. Rice managed only 1 for Lingard Franca. Expected Toulouse left 14 on the bench, the most of anyone.`,
+    text: `${MINE} met ${previewOpponent} in the game of Gameweek ${SCORED}. Haaland led the performers with 18 for ${MINE}, ahead of Saka's 15 and Palmer's 12.Cucurella managed only 1 for ${previewOpponent}. Expected Toulouse left 14 on the bench, the most of anyone.`,
   },
 };
 

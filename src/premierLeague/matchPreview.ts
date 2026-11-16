@@ -1,8 +1,8 @@
 // The match page in the preview (src/app/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
 // sheets, team stats and commentary are the recording's, written as the live tick writes them; the
-// positions, who owns whom and the points are made up; a free agent's count for no team. Every
-// fixture opens it: one to come, as it stood before kickoff.
+// positions, who owns whom and the points are made up; a free agent's count for no team. It opens
+// by its own code; every other fixture opens its own page (preview.ts), on this one's empty parts.
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
@@ -213,7 +213,8 @@ export const previewMatch: MatchPageData = {
 };
 
 /** The same match 58 minutes before kickoff, as the recording's first read found it: the sheets
- *  out, nobody yet played, no points, team stats or lines. The fixtures still to come open it. */
+ *  out, nobody yet played, no points, team stats or lines. Each fixture's own page (preview.ts) is
+ *  made from it, its sheets left out. */
 export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
