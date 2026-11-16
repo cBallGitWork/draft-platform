@@ -1,5 +1,5 @@
 {
-  "studio": "f839596987010d993cd8b74824f6c1812342b5a1",
+  "studio": "a2bf8e4803fb1ce55515c6c4fc0ff32bb84b3c52",
   "hash": "sha256",
   "files": {
     ".claude/agents/qa-tester.md": "d48c403bacfc30c696a9ebfc518677f9fe988c2d515839dbbcdb7a146955bdd3",
@@ -11,7 +11,7 @@
     ".claude/hooks/tests/context_size.sh": "37debb2973df186edc67a5766eb2687e486c9c89be0fc126987be3b40af016ac",
     ".claude/hooks/tests/guard_bash_reading.sh": "9ca953d5cfc12d80d926b544d7c2fd55daa119c1da8708467907515afbb6ee13",
     ".claude/hooks/tests/line_ceiling.sh": "3d458d4b072ece4eac372f0c5c91dc747ead427ac9fc2b111b0a71ba31bf387f",
-    ".claude/skills/qa-panel/SKILL.md": "7dfb261257aad7d6345fd3a753361dfb493d0d5d8b7ea0e769fd34c5850a36cc",
+    ".claude/skills/qa-panel/SKILL.md": "985193b0520879df5714291f0f2f6fc9c31e4aae8202cc4bfc3d1f932c722086",
     "scripts/qa-walk.mjs": "ef06e9cab8ac5d789d15e4b28ce94f4f1cc01196c1ac6f4f3b8de4a76e445616",
     "scripts/studio-kit.mjs": "4f846bf9940ffb98085050e19292d1dd89ba29e1425a72f48d82f3b770bc3b51"
   }

@@ -9,6 +9,10 @@ argument-hint: "[styles to run, e.g. fresh-eyes breaker; default: every persona 
 Forge's QA tester role (Craig, 16 Nov 2026: "Create this persona so we can do regular checks/better
 testing"; "the bug hunter, the twat who tries to break things, the completionist, the minimalist").
 
+**Only when Craig asks.** Never schedule it, never run it unasked, and never suggest a rerun until a
+good share of the last run's findings, or new screens, have landed; then say so in one line. Craig, 16
+Nov 2026: "I like to ask that's fun. Let's get other screens or work done before we ask them again."
+
 ## 1. Read the project's panel
 
 `.studio/qa-panel.json` holds the project's settings:
