@@ -4,25 +4,17 @@
 // and the tests draw exactly what the server sends.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { drawFixtures, type DrawRules, type GameweekFixtures } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
-import { gameModeOf } from "../../convex/rules/gameMode";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import type { DeadlineOf } from "../../convex/gameweeks/deadline";
-import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
-import { previewSeasonGameweeks } from "../shared/preview";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { leagueTableFrom, pointsOf, tableOf, teamFixturesFrom, type Results } from "../../convex/table/sentTables";
+import { drawnSchedule, type DrawnSchedule } from "../shared/previewDraw";
 import type { LeagueTable } from "./seam";
 
-export type Drawn = Partial<DrawRules> & {
-  /** What the order is drawn from, as the league's id is on the server. */
-  seed?: string;
-  format?: LeagueTable["format"];
+export type Drawn = DrawnSchedule & {
   /** The year the season starts, as the server reads it from the matches held: none by default. */
   season?: LeagueTable["season"];
-  /** The gameweeks the league plays: every one its season has by default (#1618). */
-  gameweeks?: readonly number[];
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: DeadlineOf;
   scores?: GameweekScores<string>;
@@ -40,17 +32,6 @@ export type Drawn = Partial<DrawRules> & {
 const ID_PREFIX = "id-";
 export const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
 const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
-
-/** The draw's defaults, as the server's would be for a league with no rule changed. */
-const DRAW_DEFAULTS = { gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
-
-/** The head-to-head schedule `drawn` says for `teams`, made in this order: none in total points.
- *  The draw hangs on the teams' order, never on what they are, so League home's preview draws it
- *  by name and plays the table's fixtures (#1969). */
-export function drawnSchedule<Team>(teams: readonly Team[], drawn: Drawn = {}): GameweekFixtures<Team>[] {
-  const { gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
-  return gameModeOf({ format: drawn.format ?? "headToHead" }).hasMatchups ? drawFixtures(teams, gameweeks, () => ({ gamesPerGameweek }), seed) : [];
-}
 
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the
  *  format, the teams, the head-to-head schedule (none in total points), each team's points in each

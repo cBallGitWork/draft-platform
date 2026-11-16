@@ -3,11 +3,15 @@
 // match comes with its goals at full time, home first, which preview.ts reads from Football's.
 
 import type { MatchBreakdown } from "../../convex/matchup/matchupShape";
+import type { MatchStats } from "../../convex/scoring/values";
+import { CLEAN_SHEETS, GOALS, MINUTES_STAT } from "../../convex/stats/matchRecords";
+import type { PlayedMatch } from "../playerCard/seam";
 import type { GameweekMatch } from "../premierLeague/seam";
+
+import type { Man } from "./previewMen";
 
 /** A match of Football's gameweek and its goals at full time, home first. */
 export type ReplayMatch = GameweekMatch & { fullTime: readonly [number, number] };
-import type { Man } from "./previewMen";
 
 /** How long a man's match runs, stoppage time in, and how far apart the replay kicks Football's
  *  kickoff times off. */
@@ -40,41 +44,49 @@ export function scoreAt(match: ReplayMatch, played: number, clock: Clock): Match
   return { state: played <= MATCH_MINUTES ? "live" : "fullTime", homeGoals: goals(home), awayGoals: goals(away), minutes: Math.min(played, MATCH_MINUTES), clockLabel: null };
 }
 
-/** What a made-up man's goal is worth, in his breakdown and on its Vidiprinter line. */
-export const GOAL_POINTS = 1;
+/** A goal: its minute, and the man who scored it, or null for one none of the men scored. */
+export type Goal = { minute: number; club: GameweekMatch["home"]; scorer: Man | null };
 
-/** A made-up man's match broken down: a point for appearing, the rest goals at GOAL_POINTS each. */
-export function categoriesOf(points: number | null): MatchBreakdown["categories"] {
-  const all = { by: "all" } as const;
-  return points === null
-    ? [
-        { stat: "minutes", name: "Minutes played", points: null },
-        { stat: "goalsScored", name: "Goals scored", points: null },
-      ]
-    : [
-        { stat: "minutes", name: "Minutes played", points: Math.min(points, 1), why: { actions: 1, value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
-        { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: Math.max(points - 1, 0) / GOAL_POINTS, value: { shape: "perAction", points: GOAL_POINTS }, pricedBy: all, cut: null } },
-      ];
+/** A match's goals, by side: each club's first goals scored by its men who score in the match, as
+ *  `goalsBy` gives (their player cards' at full time, #2478), forwards first; the rest by the club. */
+export function goalsOf(match: ReplayMatch, men: readonly Man[], goalsBy: (man: Man) => number): Goal[] {
+  const forwardsFirst = (man: Man) => (man.area === "attack" ? 0 : 1);
+  const [homeMinutes, awayMinutes] = goalMinutes(match);
+  const clubGoals = (minutes: number[], club: GameweekMatch["home"]) => {
+    const scorers = men
+      .filter((man) => man.clubCode === club.code)
+      .toSorted((one, other) => forwardsFirst(one) - forwardsFirst(other))
+      .flatMap((man) => Array.from({ length: goalsBy(man) }, () => man));
+    return minutes.map((minute, goal) => ({ minute, club, scorer: scorers[goal] ?? null }));
+  };
+  return [...clubGoals(homeMinutes, match.home), ...clubGoals(awayMinutes, match.away)];
 }
 
-/** A match's lines, by its minute: kickoff, each goal, named for one of `men` at the scoring club
- *  where it has one (forwards first), half-time and full time. */
-export function linesOf(match: ReplayMatch, men: readonly Man[]): { minute: number; text: string; about: number[] }[] {
+/** His record `played` minutes into a match of the replay, from his card's at full time: his minutes
+ *  so far, his goals by their lines' minutes, a clean sheet only at full time, and the rest of his
+ *  figures coming in step with the clock. */
+export function recordAt(fullTime: MatchStats, played: number, goals: readonly Goal[], code: number): MatchStats {
+  const share = played / MATCH_MINUTES;
+  const scoredSoFar = goals.filter(({ minute, scorer }) => scorer?.code === code && minute <= played).length;
+  const soFar = (stat: string, count: number) => (stat === MINUTES_STAT ? Math.min(count, played) : stat === GOALS ? scoredSoFar : stat === CLEAN_SHEETS ? 0 : Math.floor(count * share));
+  return Object.fromEntries(Object.entries(fullTime).map(([stat, count]) => [stat, soFar(stat, count)]));
+}
+
+/** What a goal is worth to a man by his card's match at full time: his goals' points over his goals;
+ *  null with no goal there. */
+export function goalWorthOf(match: PlayedMatch | null): number | null {
+  const goals = match?.points[0].categories.find(({ stat }) => stat === GOALS);
+  return goals === undefined || goals.points === null || goals.why.actions === 0 ? null : goals.points / goals.why.actions;
+}
+
+/** A match's lines, by its minute: kickoff, each goal, named for its scorer or else his club,
+ *  half-time and full time. */
+export function linesOf(match: ReplayMatch, goals: readonly Goal[]): { minute: number; text: string; about: number[] }[] {
   const { home, away } = match;
-  const [homeGoals, awayGoals] = goalMinutes(match);
   const [homeAtFullTime, awayAtFullTime] = match.fullTime;
-  const forwardsFirst = (man: Man) => (man.area === "attack" ? 0 : 1);
-  const goalLines = (minutes: number[], club: GameweekMatch["home"]) => {
-    const scorers = men.filter((man) => man.clubCode === club.code && man.area !== "goalkeeper").toSorted((one, other) => forwardsFirst(one) - forwardsFirst(other));
-    return minutes.map((minute, goal) => {
-      const scorer = scorers.length === 0 ? null : scorers[goal % scorers.length];
-      return { minute, text: `${minute}' GOAL ${scorer?.name ?? club.shortName}`, about: scorer === null ? [] : [scorer.code] };
-    });
-  };
   return [
     { minute: 0, text: `KO ${home.shortName} v ${away.shortName}`, about: [] },
-    ...goalLines(homeGoals, home),
-    ...goalLines(awayGoals, away),
+    ...goals.map(({ minute, club, scorer }) => ({ minute, text: `${minute}' GOAL ${scorer?.name ?? club.shortName}`, about: scorer === null ? [] : [scorer.code] })),
     { minute: 45, text: "45' HT", about: [] },
     { minute: MATCH_MINUTES, text: `FT ${home.shortName} ${homeAtFullTime}–${awayAtFullTime} ${away.shortName}`, about: [] },
   ];

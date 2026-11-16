@@ -17,10 +17,9 @@ import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortlisted } from "../draft/previewLists";
-import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import { previewIdOf, previewOpponent } from "../table/preview";
+import { previewIdOf, previewOpponent } from "../shared/previewDraw";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = previewClub("ARS");
@@ -241,12 +240,12 @@ export const previewPlayersListOf =
     };
   };
 
-/** Scouting's own part of the preview; the app adds the player card's pickup and claim
- *  (src/app/previewApp.tsx), whose preview reads these players. */
-export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
+/** Scouting's own part of the preview; the app adds the player card's pickup and claim, whose
+ *  preview reads these players, and the Transactions tab's pending claims, whose waiver order reads
+ *  the table, which adds up these players' points (src/app/previewApp.tsx; #2478). */
+export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam | "usePendingClaims"> = {
   ...previewShortlist,
   ...previewScouts,
-  usePendingClaims: previewClaims.usePendingClaims,
   useAddToQueue: () => addToQueue,
   useComparison: (_leagueId, codes, stat, period) => {
     if (codes === null) return undefined;

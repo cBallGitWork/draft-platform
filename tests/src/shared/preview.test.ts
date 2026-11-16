@@ -182,6 +182,23 @@ it("prices each matchup goal line by a counting man in his own side's column (#2
   }
 });
 
+it("gives each matchup man his card's points and goals in the gameweek, on his tile and the Vidiprinter alike (#2478)", () => {
+  window.history.replaceState(null, "", "/?preview=manager");
+  for (const gameweek of [previewGameweek - 1, previewGameweek]) {
+    const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, { gameweek })).result.current;
+    if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored" || matchup.game.commentary.kind !== "read") throw new Error("the matchup preview is a scored head-to-head");
+    const { team, opponent, commentary } = matchup.game;
+    if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+    const goalLines = commentary.lines.filter(({ text }) => text.includes(" GOAL "));
+    for (const { playerCode, name, points, status } of [team, opponent].flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench])) {
+      const onCard = previewPlayerCard.usePlayerCard(leagueId, playerCode, now)!.matches.find((match) => match.gameweek === gameweek);
+      const cardPoints = onCard === undefined ? (status.kind === "yetToPlay" ? null : 0) : (onCard.override?.points ?? onCard.points[0].total);
+      const cardGoals = onCard?.stats?.goals_scored ?? 0;
+      expect({ name, gameweek, points, goals: goalLines.filter(({ about }) => about.includes(playerCode)).length }).toEqual({ name, gameweek, points: cardPoints, goals: cardGoals });
+    }
+  }
+});
+
 it("recaps a gameweek Football has over, not the one it plays now (#2466)", () => {
   const { recap } = previewHome.useLeagueHome(leagueId, now)!;
   const matches = previewPremierLeague.useGameweekMatches(recap!.gameweek)!;
