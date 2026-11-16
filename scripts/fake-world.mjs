@@ -7,7 +7,8 @@
 //   the server reads move: deadlines, kickoffs and news dates. Words such as "Sat 10 Oct 2026, 12:30
 //   BST" stay as recorded.
 // - Resend's send is caught, not sent: `GET /_fake/emails` lists every one caught, newest last, in
-//   the shape scripts/sign-in-inbox.mjs's `newestMatch` reads, so a test opens its sign-in link.
+//   the shape scripts/sign-in-inbox.mjs's `newestMatch` reads, so a test opens its sign-in link. A
+//   send whose body isn't a JSON object answers 400 and is kept as a miss (below).
 // - Anything else, Sportmonks and Anthropic among them, answers 404 naming the address, and is kept:
 //   `GET /_fake/misses` lists them, so a run can fail on a read nobody recorded rather than pass
 //   on an empty answer.
@@ -112,6 +113,16 @@ const json = (response, status, body) => {
   response.end(JSON.stringify(body));
 };
 
+/** `text` read as a JSON object, or null when it isn't one (not JSON, or `null`, a list, a number). */
+function jsonObject(text) {
+  try {
+    const value = JSON.parse(text);
+    return value !== null && typeof value === "object" && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 async function bodyOf(request) {
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);
@@ -135,15 +146,21 @@ export async function startFakeWorld({ port = 0, deadlineAt, now = Date.now } = 
     if (address.pathname === `${FAKE_PATH}/misses`) return json(response, 200, misses);
     const [, host, ...rest] = address.pathname.split("/");
     const pathAndQuery = `/${rest.join("/")}${address.search}`;
+    const asked = `${request.method} https://${host}${pathAndQuery}`;
     if (request.method === "POST" && host === RESEND_HOST && pathAndQuery === "/emails") {
-      emails.push(caughtEmail(JSON.parse(await bodyOf(request)), now()));
+      const body = jsonObject(await bodyOf(request));
+      if (body === null) {
+        const malformed = `${asked}, its body not a JSON object`;
+        misses.push(malformed);
+        return json(response, 400, { error: `the fake outside world caught ${malformed}` });
+      }
+      emails.push(caughtEmail(body, now()));
       return json(response, 200, { id: `fake-email-${emails.length}` });
     }
     const answer = request.method === "GET" ? recordedAnswer(recorded, host, pathAndQuery) : null;
     if (answer !== null) return json(response, 200, shiftTimes(answer, byMs));
-    const miss = `${request.method} https://${host}${pathAndQuery}`;
-    misses.push(miss);
-    return json(response, 404, { error: `the fake outside world has no recording of ${miss}` });
+    misses.push(asked);
+    return json(response, 404, { error: `the fake outside world has no recording of ${asked}` });
   });
 
   await new Promise((resolve, reject) => {

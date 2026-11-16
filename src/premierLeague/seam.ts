@@ -7,7 +7,8 @@ import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchMarks } from "../../convex/match/matchMarks";
 import type { MatchMan, MatchPageData } from "../../convex/match/matchPage";
-import type { ClubSquad, SquadGroup, SquadPlayer } from "../../convex/scouting/clubSquad";
+import type { ClubSquad, SquadPlayer } from "../../convex/scouting/clubSquad";
+import type { SquadGroup } from "../../convex/positions/positionTables";
 import type { Change } from "../shared/refusal";
 
 export type { ClubSquad, MatchMan, MatchMarks, MatchPageData, SquadGroup, SquadPlayer };
