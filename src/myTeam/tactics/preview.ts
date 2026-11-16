@@ -54,14 +54,14 @@ const PREVIEW_UNRATED = 16;
  *  opens his own card (#2406); the rest take codes Scouting's players don't use. */
 const PLAYERS: readonly PreviewPlayer[] = [
   [8, "Pickford", "EVE", ["GK"], { area: "goalkeeper", lane: "centre" }],
-  [9, "Gvardiol", "MCI", ["CB", "FB"], { area: "defence", lane: "left" }],
+  [9, "Gvardiol", "MCI", ["CB", "FB", "WB"], { area: "defence", lane: "left" }],
   [10, "Gabriel", "ARS", ["CB"], { area: "defence", lane: "leftCentre" }],
   [7, "Van Dijk", "LIV", ["CB"], { area: "defence", lane: "rightCentre" }],
   [11, "Muñoz", "CRY", ["FB", "WB"], { area: "defence", lane: "right" }],
   [12, "Guimarães", "NEW", ["CDM", "CM"], { area: "defensiveMidfield", lane: "leftCentre" }],
   [2, "Rice", "ARS", ["CDM", "CM"], { area: "defensiveMidfield", lane: "rightCentre" }],
   [13, "Rogers", "AVL", ["W", "CAM"], { area: "attackingMidfield", lane: "left" }],
-  [4, "Palmer", "CHE", ["CAM", "W"], { area: "attackingMidfield", lane: "centre" }],
+  [4, "Palmer", "CHE", ["CAM", "CM", "W"], { area: "attackingMidfield", lane: "centre" }],
   [1, "Saka", "ARS", ["W"], { area: "attackingMidfield", lane: "right" }],
   [14, "Haaland", "MCI", ["ST"], { area: "attack", lane: "centre" }],
   [15, "Henderson", "CRY", ["GK"], null],
