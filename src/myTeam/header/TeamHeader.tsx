@@ -9,7 +9,7 @@ import { NextGlyph } from "../../ui/MoreLink";
 import { PageSection, PanelNote } from "../../ui/Panel";
 import type { MyTeamSeam } from "../seam";
 import { AutoTeamSwitch } from "./AutoTeamSwitch";
-import { FormChips } from "./FormChips";
+import { FormChips } from "../../ui/FormChips";
 import { gamesIn, standingOf, type Standing, type TeamGame } from "./teamStanding";
 import {
   againstWords,

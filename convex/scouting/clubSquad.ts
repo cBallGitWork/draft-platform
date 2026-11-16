@@ -24,14 +24,14 @@ import { shownSeasonPoints } from "./shownSeasonPoints";
 // about him, as My Team's is, so a row carries FPL's chance he plays.
 
 /** How many finished gameweeks a row shows his points in (`S18.8`). */
-export const CLUB_FORM_GAMEWEEKS = 5;
+const CLUB_FORM_GAMEWEEKS = 5;
 
 /** How many of the club's scorers the header names (`S18.7`). */
-export const TOP_SCORERS = 3;
+const TOP_SCORERS = 3;
 
 /** The Squad tab's groups, in order, and the positions each takes: FM's split (Craig, 12 Nov 2026:
  *  "GK DEF MID AM FWD"). A player goes in the group of his first position, back to front. */
-export const SQUAD_GROUPS = {
+const SQUAD_GROUPS = {
   GK: ["GK"],
   DEF: ["CB", "FB", "WB"],
   MID: ["CDM", "CM", "WM"],

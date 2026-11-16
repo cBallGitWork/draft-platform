@@ -13,7 +13,7 @@ import { useMinute } from "../shared/useMinute";
 import { dateWords } from "../shared/when/words";
 import type { LeagueTable } from "../table/seam";
 import { afterWords, noResultsWords } from "../table/words";
-import { ResultChip } from "./header/FormChips";
+import { ResultChip } from "../ui/FormChips";
 import { NoTeam, TeamPage } from "./header/TeamHeader";
 import { placeIn } from "./header/teamStanding";
 import { NextGamePanel, SeasonPanel } from "./FixturesSidePanels";

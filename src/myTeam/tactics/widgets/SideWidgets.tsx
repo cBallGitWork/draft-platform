@@ -1,5 +1,5 @@
 import { Panel, PanelNote } from "../../../ui/Panel";
-import { FormChips } from "../../header/FormChips";
+import { FormChips } from "../../../ui/FormChips";
 import { formHead, placeWords, pointsShort, tableHead } from "../../header/words";
 import { noFigureWords } from "../../../shared/words";
 import { OpponentLink } from "../../header/TeamHeader";
