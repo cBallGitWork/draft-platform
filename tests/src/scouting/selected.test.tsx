@@ -92,6 +92,14 @@ describe("selecting a player", () => {
     expect(app.path()).not.toBe(playerCardPath(league.leagueId, RICE.code));
   });
 
+  it("UI-165 (spec/12 The frame: keyboard): Escape closes the panel, as ✕ does", async () => {
+    openScouting();
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
+    expect(panelOf("CDM")).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
+  });
+
   it("a pickup that takes him out of the free agents still shows on his panel, with the period's minutes (#1551)", async () => {
     const app = openScouting(WITH_FIGURES);
     await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));

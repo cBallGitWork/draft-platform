@@ -83,14 +83,19 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
     setFocusOn(null);
   }, [focusOn]);
 
+  // Escape puts back the player in hand; with none, it closes the selected player's panel, as its
+  // cross does (UI-165), unless a window is open over it, which Escape closes first.
+  const panelClosable = selectedCode !== null && windowOpen === null;
   useEffect(() => {
-    if (pickedCode === null) return;
-    const putBack = (event: KeyboardEvent) => {
-      if (event.key === PUT_BACK_KEY) setPickedCode(null);
+    if (pickedCode === null && !panelClosable) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== PUT_BACK_KEY) return;
+      if (pickedCode !== null) setPickedCode(null);
+      else setSelectedCode(null);
     };
-    document.addEventListener(KEY_DOWN, putBack);
-    return () => document.removeEventListener(KEY_DOWN, putBack);
-  }, [pickedCode]);
+    document.addEventListener(KEY_DOWN, onEscape);
+    return () => document.removeEventListener(KEY_DOWN, onEscape);
+  }, [pickedCode, panelClosable]);
 
   /** Any move that changes the lineup, which Undo can take back; it puts down the player in hand. */
   const change = (next: EditedLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {

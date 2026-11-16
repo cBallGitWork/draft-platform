@@ -5,6 +5,7 @@
 // the league's deadline.
 
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../../convex/lineup/pitch";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
@@ -40,6 +41,7 @@ import {
   openPanel,
   openTacticsTab,
   openedPitch,
+  pickUp,
   squadRows,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
@@ -87,6 +89,16 @@ describe("reaching it", () => {
   it("opens with the player the address names selected, his panel open (#1008)", async () => {
     openApp(`${MY_TEAM_PATH}?player=${WHITE.playerCode}`, manager, { myTeam: { tactics: SAVED } });
     expect(await screen.findByRole("button", { name: closeSelectedLabel(WHITE.name) })).toBeTruthy();
+  });
+
+  it("UI-165 (spec/12 The frame: keyboard): Escape puts back the player in hand first, then closes his panel, as its cross does", async () => {
+    await openedPitch({ tactics: SAVED });
+    await pickUp(WHITE);
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: closeSelectedLabel(WHITE.name) })).toBeTruthy();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("button", { name: closeSelectedLabel(WHITE.name) })).toBeNull();
   });
 
   it.each([

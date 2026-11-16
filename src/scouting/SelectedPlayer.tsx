@@ -5,6 +5,7 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
 import { byRun } from "../myTeam/claims/claimGroups";
+import { useEscapeCloses } from "../shared/useEscapeCloses";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { Per90Figures } from "./Per90Figures";
@@ -77,7 +78,8 @@ const FACT_ROW ="flex items-center justify-between border-t border-panel-rule px
  *  search): who he is and who holds him, his season points, his minutes over the list's period,
  *  role fit's placeholder, his figures per 90 over the period, the
  *  player card's pickup or claim and shortlist actions, Compare with another… (then a second row
- *  of the list), and his card. `pointsSeason` names last season's points, as the list does. */
+ *  of the list), and his card. `pointsSeason` names last season's points, as the list does. The
+ *  cross, or Escape, closes it. */
 export function SelectedPlayer({
   leagueId,
   player,
@@ -108,6 +110,7 @@ export function SelectedPlayer({
   close: () => void;
 }) {
   const main = cardOpensAt(player.positions);
+  useEscapeCloses(close);
   const title = (
     <span className="flex items-center gap-2">
       {main !== null && <PositionChip label={main} />}

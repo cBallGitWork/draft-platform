@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
+import { useEscapeCloses } from "../../shared/useEscapeCloses";
 import { MoreLink } from "../../ui/MoreLink";
 import { CloseButton, Panel, Problem } from "../../ui/Panel";
 import { Placeholder } from "../../ui/Placeholder";
@@ -39,7 +40,7 @@ import {
 
 // A player's season panel, on top of the Squad tab's right-hand column once his row is tapped (its
 // approved picture, 1440-selected.png): his squad number to change (#13), his season, and the
-// placeholders for what isn't held or settled yet (the README's placeholders). The cross closes it.
+// placeholders for what isn't held or settled yet (the README's placeholders). The cross, or Escape, closes it.
 
 /** A placeholder in a panel row: the size of a short box. */
 const ROW_PLACEHOLDER = "h-5 w-24";
@@ -58,6 +59,7 @@ export function SquadPlayerPanel({
   onClose(): void;
 }) {
   const change = useChange();
+  useEscapeCloses(onClose);
   return (
     <Panel
       title={player.name}

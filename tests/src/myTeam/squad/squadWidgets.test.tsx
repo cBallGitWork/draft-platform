@@ -112,6 +112,14 @@ describe("his season panel", () => {
     expect(screen.queryByRole("region", { name: "Palmer" })).toBeNull();
   });
 
+  it("UI-165 (spec/12 The frame: keyboard): Escape closes his panel, as its cross does", async () => {
+    openSquad({ squad: squadOf(players), tactics: lineup });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("region", { name: "Saka" })).toBeNull();
+  });
+
   it("holds his season: points, his form, the positions he plays, his next matches and where he stands in the gameweek being set", async () => {
     openSquad({ squad: squadOf(players), tactics: lineup });
     await screen.findByRole("table");
