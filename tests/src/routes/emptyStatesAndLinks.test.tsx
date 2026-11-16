@@ -8,6 +8,7 @@
 import { cleanup, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { screenMoment } from "../../../convex/shared/moments";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { BOARD_TITLE, clockHead, emptyQueueWords, inWords, loadingWords as draftLoadingWords, QUEUE_TITLE, startsHead, stateWords, youPickHead } from "../../../src/draft/words";
@@ -160,16 +161,15 @@ describe("interaction notes", () => {
     expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
   });
 
-  // A letter holds no link on main: its one link, to where you act on it, isn't built (#2361).
-  // Marked to fail until it is.
-  it.fails("UI-189 (approved/mail README:44, spec/16): a trade-offer letter ends with its one link, opening the offer in Trades", async () => {
-    const app = openApp(MAIL_PATH, manager, { letters: [mailLetter(1, false, null, "trade")] });
+  it("UI-189 (approved/mail README:44, S16.2): a trade-offer letter ends with its one link, opening the offer in Trades", async () => {
+    const offer = "offer-1" as Id<"tradeOffers">;
+    const app = openApp(MAIL_PATH, manager, { letters: [mailLetter(1, false, null, "trade", { offer })] });
     await userEvent.click(await screen.findByRole("button", { name: /Letter 1/ }));
     const open = screen.getByRole("region", { name: /From/ });
     const links = within(open).getAllByRole("link");
     expect(links).toHaveLength(1);
     await userEvent.click(links[0]);
     expect(app.path()).toBe(TRADES_PATH);
-    expect(app.search()).toMatch(/^\?offer=/);
+    expect(app.search()).toBe(`?offer=${offer}`);
   });
 });

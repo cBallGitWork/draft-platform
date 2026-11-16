@@ -2,7 +2,7 @@
 // module, so those files and letterWords.ts, which imports several of them, share it without
 // importing one another, and convex/schema/mail.ts builds its validator from it.
 
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 
 /** What a letter is about, which its chip on Mail names (approved/mail): one for each kind of
  *  letter Mail files (spec/16, S16.5), its words in src/mail/words.ts (`letterKindWords`). */
@@ -12,3 +12,8 @@ export const letterKind = v.union(...LETTER_KINDS.map((kind) => v.literal(kind))
 
 /** A letter's subject and body. */
 export type Words = { subject: string; body: string };
+
+/** Where a letter's one link goes, to act on what it reports (S16.2; approved/mail, The one link):
+ *  the trade offer it is about, opened on Trades. */
+export const letterLink = v.object({ offer: v.id("tradeOffers") });
+export type LetterLink = Infer<typeof letterLink>;

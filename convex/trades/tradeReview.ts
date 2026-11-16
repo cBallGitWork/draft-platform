@@ -62,8 +62,9 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   const scheduledId = await ctx.scheduler.runAt(endsAt, internal.trades.tradeReview.finish, { offerId: offer._id });
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer: storedReviewer(review) } });
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
-  await fileLetter(ctx, league, "trade", reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
+  const link = { offer: offer._id };
+  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy, link);
+  await fileLetter(ctx, league, "trade", reviewers, (tell) => reviewLetter(words, review, endsAt, tell), undefined, link);
 }
 
 /** The player in the trade no longer on his side's team, if one is. */

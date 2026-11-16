@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { letterKind } from "../mail/letterShape";
+import { letterKind, letterLink } from "../mail/letterShape";
 
 // Mail (#26, spec/16). A letter is filed as one row for each person it's to, so who got it is
 // fixed when it's filed: someone who joins later doesn't get the league's old letters.
@@ -23,6 +23,8 @@ export const letterFields = {
   /** The moments its subject and body name, each marked where it goes and told in the reader's
    *  zone as they read it (#912, `letterMoments.ts`); absent on a letter that names none. */
   moments: v.optional(v.array(v.number())),
+  /** Where its one link goes (S16.2); absent on a letter with nowhere to act on it. */
+  link: v.optional(letterLink),
   /** When `to` opened it; absent while unread. */
   readAt: v.optional(v.number()),
 };

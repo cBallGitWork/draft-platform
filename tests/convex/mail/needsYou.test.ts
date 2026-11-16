@@ -11,11 +11,12 @@ import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../supp
 // an empty slot, or a doubt or an injured player in the eleven; a letter with nothing to do links
 // to where its change shows, or has no link.
 //
-// None of this is built yet (#1030), so every test here is marked expected to fail: once #1030
-// builds it, each fails as passing, and is unmarked then. The catalogue puts BG-205, BG-206 and
-// BG-207 in a browser (E2E) and BG-211 in a unit test; neither `npm run e2e` (#2288) nor the deadline
-// letter's words exist yet, so each is checked here through Mail's own reads. `linkOf` and
-// `needsYou` read the letter where #1030's build is expected to put them, in one place to change.
+// The trade letters' link is built (#2361); the rest isn't yet (#1030), so those tests are marked
+// expected to fail: once #1030 builds it, each fails as passing, and is unmarked then. The
+// catalogue puts BG-205, BG-206 and BG-207 in a browser (E2E) and BG-211 in a unit test; neither
+// `npm run e2e` (#2288) nor the deadline letter's words exist yet, so each is checked here through
+// Mail's own reads. `needsYou` reads the letter where #1030's build is expected to put it, in one
+// place to change.
 
 let w: TradeLeague;
 beforeEach(async () => {
@@ -24,8 +25,7 @@ beforeEach(async () => {
 });
 
 /** A letter as Mail lists it, with what #1030 adds. */
-type Built = LetterSummary & { link?: string | null; needsYou?: boolean };
-const linkOf = (letter: LetterSummary) => (letter as Built).link;
+type Built = LetterSummary & { needsYou?: boolean };
 const needsYou = (letter: LetterSummary) => (letter as Built).needsYou === true;
 
 /** `email`'s letters in the league, newest first, as Mail lists them. */
@@ -56,23 +56,24 @@ const playerIs = (code: number, availability: "doubtful" | "out") =>
 const annOffersForSaka = async () => (await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA])).offerId;
 
 describe("each letter ends with one link (S16.2)", () => {
-  test.fails("BG-205 S16.2 S08.2: the offer letter links to Trades, the review letter to the trade's panel", async () => {
+  // Mail opens a letter's `{ offer }` link on Trades with that offer or trade in review selected
+  // (src/trades/paths.ts, `offerLink`).
+  test("BG-205 S16.2 S08.2: the offer letter links to Trades, the review letter to the trade's panel", async () => {
     const offerId = await annOffersForSaka();
-    expect(linkOf(await letterAbout(BOB, /offered .* a trade$/))).toMatch(/^\/trades/);
+    expect((await letterAbout(BOB, /offered .* a trade$/)).link).toEqual({ offer: offerId });
 
     await w.accept(BOB, offerId);
-    expect(linkOf(await letterAbout(COMMISSIONER, /^Block the trade/))).toMatch(new RegExp(`^/trades.*${offerId}`));
+    expect((await letterAbout(COMMISSIONER, /^Block the trade/)).link).toEqual({ offer: offerId });
   });
 
-  test.fails("BG-206 S16.2: a claim letter with nothing to do links to the squad, or has no link (#1030)", async () => {
+  // A link to the squad isn't built (#1030), so a claim letter has none yet.
+  test("BG-206 S16.2: a claim letter with nothing to do links to the squad, or has no link (#1030)", async () => {
     await holdPlayers(w.t, [9100]);
     await w.onWaivers([9100]);
     await w.claim(ANN, 9100);
     await w.runWaivers();
 
-    const link = linkOf(await letterAbout(ANN, /claimed Player 9100$/));
-    expect(link === null || /^\/team\/squad/.test(link ?? "")).toBe(true);
-    expect(link).not.toBeUndefined();
+    expect((await letterAbout(ANN, /claimed Player 9100$/)).link).toBeNull();
   });
 });
 

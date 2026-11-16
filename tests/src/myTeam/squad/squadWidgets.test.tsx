@@ -61,6 +61,7 @@ const letter = (number: number, read: boolean): LetterSummary => ({
   subject: `Letter ${number}`,
   body: `The text of letter ${number}.`,
   read,
+  link: null,
 });
 const mail = { letters: [letter(3, false), letter(2, true)], unread: 4 };
 
