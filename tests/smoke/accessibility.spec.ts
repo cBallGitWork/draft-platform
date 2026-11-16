@@ -14,15 +14,6 @@ import { previewUrl } from "../support/smoke/previewUrl";
 /** axe's tags for every WCAG 2.1 rule at levels A and AA (S12.14). */
 const WCAG_21_AA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-/** The breaks still to fix, each by its rule and the element axe names, with the issue fixing it;
- *  any other break fails. A pitch's player tile shows more words than its name holds (#2401): the
- *  Tactics pitch's, and the matchup's. Take a row off once its issue is done. */
-const KNOWN_BREAKS = [
-  { rule: "label-content-name-mismatch", target: /^button\[data-player="\d+"\]$/, issue: 2401 },
-  { rule: "label-content-name-mismatch", target: /: why his points"\]$/, issue: 2401 },
-];
-const isKnown = (rule: string, target: string) => KNOWN_BREAKS.some((known) => known.rule === rule && known.target.test(target));
-
 /** The focus ring's colour, `--color-derived`, as the browser reports it. */
 const RING_COLOUR = "rgb(107, 253, 250)";
 
@@ -37,7 +28,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       // axe measured text here, rather than leaving every node unsure over the see-through panels
       expect(passes.find(({ id }) => id === "color-contrast")?.nodes.length ?? 0, "text axe measured").toBeGreaterThan(0);
       const found = violations.flatMap(({ id, nodes }) =>
-        nodes.filter((node) => !isKnown(id, node.target.join(" "))).map((node) => `${id}: ${node.target.join(" ")}: ${node.failureSummary ?? ""}`),
+        nodes.map((node) => `${id}: ${node.target.join(" ")}: ${node.failureSummary ?? ""}`),
       );
       expect(found, "breaks of WCAG 2.1 AA").toEqual([]);
     });
