@@ -10,7 +10,7 @@ other two files are copies with a different default.
 
 - `1440.png`: the draft live, you on the clock at round 4, pick 3, with 0:48 left and B. Fernandes
   selected.
-- `1440-before.png`: before the start: the order drawn, where you pick, the countdown to the start,
+- `1440-before.png`: before the start: the draft order (set by the commissioner), where you pick, the countdown to the start,
   and the commissioner's start controls. No Draft button; the queue works.
 - `1440-slow.png`: a slow draft: the same as live, on an 8-hour clock.
 
@@ -18,6 +18,9 @@ other two files are copies with a different default.
 
 4 Nov 2026: Craig's "Approved", to "Approve the three draft room boards?", after draft 3 and the
 Overview stats change.
+
+16 Nov 2026: the order tile reads "Set by the commissioner", not "Random, drawn Mon 3 Aug" (#2073):
+Craig's "yes approve set by comish".
 
 ## The Football Manager idea
 
