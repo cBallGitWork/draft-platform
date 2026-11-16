@@ -22,6 +22,8 @@ export const lineupRefusals = {
     `${andListWords(names)} ${isNot(names)} in the line-up: every player in your squad starts or sits on the bench.`,
   noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your line-up.`,
   notInClassicFormationShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
+  /** Another Tactics tab saved since this one loaded (spec/05 `S05.55`): the tab reloads on it. */
+  changedElsewhere: "Line-up changed in another tab: reloaded here, make your move again.",
 };
 
 /** How many plans a manager keeps, and how long a plan's name may be (spec/05, Saved plans;
