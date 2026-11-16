@@ -75,10 +75,10 @@ describe("the pending claims", () => {
 
     expect(await claimRows()).toEqual([
       `${runGroupWords(made(WED))} 2 claims`,
-      "⋮⋮1WSemenyoARS20WCalvert-LewinARS",
-      `⋮⋮2WEzeARS20WCalvert-LewinARS${failsIfWords(1)}`,
+      "⋮⋮1WSemenyo ARS20WCalvert-Lewin ARS",
+      `⋮⋮2WEze ARS20WCalvert-Lewin ARS${failsIfWords(1)}`,
       `${runGroupWords(made(THU))} 1 claim`,
-      "⋮⋮1WKudusARS20WMbeumoARS",
+      "⋮⋮1WKudus ARS20WMbeumo ARS",
     ]);
   });
 
@@ -90,7 +90,7 @@ describe("the pending claims", () => {
 
   it("opens a claim's panel, which changes its drop, keeping its rank, moves it within its run and withdraws it", async () => {
     const app = open();
-    await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Eze") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Eze", ARSENAL.shortName) }));
     const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
 
     expect(within(panel).getByText(runGroupWords(made(WED)))).toBeTruthy();
@@ -108,7 +108,7 @@ describe("the pending claims", () => {
 
   it("says why a change was refused", async () => {
     open({ claimAnswer: "Claims can't be put in now." });
-    await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Semenyo") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Semenyo", ARSENAL.shortName) }));
     await userEvent.click(screen.getByRole("button", { name: withdrawWords }));
     expect((await screen.findByRole("alert")).textContent).toBe("Claims can't be put in now.");
   });
@@ -116,7 +116,7 @@ describe("the pending claims", () => {
   it("reorders a claim dragged by its handle onto another in its run, never into another run", async () => {
     const app = open();
     const handle = await screen.findByRole("img", { name: dragHandleLabel("Eze") });
-    const rowOf = (name: string) => screen.getByRole("button", { name: selectClaimLabel(name) }).closest("tr")!;
+    const rowOf = (name: string) => screen.getByRole("button", { name: selectClaimLabel(name, ARSENAL.shortName) }).closest("tr")!;
     fireEvent.dragStart(handle);
     fireEvent.drop(rowOf("Kudus"));
     expect(app.myTeam.claimChanges.rank).not.toHaveBeenCalled();
@@ -130,7 +130,7 @@ describe("the pending claims", () => {
     let saved: (answer: null) => void = () => undefined;
     app.myTeam.claimChanges.rank.mockImplementationOnce(() => new Promise((resolve) => (saved = resolve)));
     const handleOf = (name: string) => screen.findByRole("img", { name: dragHandleLabel(name) });
-    const rowOf = (name: string) => screen.getByRole("button", { name: selectClaimLabel(name) }).closest("tr")!;
+    const rowOf = (name: string) => screen.getByRole("button", { name: selectClaimLabel(name, ARSENAL.shortName) }).closest("tr")!;
     fireEvent.dragStart(await handleOf("Eze"));
     fireEvent.drop(rowOf("Semenyo"));
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledTimes(1);
@@ -154,13 +154,13 @@ describe("the pending claims", () => {
 
     expect(await claimRows()).toEqual([
       `${runGroupWords(mayBeSkipped(WED, 12))} 2 claims`,
-      "⋮⋮1WSemenyoARS20WMbeumoARS",
-      `⋮⋮2WKudusARS20WMbeumoARS${failsIfWords(1)}`,
+      "⋮⋮1WSemenyo ARS20WMbeumo ARS",
+      `⋮⋮2WKudus ARS20WMbeumo ARS${failsIfWords(1)}`,
       `${runGroupWords(made(THU + 7 * DAY_MS))} 1 claim`,
-      `⋮⋮1WEzeARS20${freePlaceWords}`,
+      `⋮⋮1WEze ARS20${freePlaceWords}`,
     ]);
     expect(runGroupWords(mayBeSkipped(WED, 12))).toBe("Run after GW12's last match");
-    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Kudus") }));
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Kudus", ARSENAL.shortName) }));
     const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
     expect(within(panel).getByText(runGroupWords(mayBeSkipped(THU, 12)))).toBeTruthy();
     await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
@@ -171,7 +171,7 @@ describe("the pending claims", () => {
     const app = open({ waivers: { ...NO_WAIVERS, locked: true } });
     expect(await screen.findByText(claimsClosedWords)).toBeTruthy();
     expect(screen.getByRole("img", { name: dragHandleLabel("Eze") })).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze", ARSENAL.shortName) }));
     const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
     expect((within(panel).getByRole("combobox") as HTMLSelectElement).disabled).toBe(true);
     await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
@@ -202,7 +202,7 @@ describe("before the league's draft is over (S08.1)", () => {
     open({ waivers: { ...NO_WAIVERS, drafted: false } });
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze", ARSENAL.shortName) }));
     expect(await screen.findByRole("region", { name: claimPanelTitle(2) })).toBeTruthy();
     expect([moveUpWords, withdrawWords].map((name) => screen.queryByRole("button", { name }))).toEqual([null, null]);
   });
@@ -262,7 +262,7 @@ describe("the Transactions tab's count (Craig, 8 Nov 2026: \"Yes 1 and 2\")", ()
     openApp(MY_TEAM_TRANSACTIONS_PATH, manager, { myTeam: { claims: CLAIMS, squad }, topBar: { unreadMail: 0, next: null, pendingClaims: 3 } });
     await screen.findByRole("table", { name: claimsTableLabel });
 
-    expect(transactionsTab().textContent).toBe(`${TRANSACTIONS_TITLE}3`);
+    expect(transactionsTab().textContent).toBe(`${TRANSACTIONS_TITLE} 3`);
     expect(transactionsTab().getAttribute("aria-label")).toBe(pendingClaimsTabLabel(TRANSACTIONS_TITLE, 3));
   });
 

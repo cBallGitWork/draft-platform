@@ -85,11 +85,11 @@ describe("a player's panel", () => {
     expect(within(saka).getByText(feedSaysWords).parentElement?.textContent).toBe(`${feedSaysWords}${AVAILABILITY_WORDS.doubtful}`);
     expect(within(saka).getByText(autoTeamReadsWords)).toBeTruthy();
 
-    await userEvent.click(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name) }));
+    await userEvent.click(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name, WATKINS.clubShortName) }));
     const watkins = await panelOf(WATKINS.name);
     expect(keyOf(watkins, "doubtful").checked).toBe(true);
-    expect(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name) }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name) }).closest("tr")?.className).toContain("shadow-current-edge");
+    expect(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name, WATKINS.clubShortName) }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: pickPlayerLabel(WATKINS.name, WATKINS.clubShortName) }).closest("tr")?.className).toContain("shadow-current-edge");
   });
 
   it("#1209 story 4: the admin finds a player on the feed's and sets him out by hand", async () => {

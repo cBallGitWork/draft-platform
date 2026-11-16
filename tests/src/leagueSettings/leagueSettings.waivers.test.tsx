@@ -178,9 +178,9 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
 
     expect(rows).toEqual([
       `Kroos Control ${teamGroupWords(2, 1)}`,
-      `1WEzeARS${runShort(WED)}${freePlaceWords}`,
+      `1WEze ARS${runShort(WED)}${freePlaceWords}`,
       `Saka Potatoes ${teamGroupWords(3, 1)}`,
-      `1WSemenyoARS${runShort(WED)}${freePlaceWords}`,
+      `1WSemenyo ARS${runShort(WED)}${freePlaceWords}`,
     ]);
     expect(
       within(claimsPanel()).getByText(teamsWithoutClaimsWords(1)),

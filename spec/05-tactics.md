@@ -111,6 +111,9 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it
   last did ("Lineup saved 14:02"; Craig, 1 Nov 2026).
+- With Tactics open in two tabs, a save in one never replaces moves made in the other: the older
+  tab is told the lineup changed and reloads it before saving, so no move is lost ("Reload
+  first"; Craig, 15 Nov 2026, on #2350). `S05.55`
 - Undo goes back through every move since the manager opened the Tactics tab this visit. A save
   doesn't clear it: "save doesn't mean we leave the page" (Craig, 31 Oct 2026).
 - Quick Pick fills the current shape with the best eleven by stars.

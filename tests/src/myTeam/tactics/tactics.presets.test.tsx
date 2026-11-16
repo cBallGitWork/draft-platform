@@ -11,7 +11,6 @@ import {
   BENCH_TITLE,
   presetLabel,
   emptySlotLabel,
-  roleLabel,
 } from "../../../../src/myTeam/tactics/words";
 import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import { league } from "../../../support/src/shell.harness";
@@ -38,6 +37,7 @@ import {
   squadRows,
   swap,
   undo,
+  whoseRole,
 } from "../../../support/src/tacticsScreen.harness";
 
 describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
@@ -112,7 +112,7 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     expect(roleShown(SALIBA.name)).toBe("Stopper");
     await userEvent.click(roleButton(SALIBA.name));
     expect(rolesOnCard(SALIBA.name)).toEqual(["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
-    expect(screen.queryByRole("button", { name: roleLabel(WHITE.name) })).toBeNull();
+    expect(screen.queryByRole("button", { name: whoseRole(WHITE.name) })).toBeNull();
   });
 
   it("the pitch shows the role's code over his name, its name on hover (#845)", async () => {

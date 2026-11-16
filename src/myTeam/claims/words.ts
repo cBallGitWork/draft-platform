@@ -77,7 +77,8 @@ export const withdrawWords = "Withdraw";
 export const playerCardWords = "Player card ›";
 export const dragHandleLabel = (playerName: string) => `Drag the claim for ${playerName} to reorder it`;
 export const dragGlyph = "⋮⋮";
-export const selectClaimLabel = (playerName: string) => `Open the claim for ${playerName}`;
+/** A claim's player button: his name and club as it shows them first (WCAG 2.5.3; S12.14). */
+export const selectClaimLabel = (playerName: string, club: string) => `${playerName} ${club}: open the claim`;
 export const claimFailedWords = "That claim couldn't be changed. Try again.";
 
 /** The commissioner's switch between his own claims and every team's. */

@@ -8,6 +8,8 @@ import { expect, type Page } from "@playwright/test";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { ADMIN_TITLE, adminTabsLabel, availabilityTabWords, feedbackTabWords, feedsTabWords, positionsTabWords } from "../../src/admin/words";
 import { MY_TEAM_PATH } from "../../src/frame/menu";
+import { previewSquad } from "../../src/myTeam/tactics/preview";
+import { playerCardLabel, selectionTableLabel } from "../../src/myTeam/tactics/words";
 import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { joinPath } from "../../convex/joining/joiningShared";
@@ -29,6 +31,8 @@ import { previewUrl } from "../support/smoke/previewUrl";
 
 const L1 = proLeague.leagueId;
 const SAKA = previewPlayers.find((player) => player.name === "Saka")!;
+// My team's preview keys its own made-up squad, so its Saka has another code than Scouting's.
+const TEAM_SAKA = previewSquad.find((player) => player.name === "Saka")!;
 
 const h1 = (page: Page, name: string) => page.getByRole("heading", { level: 1, name, exact: true });
 
@@ -98,13 +102,11 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
     await expect(h1(page, PATCH_NOTES_TITLE)).toBeVisible();
   });
 
-  // On main a name on My team's Tactics tab is a button that picks him out; his card is the
-  // "Player card" link beside it, not the name (#2349): marked to fail until the name opens it.
-  test("UI-091 (flow.md:94): a manager on My team clicks a player's name and lands on his card", async ({ page }) => {
-    test.fail();
+  // A name on My team's Tactics tab picks him out; his card opens from the panel's Player card (#2349).
+  test("UI-091 (flow.md:94): a manager on My team clicks a player's name, then Player card, and lands on his card", async ({ page }) => {
     await page.goto(previewUrl(MY_TEAM_PATH, "manager"));
-    await page.getByRole("link", { name: SAKA.name, exact: true }).first().click({ timeout: 5_000 });
-    await expect(page).toHaveURL((url) => url.pathname === playerCardPath(L1, SAKA.code));
-    await expect(h1(page, SAKA.fullName)).toBeVisible();
+    await page.getByRole("table", { name: selectionTableLabel }).getByRole("button", { name: TEAM_SAKA.name, exact: true }).click();
+    await page.getByRole("link", { name: playerCardLabel(TEAM_SAKA.name), exact: true }).click();
+    await expect(page).toHaveURL((url) => url.pathname === playerCardPath(L1, TEAM_SAKA.playerCode));
   });
 });

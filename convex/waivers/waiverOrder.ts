@@ -90,9 +90,9 @@ async function waiverTable(
   draftOrder: readonly Id<"teams">[],
   ended: number | null,
 ): Promise<WaiverTable> {
-  const { rules, schedule, scores } = await standingsOf(ctx, league, season);
+  const { rules, schedule, scores, tieBreaks } = await standingsOf(ctx, league, season);
   const endedScores = new Map([...scores].filter(([gameweek]) => ended !== null && gameweek <= ended));
-  return tableOf(rules.format, draftOrder, schedule, endedScores, rules.tieBreaks);
+  return tableOf(rules.format, draftOrder, schedule, endedScores, tieBreaks);
 }
 
 const draftOrderIn = async (ctx: QueryCtx, league: Doc<"leagues">) => draftOrderOf(await teamsOf(ctx, league._id), league.draftOrder).map(({ _id }) => _id);

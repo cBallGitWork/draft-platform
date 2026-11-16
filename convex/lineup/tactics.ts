@@ -14,6 +14,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek } from "./lineups";
+import { rowInForce } from "./lineupRows";
 import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
@@ -76,6 +77,9 @@ const tacticsShape = v.union(
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
+    /** The `edit` mark of the lineup's row (lineupRows.ts), which a save sends back, and a change to
+     *  tells the tab another tab saved (spec/05 `S05.55`); absent for a row not marked. */
+    lineupEdit: v.optional(v.string()),
     /** What the league plays in the gameweek, for the role parts (#1582). */
     mode: gameModeShape,
     /** Each moving role's run, as the site's scoring set in the gameweek holds it (spec/05 Runs,
@@ -128,6 +132,7 @@ export const ofMyTeam = query({
     const { areaLimits, presets } = rules;
     const instructions = [...instructionsOf(rules)];
     const lineup = await lineupInGameweek(ctx, leagueId, team._id, gameweek);
+    const lineupEdit = (await rowInForce(ctx, leagueId, team._id, gameweek))?.edit;
     return {
       kind: "open" as const,
       gameweek,
@@ -139,6 +144,7 @@ export const ofMyTeam = query({
       picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,
       lineup,
+      ...(lineupEdit !== undefined && { lineupEdit }),
       mode: gameModeOf(rules),
       runs: [...((await siteScoringInGameweek(ctx, gameweek)).runs ?? [])],
     };

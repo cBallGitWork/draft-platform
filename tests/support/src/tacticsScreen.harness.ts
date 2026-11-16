@@ -8,7 +8,7 @@ import { ROWS_DRAWN } from "../../../src/ui/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { allFormationsWords, BENCH_TITLE, moveLabel, onPitchWords, pitchLabel, roleLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
+import { allFormationsWords, BENCH_TITLE, moveLabel, onPitchWords, pitchLabel, selectionTableLabel, swapLabel, undoWords, whoseRoleWords } from "../../../src/myTeam/tactics/words";
 import { applyWords, backGroupPattern } from "../../../src/myTeam/tactics/formationWindow/words";
 import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -111,6 +111,10 @@ export const blockOf = (player: Member, cell: Cell) =>
       return label.endsWith(ending) && ` ${label.slice(0, -ending.length)} `.includes(` ${player.name} `);
     },
   });
+/** A player's block on the pitch, wherever he stands, or null: his name among the words it shows,
+ *  which come before the name's first comma (`playerOnPitchLabel`). */
+export const onPitchNamed = (name: string) =>
+  within(pitch()).queryByRole("button", { name: (label) => ` ${label.split(", ")[0]} `.includes(` ${name} `) });
 /** The swap a lit player's name ends with, after the words a pitch block shows (`swapOnPitchLabel`). */
 const swapOf = (label: string | null) => label?.replace(/^.*?(?=Swap )/, "") ?? null;
 const SWAP = /(^|, )Swap /;
@@ -139,9 +143,11 @@ export function drag(from: Element, onto: Element) {
 }
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
 /** A starter's Role ▾ in the Selection table, which opens his role card (#848). */
-export const roleButton = (name: string) => screen.getByRole("button", { name: roleLabel(name) });
+export const roleButton = (name: string) => screen.getByRole("button", { name: whoseRole(name) });
+/** A Role ▾'s name ends with whose role it is, after the role it shows (`roleLabel`). */
+export const whoseRole = (name: string) => (label: string) => label.endsWith(`, ${whoseRoleWords(name)}`);
 /** The role a starter plays, by name, as his Role ▾ shows it; null for one with none (the bench). */
-export const roleShown = (name: string) => screen.queryByRole("button", { name: roleLabel(name) })?.querySelector("span")?.textContent ?? null;
+export const roleShown = (name: string) => screen.queryByRole("button", { name: whoseRole(name) })?.querySelector("span")?.textContent ?? null;
 /** A starter's open role card. */
 export const roleCard = (name: string) => screen.getByRole("region", { name: new RegExp(`^${name}\\b.*, his role$`) });
 /** The roles his open card lists, by name, in its order. */

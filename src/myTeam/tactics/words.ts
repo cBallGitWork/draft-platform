@@ -71,6 +71,9 @@ export const undoWords = "Undo";
 /** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
 export const savedWords = (at: number) => `Line-up saved ${timeOfDayWords(at)}`;
 export const saveFailedWords = failedWords("the line-up wasn't saved");
+/** Said once the tab reloads a line-up another tab saved (spec/05 `S05.55`); a move this tab sent
+ *  meanwhile is refused in the server's words (lineupWords.ts `changedElsewhere`). */
+export const reloadedWords = "Line-up changed in another tab: reloaded.";
 export const planSaveFailedWords = failedWords("the preset wasn't saved");
 export const planDeleteFailedWords = failedWords("the preset wasn't deleted");
 /** A plan loaded with roles the league no longer offers in their slot (Craig, 6 Nov 2026, #992). */
@@ -113,8 +116,10 @@ export const BEST_ROLE_HEAD = "Best role";
 /** A bench player's place in the bench order, by his index: "S1", the first on. */
 export const benchPlaceWords = (index: number) => benchShort(index + 1);
 export const benchPlaceLong = (index: number) => `Substitute ${index + 1}`;
-/** A starter's role picker, for screen readers (spec/05 Roles). */
-export const roleLabel = (name: string) => `${name}'s role`;
+/** A starter's role picker, for screen readers (spec/05 Roles): the role it shows first (WCAG
+ *  2.5.3; S12.14), "Poacher, Haaland's role". */
+export const roleLabel = (name: string, role: string) => `${role}, ${whoseRoleWords(name)}`;
+export const whoseRoleWords = (name: string) => `${name}'s role`;
 export const emptyBenchWords = "Nobody on the bench.";
 
 /** The selected player's panel, on top of the right-hand column (plate.md, Tables and panels). */

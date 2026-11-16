@@ -4,6 +4,7 @@
 
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
+import type { BasedOn } from "../../../convex/lineup/lineupRows";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { RoleCard } from "../../../convex/lineup/roleCardShape";
 import type { Formation } from "../../../convex/lineup/roles";
@@ -16,8 +17,9 @@ export type { OpenTactics, Plan, Tactics };
 
 export type LineupChanges = {
   /** Saves the manager's own team's lineup, from the next gameweek not begun as the server judges
-   *  it: resolves with that gameweek, or with the words saying why not. It never rejects. */
-  save(leagueId: Id<"leagues">, lineup: EditedLineup): Promise<number | string>;
+   *  it, made from the lineup `basedOn` says the tab loaded (spec/05 `S05.55`): resolves with that
+   *  gameweek, or with the words saying why not. It never rejects. */
+  save(leagueId: Id<"leagues">, lineup: EditedLineup, basedOn: BasedOn): Promise<number | string>;
 };
 
 export type PlanChanges = {
