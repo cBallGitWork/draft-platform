@@ -6,7 +6,7 @@
 import { expect } from "@playwright/test";
 import { previewSaid, proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
-import { previewWaiverOutcomes } from "../../src/playerCard/preview";
+import { previewPlayerCard, previewWaiverOutcomes } from "../../src/playerCard/preview";
 import { SCOUTING_PATH } from "../../src/frame/menu";
 import { previewPlayers } from "../../src/scouting/preview";
 import { availabilityWords } from "../../src/scouting/words";
@@ -17,6 +17,7 @@ import { previewUrl } from "../support/smoke/previewUrl";
 /** A Scouting preview player's code, by his name: the preview manager's own Saka, Raya a free agent
  *  and James on waivers. */
 const codeOf = (name: string) => previewPlayers.find((player) => player.name === name)!.code;
+const codeOfClub = (name: string) => previewPlayers.find((player) => player.name === name)!.club.code;
 const SAKA = codeOf("Saka");
 const RAYA = codeOf("Raya");
 const JAMES = codeOf("James");
@@ -36,10 +37,14 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(1);
     await expect(season.getByText(postponedWords)).toBeVisible();
 
-    // The newest match is selected; pressing gameweek 8's shows its breakdown instead.
-    await season.getByRole("button", { name: "LIV (A)" }).first().click();
-    await expect(page.getByRole("region", { name: "GW8, LIV (A) 1–2" })).toBeVisible();
-    await expect(page.getByLabel(breakdownLabel(8)).getByText(/^Goals scored/)).toBeVisible();
+    // The newest match is selected; pressing the one before it shows its breakdown instead. His
+    // matches are his club's in Football's preview (#2455).
+    const { gameweek, home, away, score } = previewPlayerCard.usePlayerCard(proLeague.leagueId, codeOf("Palmer"), Date.now())!.matches[1];
+    const atHome = home.code === codeOfClub("Palmer");
+    const against = `${(atHome ? away : home).shortName} (${atHome ? "H" : "A"})`;
+    await season.getByRole("button", { name: against }).first().click();
+    await expect(page.getByRole("region", { name: `GW${gameweek}, ${against} ${score!.home}–${score!.away}` })).toBeVisible();
+    await expect(page.getByLabel(breakdownLabel(gameweek)).getByText(/^Minutes/)).toBeVisible();
   });
 
   test("drops, claims and picks up", async ({ page }) => {

@@ -14,6 +14,8 @@ import { WEEK_MS } from "../../../convex/shared/time";
 import { previewMail } from "../../../src/mail/preview";
 import { previewFirstLineup, previewSquad } from "../../../src/myTeam/tactics/preview";
 import { previewTrades } from "../../../src/trades/preview";
+import { previewMyTeam } from "../../../src/myTeam/preview";
+import { seasonFigures } from "../../../src/playerCard/gameLog";
 
 // The preview's one made-up league (#1779): every preview screen of it shows the same teams and is
 // on the same gameweek, so a man playing on one screen isn't at full time on the next.
@@ -138,4 +140,41 @@ it("dates Mail's unread letters this week (#2450)", () => {
   const unread = previewMail.useLetters(leagueId)!.filter(({ read }) => !read);
   expect(unread.length).toBeGreaterThan(0);
   for (const { at } of unread) expect(now - at).toBeLessThan(WEEK_MS);
+});
+
+it("plays Football's gameweek matches on League home's Premier League panel and in the matchup, each man in his club's (#2455)", () => {
+  const football = previewPremierLeague.useGameweekMatches(previewGameweek)!;
+  const panel = previewHome.useLeagueHome(leagueId, now)!.yours!.premierLeague;
+  expect(panel.length).toBeGreaterThan(0);
+  for (const { fixtureCode, kickoff, home, away } of panel) {
+    const match = football.find((each) => each.fixtureCode === fixtureCode)!;
+    expect({ kickoff, home, away }).toEqual({ kickoff: match.kickoff, home: match.home, away: match.away });
+  }
+
+  const { team, opponent } = openedHeadToHead();
+  const kinds = new Set<string>();
+  for (const { clubCode, status, breakdown } of [team, opponent].flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench])) {
+    const match = football.find(({ home, away }) => home.code === clubCode || away.code === clubCode)!;
+    const state = match.score!.state;
+    expect(breakdown[0]).toMatchObject({ fixtureCode: match.fixtureCode, home: match.home.shortName, away: match.away.shortName, score: state === "upcoming" ? null : match.score });
+    expect(status).toMatchObject({ kind: STATUS_OF[state], fixtureCode: match.fixtureCode });
+    kinds.add(status.kind);
+  }
+  // Football's gameweek is under way, so the matchup's is too.
+  expect(kinds).toContain("playing");
+});
+
+/** A man's status in the matchup while his club's match is in each of Football's states. */
+const STATUS_OF = { upcoming: "yetToPlay", live: "playing", halfTime: "playing", fullTime: "finished" } as const;
+
+it("tells each squad player's minutes, points and next matches the same on his card and My team's Squad tab (#2455)", () => {
+  for (const row of previewMyTeam.useTeamSquad(leagueId)!.players) {
+    const card = previewPlayerCard.usePlayerCard(leagueId, row.code, now)!;
+    const figures = seasonFigures(card.matches, 0);
+    expect([row.stats!.appearances, row.stats!.minutes, row.seasonPoints]).toEqual([card.matches.length, figures.minutes ?? 0, figures.seasonPoints]);
+    const opponentOf = (home: { code: number }, away: { code: number }) => (home.code === row.club.code ? away.code : home.code);
+    expect(row.nextFixtures.map(({ gameweek, opponent }) => ({ gameweek, opponent: opponent.code }))).toEqual(
+      card.nextFixtures.slice(0, row.nextFixtures.length).map(({ gameweek, home, away }) => ({ gameweek, opponent: opponentOf(home, away) })),
+    );
+  }
 });
