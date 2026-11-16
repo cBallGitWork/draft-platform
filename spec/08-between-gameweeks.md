@@ -103,6 +103,10 @@ From `/grill trades` (25 Oct 2026).
   whose other teams are all on the auto team, goes through at once (Craig, 11 Nov 2026, #1607). `S08.15`
 - Once a trade is through, its players move at once. A gameweek already under way keeps their
   points with the old team.
+- Players in a trade under review are held: they can't be dropped or used in another accepted
+  trade. Once it goes through, any other open offer with one of its players closes, with a letter
+  to both managers (Craig, 6 Nov 2026, #383, "Hold players during review"). Waivers' "Dropping is
+  never restricted" is said of the churn rule only. `S08.29`
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
   commissioner picks.
 - An offer made during the trade deadline's gameweek closes once that gameweek's last match is

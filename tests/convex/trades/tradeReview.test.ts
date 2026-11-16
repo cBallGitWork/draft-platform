@@ -219,7 +219,7 @@ describe("under a league vote", () => {
   });
 });
 
-describe("players held in review (Craig, 6 Nov 2026)", () => {
+describe("S08.29: players held in review (Craig, 6 Nov 2026)", () => {
   test("can't be dropped, nor taken by another accepted trade", async () => {
     await annTradesForSaka();
     await expectRefused((await actingAs(w.t, BOB)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: SAKA }), dropRefusals.held(nameOf(SAKA)));
