@@ -1,7 +1,7 @@
 import type { MatchupBenchSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { Shirt } from "../ui/pitch/Shirt";
 import { chipColoursOf } from "../ui/PositionChip";
-import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, offWords, openBreakdownLabel, pitchPlayerLabel, statusLabels, statusText } from "./words";
+import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, offWords, pitchPlayerLabel, statusLabels, statusText, tileButtonLabel } from "./words";
 
 // A man on the matchup as FPL's points pitch draws him (the approved picture; Craig, 8 Nov 2026:
 // "Look at how FPL and draft and sleeper have the player tiles on pitch, much easier to read"): a
@@ -37,33 +37,37 @@ export function PlayerTile({ man, picking, strip, className }: { man: TileMan; p
   const picked = picking.picked === playerCode;
   const wentOff = autoSub?.kind === "off";
   const colours = place === null ? null : chipColoursOf(place.label);
+  const badge = strip || wentOff ? (wentOff ? offWords : badgeText(status)) : null;
+  const figure = points === null ? noFigureWords : figureWords(points);
+  const roleStrip = strip && colours !== null && role !== null && place !== null ? { colours, label: place.label, role: role.name } : null;
+  // Every bit of text the tile shows, in its order, starts its button's name (WCAG 2.5.3; S12.14).
+  const shown = [badge, number, figure, name, roleStrip?.label, roleStrip?.role].filter((bit) => bit !== null && bit !== undefined).join(" ");
   return (
     <li aria-label={tileLabel(man)} aria-current={picked || undefined} className={`flex min-w-0 ${className}`}>
       <button
         type="button"
-        aria-label={openBreakdownLabel(name)}
+        aria-label={tileButtonLabel(shown, name)}
         aria-expanded={picked}
         onClick={() => picking.pick(playerCode)}
         className={`flex w-tile max-w-full min-w-0 flex-col ${strip ? "" : "opacity-50"} ${picked ? "outline-2 outline-fact" : ""}`}
       >
         {/* The bench's tiles stand on a dark grey ground, not the grass (the approved picture). */}
         <span aria-hidden="true" className={`relative flex justify-center pt-1 ${strip ? "bg-pitch-stripe" : "bg-panel-edge"}`}>
-          {(strip || wentOff) && (
+          {badge !== null && (
             <span className={`absolute top-0 left-0 bg-name-plate px-0.5 text-data ${wentOff ? "text-event" : status.kind === "playing" ? "text-derived" : "text-soft"}`}>
-              {wentOff ? offWords : badgeText(status)}
+              {badge}
             </span>
-          )}
-          <Shirt number={number} clubCode={clubCode} goalkeeper={area === "goalkeeper"} size="size-shirt-tile" />
-          <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${counts && points !== null ? "text-figure" : "text-muted"}`}>
-            {points === null ? noFigureWords : figureWords(points)}
-          </span>
-        </span>
+          )}{" "}
+          {/* A space between each bit of text, so none runs into the next as one word (WCAG 2.5.3). */}
+          <Shirt number={number} clubCode={clubCode} goalkeeper={area === "goalkeeper"} size="size-shirt-tile" />{" "}
+          <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${counts && points !== null ? "text-figure" : "text-muted"}`}>{figure}</span>
+        </span>{" "}
         <span aria-hidden="true" className={`truncate bg-fact px-1 text-center font-semibold text-ground ${autoSub?.kind === "on" ? "shadow-event-edge" : ""}`}>
           {name}
-        </span>
-        {strip && colours !== null && role !== null && place !== null && (
-          <span aria-hidden="true" className={`line-clamp-2 px-0.5 text-center text-data leading-pitch-role ${colours.fill} ${colours.ink}`}>
-            <span data-slot-label>{place.label}</span> {role.name}
+        </span>{" "}
+        {roleStrip !== null && (
+          <span aria-hidden="true" className={`line-clamp-2 px-0.5 text-center text-data leading-pitch-role ${roleStrip.colours.fill} ${roleStrip.colours.ink}`}>
+            <span data-slot-label>{roleStrip.label}</span> {roleStrip.role}
           </span>
         )}
       </button>

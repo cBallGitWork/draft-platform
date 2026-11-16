@@ -116,6 +116,9 @@ export { notCountingLabel } from "../shared/match/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
+/** His tile's button: the words the tile shows first, in its order, so a voice saying what it sees
+ *  reaches him (WCAG 2.5.3; S12.14), then what it opens: "67' 9 6 Palmer ST Poacher, Palmer: why his points". */
+export const tileButtonLabel = (shown: string, name: string) => `${shown}, ${openBreakdownLabel(name)}`;
 export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved
