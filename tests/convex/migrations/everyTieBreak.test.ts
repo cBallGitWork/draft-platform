@@ -42,13 +42,13 @@ async function oneTieBreakLeague(kept: LeagueRules["tieBreaks"][number]): Promis
   return leagueId;
 }
 
-test("S03.2 a new league has Points for, Head-to-head and Points against, in that order", async () => {
+test("S03.8a new league has Points for, Head-to-head and Points against, in that order", async () => {
   const leagueId = await adminCreatesLeague(t);
 
   expect(await tieBreaksIn(leagueId, NEXT)).toEqual(["pointsFor", "headToHead", "pointsAgainst"]);
 });
 
-test("S03.2 a league saved with one tie-break keeps it first, the other two added from the next gameweek", async () => {
+test("S03.8a league saved with one tie-break keeps it first, the other two added from the next gameweek", async () => {
   const leagueId = await oneTieBreakLeague("headToHead");
 
   expect(await migrate()).toEqual({ defaultsChanged: true });
@@ -56,20 +56,20 @@ test("S03.2 a league saved with one tie-break keeps it first, the other two adde
   expect(await tieBreaksIn(leagueId, NEXT)).toEqual(["headToHead", "pointsFor", "pointsAgainst"]);
 });
 
-test("S03.2 the admin's defaults get all three, so the next league made has them", async () => {
+test("S03.8the admin's defaults get all three, so the next league made has them", async () => {
   await oneTieBreakLeague("pointsAgainst");
   await migrate();
 
   expect(await tieBreaksIn(await adminCreatesLeague(t, undefined, "Next League"), NEXT)).toEqual(["pointsAgainst", "pointsFor", "headToHead"]);
 });
 
-test("S03.2 before the one-off runs, a league made from defaults with one tie-break gets all three", async () => {
+test("S03.8before the one-off runs, a league made from defaults with one tie-break gets all three", async () => {
   await oneTieBreakLeague("headToHead");
 
   expect(await tieBreaksIn(await adminCreatesLeague(t, undefined, "Next League"), 1)).toEqual(["headToHead", "pointsFor", "pointsAgainst"]);
 });
 
-test("S03.2 before the one-off runs, League settings shows all three, and a save adds them from the next gameweek", async () => {
+test("S03.8before the one-off runs, League settings shows all three, and a save adds them from the next gameweek", async () => {
   const leagueId = await oneTieBreakLeague("pointsAgainst");
   const commissioner = await actingAs(t, COMMISSIONER);
   const { part } = await commissioner.query(api.rules.leagueSettings.settings, { leagueId });
@@ -80,7 +80,7 @@ test("S03.2 before the one-off runs, League settings shows all three, and a save
   expect(await tieBreaksIn(leagueId, NEXT)).toEqual(["pointsAgainst", "pointsFor", "headToHead"]);
 });
 
-test("S03.2 a league with all three keeps its order, and running it again changes nothing", async () => {
+test("S03.8a league with all three keeps its order, and running it again changes nothing", async () => {
   const one = await oneTieBreakLeague("pointsFor");
   const three = await adminCreatesLeague(t, undefined, "Three League");
   await changeRulesTo(t, three, { tieBreaks: REORDERED_TIE_BREAKS });
@@ -93,7 +93,7 @@ test("S03.2 a league with all three keeps its order, and running it again change
   expect(await tieBreaksIn(one, NEXT)).toEqual(["pointsFor", "headToHead", "pointsAgainst"]);
 });
 
-test("S03.2 a league already holding the most rules changes keeps its own, and every other league still gets all three", ROWS_TO_THE_CAP, async () => {
+test("S03.8a league already holding the most rules changes keeps its own, and every other league still gets all three", ROWS_TO_THE_CAP, async () => {
   const full = await oneTieBreakLeague("headToHead");
   const other = await adminCreatesLeague(t, undefined, "Other League");
   await changeEveryRules(t, other, (rules) => ({ ...rules, tieBreaks: ["pointsAgainst"] }));

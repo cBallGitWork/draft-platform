@@ -37,7 +37,7 @@ test("no squad limits, no club limit and no presets are all sound", () => {
   expect(() => check(free)).not.toThrow();
 });
 
-test("S03.2 every league has all three tie-breaks, in any order, and leaving one out is unsound", () => {
+test("S03.8 every league has all three tie-breaks, in any order, and leaving one out is unsound", () => {
   expect(FIRST_RULES.tieBreaks).toEqual(["pointsFor", "headToHead", "pointsAgainst"]);
   expect(() => check(rulesWith({ tieBreaks: ["pointsAgainst", "headToHead", "pointsFor"] }))).not.toThrow();
   expect(() => check(rulesWith({ tieBreaks: ["pointsFor"] }))).toThrow(new Error("The tie-break headToHead is missing: every league has all 3."));

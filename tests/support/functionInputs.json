@@ -187,6 +187,7 @@
   "matchup/matchupGameweek:gameweeksOf": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"teamId":{"fieldType":{"type":"id","tableName":"teams"},"optional":true}}},
   "migrations/deadlineDefaultBackfill:moveDeadlinesToDefault": {"type":"object","value":{}},
   "migrations/everyTieBreak:addEveryTieBreak": {"type":"object","value":{}},
+  "migrations/everyTieBreak:addLeagueTieBreaks": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "migrations/firstInstructionsVersion:addFirstInstructions": {"type":"object","value":{}},
   "migrations/firstInstructionsVersion:redrawForSportmonks": {"type":"object","value":{}},
   "migrations/firstLineupBackfill:saveTeamsTheirLineup": {"type":"object","value":{}},
