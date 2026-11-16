@@ -1,0 +1,65 @@
+{
+  "start": "npx vite --strictPort --port 5199",
+  "env": { "VITE_CONVEX_URL": "" },
+  "port": 5199,
+  "startPath": "/?preview=manager",
+  "data": "the site's made-up preview data, signed in as a manager with a team in two leagues; saves may not stick, and a reload, or going back past the first page, leaves the made-up data and shows a can't-reach-Convex page that a real manager would never see",
+  "personas": [
+    {
+      "style": "fresh eyes",
+      "who": "Plays FPL every week but has never used a draft game; a friend invited him to this league",
+      "jobs": [
+        "Work out what this site is and what you're meant to do this week",
+        "Find out whether you're winning this week's match, and by how much",
+        "Pick your starting eleven for the next gameweek and change one player",
+        "Find out why one of your players scored what he did",
+        "Find out how a defender scores points here"
+      ]
+    },
+    {
+      "style": "fresh eyes",
+      "who": "Watches the Premier League but barely plays fantasy; a mate talked him into this league",
+      "jobs": [
+        "Your striker is injured: get a player nobody owns into your squad",
+        "Offer another manager a trade, one of your players for one of his",
+        "Check your messages and see if anything needs you",
+        "Find out when the next deadline is and what happens if you do nothing"
+      ]
+    },
+    {
+      "style": "bug hunter",
+      "who": "Has played Football Manager for years and some FPL, and notices when numbers don't add up",
+      "jobs": [
+        "Check this week's match, score and opponent, on every screen that shows it",
+        "Check your squad's players and counts on every screen that lists them",
+        "Look at a Premier League match and check its score and scorers against each player's points"
+      ]
+    },
+    {
+      "style": "breaker",
+      "who": "Impatient, clicks fast, double-clicks everything and goes back mid-way",
+      "jobs": [
+        "Change your lineup and formation, then undo it",
+        "Search for players with odd text, and try to pick one up",
+        "Start a trade offer and abandon it half-way"
+      ]
+    },
+    {
+      "style": "completionist",
+      "who": "Opens every tab and menu before trusting a site",
+      "jobs": [
+        "Open everything on Home and My team",
+        "Open everything on Scouting, Trades and Football"
+      ]
+    },
+    {
+      "style": "minimalist",
+      "who": "Has two minutes a week for this and wants it done",
+      "jobs": [
+        "Set your team for the next gameweek",
+        "Answer anything waiting on you",
+        "Check this week's score"
+      ]
+    }
+  ]
+}
