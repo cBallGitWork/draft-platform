@@ -59,7 +59,8 @@ Ipswich 1–1 Nott'm Forest (fixture 128999), recorded every 30 s by `scripts/re
 and checked from Convex every 5 min with `football/feeds:commentaryCheck`. Convex's servers were
 answered at every check, and the live poller never failed. The commentary is not append-only
 (lines vanish and are reworded), so each read replaces what it shows: the live tick reads each
-live match's stream with its points and stores the written lines whole, one row a match, delayed
+live match's stream with its points and stores the written lines in `commentaryChunks`, counted
+from the oldest, so a new line rewrites only the newest chunk (#2004, `convex/football/commentaryChunks.ts`), delayed
 when a read fails or the stream trails the clock (`COMMENTARY_BEHIND_MINUTES`)
 (`convex/football/matchCommentary.ts`, #43). The timings and
 counts: [docs/pl-commentary.md](docs/pl-commentary.md) and
@@ -146,7 +147,12 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `lineups.details` and events, so 60 an hour on the fixture entity at most for each competition
   with a match on, five such well inside its 2,000 and Sportmonks' "no faster than 10 seconds".
   Each catalogue stat's Sportmonks type, or that it has none:
-  `convex/football/sportmonks/sportmonksStats.ts`.
+  `convex/football/sportmonks/sportmonksStats.ts`. Each man's stats in each match from the newest
+  live read are a row in `sportmonksPlayerMatchStats` (#1415, `sportmonksPlayerStats.ts`); each
+  Sportmonks club, player and match's FPL `code` is a row in `sportmonksFplLinks`, null until
+  linked, a link once made standing (#1421, `fplLinksSync.ts`), and when each man first played a
+  minute a row in `sportmonksFirstMinutes`; `pointsCompare.ts` sets a gameweek's Sportmonks points
+  beside FPL's (#1422).
 - Match stats (#27): one record per player per match in `playerMatchStats`, keyed on FPL's
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
@@ -188,6 +194,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   moves, and late stats every 10 minutes restart a chain that died (a tick killed before it
   could schedule), and `liveTickChains` holds each tick's next run, so arming never starts a
   second chain. Both feeds send running totals, so the next tick catches up any failed one.
+  Each live match's men are one row of prints in `liveMatchPrints` (#2006,
+  `convex/stats/livePrints.ts`), so a tick writes only the men who moved, and season totals wait
+  for full time, which deletes it; a match whose points stay as last read ("Live points delayed",
+  S10.12) is a row in `livePointsDelays` until the next full read.
   Each tick that found a match live is a row in `liveStatsTicks`, failed or not
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#during-a-match)). Inside: FPL's ~1.8 MB
   bootstrap and about 40 Premier League reads per match, each tick: its sheets, each named
@@ -259,7 +269,11 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   match is then postponed; one FPL stopped sending keeps its last deadline in `keptDeadlines`
   (#202) until it passes. A feed's round's first kickoff, as first seen, is a row a season and
   round in `roundStarts` (#1416, `convex/gameweeks/roundStarts.ts`), so a later move never shifts
-  a gameweek's window. The one deadline alarm pending, site-wide, is the one row in
+  a gameweek's window. A match the admin moves to another gameweek is a row in `matchMoves`, which
+  `roundStarts` yields to until he clears it, and each move and clear a row in `matchMoveLog`, his
+  log (#1417, `convex/gameweeks/matchMoves.ts`). Each gameweek's first and last kickoff is a row in
+  `gameweekKickoffs` (#2009), what a deadline reads in place of the season's matches. The one
+  deadline alarm pending, site-wide, is the one row in
   `deadlineAlarms` (#1329), so it is kept or cancelled by its id. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
   on his team's row, so Continue stops leading him there on every device (#526,
   `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it. Each team's
@@ -438,8 +452,10 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `match` (one Premier League match's page), `matchup`, `migrations` (the one-offs run by hand on
   each deployment, `npx convex run migrations/<file>:<name>`, each deleted once every deployment
   has run it, #1581), `outbound` (what leaves the app: email
-  through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and points,
-  #1113), `playerCard`, `positions`, `rules` (a league's rules: its settings, their checks, history
+  through Resend, Claude, the deployment's settings, and `outsideWorld.ts`'s one e2e address for
+  every outside call, #2288), `pastSeasons` (past seasons' copy and points,
+  #1113), `playerCard`, `positions`, `release` (what any open tab asks the server: its version
+  for the Reload bar, S12.13, and its time for countdowns, S05.50), `rules` (a league's rules: its settings, their checks, history
   and locks), `scoring` (the site's scoring set, its versions and patches, and a team's points),
   `scouting` (the players list, compare, shortlist, scouts and the stat race), `shared` (helpers
   every feature uses), `signIn`, `squads` (a team's squad: its limits, numbers and transactions),
