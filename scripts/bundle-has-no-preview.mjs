@@ -36,7 +36,7 @@ const NEEDLES = {
   "src/myTeam/claims/preview.ts": "preview-claim-",
   "src/myTeam/tactics/preview.ts": "Henderson",
   "src/patches/preview.ts": "preview-patch-",
-  "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",
+  "src/playerCard/preview.ts": "The feed gave his assist to Odegaard",
   "src/premierLeague/matchPreview.ts": "41' GOAL Enciso",
   "src/premierLeague/preview.ts": "45+2'00",
   "src/rules/preview.ts": "preview-rules",

@@ -115,7 +115,7 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
         cleanSheets: (code * 5) % 4,
         saves: keeper ? 15 + code : 0,
         yellowCards: code % 3,
-        redCards: code === 7 ? 1 : 0,
+        redCards: name === "Rice" ? 1 : 0,
       },
       news,
       chanceOfPlaying: previewChanceOf(code),

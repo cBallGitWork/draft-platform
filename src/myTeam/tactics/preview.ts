@@ -79,14 +79,16 @@ function previewStars(playerCode: number, positions: readonly Position[]): RoleS
   return roles.map(({ area, role }, index) => ({
     area,
     role,
-    stars: playerCode === PREVIEW_UNRATED ? NO_DATA : playerCode === 15 ? UNSURE : 0.5 + ((playerCode * 7 + index * 3) % 10) / 2,
+    stars: playerCode === PREVIEW_UNRATED ? NO_DATA : playerCode === PREVIEW_UNPLAYED ? UNSURE : 0.5 + ((playerCode * 7 + index * 3) % 10) / 2,
   }));
 }
 
+/** Saka's made-up FPL news, which his card's preview (../../playerCard/preview.ts) shows too, as he
+ *  is the same player there. */
+export const PREVIEW_SAKA_NEWS = "Hamstring injury - 75% chance of playing";
 /** FPL's news on two of them, made up: Saka, a starter, doubtful, and Watkins, on the bench, out. */
 const NEWS = new Map([
-  // His card's news (../../playerCard/preview.ts), as he is the same player there.
-  [1, { news: "Hamstring injury - 75% chance of playing", chanceOfPlaying: 75 }],
+  [1, { news: PREVIEW_SAKA_NEWS, chanceOfPlaying: 75 }],
   [PREVIEW_UNPLAYED, { news: "Hamstring injury - Expected back 22 Nov", chanceOfPlaying: 0 }],
 ]);
 /** The first lineup's starters, in the pitch's order, for League home's preview. */
