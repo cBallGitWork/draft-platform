@@ -21,6 +21,8 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { MAIL_TITLE, unreadTabLabel } from "../../../src/mail/words";
 import { matchPath } from "../../../src/premierLeague/paths";
+import { playerCardPath } from "../../../src/playerCard/paths";
+import { scoringPath } from "../../../src/scoring/paths";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { signInWords } from "../../../src/signIn/words";
 import { squadsPath } from "../../../src/squads/paths";
@@ -28,8 +30,11 @@ import { SQUADS_TITLE } from "../../../src/squads/words";
 import type { Session } from "../../../src/signIn/seam";
 import {
   adminSeeing,
+  beingDeleted,
   coCommissioned,
+  commissioned,
   commissioner,
+  deleterOf,
   expectSentToLeagues,
   league,
   manager,
@@ -160,5 +165,22 @@ describe("the menu and the top bar (spec/12 The frame, spec/16)", () => {
     const app = openApp(path, session);
     await userEvent.click(await screen.findByRole("link", { name: feedbackLinkWords }));
     expect(app.path()).toBe(FEEDBACK_PATH);
+  });
+});
+
+describe("the session changing under an open page (spec/13 Leaving a league, Deleting)", () => {
+  it.each<[string, string, Session, Session]>([
+    ["removed from the league, on My team", MY_TEAM_PATH, manager, newcomer],
+    ["removed from the league, on a player's card", playerCardPath(L1, 1), manager, newcomer],
+    ["removed from the league, on Player scoring", scoringPath(L1), manager, newcomer],
+    ["demoted from commissioner, on League settings", settingsPath(L1), managerIn(commissioned), manager],
+    ["the league deleted, on Squads", squadsPath(L1), managerIn(commissioned), deleterOf(beingDeleted(commissioned))],
+    ["the league deleted by the admin, on My team", MY_TEAM_PATH, manager, newcomer],
+  ])("UI-121, UI-122, UI-123: %s, is sent to Your leagues at once, never left on a blank page", async (_, path, before, after) => {
+    const app = openApp(path, before);
+    await screen.findByRole("heading", { level: 1 });
+    app.becomes(after);
+    expect(await yourLeaguesHeading()).toBeTruthy();
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 });

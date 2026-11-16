@@ -4,7 +4,9 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ConvexError } from "convex/values";
 import { describe, expect, it } from "vitest";
+import { ERROR_PAGE_TITLE, readFailedWords } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
@@ -14,6 +16,7 @@ import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
+import { silenceConsoleError } from "../../support/convex/test.harness";
 
 const POTATOES: OtherSquad = {
   teamName: "Saka Potatoes",
@@ -72,6 +75,16 @@ describe("the page", () => {
   it("says so when the squad is empty", async () => {
     openTeam({ otherSquad: { teamName: "Team 2", players: [] } });
     expect(await screen.findByText(otherSquadEmptyWords)).toBeTruthy();
+  });
+
+  it("UI-059 (spec/12 The frame: the plain-words error page): a team the server refuses shows the error page, never a blank one", async () => {
+    silenceConsoleError();
+    const app = openTeam();
+    app.myTeam.useOtherSquad.mockImplementation(() => {
+      throw new ConvexError("That team isn't in this league.");
+    });
+    expect(await screen.findByRole("heading", { level: 1, name: ERROR_PAGE_TITLE })).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
   });
 
   it("someone not in the league is sent to their leagues", async () => {
