@@ -32,38 +32,42 @@ type PreviewPlayer = readonly [number, string, string, Position[], Cell | null];
 /** At the league limits (#2136), ten more on the bench, so the squad holds a Premier League
  *  squad's most; still no more than three from a club. */
 const LIMITS_BENCH: readonly PreviewPlayer[] = [
-  [16, "Verbruggen", "BHA", ["GK"], null],
-  [17, "Van de Ven", "TOT", ["CB"], null],
-  [18, "Gusto", "CHE", ["FB", "WB"], null],
-  [19, "Caicedo", "CHE", ["CDM", "CM"], null],
-  [20, "Szoboszlai", "LIV", ["CM", "CAM"], null],
-  [21, "Gibbs-White", "NFO", ["CAM", "CM"], null],
-  [22, "Kudus", "TOT", ["W"], null],
-  [23, "Semenyo", "BOU", ["W", "ST"], null],
-  [24, "Isak", "LIV", ["ST"], null],
-  [25, "Wood", "NFO", ["ST"], null],
+  [19, "Verbruggen", "BHA", ["GK"], null],
+  [20, "Van de Ven", "TOT", ["CB"], null],
+  [21, "Gusto", "CHE", ["FB", "WB"], null],
+  [22, "Caicedo", "CHE", ["CDM", "CM"], null],
+  [23, "Szoboszlai", "LIV", ["CM", "CAM"], null],
+  [24, "Gibbs-White", "NFO", ["CAM", "CM"], null],
+  [25, "Kudus", "TOT", ["W"], null],
+  [26, "Semenyo", "BOU", ["W", "ST"], null],
+  [27, "Isak", "LIV", ["ST"], null],
+  [28, "Wood", "NFO", ["ST"], null],
 ];
 
 /** The player with no match yet, so his role card and his season say so: Watkins. */
-export const PREVIEW_UNPLAYED = 15;
+export const PREVIEW_UNPLAYED = 18;
+/** The player with no match to rate, so his stars all say so: Murillo. */
+const PREVIEW_UNRATED = 16;
 
-/** Each player: his code, name, club and positions, and his cell, or none for the bench. */
+/** Each player: his code, name, club and positions, and his cell, or none for the bench. One of
+ *  Scouting's preview players (../../scouting/preview.ts) keeps his code there, so his Player card
+ *  opens his own card (#2406); the rest take codes Scouting's players don't use. */
 const PLAYERS: readonly PreviewPlayer[] = [
-  [1, "Pickford", "EVE", ["GK"], { area: "goalkeeper", lane: "centre" }],
-  [2, "Gvardiol", "MCI", ["CB", "FB"], { area: "defence", lane: "left" }],
-  [3, "Gabriel", "ARS", ["CB"], { area: "defence", lane: "leftCentre" }],
-  [4, "Van Dijk", "LIV", ["CB"], { area: "defence", lane: "rightCentre" }],
-  [5, "Muñoz", "CRY", ["FB", "WB"], { area: "defence", lane: "right" }],
-  [6, "Guimarães", "NEW", ["CDM", "CM"], { area: "defensiveMidfield", lane: "leftCentre" }],
-  [7, "Rice", "ARS", ["CDM", "CM"], { area: "defensiveMidfield", lane: "rightCentre" }],
-  [8, "Rogers", "AVL", ["W", "CAM"], { area: "attackingMidfield", lane: "left" }],
-  [9, "Palmer", "CHE", ["CAM", "W"], { area: "attackingMidfield", lane: "centre" }],
-  [10, "Saka", "ARS", ["W"], { area: "attackingMidfield", lane: "right" }],
-  [11, "Haaland", "MCI", ["ST"], { area: "attack", lane: "centre" }],
-  [12, "Henderson", "CRY", ["GK"], null],
-  [13, "Murillo", "NFO", ["CB"], null],
-  [14, "Mbeumo", "MUN", ["W", "ST"], null],
-  [15, "Watkins", "AVL", ["ST"], null],
+  [8, "Pickford", "EVE", ["GK"], { area: "goalkeeper", lane: "centre" }],
+  [9, "Gvardiol", "MCI", ["CB", "FB"], { area: "defence", lane: "left" }],
+  [10, "Gabriel", "ARS", ["CB"], { area: "defence", lane: "leftCentre" }],
+  [7, "Van Dijk", "LIV", ["CB"], { area: "defence", lane: "rightCentre" }],
+  [11, "Muñoz", "CRY", ["FB", "WB"], { area: "defence", lane: "right" }],
+  [12, "Guimarães", "NEW", ["CDM", "CM"], { area: "defensiveMidfield", lane: "leftCentre" }],
+  [2, "Rice", "ARS", ["CDM", "CM"], { area: "defensiveMidfield", lane: "rightCentre" }],
+  [13, "Rogers", "AVL", ["W", "CAM"], { area: "attackingMidfield", lane: "left" }],
+  [4, "Palmer", "CHE", ["CAM", "W"], { area: "attackingMidfield", lane: "centre" }],
+  [1, "Saka", "ARS", ["W"], { area: "attackingMidfield", lane: "right" }],
+  [14, "Haaland", "MCI", ["ST"], { area: "attack", lane: "centre" }],
+  [15, "Henderson", "CRY", ["GK"], null],
+  [PREVIEW_UNRATED, "Murillo", "NFO", ["CB"], null],
+  [17, "Mbeumo", "MUN", ["W", "ST"], null],
+  [PREVIEW_UNPLAYED, "Watkins", "AVL", ["ST"], null],
   ...(previewAtLimits ? LIMITS_BENCH : []),
 ];
 
@@ -75,22 +79,22 @@ function previewStars(playerCode: number, positions: readonly Position[]): RoleS
   return roles.map(({ area, role }, index) => ({
     area,
     role,
-    stars: playerCode === 13 ? NO_DATA : playerCode === 15 ? UNSURE : 0.5 + ((playerCode * 7 + index * 3) % 10) / 2,
+    stars: playerCode === PREVIEW_UNRATED ? NO_DATA : playerCode === 15 ? UNSURE : 0.5 + ((playerCode * 7 + index * 3) % 10) / 2,
   }));
 }
 
 /** FPL's news on two of them, made up: Saka, a starter, doubtful, and Watkins, on the bench, out. */
 const NEWS = new Map([
-  [10, { news: "Ankle knock - 75% chance of playing", chanceOfPlaying: 75 }],
-  [15, { news: "Hamstring injury - Expected back 22 Nov", chanceOfPlaying: 0 }],
+  [1, { news: "Ankle knock - 75% chance of playing", chanceOfPlaying: 75 }],
+  [PREVIEW_UNPLAYED, { news: "Hamstring injury - Expected back 22 Nov", chanceOfPlaying: 0 }],
 ]);
 /** The first lineup's starters, in the pitch's order, for League home's preview. */
 export const previewStarterCodes = PLAYERS.flatMap(([playerCode, , , , cell]) => (cell === null ? [] : [playerCode]));
 /** FPL's chance he plays next round, null with no news on him. */
 export const previewChanceOf = (playerCode: number) => NEWS.get(playerCode)?.chanceOfPlaying ?? null;
 
-// Squad numbers are made up too: each player wears his code, Watkins none yet (#13).
-const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
+// Squad numbers are made up too: each player wears his place in the list, Watkins none yet (#13).
+const squad = PLAYERS.map(([playerCode, name, clubShortName, positions], index) => ({
   playerCode,
   name,
   clubShortName,
@@ -98,7 +102,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   unheld: false,
   positions,
   flagged: [],
-  number: playerCode === PREVIEW_UNPLAYED ? null : playerCode,
+  number: playerCode === PREVIEW_UNPLAYED ? null : index + 1,
   stars: previewStars(playerCode, positions),
   availability: "available" as const,
   news: NEWS.get(playerCode)?.news ?? null,
