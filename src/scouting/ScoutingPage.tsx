@@ -105,6 +105,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
           filters={filters}
           clubs={list?.clubs}
           ownStats={list?.ownStats}
+          scored={list?.scored}
           filterBy={filterBy}
           stat={stat}
           show={show}

@@ -14,6 +14,7 @@ import { DEFAULT_PERIOD, period } from "./periods";
 import { listFigures, shownStat } from "./playersOrder";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
+import { scoredStats } from "../scoring/scoringSet";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { gameModeOf, gameModeShape } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
@@ -113,6 +114,9 @@ const playersList = v.object({
   clubs: v.array(clubRecord),
   /** The site's latest set's own stats, in its order, offered beside the catalogue's (#910). */
   ownStats: v.array(offeredOwnStat),
+  /** The stats that set scores, by key (a catalogue stat's or an own stat's), in its order: the
+   *  stat box's short list, above the rest (spec/19, `S19.5`). */
+  scored: v.array(v.string()),
   players: v.array(listedPlayer),
   /** The season the points are from while they are last season's, by the year it starts, for the
    *  head to name ("Pts 25/26"); null while they are this season's. */
@@ -183,7 +187,7 @@ export const list = query({
     };
     const rows = players.map(rowOf);
     const mode = gameModeOf((await seasonRules(ctx, leagueId)).latest);
-    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [], mode };
+    const listed = { clubs: [...listedClubOf.values()], ownStats, scored: scoredStats(set), players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [], mode };
     if (keep === undefined) return listed;
     const kept = rows.find(({ code }) => code === keep) ?? (await keptOutside(ctx, keep, listedClubOf, rowOf));
     return { ...listed, kept };

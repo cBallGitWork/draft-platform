@@ -10,7 +10,9 @@ import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { previewClub, previewGameMode, previewSaves, previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
+import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import { withOwnStats } from "../../convex/scoring/ownStats";
+import { scoredStats } from "../../convex/scoring/scoringSet";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
@@ -142,6 +144,7 @@ export const previewPlayersListOf =
     return {
       clubs: [...new Map(players.map(({ club }) => [club.code, club])).values()],
       ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
+      scored: scoredStats(FIRST_SCORING),
       players: listOf(rows, filters, sort),
       pointsSeason: null,
       periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],

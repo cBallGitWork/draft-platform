@@ -17,6 +17,9 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   club, sortable by any stat, with season points under the site's scoring (`spec/14`).
 - Its stat box offers the site set's own stats as well as the feeds' (Craig, 1 Nov 2026: "sure";
   #910).
+- Its stat box opens on a short list: the stats the site's scoring set scores, in that set's
+  order, with no list typed by hand; the rest follow grouped by kind (Craig, 16 Nov 2026, on
+  #2447). `S19.5`
 - Before the new season's first match, Scouting's season totals are last season's (Craig, 30 Oct
   2026: "ok you do it", to the recommendation on #647).
 - A player's season points are at his main position, as his player card opens on: "Has to be his
