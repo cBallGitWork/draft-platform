@@ -16,7 +16,7 @@ import { menuWords } from "../../../src/shared/words";
 import type { Session } from "../../../src/signIn/seam";
 import { adminSeeing, league, manager, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
 
-describe("UI-184 (spec/12 The frame): the browser tab", () => {
+describe("UI-184 (S12.14, WCAG 2.4.2 Page Titled): the browser tab", () => {
   it.each<[string, Session, string]>([
     [SIGN_IN_PATH, visitor, signInWords.title],
     [LEAGUES_PATH, manager, LEAGUES_TITLE],
