@@ -143,6 +143,25 @@ describe("the lineup to set", () => {
     expect(await tacticsOf(ANN)).toMatchObject({ lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench } });
   });
 
+  test("S05.55: hands on the mark of the save the lineup was last left by, new with each save", async () => {
+    const ann = await actingAs(t, ANN);
+    const markOf = async () => {
+      const tactics = await tacticsOf(ANN);
+      if (tactics.kind !== "open") throw new Error("expected an open gameweek");
+      return tactics.lineupEdit;
+    };
+    const save = (seen: string | undefined) =>
+      ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] }, basedOn: { tab: "tab", ...(seen !== undefined && { seen }) } });
+    // The squad's first lineup, already marked as written by no tab.
+    const picked = await markOf();
+    await save(picked);
+    const first = await markOf();
+    await save(first);
+    const second = await markOf();
+    expect([picked, first, second]).toEqual([expect.stringMatching(/^:/), expect.stringMatching(/^tab:/), expect.stringMatching(/^tab:/)]);
+    expect(second).not.toBe(first);
+  });
+
   test("moves on to the gameweek after once the deadline passes, counting down to that one's", async () => {
     const deadline = nextDeadline();
     vi.advanceTimersByTime(deadline - Date.now());

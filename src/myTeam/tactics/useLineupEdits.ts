@@ -1,8 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useChange } from "../../shared/useChange";
+import { isOwnEdit } from "../../../convex/lineup/lineupRows";
+import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { sameLineup, shownLineup, type EditedLineup } from "./lineupEdits";
 import type { LineupChanges } from "./seam";
+import { reloadedWords } from "./words";
 
 /** The lineup the Tactics tab shows and each move to it (spec/05, Moving players): every move saves
  *  itself, with the server's refusal kept in its words; Undo goes back through every move since the
@@ -11,16 +14,23 @@ import type { LineupChanges } from "./seam";
 export function useLineupEdits({
   leagueId,
   opening,
+  lineupEdit,
   squadCodes,
   changes,
   onShown,
 }: {
   leagueId: Id<"leagues">;
   opening: EditedLineup;
+  /** The live mark of the save the lineup was last left by (tactics.ts `lineupEdit`). */
+  lineupEdit: string | undefined;
   squadCodes: readonly number[];
   changes: LineupChanges;
   onShown(): void;
 }) {
+  // This tab's own mark, which each save carries, so a change to the live mark that isn't one of
+  // its own saves is another tab's (spec/05 `S05.55`; #2350).
+  const [tab] = useState(() => crypto.randomUUID());
+  const [seenEdit, setSeenEdit] = useState(lineupEdit);
   // The manager's last move; it stays after it is saved, so the pitch never shows the lineup held
   // before the server catches up with it.
   const [edited, setEdited] = useState<EditedLineup | null>(null);
@@ -41,17 +51,38 @@ export function useLineupEdits({
   // instructions: "Park the bus needs 5 at the back: switched to Keep it tight early"), until the
   // next move.
   const [switchedNote, setSwitchedNote] = useState<string | null>(null);
+  /** Another tab saved (spec/05 `S05.55`): the live lineup shows, with no move of this tab's left
+   *  to undo back over it, and `words` say so where a save's line is. */
+  const reload = (words: string) => {
+    sent.current = null;
+    setEdited(null);
+    setUndoable([]);
+    setShape("");
+    onShown();
+    setSavedAt(null);
+    setSwitchedNote(null);
+    clear();
+    setRefused(words);
+  };
+  if (lineupEdit !== seenEdit) {
+    setSeenEdit(lineupEdit);
+    if (!isOwnEdit(lineupEdit, tab)) reload(reloadedWords);
+  }
   const draft = useMemo(() => shownLineup(edited, opening, squadCodes), [edited, opening, squadCodes]);
 
   // A lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
   const save = async (lineup: EditedLineup) => {
     sent.current = lineup;
     const movedSince = () => sent.current !== lineup;
+    let changedElsewhere = false;
     const made = await run(async () => {
-      const answer = await changes.save(leagueId, lineup);
-      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
-      return typeof answer === "string" && !movedSince() ? answer : null;
+      const answer = await changes.save(leagueId, lineup, { tab, ...(lineupEdit !== undefined && { seen: lineupEdit }) });
+      changedElsewhere = answer === lineupRefusals.changedElsewhere;
+      // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below;
+      // and another tab's save, by reloading.
+      return typeof answer === "string" && !movedSince() && !changedElsewhere ? answer : null;
     });
+    if (changedElsewhere) return reload(lineupRefusals.changedElsewhere);
     if (movedSince()) return;
     // A refusal leaves no saved line; a save says when it landed ("Line-up saved 14:02"; spec/05).
     setSavedAt(made ? Date.now() : null);
