@@ -35,7 +35,7 @@ test("it asks lineup/tactics:ofMyTeam with the league and the minute, and hands 
   expect(convex.ofMyTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: NOW });
 });
 
-test("a save asks lineup/lineups:save with the league, the lineup and what it was made from, and hands on the gameweek it saved from", async () => {
+test("a save asks lineup/lineups:save with the league and the lineup, and hands on the gameweek it saved from", async () => {
   convex.save.mockResolvedValue(9);
   expect(await changes().save(A_LEAGUE_ID, LINEUP, BASED_ON)).toBe(9);
   expect(convex.save).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, lineup: { starters: [...LINEUP.starters], bench: LINEUP.bench }, basedOn: BASED_ON });
