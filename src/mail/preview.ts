@@ -7,10 +7,11 @@ import type { LetterSummary } from "../../convex/mail/mail";
 import { LATEST_LETTERS } from "../../convex/mail/mailLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import { nextStep, type TopBarState } from "../frame/topBar/topBarState";
-import { manager, previewSays, proLeague } from "../shared/preview";
+import { manager, previewChristmasBreak, previewSays, previewTeamNames, proLeague } from "../shared/preview";
 import type { MailSeam } from "./seam";
 
-const NEWEST = Date.parse("2026-10-20T14:02:00Z");
+/** The newest letter came an hour ago, so the unread ones are this week's whenever the preview opens (#2450). */
+const NEWEST = Date.now() - HOUR_MS;
 const { commissionerEmail: commissioner } = proLeague;
 
 type Made = Pick<LetterSummary, "subject" | "body" | "read"> & Partial<Pick<LetterSummary, "from" | "kind">>;
@@ -25,17 +26,17 @@ const letter = (number: number, hoursAgo: number, { from = null, kind = "commiss
 
 const previewLetters: LetterSummary[] = [
   letter(1, 0, {
-    subject: "Draft night is Friday at eight",
-    body: "Draft night is Friday at eight. The room opens at half seven: set your queue before then.\n\nSee you there.",
+    subject: `No league games in gameweeks ${previewChristmasBreak[0]} to ${previewChristmasBreak.at(-1)}`,
+    body: `We're off over Christmas: gameweeks ${previewChristmasBreak[0]} to ${previewChristmasBreak.at(-1)} don't count.`,
     from: commissioner,
     read: false,
   }),
   letter(2, 5, {
-    subject: "bob@example.com joined as manager of Team 9",
-    body: `${commissioner} added bob@example.com as the manager of Team 9.`,
+    subject: `bob@example.com joined as manager of ${previewTeamNames[8]}`,
+    body: `${commissioner} added bob@example.com as the manager of ${previewTeamNames[8]}.`,
     read: false,
   }),
-  letter(3, 26, { subject: "Team 4 is now Rovers XI", body: "ann@example.com renamed Team 4 to Rovers XI.", kind: "league", read: false }),
+  letter(3, 26, { subject: `Team 4 is now ${previewTeamNames[3]}`, body: `ann@example.com renamed Team 4 to ${previewTeamNames[3]}.`, kind: "league", read: false }),
   letter(4, 49, {
     subject: "The league now holds up to 12 teams",
     body: `${commissioner} changed the most teams the league holds from 10 to 12.`,

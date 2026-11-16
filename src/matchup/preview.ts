@@ -1,19 +1,23 @@
-// The matchup in the preview (src/app/preview.ts): the preview manager's team against Kroos Control,
-// replayed. Two made-up Premier League matches, the second kicking off half an hour into the
-// first, play out a minute every half second, so every man moves from yet to play, through his
-// minute, to finished; Saka Potatoes' keeper doesn't play and the bench keeper comes on once his
-// match is over; then the result is final, and the replay starts again. `?minute=N` holds it at
-// minute N of the replay, `?minute=final` at the end, for screenshots.
+// The matchup in the preview (src/app/preview.ts): My team's first lineup against the draw's
+// opponent for the gameweek, his men Scouting's, each side ending on the table's score, so League
+// home and the matchup agree (#2450). It opens with both matches over and the result provisional.
+// `?minute=replay` replays it: two made-up Premier League matches, the second kicking off half an
+// hour into the first, play out a minute every half second, so every man moves from yet to play,
+// through his minute, to finished; the manager's keeper doesn't play and the bench keeper comes on
+// once his match is over; then the result is final, and the replay starts again. `?minute=N` holds
+// it at minute N of the replay, `?minute=final` at the end, for screenshots.
 
 import { useEffect, useMemo, useState } from "react";
-import { positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
+import { areasOf, positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
-import { previewClub, previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
-import { previewIdOf, previewSeason } from "../table/preview";
+import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
+import { previewPlayers } from "../scouting/preview";
+import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** How long a man's match runs, stoppage time in, and when the second match kicks off. */
@@ -22,66 +26,102 @@ const SECOND_KICKOFF = 30;
 /** The replay's last minute of play, then a minute at full time before the result is final. */
 const LAST_MINUTE = SECOND_KICKOFF + MATCH_MINUTES;
 const FINAL_MINUTE = LAST_MINUTE + 2;
+/** The minute both matches are over and the result still provisional. */
+const FULL_TIME_MINUTE = LAST_MINUTE + 1;
 const TICK_MS = 500;
 const startedAt = Date.now();
 
-/** A made-up man: where he stands, his name, which match he plays (0 first, 1 second), and his
- *  points at full time; a keeper with no match minutes didn't play. */
-type Man = [Area, string, 0 | 1, number];
-const [MINE, OPPONENT] = previewTeamNames;
-const SAKA_POTATOES: { starters: Man[]; bench: Man[] } = {
-  starters: [
-    ["goalkeeper", "Raya", 0, 0],
-    ["defence", "White", 0, 6],
-    ["defence", "Saliba", 0, 2],
-    ["defence", "Gabriel", 1, 8],
-    ["defence", "Timber", 1, 1],
-    ["midfield", "Rice", 0, 3],
-    ["midfield", "Ødegaard", 1, 5],
-    ["midfield", "Saka", 0, 11],
-    ["attack", "Palmer", 1, 7],
-    ["attack", "Isak", 0, 2],
-    ["attack", "Watkins", 1, 1],
-  ],
-  bench: [
-    ["goalkeeper", "Pickford", 1, 3],
-    ["defence", "Gvardiol", 0, 2],
-    ["midfield", "Mbeumo", 1, 6],
-    ["attack", "Wissa", 0, 1],
-  ],
-};
-const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
-  starters: [
-    ["goalkeeper", "Sánchez", 1, 2],
-    ["defence", "Van Dijk", 0, 6],
-    ["defence", "Konaté", 0, 6],
-    ["defence", "Cucurella", 1, 1],
-    ["midfield", "Caicedo", 1, 3],
-    ["midfield", "Mac Allister", 0, 2],
-    ["midfield", "Szoboszlai", 0, 9],
-    ["midfield", "Semenyo", 1, 2],
-    ["attack", "Haaland", 1, 13],
-    ["attack", "Ekitiké", 0, 2],
-    ["attack", "Wood", 1, 0],
-  ],
-  bench: [
-    ["goalkeeper", "Pope", 0, 2],
-    ["defence", "Muñoz", 1, 1],
-    ["midfield", "Kudus", 0, 3],
-    ["attack", "Thiago", 1, 2],
-  ],
-};
-/** A side's club in match `match`, as the made-up lines name it (MATCHES): mine at home, the
- *  opponent away. */
-const clubCodeOf = (teamName: string, match: 0 | 1) => previewClub(MATCHES[match][teamName === MINE ? "home" : "away"]).code;
+/** A man: his code, name, club and squad number, his area and, a starter, his cell (a starter
+ *  with none takes his area's next lane), which match he plays (0 first, 1 second), and his points
+ *  at full time; a keeper with no match minutes didn't play. */
+type Man = { code: number; name: string; clubCode: number; number: number | null; area: Area; cell: Cell | null; match: 0 | 1; points: number };
+type Men = { starters: Man[]; bench: Man[] };
+const [MINE] = previewTeamNames;
 
-/** Saka Potatoes' keeper and the bench keeper who comes on for him. */
-const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
+/** The manager's men's match and points at full time, by name, so League home's recap holds
+ *  (Haaland 18, Saka 15, Palmer 12); one not named plays the second match for a point. */
+const MY_MATCHES: Record<string, readonly [0 | 1, number]> = {
+  Pickford: [0, 0],
+  Gvardiol: [1, 1],
+  Gabriel: [0, 2],
+  "Van Dijk": [1, 1],
+  Muñoz: [0, 1],
+  Guimarães: [1, 2],
+  Rice: [0, 1],
+  Rogers: [1, 2],
+  Palmer: [0, 12],
+  Saka: [0, 15],
+  Haaland: [1, 18],
+  Henderson: [1, 2],
+  Murillo: [0, 0],
+  Mbeumo: [1, 2],
+  Watkins: [0, 0],
+};
+/** His opponent's, likewise. */
+const THEIR_MATCHES: Record<string, readonly [0 | 1, number]> = {
+  Sánchez: [1, 5],
+  Konaté: [0, 7],
+  Cucurella: [0, 1],
+  Saliba: [0, 5],
+  "Mac Allister": [1, 3],
+  "Enzo Fernández": [1, 4],
+  "Bruno Fernandes": [0, 9],
+  Ødegaard: [1, 3],
+  Ekitiké: [0, 4],
+  Mateta: [1, 10],
+  Bowen: [1, 3],
+  Pope: [0, 2],
+  Timber: [1, 1],
+  Kluivert: [0, 3],
+  Thiago: [1, 2],
+};
+/** The man on each side whose points make the side's total the table's for the gameweek. */
+const [MY_BALANCER, THEIR_BALANCER] = ["Rogers", "Mateta"];
+/** The opponent's eleven's areas, in Scouting's order, a 3-4-3; the rest are his bench. */
+const THEIR_AREAS: readonly Area[] = ["goalkeeper", "defence", "defence", "defence", "midfield", "midfield", "midfield", "midfield", "attack", "attack", "attack"];
 
-const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
+const matchOf = (table: Record<string, readonly [0 | 1, number]>, name: string): readonly [0 | 1, number] => table[name] ?? [1, 1];
+
+/** The manager's men: My team's first lineup (../myTeam/tactics/preview.ts), each in his cell. */
+function myMan(playerCode: number, cell: Cell | null): Man {
+  const { name, clubCode, number, positions } = previewSquad.find((each) => each.playerCode === playerCode)!;
+  const [match, points] = matchOf(MY_MATCHES, name);
+  return { code: playerCode, name, clubCode, number, area: cell?.area ?? areasOf(positions)[0], cell, match, points };
+}
+const MY_MEN: Men = {
+  starters: previewFirstLineup.starters.map(({ playerCode, area, lane }) => myMan(playerCode, { area, lane })),
+  bench: previewFirstLineup.bench.map((playerCode) => myMan(playerCode, null)),
+};
+/** The opponent's men: Scouting's for his team (../scouting/preview.ts), so each is owned by him there. */
+const THEIR_MEN: Men = (() => {
+  const men = previewPlayers
+    .filter(({ ownerTeamName }) => ownerTeamName === previewOpponent)
+    .map(({ code, name, club, positions }, index): Man => {
+      const [match, points] = matchOf(THEIR_MATCHES, name);
+      return { code, name, clubCode: club.code, number: index + 1, area: THEIR_AREAS[index] ?? areasOf(positions)[0], cell: null, match, points };
+    });
+  return { starters: men.slice(0, THEIR_AREAS.length), bench: men.slice(THEIR_AREAS.length) };
+})();
+
+/** The manager's keeper, who doesn't play, and the bench keeper who comes on for him. */
+const UNUSED_KEEPER = MY_MEN.starters.find(({ area }) => area === "goalkeeper")!;
+const BENCH_KEEPER = MY_MEN.bench.find(({ area }) => area === "goalkeeper")!;
+
+/** `men` with the balancer's points making the total that counts at full time `total`, as the
+ *  table has it for the gameweek; as they stand in one to come. */
+function totalling(men: Men, balancer: string, total: number | null): Men {
+  if (total === null) return men;
+  const counting = [...men.starters.filter((man) => man !== UNUSED_KEEPER), ...men.bench.filter((man) => man === BENCH_KEEPER)];
+  const others = counting.filter(({ name }) => name !== balancer).reduce((sum, { points }) => sum + points, 0);
+  const balanced = (man: Man) => (man.name === balancer ? { ...man, points: Math.max(0, total - others) } : man);
+  return { starters: men.starters.map(balanced), bench: men.bench.map(balanced) };
+}
+
+/** Every man's code, by his name, for the lines that name him. */
+const codeOf = (name: string) => [...MY_MEN.starters, ...MY_MEN.bench, ...THEIR_MEN.starters, ...THEIR_MEN.bench].find((man) => man.name === name)!.code;
 
 /** A man `minute` minutes into the replay. */
-function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: boolean): MatchupSlot {
+function slotAt({ code, name, area, clubCode, number, match, points: finalPoints }: Man, minute: number, onBench: boolean): MatchupSlot {
   const played = minute - match * SECOND_KICKOFF;
   // The Premier League preview's code for the match, whose page every fixture there opens.
   const fixtureCode = previewFixtureCode(previewGameweek, match);
@@ -93,9 +133,8 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
         ? { kind: "playing", fixtureCode, state: "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
-  const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerCode: codeOf(BENCH_KEEPER), playerName: BENCH_KEEPER } : null;
-  // His shirt is the side's to dress (sideAt).
-  return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points, namedAt(match, played))] };
+  const autoSub = code === UNUSED_KEEPER.code && status.kind === "finished" ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
+  return { playerCode: code, name, area, clubCode, number, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points, namedAt(match, played))] };
 }
 
 /** Each match's clubs, as its lines name them, and the minutes each club scores in (the lines' goals). */
@@ -147,27 +186,26 @@ const LANES_BY_COUNT: Record<number, readonly Lane[]> = {
   4: ["left", "leftCentre", "rightCentre", "right"],
 };
 
-/** A side's starters `minute` minutes in, each in his own slot of his area, in its first role. */
+/** A side's starters `minute` minutes in, each in his cell, or one of his area's own, in its
+ *  first role. */
 function startersAt(men: Man[], minute: number): MatchupStarter[] {
   return men.map((man) => {
-    const inArea = men.filter(([area]) => area === man[0]);
-    const lane = LANES_BY_COUNT[inArea.length][inArea.indexOf(man)];
-    return { ...slotAt(man, minute, false), ...slotOf({ area: man[0], lane }) };
+    const inArea = men.filter(({ area }) => area === man.area);
+    const cell = man.cell ?? { area: man.area, lane: LANES_BY_COUNT[inArea.length][inArea.indexOf(man)] };
+    return { ...slotAt(man, minute, false), ...slotOf(cell) };
   });
 }
 
 /** A side `minute` minutes in: the keeper's auto-sub once his match is over, in his slot, then the
  *  total. */
-function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
+function sideAt(teamName: string, men: Men, minute: number): MatchupSide {
   const starters = startersAt(men.starters, minute);
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
   const slots = [...starters, ...bench];
-  // Each man in his match's club's shirt, numbered in squad order.
-  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: clubCodeOf(teamName, match), number: index + 1 }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
-    const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
+    const on = bench.find((slot) => slot.playerCode === BENCH_KEEPER.code)!;
     Object.assign(on, { counts: true, autoSub: { kind: "on", playerCode: off.playerCode, playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const final = minute >= FINAL_MINUTE;
@@ -191,19 +229,18 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
  *  The second match's minutes count from its own kickoff. */
 const LINES: [0 | 1, number, string, string | null, about: string[], columns: [string | null, string | null]][] = [
   [0, 0, "KO ARS v LIV", null, [], [null, null]],
-  [0, 12, "12' YELLOW Van Dijk", "-1", ["Van Dijk"], [null, "-1"]],
-  [0, 23, "23' GOAL Saka, assist Rice", "Saka +5, Rice +3", ["Saka", "Rice"], ["+8", null]],
+  [0, 12, "12' YELLOW Cucurella", "-1", ["Cucurella"], [null, "-1"]],
+  [0, 23, "23' GOAL Saka, assist Palmer", "Saka +5, Palmer +3", ["Saka", "Palmer"], ["+8", null]],
   [1, 0, "KO CHE v MCI", null, [], [null, null]],
   [0, 38, "38' Corner, conceded by Konaté", null, ["Konaté"], [null, null]],
-  [1, 17, "17' GOAL Haaland", "+4", ["Haaland"], [null, "+4"]],
+  [1, 17, "17' GOAL Haaland", "+4", ["Haaland"], ["+4", null]],
   [0, 45, "45+2' HT", null, [], [null, null]],
   [0, 61, "~61' Saka: 60 minutes", "+1", ["Saka"], ["+1", null]],
-  [1, 40, "40' SHOT Palmer, saved", null, ["Palmer"], [null, null]],
-  [0, 77, "77' GOAL Szoboszlai, penalty", "+5", ["Szoboszlai"], [null, "+5"]],
-  [1, 58, "58' GOAL Palmer, assist Ødegaard", "Palmer +4, Ødegaard +3", ["Palmer", "Ødegaard"], ["+7", null]],
-  [0, MATCH_MINUTES, "FT ARS 1–1 LIV: Saka 11, Szoboszlai 9, Van Dijk 6, Rice 3, Isak 2", null, ["Saka", "Szoboszlai", "Van Dijk", "Rice", "Isak"], [null, null]],
-  [1, 88, "88' RED Cucurella", "-3", ["Cucurella"], [null, "-3"]],
-  [1, MATCH_MINUTES, "FT CHE 1–1 MCI: Haaland 13, Gabriel 8, Palmer 7, Ødegaard 5", null, ["Haaland", "Gabriel", "Palmer", "Ødegaard"], [null, null]],
+  [1, 40, "40' SHOT Mateta, saved", null, ["Mateta"], [null, null]],
+  [0, 77, "77' GOAL Bruno Fernandes, penalty", "+5", ["Bruno Fernandes"], [null, "+5"]],
+  [1, 58, "58' GOAL Mateta, assist Ødegaard", "Mateta +4, Ødegaard +3", ["Mateta", "Ødegaard"], [null, "+7"]],
+  [0, MATCH_MINUTES, "FT ARS 1–1 LIV", null, [], [null, null]],
+  [1, MATCH_MINUTES, "FT CHE 1–1 MCI", null, [], [null, null]],
 ];
 /** The replay's minutes the commentary is delayed for, so the note shows. */
 const DELAYED_FROM = 70;
@@ -221,7 +258,11 @@ function commentaryAt(minute: number): TeamsCommentary {
   return { kind: "read", lines, delayed: minute >= DELAYED_FROM && minute < DELAYED_UNTIL };
 }
 
+/** The gameweek's matchup `minute` minutes in: the manager against the draw's opponent, each
+ *  side's full-time total the table's for the gameweek (#2450). His opponent's men are Scouting's
+ *  for this gameweek's opponent, whichever week is asked. */
 function matchupAt(minute: number, gameweek: number): Matchup {
+  const opponent = previewOpponentOf(gameweek) ?? previewOpponent;
   return {
     kind: "headToHead",
     teamId: previewIdOf(MINE),
@@ -230,11 +271,11 @@ function matchupAt(minute: number, gameweek: number): Matchup {
     gameweek,
     deadline: previewSeason.deadlineOf(gameweek),
     gameNumber: 1,
-    games: [{ kind: "team", teamName: OPPONENT }],
+    games: [{ kind: "team", teamName: opponent }],
     game: {
       kind: "scored",
-      team: sideAt(MINE, SAKA_POTATOES, minute),
-      opponent: sideAt(OPPONENT, KROOS_CONTROL, minute),
+      team: sideAt(MINE, totalling(MY_MEN, MY_BALANCER, previewPointsOf(gameweek, MINE)), minute),
+      opponent: sideAt(opponent, totalling(THEIR_MEN, THEIR_BALANCER, previewPointsOf(gameweek, opponent)), minute),
       commentary: commentaryAt(minute),
       pointsDelayed: false,
       version: null,
@@ -243,11 +284,13 @@ function matchupAt(minute: number, gameweek: number): Matchup {
   };
 }
 
-/** The minute `?minute=` holds the replay at, or null to let it run. */
+/** The minute `?minute=` holds the replay at, or null to let it run (`?minute=replay`); with
+ *  none, every match over and the result not yet final, so its score is League home's (#2450). */
 function heldMinute(): number | null {
   const asked = new URLSearchParams(window.location.search).get("minute");
+  if (asked === null) return FULL_TIME_MINUTE;
   if (asked === "final") return FINAL_MINUTE;
-  return asked !== null && /^\d+$/.test(asked) ? Number(asked) : null;
+  return /^\d+$/.test(asked) ? Number(asked) : null;
 }
 
 /** The replay's minute, a minute a tick, from the first kickoff to the final result and round again. */
