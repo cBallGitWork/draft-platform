@@ -139,9 +139,8 @@ export async function switchWaiverOrder(ctx: MutationCtx, league: Doc<"leagues">
   if (held !== null) await ctx.db.patch("waiverOrders", held._id, { winners: [], gameweek });
 }
 
-/** Whether the free agent window is open at `now`, the lock aside: no gameweek begun yet, or a
- *  waiver run made since the latest begun one's deadline (#1199). Made runs never fall in the lock,
- *  so one after the deadline came after the gameweek's last match. */
+/** Whether the free agent window is open at `now`, the lock aside (runsAhead.ts's `windowOpenAt`):
+ *  the latest run's row is read only once a gameweek has begun. */
 export async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   return latestBegun(deadlines, now) === null || windowOpenAt(deadlines, (await waiverOrderRow(ctx, leagueId))?.madeAt ?? null, now);
 }
