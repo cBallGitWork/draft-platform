@@ -19,6 +19,9 @@ Among them:
   draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW"). `S03.1`
 - Play-offs: how many teams, how many legs. `S03.6`
 - Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down"). `S03.2`
+- A change of the tie-breaks counts from the next gameweek, so a table already played doesn't
+  change: two teams level on points and points for keep their places until that gameweek begins
+  (Craig, 15 Nov 2026, on #1034 and #2279). `S03.8`
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
