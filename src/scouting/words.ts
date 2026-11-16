@@ -132,8 +132,9 @@ export function periodColumns(period: Period, gameweeks: readonly number[]) {
 
 /** The star after a shortlisted player's name, for screen readers and the hover. */
 export const shortlistedLabel = "On your shortlist";
-/** A row of the list, for screen readers: pressing it opens his panel. */
-export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
+/** A row of the list, for screen readers: pressing it opens his panel. The chip it shows, if any,
+ *  comes first (WCAG 2.5.3; S12.14): "CDM: show Rice's panel". */
+export const selectPlayerLabel = (name: string, chip: string | null) => `${chip === null ? "" : `${chip}: `}Show ${name}'s panel`;
 
 /** The selected player's panel at the top of the right column (the approved picture). */
 export const panelSeasonPointsWords = "Season points";

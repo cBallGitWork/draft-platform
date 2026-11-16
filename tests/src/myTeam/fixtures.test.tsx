@@ -190,7 +190,7 @@ describe("the results", () => {
     openFixtures({ fixtures: fixturesOf([game(1, { kind: "team", teamName: "Team 2" }, null, scored), game(2, { kind: "leagueAverage" }, null, live)]) });
     await screen.findByRole("table", { name: resultsTableLabel("Team 1") });
 
-    expect(resultRows().map((row) => cells(row)[3])).toEqual([`${resultWords.lost.short}${scoreWords(22, 30)}${liveWords}`, `${resultWords.won.short}${scoreWords(61.5, 48)}`]);
+    expect(resultRows().map((row) => cells(row)[3])).toEqual([`${resultWords.lost.short}${scoreWords(22, 30)} ${liveWords}`, `${resultWords.won.short}${scoreWords(61.5, 48)}`]);
     const [note] = screen.getAllByText(provisionalWords);
     expect(screen.getAllByText(provisionalWords)).toHaveLength(1);
     expect(screen.getByRole("region", { name: RESULTS_TITLE }).contains(note)).toBe(true);
@@ -227,8 +227,8 @@ describe("the results", () => {
   });
 
   it.each([
-    ["a scored game", game(4, { kind: "team", teamName: "Team 2" }, null, scored), resultsTableLabel("Team 1"), matchupLinkLabel("Team 1", "Team 2", 4)],
-    ["a live game against the league's average", game(4, { kind: "leagueAverage" }, null, live), resultsTableLabel("Team 1"), matchupLinkLabel("Team 1", null, 4)],
+    ["a scored game", game(4, { kind: "team", teamName: "Team 2" }, null, scored), resultsTableLabel("Team 1"), matchupLinkLabel(scoreWords(61.5, 48), "Team 1", "Team 2", 4)],
+    ["a live game against the league's average", game(4, { kind: "leagueAverage" }, null, live), resultsTableLabel("Team 1"), matchupLinkLabel(`${scoreWords(22, 30)} ${liveWords}`, "Team 1", null, 4)],
     ["a game not yet played", game(4, { kind: "team", teamName: "Team 2" }), nextGameTitle(4, "Team 2"), matchupMoreWords],
   ])("opens the matchup from %s, for the team and gameweek", async (_, played, where, link) => {
     const app = openFixtures({ fixtures: fixturesOf([played]) });

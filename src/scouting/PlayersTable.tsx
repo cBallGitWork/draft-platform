@@ -133,7 +133,7 @@ function PlayerCell({
       const main = cardOpensAt(player.positions);
       return (
         <td className={className} title={player.positions.join(", ")}>
-          <button type="button" aria-label={selectPlayerLabel(player.name)} className="flex min-h-tap min-w-tap items-center lg:min-h-0 lg:min-w-0">
+          <button type="button" aria-label={selectPlayerLabel(player.name, main)} className="flex min-h-tap min-w-tap items-center lg:min-h-0 lg:min-w-0">
             {main === null ? noFigureWords : <PositionChip label={main} />}
           </button>
         </td>
