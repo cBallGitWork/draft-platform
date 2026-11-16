@@ -24,6 +24,10 @@ approved its rows (6 Nov 2026, #454).
   lineup" state (Craig, 29 Oct 2026).
 - Once a gameweek is final, every screen shows its saved total, the one the table uses, even if a
   later data fix would work it out differently (Craig, 29 Oct 2026).
+- A gameweek that reopens under [S05.54](05-tactics.md) (a postponed match rearranged into it) has
+  its saved total replaced once it is final again, the league table worked out again from it, and
+  every screen's final total changes to the new one (Craig, 16 Nov 2026, on #2390: "Yes to your
+  recs"). `S07.14`
 
 ## Match stats
 
