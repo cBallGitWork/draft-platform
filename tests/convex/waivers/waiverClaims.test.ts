@@ -7,6 +7,7 @@ import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManager, COMMISSIONER, MANAGERS, ANN, BOB } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
+import { waiversOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, ANNS_SECOND_DROP, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -133,7 +134,7 @@ describe("a manager's claims", () => {
   });
 
   test("whose first run may fall in a gameweek's lock wait on its last match, so one run's claims share it (#1467)", async () => {
-    const ofLeague = async (now: number) => (await actingAs(w.t, ANN)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now });
+    const ofLeague = async (now: number) => waiversOf(await actingAs(w.t, ANN), w.leagueId, now);
     const nextDeadline = (await ofLeague(Date.now())).windowShuts!.at;
     // Wednesday's and Thursday's runs both fall after NEXT's deadline; Palmer can't be taken until Thursday's.
     const [wednesday, thursday] = (await ofLeague(nextDeadline - HOUR_MS)).runs.map(({ at }) => at);

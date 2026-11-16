@@ -7,6 +7,7 @@ import { changeEveryRules, HELD_FIRST_RULES, rulesInGameweek, rulesRevision } fr
 import { actingAs, COMMISSIONER, eventsIn, ANN, BOB } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { passNextDeadline } from "../../support/convex/lineupSquad.harness";
+import { waiversOf } from "../../support/convex/screenReads.harness";
 import { NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // League settings' Waivers tab (#1200; spec/03, spec/08): the waiver order's type and the runs,
@@ -32,7 +33,7 @@ const changeWaivers = async (waivers: LeagueSettings["waivers"], email = COMMISS
   });
 const latestWaivers = () => w.t.run(async (ctx) => (await rulesInGameweek(ctx, w.leagueId, 99)).waivers);
 const order = async (email = BOB) =>
-  (await (await actingAs(w.t, email)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now: Date.now() }))?.teams.map(({ teamId }) => teamId);
+  (await waiversOf(await actingAs(w.t, email), w.leagueId)).teams.map(({ teamId }) => teamId);
 
 describe("League settings' waivers", () => {
   test("a new league runs them Wednesday and Thursday at 18:00, in reverse table order (spec/08)", async () => {
@@ -69,7 +70,7 @@ describe("League settings' waivers", () => {
 
 describe("the waiver order", () => {
   test("everyone in the league sees it whole, with each team's table place, the next runs and the window", async () => {
-    const view = await (await actingAs(w.t, ANN)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now: Date.now() });
+    const view = await waiversOf(await actingAs(w.t, ANN), w.leagueId);
 
     // Level on 0 points, the reverse of the draft order: Ann, Bob and Cat drafted first, so go last.
     expect(view?.teams.map(({ teamId }) => teamId)).toEqual(w.teams.toReversed());
@@ -83,7 +84,7 @@ describe("the waiver order", () => {
   });
 
   test("with the next deadline before both runs, each may be skipped, and the window lasts to the deadline after (#1488)", async () => {
-    const ofLeague = async (now: number) => (await actingAs(w.t, ANN)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now });
+    const ofLeague = async (now: number) => waiversOf(await actingAs(w.t, ANN), w.leagueId, now);
     const nextDeadline = (await ofLeague(Date.now())).windowShuts!.at;
 
     // An hour before NEXT's deadline: the coming Wednesday's and Thursday's runs fall after it.
@@ -116,7 +117,7 @@ describe("the waiver order", () => {
         await ctx.db.insert("finalScores", { leagueId: w.leagueId, gameweek: NEXT, teamId, points, fixtureCodes: [NEXT], storedAt: Date.now() });
       }
     });
-    const view = await (await actingAs(w.t, BOB)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now: Date.now() });
+    const view = await waiversOf(await actingAs(w.t, BOB), w.leagueId);
     expect(view?.locked).toBe(true);
     expect(view?.resetsAfter).toBe(NEXT);
     expect(view?.teams.map(({ teamId }) => teamId)).toEqual(bobLast);
