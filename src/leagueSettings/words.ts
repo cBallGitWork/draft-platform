@@ -85,7 +85,7 @@ export const pickClockUnitWords: Record<PickClockUnit, string> = { seconds: "Sec
 export const pickClockHint = `From ${PICK_SECONDS_FEWEST} seconds to ${inUnit(PICK_SECONDS_MOST, "hours")} hours.`;
 export const blankPickClockWords = noNumberWords(pickClockLabel);
 /** The Draft tab's row for auto-pick, the approved picture's short label. */
-export const autoPickLabel = "Auto-pick";
+export const autoPickLabel = "Auto-pick"; // literal-ok: the settings row's label; the draft room's AUTO_PICK_TITLE is another feature's, which featureImports keeps out
 export const autoPickWords = "Auto-pick after timeouts";
 export const timeoutsLabel = "Timeouts before auto-pick";
 /** spec/04, Auto-pick. */
