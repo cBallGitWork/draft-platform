@@ -9,7 +9,6 @@ import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_P
 import { ADMIN_TITLE, adminTabsLabel, availabilityTabWords, feedbackTabWords, feedsTabWords, positionsTabWords } from "../../src/admin/words";
 import { MY_TEAM_PATH } from "../../src/frame/menu";
 import { playerCardLabel, selectionTableLabel } from "../../src/myTeam/tactics/words";
-import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { gameweeksPath } from "../../src/gameweeks/paths";
 import { joinPath } from "../../convex/joining/joiningShared";
 import { invitesPath } from "../../src/joining/paths";
@@ -26,6 +25,7 @@ import { proLeague } from "../../src/shared/preview";
 import { squadsPath } from "../../src/squads/paths";
 import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
+import { expectPageSound } from "../support/smoke/pageChecks";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 const L1 = proLeague.leagueId;
@@ -39,9 +39,7 @@ test.describe("screens and routes, on the dev server's preview", { tag: "@dev" }
   test("UI-030 (flow.md:47, spec/12 The player card): a commissioner opening a player's card from the address bar sees it titled with his full name, no wider than the window", async ({ page }) => {
     await page.goto(previewUrl(playerCardPath(L1, SAKA.code), "commissioner"));
     await expect(h1(page, SAKA.fullName)).toBeVisible();
-    await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
-    const { scrollWidth, innerWidth } = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth }));
-    expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
+    await expectPageSound(page);
   });
 
   test(`UI-071 (flow.md:55): the admin's ${NEW_LEAGUE_TITLE} on Your leagues lands on /leagues/new`, async ({ page }) => {
