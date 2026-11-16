@@ -331,7 +331,7 @@
   "waivers/waiverClaims:rank": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"claimIds":{"fieldType":{"type":"array","value":{"type":"id","tableName":"waiverClaims"}},"optional":false}}},
   "waivers/waiverClaims:withdraw": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"claimId":{"fieldType":{"type":"id","tableName":"waiverClaims"},"optional":false}}},
   "waivers/waiverClock:clockOf": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"hour":{"fieldType":{"type":"number"},"optional":false}}},
-  "waivers/waiverOrder:ofLeague": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"now":{"fieldType":{"type":"number"},"optional":false}}},
+  "waivers/waiverOrder:ofLeague": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"hour":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/waiverRun:run": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"at":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/waiverRun:runDue": {"type":"object","value":{}},
   "waivers/waiverRun:runLeagueDue": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},

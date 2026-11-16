@@ -1,10 +1,11 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import { knownOnJoining } from "../../../convex/positions/positionWarnings";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { RUN_TRIES } from "../../../convex/waivers/waiverRunRetries";
 import { actingAs, ADMIN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { holdPlayers } from "../../support/convex/lineupSquad.harness";
+import { waiversOf } from "../../support/convex/screenReads.harness";
 import { fakeResend } from "../../support/convex/signIn.harness";
 import { everyJobRuns, silenceConsoleError } from "../../support/convex/test.harness";
 import { PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -56,7 +57,7 @@ function crashAtTheFourthClaim({ always }: { always: boolean }) {
 
 const runWithRetries = () => w.t.action(internal.waivers.waiverRunRetries.runWithRetries, { leagueId: w.leagueId, at, backFrom: null });
 const claimedBy = async () => [...(await w.squadCodes(w.bobsTeam)), ...(await w.squadCodes(w.catsTeam))];
-const delayed = async () => (await (await actingAs(w.t, BOB)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now: Date.now() })).delayed;
+const delayed = async () => (await waiversOf(await actingAs(w.t, BOB), w.leagueId)).delayed;
 
 test("a run crashing after 3 of 6 claims leaves all 6 undone (S08.23)", async () => {
   silenceConsoleError();
