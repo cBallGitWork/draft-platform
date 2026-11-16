@@ -80,6 +80,15 @@ test("S03.8before the one-off runs, League settings shows all three, and a save 
   expect(await tieBreaksIn(leagueId, NEXT)).toEqual(["pointsAgainst", "pointsFor", "headToHead"]);
 });
 
+test("S03.8before the one-off runs, a save of another part, the draft's pick time, is not refused and adds them from the next gameweek", async () => {
+  const leagueId = await oneTieBreakLeague("pointsAgainst");
+
+  await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 });
+  expect(await tieBreaksIn(leagueId, NEXT - 1)).toEqual(["pointsAgainst"]);
+  expect(await tieBreaksIn(leagueId, NEXT)).toEqual(["pointsAgainst", "pointsFor", "headToHead"]);
+  expect((await rulesIn(t, leagueId, NEXT)).draft?.pickSeconds).toBe(60);
+});
+
 test("S03.8a league with all three keeps its order, and running it again changes nothing", async () => {
   const one = await oneTieBreakLeague("pointsFor");
   const three = await adminCreatesLeague(t, undefined, "Three League");

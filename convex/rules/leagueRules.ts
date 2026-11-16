@@ -247,7 +247,7 @@ export async function editorView<Part>(ctx: QueryCtx, leagueId: Id<"leagues">, p
 export const editorViewOf = <Part extends Validator<unknown, "required", string>>(part: Part) =>
   v.object({ part, revision: v.id("leagueRules"), changesFrom: changesFromTimes });
 
-/** A screen's change to part of the rules: the league's latest with `changed` applied, saved as
+/** A screen's change to part of the rules: the league's latest, with every tie-break, with `changed` applied, saved as
  *  `change` saves them, made from the rules `revision` names, so a change to the rest made
  *  meanwhile is neither undone nor saved over. Returns the gameweek it takes effect from. Refused,
  *  with the reason, if they changed since, or if unsound. */
@@ -259,7 +259,9 @@ export async function changeLatest(
 ): Promise<number> {
   const { email } = await runnerOf(ctx, leagueId);
   const latest = await latestRules(ctx, leagueId);
-  return await changeRules(ctx, leagueId, email, changed(latest), revision);
+  // Every tie-break (`tieBreaksOf`), so a league saved with fewer isn't refused a save of another
+  // part, but gets them with it (S03.8; #2266).
+  return await changeRules(ctx, leagueId, email, changed({ ...latest, tieBreaks: tieBreaksOf(latest) }), revision);
 }
 
 /** The admin changes the rules new leagues get. Leagues already made keep their own. */
