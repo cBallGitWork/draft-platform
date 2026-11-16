@@ -2,8 +2,9 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
+import { draftSteps } from "../../support/convex/draft.harness";
 import { elapse } from "../../support/convex/test.harness";
-import { actingAs, COMMISSIONER, draftOrderUnset, freshLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, draftOrderUnset, freshLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 
 // An order nobody set (S04.32; Craig, 16 Nov 2026, on #2073; #2439): if the commissioner neither
 // puts the teams in order nor presses "Draw at random", the order is drawn at random when the draft
@@ -22,13 +23,13 @@ afterEach(() => {
   vi.mocked(Math.random).mockRestore();
 });
 
-const as = () => actingAs(t, COMMISSIONER);
-const orderOf = async () => (await (await as()).query(api.draft.draftStart.ofLeague, { leagueId })).order.map(({ teamId }) => teamId);
+const steps = draftSteps(() => ({ t, leagueId }));
+const orderOf = async () => (await steps.read()).order.map(({ teamId }) => teamId);
 const savedOrder = async () => (await t.run((ctx) => ctx.db.get("leagues", leagueId)))!.draftOrder;
 
 test("S04.32: with no order set or drawn, pressing start draws one at random and saves it as the league's draft order", async () => {
   expect(await orderOf()).toEqual(teams);
-  await (await as()).mutation(api.draft.draftStart.start, { leagueId });
+  await steps.start();
 
   const drawn = [teams[1], teams[2], teams[0]];
   expect(await orderOf()).toEqual(drawn);
@@ -36,15 +37,15 @@ test("S04.32: with no order set or drawn, pressing start draws one at random and
 });
 
 test("S04.32: with no order set or drawn, a start on the commissioner's date draws one at random too", async () => {
-  await (await as()).mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS });
+  await (await steps.as(COMMISSIONER)).mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS });
   await elapse(t, DAY_MS);
 
   expect(await orderOf()).toEqual([teams[1], teams[2], teams[0]]);
 });
 
 test("S04.32: an order the commissioner set, even the order the teams joined, is kept and not drawn", async () => {
-  await (await as()).mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: teams });
-  await (await as()).mutation(api.draft.draftStart.start, { leagueId });
+  await (await steps.as(COMMISSIONER)).mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: teams });
+  await steps.start();
 
   expect(await orderOf()).toEqual(teams);
 });
