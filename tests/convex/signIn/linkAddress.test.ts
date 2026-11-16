@@ -22,7 +22,15 @@ describe("a link asked for from an address", () => {
     expect(sent[0].text).toContain(`${SITE_URL}/mail?letter=letter1&code=`);
   });
 
-  test.each(["//elsewhere.example/", "/\\elsewhere.example/", "https://elsewhere.example/"])(
+  test.each([
+    "//elsewhere.example/",
+    "/\\elsewhere.example/",
+    "https://elsewhere.example/",
+    // a browser drops tabs and line breaks from an address, so these read as "//elsewhere.example/"
+    "/\t/elsewhere.example/",
+    "/\n/elsewhere.example/",
+    "/\r/elsewhere.example/",
+  ])(
     "UI-063: %s, off the site, is dropped, and the link leads to the site",
     async (next) => {
       const sent = fakeResend();
