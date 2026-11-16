@@ -31,15 +31,18 @@ const SCREEN_MS = 6_000;
 
 const h1 = (page: Page, name: string) => page.getByRole("main").getByRole("heading", { level: 1, name, exact: true });
 
-/** Each built screen opened on the preview, its title shown, and what `breaks` finds on it, each
- *  break led by the screen it is on. */
-async function breaksOnEachBuiltScreen(page: Page, breaks: () => Promise<string[]>) {
-  const found: string[] = [];
+/** Each built screen opened on the preview, its title shown, and what each of `checks` finds on it,
+ *  each break led by the screen it is on: one walk for every check, so a look test's page loads
+ *  aren't repeated for each (#2470: four walks of every screen took a third of smoke's time). */
+async function breaksOnEachBuiltScreen<Name extends string>(page: Page, checks: Record<Name, () => Promise<string[]>>) {
+  const found = Object.fromEntries(Object.keys(checks).map((name) => [name, [] as string[]])) as Record<Name, string[]>;
   for (const [session, path, title] of BUILT_SCREENS) {
     const url = previewUrl(path, session);
     await page.goto(url);
     await expect(h1(page, title)).toBeVisible();
-    found.push(...(await breaks()).map((each) => `${url}: ${each}`));
+    for (const name of Object.keys(checks) as Name[]) {
+      found[name].push(...(await checks[name]()).map((each) => `${url}: ${each}`));
+    }
   }
   return found;
 }
@@ -138,34 +141,51 @@ function yellowControls(): string[] {
 
 test.use({ viewport: DESK });
 
+/** The look walk: Home's colours in dark mode, then every built screen in light mode, each look
+ *  check run on it. The frame draws the same ground and text on every screen, so Home in dark mode is
+ *  the measure for each in light (UI-177); the other checks hold in light mode too, the site being
+ *  dark only. */
+async function lookWalk(page: Page) {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto(previewUrl(HOME_PATH, "manager"));
+  const dark = await page.evaluate(pageColours);
+  await page.emulateMedia({ colorScheme: "light" });
+  const breaks = await breaksOnEachBuiltScreen(page, {
+    shape: () => page.evaluate(shapeBreaks, [mainMenuLabel, sectionTabsLabel]),
+    ground: () => page.evaluate(groundBreaks),
+    light: async () => {
+      const light = await page.evaluate(pageColours);
+      return JSON.stringify(light) === JSON.stringify(dark) ? [] : [JSON.stringify(light)];
+    },
+    yellow: () => page.evaluate(yellowControls),
+  });
+  return { darkScheme: dark.scheme, breaks };
+}
+
+/** The walk, made by the first look test its worker runs and read by the rest. The file's tests run
+ *  in order in one worker; one that fails starts a new worker, whose next look test walks again. */
+let walked: ReturnType<typeof lookWalk> | undefined;
+const lookBreaks = (page: Page) => (walked ??= lookWalk(page));
+
 test.describe("the plate's look on every built screen, on the dev server's preview", { tag: "@dev" }, () => {
   test.describe.configure({ timeout: BUILT_SCREENS.length * SCREEN_MS });
 
   test("UI-175 (plate.md:91-95): the top bar and the title plates carry the 2px bevel; tabs are butted with 1px rules, 44px tall, a section's 36px", async ({ page }) => {
-    expect(await breaksOnEachBuiltScreen(page, () => page.evaluate(shapeBreaks, [mainMenuLabel, sectionTabsLabel]))).toEqual([]);
+    expect((await lookBreaks(page)).breaks.shape).toEqual([]);
   });
 
   test("UI-176 (plate.md:29-36, 212-213): the ground is drawn in CSS, a glow over a grain, and the panels are see-through and neutral", async ({ page }) => {
-    expect(await breaksOnEachBuiltScreen(page, () => page.evaluate(groundBreaks))).toEqual([]);
+    expect((await lookBreaks(page)).breaks.ground).toEqual([]);
   });
 
   test("UI-177 (spec/12 The frame: dark only): with the system in light mode, every screen stays dark", async ({ page }) => {
-    // The frame draws the same ground and text on every screen, so one screen in dark mode is the
-    // measure for each in light.
-    await page.emulateMedia({ colorScheme: "dark" });
-    await page.goto(previewUrl(HOME_PATH, "manager"));
-    const dark = await page.evaluate(pageColours);
-    expect(dark.scheme).toBe("dark");
-    await page.emulateMedia({ colorScheme: "light" });
-    const differing = async () => {
-      const light = await page.evaluate(pageColours);
-      return JSON.stringify(light) === JSON.stringify(dark) ? [] : [JSON.stringify(light)];
-    };
-    expect(await breaksOnEachBuiltScreen(page, differing)).toEqual([]);
+    const { darkScheme, breaks } = await lookBreaks(page);
+    expect(darkScheme).toBe("dark");
+    expect(breaks.light).toEqual([]);
   });
 
   test("UI-178 (plate.md:45, 209-210): no button or tab is yellow; yellow is for figures alone", async ({ page }) => {
-    expect(await breaksOnEachBuiltScreen(page, () => page.evaluate(yellowControls))).toEqual([]);
+    expect((await lookBreaks(page)).breaks.yellow).toEqual([]);
   });
 });
 
