@@ -17,9 +17,8 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
   links reach only the Resend account's own inbox.
 - Craig is the admin on the live site.
 - A staging site sits before the live one, on the development database: no new Convex
-  deployment, so while Convex has the deployments switched off (5.8 GB of the free plan's 1 GB in
-  November), staging is dark too (Craig, 16 Nov 2026, "Dev backend"). A change is done once it is
-  seen working on staging. `S20.19`
+  deployment, so while Convex has the deployments switched off, staging is dark too (Craig,
+  16 Nov 2026, "Dev backend"). A change is done once it is seen working on staging. `S20.19`
 - A test run may start its own throwaway Convex server inside the job. It is not a staging site:
   no address, timed jobs off, deleted when the job ends (Craig, 15 Nov 2026, #2288). `S20.17`
 
