@@ -11,7 +11,9 @@ import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
 import type { MyScouts } from "../../../../src/scouting/scouts/seam";
 import {
+  backFromWords,
   closeReportLabel,
+  playerLeftWords,
   earlierReportWords,
   freeScoutWords,
   outOnWords,
@@ -38,6 +40,7 @@ const MINE: MyScouts = {
   scouts: 3,
   out: [{ playerCode: PALMER, name: "Palmer", sentAt: now - 10 * HOUR_MS, dueAt: now + 14 * HOUR_MS + 30 * MINUTE_MS }],
   reports: [WOOD_REPORT, SAKA_REPORT],
+  left: [],
 };
 
 const openScouting = (scouts: ScoutsData, session = manager) => openApp(SCOUTING_PATH, session, { scouting: { scouts } });
@@ -70,9 +73,19 @@ describe("the Scouts panel", () => {
   });
 
   it("says a scout with nothing to do is free", async () => {
-    openScouting({ mine: { scouts: 3, out: [], reports: [WOOD_REPORT] } });
+    openScouting({ mine: { scouts: 3, out: [], reports: [WOOD_REPORT], left: [] } });
     const rows = within(await scoutsPanel()).getAllByRole("listitem");
     expect(rows.map((row) => row.textContent?.includes(freeScoutWords))).toEqual([false, true, true]);
+  });
+
+  it("BG-220 (spec/19 Scouts): a scout back from a player who left the Premier League says so on his row, newest back first", async () => {
+    const left = { playerCode: PALMER, name: "Palmer", sentAt: now - 3 * DAY_MS };
+    openScouting({ mine: { scouts: 3, out: [], reports: [WOOD_REPORT, SAKA_REPORT], left: [left] } });
+    const rows = within(within(await scoutsPanel()).getByRole("list", { name: SCOUTS_TITLE })).getAllByRole("listitem");
+    expect(rows[0].textContent).toContain(reportInOnWords("Wood"));
+    expect(rows[1].textContent).toContain(backFromWords("Palmer"));
+    expect(rows[1].textContent).toContain(playerLeftWords);
+    expect(rows[2].textContent).toContain(reportInOnWords("Saka"));
   });
 
   it("lists the team's earlier reports under the scouts", async () => {

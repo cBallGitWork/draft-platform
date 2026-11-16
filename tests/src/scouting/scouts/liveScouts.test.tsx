@@ -21,7 +21,7 @@ vi.mock("convex/react", async () =>
 const send = () => renderHook(() => liveScouts.useSendScout()).result.current;
 
 test("the team's scouts are read from scouting/scouts:mine with the league", () => {
-  const mine = { scouts: 3, out: [], reports: [] };
+  const mine = { scouts: 3, out: [], reports: [], left: [] };
   convex.mine.mockReturnValue(mine);
   expect(renderHook(() => liveScouts.useMyScouts(A_LEAGUE_ID)).result.current).toBe(mine);
   expect(convex.mine).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });

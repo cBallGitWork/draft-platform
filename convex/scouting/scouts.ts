@@ -94,7 +94,9 @@ const trip = v.object({
   state: scoutState,
   report: v.union(v.object({ text: v.string(), writtenAt: v.number() }), v.null()),
 });
-const myScouts = v.object({ scouts: v.number(), out: v.array(outScout), reports: v.array(report) });
+/** A scout back with no report, as his player left the Premier League while he was out (BG-220). */
+const leftScout = v.object({ playerCode: v.number(), name: v.string(), sentAt: v.number() });
+const myScouts = v.object({ scouts: v.number(), out: v.array(outScout), reports: v.array(report), left: v.array(leftScout) });
 
 /** The team's scouts, as `mine` reads them. */
 export type MyScouts = Infer<typeof myScouts>;
@@ -102,8 +104,9 @@ export type MyScouts = Infer<typeof myScouts>;
 export type ScoutTrip = Infer<typeof trip>;
 
 /** The caller's scouts (the Scouts panel's): how many the team has, those out (whom, and when each
- *  is back), and its newest REPORTS_SHOWN reports, newest first. Null for someone in the league who
- *  runs no team. */
+ *  is back), its newest REPORTS_SHOWN reports, newest first, and those back with none as their player
+ *  left the Premier League, newest first, among those sent since the oldest of them. Null for
+ *  someone in the league who runs no team. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.union(myScouts, v.null()),
@@ -112,8 +115,10 @@ export const mine = query({
     if (!team) return null;
     const out = (await scoutsOut(ctx, team._id)).toSorted((one, other) => one.dueAt - other.dueAt);
     const reported: ReportedTrip[] = [];
+    const left: Doc<"scouts">[] = [];
     const newest = ctx.db.query("scouts").withIndex("by_teamId_and_sentAt", (q) => q.eq("teamId", team._id)).order("desc");
     for await (const row of newest) {
+      if (row.state === "playerLeft" && left.length < REPORTS_SHOWN) left.push(row);
       if (!isReported(row)) continue;
       reported.push(row);
       if (reported.length === REPORTS_SHOWN) break;
@@ -128,6 +133,7 @@ export const mine = query({
           reported.map(async ({ playerCode, sentAt, report }) => ({ playerCode, name: await nameOf(ctx, playerCode), sentAt, ...report })),
         )
       ).toSorted((one, other) => other.writtenAt - one.writtenAt),
+      left: await Promise.all(left.map(async ({ playerCode, sentAt }) => ({ playerCode, name: await nameOf(ctx, playerCode), sentAt }))),
     };
   },
 });

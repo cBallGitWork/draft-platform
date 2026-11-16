@@ -31,6 +31,7 @@ const MINE: MyScouts = {
   scouts: 3,
   out: TRIPS.filter((trip) => trip.state === "out").map(({ playerCode, sentAt, dueAt }) => ({ playerCode, name: "Salah", sentAt, dueAt })),
   reports: TRIPS.flatMap(({ playerCode, sentAt, report }) => (report === null ? [] : [{ playerCode, name: "Palmer", sentAt, ...report }])),
+  left: [],
 };
 
 const send = previewSays("no scout was sent");

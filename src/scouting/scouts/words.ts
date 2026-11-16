@@ -37,6 +37,9 @@ export function minutesLeftWords(left: number): string {
   return hoursLeftWords(ms);
 }
 export const reportInOnWords = (name: string) => `Report in on ${name}`;
+/** A scout back with no report: his player left the Premier League while he was out (BG-220). */
+export const backFromWords = (name: string) => `Back from ${name}`;
+export const playerLeftWords = "Left the Premier League";
 export const freeScoutWords = "Free: send him from a player's panel";
 export const readWords = "Read ›";
 export const readNamedLabel = (name: string, writtenAt: number) => `Read the report on ${name}, ${dayWords(writtenAt)}`;

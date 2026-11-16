@@ -7,12 +7,14 @@ import { playerCardWords } from "../../shared/words";
 import { CloseButton, Loading, Panel, PANEL_BODY } from "../../ui/Panel";
 import type { MyScouts, ScoutsSeam } from "./seam";
 import {
+  backFromWords,
   closeReportLabel,
   earlierReportWords,
   freeScoutWords,
   loadingScoutsWords,
   minutesLeftWords,
   outOnWords,
+  playerLeftWords,
   readNamedLabel,
   readWords,
   reportsListLabel,
@@ -28,12 +30,15 @@ import {
 
 /** One of the team's reports, as `mine` reads it. */
 export type TeamReport = MyScouts["reports"][number];
+/** A scout back: with his report, or from a player who left the Premier League. */
+type Back = { sentAt: number } & ({ report: TeamReport } | { left: MyScouts["left"][number] });
 
 const ROW = "flex min-h-tap items-center gap-3 border-t border-panel-rule px-3";
 
 /** The team's scouts on Scouting (spec/19, Scouts; Craig, 6 Nov 2026, on #375; the approved
  *  Scouting picture): a row for each scout, out on a player with the time left, back with a report
- *  in, or free, then the team's other reports, newest first. **Read ›** opens one (`read`). Nothing
+ *  in or from a player who left the Premier League, or free, then the team's other reports, newest
+ *  first. **Read ›** opens one (`read`). Nothing
  *  for someone who runs no team. */
 export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">; seam: ScoutsSeam; read: (report: TeamReport) => void }) {
   const mine = seam.useMyScouts(leagueId);
@@ -47,16 +52,19 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
       </Panel>
     );
   }
-  // A scout is free once his report lands (Craig, 6 Nov 2026), so the free ones show the newest reports in.
+  // A scout is free once he is back (Craig, 6 Nov 2026), so the free ones show the newest back: a
+  // report in, or a player who left the Premier League while he was out (BG-220).
   const free = Math.max(0, mine.scouts - mine.out.length);
-  const reportsIn = mine.reports.slice(0, free);
-  const earlier = mine.reports.slice(free);
+  const back: Back[] = [...mine.reports.map((report) => ({ report, sentAt: report.sentAt })), ...mine.left.map((left) => ({ left, sentAt: left.sentAt }))]
+    .toSorted((one, other) => other.sentAt - one.sentAt)
+    .slice(0, free);
+  const earlier = mine.reports.filter((report) => !back.some((each) => "report" in each && each.report === report));
   return (
     <Panel title={SCOUTS_TITLE} aside={<span className="text-soft">{scoutsOutWords(mine.out.length, mine.scouts)}</span>}>
       <ol aria-label={SCOUTS_TITLE}>
         {Array.from({ length: mine.scouts }, (_, index) => {
           const out = mine.out[index];
-          const report = out === undefined ? reportsIn[index - mine.out.length] : undefined;
+          const returned = out === undefined ? back[index - mine.out.length] : undefined;
           return (
             <li key={index} className={ROW}>
               <span className="w-16 shrink-0 text-soft">{scoutNumberWords(index + 1)}</span>
@@ -65,10 +73,15 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
                   <span>{outOnWords(out.name)}</span>
                   <span className="ml-auto text-figure">{reportInSoonWords(minutesLeftWords(out.dueAt - now))}</span>
                 </>
-              ) : report !== undefined ? (
+              ) : returned !== undefined && "report" in returned ? (
                 <>
-                  <span>{reportInOnWords(report.name)}</span>
-                  <ReadButton report={report} read={read} />
+                  <span>{reportInOnWords(returned.report.name)}</span>
+                  <ReadButton report={returned.report} read={read} />
+                </>
+              ) : returned !== undefined ? (
+                <>
+                  <span>{backFromWords(returned.left.name)}</span>
+                  <span className="ml-auto text-soft">{playerLeftWords}</span>
                 </>
               ) : (
                 <span className="text-soft">{freeScoutWords}</span>

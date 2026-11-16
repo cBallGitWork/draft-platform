@@ -10,7 +10,7 @@ import type { MyScouts, ScoutsSeam, ScoutTrip } from "../../../src/scouting/scou
 export type ScoutsData = { mine?: MyScouts | null; trips?: readonly ScoutTrip[] | null; loading?: boolean; refusal?: string };
 
 /** Three scouts, none out, no reports: the opening state. */
-export const NO_SCOUTS_OUT: MyScouts = { scouts: 3, out: [], reports: [] };
+export const NO_SCOUTS_OUT: MyScouts = { scouts: 3, out: [], reports: [], left: [] };
 
 export function fakeScouts({ mine = NO_SCOUTS_OUT, trips = [], loading = false, refusal }: ScoutsData = {}) {
   const sendScout = vi.fn<ReturnType<ScoutsSeam["useSendScout"]>>(async () => refusal ?? null);

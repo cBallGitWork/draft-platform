@@ -46,7 +46,7 @@ describe("sending a scout", () => {
     const ann = await as(ANN);
     const sentAt = Date.now();
     await ann.send(SCORER.code);
-    expect(await ann.mine()).toEqual({ scouts: 3, out: [{ playerCode: SCORER.code, name: "Scorer", sentAt, dueAt: sentAt + SCOUT_TRIP_MS }], reports: [] });
+    expect(await ann.mine()).toEqual({ scouts: 3, out: [{ playerCode: SCORER.code, name: "Scorer", sentAt, dueAt: sentAt + SCOUT_TRIP_MS }], reports: [], left: [] });
   });
 
   test("a fourth scout is refused while three are out", async () => {
@@ -113,6 +113,7 @@ describe("the report", () => {
       scouts: 3,
       out: [],
       reports: [{ playerCode: SCORER.code, name: "Scorer", sentAt, writtenAt: sentAt + SCOUT_TRIP_MS, text: fakeReport(prompt) }],
+      left: [],
     });
     for (const player of [SCORER, STEADY, BLANK]) await ann.send(player.code);
   });
@@ -148,6 +149,18 @@ describe("the report", () => {
     expect(await ann.mine()).toMatchObject({ out: [], reports: [] });
     expect((await ann.onPlayer(SCORER.code))?.map((trip) => trip.state)).toEqual(["playerLeft"]);
     expect(await scoutLetters(ANN, playerLeftLetter("Scorer").subject)).toHaveLength(1);
+  });
+
+  test("BG-220 (spec/19 Scouts): a scout back from a player who left the Premier League is listed so, for his row to say it", async () => {
+    const ann = await as(ANN);
+    const sentAt = Date.now();
+    await ann.send(SCORER.code);
+    await t.run(async (ctx) => {
+      const scorer = (await ctx.db.query("players").collect()).find((player) => player.code === SCORER.code)!;
+      await ctx.db.patch("players", scorer._id, { droppedAt: Date.now() });
+    });
+    await dayPasses();
+    expect((await ann.mine())?.left).toEqual([{ playerCode: SCORER.code, name: "Scorer", sentAt }]);
   });
 
   test("a failed write is tried again later, the scout out meanwhile", async () => {
@@ -229,9 +242,9 @@ describe("no other team can tell whom a manager scouts", () => {
   test("another manager sees none of his scouts or reports", async () => {
     await (await as(ANN)).send(SCORER.code);
     const bob = await as(BOB);
-    expect(await bob.mine()).toEqual({ scouts: 3, out: [], reports: [] });
+    expect(await bob.mine()).toEqual({ scouts: 3, out: [], reports: [], left: [] });
     await dayPasses();
-    expect(await bob.mine()).toEqual({ scouts: 3, out: [], reports: [] });
+    expect(await bob.mine()).toEqual({ scouts: 3, out: [], reports: [], left: [] });
     expect(await bob.onPlayer(SCORER.code)).toEqual([]);
   });
 
