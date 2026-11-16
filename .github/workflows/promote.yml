@@ -1,0 +1,58 @@
+# The once-a-day move up to live (spec/20, S20.20; #2464; Craig, 16 Nov 2026: "Gate before live", "Once a day").
+# Every merge to main goes to staging, Vercel's preview of main on the development deployment (S20.19, S20.21).
+# At 07:00 London this moves the `release` branch, which Vercel builds as the live site, up to the commit the
+# night's full test run passed on (verify.yml on main), when staging built it and no Premier League match is on
+# or kicks off within the hour (scripts/promote.mjs says why when it doesn't). A failed night or staging build turns
+# this run red, so GitHub emails Craig; a match on, or live already there, waits quietly for the next day.
+# By hand it moves at any hour, and `back_to` puts live straight back on an earlier commit. With `dry_run`, and on
+# a pull request that changes it, it only says what it would do.
+# That is how a change here is tested before it merges (CLAUDE.md).
+name: promote
+
+on:
+  schedule:
+    - cron: '0 6,7 * * *'  # 06:00 and 07:00 UTC: one of them is 07:00 London, summer or winter; the script skips the other
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Say what it would do, and move nothing
+        type: boolean
+        default: false
+      back_to:
+        description: Put live straight back on this earlier commit of main (undoing a bad release), with no checks
+        required: false
+        default: ""
+  pull_request:
+    paths:
+      - .github/workflows/promote.yml
+      - scripts/promote.mjs
+
+permissions:
+  contents: write  # pushes the release branch
+  actions: read    # reads the nightly run
+  deployments: read
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Move live up, or say why not
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ github.event_name == 'pull_request' || inputs.dry_run == true }}
+          BACK_TO: ${{ inputs.back_to }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then node scripts/promote.mjs --dry-run; else node scripts/promote.mjs; fi
