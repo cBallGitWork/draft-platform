@@ -108,8 +108,8 @@ export function labelPositions(positionInfo: string): Position[] | null {
   return Object.hasOwn(ROLE_POSITIONS, role) ? [...ROLE_POSITIONS[role]] : null;
 }
 
-/** A club page's Squad tab's groups, in order, and the positions each takes; scouting/clubSquad.ts serves the tab.
- *  FM's split (Craig, 12 Nov 2026: "GK DEF MID AM FWD"). A player goes in the group of his first position, back to front. */
+/** A club page's Squad tab's groups (scouting/clubSquad.ts), in order, and the positions each takes: FM's split (Craig, 12 Nov 2026:
+ *  "GK DEF MID AM FWD"). A player goes in the group of his first position, back to front. */
 export const SQUAD_GROUPS = {
   GK: ["GK"],
   DEF: ["CB", "FB", "WB"],

@@ -49,27 +49,32 @@ export function PlayerTile({ man, picking, strip, className }: { man: TileMan; p
         aria-label={tileButtonLabel(shown, name)}
         aria-expanded={picked}
         onClick={() => picking.pick(playerCode)}
-        className={`flex w-tile max-w-full min-w-0 flex-col ${strip ? "" : "opacity-50"} ${picked ? "outline-2 outline-fact" : ""}`}
+        className={`relative flex w-tile max-w-full min-w-0 flex-col ${picked ? "outline-2 outline-fact" : ""}`}
       >
-        {/* The bench's tiles stand on a dark grey ground, not the grass (the approved picture). */}
-        <span aria-hidden="true" className={`relative flex justify-center pt-1 ${strip ? "bg-pitch-stripe" : "bg-panel-edge"}`}>
-          {badge !== null && (
-            <span className={`absolute top-0 left-0 bg-name-plate px-0.5 text-data ${wentOff ? "text-event" : status.kind === "playing" ? "text-derived" : "text-soft"}`}>
-              {badge}
-            </span>
-          )}{" "}
-          {/* A space between each bit of text, so none runs into the next as one word (WCAG 2.5.3). */}
-          <Shirt number={number} clubCode={clubCode} goalkeeper={area === "goalkeeper"} size="size-shirt-tile" />{" "}
-          <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${counts && points !== null ? "text-figure" : "text-muted"}`}>{figure}</span>
-        </span>{" "}
-        <span aria-hidden="true" className={`truncate bg-fact px-1 text-center font-semibold text-ground ${autoSub?.kind === "on" ? "shadow-event-edge" : ""}`}>
-          {name}
-        </span>{" "}
-        {roleStrip !== null && (
-          <span aria-hidden="true" className={`line-clamp-2 px-0.5 text-center text-data leading-pitch-role ${roleStrip.colours.fill} ${roleStrip.colours.ink}`}>
-            <span data-slot-label>{roleStrip.label}</span> {roleStrip.role}
+        {/* The bench's tile is greyed, its badge not: an orange "Off" at half strength fails WCAG 2.1 AA's
+            contrast (S12.14; #2450). The badge stays first, so the button's name reads in the tile's order
+            (WCAG 2.5.3), and z-10 paints it over the greyed part. */}
+        {badge !== null && (
+          <span aria-hidden="true" className={`absolute top-0 left-0 z-10 bg-name-plate px-0.5 text-data ${wentOff ? "text-event" : status.kind === "playing" ? "text-derived" : "text-soft"}`}>
+            {badge}
           </span>
-        )}
+        )}{" "}
+        <span className={`flex w-full min-w-0 flex-col ${strip ? "" : "opacity-50"}`}>
+          {/* The bench's tiles stand on a dark grey ground, not the grass (the approved picture). */}
+          <span aria-hidden="true" className={`relative flex justify-center pt-1 ${strip ? "bg-pitch-stripe" : "bg-panel-edge"}`}>
+            {/* A space between each bit of text, so none runs into the next as one word (WCAG 2.5.3). */}
+            <Shirt number={number} clubCode={clubCode} goalkeeper={area === "goalkeeper"} size="size-shirt-tile" />{" "}
+            <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${counts && points !== null ? "text-figure" : "text-muted"}`}>{figure}</span>
+          </span>{" "}
+          <span aria-hidden="true" className={`truncate bg-fact px-1 text-center font-semibold text-ground ${autoSub?.kind === "on" ? "shadow-event-edge" : ""}`}>
+            {name}
+          </span>{" "}
+          {roleStrip !== null && (
+            <span aria-hidden="true" className={`line-clamp-2 px-0.5 text-center text-data leading-pitch-role ${roleStrip.colours.fill} ${roleStrip.colours.ink}`}>
+              <span data-slot-label>{roleStrip.label}</span> {roleStrip.role}
+            </span>
+          )}
+        </span>
       </button>
     </li>
   );
