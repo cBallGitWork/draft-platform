@@ -28,9 +28,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   random button, order could be preset offline before the teams are signed up". The commissioner
   puts the teams in order himself, which covers a draw done offline, or presses "Draw at random",
   which orders the teams there then; either as often as he likes until the draft starts, and
-  before every team has signed up. If he does neither, the draft runs in the order the teams
-  joined. A team that joins after the order is set goes to the bottom, and only his button or his
+  before every team has signed up. A team that joins after the order is set goes to the bottom, and only his button or his
   own edit changes it: "Yes, all of that" (Craig, 4 Nov 2026, on #1089).
+- If the commissioner neither puts the teams in order nor presses "Draw at random", the order is
+  drawn at random when the draft starts, in place of the order the teams joined: "if they don't
+  know for some reason/it's not set, randomise at start as a fallback" (Craig, 16 Nov 2026, on
+  #2073; #2439). `S04.32`
 - The draft starts with at least 2 teams, in a league with a squad size limit (Craig, 4 Nov 2026,
   on #1089).
 - A start date can be cleared, which goes back to waiting for the commissioner to press start; it

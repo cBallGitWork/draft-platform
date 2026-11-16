@@ -11,7 +11,7 @@ import { startClock } from "./draftClock";
 import { tellNotStarted, tellStartDate, tellUpNext } from "./draftLetters";
 import { checkSoon } from "../leagues/leagueChecks";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
-import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
+import { startingOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
 import { roundsOf } from "./draftRules";
 
@@ -20,10 +20,10 @@ import { roundsOf } from "./draftRules";
 // teams that exist, at least DRAFT_FEWEST_TEAMS, and only in a league with a squad size limit, as
 // its rounds are the squad's most players; a date can't be set without them either, and must be in
 // the future. A date that comes when the league can't start stays waiting, as an unset date does
-// (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then (draftOrder.ts),
-// and no team can join after (../leagues/teams.ts). It waits until every squad is empty, though a
-// date can be set before they are, as the commissioner may release players first (Craig, 11 Nov
-// 2026, on #1459). Its rounds,
+// (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then, or one drawn at
+// random if the commissioner never set it (draftOrder.ts; S04.32), and no team can join after
+// (../leagues/teams.ts). It waits until every squad is empty, though a date can be set before they
+// are, as the commissioner may release players first (Craig, 11 Nov 2026, on #1459). Its rounds,
 // and the squad rules its picks follow, are the league's latest, a change waiting for a later
 // gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
 // #1130, replacing #1090's "in force when it starts"). Starting closes every pick trade still open
@@ -78,7 +78,7 @@ export async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
   if (await anyoneHeld(ctx, league._id)) return draftStartRefusals.squadsNotEmpty;
-  const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
+  const started = { at: Date.now(), teamIds: await startingOrderOf(ctx, league, can.teams), rounds: can.rounds, squad: can.squad };
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });

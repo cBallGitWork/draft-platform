@@ -57,13 +57,19 @@ export const [TEAM_1, TEAM_2, TEAM_3, TEAM_4] = Array.from({ length: TEST_LEAGUE
 
 /** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent.
  *  Only what is due now runs, and the clock stays put: a held season has an alarm pending for its
- *  next deadline (deadlineRecorder.ts), which running every timer would fire. */
+ *  next deadline (deadlineRecorder.ts), which running every timer would fire. Its draft runs in the
+ *  order the teams join, as if the commissioner had set it so: one nobody set is drawn at random
+ *  when the draft starts (S04.32), which a test of that clears with `draftOrderUnset`. */
 export async function adminCreatesLeague(t: TestConvex, maxTeams = TEST_LEAGUE_TEAMS, name = LEAGUE_NAME): Promise<Id<"leagues">> {
   const admin = await actingAs(t, ADMIN);
   const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
+  await t.run((ctx) => ctx.db.patch("leagues", leagueId, { draftOrder: [] }));
   return leagueId;
 }
+
+/** The league's draft order as nobody has set it, as a new league's is outside tests (S04.32). */
+export const draftOrderUnset = (t: TestConvex, leagueId: Id<"leagues">) => t.run((ctx) => ctx.db.patch("leagues", leagueId, { draftOrder: undefined }));
 
 /** A new league as most server tests open on: sign-in's deployment (stopped at `morning`, held to
  *  Convex's limits with `atConvexLimits`), Resend faked, whatever `before` holds put in, then the

@@ -12,8 +12,8 @@ import { draftHasStarted } from "./draftRow";
 // after goes straight to the bottom, and nothing redraws it on its own (Craig, 4 Nov 2026, on #1087
 // and #1089). The league row holds the order (`draftOrder`); a team it doesn't name, as one that
 // joined since, follows the named in the order they joined, so a team joining needs no write here.
-// If he never sets it, the draft runs in the order the teams joined. Each order he saves, and each
-// draw, tells the whole league (S04.31; #2149).
+// If he never sets it, it is drawn at random when the draft starts (S04.32; Craig, 16 Nov 2026, on
+// #2439). Each order he saves, and each draw, tells the whole league (S04.31; #2149).
 
 /** Why a new order is refused, in the words the commissioner is shown. */
 export const draftOrderRefusals = {
@@ -32,6 +32,16 @@ export function draftOrderOf<Team extends { _id: Id<"teams"> }>(teams: readonly 
   const named = (saved ?? []).flatMap((teamId) => byId.get(teamId) ?? []);
   const placed = new Set(named.map((team) => team._id));
   return [...named, ...teams.filter((team) => !placed.has(team._id))];
+}
+
+/** The order the league's draft starts in, first pick first: the commissioner's, set or drawn,
+ *  or, if he did neither, `teams` drawn at random now and saved as the league's draft order, which
+ *  the waiver order starts from (S04.32). */
+export async function startingOrderOf(ctx: MutationCtx, league: Doc<"leagues">, teams: Doc<"teams">[]): Promise<Id<"teams">[]> {
+  if (league.draftOrder !== undefined) return draftOrderOf(teams, league.draftOrder).map((team) => team._id);
+  const drawn = shuffle(teams.map((team) => team._id), Math.random);
+  await ctx.db.patch("leagues", league._id, { draftOrder: drawn });
+  return drawn;
 }
 
 /** The league's draft order, first pick first, each team with its name. */

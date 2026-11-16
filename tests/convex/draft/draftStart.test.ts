@@ -14,8 +14,9 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Starting the draft (spec/04, Starting it; #1089): on the commissioner's date or when he presses
 // start, with the teams there, at least 2, in a league with a squad size limit; in the draft order
-// he set or drew at random, or the order the teams joined; and no new team joins after (Craig,
-// 4 Nov 2026).
+// he set or drew at random, or, if he did neither, one drawn at random as it starts (S04.32); and
+// no new team joins after (Craig, 4 Nov 2026). The harness's league has its order set to the order
+// the teams joined; draftOrderAtStart.test.ts clears it for the draw.
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
