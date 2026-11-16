@@ -1,10 +1,11 @@
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
-import { begunBy, latestBegun, latestOf, type LeagueDeadlines } from "../gameweeks/deadline";
+import { latestBegun, type LeagueDeadlines } from "../gameweeks/deadline";
 import { gameweekEnd, gameweekUnderWay } from "../gameweeks/gameweekEnd";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { refuse } from "../shared/leagueAccess";
+import { endedAt } from "./runsAhead";
 
 // The waiver lock (#1197, spec/08: "From the deadline until the gameweek's last match is over,
 // there are no claims, drops or free agent pickups"): from the league's own deadline for a
@@ -15,10 +16,8 @@ import { refuse } from "../shared/leagueAccess";
  *  over, and the one begun before it while it is under way; null before any has. Reverse table
  *  order's waiver order is worked out again only then (spec/08, ./waiverOrder.ts). */
 export async function latestEnded(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
-  const begun = begunBy(deadlines, now);
-  const latest = latestOf(begun);
-  if (latest === null || !(await gameweekUnderWay(ctx, latest))) return latest;
-  return latestOf(begun.filter((gameweek) => gameweek < latest));
+  const underWay = await underWayIn(ctx, deadlines, now);
+  return endedAt(deadlines, underWay === null ? [] : [underWay], now);
 }
 
 /** Whether the league is in the waiver lock at `now`: its latest begun gameweek has a match not yet
