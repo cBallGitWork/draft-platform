@@ -7,7 +7,10 @@ drawn whole) and #1190 (the scoring start). The Waivers tab's picture is in
 
 ## The pictures
 
-- `1440.png`: Fixtures, with the scoring start set to GW11 and an unsaved change.
+- `1440.png`: Fixtures, with the scoring start set to GW11 and an unsaved change. Its "Odd team out
+  plays" row is no longer built: Craig dropped the bye on 15 Nov 2026 (S03.4, S09.4), so the team
+  left over always plays the league's average and there is nothing to choose. Build Fixtures
+  without it; the look check need not list it.
 - `1440-squad.png`: Squad, each area's squad and starting limits in one table, and the formation
   presets.
 - `1440-draft.png`: Draft, before the draft starts.
@@ -39,7 +42,7 @@ organisation, never its colours.
   deadline passes (spec/04, After the draft).
 - **Games a gameweek, Deadline, Most players, each area's limits, Players from one club:** number
   boxes; the club limit has a tick to turn it off.
-- **Odd team out, Double gameweeks, Review, Undrafted players go to, pick time's unit:** keys.
+- **Double gameweeks, Review, Undrafted players go to, pick time's unit:** keys.
 - **Tie-breaks:** Up and Down move each one; the first can't go up, the last can't go down.
 - **Auto-pick:** a tick for "never", and the timeouts before it.
 - **Trade deadline:** a tick to turn it off, and the last gameweek with trades.
