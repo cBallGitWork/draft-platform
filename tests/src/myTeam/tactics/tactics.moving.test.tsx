@@ -47,6 +47,7 @@ import {
   rowOf,
   squadRows,
   swap,
+  swapNamed,
   swaps,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
@@ -103,7 +104,7 @@ describe("moving a player", () => {
     await pickUp(SALIBA);
 
     const table = screen.getByRole("table", { name: selectionTableLabel });
-    const whitesRow = within(table).getByRole("button", { name: swapLabel(SALIBA.name, WHITE.name) }).closest("th")!;
+    const whitesRow = within(table).getByRole("button", { name: swapNamed(SALIBA.name, WHITE.name) }).closest("th")!;
     expect(within(whitesRow).getByRole("img", { name: whitesStars })).toBeTruthy();
     expect(within(pitch()).queryByRole("img", { name: whitesStars })).toBeNull();
 
@@ -158,10 +159,19 @@ describe("moving a player", () => {
     await openedPitch();
     await pickUp(RAYA);
     // Only the other keeper plays goal: White isn't lit.
-    expect(screen.queryByRole("button", { name: swapLabel(RAYA.name, WHITE.name) })).toBeNull();
+    expect(screen.queryByRole("button", { name: swapNamed(RAYA.name, WHITE.name) })).toBeNull();
     const table = screen.getByRole("table", { name: selectionTableLabel });
-    await userEvent.click(within(table).getByRole("button", { name: swapLabel(RAYA.name, ARRIZABALAGA.name) }));
+    await userEvent.click(within(table).getByRole("button", { name: swapNamed(RAYA.name, ARRIZABALAGA.name) }));
     expect(blockOf(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
+  });
+
+  it("a lit row's name button is named first by the name it shows, then the swap (WCAG 2.5.3; S12.14)", async () => {
+    await openedPitch();
+    await pickUp(RAYA);
+    const table = screen.getByRole("table", { name: selectionTableLabel });
+    const lit = within(table).getByRole("button", { name: swapNamed(RAYA.name, ARRIZABALAGA.name) });
+    expect(lit.textContent).toBe(ARRIZABALAGA.name);
+    expect(lit.getAttribute("aria-label")).toBe(`${ARRIZABALAGA.name}, ${swapLabel(RAYA.name, ARRIZABALAGA.name)}`);
   });
 
   it("works from the keyboard: Enter opens his panel, Enter on Move picks him up, Escape puts him back", async () => {

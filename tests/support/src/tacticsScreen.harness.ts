@@ -103,15 +103,20 @@ export async function pickFormation(name: string) {
   throw new Error(`No formation called ${name}`);
 }
 export const blockOf = (player: Member, cell: Cell) => within(pitch()).getByRole("button", { name: playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane) });
-/** Every player lit on the pitch for the player picked up, to swap with: there are no empty cells
- *  to move into (presets only; #1022). */
-export const swaps = () => within(pitch()).queryAllByRole("button", { name: /^Swap / }).map((target) => target.getAttribute("aria-label"));
+/** The swap a lit player's name ends with, after the words his row shows (`swapInTableLabel`). */
+const swapOf = (label: string | null) => label?.replace(/^.*?(?=Swap )/, "") ?? null;
+const SWAP = /(^|, )Swap /;
+/** A lit player, on the pitch or in the Selection table, to swap the one picked up with. */
+export const swapNamed = (name: string, other: string) => (label: string) => swapOf(label) === swapLabel(name, other);
+/** Every player lit on the pitch for the player picked up, to swap with, by the swap his name ends
+ *  with: there are no empty cells to move into (presets only; #1022). */
+export const swaps = () => within(pitch()).queryAllByRole("button", { name: SWAP }).map((target) => swapOf(target.getAttribute("aria-label")));
 /** Every player lit for the player picked up, on the pitch and in the Selection table. */
-export const allSwaps = () => screen.queryAllByRole("button", { name: /^Swap / }).map((target) => target.getAttribute("aria-label"));
+export const allSwaps = () => screen.queryAllByRole("button", { name: SWAP }).map((target) => swapOf(target.getAttribute("aria-label")));
 /** The player picked up and swapped with a lit one, by a tap on him wherever he is lit. */
 export async function swap(player: Member, other: Member) {
   await pickUp(player);
-  await userEvent.click(screen.getAllByRole("button", { name: swapLabel(player.name, other.name) })[0]);
+  await userEvent.click(screen.getAllByRole("button", { name: swapNamed(player.name, other.name) })[0]);
 }
 /** The pitch's cell, empty or not, as a drop lands on it: the pitch's cells are its only child
  *  divs, drawn attack first, left to right. */
