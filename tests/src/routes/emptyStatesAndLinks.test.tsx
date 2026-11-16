@@ -161,7 +161,7 @@ describe("interaction notes", () => {
     expect(await screen.findByRole("heading", { level: 1, name: league.teamName! })).toBeTruthy();
   });
 
-  it("UI-189 (approved/mail README:44, S16.2): a trade-offer letter ends with its one link, opening the offer in Trades", async () => {
+  it("UI-189 (approved/mail README:44, spec/16): a trade-offer letter ends with its one link, opening the offer in Trades", async () => {
     const offer = "offer-1" as Id<"tradeOffers">;
     const app = openApp(MAIL_PATH, manager, { letters: [mailLetter(1, false, null, "trade", { offer })] });
     await userEvent.click(await screen.findByRole("button", { name: /Letter 1/ }));
