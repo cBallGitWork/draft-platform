@@ -7097,6 +7097,21 @@
             },
             "optional": true
           },
+          "link": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "offer": {
+                  "fieldType": {
+                    "type": "id",
+                    "tableName": "tradeOffers"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
           "readAt": {
             "fieldType": {
               "type": "number"
