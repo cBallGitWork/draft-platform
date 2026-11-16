@@ -2,8 +2,7 @@
 // function over the lineup, each player's matches, the site's scoring set and the league's
 // double-gameweek rule. Who came on for whom is an argument, decided by the auto-subs; storing
 // the points, the query and the screen are not here. Each player's role adjustment is in his
-// points (spec/05, #10); the captain (spec/17) isn't yet: until he is, a total here is not a
-// team's final score.
+// points (spec/05, #10).
 
 import type { Lineup } from "../lineup/lineup";
 import { cellKey, cellOf, type Cell } from "../lineup/pitch";

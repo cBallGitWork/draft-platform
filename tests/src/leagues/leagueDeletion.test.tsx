@@ -45,6 +45,15 @@ describe("Delete league", () => {
     expect(app.leagues.deleteLeague).toHaveBeenCalledExactlyOnceWith(league.leagueId);
   });
 
+  it("LG-149 (spec/13 Deleting: only once it's gone is each manager told): the confirm says the email waits for the end, not at once", async () => {
+    openApp(LEAGUES_PATH, managerIn(commissioned));
+    await userEvent.click(await deleteButtonShown());
+    const [atOnce, later] = screen.getByText(confirmDelete(league.name)).textContent!.split("You can undo it");
+    expect(atOnce).not.toContain("emailed");
+    expect(later).toContain("gone for good");
+    expect(later).toContain("everyone else in it is emailed");
+  });
+
   it("Keep it deletes nothing", async () => {
     const app = openApp(LEAGUES_PATH, managerIn(commissioned));
     await userEvent.click(await deleteButtonShown());

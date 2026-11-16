@@ -86,8 +86,8 @@ export const leaveFailedWords = failedWords("you're still in the league, running
 export const deleteLeagueWords = "Delete league";
 export { confirmDeleteWords } from "../shared/controls/words";
 export const confirmDelete = (leagueName: string) =>
-  `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
-  `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
+  `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin. ` +
+  `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history, and everyone else in it is emailed.`;
 
 /** After the league's name, on its strip under Your leagues: when it goes, in the viewer's own zone
  *  (convex/shared/moments.ts, #442). */
