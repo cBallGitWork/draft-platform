@@ -111,3 +111,16 @@ test("S20.17: an email sent through Resend is caught, not sent, and its sign-in 
   expect(linkIn(email.text, SITE)).toBe(`${SITE}/?code=123`);
   expect(fake.misses()).toEqual([]);
 });
+
+test("S20.17: a send to Resend with a malformed body answers 400 and is listed as missed, and the fake keeps running", async () => {
+  await started();
+  const send = (body) => fetch(outsideUrl(`${RESEND_API_URL}/emails`), { method: "POST", body });
+  const notJson = await send("{not json");
+  expect(notJson.status).toBe(400);
+  expect((await notJson.json()).error).toContain("POST https://api.resend.com/emails");
+  expect((await send("null")).status).toBe(400);
+  expect(fake.emails()).toEqual([]);
+  const malformed = "POST https://api.resend.com/emails, its body not a JSON object";
+  expect(fake.misses()).toEqual([malformed, malformed]);
+  expect((await read(FPL_BOOTSTRAP_URL)).status).toBe(200);
+});
