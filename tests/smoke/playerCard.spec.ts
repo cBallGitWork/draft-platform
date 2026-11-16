@@ -1,6 +1,6 @@
 // The player card in a real browser on the dev server's preview: opened from Scouting, its game
 // log's Scoring | All stats switch and a match row's breakdown (#1027); and its claim or drop
-// (#1200): the preview manager drops his own Saka, claims James off waivers naming Saka to go, and
+// (#1200): the preview manager drops his own Saka, whose card keeps Arsenal's postponed match, claims James off waivers naming Saka to go, and
 // picks up Raya; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
@@ -35,7 +35,6 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(0);
     await season.getByText(logViews.all, { exact: true }).click();
     await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(1);
-    await expect(season.getByText(postponedWords)).toBeVisible();
 
     // The newest match is selected; pressing the one before it shows its breakdown instead. His
     // matches are his club's in Football's preview (#2455).
@@ -52,6 +51,8 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     const said = (outcome: string) => expect(page.getByRole("alert")).toHaveText(previewSaid(outcome));
 
     await card(SAKA);
+    // Arsenal's match Football's preview postponed keeps its row in his game log (#2466).
+    await expect(page.getByRole("region", { name: SEASON_TITLE }).getByText(postponedWords)).toBeVisible();
     await page.getByRole("button", { name: dropWords }).click();
     await expect(page.getByText(confirmDropWords("Saka"))).toBeVisible();
     await page.getByRole("button", { name: dropWords }).click();
