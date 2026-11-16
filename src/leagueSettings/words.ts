@@ -84,17 +84,22 @@ export const pickClockUnitLabel = "Time for each pick, in";
 export const pickClockUnitWords: Record<PickClockUnit, string> = { seconds: "Seconds", minutes: "Minutes", hours: "Hours" };
 export const pickClockHint = `From ${PICK_SECONDS_FEWEST} seconds to ${inUnit(PICK_SECONDS_MOST, "hours")} hours.`;
 export const blankPickClockWords = noNumberWords(pickClockLabel);
+/** The Draft tab's row for auto-pick, the approved picture's short label. */
+export const autoPickLabel = "Auto-pick";
 export const autoPickWords = "Auto-pick after timeouts";
 export const timeoutsLabel = "Timeouts before auto-pick";
 /** spec/04, Auto-pick. */
 export const timeoutsHint = `A whole number, ${TIMEOUTS_FEWEST} to ${TIMEOUTS_MOST}. A clock that runs out makes the pick and counts as a timeout; a manager on auto-pick can take control back himself.`;
 export const neverAutoPickWords = "Never: the clock runs for every pick.";
 export const blankTimeoutsWords = noNumberWords(timeoutsLabel, "turn auto-pick after timeouts off");
-export const undraftedLabel = "Players nobody drafts go to";
+export const undraftedLabel = "Undrafted players go to";
 export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Waivers", freeAgents: "Free agents" };
 
 export const tradesTitle = "Trades";
 export const tradeReviewLabel = "An accepted trade is reviewed by";
+/** The Trades tab's rows, the approved picture's short labels. */
+export const tradeReviewRowLabel = "Review";
+export const tradeDeadlineRowLabel = "Trade deadline";
 export const tradeReviewWords: Record<TradeReview, string> = {
   none: "No one",
   veto: commissionerVetoWords,

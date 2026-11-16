@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useChange } from "../shared/useChange";
 import { Loading, Problem } from "../ui/Panel";
 import type { LeagueSettingsSeam } from "./seam";
-import { SETTING_LINE } from "./SettingRow";
+import { SETTING_LINE, SettingRow } from "./SettingRow";
 import { clearDraftStartWords, draftStartedFixedWords, draftStartHint, draftStartLabel, draftStartLoadingWords } from "./words";
 
 const HINT_ID = "settings-draft-start-hint";
@@ -64,16 +64,16 @@ export function useDraftStartEdit(leagueId: Id<"leagues">, seam: LeagueSettingsS
 
 export type DraftStartEdit = ReturnType<typeof useDraftStartEdit>;
 
-/** "Starts": the date box and Clear while the draft waits; once it has started, words. */
+/** The "Starts" row: the date box and Clear while the draft waits; once it has started, words. */
 export function DraftStartRow({ start }: { start: DraftStartEdit }) {
-  if (start.view === undefined) return <Loading>{draftStartLoadingWords}</Loading>;
+  return <SettingRow label={draftStartLabel}>{start.view === undefined ? <Loading>{draftStartLoadingWords}</Loading> : <DraftStart start={start} view={start.view} />}</SettingRow>;
+}
+
+function DraftStart({ start, view }: { start: DraftStartEdit; view: NonNullable<DraftStartEdit["view"]> }) {
   return (
-    <div className="flex flex-col gap-1">
+    <>
       <div className={SETTING_LINE}>
-        <span aria-hidden className="text-soft">
-          {draftStartLabel}
-        </span>
-        {start.view.started ? (
+        {view.started ? (
           <span>{draftStartedFixedWords}</span>
         ) : (
           <>
@@ -94,12 +94,12 @@ export function DraftStartRow({ start }: { start: DraftStartEdit }) {
           </>
         )}
       </div>
-      {!start.view.started && (
+      {!view.started && (
         <p id={HINT_ID} className="text-muted">
           {draftStartHint}
         </p>
       )}
       <Problem problem={start.problem} />
-    </div>
+    </>
   );
 }
