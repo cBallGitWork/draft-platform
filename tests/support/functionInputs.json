@@ -253,7 +253,7 @@
   "scouting/yourPlayer:at": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false},"now":{"fieldType":{"type":"number"},"optional":false}}},
   "signIn/account:signedInAs": {"type":"object","value":{}},
   "signIn/allowedEmails:add": {"type":"object","value":{"email":{"fieldType":{"type":"string"},"optional":false}}},
-  "signIn/signInLinks:ask": {"type":"object","value":{"email":{"fieldType":{"type":"string"},"optional":false}}},
+  "signIn/signInLinks:ask": {"type":"object","value":{"email":{"fieldType":{"type":"string"},"optional":false},"next":{"fieldType":{"type":"string"},"optional":true}}},
   "signIn/signInLinks:pruneSignInAsks": {"type":"object","value":{}},
   "signIn/signInLinks:recordAsk": {"type":"object","value":{"email":{"fieldType":{"type":"string"},"optional":false}}},
   "signIn/signInLinks:recordSendError": {"type":"object","value":{"askId":{"fieldType":{"type":"id","tableName":"signInAsks"},"optional":false},"sendError":{"fieldType":{"type":"string"},"optional":false}}},

@@ -184,3 +184,36 @@ describe("the session changing under an open page (spec/13 Leaving a league, Del
     expect(app.path()).toBe(LEAGUES_PATH);
   });
 });
+
+describe("signing in keeps the address asked for (S16.2: a letter's link leads to where you act on it)", () => {
+  const LETTER_SEARCH = "?letter=letter1";
+  const LETTER = `${MAIL_PATH}${LETTER_SEARCH}`;
+
+  /** Types an email on the sign-in page and asks for a link. */
+  async function askForALink() {
+    await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
+  }
+
+  it("UI-063: a visitor opening a letter's address asks for a link that leads back to it", async () => {
+    const app = openApp(LETTER, visitor);
+    await askForALink();
+    expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com", LETTER);
+    expect(app.path()).toBe(SIGN_IN_PATH);
+  });
+
+  it("UI-064: once signed in, the sign-in page sends them on to the address they asked for, not My team", async () => {
+    const app = openApp(LETTER, visitor);
+    await screen.findByRole("textbox", { name: signInWords.emailLabel });
+    app.becomes(manager);
+    expect(await screen.findByRole("heading", { level: 1, name: MAIL_TITLE })).toBeTruthy();
+    expect(app.path()).toBe(MAIL_PATH);
+    expect(app.search()).toBe(LETTER_SEARCH);
+  });
+
+  it("UI-064: an address off the site is never followed through sign-in", async () => {
+    const app = openApp(`${SIGN_IN_PATH}?next=${encodeURIComponent("//elsewhere.example")}`, visitor);
+    await askForALink();
+    expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com", undefined);
+  });
+});

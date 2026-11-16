@@ -33,7 +33,8 @@ import { liveTable } from "../table/liveTable";
 import { answerOf } from "../shared/refusal";
 import { ClubColoursProvider } from "../shared/clubColours";
 import { ShellApp } from "./ShellApp";
-import { LINK_CODE_PARAM, signInAddress } from "../signIn/paths";
+import { LINK_CODE_PARAM, signInAddress, signInSearchFor } from "../signIn/paths";
+import { LANDING_PATH } from "../routes/root";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../signIn/words";
 import { NO_CONVEX_URL } from "../shared/words";
 
@@ -173,7 +174,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
 
   const auth = useMemo<AuthActions>(
     () => ({
-      requestSignInLink: (email) => answerOf(async () => replyWords[await ask({ email })], "Asking for a sign-in link", askFailedWords),
+      requestSignInLink: (email, next) => answerOf(async () => replyWords[await ask({ email, next })], "Asking for a sign-in link", askFailedWords),
       signOut,
     }),
     [ask, signOut],
@@ -198,10 +199,11 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   );
 }
 
-/** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
- *  link, leading back to it (#73). */
+/** The sign-in page saying what was wrong with a link, and leading back to where the link led: a
+ *  league's invite link (#73) or any other address (UI-063). */
 function signInAddressAfter(problem: LinkProblem): string {
-  return signInAddress({ link: problem, join: joinTokenAt(window.location.pathname) ?? undefined });
+  const { pathname, search } = window.location;
+  return signInAddress({ link: problem, ...signInSearchFor(pathname + search, joinTokenAt(pathname), LANDING_PATH) });
 }
 
 /** Redeems a link's code, and says what went wrong if it didn't sign in. Convex Auth answers a

@@ -22,9 +22,10 @@ export type Session =
     };
 
 export type AuthActions = {
-  /** Asks for a sign-in link for this email, and resolves with what to tell the visitor. It never
-   * rejects: a failure resolves too, as the words that say what went wrong. */
-  requestSignInLink(email: string): Promise<string>;
+  /** Asks for a sign-in link for this email, leading back to `next` when given (an address in the
+   * app), and resolves with what to tell the visitor. It never rejects: a failure resolves too, as
+   * the words that say what went wrong. */
+  requestSignInLink(email: string, next?: string): Promise<string>;
   /** Ends this device's session. It never rejects. */
   signOut(): Promise<void>;
 };

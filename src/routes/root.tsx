@@ -31,7 +31,7 @@ import type { PlayerCardSeam } from "../playerCard/seam";
 import type { PremierLeagueSeam } from "../premierLeague/seam";
 import type { ScoringSeam } from "../scoring/seam";
 import type { ScoutingSeam } from "../scouting/seam";
-import { SIGN_IN_PATH, signInSearchOf, type SignInSearch } from "../signIn/paths";
+import { SIGN_IN_PATH, signInSearchFor, signInSearchOf } from "../signIn/paths";
 import { SignInPage } from "../signIn/SignInPage";
 import type { SquadsSeam } from "../squads/seam";
 import type { TableScreenSeam } from "../table/seam";
@@ -133,18 +133,26 @@ export const membersOnly = ({ context, params }: { context: ShellContext; params
   if (!leagueIn(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
 };
 
+/** A signed-out visitor sent to sign in from the address they opened, which their link leads back
+ *  to (UI-063, UI-064). */
+const toSignIn = (location: { pathname: string; href: string }) =>
+  redirect({ to: SIGN_IN_PATH, search: signInSearchFor(location.href, joinTokenAt(location.pathname), LANDING_PATH) });
+
 export const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SIGN_IN_PATH,
   head: titled(signInWords.title),
   validateSearch: signInSearchOf,
   beforeLoad: ({ context, search }) => {
-    if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: LANDING_PATH });
+    if (!context.session.signedIn) return;
+    if (search.join) throw redirect({ to: JOIN_ROUTE, params: { token: search.join } });
+    if (search.next) throw redirect({ href: search.next });
+    throw redirect({ to: LANDING_PATH });
   },
   component: function SignIn() {
     const { auth, joining } = signInRoute.useRouteContext();
-    const { link, join } = signInRoute.useSearch();
-    const requestSignInLink = join ? (email: string) => joining.signInToJoin(join, email) : auth.requestSignInLink;
+    const { link, join, next } = signInRoute.useSearch();
+    const requestSignInLink = join ? (email: string) => joining.signInToJoin(join, email) : (email: string) => auth.requestSignInLink(email, next);
     return <SignInPage requestSignInLink={requestSignInLink} linkProblem={link} intro={join && signInToJoinWords} />;
   },
 });
@@ -156,7 +164,7 @@ export const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "leaguePages",
   beforeLoad: ({ context, location }) => {
-    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } satisfies SignInSearch });
+    if (!context.session.signedIn) throw toSignIn(location);
   },
   component: function LeaguePages() {
     const context = leaguePagesRoute.useRouteContext();
@@ -172,8 +180,8 @@ export const leaguePagesRoute = createRoute({
 export const frameRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "frame",
-  beforeLoad: ({ context }) => {
-    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH });
+  beforeLoad: ({ context, location }) => {
+    if (!context.session.signedIn) throw toSignIn(location);
     if (!context.session.inLeague) throw redirect({ to: LEAGUES_PATH });
   },
   component: function Frame() {

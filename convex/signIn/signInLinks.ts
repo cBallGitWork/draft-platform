@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { api, internal } from "../_generated/api";
 import { action, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isAllowed, isEmailAddress, normaliseEmail } from "./allowedEmails";
+import { appPathOrNone } from "./nextPath";
 import { signInReply, type SignInReply } from "./signInReplies";
 import { anEmailLeftToday, countTodaysEmail } from "../outbound/emailLimit";
 import { logFailure } from "../shared/errors";
@@ -42,10 +43,11 @@ const askOutcome = v.union(
  *  your email", as an unlisted email is, so the reply never shows who is on the list (spec/02,
  *  #2065); the failure is logged and kept on the ask. */
 export const ask = action({
-  args: { email: v.string() },
+  args: { email: v.string(), next: v.optional(v.string()) },
   returns: signInReply,
-  handler: async (ctx, { email }): Promise<SignInReply> => {
-    const reply = await askForLink(ctx, email);
+  handler: async (ctx, { email, next }): Promise<SignInReply> => {
+    // `next`, the address asked for before signing in, is where the link leads back to (UI-063).
+    const reply = await askForLink(ctx, email, appPathOrNone(next));
     return reply === "notSent" ? "checkYourEmail" : reply;
   },
 });

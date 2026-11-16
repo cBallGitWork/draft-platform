@@ -71,7 +71,7 @@ describe("a logged-out visitor", () => {
     await userEvent.type(await screen.findByRole("textbox", { name: signInWords.emailLabel }), "craig@example.com");
     await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(LINK_REPLY));
-    expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com");
+    expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com", undefined);
   });
 
   it(`LG-006 S02.1: ${signInWords.send} pressed with the box empty asks for nothing, and the page stays as it was`, async () => {
