@@ -5,8 +5,11 @@ import { internalAction, type MutationCtx } from "../_generated/server";
 import {
   draftNotStartedLetter,
   draftOverLetter,
+  draftOrderLetter,
   draftPausedLetter,
   draftPickedForLetter,
+  draftPickerLetter,
+  draftStartDateLetter,
   draftUndoneLetter,
   scoringStartMovedLetter,
   upNextLetter,
@@ -27,7 +30,8 @@ import type { Clocked } from "./draftClock";
 // it, none when he resumes; and the commissioner gets one when a start date comes and the draft
 // can't start, and when the draft ends after the deadline of the gameweek scoring was to start in,
 // so the start moves on (#1097). The commissioner's undo and his pick for a team each send the whole league one too
-// (#1095). A team with no manager has no one to tell. "You're up next" also goes
+// (#1095), as do his draft order, each draw of it, his start date and his "I'll pick for this one"
+// (S04.31; #2149). A team with no manager has no one to tell. "You're up next" also goes
 // by email when the clock is over 10 minutes (spec/11): in a live draft managers are on the draft
 // page. It counts against the day's emails (emailLimit.ts); with none left it isn't sent, as a
 // clock can't wait for tomorrow, and that is logged.
@@ -77,6 +81,24 @@ export async function tellPickedFor(ctx: MutationCtx, league: Doc<"leagues">, by
 /** Tells the whole league `by`, the commissioner, undid a pick. */
 export async function tellUndone(ctx: MutationCtx, league: Doc<"leagues">, by: string, news: PickNews): Promise<void> {
   await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftUndoneLetter(bylineOf(by), news), by);
+}
+
+/** Tells the whole league `by`, the commissioner, set the draft order to `teamNames`, first pick
+ *  first, drawing it at random when `drawn` (S04.31). */
+export async function tellDraftOrder(ctx: MutationCtx, league: Doc<"leagues">, by: string, teamNames: readonly string[], drawn: boolean): Promise<void> {
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftOrderLetter(bylineOf(by), teamNames, drawn), by);
+}
+
+/** Tells the whole league `by`, the commissioner, set the draft's start to `startsAt`, or cleared it
+ *  with null (S04.31). */
+export async function tellStartDate(ctx: MutationCtx, league: Doc<"leagues">, by: string, startsAt: number | null): Promise<void> {
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), (tell) => draftStartDateLetter(bylineOf(by), startsAt, tell), by);
+}
+
+/** Tells the whole league `by`, the commissioner, marked `teamName` for him to pick for, or
+ *  unmarked it (S04.31). */
+export async function tellPicker(ctx: MutationCtx, league: Doc<"leagues">, by: string, teamName: string, marked: boolean): Promise<void> {
+  await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftPickerLetter(bylineOf(by), teamName, marked), by);
 }
 
 /** Tells the commissioner the draft didn't start at its date, `startsAt`, for `refusal`. */

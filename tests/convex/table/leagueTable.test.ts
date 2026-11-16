@@ -238,7 +238,7 @@ test("a league-average game is sent final once its gameweek's drawn teams are, t
 
 // The table ranks by the tie-breaks in force in the latest gameweek begun, so a change of them
 // shows once the gameweek it counts from begins, never in a table already played (#2279).
-test("S03.8: a change of the tie-breaks ranks the table only once the gameweek it counts from has begun", async () => {
+test("S03.9: a change of the tie-breaks ranks the table only once the gameweek it counts from has begun", async () => {
   await addManagers(t, leagueId, [ANN, BOB, CAT]);
   const firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1 });

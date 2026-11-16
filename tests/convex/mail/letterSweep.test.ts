@@ -5,6 +5,7 @@ import { wholeLeague } from "../../../convex/mail/letters";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { DAY_MS } from "../../../convex/shared/time";
 import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers, PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
@@ -167,6 +168,22 @@ const SWEPT: Record<string, Sweep<World>> = {
     },
     change: ({ leagueId }, by) => by.mutation(api.draft.draftCommissioner.undoPick, { leagueId }),
   }),
+  // The commissioner's changes before the draft each tell the whole league too (S04.31; #2149).
+  "draft/draftOrder:setTeamOrder": sweep({
+    world: draftLeague,
+    change: ({ leagueId, teams }, by) => by.mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: [...teams].reverse() }),
+  }),
+  "draft/draftOrder:drawTeamOrder": sweep({ world: draftLeague, change: ({ leagueId }, by) => by.mutation(api.draft.draftOrder.drawTeamOrder, { leagueId }) }),
+  "draft/draftStart:setStart": sweep({
+    world: draftLeague,
+    change: ({ leagueId }, by) => by.mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS }),
+  }),
+  "draft/draftCommissioner:markForCommissioner": sweep({
+    world: draftLeague,
+    // BOB's team left with no manager, for the commissioner to pick for.
+    first: ({ t, teams }) => t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: undefined })),
+    change: ({ leagueId, teams }, by) => by.mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: teams[1], marked: true }),
+  }),
   "draft/draftCommissioner:setPickTime": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }) }),
   "table/pointsOverrides:override": sweep({ world: scoredLeague, change: overridesScorer }),
   "table/pointsOverrides:removeOverride": sweep({
@@ -187,15 +204,6 @@ const NO_LETTER: Record<string, string> = {
   "joining/joinRequests:refuseRequest": "Refusing a join request files none (spec/13, Joining; spec/15)",
   "draft/draftPause:resume": "Resume sends none (spec/04, Mail)",
   "leagues/lastLeague:switchTo": "Not a change to the league: which league the caller's own screens open (spec/13)",
-};
-
-/** Changes that file no letter today, where the spec's draft letters (spec/04) and "every
- *  commissioner action" (spec/15) disagree: Craig's call, #2149. */
-const AWAITING_CRAIG: Record<string, string> = {
-  "draft/draftOrder:setTeamOrder": "the commissioner puts the teams in draft order",
-  "draft/draftOrder:drawTeamOrder": "the commissioner draws the draft order at random",
-  "draft/draftStart:setStart": "the commissioner sets or clears the draft's start date",
-  "draft/draftCommissioner:markForCommissioner": "the commissioner marks a team with no manager for him to pick for",
 };
 
 /** Each letter filed in the league, oldest first, as who it went to. */
@@ -235,6 +243,6 @@ test("every change the sweep list gives the commissioner or the admin is swept, 
     })
     .map(([name]) => name);
 
-  const named = new Set([...Object.keys(SWEPT), ...Object.keys(NO_LETTER), ...Object.keys(AWAITING_CRAIG)]);
+  const named = new Set([...Object.keys(SWEPT), ...Object.keys(NO_LETTER)]);
   expect(theirs.filter((name) => !named.has(name))).toEqual([]);
 });

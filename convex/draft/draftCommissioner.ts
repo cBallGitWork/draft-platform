@@ -4,7 +4,7 @@ import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
 import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { tellUndone, tellUpNext } from "./draftLetters";
+import { tellPicker, tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock } from "./draftPause";
 import { draftIsPaused, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
 import { pickRefusals } from "./draftPicks";
@@ -81,16 +81,17 @@ export const setPickTime = mutation({
 
 /** The commissioner says "I'll pick for this one" for a team with no manager, or takes it back with
  *  `marked` false. Refused to anyone who doesn't run the league, once the draft has started, and for
- *  a team with a manager. */
+ *  a team with a manager. The whole league is told (S04.31). */
 export const markForCommissioner = mutation({
   args: { leagueId: v.id("leagues"), teamId: v.id("teams"), marked: v.boolean() },
   returns: v.null(),
   handler: async (ctx, { leagueId, teamId, marked }) => {
-    await runnerOf(ctx, leagueId);
+    const { email, league } = await runnerOf(ctx, leagueId);
     if (await draftHasStarted(ctx, leagueId)) refuse(commissionerRefusals.draftStarted);
     const team = await teamIn(ctx, leagueId, teamId);
     if (team.managerEmail !== undefined) refuse(commissionerRefusals.hasManager(team.name));
     await ctx.db.patch("teams", teamId, { commissionerPicks: marked ? true : undefined });
+    await tellPicker(ctx, league, email, team.name, marked);
     return null;
   },
 });

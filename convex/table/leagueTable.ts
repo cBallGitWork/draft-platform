@@ -113,7 +113,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds, read);
   const scores = pointsOf(results);
   // The tie-breaks in force in the latest gameweek begun: a change of them, saved from the next
-  // gameweek, shows once that gameweek begins, so a table already played doesn't change (S03.8).
+  // gameweek, shows once that gameweek begins, so a table already played doesn't change (S03.9).
   const begun = [...results.keys(), ...unscored.map(({ gameweek }) => gameweek)];
   const { tieBreaks } = season.sinceBegun(begun.length === 0 ? null : Math.max(...begun));
   const table = tableOf(rules.format, teamIds, schedule, scores, tieBreaks);
