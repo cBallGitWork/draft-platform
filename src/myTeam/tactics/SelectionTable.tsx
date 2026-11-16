@@ -23,7 +23,7 @@ import {
   roleLabel,
   selectionColumns,
   selectionTableLabel,
-  swapLabel,
+  swapInTableLabel,
 } from "./words";
 
 type Column = keyof typeof selectionColumns;
@@ -182,7 +182,7 @@ function SelectionRow({
           type="button"
           {...(benchIndex !== null ? markOf("player", player.playerCode) : {})}
           aria-pressed={swapsWith ? undefined : moving.selected === player.playerCode}
-          aria-label={swapsWith ? swapLabel(picked.name, player.name) : undefined}
+          aria-label={swapsWith ? swapInTableLabel(picked.name, player.name) : undefined}
           onClick={() => (swapsWith ? moving.onSwap(player.playerCode) : moving.onSelect(player.playerCode))}
           className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${player.unheld ? "max-w-error-name text-event lg:max-w-none" : ""} ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : ""}`}
         >
