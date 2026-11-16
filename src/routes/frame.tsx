@@ -24,7 +24,10 @@ import { TablePage } from "../table/TablePage";
 import { NewOfferPage } from "../trades/NewOfferPage";
 import { OffersPage } from "../trades/OffersPage";
 import { newOfferSearchOf, offersSearchOf } from "../trades/paths";
-import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
+import { NEWS_TITLE, RECAP_TAB_TITLE } from "../home/words";
+import { CLUB_TITLE, MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../premierLeague/words";
+import { menuWords } from "../shared/words";
+import { CODE_DIGITS, LANDING_PATH, frameRoute, titled, type ShellContext } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame: every menu page but
 // Mail, whose route is with the league pages (leaguePages.tsx). Each league page is the current
@@ -42,16 +45,18 @@ const landingRoute = createRoute({
 /** The seams of the current league's pages that take only the league and their seam. */
 type LeaguePageSeams = Pick<ShellContext, "table" | "home" | "scouting" | "myTeam" | "draft" | "trades">;
 
-/** A page of the current league's at `path`, for anyone in it: `Page` is given the league the app
- *  is in and its seam from the context. */
+/** A page of the current league's at `path`, for anyone in it, named `title` in the browser tab:
+ *  `Page` is given the league the app is in and its seam from the context. */
 function leaguePage<Seam extends keyof LeaguePageSeams, Path extends string>(
   path: Path,
+  title: string,
   seam: Seam,
   Page: ComponentType<{ league: LeagueSummary; seam: LeaguePageSeams[Seam] }>,
 ) {
   const route = createRoute({
     getParentRoute: () => frameRoute,
     path,
+    head: titled(title),
     component: function LeaguePage() {
       const context = route.useRouteContext();
       return <CurrentLeague session={context.session} page={(league) => <Page league={league} seam={context[seam]} />} />;
@@ -60,18 +65,19 @@ function leaguePage<Seam extends keyof LeaguePageSeams, Path extends string>(
   return route;
 }
 
-const tableRoute = leaguePage(TABLE_PATH, "table", TablePage); // The league's table and fixtures (#33)
-const homeRoute = leaguePage(HOME_PATH, "home", HomePage); // League home (#387)
-const homeNewsRoute = leaguePage(HOME_NEWS_PATH, "home", NewsPage); // League home's News tab (#1356)
-const scoutingRoute = leaguePage(SCOUTING_PATH, "scouting", ScoutingPage); // Scouting's players list (#373)
+const tableRoute = leaguePage(TABLE_PATH, menuWords.table, "table", TablePage); // The league's table and fixtures (#33)
+const homeRoute = leaguePage(HOME_PATH, menuWords.home, "home", HomePage); // League home (#387)
+const homeNewsRoute = leaguePage(HOME_NEWS_PATH, NEWS_TITLE, "home", NewsPage); // League home's News tab (#1356)
+const scoutingRoute = leaguePage(SCOUTING_PATH, menuWords.scouting, "scouting", ScoutingPage); // Scouting's players list (#373)
 // The draft room (#1098): its menu tab leaves once the draft is over, and its address still opens it.
-const draftRoute = leaguePage(DRAFT_PATH, "draft", DraftPage);
+const draftRoute = leaguePage(DRAFT_PATH, menuWords.draft, "draft", DraftPage);
 
 // My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch, with the
 // player the address names selected (#1008).
 const myTeamTacticsRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MY_TEAM_PATH,
+  head: titled(menuWords.tactics),
   validateSearch: tacticsSearchOf,
   component: function Tactics() {
     const { session, myTeam } = myTeamTacticsRoute.useRouteContext();
@@ -79,15 +85,16 @@ const myTeamTacticsRoute = createRoute({
     return <CurrentLeague session={session} page={(league) => <TacticsPage league={league} seam={myTeam} selected={player} />} />;
   },
 });
-const myTeamSquadRoute = leaguePage(MY_TEAM_SQUAD_PATH, "myTeam", SquadPage); // #364
-const myTeamFixturesRoute = leaguePage(MY_TEAM_FIXTURES_PATH, "myTeam", FixturesPage); // #365
-const myTeamTransactionsRoute = leaguePage(MY_TEAM_TRANSACTIONS_PATH, "myTeam", TransactionsPage); // #366
+const myTeamSquadRoute = leaguePage(MY_TEAM_SQUAD_PATH, menuWords.squad, "myTeam", SquadPage); // #364
+const myTeamFixturesRoute = leaguePage(MY_TEAM_FIXTURES_PATH, menuWords.fixtures, "myTeam", FixturesPage); // #365
+const myTeamTransactionsRoute = leaguePage(MY_TEAM_TRANSACTIONS_PATH, menuWords.transactions, "myTeam", TransactionsPage); // #366
 
 // The matchup (#34), for anyone in the league: a team's head-to-head in a gameweek, the manager's
 // own in the latest begun unless the address names another.
 const matchupRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MATCHUP_PATH,
+  head: titled(menuWords.matchup),
   validateSearch: matchupSearchOf,
   component: function MatchupScreen() {
     const { session, matchup } = matchupRoute.useRouteContext();
@@ -101,6 +108,7 @@ const matchupRoute = createRoute({
 const recapRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: RECAP_PATH,
+  head: titled(RECAP_TAB_TITLE),
   validateSearch: recapSearchOf,
   component: function RecapScreen() {
     const { session, home } = recapRoute.useRouteContext();
@@ -113,6 +121,7 @@ const recapRoute = createRoute({
 const premierLeagueRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: PREMIER_LEAGUE_PATH,
+  head: titled(PREMIER_LEAGUE_TITLE),
   validateSearch: footballSearchOf,
   component: function PremierLeague() {
     const { gameweek } = premierLeagueRoute.useSearch();
@@ -125,6 +134,7 @@ const premierLeagueRoute = createRoute({
 const matchRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MATCH_ROUTE,
+  head: titled(MATCH_TITLE),
   beforeLoad: ({ params }) => {
     if (!CODE_DIGITS.test(params.fixtureCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
   },
@@ -148,6 +158,7 @@ const matchRoute = createRoute({
 const clubRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: CLUB_ROUTE,
+  head: titled(CLUB_TITLE),
   beforeLoad: ({ params }) => {
     if (!CODE_DIGITS.test(params.clubCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
   },
@@ -171,6 +182,7 @@ const clubRoute = createRoute({
 const tradesRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: TRADES_PATH,
+  head: titled(menuWords.trades),
   validateSearch: offersSearchOf,
   component: function Offers() {
     const { session, trades } = tradesRoute.useRouteContext();
@@ -181,6 +193,7 @@ const tradesRoute = createRoute({
 const newOfferRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: TRADES_NEW_PATH,
+  head: titled(menuWords.newOffer),
   validateSearch: newOfferSearchOf,
   component: function NewOffer() {
     const { session, trades } = newOfferRoute.useRouteContext();

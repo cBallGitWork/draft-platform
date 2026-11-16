@@ -1,11 +1,16 @@
 // What the frame says, in one place for Craig to change in the pull request.
 
+import { PRODUCT_NAME } from "../../convex/shared/product";
+
 /** A page whose data couldn't be read (ReadFailed.tsx): its title, the alert strip's words, the
  *  same whatever failed, a refusal too (spec/12), with no guess at the cause, and the button that
  *  reads again (Craig, 31 Oct 2026, #489). */
 export const ERROR_PAGE_TITLE = "This page can't be shown";
 export const readFailedWords = "Something went wrong";
 export const retryWords = "Retry";
+
+/** The browser tab's name for a page: the page first, so a row of tabs tells them apart (UI-184). */
+export const tabTitle = (page: string) => `${page} – ${PRODUCT_NAME}`;
 
 /** The top bar: its two menus, named for screen readers, Continue, and Sign out. */
 export const mainMenuLabel = "Main";

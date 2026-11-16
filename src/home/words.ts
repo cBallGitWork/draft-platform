@@ -110,6 +110,8 @@ export const loadingRecapWords = "Loading the recap…";
 export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
 /** Read the recap's page with no gameweek named (#1967): the latest recap, before it loads or with none. */
 export const latestRecapTitle = "Latest recap";
+/** The recap page's name in the browser tab, whichever gameweek it shows. */
+export const RECAP_TAB_TITLE = "Recap";
 export const noRecapYetWords = "No recap yet.";
 export const backHomeLink = "Back to League home";
 

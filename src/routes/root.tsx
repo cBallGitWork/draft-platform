@@ -1,4 +1,4 @@
-import { Navigate, Outlet, createRootRouteWithContext, createRoute, redirect, type ErrorComponentProps } from "@tanstack/react-router";
+import { HeadContent, Navigate, Outlet, createRootRouteWithContext, createRoute, redirect, type ErrorComponentProps } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { AdminSeam } from "../admin/seam";
@@ -6,6 +6,7 @@ import type { DraftSeam } from "../draft/seam";
 import type { AuthActions, Session } from "../signIn/seam";
 import { AppFrame } from "../frame/AppFrame";
 import { ErrorScreen } from "../frame/ErrorScreen";
+import { tabTitle } from "../frame/words";
 import type { FeedbackSeam } from "../feedback/seam";
 import { LeagueSwitcher } from "../frame/topBar/LeagueSwitcher";
 import { SignOut } from "../frame/topBar/SignOut";
@@ -15,6 +16,7 @@ import type { HomeSeam } from "../home/seam";
 import { JOIN_ROUTE, joinTokenAt } from "../joining/paths";
 import type { JoiningSeam } from "../joining/seam";
 import { signInToJoinWords } from "../joining/words";
+import { signInWords } from "../signIn/words";
 import { LeaguelessFrame } from "../frame/LeaguelessFrame";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { leagueIn, leagueRunBy } from "../leagues/access";
@@ -77,9 +79,19 @@ export const CODE_DIGITS = /^\d+$/;
 // for a visitor, to their leagues for someone in none, to My team for a manager. So a visitor only
 // ever sees the sign-in page (spec/12).
 export const rootRoute = createRootRouteWithContext<ShellContext>()({
-  component: Outlet,
+  component: function Root() {
+    return (
+      <>
+        <HeadContent />
+        <Outlet />
+      </>
+    );
+  },
   notFoundComponent: () => <Navigate to={LANDING_PATH} replace />,
 });
+
+/** A route's `head`: the browser tab names the page (UI-184), never only the product. */
+export const titled = (page: string) => () => ({ meta: [{ title: tabTitle(page) }] });
 
 /** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
 function LeagueFrame({ context: { session, topBar, auth, leagues, patches, draft } }: { context: ShellContext }) {
@@ -124,6 +136,7 @@ export const membersOnly = ({ context, params }: { context: ShellContext; params
 export const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SIGN_IN_PATH,
+  head: titled(signInWords.title),
   validateSearch: signInSearchOf,
   beforeLoad: ({ context, search }) => {
     if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: LANDING_PATH });

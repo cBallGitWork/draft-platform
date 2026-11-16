@@ -33,13 +33,26 @@ import { SCORING_ROUTE } from "../scoring/paths";
 import { ScoringPage } from "../scoring/ScoringPage";
 import { SQUADS_ROUTE } from "../squads/paths";
 import { SquadsPage } from "../squads/SquadsPage";
-import { adminOnly, CODE_DIGITS, leaguePagesRoute, membersOnly, runnersOnly, type ShellContext } from "./root";
+import { ADMIN_TITLE, availabilityTabWords, feedbackTabWords, feedsTabWords, positionsTabWords } from "../admin/words";
+import { FEEDBACK_TITLE } from "../feedback/words";
+import { GAMEWEEKS_TITLE } from "../gameweeks/words";
+import { INVITES_TITLE, joinPageWords } from "../joining/words";
+import { LEAGUES_TITLE, NEW_LEAGUE_TITLE } from "../leagues/words";
+import { SETTINGS_TITLE } from "../leagueSettings/words";
+import { SQUAD_TITLE } from "../myTeam/squad/words";
+import { PATCH_NOTES_TITLE } from "../patches/words";
+import { PLAYER_TITLE } from "../playerCard/words";
+import { SCORING_TITLE } from "../scoring/words";
+import { MAIL_TITLE } from "../shared/words";
+import { SQUADS_TITLE } from "../squads/words";
+import { adminOnly, CODE_DIGITS, leaguePagesRoute, membersOnly, runnersOnly, titled, type ShellContext } from "./root";
 
 // The pages under root.tsx's leaguePagesRoute, for anyone signed in, in a league or not.
 
 const leaguesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: LEAGUES_PATH,
+  head: titled(LEAGUES_TITLE),
   component: function Leagues() {
     const { session, leagues, joining } = leaguesRoute.useRouteContext();
     return session.signedIn ? (
@@ -58,6 +71,7 @@ const leaguesRoute = createRoute({
 const newLeagueRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: NEW_LEAGUE_PATH,
+  head: titled(NEW_LEAGUE_TITLE),
   beforeLoad: adminOnly,
   component: function NewLeague() {
     return <NewLeaguePage createLeague={newLeagueRoute.useRouteContext({ select: (context) => context.leagues.createLeague })} />;
@@ -67,6 +81,7 @@ const newLeagueRoute = createRoute({
 const mailRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: MAIL_PATH,
+  head: titled(MAIL_TITLE),
   validateSearch: mailSearchOf,
   component: function MailScreen() {
     const { mail, session } = mailRoute.useRouteContext();
@@ -89,17 +104,19 @@ const mailRoute = createRoute({
 /** The seams of the pages a league's runners open from its row on Your leagues. */
 type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "leagueSettings">;
 
-/** A page of one league's for whoever runs it, at `path`: `Page` is given the league in the address
- *  and its seam from the context. The guard lets in only someone who runs the league; should they
- *  stop while here, this shows nothing until the guard sends them on. */
+/** A page of one league's for whoever runs it, at `path`, named `title` in the browser tab: `Page`
+ *  is given the league in the address and its seam from the context. The guard lets in only someone
+ *  who runs the league; should they stop while here, this shows nothing until the guard sends them on. */
 function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$leagueId/${string}`>(
   path: Path,
+  title: string,
   seam: Seam,
   Page: ComponentType<{ league: LeagueSummary; seam: RunnerSeams[Seam] }>,
 ) {
   const route = createRoute({
     getParentRoute: () => leaguePagesRoute,
     path,
+    head: titled(title),
     beforeLoad: runnersOnly,
     component: function RunnersPage() {
       const context = route.useRouteContext();
@@ -112,14 +129,15 @@ function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$le
   return route;
 }
 
-const gameweeksRoute = runnersPage(GAMEWEEKS_ROUTE, "gameweeks", GameweeksRoute); // #74
-const squadsRoute = runnersPage(SQUADS_ROUTE, "squads", SquadsPage); // #31
-const settingsRoute = runnersPage(SETTINGS_ROUTE, "leagueSettings", SettingsPage); // League settings
+const gameweeksRoute = runnersPage(GAMEWEEKS_ROUTE, GAMEWEEKS_TITLE, "gameweeks", GameweeksRoute); // #74
+const squadsRoute = runnersPage(SQUADS_ROUTE, SQUADS_TITLE, "squads", SquadsPage); // #31
+const settingsRoute = runnersPage(SETTINGS_ROUTE, SETTINGS_TITLE, "leagueSettings", SettingsPage); // League settings
 
 // Feedback to the admin (#357), from the top bar's link on either frame.
 const feedbackRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: FEEDBACK_PATH,
+  head: titled(FEEDBACK_TITLE),
   component: function Feedback() {
     return <FeedbackPage send={feedbackRoute.useRouteContext({ select: (context) => context.feedback.send })} />;
   },
@@ -129,6 +147,7 @@ const feedbackRoute = createRoute({
 const patchNotesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: PATCH_NOTES_PATH,
+  head: titled(PATCH_NOTES_TITLE),
   component: function PatchNotes() {
     return <PatchNotesPage seam={patchNotesRoute.useRouteContext({ select: (context) => context.patches })} />;
   },
@@ -139,6 +158,7 @@ const patchNotesRoute = createRoute({
 const playerCardRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: PLAYER_CARD_ROUTE,
+  head: titled(PLAYER_TITLE),
   beforeLoad: ({ context, params }) => {
     membersOnly({ context, params });
     if (!CODE_DIGITS.test(params.playerCode)) throw redirect({ to: SCOUTING_PATH });
@@ -166,6 +186,7 @@ const playerCardRoute = createRoute({
 const otherTeamRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: OTHER_TEAM_ROUTE,
+  head: titled(SQUAD_TITLE),
   // Wrapped, so the route's params come from its path, not from membersOnly's argument.
   beforeLoad: ({ context, params }) => membersOnly({ context, params }),
   component: function OtherTeam() {
@@ -182,6 +203,7 @@ const otherTeamRoute = createRoute({
 const scoringRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: SCORING_ROUTE,
+  head: titled(SCORING_TITLE),
   beforeLoad: membersOnly,
   component: function Scoring() {
     const context = scoringRoute.useRouteContext();
@@ -193,12 +215,13 @@ const scoringRoute = createRoute({
 /** The seams of the admin's dashboard tabs. */
 type AdminSeams = Pick<ShellContext, "admin" | "feedback">;
 
-/** A tab of the admin's dashboard at `path`, his alone: `Page` is given its seam, selected from the
- *  context so the tab re-renders only when that seam changes. */
-function adminPage<Seam extends keyof AdminSeams, Path extends string>(path: Path, seam: Seam, Page: ComponentType<{ seam: AdminSeams[Seam] }>) {
+/** A tab of the admin's dashboard at `path`, his alone, named `tab` in the browser tab: `Page` is
+ *  given its seam, selected from the context so the tab re-renders only when that seam changes. */
+function adminPage<Seam extends keyof AdminSeams, Path extends string>(path: Path, tab: string, seam: Seam, Page: ComponentType<{ seam: AdminSeams[Seam] }>) {
   const route = createRoute({
     getParentRoute: () => leaguePagesRoute,
     path,
+    head: titled(`${tab}, ${ADMIN_TITLE}`),
     beforeLoad: adminOnly,
     component: function AdminTab() {
       const selected = route.useRouteContext({ select: (context) => context[seam] });
@@ -208,16 +231,17 @@ function adminPage<Seam extends keyof AdminSeams, Path extends string>(path: Pat
   return route;
 }
 
-const adminRoute = adminPage(ADMIN_PATH, "admin", AdminPage); // The admin's dashboard (#87)
-const adminFeedsRoute = adminPage(ADMIN_FEEDS_PATH, "admin", FeedsPage); // Its feeds tab (#35)
-const adminFeedbackRoute = adminPage(ADMIN_FEEDBACK_PATH, "feedback", FeedbackTab); // Its Feedback tab (#357)
-const adminAvailabilityRoute = adminPage(ADMIN_AVAILABILITY_PATH, "admin", AvailabilityTab); // Its Availability tab (#1209)
+const adminRoute = adminPage(ADMIN_PATH, positionsTabWords, "admin", AdminPage); // The admin's dashboard (#87)
+const adminFeedsRoute = adminPage(ADMIN_FEEDS_PATH, feedsTabWords, "admin", FeedsPage); // Its feeds tab (#35)
+const adminFeedbackRoute = adminPage(ADMIN_FEEDBACK_PATH, feedbackTabWords, "feedback", FeedbackTab); // Its Feedback tab (#357)
+const adminAvailabilityRoute = adminPage(ADMIN_AVAILABILITY_PATH, availabilityTabWords, "admin", AvailabilityTab); // Its Availability tab (#1209)
 
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
 const invitesRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: INVITES_ROUTE,
+  head: titled(INVITES_TITLE),
   beforeLoad: runnersOnly,
   component: function Invites() {
     const joining = invitesRoute.useRouteContext({ select: (context) => context.joining });
@@ -228,6 +252,7 @@ const invitesRoute = createRoute({
 const joinRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: JOIN_ROUTE,
+  head: titled(joinPageWords.title),
   component: function Join() {
     const joining = joinRoute.useRouteContext({ select: (context) => context.joining });
     return <JoinPage token={joinRoute.useParams().token} joining={joining} />;
