@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesWith } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, REORDERED_TIE_BREAKS, rulesIn, rulesWith } from "../../support/convex/leagueRules.harness";
 import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 
 // A save of the rules stores only what it changed (#1617; Craig, 11 Nov 2026: "a save stores only
@@ -31,11 +31,11 @@ test("a league's first rules are stored whole, and a change of a waiver time sto
 
 test("a change stored on top of another reads as the whole rules, each on the one before", async () => {
   await changeRules(t, leagueId, rulesWith({ waivers: LATER_WAIVERS }));
-  await changeRules(t, leagueId, rulesWith({ waivers: LATER_WAIVERS, tieBreaks: ["headToHead"] }));
+  await changeRules(t, leagueId, rulesWith({ waivers: LATER_WAIVERS, tieBreaks: REORDERED_TIE_BREAKS }));
 
-  expect((await rulesRows()).map((row) => row.changes)).toEqual([undefined, { waivers: LATER_WAIVERS }, { tieBreaks: ["headToHead"] }]);
+  expect((await rulesRows()).map((row) => row.changes)).toEqual([undefined, { waivers: LATER_WAIVERS }, { tieBreaks: REORDERED_TIE_BREAKS }]);
   expect(await rulesIn(t, leagueId, 8)).toEqual(HELD_FIRST_RULES);
-  expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ waivers: LATER_WAIVERS, tieBreaks: ["headToHead"] }));
+  expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ waivers: LATER_WAIVERS, tieBreaks: REORDERED_TIE_BREAKS }));
 });
 
 test("a change leaving a part out is stored whole, as a part a row lacks reads as the row before's", async () => {
