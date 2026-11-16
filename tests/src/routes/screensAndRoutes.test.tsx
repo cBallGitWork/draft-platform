@@ -129,13 +129,13 @@ describe("the menu and the top bar (spec/12 The frame, spec/16)", () => {
   it.each([1, 99])("UI-083 (spec/16: an unread count in the menu): %i unread letters show that count on Mail", async (unread) => {
     openApp(MY_TEAM_PATH, manager, { topBar: { unreadMail: unread, next: null } });
     const mail = await screen.findByRole("link", { name: unreadTabLabel(MAIL_TITLE, unread) });
-    expect(mail.textContent).toBe(`${MAIL_TITLE}${unread}`);
+    expect(mail.textContent).toBe(`${MAIL_TITLE} ${unread}`);
   });
 
   it("UI-083 (S16.6): 100 unread letters show 99+ on Mail", async () => {
     openApp(MY_TEAM_PATH, manager, { topBar: { unreadMail: 100, next: null } });
     const mail = await screen.findByRole("link", { name: "Mail, 99+ unread" });
-    expect(mail.textContent).toBe(`${MAIL_TITLE}99+`);
+    expect(mail.textContent).toBe(`${MAIL_TITLE} 99+`);
   });
 
   it("UI-085 (flow.md:107-109, spec/13 Several leagues): someone in no league sees the name, Your leagues, Mail and its count, Feedback and Sign out, and nothing of a league", async () => {
@@ -148,7 +148,7 @@ describe("the menu and the top bar (spec/12 The frame, spec/16)", () => {
     expect(within(bar).getAllByRole("button").map((button) => button.textContent)).toEqual([signOutWords]);
     expect(within(screen.getByRole("navigation", { name: mainMenuLabel })).getAllByRole("link").map((link) => link.textContent)).toEqual([
       LEAGUES_TITLE,
-      `${MAIL_TITLE}1`,
+      `${MAIL_TITLE} 1`,
     ]);
     expect(within(bar).queryByText(new RegExp(`^(${continueWords}|${nothingNeedsYouWords}|${currentLeagueLabel})`))).toBeNull();
   });
