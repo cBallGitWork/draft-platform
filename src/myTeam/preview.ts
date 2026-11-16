@@ -1,12 +1,16 @@
 // My team's tabs in the preview (src/app/preview.ts): the preview manager's team in the table
 // preview's league, so the Fixtures tab and the table and fixtures screen show the same draw and
 // scores, the approved picture's history on its Transactions tab, and on its Squad tab
-// the Tactics tab's squad, with made-up seasons, and Mail's preview letters.
+// the Tactics tab's squad, each player's season his card's, and Mail's preview letters.
 
-import { CLUB_COLOURS } from "../../convex/football/clubColours";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { adminByline } from "../../convex/mail/letterWords";
-import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
+import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
+import { ASSISTS, CLEAN_SHEETS, GOALS, MINUTES_STAT, RED_CARDS, SAVES, YELLOW_CARDS } from "../../convex/stats/matchRecords";
+import type { GameweekMatch } from "../premierLeague/seam";
+import { previewClubMatch, previewClubUpcoming } from "../premierLeague/preview";
+import { previewSeasonOf } from "../playerCard/preview";
+import type { PlayedMatch } from "../playerCard/seam";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadLimits";
 import { squadLimits } from "../../convex/squads/squadRulesView";
 import { previewLatestMail } from "../mail/preview";
@@ -14,7 +18,7 @@ import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { previewAtLimits, previewDone, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable } from "../table/preview";
-import { PREVIEW_GAMEWEEK, PREVIEW_UNPLAYED, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
+import { PREVIEW_GAMEWEEK, previewChanceOf, previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -51,31 +55,28 @@ const transactions: TeamTransactions = {
   cut: false,
 };
 
-/** Every club the preview's players meet, by its colours' table: its code and short name, which
- *  stands in for its name. */
-const CLUBS = Object.entries(CLUB_COLOURS).map(([code, { shortName }]) => ({ code: Number(code), name: shortName, shortName }));
-const FIRST_KICKOFF = Date.now() + 2 * DAY_MS;
-/** Three matches ahead for a player's club, its opponents taken in turn from the clubs. */
-const nextMatches = (seed: number) =>
-  Array.from({ length: NEXT_MATCHES_SHOWN }, (_, week) => ({ gameweek: PREVIEW_GAMEWEEK + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
+/** A match of his club's in Football's preview as a squad row reads it: its opponent and whether
+ *  at home. */
+const fromHisSide = (clubCode: number, { gameweek, kickoff, home, away }: Pick<GameweekMatch, "kickoff" | "home" | "away"> & { gameweek: number }) => ({
+  gameweek,
+  kickoff: kickoff ?? 0,
+  opponent: home.code === clubCode ? away : home,
+  home: home.code === clubCode,
+});
+/** His club's next three matches in Football's preview, as his card has them (#2455). */
+const nextMatches = (clubCode: number) => previewClubUpcoming(clubCode).slice(0, NEXT_MATCHES_SHOWN).map((match) => fromHisSide(clubCode, match));
 
 /** The Schedule view's gameweeks, from the one being set (squadSchedule.ts's six). */
 const scheduleGameweeks = Array.from({ length: SCHEDULE_GAMEWEEKS }, (_, week) => PREVIEW_GAMEWEEK + week);
-/** His club's matches in those gameweeks, one a week from its next three's opponents on: one in
- *  three clubs has a blank week, the gameweek after it a double. */
-const scheduleOf = (seed: number) =>
-  scheduleGameweeks.flatMap((gameweek, week) => {
-    const blank = seed % 3 === 0 && week === 2;
-    const double = seed % 3 === 0 && week === 3;
-    if (blank) return [];
-    const match = (extra: number) => ({
-      gameweek,
-      kickoff: FIRST_KICKOFF + week * WEEK_MS + extra * DAY_MS,
-      opponent: CLUBS[(seed * 3 + week + extra) % CLUBS.length],
-      home: (seed + week + extra) % 2 === 0,
-    });
-    return double ? [match(0), match(3)] : [match(0)];
+/** His club's matches in those gameweeks, Football's preview's: one in each. */
+const scheduleOf = (clubCode: number) =>
+  scheduleGameweeks.flatMap((gameweek) => {
+    const match = previewClubMatch(gameweek, clubCode);
+    return match === undefined ? [] : [fromHisSide(clubCode, { ...match, gameweek })];
   });
+
+/** His season's totals from his card's matches. */
+const totalOf = (matches: readonly PlayedMatch[], stat: string) => matches.reduce((sum, { stats }) => sum + (stats?.[stat] ?? 0), 0);
 /** The preview league's squad limits, for the Rules view: at the league limits, its squads hold a
  *  Premier League squad's most. */
 const PREVIEW_SQUAD_RULES = {
@@ -84,46 +85,46 @@ const PREVIEW_SQUAD_RULES = {
   maxPerClub: 3,
 };
 
-const NOTHING_COUNTED ={ appearances: 0, minutes: 0, goals: 0, assists: 0, cleanSheets: 0, saves: 0, yellowCards: 0, redCards: 0 };
 
-/** A made-up season for each of the Tactics tab's players, worked out from his code so a reload
- *  shows the same; the last one has played nothing yet, and two carry FPL news. */
+/** Each of the Tactics tab's players' season, his card's (../playerCard/preview.ts) added up, so
+ *  the card and this tab tell the same minutes, points and next matches (#2455); the last one has
+ *  played nothing yet, and two carry FPL news. */
+const LAST_GAMEWEEK = PREVIEW_GAMEWEEK - 1;
 const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number, news }) => {
-    const unplayed = code === PREVIEW_UNPLAYED;
-    const keeper = positions.includes("GK");
-    return {
-      code,
-      name,
-      fullName: name,
-      positions,
-      club: { code: clubCode, name: clubShortName, shortName: clubShortName },
-      gone: false,
-      number,
-      nextFixtures: nextMatches(code),
-      schedule: scheduleOf(code),
-      seasonPoints: unplayed ? null : 20 + ((code * 17) % 60),
-      lastGameweekPoints: unplayed ? null : (code * 7) % 14,
-      form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => (unplayed ? null : (code * 5 + week * 3) % 13)),
-      started: unplayed ? 0 : 3 + (code % 5),
-      rolePoints: unplayed ? null : (code % 7) - 2,
-      // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
-      stats: unplayed ? NOTHING_COUNTED : {
-        appearances: 5 + (code % 4),
-        minutes: 400 + ((code * 37) % 320),
-        goals: keeper ? 0 : (code * 3) % 8,
-        assists: keeper ? 0 : (code * 2) % 5,
-        cleanSheets: (code * 5) % 4,
-        saves: keeper ? 15 + code : 0,
-        yellowCards: code % 3,
-        redCards: name === "Rice" ? 1 : 0,
-      },
-      news,
-      chanceOfPlaying: previewChanceOf(code),
-    };
-  });
+  const { matches, seasonPoints, pointsIn } = previewSeasonOf(code);
+  return {
+    code,
+    name,
+    fullName: name,
+    positions,
+    club: { code: clubCode, name: clubShortName, shortName: clubShortName },
+    gone: false,
+    number,
+    nextFixtures: nextMatches(clubCode),
+    schedule: scheduleOf(clubCode),
+    seasonPoints,
+    lastGameweekPoints: pointsIn(LAST_GAMEWEEK),
+    form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => pointsIn(LAST_GAMEWEEK - FORM_GAMEWEEKS + 1 + week)),
+    started: matches.filter(({ minutes }) => (minutes ?? 0) >= 60).length,
+    rolePoints: matches.length > 0 ? (code % 7) - 2 : null,
+    // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
+    stats: {
+      appearances: matches.length,
+      minutes: totalOf(matches, MINUTES_STAT),
+      goals: totalOf(matches, GOALS),
+      assists: totalOf(matches, ASSISTS),
+      cleanSheets: totalOf(matches, CLEAN_SHEETS),
+      saves: totalOf(matches, SAVES),
+      yellowCards: totalOf(matches, YELLOW_CARDS),
+      redCards: totalOf(matches, RED_CARDS),
+    },
+    news,
+    chanceOfPlaying: previewChanceOf(code),
+  };
+});
 const squad: TeamSquad = {
   teamName: previewTeam,
-  lastGameweek: PREVIEW_GAMEWEEK - 1,
+  lastGameweek: LAST_GAMEWEEK,
   unheld: [],
   squadMaximum: PREVIEW_SQUAD_RULES.size.maximum,
   players,
