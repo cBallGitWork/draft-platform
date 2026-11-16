@@ -46,7 +46,6 @@ export const GOAL_POINTS = 1;
 /** A made-up man's match broken down: a point for appearing, the rest goals at GOAL_POINTS each. */
 export function categoriesOf(points: number | null): MatchBreakdown["categories"] {
   const all = { by: "all" } as const;
-  const goals = points === null ? 0 : Math.max(points - 1, 0) / GOAL_POINTS;
   return points === null
     ? [
         { stat: "minutes", name: "Minutes played", points: null },
@@ -54,13 +53,12 @@ export function categoriesOf(points: number | null): MatchBreakdown["categories"
       ]
     : [
         { stat: "minutes", name: "Minutes played", points: Math.min(points, 1), why: { actions: 1, value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
-        { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: goals, value: { shape: "perAction", points: GOAL_POINTS }, pricedBy: all, cut: null } },
+        { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: Math.max(points - 1, 0) / GOAL_POINTS, value: { shape: "perAction", points: GOAL_POINTS }, pricedBy: all, cut: null } },
       ];
 }
 
 /** A match's lines, by its minute: kickoff, each goal, named for one of `men` at the scoring club
- *  where it has one (forwards first), half-time and full time. A goal one of them scores moves his
- *  points by GOAL_POINTS. */
+ *  where it has one (forwards first), half-time and full time. */
 export function linesOf(match: ReplayMatch, men: readonly Man[]): { minute: number; text: string; about: number[] }[] {
   const { home, away } = match;
   const [homeGoals, awayGoals] = goalMinutes(match);
