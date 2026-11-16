@@ -8,7 +8,8 @@ import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { HOUR_MS } from "../../../../convex/shared/time";
-import { saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
+import { lineupRefusals } from "../../../../convex/lineup/lineupWords";
+import { reloadedWords, saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { OPEN_PICKED, TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
@@ -173,6 +174,47 @@ describe("Undo (spec/05, Moving players)", () => {
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
     expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, { starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], instructions: OPEN_PICKED });
     expect(undo().disabled).toBe(true);
+  });
+});
+
+describe("Tactics open in two tabs (spec/05 `S05.55`)", () => {
+  /** The lineup saved, last left by another tab's save. */
+  const OTHER_TABS = openTactics({ ...SAVED, lineupEdit: "other:1" });
+  const whiteOnPitch = () => within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) });
+
+  it("S05.55: another tab's save reloads the lineup, with no move of this tab's left to undo over it", async () => {
+    const app = await openedPitch({ tactics: OTHER_TABS });
+    await whiteForSaliba();
+    expect(whiteOnPitch()).toBeTruthy();
+
+    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, lineupEdit: "other:2" })));
+
+    expect((await screen.findByRole("alert")).textContent).toBe(reloadedWords);
+    expect(whiteOnPitch()).toBeNull();
+    expect(undo().disabled).toBe(true);
+  });
+
+  it("S05.55: a move the server refuses for another tab's save reloads, saying so in the server's words", async () => {
+    await openedPitch({ tactics: OTHER_TABS, saveAnswer: lineupRefusals.changedElsewhere });
+    await whiteForSaliba();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(lineupRefusals.changedElsewhere);
+    expect(whiteOnPitch()).toBeNull();
+    expect(undo().disabled).toBe(true);
+  });
+
+  it("S05.55: each save says the tab it came from and the mark last loaded; the tab's own save reloads nothing", async () => {
+    const app = await openedPitch({ tactics: OTHER_TABS });
+    await whiteForSaliba();
+    const [{ tab, seen }] = app.myTeam.savesBasedOn;
+    expect(seen).toBe("other:1");
+
+    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, lineupEdit: `${tab}:2` })));
+    await swap(ARRIZABALAGA, RAYA);
+
+    expect(app.myTeam.savesBasedOn[1]).toEqual({ tab, seen: `${tab}:2` });
+    expect(whiteOnPitch()).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 

@@ -66,6 +66,9 @@ export const undoWords = "Undo";
 /** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
 export const savedWords = (at: number) => `Line-up saved ${timeOfDayWords(at)}`;
 export const saveFailedWords = failedWords("the line-up wasn't saved");
+/** Said once the tab reloads a line-up another tab saved (spec/05 `S05.55`); a move this tab sent
+ *  meanwhile is refused in the server's words (lineupWords.ts `changedElsewhere`). */
+export const reloadedWords = "Line-up changed in another tab: reloaded.";
 export const planSaveFailedWords = failedWords("the preset wasn't saved");
 export const planDeleteFailedWords = failedWords("the preset wasn't deleted");
 /** A plan loaded with roles the league no longer offers in their slot (Craig, 6 Nov 2026, #992). */
