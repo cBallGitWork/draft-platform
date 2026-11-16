@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { KICKOFF_GAP_MINUTES, PROMOTE_HOUR, RELEASE_BRANCH, STAGING_ENVIRONMENT, decide, hourInLondon, matchOn } from "../../scripts/promote.mjs";
+import { BROKEN, BUILDING, BUILT, KICKOFF_GAP_MINUTES, PROMOTE_HOUR, PROMOTE_UNTIL_HOUR, RELEASE_BRANCH, STAGING_ENVIRONMENT, decide, hourInLondon, matchOn, sameLondonDay } from "../../scripts/promote.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/promote.yml"), "utf8");
@@ -11,7 +11,8 @@ const SEVEN_WINTER = new Date("2026-11-17T07:00:00Z"); // 07:00 GMT
 const SEVEN_SUMMER = new Date("2026-08-17T06:00:00Z"); // 07:00 BST
 const TESTED = "a".repeat(40);
 const OLD = "b".repeat(40);
-const ready = { now: SEVEN_WINTER, scheduled: true, candidate: TESTED, released: OLD, stagingBuilt: true, match: null };
+const YESTERDAY = new Date("2026-11-16T07:00:00Z");
+const ready = { now: SEVEN_WINTER, scheduled: true, lastMoved: YESTERDAY, candidate: TESTED, released: OLD, staging: BUILT, match: null };
 
 test("it runs at 07:00 London in winter and summer, from release's branch name Vercel builds as live", () => {
   expect(PROMOTE_HOUR).toBe(7);
@@ -26,15 +27,32 @@ test("a tested commit staging built, with no match on, moves up", () => {
   expect(decide(ready)).toEqual({ move: true, red: false, why: `moving live up to ${TESTED.slice(0, 7)}` });
 });
 
-test("a timed run at the wrong London hour waits; one by hand doesn't", () => {
+test("a timed run outside 07:00 to 12:00 London waits; one by hand doesn't", () => {
   const sixInWinter = new Date("2026-11-17T06:00:00Z");
   expect(decide({ ...ready, now: sixInWinter })).toMatchObject({ move: false, red: false });
   expect(decide({ ...ready, now: sixInWinter, scheduled: false }).move).toBe(true);
+  expect(PROMOTE_UNTIL_HOUR).toBe(12);
+  expect(decide({ ...ready, now: new Date("2026-11-17T12:00:00Z") }).move).toBe(false);
+});
+
+test("GitHub starting the run late still moves, but only once a London day", () => {
+  const late = new Date("2026-11-17T09:40:00Z");
+  expect(decide({ ...ready, now: late }).move).toBe(true);
+  // summer's second run, an hour after the first moved
+  const movedThisMorning = new Date("2026-08-17T06:00:30Z");
+  expect(sameLondonDay(movedThisMorning, new Date("2026-08-17T07:00:00Z"))).toBe(true);
+  expect(decide({ ...ready, now: new Date("2026-08-17T07:00:00Z"), lastMoved: movedThisMorning })).toMatchObject({ move: false, red: false, why: "live already moved today" });
+  // by hand, it moves again the same day
+  expect(decide({ ...ready, lastMoved: SEVEN_WINTER, scheduled: false }).move).toBe(true);
 });
 
 test("no nightly pass, or a failed staging build, waits and turns red", () => {
   expect(decide({ ...ready, candidate: null })).toMatchObject({ move: false, red: true });
-  expect(decide({ ...ready, stagingBuilt: false })).toMatchObject({ move: false, red: true });
+  expect(decide({ ...ready, staging: BROKEN })).toMatchObject({ move: false, red: true });
+});
+
+test("a staging build still running waits quietly", () => {
+  expect(decide({ ...ready, staging: BUILDING })).toMatchObject({ move: false, red: false });
 });
 
 test("live already on the tested commit, or a match on, waits quietly", () => {
