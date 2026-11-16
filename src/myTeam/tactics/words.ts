@@ -101,6 +101,9 @@ export const SELECTION_TITLE = "Selection";
 export const startingWords = (starting: number) => `${starting} starting`;
 export const onTheBenchWords = (bench: number) => `${bench} on the bench`;
 export const selectionTableLabel = "Your squad: the eleven, then the bench in order";
+/** A lit player's name in the Selection table: the name his row shows, then the swap (WCAG 2.5.3;
+ *  S12.14): "Watkins, Swap Haaland with Watkins". */
+export const swapInTableLabel = (name: string, other: string) => `${other}, ${swapLabel(name, other)}`;
 /** What a row's stars rate, named on them: "Role fit 4 of 5" (plate.md, Marks: Stars); also the
  *  Selection table's and the role card's column head. */
 export const ROLE_FIT_SUBJECT = "Role fit";

@@ -115,7 +115,8 @@ export const blockOf = (player: Member, cell: Cell) =>
  *  which come before the name's first comma (`playerOnPitchLabel`). */
 export const onPitchNamed = (name: string) =>
   within(pitch()).queryByRole("button", { name: (label) => ` ${label.split(", ")[0]} `.includes(` ${name} `) });
-/** The swap a lit player's name ends with, after the words a pitch block shows (`swapOnPitchLabel`). */
+/** The swap a lit player's name ends with, after the words his pitch block or table row shows
+ *  (`swapOnPitchLabel`, `swapInTableLabel`). */
 const swapOf = (label: string | null) => label?.replace(/^.*?(?=Swap )/, "") ?? null;
 const SWAP = /(^|, )Swap /;
 /** A lit player, on the pitch or in the Selection table, to swap the one picked up with. */

@@ -13,6 +13,7 @@ import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from ".
 import { previewScouts } from "../scouting/scouts/preview";
 import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
+import { PREVIEW_SAKA_NEWS } from "../myTeam/tactics/preview";
 import { seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
 
@@ -106,7 +107,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     pricedAt: cardPositions(player.positions),
     ownerTeamName: player.ownerTeamName,
     ownerTeamId: player.ownerTeamName === null ? null : previewIdOf(player.ownerTeamName),
-    news: injured ? "Hamstring injury - 75% chance of playing" : null,
+    news: injured ? PREVIEW_SAKA_NEWS : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),
     postponed: [
