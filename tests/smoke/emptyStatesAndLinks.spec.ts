@@ -33,7 +33,7 @@ const h1 = (page: Page, name: string) => page.getByRole("main").getByRole("headi
 
 /** Each built screen opened on the preview, its title shown, and what each of `checks` finds on it,
  *  each break led by the screen it is on: one walk for every check, so a look test's page loads
- *  aren't repeated for each (#2470: four walks of every screen took a third of smoke's time). */
+ *  aren't repeated for each (#2470: on 16 Nov 2026 the four walks took 318s of a local smoke run's 944 test-seconds). */
 async function breaksOnEachBuiltScreen<Name extends string>(page: Page, checks: Record<Name, () => Promise<string[]>>) {
   const found = Object.fromEntries(Object.keys(checks).map((name) => [name, [] as string[]])) as Record<Name, string[]>;
   for (const [session, path, title] of BUILT_SCREENS) {
