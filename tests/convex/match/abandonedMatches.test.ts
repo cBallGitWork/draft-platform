@@ -6,7 +6,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { GAMEWEEK, HULL_POINTS, HULL_SCORER, nameOf, readTable, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, ANN, COMMISSIONER } from "../../support/convex/leagues.harness";
-import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { insertPlayerRows } from "../../support/convex/footballRows.harness";
+import { EVERTON_CLUB, HULL, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
 import { clockRunsTo, expectRefused } from "../../support/convex/test.harness";
 
@@ -96,6 +97,40 @@ test("taking the mark back has the next read write the match again, the deleted 
   expect((await gameweekPoints(league)).table[0]).toBe(HULL_POINTS);
   const [letter] = await lettersAbout(league, unabandonedSubject(MATCH_NAME));
   expect(letter.body).toContain(tookBackWords(adminByline, MATCH_NAME, GAMEWEEK));
+});
+
+test("S05.56 a league whose squads hold a man of either club on neither team sheet, and none on them, gets no letter, on the mark or on taking it back", async () => {
+  const league = await storedLeague();
+  const { t, leagueId, annsTeam } = league;
+  const unpicked = 990_001;
+  await t.run(async (ctx) => {
+    for (const row of await ctx.db.query("squadPlayers").collect()) await ctx.db.delete("squadPlayers", row._id);
+    await insertPlayerRows(ctx, [{ code: unpicked, name: "Unpicked", fullName: "Hull's Unpicked", clubCode: HULL, positions: ["ST"] }]);
+    await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: unpicked });
+  });
+
+  await marks(league);
+  expect(await lettersAbout(league, `${MATCH_NAME} was abandoned`)).toEqual([]);
+  await unmarks(league);
+  expect(await lettersAbout(league, unabandonedSubject(MATCH_NAME))).toEqual([]);
+});
+
+test("S05.56 a match abandoned while live writes to a league whose squad holds a man on its live prints", async () => {
+  const league = await storedLeague();
+  const { t, leagueId, annsTeam } = league;
+  const printed = 990_002;
+  await t.run(async (ctx) => {
+    for (const row of await ctx.db.query("squadPlayers").collect()) await ctx.db.delete("squadPlayers", row._id);
+    await insertPlayerRows(ctx, [{ code: printed, name: "Printed", fullName: "Hull's Printed", clubCode: HULL, positions: ["ST"] }]);
+    await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: printed });
+    await ctx.db.insert("liveMatchPrints", { fixtureCode: HULL_EVERTON, prints: [{ playerCode: printed, print: 1 }] });
+  });
+
+  await marks(league);
+  const leaguesTold = async (subject: string) => new Set((await lettersAbout(league, subject)).map((letter) => letter.leagueId));
+  expect(await leaguesTold(`${MATCH_NAME} was abandoned`)).toEqual(new Set([leagueId]));
+  await unmarks(league);
+  expect(await leaguesTold(unabandonedSubject(MATCH_NAME))).toEqual(new Set([leagueId]));
 });
 
 test("only the admin marks a match, once, and only one that has kicked off", async () => {
