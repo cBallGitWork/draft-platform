@@ -38,7 +38,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { OUTSIDE_WORLD_SETTING, TIMED_JOBS_SETTING } from "../convex/outbound/deploymentSettings.ts";
+import { E2E_FUNCTIONS_SETTING, OUTSIDE_WORLD_SETTING, TIMED_JOBS_SETTING } from "../convex/outbound/deploymentSettings.ts";
 import { fingerprintOf, savedShape, shapeFromParts, shapeParts, strandedIn } from "./schema-shape.mjs";
 import { ranDirectly } from "./thisScript.mjs";
 
@@ -119,7 +119,7 @@ export function stagingRelease({ convex, log = console.log }) {
 
 /** The settings only an e2e run's throwaway server carries (spec/20, S20.17; #2288): the live
  *  deployment must hold none of them. */
-export const TEST_ONLY_SETTINGS = [OUTSIDE_WORLD_SETTING];
+export const TEST_ONLY_SETTINGS = [OUTSIDE_WORLD_SETTING, E2E_FUNCTIONS_SETTING];
 
 /** Why the live deployment mustn't be released to, as it carries a test-only setting or can't be
  *  read for one, or null when it holds none. Each is read on its own, so no other value is printed. */

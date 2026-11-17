@@ -47,6 +47,8 @@ import type * as draft_pickWindow from "../draft/pickWindow.js";
 import type * as draft_rankingFile from "../draft/rankingFile.js";
 import type * as draft_snakeOrder from "../draft/snakeOrder.js";
 import type * as draft_undrafted from "../draft/undrafted.js";
+import type * as e2e_e2eGate from "../e2e/e2eGate.js";
+import type * as e2e_seed from "../e2e/seed.js";
 import type * as feedback_feedback from "../feedback/feedback.js";
 import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
 import type * as football_afterFootballSync from "../football/afterFootballSync.js";
@@ -481,6 +483,8 @@ declare const fullApi: ApiFromModules<{
   "draft/rankingFile": typeof draft_rankingFile;
   "draft/snakeOrder": typeof draft_snakeOrder;
   "draft/undrafted": typeof draft_undrafted;
+  "e2e/e2eGate": typeof e2e_e2eGate;
+  "e2e/seed": typeof e2e_seed;
   "feedback/feedback": typeof feedback_feedback;
   "feedback/feedbackLimits": typeof feedback_feedbackLimits;
   "football/afterFootballSync": typeof football_afterFootballSync;
