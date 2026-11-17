@@ -4,7 +4,7 @@ import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { clockHourOf } from "../../../convex/home/homeAt";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { offerCloses, tradeDeadlineInForce, tradesShut } from "../../../convex/trades/tradeShut";
-import { tradesAt } from "../../../convex/trades/tradesAt";
+import { tradesInHourAt } from "../../../convex/trades/tradesAt";
 import { actingAs, ANN, BOB } from "../../support/convex/leagues.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
 import { ANNS_FIRST_DROP, SAKA, tradeLeague } from "../../support/convex/trades.harness";
@@ -40,7 +40,7 @@ test("every minute of the hours around a deadline shows why trades are shut, eac
     for (const hour of hours) {
       const held = await caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, hour });
       for (let now = hour; now < hour + HOUR_MS; now += MINUTE_MS) {
-        const shown = tradesAt(held, now);
+        const shown = tradesInHourAt(held, now);
         const [offer] = shown.offers;
         expect({ shut: shown.shut, closes: offer.closes }, new Date(now).toISOString()).toEqual(await serverAt(now));
         seen.shut.add(shown.shut);

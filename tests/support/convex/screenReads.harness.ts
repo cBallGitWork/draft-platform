@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { changesFromAt, thisGameweekAt } from "../../../convex/gameweeks/nextGameweek";
 import { clockAt, clockHourOf, leagueHomeAt } from "../../../convex/home/homeAt";
 import { matchupAt } from "../../../convex/matchup/commentaryAt";
-import { tradesAt } from "../../../convex/trades/tradesAt";
+import { tradesInHourAt } from "../../../convex/trades/tradesAt";
 import { cardActionAt, firstRunsAt, pendingClaimsAt, waiversAt } from "../../../convex/waivers/runsAhead";
 import type { actingAs } from "./leagues.harness";
 
@@ -45,7 +45,7 @@ export async function waiversOf(caller: Caller, leagueId: Id<"leagues">, now = D
 /** The Trades screen at `now`, judged from the hour's read, as `caller` reads it
  *  (src/trades/liveTrades.ts, #2008). */
 export async function tradesOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
-  return tradesAt(await caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, hour: clockHourOf(now) }), now);
+  return tradesInHourAt(await caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, hour: clockHourOf(now) }), now);
 }
 
 /** The pending claims at `now`, as `caller` reads them (src/myTeam/claims/liveClaims.ts). */

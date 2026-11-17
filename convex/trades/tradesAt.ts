@@ -15,10 +15,18 @@ export function begunInHour(deadlines: LeagueDeadlines, hour: number): (number |
   return [...(latestBegun(deadlines, hour) === null ? [null] : []), ...lockCandidates(deadlines, hour)];
 }
 
-/** The Trades screen at `now`, from what `ofMyTeam` sent for `now`'s hour. */
-export function tradesAt({ gameweeks, phases, offers, ...held }: HeldTrades, now: number): TradesView {
-  const begun = latestBegun(deadlinesOf(gameweeks), now);
-  const phase = phases.find((one) => one.begun === begun);
-  if (phase === undefined) throw new Error(`The Trades read sent holds nothing for gameweek ${begun} the latest begun, at ${new Date(now).toISOString()}`);
-  return { ...held, shut: phase.shut, offers: offers.map((offer, index) => ({ ...offer, ...phase.offers[index] })) };
+/** The Trades screen at `now`, from what `ofMyTeam` sent for an hour; undefined when it holds
+ *  nothing for the gameweek latest begun at `now`, as an earlier hour's answer, held while `now`'s
+ *  loads, does once a deadline falls past its hour's end. */
+export function tradesAt({ gameweeks, phases, offers, ...held }: HeldTrades, now: number): TradesView | undefined {
+  const phase = phases.find((one) => one.begun === latestBegun(deadlinesOf(gameweeks), now));
+  return phase && { ...held, shut: phase.shut, offers: offers.map((offer, index) => ({ ...offer, ...phase.offers[index] })) };
+}
+
+/** `tradesAt` for the answer sent for `now`'s own hour, which holds every gameweek a minute of it
+ *  can see begun (`begunInHour`), so none missing is a fault, never a wait. */
+export function tradesInHourAt(held: HeldTrades, now: number): TradesView {
+  const shown = tradesAt(held, now);
+  if (shown === undefined) throw new Error(`The Trades read sent holds nothing for gameweek ${latestBegun(deadlinesOf(held.gameweeks), now)} the latest begun, at ${new Date(now).toISOString()}`);
+  return shown;
 }

@@ -7,6 +7,7 @@ import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
+import type { HeldTrades } from "../../../convex/trades/tradeScreen";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { menuWords } from "../../../src/shared/words";
@@ -47,11 +48,11 @@ const hoursAsked = () => new Set(convex.ofMyTeam.mock.calls.map(([{ hour }]) => 
 /** Trades reached from the menu and read through the live seam, the server answering `view` for
  *  the first hour and still loading for the next. Reached from the menu, not opened on, so the
  *  live read is in place before Trades first renders. */
-async function openLive(view: TradesView) {
+async function openLive(view: TradesView, held: HeldTrades = heldTrades(view)) {
   let first: number | undefined;
   convex.ofMyTeam.mockImplementation(({ hour }: { hour: number }) => {
     first ??= hour;
-    return hour === first ? heldTrades(view) : undefined;
+    return hour === first ? held : undefined;
   });
   const app = openApp(MY_TEAM_PATH, manager);
   app.trades.useTrades.mockImplementation(liveTrades.useTrades);
@@ -102,4 +103,17 @@ test("on Offers, the selected offer and its open Reject confirm survive the hour
   turnTheHour();
   expect(screen.getByRole("region", { name: offerToYouTitle("Team 3") })).toBeTruthy();
   expect(screen.getByText(rejectQuestion("Team 3"))).toBeTruthy();
+});
+
+test("a deadline passing in the next hour while its answer still loads leaves Trades up, a half-made offer with it (S08.9)", async () => {
+  // Gameweek 12's deadline half an hour into the next hour: the held answer, this hour's, has no
+  // phase for it begun, since no minute of this hour sees it begin.
+  const deadline = START - SECOND_MS + HOUR_MS + 30 * MINUTE_MS;
+  await openLive(quietTrades, { ...heldTrades(quietTrades), gameweeks: [{ gameweek: 12, deadline }] });
+  await userEvent.click(await screen.findByRole("link", { name: menuWords.newOffer }));
+  await userEvent.click(await tickOf("Team 1", SAKA.name));
+
+  turnTheHour();
+  act(() => vi.advanceTimersByTime(31 * MINUTE_MS));
+  expect(await tickOf("Team 1", SAKA.name)).toHaveProperty("checked", true);
 });
