@@ -5,6 +5,7 @@ import { reviewRefusals } from "../../../convex/trades/tradeReview";
 import { draftStarted } from "../../support/convex/draft.harness";
 import { actingAs, addManager, ADMIN, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
+import { tradesOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
@@ -29,7 +30,7 @@ const nameCommissioner = async (email: string) =>
 const nameCoCommissioner = async (email: string | null, by = COMMISSIONER) =>
   (await actingAs(w.t, by)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId: w.leagueId, email });
 const offersTab = async (email: string) =>
-  (await (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, now: Date.now() })).offers;
+  (await tradesOf(await actingAs(w.t, email), w.leagueId)).offers;
 
 describe("when the league is handed to a new commissioner during a review", () => {
   test("the new commissioner gets the review letter, sees it in To review, and may Block it; the 24 hours don't restart", async () => {

@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { clockHourOf } from "../../convex/home/homeAt";
+import { tradesAt } from "../../convex/trades/tradesAt";
 import { refusalOf } from "../shared/refusal";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
@@ -9,10 +11,14 @@ import { tradeFailedWords } from "./words";
 
 /** Trades' seam filled in by Convex. */
 export const liveTrades: TradesSeam = {
-  // Asked at the screen's minute, as a query may not read the clock: whether trades are shut moves on with it.
-  // The last answer is held while the next minute's loads, so a half-made offer survives the clock (#1747).
-  useTrades: (leagueId) =>
-    useLastLoaded(useQuery(api.trades.tradeScreen.ofMyTeam, { leagueId, now: useMinute() }), leagueId),
+  // Asked for the hour, never the minute (#2008): whether trades are shut and when each offer closes
+  // move on with the clock, so they are worked out here at the screen's minute (tradesAt.ts). The
+  // last answer is held across the hour's turn, so a half-made offer survives the clock (#1747).
+  useTrades: function useTrades(leagueId) {
+    const minute = useMinute();
+    const held = useLastLoaded(useQuery(api.trades.tradeScreen.ofMyTeam, { leagueId, hour: clockHourOf(minute) }), leagueId);
+    return useMemo(() => (held === undefined ? undefined : tradesAt(held, minute)), [held, minute]);
+  },
   useReviews: (leagueId) =>
     useQuery(api.trades.reviewScreen.toReview, { leagueId }),
   useTradeChanges: function useTradeChanges() {
