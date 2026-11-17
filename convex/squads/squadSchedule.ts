@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
-import { saveGameweekOf } from "../gameweeks/saveGameweek";
+import type { SaveGameweek } from "../gameweeks/saveGameweek";
 import { clubRecord } from "../schema";
 import { byKickoffOrder, gameweekFixtures } from "../shared/fixtures";
 import type { Clubs } from "../shared/players";
@@ -25,23 +25,25 @@ export const scheduledMatch = v.object({
 });
 export type ScheduledMatch = Infer<typeof scheduledMatch>;
 
-/** The gameweeks shown, the next six the league plays from the one being set, and each of these clubs' matches in them by club
- *  code, kickoff order, those with no kickoff time last. No gameweeks once the season is over or
- *  while the league has no rules to date a deadline by. */
+/** The gameweeks shown through an hour, the next six the league plays from the one being set at
+ *  each of `saves` (saveGameweek.ts's `saveGameweeksInHour`), each start's one more, and each of
+ *  these clubs' matches in them by club code, kickoff order, those with no kickoff time last;
+ *  teamSquadAt.ts keeps a minute's six. No gameweeks once the season is over or while the league
+ *  has no rules to date a deadline by. */
 export async function squadSchedule(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  now: number,
+  saves: readonly SaveGameweek[],
   clubCodes: ReadonlySet<number>,
   clubs: Clubs,
 ): Promise<{ gameweeks: number[]; byClub: Map<number, ScheduledMatch[]> }> {
   const byClub = new Map<number, ScheduledMatch[]>();
-  const save = await saveGameweekOf(ctx, leagueId, now);
+  const [save] = saves;
   const league = await ctx.db.get("leagues", leagueId);
-  if (save.kind !== "open" || league === null) return { gameweeks: [], byClub };
+  if (save?.kind !== "open" || league === null) return { gameweeks: [], byClub };
   const gameweeks = usedGameweeksOf(league, await seasonGameweekCount(ctx))
     .filter((gameweek) => gameweek >= save.gameweek)
-    .slice(0, SCHEDULE_GAMEWEEKS);
+    .slice(0, SCHEDULE_GAMEWEEKS + saves.length - 1);
   for (const gameweek of gameweeks) {
     for (const fixture of await gameweekFixtures(ctx, gameweek, "the Squad tab's schedule would be cut short")) {
       for (const [clubCode, opponentCode, home] of sidesOf(fixture)) {

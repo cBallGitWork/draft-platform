@@ -2,6 +2,7 @@ import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import type { ScheduledMatch } from "./deadline";
+import { turnsInHour } from "./hourAnswers";
 import { deadlineOf, leagueDeadlines, leagueDeadlinesIn } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
 import { seasonGameweekCount } from "./seasonGameweeks";
@@ -24,7 +25,7 @@ export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, n
 /** The gameweek a save now goes to, or why there is none: once every gameweek the league plays
  *  has begun its season is over, so one that ends early is over after its last (spec/13,
  *  Gameweeks). Each caller says what that means for it. */
-type SaveGameweek =
+export type SaveGameweek =
   | { kind: "seasonOver" }
   | { kind: "open"; season: SeasonRules; gameweek: number };
 
@@ -36,4 +37,13 @@ export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now
   const league = await ctx.db.get("leagues", leagueId);
   if (league === null || gameweek > lastPlayedGameweek(league, await seasonGameweekCount(ctx))) return { kind: "seasonOver" };
   return { kind: "open", season, gameweek };
+}
+
+/** The gameweek a save goes to through the hour starting at `hour`: at its start, then from each
+ *  deadline in it that moves it on (hourAnswers.ts's `turnsInHour`), in order. */
+export async function saveGameweeksInHour(ctx: QueryCtx, leagueId: Id<"leagues">, hour: number): Promise<(SaveGameweek & { from: number })[]> {
+  const turns = turnsInHour(await leagueDeadlines(ctx, leagueId), hour);
+  const saves = await Promise.all(turns.map(async (from) => ({ from, ...(await saveGameweekOf(ctx, leagueId, from)) })));
+  const gameweekOf = (save: SaveGameweek) => (save.kind === "open" ? save.gameweek : null);
+  return saves.filter((save, index) => index === 0 || gameweekOf(save) !== gameweekOf(saves[index - 1]));
 }

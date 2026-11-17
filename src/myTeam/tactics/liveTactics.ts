@@ -2,14 +2,23 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useRef } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { answerAt } from "../../../convex/gameweeks/hourAnswers";
+import { clockHourOf } from "../../../convex/home/homeAt";
 import { answerOf, refusalOf } from "../../shared/refusal";
+import { useLastLoaded } from "../../shared/useLastLoaded";
 import type { TacticsSeam } from "./seam";
 import { planDeleteFailedWords, planSaveFailedWords, saveFailedWords } from "./words";
 
 /** The Tactics seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/lineup/lineupWords.ts); any other failure is logged and said plainly. */
 export const liveTactics: TacticsSeam = {
-  useTactics: (leagueId, now) => useQuery(api.lineup.tactics.ofMyTeam, { leagueId, now }),
+  // Asked for the hour, never the minute (#2008): the gameweek being set moves on at a deadline, so
+  // the hour's answers are picked from at the screen's minute (hourAnswers.ts). The last is held
+  // while the next hour's loads, so the tab doesn't blank at the hour's turn.
+  useTactics: function useTactics(leagueId, now) {
+    const loaded = useQuery(api.lineup.tactics.ofMyTeam, { leagueId, hour: clockHourOf(now) });
+    return useLastLoaded(loaded && answerAt(loaded, now)?.tactics, leagueId);
+  },
   useLineupChanges: () => {
     const save = useMutation(api.lineup.lineups.save);
     return useMemo(

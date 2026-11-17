@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { scoredMatches } from "../../../convex/gameweekScorer/scoredMatches";
 import type { CardPoints } from "../../../convex/playerCard/cardPoints";
@@ -9,6 +9,7 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import { rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs, ANN } from "../../support/convex/leagues.harness";
+import { teamSquadOf } from "../../support/convex/screenReads.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import {
   EVERTON_STARTERS,
@@ -94,7 +95,7 @@ async function annsGameweek(league: ScoresLeague, men: readonly number[]) {
   const ann = await actingAs(league.t, ANN);
   const cards = await scoredBy(league, league.annsTeam, men);
   const table = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.annsTeam)!;
-  const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId: league.leagueId, now: LEAGUE_FULL_TIME_READ });
+  const squad = await teamSquadOf(ann, league.leagueId, LEAGUE_FULL_TIME_READ);
   return { cards, table, squad };
 }
 

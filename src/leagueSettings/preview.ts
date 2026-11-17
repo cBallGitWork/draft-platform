@@ -20,8 +20,8 @@ const scoringStart = {
   seasonBegun: false,
 };
 
-/** The draft waiting for the commissioner, with no date set. */
-const draftStart = { startsAt: null, started: false };
+/** The draft waiting for the commissioner, with no date set, its rounds the first rules' squad. */
+const draftStart = { startsAt: null, started: false, rounds: view.part.squadMaximum, teams: teamOrder.teams.length };
 
 export const previewLeagueSettings: LeagueSettingsSeam = {
   useSettings: () => view,
@@ -31,6 +31,7 @@ export const previewLeagueSettings: LeagueSettingsSeam = {
   drawTeamOrder: previewSays(unmovedOutcome),
   useScoringStart: () => scoringStart,
   setScoringStart: previewSays(unchangedStartOutcome),
+  useGameweeks: () => previewSeason,
   useDraftStart: () => draftStart,
   setDraftStart: previewSays(unchangedDraftStartOutcome),
   useWaivers: () => previewWaivers,

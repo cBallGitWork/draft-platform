@@ -4528,6 +4528,32 @@
                       "type": "boolean"
                     },
                     "optional": false
+                  },
+                  "formationPlace": {
+                    "fieldType": {
+                      "type": "object",
+                      "value": {
+                        "formation": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "line": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        },
+                        "place": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    "optional": true
                   }
                 }
               }

@@ -20,11 +20,14 @@ const useTeamOrder: LeagueSettingsSeam["useTeamOrder"] = (leagueId) => useQuery(
 
 const useScoringStart: LeagueSettingsSeam["useScoringStart"] = (leagueId) => useQuery(api.gameweeks.scoringStart.ofLeague, { leagueId });
 
-/** The draft's date while it waits; one under way or over has started. */
+const useGameweeks: LeagueSettingsSeam["useGameweeks"] = (leagueId) => useQuery(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
+
+/** The draft's date while it waits; one under way or over has started. Its rounds and teams either way. */
 const useDraftStart: LeagueSettingsSeam["useDraftStart"] = (leagueId) => {
   const draft = useQuery(api.draft.draftStart.ofLeague, { leagueId });
   if (draft === undefined) return undefined;
-  return draft.status === "waiting" ? { startsAt: draft.startsAt, started: false } : { startsAt: null, started: true };
+  const size = { rounds: draft.rounds, teams: draft.order.length };
+  return draft.status === "waiting" ? { startsAt: draft.startsAt, started: false, ...size } : { startsAt: null, started: true, ...size };
 };
 
 /** League settings' seam filled in by Convex. A refusal comes back as the server's own words
@@ -43,6 +46,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       saveTeamOrder: (leagueId, teamIds) => refusalOf(() => setTeamOrder({ leagueId, teamIds }), "Saving the draft order", teamOrderFailedWords),
       drawTeamOrder: (leagueId) => refusalOf(() => drawTeamOrder({ leagueId }), "Drawing the draft order", teamOrderFailedWords),
       useScoringStart,
+      useGameweeks,
       setScoringStart: (leagueId, gameweek) =>
         refusalOf(() => setScoringStart({ leagueId, gameweek }), "Setting the scoring start", scoringStartFailedWords),
       useDraftStart,

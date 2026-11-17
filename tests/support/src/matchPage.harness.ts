@@ -19,6 +19,7 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   position: "CM",
   side,
   started: true,
+  formationPlace: null,
   played: true,
   sub: NO_SUB,
   ownerTeamName: null,

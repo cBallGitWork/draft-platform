@@ -173,8 +173,14 @@ export const teamStatsTables = {
 // made in the warm-up shows. From kickoff the match's records, written from the same sheets, are
 // what the page shows (football/matchTeamSheets.ts).
 
-/** One man the sheets name, by FPL's code: a starter, or a substitute. */
-export const teamSheetMan = v.object({ playerCode: v.number(), started: v.boolean() });
+/** A starter's place in his side's formation, as the sheet draws it (football/premierLeague/plMatch.ts's
+ *  `MatchSlot`): the formation's label, his line (0 the keeper, counting up the pitch) and his place
+ *  along it from the side's right. The match page's pitch stands him there (spec/10 S10.9). */
+export const formationPlace = v.object({ formation: v.string(), line: v.number(), place: v.number() });
+
+/** One man the sheets name, by FPL's code: a starter, or a substitute. `formationPlace` only for a
+ *  starter on a sheet that draws its formation; absent on sheets held before it was kept. */
+export const teamSheetMan = v.object({ playerCode: v.number(), started: v.boolean(), formationPlace: v.optional(formationPlace) });
 
 export const teamSheetTables = {
   matchTeamSheets: defineTable({
