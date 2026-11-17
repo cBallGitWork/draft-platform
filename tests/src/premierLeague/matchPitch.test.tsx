@@ -75,6 +75,14 @@ test("S10.9: the viewer's own men have the cyan underline on the pitch, and only
   expect(within(pitchMan(pitch, "Timber")).getByText("Timber").className).not.toContain("shadow-subtab-active");
 });
 
+test("S10.13: until a team sheet has placed the players, Overview offers no Pitch and shows the list", async () => {
+  openMatch({ match: matchOf({ men: [man(1, "Raya", "home", { position: "GK" }), man(5, "Palmer", "away")] }) });
+  expect(await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) })).toBeTruthy();
+  expect(screen.queryByRole("radiogroup", { name: lineupViewLabel })).toBeNull();
+  expect(screen.queryByRole("list", { name: matchPitchLabel(ARSENAL.name, CHELSEA.name) })).toBeNull();
+  expect(within(screen.getByRole("table", { name: sheetLabel(ARSENAL.name) })).getByRole("rowheader", { name: "Raya" })).toBeTruthy();
+});
+
 /** Calafiori off for Eze at 62', then Eze off for Nwaneri at 88'; Timber off for White at 70'. */
 const SUBBED_MEN = [
   man(1, "Raya", "home", { ...placedAt(0, 0), position: "GK" }),

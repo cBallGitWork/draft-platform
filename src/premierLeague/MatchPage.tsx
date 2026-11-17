@@ -15,7 +15,7 @@ import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
 import { MatchPlayerStats, PointsCell, StatViewSwitch, ViewSwitch } from "./MatchPlayerStats";
-import { MatchPitch, offPitch } from "./MatchPitch";
+import { anyPlaced, MatchPitch, offPitch } from "./MatchPitch";
 import { TeamStats } from "./MatchTeamStats";
 import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
@@ -87,6 +87,8 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
   const [view, chooseView] = useState<StatView>("stats");
   const [lineupView, chooseLineupView] = useState<LineupView>("list");
   const prov = provisional ? <ProvTag /> : undefined;
+  // No pitch until a sheet has placed the men (S10.13): no switch, and the list.
+  const pitchHeld = anyPlaced(match.men);
   return (
     <>
       <BackRow gameweek={gameweek} />
@@ -95,12 +97,12 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
       <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
         <PlateTabs label={matchTabsLabel} tabs={MATCH_TABS} words={matchTabWords} chosen={tab} choose={choose} greyed={{ highlights: highlightsNotHeldLabel }} alone />
         {tab === "playerStats" && <StatViewSwitch view={view} choose={chooseView} />}
-        {tab === "overview" && (
+        {tab === "overview" && pitchHeld && (
           <ViewSwitch label={lineupViewLabel} name="match-lineup-view" views={LINEUP_VIEWS} words={lineupViewWords} view={lineupView} choose={chooseLineupView} />
         )}
       </div>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
-      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={lineupView} />}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={pitchHeld ? lineupView : "list"} />}
     </>
   );
 }

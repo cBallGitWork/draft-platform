@@ -49,6 +49,8 @@ commentary` (16 Oct 2026).
 - Overview shows the lineups as a list or on a pitch; clicking a player opens his panel; your own
   players are highlighted; a goal, an assist and a card each have a mark after the player's name:
   "We probably need an assist icon somewhere too" (Craig, 10 Nov 2026, on #1032). `S10.9`
+- Until a team sheet has placed the players, the match page doesn't show the pitch (Craig,
+  17 Nov 2026, on #2529). `S10.13`
 - Live points carry a small "prov." tag until the gameweek's points are final (Craig, 10 Nov 2026,
   on #1032). `S10.10`
 - A Highlights tab with the match's YouTube highlights: "Oh highlights tab too for YouTube
