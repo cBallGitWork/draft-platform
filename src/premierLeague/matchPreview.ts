@@ -5,6 +5,7 @@
 // by its own code; every other fixture opens its own page (preview.ts), on this one's empty parts.
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
+import type { MatchStatLine } from "../../convex/match/matchStatLine";
 import type { Position } from "../../convex/positions/positionTables";
 import { previewClub, previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchMarks, MatchPageData } from "./seam";
@@ -26,7 +27,16 @@ function man(
   counts = owner !== null,
 ): MatchMan {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
-  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks: { ...NO_MARKS, ...MARKS[name] }, points, counts };
+  const marks = { ...NO_MARKS, ...MARKS[name] };
+  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, points, counts };
+}
+
+/** A man's stats for the preview's Player stats tab: his marks as the lines below give them, each
+ *  goal a shot on target; his minutes (a starter's 90, a substitute's 20) made up, as the points
+ *  are, and the rest 0. */
+function statLineOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
+  const zero = { keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  return { ...zero, minutes: started ? 90 : 20, goals, assists, shots: goals, shotsOnTarget: goals, yellowCards, redCards };
 }
 
 /** The preview manager's team, Saka Potatoes (proLeague's), whose men the sheets light. */
@@ -219,7 +229,7 @@ export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
   scorers: { home: [], away: [] },
-  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, points: null, counts: each.ownerTeamName !== null })),
+  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };

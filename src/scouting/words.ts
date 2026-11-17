@@ -18,7 +18,7 @@ import {
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
 import { runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, underSiteScoringWords } from "../shared/words";
+import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, statNames, underSiteScoringWords } from "../shared/words";
 import { afterLastMatchWords, gameweekShort, seasonShortWords, weekdayTimeWords } from "../shared/when/words";
 import type { HeldByFilter, Period } from "./seam";
 
@@ -158,12 +158,12 @@ const AREA_PLAYERS: Record<Area, string> = {
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
   [GOALS]: "Goals",
   [ASSISTS]: "Assists",
-  [KEY_PASSES]: "Key passes",
+  [KEY_PASSES]: statNames.keyPasses,
   [SHOTS_ON_TARGET]: "Shots on target",
   [BIG_CHANCES_CREATED]: "Big chances created",
   [TACKLES_WON]: "Tackles won",
   [SAVES]: "Saves",
-  [GOALS_CONCEDED]: "Goals conceded",
+  [GOALS_CONCEDED]: statNames.goalsConceded,
   [CLEAN_SHEETS]: "Clean sheets",
   [PASSES]: "Passes",
   [INTERCEPTIONS]: "Interceptions",

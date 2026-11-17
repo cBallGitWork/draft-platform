@@ -23,6 +23,7 @@ import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
+import { matchStatLine, statLineOf } from "./matchStatLine";
 import { commentaryOf } from "./matchPageCommentary";
 import { matchScorers, scorersOf } from "./matchScorers";
 import { bySheetOrder } from "./sheetOrder";
@@ -63,6 +64,8 @@ const matchMan = v.object({
   mine: v.boolean(),
   /** His goals, assists and cards in this match so far, by his record; all 0 before it. */
   marks: matchMarks,
+  /** His stats for the match, the Player stats tab's (S10.8); null before his record arrives. */
+  statLine: v.union(matchStatLine, v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
    *  and for every man before the league's gameweek begins, as his card opens on him (basePoints).
@@ -263,6 +266,7 @@ async function menOf(
         ownerTeamName: owner?.name ?? null,
         mine: owner !== undefined && owner._id === viewerTeam,
         marks: marksOf(stats),
+        statLine: statLineOf(stats),
         points: slot?.points ?? null,
         counts: slot?.counts ?? true,
       };
