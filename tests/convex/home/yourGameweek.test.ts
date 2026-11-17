@@ -1,6 +1,20 @@
 import { expect, test, vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { DEADLINE, GAMEWEEK, homeAt, HULL_BENCH, HULL_KEEPER, HULL_SCORER, HULL_STARTERS, LEAGUE_FULL_TIME_READ, nameOf, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { MINUTE_MS } from "../../../convex/shared/time";
+import {
+  DEADLINE,
+  GAMEWEEK,
+  homeAt,
+  HULL_BENCH,
+  HULL_KEEPER,
+  HULL_SCORER,
+  HULL_STARTERS,
+  LEAGUE_FULL_TIME_READ,
+  LEAGUE_KICKOFF,
+  nameOf,
+  scoresLeague,
+  type ScoresLeague,
+} from "../../support/convex/gameweekScores.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { COMMISSIONER } from "../../support/convex/leagues.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -8,10 +22,12 @@ import { squadMoves } from "../../support/convex/lineupSquad.harness";
 // League home's panels on the reader's own team (#1976; Craig, 13 Nov 2026, on #1976): his squad's
 // news, his lineup's flagged starters in the pitch's order, the waiver runs and his claims, and this
 // gameweek's matches with his players or his opponent's. Ann fields Hull and Bob Everton, playing
-// each other in gameweek 6's one match. `S12.8`, `S12.9`, `S12.12`
+// each other in gameweek 6's one match. `S12.8`, `S12.9`, `S12.12`, `S12.16`
 
 const KNOCK = "Knock - 75% chance of playing";
 const HAMSTRING = "Hamstring injury - Expected back 29 Nov";
+/** A minute before Hull v Everton kicks off, past the deadline: its flagged starters still named. */
+const BEFORE_KICKOFF = LEAGUE_KICKOFF - MINUTE_MS;
 
 /** Gives FPL's news note to the player with `code`. */
 const giveNews = ({ t }: ScoresLeague, code: number, news: string, chanceOfPlaying: number | null) =>
@@ -27,7 +43,7 @@ test("lists each of his squad's players FPL gives a note, word for word, and his
   await giveNews(league, HULL_SCORER, KNOCK, 75);
   await giveNews(league, benchMan, HAMSTRING, 0);
   await giveNews(league, firstStarter.playerCode, "Suspended", 0);
-  const yours = (await homeAt(league, LEAGUE_FULL_TIME_READ))!.yours!;
+  const yours = (await homeAt(league, BEFORE_KICKOFF))!.yours!;
 
   const noted = await Promise.all(
     [
@@ -38,7 +54,7 @@ test("lists each of his squad's players FPL gives a note, word for word, and his
   );
   expect(yours.squadNews.toSorted((one, other) => one.playerCode - other.playerCode)).toEqual(noted.toSorted((one, other) => (one.playerCode as number) - (other.playerCode as number)));
   // The bench man is no starter; the back line stands before the midfield.
-  expect(yours.lineup).toEqual({ set: true, flagged: [noted[0], noted[1]] });
+  expect(yours.lineup).toEqual({ set: true, flagged: [noted[0], noted[1]].map((each) => ({ ...each, kickoff: LEAGUE_KICKOFF })) });
 });
 
 test("still flags a starter released since the deadline, who starts this gameweek all the same", async () => {
@@ -47,11 +63,22 @@ test("still flags a starter released since the deadline, who starts this gamewee
   await giveNews(league, firstStarter.playerCode, "Suspended", 0);
   vi.setSystemTime(LEAGUE_FULL_TIME_READ);
   await (await squadMoves(league.t, league.leagueId, COMMISSIONER)).release(firstStarter.playerCode);
-  const yours = (await homeAt(league, LEAGUE_FULL_TIME_READ))!.yours!;
+  const yours = (await homeAt(league, BEFORE_KICKOFF))!.yours!;
 
   const suspended = { playerCode: firstStarter.playerCode, name: await nameOf(league, firstStarter.playerCode), news: "Suspended", chanceOfPlaying: 0 };
   expect(yours.squadNews).not.toContainEqual(suspended);
-  expect(yours.lineup).toEqual({ set: true, flagged: [suspended] });
+  expect(yours.lineup).toEqual({ set: true, flagged: [{ ...suspended, kickoff: LEAGUE_KICKOFF }] });
+});
+
+test("S12.16: leaves a flagged starter out of Your lineup from his match's kickoff, his note still in his squad's news", async () => {
+  const league = await scoresLeague();
+  await giveNews(league, HULL_SCORER, KNOCK, 75);
+  const knock = { playerCode: HULL_SCORER, name: await nameOf(league, HULL_SCORER), news: KNOCK, chanceOfPlaying: 75 };
+  expect((await homeAt(league, BEFORE_KICKOFF))!.yours!.lineup).toEqual({ set: true, flagged: [{ ...knock, kickoff: LEAGUE_KICKOFF }] });
+
+  const yours = (await homeAt(league, LEAGUE_KICKOFF))!.yours!;
+  expect(yours.lineup).toEqual({ set: true, flagged: [] });
+  expect(yours.squadNews).toContainEqual(knock);
 });
 
 test("holds the league's waiver runs and his claims waiting", async () => {

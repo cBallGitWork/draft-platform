@@ -182,6 +182,24 @@ it("prices each matchup goal line by a counting man in his own side's column (#2
   }
 });
 
+it("S12.16: names in League home's Your lineup only flagged starters whose Football match is still to kick off (#2466)", () => {
+  const { lineup, squadNews } = previewHome.useLeagueHome(leagueId, now)!.yours!;
+  const football = previewPremierLeague.useGameweekMatches(previewGameweek)!;
+  const kickoffOf = (playerCode: number) => {
+    const { clubCode } = previewSquad.find((each) => each.playerCode === playerCode)!;
+    return football.find(({ home, away }) => home.code === clubCode || away.code === clubCode)?.kickoff ?? null;
+  };
+
+  for (const { playerCode, kickoff } of lineup!.flagged) {
+    expect(kickoff).toBe(kickoffOf(playerCode));
+    expect(kickoff === null || kickoff > now).toBe(true);
+  }
+  // Saka's Arsenal have played, so his note stays in Your squad news and leaves Your lineup.
+  const saka = squadNews.find(({ name }) => name === "Saka")!;
+  expect(kickoffOf(saka.playerCode)!).toBeLessThanOrEqual(now);
+  expect(lineup!.flagged.map(({ playerCode }) => playerCode)).not.toContain(saka.playerCode);
+});
+
 it("recaps a gameweek Football has over, not the one it plays now (#2466)", () => {
   const { recap } = previewHome.useLeagueHome(leagueId, now)!;
   const matches = previewPremierLeague.useGameweekMatches(recap!.gameweek)!;
