@@ -1,4 +1,11 @@
 {
   "quickCheck": "npm run typecheck && npm run lint",
-  "quickCheckSeconds": 60
+  "quickCheckSeconds": 60,
+  "build": {
+    "check": "npm run check:rules",
+    "ruleDocs": "the SPEC.md and spec/NN-*.md lines it names, any docs/design/approved/<screen>/README.md it touches",
+    "doneLabel": "lead:done",
+    "before": "bash scripts/build-apps.sh",
+    "prompt": ".studio/build-prompt.md"
+  }
 }
