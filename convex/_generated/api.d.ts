@@ -106,6 +106,7 @@ import type * as gameweeks_deadlineRecorder from "../gameweeks/deadlineRecorder.
 import type * as gameweeks_gameweekEnd from "../gameweeks/gameweekEnd.js";
 import type * as gameweeks_gameweekKickoffs from "../gameweeks/gameweekKickoffs.js";
 import type * as gameweeks_gameweekStarts from "../gameweeks/gameweekStarts.js";
+import type * as gameweeks_hourAnswers from "../gameweeks/hourAnswers.js";
 import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js";
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
 import type * as gameweeks_matchMoves from "../gameweeks/matchMoves.js";
@@ -361,6 +362,7 @@ import type * as squads_squadRulesView from "../squads/squadRulesView.js";
 import type * as squads_squadSchedule from "../squads/squadSchedule.js";
 import type * as squads_squads from "../squads/squads.js";
 import type * as squads_teamSquad from "../squads/teamSquad.js";
+import type * as squads_teamSquadAt from "../squads/teamSquadAt.js";
 import type * as squads_teamTransactions from "../squads/teamTransactions.js";
 import type * as stars_bestRole from "../stars/bestRole.js";
 import type * as stars_deadlineStars from "../stars/deadlineStars.js";
@@ -540,6 +542,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/gameweekEnd": typeof gameweeks_gameweekEnd;
   "gameweeks/gameweekKickoffs": typeof gameweeks_gameweekKickoffs;
   "gameweeks/gameweekStarts": typeof gameweeks_gameweekStarts;
+  "gameweeks/hourAnswers": typeof gameweeks_hourAnswers;
   "gameweeks/leagueDeadlines": typeof gameweeks_leagueDeadlines;
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
   "gameweeks/matchMoves": typeof gameweeks_matchMoves;
@@ -795,6 +798,7 @@ declare const fullApi: ApiFromModules<{
   "squads/squadSchedule": typeof squads_squadSchedule;
   "squads/squads": typeof squads_squads;
   "squads/teamSquad": typeof squads_teamSquad;
+  "squads/teamSquadAt": typeof squads_teamSquadAt;
   "squads/teamTransactions": typeof squads_teamTransactions;
   "stars/bestRole": typeof stars_bestRole;
   "stars/deadlineStars": typeof stars_deadlineStars;
