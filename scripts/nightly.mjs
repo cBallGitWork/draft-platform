@@ -1,4 +1,4 @@
-// The nightly suites: test runs too long for a pull request's wait (the season simulation, long random-input runs).
+// The nightly suites: test runs too long for a pull request's wait, none yet (the season simulation waits on #2185).
 // verify.yml's `nightly` job runs `npm run nightly` on main once a night and by hand
 // (`gh workflow run verify.yml --ref <branch>`), and a failure opens or comments on the `nightly-ci` issue.
 // A build adds its suite to NIGHTLY_SUITES here, never to the workflow, which builds can't edit (testing plan v3,

@@ -18,11 +18,16 @@ export function SectionTab({ path, label, children }: { path: string; label?: st
 }
 
 /** A count after a tab's name, such as unread mail or pending claims, in the event colour
- *  (Colour roles: event); the tab's own label says it for screen readers. */
+ *  (Colour roles: event); the tab's own label says it for screen readers. The space before it, which
+ *  the tab's flex row doesn't draw, keeps "Mail 3" two words for whatever reads the text, so the
+ *  label holds them (WCAG 2.5.3; S12.14). */
 export function CountBadge({ children }: { children: ReactNode }) {
   return (
-    <span aria-hidden="true" className="ml-1 bg-event px-1 font-bold text-ground">
-      {children}
-    </span>
+    <>
+      {" "}
+      <span aria-hidden="true" className="ml-1 bg-event px-1 font-bold text-ground">
+        {children}
+      </span>
+    </>
   );
 }

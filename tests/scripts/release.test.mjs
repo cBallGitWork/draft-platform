@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../../scripts/live-site.mjs";
-import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, TEST_ONLY_SETTINGS, VERCEL_ENV, VERCEL_PRODUCTION, refusal, testSettingRefusal } from "../../scripts/release.mjs";
+import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, LIVE, STAGING, STAGING_BRANCH, TEST_ONLY_SETTINGS, VERCEL_BRANCH, VERCEL_ENV, VERCEL_PREVIEW, VERCEL_PRODUCTION, refusal, stagingRelease, targetOf, testSettingRefusal } from "../../scripts/release.mjs";
 import { OUTSIDE_WORLD_SETTING } from "../../convex/outbound/deploymentSettings.ts";
 import { BUILD, PREVIOUS_SHA, SKIP, decide } from "../../scripts/release-skip.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
@@ -15,7 +15,9 @@ import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 const SCRIPT = join(REPO_ROOT, "scripts/release.mjs");
 const KEY = { [DEPLOY_KEY_SETTING]: DEPLOY_KEY };
-const PREVIEW = "preview";
+const PREVIEW = VERCEL_PREVIEW;
+const DEV_KEY = { [DEPLOY_KEY_SETTING]: "dev:fake-dev-456|eyFakeDevKey0123456789abcdef" };
+const STAGING_BUILD = { [VERCEL_ENV]: PREVIEW, [VERCEL_BRANCH]: STAGING_BRANCH };
 const vercel = JSON.parse(readFileSync(join(REPO_ROOT, "vercel.json"), "utf8"));
 const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/release-check.yml"), "utf8");
 
@@ -50,12 +52,14 @@ test("Vercel skips only a merge that ships nothing: #512's ignore command skippe
 });
 
 test("only a production build with the deploy key may release", () => {
-  // Vercel's own name for the variable, an outside fact the constant must keep.
+  // Vercel's own names, outside facts the constants must keep.
   expect(VERCEL_ENV).toBe("VERCEL_ENV");
+  expect(VERCEL_BRANCH).toBe("VERCEL_GIT_COMMIT_REF");
+  expect(PREVIEW).toBe("preview");
   expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, ...KEY })).toBeNull();
   expect(refusal(KEY)).toBeNull();
   expect(refusal({ [VERCEL_ENV]: PREVIEW, ...KEY })).toContain(`this is a ${PREVIEW} build (${VERCEL_ENV}=${PREVIEW})`);
-  expect(refusal({ [VERCEL_ENV]: "development", ...KEY })).toContain(`only a ${VERCEL_PRODUCTION} build deploys`);
+  expect(refusal({ [VERCEL_ENV]: "development", ...KEY })).toContain(`only a ${VERCEL_PRODUCTION} build or ${STAGING_BRANCH}'s ${PREVIEW} (staging) deploys`);
   expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
   expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, [DEPLOY_KEY_SETTING]: "" })).toContain(`${DEPLOY_KEY_SETTING} isn't set`);
 });
@@ -72,8 +76,31 @@ test("a production build with no deploy key fails, saying why in the log", () =>
   expect(keyless.said).toContain(`${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment`);
 });
 
-test("only main deploys from git: every other branch is off", () => {
-  expect(vercel.git.deploymentEnabled).toEqual({ "**": false, main: true });
+test("only main (staging) and release (live) deploy from git: every other branch is off", () => {
+  expect(vercel.git.deploymentEnabled).toEqual({ "**": false, main: true, release: true });
+});
+
+test("main's preview is staging, and deploys to development only with a development key (S20.19, S20.21)", () => {
+  expect(STAGING_BRANCH).toBe("main");
+  expect(targetOf({ ...STAGING_BUILD, ...DEV_KEY })).toBe(STAGING);
+  expect(refusal({ ...STAGING_BUILD, ...DEV_KEY })).toBeNull();
+  // a live key on staging, or a dev key on live, never deploys
+  expect(refusal({ ...STAGING_BUILD, ...KEY })).toContain("needs a development deploy key");
+  expect(targetOf({ [VERCEL_ENV]: VERCEL_PRODUCTION, ...DEV_KEY })).toBe(LIVE);
+  expect(refusal({ [VERCEL_ENV]: VERCEL_PRODUCTION, ...DEV_KEY })).toContain("needs a live deploy key");
+  expect(refusal(STAGING_BUILD)).toContain(`${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the development deployment`);
+  // another branch's preview is still refused, even with a key
+  expect(refusal({ [VERCEL_ENV]: PREVIEW, [VERCEL_BRANCH]: "feat/x", ...DEV_KEY })).toContain("this is a preview build");
+  // outside Vercel, the key's kind decides
+  expect(targetOf(DEV_KEY)).toBe(STAGING);
+  expect(targetOf(KEY)).toBe(LIVE);
+});
+
+test("staging only deploys: no backup, no recorded shape, no timed jobs", () => {
+  const calls = [];
+  const status = stagingRelease({ convex: (args) => (calls.push(args), { status: 0 }), log: () => {} });
+  expect(status).toBe(0);
+  expect(calls).toEqual([DEPLOY_ARGS]);
 });
 
 test("the workflow passes the check every setting it reads, by the check's names", () => {

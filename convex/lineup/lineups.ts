@@ -24,7 +24,7 @@ import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";
-import { rowInForce, writeRowFor } from "./lineupRows";
+import { basedOnShape, changedSince, rowInForce, writeRowFor } from "./lineupRows";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
 // whose league deadline hasn't passed, and the lineup in a gameweek is the newest row from it or
@@ -212,29 +212,30 @@ function checkClassic(classic: string | undefined, starters: Awaited<ReturnType<
  *  over from there; a second save before the same deadline replaces the first. Returns that
  *  gameweek. Refused, with every reason, if a player isn't in the squad, a squad player is left
  *  out, or the lineup can't stand under the league's rules in force in that gameweek, short of a
- *  starter who lost a position left where he stood (lineup.ts `withUnmovedSetAside`). */
+ *  starter who lost a position left where he stood, or made from a lineup another Tactics tab has
+ *  saved over since (`basedOn`; spec/05 `S05.55`, #2350). */
 export const save = mutation({
-  args: { leagueId: v.id("leagues"), lineup: sentLineup },
+  args: { leagueId: v.id("leagues"), lineup: sentLineup, basedOn: v.optional(basedOnShape) },
   returns: v.number(),
-  handler: async (ctx, { leagueId, lineup }) => {
+  handler: async (ctx, { leagueId, lineup, basedOn }) => {
     const { league, team } = await managerOf(ctx, leagueId);
     const { fromGameweek, rules } = await openSaveGameweek(ctx, league, Date.now());
-    const nameOf = await checkedSquad(ctx, team._id, lineup);
     const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
+    if (basedOn !== undefined && changedSince(existing, basedOn)) refuse(lineupRefusals.changedElsewhere);
+    const nameOf = await checkedSquad(ctx, team._id, lineup);
     const { kept: keptOutOfPosition, positions } = await checkedPositions(ctx, leagueId, lineup, rules, existing, fromGameweek, nameOf);
     checkInstructions(lineup, rules);
     const starters = await withRolesFixed(ctx, lineup.starters, positions, rules);
-    const { classic, instructions } = lineup;
-    checkClassic(classic, starters, rules);
+    checkClassic(lineup.classic, starters, rules);
     // The manager's own from here: no squad change picks it again.
     await writeRowFor(ctx, leagueId, team._id, fromGameweek, existing, () => ({
       starters,
       bench: lineup.bench,
-      classic,
-      instructions,
+      classic: lineup.classic,
+      instructions: lineup.instructions,
       keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined,
       firstLineup: undefined,
-    }));
+    }), basedOn?.tab);
     return fromGameweek;
   },
 });

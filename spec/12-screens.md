@@ -18,6 +18,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - A release goes out while a manager has a tab open, and the tab's code can't work with the new
   server: she sees a bar, "A new version is out. Reload". A save that fails because of it shows
   the same bar, and nothing she typed is saved wrongly (Craig, 14 Nov 2026, #2203). `S12.13`
+- Every screen meets the whole of WCAG 2.1 AA, not only the plate's contrast and link rules
+  (Craig, 15 Nov 2026, #2176: "Full WCAG 2.1 AA"). `S12.14`
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
@@ -79,6 +81,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
       only the matches where one of the two of you has a player; All fixtures opens the Premier
       League. `S12.12`
+  - Craig, 16 Nov 2026, on #2443, how Home shows what needs a manager: no new panel. The
+    deadline strip and Mail's Needs you are the to-do: Mail's panel sits at the top of the left
+    column, under the strip, and opens on Needs you. Nothing more says what happens if he does
+    nothing: the strip's Your lineup box keeps "Saka doubtful". Claims waiting stay in the
+    strip's Claims box, never a Needs you letter. `S12.15`
 - **My team** shows the tactics pitch, the squad and Mail side by side.
   - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
     with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,

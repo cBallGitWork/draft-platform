@@ -3,6 +3,10 @@
 Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 deploy path`
 (28 Oct 2026). How the site gets from a merge to the managers.
 
+**Contents:** [The live site](#the-live-site) · [Setting it up](#setting-it-up) ·
+[Every release](#every-release) · [Rolling back](#rolling-back) · [Timed jobs](#timed-jobs) ·
+[The first live-data check](#the-first-live-data-check) · [Moving to Sportmonks](#moving-to-sportmonks)
+
 ## The live site
 
 - A live database of its own, beside the development one, in the same Convex project.
@@ -12,8 +16,9 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
   the sign-in emails' sender, `signin@fantasydraftmanager.net`. Without a domain, sign-in
   links reach only the Resend account's own inbox.
 - Craig is the admin on the live site.
-- For the beta, the live site is the shared environment: a change is done only once it is seen
-  working there. No staging site.
+- A staging site sits before the live one, on the development database: no new Convex
+  deployment, so while Convex has the deployments switched off, staging is dark too (Craig,
+  16 Nov 2026, "Dev backend"). A change is done once it is seen working on staging. `S20.19`
 - A test run may start its own throwaway Convex server inside the job. It is not a staging site:
   no address, timed jobs off, deleted when the job ends (Craig, 15 Nov 2026, #2288). `S20.17`
 
@@ -28,9 +33,12 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 
 ## Every release
 
-- Each merge to `main` puts the site and the server code live together, with
-  `npx convex deploy --cmd 'npm run build'` (Craig, 22 Oct 2026). Merges already wait for green
-  checks.
+- Each merge to `main` puts the site and the server code on staging together, with
+  `npx convex deploy --cmd 'npm run build'` (Craig, 22 Oct 2026; staging, 16 Nov 2026). Merges
+  already wait for green checks. `S20.21`
+- The live site is moved up from staging once a day, at 07:00 UK time, only when staging's checks
+  pass and never while a Premier League match is on; a day it can't, it waits for the next
+  (Craig, 16 Nov 2026: "Gate before live", "Once a day"; #1347's release gate). `S20.20`
 - After each release, an automatic check opens the live site and signs in. If it fails, the run
   goes red and GitHub emails Craig. It goes red too when the hour's sign-in link limit stops it
   (Craig, 1 Nov 2026: "sure"; #908). `S20.18`

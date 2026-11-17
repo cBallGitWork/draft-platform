@@ -173,7 +173,7 @@ beforeEach(async () => {
       "waivers/waiverClaims:countMine": () => caller.query(api.waivers.waiverClaims.countMine, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
       "waivers/waiverClock:clockOf": () => caller.query(api.waivers.waiverClock.clockOf, { leagueId, hour: now }),
-      "waivers/waiverOrder:ofLeague": () => caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, now }),
+      "waivers/waiverOrder:ofLeague": () => caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, hour: now }),
       "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };

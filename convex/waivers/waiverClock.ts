@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
+import { query, type QueryCtx } from "../_generated/server";
+import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { gameweekUnderWay } from "../gameweeks/gameweekEnd";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { latestRules } from "../rules/rulesHistory";
@@ -21,10 +23,14 @@ export const clockOf = query({
   returns: heldWaiverClock,
   handler: async (ctx, { leagueId, hour }): Promise<HeldWaiverClock> => {
     await memberOf(ctx, leagueId);
-    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    const candidates = lockCandidates(deadlines, hour);
-    const underWay = await Promise.all(candidates.map(async (gameweek) => ((await gameweekUnderWay(ctx, gameweek)) ? [gameweek] : [])));
-    return { runs, gameweeks: [...deadlines].map(([gameweek, deadline]) => ({ gameweek, deadline })), underWay: underWay.flat() };
+    return await waiverClockOf(ctx, leagueId, await leagueDeadlines(ctx, leagueId), hour);
   },
 });
+
+/** `clockOf`'s times for the hour starting at `hour`, with the league's `deadlines` read. */
+export async function waiverClockOf(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, hour: number): Promise<HeldWaiverClock> {
+  const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+  const candidates = lockCandidates(deadlines, hour);
+  const underWay = await Promise.all(candidates.map(async (gameweek) => ((await gameweekUnderWay(ctx, gameweek)) ? [gameweek] : [])));
+  return { runs, gameweeks: [...deadlines].map(([gameweek, deadline]) => ({ gameweek, deadline })), underWay: underWay.flat() };
+}

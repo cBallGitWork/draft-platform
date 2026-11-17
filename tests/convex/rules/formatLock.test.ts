@@ -3,7 +3,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { scoredSinceMade } from "../../../convex/gameweekScorer/gameweekScores";
 import { formatLocked } from "../../../convex/rules/formatLock";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, REORDERED_TIE_BREAKS, rulesIn, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -47,7 +47,7 @@ describe("a format change", () => {
     gameweekOneBegins();
 
     await expectRefused(change(leagueId, HELD_FIRST_RULES), formatLocked("totalPoints"));
-    const tieBreaks = { ...TOTAL_POINTS, tieBreaks: ["headToHead" as const] };
+    const tieBreaks = { ...TOTAL_POINTS, tieBreaks: REORDERED_TIE_BREAKS };
     expect(await change(leagueId, tieBreaks)).toBe(2);
     expect(await rulesIn(t, leagueId, 2)).toEqual(tieBreaks);
   });

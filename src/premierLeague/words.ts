@@ -2,10 +2,10 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD } from "../shared/words";
+import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD, statColumns, statNames } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
-import { dateWords, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
+import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
 export { clockWords, fullTime, halfTime, liveWords, scoreWords, versusWords } from "../shared/match/words";
 export { gameweekWords } from "../shared/when/words";
@@ -85,7 +85,7 @@ export const tableLineWords: Record<TableLine, string> = {
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureOrNone, figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/match/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
@@ -170,6 +170,37 @@ export const STAT_COLUMN = { short: STAT_WORD, long: "What's counted" };
 /** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
 export const possessionWords = (share: number) => `${Math.round(share)}%`;
 
+// The match page's tabs under the scoreboard, and Player stats (#2490; spec/10 S10.8, S10.11).
+
+export const MATCH_TABS = ["overview", "playerStats", "highlights"] as const;
+export type MatchTab = (typeof MATCH_TABS)[number];
+export const matchTabWords: Record<MatchTab, string> = { overview: "Overview", playerStats: "Player stats", highlights: "Highlights" };
+export const matchTabsLabel = "The match's tabs";
+/** The Highlights tab, greyed until it is built (S10.11). */
+export const highlightsNotHeldLabel = "The match's YouTube highlights: not held yet";
+export const playerStatsLabel = (club: string) => `${club}'s player stats`;
+/** Player stats' columns, as the approved picture heads them: a short head, and what it stands for. */
+export const matchStatColumns = {
+  position: { short: "Pos", long: "Position" },
+  player: { short: "Player", long: "Player" },
+  minutes: { short: "Min", long: statNames.minutes },
+  goals: statColumns.goals,
+  assists: statColumns.assists,
+  shots: { short: "Sh", long: teamStatRows.shots },
+  shotsOnTarget: { short: "SoT", long: teamStatRows.shotsOnTarget },
+  keyPasses: { short: "KP", long: statNames.keyPasses },
+  tackles: { short: "Tkl", long: "Tackles" },
+  cleanSheets: statColumns.cleanSheets,
+  goalsConceded: { short: "GC", long: statNames.goalsConceded },
+  saves: { short: "Sv", long: "Saves" },
+  yellowCards: { short: "YC", long: teamStatRows.yellowCards },
+  redCards: { short: "RC", long: teamStatRows.redCards },
+  points: matchColumns.points,
+} as const;
+export const SHOTS_TITLE = "Shots";
+/** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
+export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";
+
 // A club's page (#1936; spec/18, Club pages).
 
 export { placeWords } from "../shared/words";
@@ -238,7 +269,7 @@ export function squadColumns(gameweeks: readonly number[], pointsSeason: number 
 
 /** The Fixtures tab's columns: a short head, and what it stands for. */
 export const clubFixtureColumns = {
-  gameweek: { short: "GW", long: "Gameweek" },
+  gameweek: gameweekColumn,
   opponent: { short: "Opponent", long: "Opponent, home or away" },
   result: { short: "Result", long: "Result or kick-off" },
 } as const;

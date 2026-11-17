@@ -10,6 +10,12 @@ import { previewPlayerCard } from "../../../src/playerCard/preview";
 import { previewPlayers } from "../../../src/scouting/preview";
 import { previewGameweek, previewTeamNames, proLeague } from "../../../src/shared/preview";
 import { previewTable } from "../../../src/table/preview";
+import { WEEK_MS } from "../../../convex/shared/time";
+import { previewMail } from "../../../src/mail/preview";
+import { previewFirstLineup, previewSquad } from "../../../src/myTeam/tactics/preview";
+import { previewTrades } from "../../../src/trades/preview";
+import { previewMyTeam } from "../../../src/myTeam/preview";
+import { seasonFigures } from "../../../src/playerCard/gameLog";
 
 // The preview's one made-up league (#1779): every preview screen of it shows the same teams and is
 // on the same gameweek, so a man playing on one screen isn't at full time on the next.
@@ -76,4 +82,99 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(openingGameweek(previewPremierLeague.useGameweeks()!.firstKickoffs, now)).toBe(previewGameweek);
   // The card's newest match is the one still being played.
   expect(card.matches[0].gameweek).toBe(previewGameweek);
+});
+
+/** The matchup preview's head-to-head as it opens, with no minute asked. */
+function openedHeadToHead() {
+  window.history.replaceState(null, "", "/?preview=manager");
+  const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, {})).result.current;
+  if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored") throw new Error("the matchup preview is a scored head-to-head");
+  const { team, opponent } = matchup.game;
+  if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+  return { team, opponent };
+}
+
+/** The preview manager's game this gameweek on League home: whom he plays, and the score from his side. */
+function homeGame() {
+  const fixtures = previewHome.useLeagueHome(leagueId, now)!.thisGameweek!.fixtures;
+  const game = fixtures.find(({ team, opponent }) => team === proLeague.teamName || opponent === proLeague.teamName)!;
+  const his = game.team === proLeague.teamName;
+  return { opponent: his ? game.opponent : game.team, mine: his ? game.points!.team : game.points!.opponent, theirs: his ? game.points!.opponent : game.points!.team };
+}
+
+it("names the same opponent and score for the manager's game on League home and the matchup (#2450)", () => {
+  const game = openedHeadToHead();
+  const home = homeGame();
+
+  expect(game.opponent.teamName).toBe(home.opponent);
+  expect([game.team.points, game.opponent.points]).toEqual([home.mine, home.theirs]);
+});
+
+it("plays My team's lineup in the matchup, his squad his own on Scouting, the player card and Trades (#2450)", () => {
+  const game = openedHeadToHead();
+  const squad = previewSquad.map(({ playerCode }) => playerCode).toSorted();
+  const owners = new Map(previewPlayers.map(({ code, ownerTeamName }) => [code, ownerTeamName]));
+  const traded = previewTrades.useTrades(leagueId)!.teams.find(({ teamName }) => teamName === proLeague.teamName)!;
+
+  expect(game.team.lineup.starters.map(({ playerCode }) => playerCode)).toEqual(previewFirstLineup.starters.map(({ playerCode }) => playerCode));
+  expect(game.team.lineup.bench.map(({ playerCode }) => playerCode)).toEqual(previewFirstLineup.bench);
+  for (const code of squad) {
+    expect(owners.get(code)).toBe(proLeague.teamName);
+    expect(previewPlayerCard.usePlayerCard(leagueId, code, now)?.ownerTeamName).toBe(proLeague.teamName);
+  }
+  expect(traded.players.map(({ code }) => code).toSorted()).toEqual(squad);
+  // The opponent's men are his on Scouting too.
+  for (const { playerCode } of [...game.opponent.lineup.starters, ...game.opponent.lineup.bench]) expect(owners.get(playerCode)).toBe(game.opponent.teamName);
+});
+
+it("opens each Premier League match pressed on its own clubs, gameweek and score (#2450)", () => {
+  for (const gameweek of [previewGameweek - 1, previewGameweek, previewGameweek + 1]) {
+    for (const { fixtureCode, home, away, score } of previewPremierLeague.useGameweekMatches(gameweek)!) {
+      const page = previewPremierLeague.useMatch(leagueId, now, fixtureCode)!;
+      expect({ gameweek: page.gameweek, home: page.home, away: page.away, score: page.score }).toEqual({ gameweek, home, away, score: score?.state === "upcoming" ? null : score });
+    }
+  }
+});
+
+it("dates Mail's unread letters this week (#2450)", () => {
+  const unread = previewMail.useLetters(leagueId)!.filter(({ read }) => !read);
+  expect(unread.length).toBeGreaterThan(0);
+  for (const { at } of unread) expect(now - at).toBeLessThan(WEEK_MS);
+});
+
+it("plays Football's gameweek matches on League home's Premier League panel and in the matchup, each man in his club's (#2455)", () => {
+  const football = previewPremierLeague.useGameweekMatches(previewGameweek)!;
+  const panel = previewHome.useLeagueHome(leagueId, now)!.yours!.premierLeague;
+  expect(panel.length).toBeGreaterThan(0);
+  for (const { fixtureCode, kickoff, home, away } of panel) {
+    const match = football.find((each) => each.fixtureCode === fixtureCode)!;
+    expect({ kickoff, home, away }).toEqual({ kickoff: match.kickoff, home: match.home, away: match.away });
+  }
+
+  const { team, opponent } = openedHeadToHead();
+  const kinds = new Set<string>();
+  for (const { clubCode, status, breakdown } of [team, opponent].flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench])) {
+    const match = football.find(({ home, away }) => home.code === clubCode || away.code === clubCode)!;
+    const state = match.score!.state;
+    expect(breakdown[0]).toMatchObject({ fixtureCode: match.fixtureCode, home: match.home.shortName, away: match.away.shortName, score: state === "upcoming" ? null : match.score });
+    expect(status).toMatchObject({ kind: STATUS_OF[state], fixtureCode: match.fixtureCode });
+    kinds.add(status.kind);
+  }
+  // Football's gameweek is under way, so the matchup's is too.
+  expect(kinds).toContain("playing");
+});
+
+/** A man's status in the matchup while his club's match is in each of Football's states. */
+const STATUS_OF = { upcoming: "yetToPlay", live: "playing", halfTime: "playing", fullTime: "finished" } as const;
+
+it("tells each squad player's minutes, points and next matches the same on his card and My team's Squad tab (#2455)", () => {
+  for (const row of previewMyTeam.useTeamSquad(leagueId)!.players) {
+    const card = previewPlayerCard.usePlayerCard(leagueId, row.code, now)!;
+    const figures = seasonFigures(card.matches, 0);
+    expect([row.stats!.appearances, row.stats!.minutes, row.seasonPoints]).toEqual([card.matches.length, figures.minutes ?? 0, figures.seasonPoints]);
+    const opponentOf = (home: { code: number }, away: { code: number }) => (home.code === row.club.code ? away.code : home.code);
+    expect(row.nextFixtures.map(({ gameweek, opponent }) => ({ gameweek, opponent: opponent.code }))).toEqual(
+      card.nextFixtures.slice(0, row.nextFixtures.length).map(({ gameweek, home, away }) => ({ gameweek, opponent: opponentOf(home, away) })),
+    );
+  }
 });

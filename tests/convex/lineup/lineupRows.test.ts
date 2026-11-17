@@ -47,12 +47,13 @@ const seedRow = (fromGameweek: number, { firstLineup }: { firstLineup: boolean }
     });
   });
 
-/** Ann's row from the next gameweek, all of it but Convex's own fields. */
+/** Ann's row from the next gameweek, all of it but Convex's own fields and its write's mark, new
+ *  each write (lineups.twoTabs.test.ts). */
 const nextRow = () =>
   t.run(async (ctx) => {
     const row = (await ctx.db.query("lineups").collect()).find((row) => row.teamId === annsTeam && row.fromGameweek === NEXT);
     if (row === undefined) return undefined;
-    const { _id, _creationTime, ...fields } = row;
+    const { _id, _creationTime, edit: _edit, ...fields } = row;
     return fields;
   });
 /** The row's fields besides its players. */

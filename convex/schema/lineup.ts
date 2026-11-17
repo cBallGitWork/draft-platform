@@ -39,6 +39,10 @@ export const lineupTables = {
      *  one (lineup/lineup.ts `withUnmovedSetAside`; #1589): a save after this row's gameweek must
      *  move them. Absent when none. */
     keptOutOfPosition: v.optional(v.array(v.number())),
+    /** Marks the write that left the row as it is, a new one each write (lineup/lineupRows.ts
+     *  `writeRowFor`), with the saving tab's own mark first, so a Tactics tab can tell another
+     *  tab's save from its own (spec/05 `S05.55`; #2350). Absent from a row not written since. */
+    edit: v.optional(v.string()),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
   /** Each team's saved plans (spec/05, Saved plans; #992): a formation and every slot's role, by
    *  name, never players. lineup/savedPlans.ts writes and reads them. */

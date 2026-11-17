@@ -166,6 +166,23 @@ test("a postponed match with no new date never holds its gameweek open: final on
   expect(await storedCodes(league)).toEqual([[HULL_EVERTON, MOVED_IN].toSorted(), [HULL_EVERTON, MOVED_IN].toSorted()]);
 });
 
+test("S07.14: a reopened gameweek's saved total is replaced, and the table shows the new one as final", async () => {
+  const league = await scoresLeague();
+  await holdMovedIn(league, null);
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  await storeLeague(league);
+  // The saved total differs from what the matches now work out to.
+  await writeOverAnns(league);
+  expect(await annsPoints(league)).toMatchObject({ points: WRITTEN_OVER, provisional: false });
+
+  await rearrangeMovedIn(league);
+  await lockMovedIn(league);
+  expect(await storeLeague(league)).toEqual([GAMEWEEK]);
+  expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
+  expect(await annsPoints(league)).toMatchObject({ points: HULL_POINTS, provisional: false });
+});
+
 test("the last dated match's lock asks every league to store, a postponed one left out (#2040)", async () => {
   const league = await scoresLeague();
   await holdMovedIn(league, null);

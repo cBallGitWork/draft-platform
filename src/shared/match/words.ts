@@ -48,7 +48,7 @@ export const resultWords: Record<Result, { short: string; long: string }> = {
   lost: { short: "L", long: "lost" },
 };
 export const formLabel = (results: readonly Result[]) =>
-  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
+  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(listSeparator)}`;
 /** Form whose last result is still live: "Form: won, lost, Provisional". */
 export const liveFormLabel = (results: readonly Result[]) => `${formLabel(results)}${listSeparator}${provisionalWords}`;
 /** A live result's chip, on hover: "won, Provisional". */

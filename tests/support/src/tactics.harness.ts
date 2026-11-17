@@ -7,6 +7,9 @@ import { gameModeOf } from "../../../convex/rules/gameMode";
 import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { BasedOn } from "../../../convex/lineup/lineupRows";
+import type { EditedLineup } from "../../../src/myTeam/tactics/lineupEdits";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 import { serverStore } from "./serverStore";
 
@@ -60,11 +63,18 @@ export function fakeTactics(
   loading: boolean,
 ) {
   let letGo: (() => void) | null = null;
-  const changes = {
-    save: vi.fn<LineupChanges["save"]>(async () => {
-      if (saveHeld) await new Promise<void>((resolve) => (letGo = resolve));
-      return saveAnswer;
-    }),
+  // Each save as the league and the lineup sent; what each was made from is kept apart
+  // (`savesBasedOn`; spec/05 `S05.55`), so a test of what a save sends needn't name it.
+  const lineupSaves = vi.fn(async (_leagueId: Id<"leagues">, _lineup: EditedLineup): Promise<number | string> => {
+    if (saveHeld) await new Promise<void>((resolve) => (letGo = resolve));
+    return saveAnswer;
+  });
+  const savesBasedOn: BasedOn[] = [];
+  const changes: LineupChanges = {
+    save: (leagueId, lineup, basedOn) => {
+      savesBasedOn.push(basedOn);
+      return lineupSaves(leagueId, lineup);
+    },
   };
   const held = serverStore(tactics);
   // The saved plans: a save the fake doesn't refuse (`planAnswer`) adds one or replaces it by name.
@@ -103,7 +113,9 @@ export function fakeTactics(
     }),
     usePlans: vi.fn<TacticsSeam["usePlans"]>(() => heldPlans.use((saved) => (loading || plansLoading ? undefined : saved))),
     usePlanChanges: vi.fn<TacticsSeam["usePlanChanges"]>(() => planChanges),
-    lineupChanges: changes,
+    lineupChanges: { save: lineupSaves },
+    /** What each save was made from, in order. */
+    savesBasedOn,
     planChanges,
   };
 }

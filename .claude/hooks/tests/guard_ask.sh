@@ -78,6 +78,11 @@ real=$("$jq" -nc --arg q "$crests" '{session_id:"s",transcript_path:"/t.jsonl",c
     answers:{($q):"Crests"}}}')
 silent guard_ask.py "$real"
 check deny guard_ask.py "$(ask "$crests")"
+# the desktop app's shape (#2388, 15 Nov 2026): the picked answers sit in the call's input, the result is text
+pitch="Pitch colour (#2388): striped or plain?"
+silent guard_ask.py "$("$jq" -nc --arg q "$pitch" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+  tool_input:{questions:[{header:"H",question:$q}],answers:{($q):"Plain"}},tool_response:"User has answered your questions"}')"
+check deny guard_ask.py "$(ask "$pitch")"
 # a result whose shape changed (no answers dict) is said on stderr, never recorded in silence
 odd=$("$jq" -nc --arg q "Which kit colour?" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
   tool_input:{questions:[{header:"H",question:$q}]},tool_response:{questions:[],replies:{($q):"Red"}}}')

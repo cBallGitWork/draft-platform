@@ -195,7 +195,7 @@ describe("someone in no league, as a manager removed from their last one is (spe
     expect(await screen.findByRole("heading", { level: 1, name: "Mail" })).toBeTruthy();
     expect(app.path()).toBe(MAIL_PATH);
     const main = screen.getByRole("navigation", { name: mainMenuLabel });
-    expect(within(main).getAllByRole("link").map((tab) => tab.textContent)).toEqual([LEAGUES_TITLE, `${MAIL_TITLE}${unreadFigure(twoUnread.unreadMail)}`]);
+    expect(within(main).getAllByRole("link").map((tab) => tab.textContent)).toEqual([LEAGUES_TITLE, `${MAIL_TITLE} ${unreadFigure(twoUnread.unreadMail)}`]);
     await userEvent.click(letterButton("Letter 3"));
     expect(letterShown("The text of letter 3.")).toBe(true);
     expect(app.mail.open).toHaveBeenCalledWith("letter-3");

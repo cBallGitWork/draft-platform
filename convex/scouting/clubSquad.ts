@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { positionListFrom } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
-import { positionRank, type Position } from "../positions/positionTables";
+import { positionRank, SQUAD_GROUPS, squadGroupOf, type Position, type SquadGroup } from "../positions/positionTables";
 import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { currentPlayersAt, findClubByCode } from "../shared/players";
@@ -24,29 +24,12 @@ import { shownSeasonPoints } from "./shownSeasonPoints";
 // about him, as My Team's is, so a row carries FPL's chance he plays.
 
 /** How many finished gameweeks a row shows his points in (`S18.8`). */
-export const CLUB_FORM_GAMEWEEKS = 5;
+const CLUB_FORM_GAMEWEEKS = 5;
 
 /** How many of the club's scorers the header names (`S18.7`). */
-export const TOP_SCORERS = 3;
+const TOP_SCORERS = 3;
 
-/** The Squad tab's groups, in order, and the positions each takes: FM's split (Craig, 12 Nov 2026:
- *  "GK DEF MID AM FWD"). A player goes in the group of his first position, back to front. */
-export const SQUAD_GROUPS = {
-  GK: ["GK"],
-  DEF: ["CB", "FB", "WB"],
-  MID: ["CDM", "CM", "WM"],
-  AM: ["CAM", "W"],
-  FWD: ["SS", "ST"],
-} as const satisfies Record<string, readonly Position[]>;
-export type SquadGroup = keyof typeof SQUAD_GROUPS;
 const squadGroup = v.union(...Object.keys(SQUAD_GROUPS).map((group) => v.literal(group as SquadGroup)));
-
-/** His group: the one of his first position, back to front; null with no position, at the bottom. */
-export function squadGroupOf(positions: readonly Position[]): SquadGroup | null {
-  const first = positions.toSorted((one, other) => positionRank(one) - positionRank(other))[0];
-  if (first === undefined) return null;
-  return (Object.keys(SQUAD_GROUPS) as SquadGroup[]).find((group) => (SQUAD_GROUPS[group] as readonly Position[]).includes(first))!;
-}
 
 const squadPlayer = v.object({
   code: v.number(),

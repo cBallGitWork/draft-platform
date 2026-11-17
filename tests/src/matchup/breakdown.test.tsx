@@ -9,7 +9,8 @@ import type { MatchBreakdown } from "../../../convex/matchup/matchupShape";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { matchPath } from "../../../src/premierLeague/paths";
-import { breakdownMatchWords, breakdownRoleWords, closeBreakdownLabel, notCountedWords, openBreakdownLabel, playerCardWords } from "../../../src/matchup/words";
+import { breakdownMatchWords, breakdownRoleWords, closeBreakdownLabel, notCountedWords, playerCardWords } from "../../../src/matchup/words";
+import { tileOf } from "../../support/src/matchupScreen.harness";
 import { headToHead, roleOf, slot, teamSide } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -40,7 +41,7 @@ const BREAKDOWN_NAME = `ST Delap ${breakdownRoleWords(roleOf("attack").name, "Te
 describe("a player's breakdown", () => {
   it("opens on tapping my opponent's man: each match's lines saying why, his role's line, the uncounted one greyed, and his card", async () => {
     openApp(MATCHUP_PATH, manager, { matchup: { matchup: game } });
-    fireEvent.click(await screen.findByRole("button", { name: openBreakdownLabel("Delap") }));
+    fireEvent.click(await screen.findByRole("button", { name: tileOf("Delap") }));
 
     const panel = screen.getByRole("region", { name: BREAKDOWN_NAME });
     expect(within(panel).getAllByText(/Goals scored/).map((line) => line.closest("li")!.textContent)).toEqual(["Goals scored 2 at 4 each 8", "Goals scored 1 at 4 each 4"]);
@@ -57,7 +58,7 @@ describe("a player's breakdown", () => {
     const toCome = { ...match(203, Date.UTC(2026, 10, 12, 20), 0, 0), score: null };
     const wood = slot("Wood", { area: "attack", breakdown: [live, over, toCome] });
     openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [wood], []), opponent: teamSide("Team 2", [], []) }) } });
-    fireEvent.click(await screen.findByRole("button", { name: openBreakdownLabel("Wood") }));
+    fireEvent.click(await screen.findByRole("button", { name: tileOf("Wood") }));
 
     expect(screen.getByRole("link", { name: "NFO 1–0 BRE 67'" }).getAttribute("href")).toBe(matchPath(201));
     expect(screen.getByRole("link", { name: "BRE 2–2 NFO FT" }).getAttribute("href")).toBe(matchPath(202));
@@ -66,7 +67,7 @@ describe("a player's breakdown", () => {
 
   it("closes from its cross, or on tapping him again", async () => {
     openApp(MATCHUP_PATH, manager, { matchup: { matchup: game } });
-    const name = await screen.findByRole("button", { name: openBreakdownLabel("Delap") });
+    const name = await screen.findByRole("button", { name: tileOf("Delap") });
     fireEvent.click(name);
     fireEvent.click(screen.getByRole("button", { name: closeBreakdownLabel }));
     expect(screen.queryByRole("region", { name: BREAKDOWN_NAME })).toBeNull();

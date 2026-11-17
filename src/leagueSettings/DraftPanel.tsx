@@ -2,14 +2,17 @@ import { useState } from "react";
 import { UNDRAFTED_GO_TO } from "../../convex/draft/draftRules";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { blankOrOff } from "../rules/blank";
+import { NumberBox } from "../rules/NumberBox";
 import { Choice } from "../ui/Choice";
-import { PANEL_BODY, Panel } from "../ui/Panel";
+import { Panel } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
 import { DraftStartRow, type DraftStartEdit } from "./DraftStartRow";
 import { NumberRow } from "./NumberRow";
 import { SETTINGS_DRAFT_HASH } from "./paths";
+import { SETTING_LINE, SETTING_ROWS, SettingRow } from "./SettingRow";
 import { inUnit, PICK_CLOCK_UNITS, toSeconds, unitFor, type PickClockUnit } from "./pickClock";
 import {
+  autoPickLabel,
   autoPickWords,
   draftTitle,
   neverAutoPickWords,
@@ -30,35 +33,50 @@ const PICK_CLOCK_UNIT_CHOICE = "pick-clock-unit";
 
 type Draft = LeagueSettings["draft"];
 
-/** How the draft runs (spec/04; #1087): its start date (#1476), the pick clock, the timeouts before
+/** How the draft runs (spec/04; #1087), one rule to a row (docs/design/approved/settings/
+ *  1440-draft.png): its start date (#1476), the pick clock, the timeouts before
  *  auto-pick, or never, and where the players nobody drafts go. The draft order is TeamOrderPanel's.
  *  The draft room's "Change the start" opens the page here (SETTINGS_DRAFT_HASH). */
 export function DraftPanel({ draft, edit, start }: { draft: Draft; edit: (draft: Draft) => void; start: DraftStartEdit }) {
   return (
     <div id={SETTINGS_DRAFT_HASH}>
       <Panel title={draftTitle}>
-        <div className={PANEL_BODY}>
+        <div className={SETTING_ROWS}>
           <DraftStartRow start={start} />
-          <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
-          <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: blankOrOff(on) })}>
-            {autoPickWords}
-          </TickBox>
-          {draft.timeoutsBeforeAutoPick === null ? (
-            <p className="text-muted">{neverAutoPickWords}</p>
-          ) : (
-            <>
-              <NumberRow
-                label={timeoutsLabel}
-                hintId={TIMEOUTS_HINT_ID}
-                value={draft.timeoutsBeforeAutoPick}
-                onChange={(timeoutsBeforeAutoPick) => edit({ ...draft, timeoutsBeforeAutoPick })}
-              />
-              <p id={TIMEOUTS_HINT_ID} className="text-muted">
-                {timeoutsHint}
-              </p>
-            </>
-          )}
-          <Choice label={undraftedLabel} name={UNDRAFTED_CHOICE} options={UNDRAFTED_GO_TO} words={undraftedWords} chosen={draft.undrafted} onChoose={(undrafted) => edit({ ...draft, undrafted })} />
+          <SettingRow label={pickClockLabel}>
+            <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
+          </SettingRow>
+          <SettingRow label={autoPickLabel}>
+            <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: blankOrOff(on) })}>
+              {autoPickWords}
+            </TickBox>
+            {draft.timeoutsBeforeAutoPick === null ? (
+              <p className="text-muted">{neverAutoPickWords}</p>
+            ) : (
+              <>
+                <NumberRow
+                  label={timeoutsLabel}
+                  hintId={TIMEOUTS_HINT_ID}
+                  value={draft.timeoutsBeforeAutoPick}
+                  onChange={(timeoutsBeforeAutoPick) => edit({ ...draft, timeoutsBeforeAutoPick })}
+                />
+                <p id={TIMEOUTS_HINT_ID} className="text-muted">
+                  {timeoutsHint}
+                </p>
+              </>
+            )}
+          </SettingRow>
+          <SettingRow label={undraftedLabel}>
+            <Choice
+              label={undraftedLabel}
+              labelShown={false}
+              name={UNDRAFTED_CHOICE}
+              options={UNDRAFTED_GO_TO}
+              words={undraftedWords}
+              chosen={draft.undrafted}
+              onChoose={(undrafted) => edit({ ...draft, undrafted })}
+            />
+          </SettingRow>
         </div>
       </Panel>
     </div>
@@ -84,8 +102,8 @@ function PickClock({ seconds, onChange }: { seconds: number; onChange: (seconds:
   const amount = inUnit(seconds, unit);
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <NumberRow label={pickClockLabel} hintId={PICK_CLOCK_HINT_ID} value={amount} onChange={(next) => hand(next, unit)} />
+      <div className={SETTING_LINE}>
+        <NumberBox label={pickClockLabel} hintId={PICK_CLOCK_HINT_ID} value={amount} onChange={(next) => hand(next, unit)} />
         <Choice
           label={pickClockUnitLabel}
           labelShown={false}
