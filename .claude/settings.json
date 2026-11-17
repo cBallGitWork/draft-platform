@@ -1,7 +1,18 @@
 {
   "permissions": {
     "deny": [
-      "Read(./.env*)"
+      "Read(./.env*)",
+      "Bash(vercel --prod*)",
+      "Bash(vercel * --prod*)",
+      "Bash(vercel promote*)",
+      "Bash(vercel rollback*)",
+      "Bash(npx vercel --prod*)",
+      "Bash(npx vercel * --prod*)",
+      "Bash(npx vercel promote*)",
+      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__create_deployment",
+      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__request_promote",
+      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__request_rollback",
+      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__assign_alias"
     ]
   },
   "hooks": {
@@ -11,6 +22,11 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/setup_current.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quick_check.py",
             "timeout": 10
           }
         ]
@@ -102,6 +118,18 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/last_prompt.py",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quick_check.py",
+            "timeout": 90,
+            "statusMessage": "Running the quick checks"
           }
         ]
       }

@@ -1,0 +1,4 @@
+{
+  "quickCheck": "npm run typecheck && npm run lint",
+  "quickCheckSeconds": 60
+}
