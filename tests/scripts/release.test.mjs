@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { expect, test } from "vitest";
 import { CHECK_ENV } from "../../scripts/live-site.mjs";
 import { DEPLOY_ARGS, DEPLOY_KEY_SETTING, LIVE, STAGING, STAGING_BRANCH, TEST_ONLY_SETTINGS, VERCEL_BRANCH, VERCEL_ENV, VERCEL_PREVIEW, VERCEL_PRODUCTION, refusal, stagingRelease, targetOf, testSettingRefusal } from "../../scripts/release.mjs";
-import { OUTSIDE_WORLD_SETTING } from "../../convex/outbound/deploymentSettings.ts";
+import { E2E_FUNCTIONS_SETTING, OUTSIDE_WORLD_SETTING } from "../../convex/outbound/deploymentSettings.ts";
 import { BUILD, PREVIOUS_SHA, SKIP, decide } from "../../scripts/release-skip.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
@@ -121,6 +121,12 @@ function liveHolding(held, failing = new Set()) {
 
 test("S20.17: the outside-world setting is one the live deployment must never carry", () => {
   expect(TEST_ONLY_SETTINGS).toContain(OUTSIDE_WORLD_SETTING);
+});
+
+test("S20.17: the setting turning on the test-only functions is one the live deployment must never carry", () => {
+  expect(TEST_ONLY_SETTINGS).toContain(E2E_FUNCTIONS_SETTING);
+  const said = testSettingRefusal(liveHolding({ [E2E_FUNCTIONS_SETTING]: "on" }).convex);
+  expect(said).toContain(`npx convex env remove ${E2E_FUNCTIONS_SETTING} --prod`);
 });
 
 test("S20.17: a live deployment holding no test-only setting isn't refused, each looked for alone", () => {

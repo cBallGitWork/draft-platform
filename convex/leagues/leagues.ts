@@ -37,26 +37,33 @@ async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"
   }
 }
 
-/** For the admin alone: refuses a blank name or one over LEAGUE_NAME_MAX characters, a maximum of
- *  teams out of range or too few for the default rules' games a gameweek, and a commissioner
- *  email without an "@". */
+/** A league made as the admin `by` asks: refuses a blank name or one over LEAGUE_NAME_MAX
+ *  characters, a maximum of teams out of range or too few for the default rules' games a
+ *  gameweek, and a commissioner email without an "@". `create`'s body, shared with the e2e seed
+ *  (convex/e2e/seed.ts), which has no one signed in. */
+export async function createLeague(
+  ctx: MutationCtx,
+  by: string,
+  args: { name: string; maxTeams: number; commissionerEmail: string },
+): Promise<Id<"leagues">> {
+  const name = typedName(args.name, LEAGUE_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.leagueNameTooLong });
+  checkMaxTeams(args.maxTeams);
+  const commissionerEmail = namedEmail(args.commissionerEmail);
+
+  const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
+  await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
+  await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
+  await giveDefaultRules(ctx, leagueId, args.maxTeams);
+  await checkSoon(ctx, leagueId);
+  await admitCommissioner(ctx, commissionerEmail, leagueId);
+  return leagueId;
+}
+
+/** For the admin alone, refusing as `createLeague` says. */
 export const create = mutation({
   args: { name: v.string(), maxTeams: v.number(), commissionerEmail: v.string() },
   returns: v.id("leagues"),
-  handler: async (ctx, args) => {
-    const by = await adminOf(ctx);
-    const name = typedName(args.name, LEAGUE_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.leagueNameTooLong });
-    checkMaxTeams(args.maxTeams);
-    const commissionerEmail = namedEmail(args.commissionerEmail);
-
-    const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
-    await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
-    await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
-    await giveDefaultRules(ctx, leagueId, args.maxTeams);
-    await checkSoon(ctx, leagueId);
-    await admitCommissioner(ctx, commissionerEmail, leagueId);
-    return leagueId;
-  },
+  handler: async (ctx, args) => createLeague(ctx, await adminOf(ctx), args),
 });
 
 /** spec/13: the commissioner raises or lowers the maximum, never below the teams already there,
