@@ -35,8 +35,9 @@ type Scored = Extract<HeadToHead["game"], { kind: "scored" }>;
  *  Live until every match is final. A manager lands on My team (spec/12); this is a tab away, and
  *  any fixture links here. */
 export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; seam: MatchupSeam; asked: MatchupAsked }) {
-  // The minute is in the query's arguments, and a live matchup mustn't blank every minute; another
-  // matchup asked for loads afresh.
+  // No query takes the minute: the matchup is worked out at it (liveMatchup.ts). When a deadline
+  // passes, the gameweek it opens on moves and the matchup is read again, so the last one is held
+  // meanwhile rather than blanking; another matchup asked for loads afresh.
   const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}/${asked.game}`);
   return (
     // No title plate: the approved picture's score band sits straight under the top bar.
