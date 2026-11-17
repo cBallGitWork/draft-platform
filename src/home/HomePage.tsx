@@ -1,14 +1,15 @@
 import { useId, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Choice } from "../ui/Choice";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
-import { TABLE_PATH } from "../frame/menu";
+import { MY_TEAM_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { FormChips } from "../ui/FormChips";
-import { MailWidget } from "../myTeam/squad/MailWidget";
+import { MailLine, MailWidget } from "../myTeam/squad/MailWidget";
 import type { LatestMail } from "../myTeam/squad/seam";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { TOTAL_POINTS_COLUMNS } from "../table/words";
@@ -32,8 +33,11 @@ import {
   MAIL_TITLE,
   mailViewLabel,
   mailViews,
-  needsYouToComeWords,
+  flagOf,
+  needsYouCountWords,
   noHeadToHeadsWords,
+  nothingNeedsYouWords,
+  starterNeedsYouWords,
   noMatchdayLinesWords,
   noResultsWords,
   partTableWords,
@@ -95,7 +99,7 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
           {gameweek !== null && <DeadlineStrip home={home} gameweek={gameweek} now={now} />}
           <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-home">
             <div className="flex flex-col gap-2">
-              <HomeMail mail={mail} />
+              <HomeMail mail={mail} lineup={home.yours?.lineup ?? null} />
               <NewsPanel home={home} />
             </div>
             <div className="flex flex-col gap-2">
@@ -118,21 +122,45 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
 }
 
 type MailView = keyof typeof mailViews;
+type LineupNow = NonNullable<LeagueHome["yours"]>["lineup"];
 const MAIL_VIEWS = Object.keys(mailViews) as MailView[];
 
-/** Overview's Mail: the newest letters, with Needs you | All; which letters need a manager is still
- *  to grill, so Needs you holds a line saying so. */
-function HomeMail({ mail }: { mail: LatestMail | null | undefined }) {
-  const [view, setView] = useState<MailView>("all");
+/** Overview's Mail, top of the left column and open on Needs you (S12.15): what waits on the
+ *  manager, his doubtful or out starters first, each opening Tactics (S16.7), then the letters
+ *  waiting on him, each opening in Mail; All is the newest letters. */
+function HomeMail({ mail, lineup }: { mail: LatestMail | null | undefined; lineup: LineupNow }) {
+  const [view, setView] = useState<MailView>("needsYou");
   const name = useId();
+  const starters = (lineup?.flagged ?? []).flatMap((starter) => {
+    const flag = flagOf(starter.chanceOfPlaying);
+    return flag === null ? [] : [{ playerCode: starter.playerCode, words: starterNeedsYouWords(starter.name, flag) }];
+  });
+  const letters = mail?.needsYou ?? [];
+  const waiting = starters.length + letters.length;
+  const words = (option: MailView) => (option === "needsYou" ? needsYouCountWords(waiting) : mailViews[option]);
   const controls = (
     <div className="px-3 py-2">
-      <Choice label={mailViewLabel} name={name} options={MAIL_VIEWS} words={mailViews} chosen={view} onChoose={setView} labelShown={false} />
+      <Choice label={mailViewLabel} name={name} options={MAIL_VIEWS} words={words} chosen={view} onChoose={setView} labelShown={false} />
     </div>
   );
   return (
     <MailWidget mail={mail} title={MAIL_TITLE} controls={controls}>
-      {view === "needsYou" ? <PanelNote>{needsYouToComeWords}</PanelNote> : undefined}
+      {view !== "needsYou" ? undefined : waiting === 0 ? (
+        <PanelNote>{nothingNeedsYouWords}</PanelNote>
+      ) : (
+        <ol>
+          {starters.map(({ playerCode, words }) => (
+            <li key={playerCode} className="border-b border-panel-rule">
+              <Link to={MY_TEAM_PATH} className="flex px-3 py-1 font-semibold shadow-event-edge hover:bg-stepper">
+                {words}
+              </Link>
+            </li>
+          ))}
+          {letters.map((letter) => (
+            <MailLine key={letter.letterId} letter={letter} />
+          ))}
+        </ol>
+      )}
     </MailWidget>
   );
 }
