@@ -21,7 +21,7 @@ Each call opens a fresh page at the start address, plays your steps from there, 
 the page's text, its controls and any errors the page threw. It saves a full-page screenshot: open it with
 Read, every time. Judge layout by the picture, not only the text. Steps: `{"click":"text"}`,
 `{"doubleClick":"text"}`, `{"clickRole":["button"|"link"|"tab","name"]}`, `{"fill":["label","text"]}`,
-`{"key":"Enter"}`, `{"scroll":800}`, `{"back":true}`, `{"reload":true}`. To go deeper, repeat the earlier
+`{"select":["label","option"]}`, `{"key":"Enter"}`, `{"scroll":800}`, `{"back":true}`, `{"reload":true}`. To go deeper, repeat the earlier
 steps and add more. You can't type an address.
 
 Never read, search or run anything else in the project: no code, docs, specs, tests, issues or git. Never

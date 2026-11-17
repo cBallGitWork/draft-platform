@@ -26,7 +26,7 @@ const CONTROLS_LIMIT = 120;
 const LABEL_LIMIT = 60;
 const ERRORS_LIMIT = 20;
 /** Each step names one of these and nothing else. */
-const STEP_KINDS = ["click", "doubleClick", "clickRole", "fill", "key", "scroll", "back", "reload"];
+const STEP_KINDS = ["click", "doubleClick", "clickRole", "fill", "select", "key", "scroll", "back", "reload"];
 
 /** The project's settings, or why they can't be used. */
 export function readConfig(text) {
@@ -49,12 +49,30 @@ export function readSteps(text) {
   return steps;
 }
 
+/**
+ * What a step names, as a person would take it: the visible thing whose name is exactly that, else the
+ * first visible one whose name holds it. So "Confirm" is a sheet's Confirm, not "Review and confirm"
+ * behind it (forge#29).
+ */
+async function visible(locate, name, what) {
+  for (const exact of [true, false]) {
+    const all = locate(exact);
+    for (let i = 0; i < (await all.count()); i++) if (await all.nth(i).isVisible()) return all.nth(i);
+  }
+  throw new Error(`nothing visible named "${name}"${what ? ` as a ${what}` : ""}`);
+}
+
 async function play(page, step) {
   const wait = { timeout: STEP_TIMEOUT_MS };
-  if ("click" in step) return page.getByText(step.click).first().click(wait);
-  if ("doubleClick" in step) return page.getByText(step.doubleClick).first().dblclick(wait);
-  if ("clickRole" in step) return page.getByRole(step.clickRole[0], { name: step.clickRole[1] }).first().click(wait);
+  const text = (name) => visible((exact) => page.getByText(name, { exact }), name);
+  if ("click" in step) return (await text(step.click)).click(wait);
+  if ("doubleClick" in step) return (await text(step.doubleClick)).dblclick(wait);
+  if ("clickRole" in step) {
+    const [role, name] = step.clickRole;
+    return (await visible((exact) => page.getByRole(role, { name, exact }), name, role)).click(wait);
+  }
   if ("fill" in step) return page.getByLabel(step.fill[0]).first().fill(step.fill[1], wait);
+  if ("select" in step) return page.getByLabel(step.select[0]).first().selectOption(step.select[1], wait);
   if ("key" in step) return page.keyboard.press(step.key);
   if ("scroll" in step) return page.mouse.wheel(0, step.scroll);
   if ("back" in step) return page.goBack();
