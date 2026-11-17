@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import { isLocked } from "../../convex/gameweeks/deadline";
-import { DRAFT_PATH } from "../frame/menu";
+import { snakeOrder } from "../../convex/draft/snakeOrder";
+import { DRAFT_PATH, TRADES_PATH } from "../frame/menu";
+import { offerLink } from "../trades/paths";
 import { gameweeksPath } from "../gameweeks/paths";
 import { gameweekShort, whenWords } from "../shared/when/words";
 import { noFigureWords, notSetWords } from "../shared/words";
@@ -22,9 +24,19 @@ import {
   editGameweeksWords,
   gameweeksLoadingWords,
   gameweeksWidgetTitle,
+  inReviewLoadingWords,
+  inReviewWidgetTitle,
+  noneInReviewWords,
   noScoresWords,
   notUsedWords,
+  presetsWidgetTitle,
+  reversedWords,
+  reviewEndsAtWords,
+  roundTwoWidgetTitle,
   scoringStartsWords,
+  teamOrderLoadingWords,
+  tradeInReviewWords,
+  tradesLinkWords,
 } from "./words";
 
 // League settings' right-hand widgets (docs/design/approved/settings/, README "Interaction notes"):
@@ -123,6 +135,80 @@ export function DraftWidget({
           {draftOrderLinkWords}
         </button>
       </p>
+    </Panel>
+  );
+}
+
+/** Every trade in review in the league, the soonest to end first, each with its end (S08.30). A
+ *  trade Offers shows the commissioner, as its reviewer or one of its teams, opens there, as does
+ *  Trades ›, for the league the app is in (`inCurrentLeague`), whose Trades it is. */
+export function InReviewWidget({ leagueId, seam, inCurrentLeague }: { leagueId: Id<"leagues">; seam: LeagueSettingsSeam; inCurrentLeague: boolean }) {
+  const trades = seam.useTradesInReview(leagueId);
+  if (trades === undefined) return <Loading>{inReviewLoadingWords}</Loading>;
+  return (
+    <Panel title={inReviewWidgetTitle}>
+      <ul>
+        {trades.length === 0 && <li className={`${ROW} text-muted`}>{noneInReviewWords}</li>}
+        {trades.map(({ offerId, fromTeamName, toTeamName, reviewEndsAt, opens }) => {
+          const between = tradeInReviewWords(fromTeamName, toTeamName);
+          return (
+            <li key={offerId} className={ROW}>
+              <span className="grow font-bold">
+                {opens && inCurrentLeague ? (
+                  <Link {...offerLink(offerId)} className="inline-flex min-h-tap items-center lg:min-h-0">
+                    {between}
+                  </Link>
+                ) : (
+                  between
+                )}
+              </span>
+              <span>{reviewEndsAtWords(whenWords(reviewEndsAt))}</span>
+            </li>
+          );
+        })}
+      </ul>
+      {inCurrentLeague && (
+        <p className={ROW}>
+          <Link to={TRADES_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">
+            {tradesLinkWords}
+          </Link>
+        </p>
+      )}
+    </Panel>
+  );
+}
+
+/** The draft order's second round: the snake runs it backwards (S04.18). */
+export function RoundTwoWidget({ leagueId, seam }: { leagueId: Id<"leagues">; seam: LeagueSettingsSeam }) {
+  const order = seam.useTeamOrder(leagueId);
+  if (order === undefined) return <Loading>{teamOrderLoadingWords}</Loading>;
+  return (
+    <Panel title={roundTwoWidgetTitle} aside={<span className="text-soft">{reversedWords}</span>}>
+      <ol>
+        {snakeOrder(order.teams, 2)
+          .slice(order.teams.length)
+          .map(({ teamId, name }, place) => (
+            <li key={teamId} className={ROW}>
+              <span className="w-6 text-right text-figure tabular-nums">{place + 1}</span>
+              <span className="font-bold">{name}</span>
+            </li>
+          ))}
+      </ol>
+    </Panel>
+  );
+}
+
+/** The league's formation presets by name, read-only (S03.10). */
+export function PresetsWidget({ presetNames }: { presetNames: readonly string[] }) {
+  return (
+    <Panel title={presetsWidgetTitle} aside={<span className="text-soft tabular-nums">{presetNames.length}</span>}>
+      <ul className="grid grid-cols-4 gap-x-3 px-3 py-1">
+        {presetNames.map((name) => (
+          <li key={name} className="py-1 text-derived">
+            {name}
+          </li>
+        ))}
+      </ul>
     </Panel>
   );
 }

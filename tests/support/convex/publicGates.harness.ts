@@ -222,6 +222,7 @@ export const gates: Record<string, Gate> = {
   "trades/tradeOffers:offer": "manager",
   "trades/tradeOffers:reject": "manager",
   "trades/tradeOffers:withdraw": "manager",
+  "trades/reviewScreen:inLeague": "runner",
   "trades/reviewScreen:toReview": "member",
   "trades/tradeReview:against": "manager",
   "trades/tradeReview:block": "member",
