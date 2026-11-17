@@ -1,7 +1,7 @@
 # Commissioner › Gameweeks
 
-Route: none yet. The picture draws a Commissioner item's Gameweeks tab, which no spec line settles:
-it waits on the Run the league grill (docs/to-grill.md). For #2267 (UI 9).
+Route: none yet. The picture draws a Commissioner item's Gameweeks tab, settled by Craig on 16 Nov
+2026 in the Run the league grill on #2267 (UI 9).
 
 Today's Gameweeks page is at /leagues/$leagueId/gameweeks, on Your leagues' rows.
 
@@ -23,7 +23,7 @@ summing up what the schedule leads to. Its organisation, never its colours.
 
 ## Interaction notes
 
-As drawn; the top menu and its tabs wait on the Run the league grill.
+As drawn; the top menu and its tabs are Craig's Run the league answer (16 Nov 2026, #2267).
 
 - **Top menu:** a Commissioner item after Mail, shown only to the commissioner and co-commissioner;
   tabs Gameweeks, Invites, Squads, Settings on its title plate.
