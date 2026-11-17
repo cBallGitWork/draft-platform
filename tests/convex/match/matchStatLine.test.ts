@@ -25,7 +25,7 @@ test("S10.8 a stat his record leaves out counts 0, and none is made up before hi
   expect(statLineOf(undefined)).toBeNull();
 });
 
-test("S10.8 before kickoff, from the sheets, no man has a stat line or its points", async () => {
+test("S10.8 before kickoff, from the sheets, no man has a stat line", async () => {
   const league = await matchLeague();
   const sheets = mergedHullEverton().map(({ playerCode, started }) => ({ playerCode, started }));
   await league.t.mutation(internal.football.matchTeamSheets.store, { fixtureCode: HULL_EVERTON, men: sheets });
