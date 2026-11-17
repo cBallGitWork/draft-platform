@@ -3141,6 +3141,15 @@
               "type": "number"
             },
             "optional": false
+          },
+          "teamSheet": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": true
           }
         }
       }

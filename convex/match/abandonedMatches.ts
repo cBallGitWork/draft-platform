@@ -8,7 +8,7 @@ import { matchWords } from "../mail/letterWords";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { adminOf, refuse } from "../shared/leagueAccess";
-import { clubByCode, currentPlayersAt, lostPlayerName, playerByCode } from "../shared/players";
+import { clubByCode, lostPlayerName, playerByCode } from "../shared/players";
 import { livePrintsOf } from "../stats/livePrints";
 import { abandonedOf, matchRecordsOf } from "../stats/matchRecordReads";
 import { askToStoreFinal, statusOf } from "../stats/matchStats";
@@ -22,7 +22,8 @@ import { rescoreGameweek } from "../table/finalScores";
 // taken off each man's season, and it is held locked with none, so every man in it reads as not
 // having played and is auto-subbed, and its gameweek can still end; the feeds' reads of it write
 // nothing while the mark stands (matchStats.ts, matchStatsDue.ts). Each league's overrides of men's
-// points in it are deleted too, and every league with a player in it gets a Mail letter.
+// points in it are deleted too, and every league whose squads hold a man on its team sheets (one
+// with a record in it), or whose override went, gets a Mail letter (Craig, 15 Nov 2026, #2166).
 //
 // Taking the mark back opens the match again, provisional and never read, so the next read of the
 // feeds writes its records afresh; the overrides deleted with it stay deleted.
@@ -44,10 +45,10 @@ export const mark = mutation({
     const fixture = await markable(ctx, fixtureCode);
     if ((await abandonedOf(ctx, fixtureCode)) !== null) refuse(abandonRefusals.alreadyMarked);
     const now = Date.now();
-    await ctx.db.insert("abandonedMatches", { fixtureCode, by, at: now });
-    const dropped = await dropRecords(ctx, fixtureCode);
+    const teamSheet = await dropRecords(ctx, fixtureCode);
+    await ctx.db.insert("abandonedMatches", { fixtureCode, by, at: now, teamSheet });
     await lockUnplayed(ctx, fixtureCode, now);
-    await tellLeagues(ctx, fixture, by, true, dropped);
+    await tellLeagues(ctx, fixture, by, true, teamSheet);
     // Its gameweek may now be final, every other match in it locked (matchStats.ts).
     await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: true });
     return null;
@@ -64,7 +65,7 @@ export const unmark = mutation({
     const held = (await abandonedOf(ctx, fixtureCode)) ?? refuse(abandonRefusals.notMarked);
     await ctx.db.delete("abandonedMatches", held._id);
     await reopenForRead(ctx, fixtureCode);
-    await tellLeagues(ctx, fixture, by, false, []);
+    await tellLeagues(ctx, fixture, by, false, held.teamSheet ?? []);
     return null;
   },
 });
@@ -78,8 +79,8 @@ async function markable(ctx: MutationCtx, fixtureCode: number): Promise<Doc<"fix
 }
 
 /** Deletes the match's records, taking what they added off each man's season totals and season
- *  points; returns whose they were. Records written live and counted nowhere yet (livePrints.ts)
- *  have nothing to take off. */
+ *  points; returns its team sheets, whose they were and any live print's. Records written live and
+ *  counted nowhere yet (livePrints.ts) have nothing to take off. */
 async function dropRecords(ctx: MutationCtx, fixtureCode: number): Promise<number[]> {
   const rows = await matchRecordsOf(ctx, fixtureCode, "its abandonment");
   for (const row of rows) await ctx.db.delete("playerMatchStats", row._id);
@@ -87,7 +88,7 @@ async function dropRecords(ctx: MutationCtx, fixtureCode: number): Promise<numbe
   const prints = await livePrintsOf(ctx, fixtureCode);
   if (prints !== null) {
     await ctx.db.delete("liveMatchPrints", prints._id);
-    return playerCodes;
+    return [...new Set([...playerCodes, ...prints.prints.map((print) => print.playerCode)])];
   }
   await moveSeasonTotals(
     ctx,
@@ -108,12 +109,11 @@ async function lockUnplayed(ctx: MutationCtx, fixtureCode: number, now: number):
 }
 
 /** Schedules each league's share of the mark, or of taking it back, in its own transaction, so one
- *  league's fault leaves the rest (cappedRead.ts's scheduleEveryLeague, #1558). `dropped` names the
- *  men whose records the mark deleted; with the clubs' men now, they are the match's players. */
-async function tellLeagues(ctx: MutationCtx, fixture: Doc<"fixtures"> & { gameweek: number }, by: string, abandoned: boolean, dropped: readonly number[]) {
+ *  league's fault leaves the rest (cappedRead.ts's scheduleEveryLeague, #1558). `teamSheet` names
+ *  the men whose records the mark deleted: the match's players, and only theirs (S05.56). */
+async function tellLeagues(ctx: MutationCtx, fixture: Doc<"fixtures"> & { gameweek: number }, by: string, abandoned: boolean, teamSheet: readonly number[]) {
   const [home, away] = await Promise.all([clubByCode(ctx, fixture.homeClubCode), clubByCode(ctx, fixture.awayClubCode)]);
-  const clubMen = (await Promise.all([currentPlayersAt(ctx, fixture.homeClubCode), currentPlayersAt(ctx, fixture.awayClubCode)])).flat();
-  const playerCodes = [...new Set([...dropped, ...clubMen.map((player) => player.code)])];
+  const playerCodes = [...new Set(teamSheet)];
   const args = { fixtureCode: fixture.code, matchName: matchWords(home.name, away.name), gameweek: fixture.gameweek, by, abandoned, playerCodes };
   for (const league of await everyLeague(ctx, "so some would keep points from an abandoned match")) {
     await ctx.scheduler.runAfter(0, internal.match.abandonedMatches.inLeague, { leagueId: league._id, ...args });
@@ -121,7 +121,7 @@ async function tellLeagues(ctx: MutationCtx, fixture: Doc<"fixtures"> & { gamewe
 }
 
 /** One league's share: on the mark, its overrides in the match deleted; its gameweek scored again;
- *  and, where a squad holds one of the match's players or an override went, a letter to the league. */
+ *  and, where a squad holds a man on the match's team sheets or an override went, a letter to the league. */
 export const inLeague = internalMutation({
   args: {
     leagueId: v.id("leagues"),
