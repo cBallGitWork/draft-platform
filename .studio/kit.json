@@ -1,5 +1,5 @@
 {
-  "studio": "3f89e3aa079149ebf344430ab94a24028d680a94",
+  "studio": "c16ebbe64097dab464f769e242fa5e0df855e0f4",
   "hash": "sha256",
   "files": {
     ".claude/agents/backend-engineer.md": "91e4e537a538219e77131c546bc610d38ee8c2678816ff674da169c8548ecff0",
@@ -11,6 +11,7 @@
     ".claude/hooks/hook_payload.py": "4c76985a32629a6420f363d46f4d3c8339ecd02a1b6cfd1b4191ca0ba0c49216",
     ".claude/hooks/line_ceiling.py": "36cf17c8e7ed12ce003634a70b02a09271602c31c4fd7f89d86aaff19e9f7f4d",
     ".claude/hooks/parsing.py": "96d64cd8b82a93ef7b22cd214806700492e23842c63180472deea9e5ffd9b7d3",
+    ".claude/hooks/quick_check.py": "b27f81069f94e9af3f566e66168ce3d3af7b60e3161c6b2c81474c60f4ab3bd0",
     ".claude/hooks/run_command.py": "676eeca156df7b64f5e0c32b8b40a6654168b6a4faeee49899ddc05f92f78fc5",
     ".claude/hooks/stdin_reading.py": "524f3893cfcbbadba15c67bb852a68178945b6cc70f91f3a211864c2ab8e0728",
     ".claude/hooks/test.sh": "6b7ab35c238ae0e944dbbc1513c43dceb82e56796054011c39029b55d995d5ae",
@@ -18,6 +19,7 @@
     ".claude/hooks/tests/context_size.sh": "37debb2973df186edc67a5766eb2687e486c9c89be0fc126987be3b40af016ac",
     ".claude/hooks/tests/helpers.sh": "dea0159cc1fee4c90719ea6c2ff2629cd74ea99e407e6d89ca2028105d3caab6",
     ".claude/hooks/tests/line_ceiling.sh": "3d458d4b072ece4eac372f0c5c91dc747ead427ac9fc2b111b0a71ba31bf387f",
+    ".claude/hooks/tests/quick_check.sh": "3697b07bacd3d426ab44f38444e76b5e193899db388df011024b2134953d3dcb",
     ".claude/hooks/where.py": "52f1e76fbc899ee28c32c11a68e029780a6f4a7d86f07f0aeccb0fc3a8d29f5a",
     ".claude/skills/qa-panel/SKILL.md": "985193b0520879df5714291f0f2f6fc9c31e4aae8202cc4bfc3d1f932c722086",
     "scripts/qa-walk.mjs": "ab89ea7b7581bc3e176a6d2146e3abadf37a427364b26378646180db1fd767c8",
