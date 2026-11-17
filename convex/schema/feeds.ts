@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { failureEmailKindValidator } from "../shared/feedSchedule";
+import { failureEmailKindValidator, feedValidator } from "../shared/feedSchedule";
 import { failure } from "./football";
 
 /** What one read of a feed found: a count of what came back, or why it failed. */
@@ -36,4 +36,22 @@ export const feedFailureEmailTables = {
     "by_feed_and_competition",
     ["feed", "competition"],
   ),
+};
+
+// Each feed's status as the feeds page shows it (spec/15, #2500), kept as each run is logged
+// (admin/feedStatuses.ts), so the page reads one row a feed, never its runs. One row a feed, and
+// for a Sportmonks feed one a competition, by its league id, as `feedFailureEmails` keys them.
+export const feedStatusTables = {
+  feedStatuses: defineTable({
+    feed: feedValidator,
+    competition: v.optional(v.number()),
+    /** The newest run's start, why it failed (null if it didn't), and whether it found the feed between seasons. */
+    lastRun: v.union(v.object({ ranAt: v.number(), failure: v.union(v.string(), v.null()), betweenSeasons: v.boolean() }), v.null()),
+    lastSuccessAt: v.union(v.number(), v.null()),
+    lastError: v.union(v.object({ at: v.number(), error: v.string() }), v.null()),
+    /** Runs logged since the last success's and `lastError`'s, so the page drops either once it is
+     *  `RUNS_READ` runs old, as it did when it read the runs themselves. */
+    runsSinceSuccess: v.number(),
+    runsSinceError: v.number(),
+  }).index("by_feed_and_competition", ["feed", "competition"]),
 };

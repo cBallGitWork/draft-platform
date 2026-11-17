@@ -3,6 +3,8 @@
 
 import { api } from "../../../convex/_generated/api";
 import type { FeedsReport } from "../../../convex/admin/feeds";
+import { feedsReportAt } from "../../../convex/admin/feedState";
+import { keepFeedStatus } from "../../../convex/admin/feedStatuses";
 import { FEED_RUN_TABLES, type Feed } from "../../../convex/shared/feedSchedule";
 import { asAdmin } from "./positionsSync.harness";
 import type { TestConvex } from "./test.harness";
@@ -66,6 +68,9 @@ export function recordRun(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "
     } else {
       await ctx.db.insert(FEED_RUN_TABLES[feed], { ranAt, outcome: failed ?? { ok: true, matches } });
     }
+    // As each run's record does, its feed's status row kept (#2500); no failure email is sent.
+    const logged = await ctx.db.query(FEED_RUN_TABLES[feed]).order("desc").first();
+    if (logged !== null) await keepFeedStatus(ctx, feed, logged);
   });
 }
 
@@ -74,9 +79,11 @@ export function outcomesOf(t: TestConvex, feed: Feed) {
   return t.run(async (ctx) => (await ctx.db.query(FEED_RUN_TABLES[feed]).collect()).map((row) => row.outcome));
 }
 
-/** The page's report as the admin sees it at `now`. */
+/** The page's report as the admin sees it at `now`: the clock-free read judged against the
+ *  minute's, as src/admin/liveAdmin.ts puts them together (#2500). */
 export async function feedsAt(t: TestConvex, now: number): Promise<FeedsReport> {
-  return (await asAdmin(t)).query(api.admin.feeds.feeds, { now });
+  const admin = await asAdmin(t);
+  return feedsReportAt(await admin.query(api.admin.feeds.feeds, {}), await admin.query(api.admin.feeds.owed, { now }));
 }
 
 /** One feed's row of the report at `now`. */

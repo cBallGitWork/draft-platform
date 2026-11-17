@@ -1,12 +1,13 @@
 import { v, type Infer } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
-import { ALWAYS_OWED, failureOf, feedState, judgeFeed, type FeedRuns, type RunOutcome } from "./feedState";
+import { earliest, type FeedState } from "./feedState";
+import { feedStatusOf } from "./feedStatuses";
 import { takeShown } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { adminOf } from "../shared/leagueAccess";
 import { findClubByCode, playerByCode } from "../shared/players";
-import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, SPORTMONKS_FEEDS, type Feed } from "../shared/feedSchedule";
+import { FEEDS, feedValidator, isSportmonksFeed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { dueSheetsAt } from "../football/matchTeamSheets";
 import { sportmonksLiveMatches } from "../football/sportmonks/sportmonksLive";
@@ -19,39 +20,33 @@ import { lateStatChange } from "../schema";
 //
 // Lateness needs the time, and a query must not read the clock: Convex caches a query by its
 // arguments and re-runs it only when the data it read changes, so a stopped feed, which changes
-// nothing, would never turn late (convex/_generated/ai/guidelines.md). So the screen passes `now`,
-// moved on each minute, and the query judges against it: a new minute is a new query.
+// nothing, would never turn late (convex/_generated/ai/guidelines.md). So the page reads in two
+// (#2500): `feeds`, each feed's status row and the corrections, which takes no time and is read
+// again only when they change; and `owed`, from when each feed owes a success and the matches
+// behind, which the screen asks with `now`, moved on each minute. The screen judges each feed
+// against the minute with `feedsReportAt` (feedState.ts).
 
-/** Runs read back per feed, newest first, for its last success and last error: 25 days of the
- *  football sync, or an hour and 40 minutes of live ticks. */
-export const RUNS_READ = 100;
 /** Matches behind, and late corrections, the page lists at most: newest corrections first. */
 export const BEHIND_SHOWN = 20;
 export const CORRECTIONS_SHOWN = 20;
 
-const feedReport = v.object({
+const feedRead = v.object({
   feed: feedValidator,
   /** For a Sportmonks feed, the competition this row is: one row each that is on (#1414). */
   competition: v.optional(v.string()),
-  state: feedState,
-  lastRunAt: v.union(v.number(), v.null()),
+  /** Its league id, which `owed`'s live kickoffs name it by. */
+  competitionId: v.optional(v.number()),
+  lastRun: v.union(v.object({ ranAt: v.number(), failure: v.union(v.string(), v.null()), betweenSeasons: v.optional(v.boolean()) }), v.null()),
   lastSuccessAt: v.union(v.number(), v.null()),
-  /** The newest failure among the runs read, and when its run started. */
+  /** The newest failure among the runs looked back on (`RUNS_READ`), and when its run started. */
   lastError: v.union(v.object({ at: v.number(), error: v.string() }), v.null()),
 });
 
 /** A match by its clubs' names; null if the football sync holds no such match or club. */
 const matchNamed = v.union(v.object({ home: v.string(), away: v.string() }), v.null());
 
-const feedsReport = v.object({
-  /** The time the feeds were judged at, for the screen's "ago". */
-  now: v.number(),
-  feeds: v.array(feedReport),
-  /** Matches at full time still provisional when their correction window closed (spec/07):
-   *  a feed's record is missing, so their points can't lock. Longest behind first. */
-  behind: v.array(v.object({ fixtureCode: v.number(), match: matchNamed, fullTimeAt: v.number() })),
-  /** Whether more are behind than `behind` lists. */
-  moreBehind: v.boolean(),
+const feedsRead = v.object({
+  feeds: v.array(feedRead),
   /** Whether more corrections came than `corrections` lists: the page says so, never a silent cut. */
   moreCorrections: v.boolean(),
   corrections: v.array(
@@ -65,38 +60,71 @@ const feedsReport = v.object({
     }),
   ),
 });
-export type FeedsReport = Infer<typeof feedsReport>;
+export type FeedsRead = Infer<typeof feedsRead>;
+
+const nullableTime = v.union(v.number(), v.null());
+
+const feedsOwed = v.object({
+  /** The time the feeds are judged at, for the screen's "ago". */
+  now: v.number(),
+  /** From when each feed that owes a success only at times owes one (`owedSinceAt`); null while it owes none. */
+  owedSince: v.object({ matchStats: nullableTime, liveStats: nullableTime, teamSheets: nullableTime }),
+  /** Each Sportmonks match live now, by its competition's league id: its live tick owes a success from the first kickoff. */
+  liveKickoffs: v.array(v.object({ competition: v.number(), kickoff: v.number() })),
+  /** Matches at full time still provisional when their correction window closed (spec/07):
+   *  a feed's record is missing, so their points can't lock. Longest behind first. */
+  behind: v.array(v.object({ fixtureCode: v.number(), match: matchNamed, fullTimeAt: v.number() })),
+  /** Whether more are behind than `behind` lists. */
+  moreBehind: v.boolean(),
+});
+export type FeedsOwed = Infer<typeof feedsOwed>;
+
+/** The page as the admin sees it: each feed judged at `now`. */
+export type FeedsReport = Omit<FeedsRead, "feeds"> &
+  Omit<FeedsOwed, "owedSince" | "liveKickoffs"> & {
+    feeds: {
+      feed: FeedsRead["feeds"][number]["feed"];
+      competition?: string;
+      state: FeedState;
+      lastRunAt: number | null;
+      lastSuccessAt: number | null;
+      lastError: FeedsRead["feeds"][number]["lastError"];
+    }[];
+  };
 
 export const feeds = query({
-  args: { now: v.number() },
-  returns: feedsReport,
-  handler: async (ctx, { now }) => {
+  args: {},
+  returns: feedsRead,
+  handler: async (ctx) => {
     await adminOf(ctx);
-    const owedSince = await owedSinceAt(ctx, now);
     const competitionsOn = (await competitionsHeld(ctx)).filter((each) => each.on);
-    const live = await sportmonksLiveMatches(ctx, now);
-    const feeds: Infer<typeof feedReport>[] = [];
-    const judged = async (feed: Feed, runs: AsyncIterable<Run>, owed: number | null) => {
-      const { lastError, ...read } = await readRuns(runs);
-      const state = judgeFeed(read, FEED_SCHEDULES[feed], owed, now);
-      return { feed, state, lastRunAt: read.lastRun?.ranAt ?? null, lastSuccessAt: read.lastSuccessAt, lastError };
-    };
+    const feeds: Infer<typeof feedRead>[] = [];
     for (const feed of FEEDS) {
       if (!isSportmonksFeed(feed)) {
-        feeds.push(await judged(feed, runsOf(ctx, feed), owedSince[feed]));
+        feeds.push({ feed, ...(await feedStatusOf(ctx, feed)) });
         continue;
       }
       // Each competition that is on is its own row (#1414), so one failing never hides another.
       for (const { name, competition } of competitionsOn) {
-        const runs = ctx.db
-          .query(FEED_RUN_TABLES[feed])
-          .withIndex("by_competition", (q) => q.eq("competition", competition))
-          .order("desc");
-        const kickoffs = live.filter((match) => match.competition === competition).map((match) => match.kickoff);
-        const owed = feed === "sportmonks" ? ALWAYS_OWED : earliest(kickoffs);
-        feeds.push({ ...(await judged(feed, runs, owed)), competition: name });
+        feeds.push({ feed, competition: name, competitionId: competition, ...(await feedStatusOf(ctx, feed, competition)) });
       }
     }
+    const corrections = [];
+    const latestCorrections = await takeShown(ctx.db.query("lateStatCorrections").order("desc"), CORRECTIONS_SHOWN);
+    for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.rows) {
+      const player = await playerByCode(ctx, playerCode);
+      corrections.push({ fixtureCode, match: await matchName(ctx, fixtureCode), playerCode, player: player?.name ?? null, seenAt, changes });
+    }
+    return { feeds, moreCorrections: latestCorrections.more, corrections };
+  },
+});
+
+export const owed = query({
+  args: { now: v.number() },
+  returns: feedsOwed,
+  handler: async (ctx, { now }) => {
+    await adminOf(ctx);
+    const live = await sportmonksLiveMatches(ctx, now);
     const windowMs = await statCorrectionWindowMs(ctx);
     const provisional = await takeShown(
       ctx.db.query("matchStatsStatus").withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", "provisional").lt("fullTimeAt", now - windowMs)),
@@ -106,22 +134,22 @@ export const feeds = query({
     for (const { fixtureCode, fullTimeAt } of provisional.rows) {
       behind.push({ fixtureCode, match: await matchName(ctx, fixtureCode), fullTimeAt });
     }
-    const corrections = [];
-    const latestCorrections = await takeShown(ctx.db.query("lateStatCorrections").order("desc"), CORRECTIONS_SHOWN);
-    for (const { fixtureCode, playerCode, seenAt, changes } of latestCorrections.rows) {
-      const player = await playerByCode(ctx, playerCode);
-      corrections.push({ fixtureCode, match: await matchName(ctx, fixtureCode), playerCode, player: player?.name ?? null, seenAt, changes });
-    }
-    return { now, feeds, behind, moreBehind: provisional.more, moreCorrections: latestCorrections.more, corrections };
+    return {
+      now,
+      owedSince: await owedSinceAt(ctx, now),
+      liveKickoffs: live.map(({ competition, kickoff }) => ({ competition, kickoff })),
+      behind,
+      moreBehind: provisional.more,
+    };
   },
 });
 
-/** From when each feed owes a success (`judgeFeed`): the live tick, and the team stats and
- *  threshold lines it reads, from the first kickoff of the matches live now; the team sheets from
- *  the first due match's hour before kickoff; late stats from the first full time of this season's
- *  matches not yet locked, as a run with none due writes no row (#2002); none of those otherwise;
- *  every other feed always. */
-async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Exclude<Feed, SportmonksFeed>, number | null>> {
+/** From when the feeds owed a success only at times owe one (`judgeFeed`): the live tick, and the
+ *  team stats and threshold lines it reads, from the first kickoff of the matches live now; the
+ *  team sheets from the first due match's hour before kickoff; late stats from the first full time
+ *  of this season's matches not yet locked, as a run with none due writes no row (#2002); none of
+ *  those otherwise. Every other feed always owes one (feedState.ts's `owedSinceOf`). */
+async function owedSinceAt(ctx: QueryCtx, now: number): Promise<FeedsOwed["owedSince"]> {
   const liveStats = earliest((await liveMatches(ctx, now)).map((match) => match.kickoff));
   const teamSheets = earliest((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
   const firstUnlocked = (state: "provisional" | "complete") =>
@@ -130,45 +158,7 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Exclude<F
       .withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", state).gte("fullTimeAt", seasonStartAt(now)))
       .first();
   const unlocked = [await firstUnlocked("provisional"), await firstUnlocked("complete")];
-  return {
-    football: ALWAYS_OWED,
-    positions: ALWAYS_OWED,
-    matchStats: earliest(unlocked.flatMap((status) => (status === null ? [] : [status.fullTimeAt]))),
-    liveStats,
-    teamSheets,
-    teamStats: liveStats,
-    thresholdSteps: liveStats,
-    sportmonksPositions: ALWAYS_OWED,
-  };
-}
-
-/** The first of some times; null for none. */
-const earliest = (times: number[]) => (times.length === 0 ? null : Math.min(...times));
-
-type SportmonksFeed = (typeof SPORTMONKS_FEEDS)[number];
-const isSportmonksFeed = (feed: Feed): feed is SportmonksFeed => (SPORTMONKS_FEEDS as readonly Feed[]).includes(feed);
-
-type Run = { ranAt: number; outcome: RunOutcome };
-type RunsRead = FeedRuns & { lastError: { at: number; error: string } | null };
-
-/** A feed's run rows, newest first. */
-function runsOf(ctx: QueryCtx, feed: Exclude<Feed, SportmonksFeed>): AsyncIterable<Run> {
-  return ctx.db.query(FEED_RUN_TABLES[feed]).order("desc");
-}
-
-/** The newest run, the newest success and the newest error, among the newest `RUNS_READ`. */
-async function readRuns(runs: AsyncIterable<Run>): Promise<RunsRead> {
-  const read: RunsRead = { lastRun: null, lastSuccessAt: null, lastError: null };
-  let count = 0;
-  for await (const { ranAt, outcome } of runs) {
-    const failure = failureOf(outcome);
-    read.lastRun ??= { ranAt, failure, betweenSeasons: outcome.ok && outcome.betweenSeasons === true };
-    if (failure === null) read.lastSuccessAt ??= ranAt;
-    else read.lastError ??= { at: ranAt, error: failure };
-    count += 1;
-    if ((read.lastSuccessAt !== null && read.lastError !== null) || count === RUNS_READ) break;
-  }
-  return read;
+  return { matchStats: earliest(unlocked.flatMap((status) => (status === null ? [] : [status.fullTimeAt]))), liveStats, teamSheets };
 }
 
 async function matchName(ctx: QueryCtx, fixtureCode: number): Promise<Infer<typeof matchNamed>> {

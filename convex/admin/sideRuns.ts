@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation, type ActionCtx } from "../_generated/server";
-import { emailIfFailed } from "./feedFailureEmails";
+import { afterRunLogged } from "./feedStatuses";
 import { FEED_RUN_TABLES, sideFeedValidator } from "../shared/feedSchedule";
 import { sideMatchOutcome, sideRunFields } from "../schema";
 import { logFailure } from "../shared/errors";
@@ -43,7 +43,7 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, { feed, ...row }) => {
     await ctx.db.insert(FEED_RUN_TABLES[feed], row);
-    await emailIfFailed(ctx, feed, row);
+    await afterRunLogged(ctx, feed, row);
     return null;
   },
 });

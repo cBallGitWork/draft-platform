@@ -51,7 +51,8 @@ beforeEach(async () => {
     const now = Date.now();
     return {
       ...changesTo({ admin: caller, ann: caller, commissioner: caller }, rows),
-      "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
+      "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, {}),
+      "admin/feeds:owed": () => caller.query(api.admin.feeds.owed, { now }),
       "admin/platformSettings:save": () =>
         caller.mutation(api.admin.platformSettings.save, { statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 }),
       "admin/platformSettings:settings": () => caller.query(api.admin.platformSettings.settings, {}),

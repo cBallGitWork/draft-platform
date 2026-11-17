@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../../_generated/server";
 import { outcomeOf } from "../../shared/errors";
-import { emailIfFailed } from "../../admin/feedFailureEmails";
+import { afterRunLogged } from "../../admin/feedStatuses";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
 import { DAY_MS } from "../../shared/time";
@@ -146,7 +146,7 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("sportmonksPositionsSyncs", row);
-    await emailIfFailed(ctx, "sportmonksPositions", row);
+    await afterRunLogged(ctx, "sportmonksPositions", row);
     return null;
   },
 });
