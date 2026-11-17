@@ -323,7 +323,7 @@
   "trades/tradeReview:finish": {"type":"object","value":{"offerId":{"fieldType":{"type":"id","tableName":"tradeOffers"},"optional":false}}},
   "trades/tradeReview:makeAtReviewEnd": {"type":"object","value":{"offerId":{"fieldType":{"type":"id","tableName":"tradeOffers"},"optional":false}}},
   "trades/tradeReview:takeBack": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"offerId":{"fieldType":{"type":"id","tableName":"tradeOffers"},"optional":false}}},
-  "trades/tradeScreen:ofMyTeam": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"now":{"fieldType":{"type":"number"},"optional":false}}},
+  "trades/tradeScreen:ofMyTeam": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"hour":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/backOnWaivers:putBackOnWaivers": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"deadline":{"fieldType":{"type":"number"},"optional":false}}},
   "waivers/freeAgents:pickUp": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"playerCode":{"fieldType":{"type":"number"},"optional":false},"dropCode":{"fieldType":{"type":"union","value":[{"type":"number"},{"type":"null"}]},"optional":false}}},
   "waivers/waiverClaims:changeDrop": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"claimId":{"fieldType":{"type":"id","tableName":"waiverClaims"},"optional":false},"dropCode":{"fieldType":{"type":"union","value":[{"type":"number"},{"type":"null"}]},"optional":false}}},

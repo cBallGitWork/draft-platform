@@ -420,6 +420,7 @@ import type * as trades_tradeShutWords from "../trades/tradeShutWords.js";
 import type * as trades_tradeSquads from "../trades/tradeSquads.js";
 import type * as trades_tradeWords from "../trades/tradeWords.js";
 import type * as trades_tradedPlayers from "../trades/tradedPlayers.js";
+import type * as trades_tradesAt from "../trades/tradesAt.js";
 import type * as waivers_backOnWaivers from "../waivers/backOnWaivers.js";
 import type * as waivers_freeAgents from "../waivers/freeAgents.js";
 import type * as waivers_runsAhead from "../waivers/runsAhead.js";
@@ -853,6 +854,7 @@ declare const fullApi: ApiFromModules<{
   "trades/tradeSquads": typeof trades_tradeSquads;
   "trades/tradeWords": typeof trades_tradeWords;
   "trades/tradedPlayers": typeof trades_tradedPlayers;
+  "trades/tradesAt": typeof trades_tradesAt;
   "waivers/backOnWaivers": typeof waivers_backOnWaivers;
   "waivers/freeAgents": typeof waivers_freeAgents;
   "waivers/runsAhead": typeof waivers_runsAhead;
