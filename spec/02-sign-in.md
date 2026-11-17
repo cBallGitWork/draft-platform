@@ -15,7 +15,7 @@ Feature 2 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   email limit is reached, the sign-in page says links are paused until tomorrow.
 - A used or expired link opens the sign-in page saying the link has expired, to send a new one.
 - Signed in but in no league: a page saying so. The admin sees "Create a league" there instead;
-  in the beta only the admin creates leagues (anyone can, later, when signups open).
+  in the beta only the admin creates leagues (anyone can, later, when signups open). `S02.4`
 - One test account signs in with a secret instead of a link, so Claude can test the live site:
   "take that email for the site, and you log in with it, make our own rule for it" (Craig, 1 Nov
   2026). It is a dummy account, not Craig's admin email, managing the second team in Alpha: "theres
