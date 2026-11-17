@@ -190,6 +190,7 @@ import type * as match_matchOwners from "../match/matchOwners.js";
 import type * as match_matchPage from "../match/matchPage.js";
 import type * as match_matchPageCommentary from "../match/matchPageCommentary.js";
 import type * as match_matchScorers from "../match/matchScorers.js";
+import type * as match_matchStatLine from "../match/matchStatLine.js";
 import type * as match_sheetOrder from "../match/sheetOrder.js";
 import type * as match_unownedPoints from "../match/unownedPoints.js";
 import type * as matchup_commentaryAt from "../matchup/commentaryAt.js";
@@ -622,6 +623,7 @@ declare const fullApi: ApiFromModules<{
   "match/matchPage": typeof match_matchPage;
   "match/matchPageCommentary": typeof match_matchPageCommentary;
   "match/matchScorers": typeof match_matchScorers;
+  "match/matchStatLine": typeof match_matchStatLine;
   "match/sheetOrder": typeof match_sheetOrder;
   "match/unownedPoints": typeof match_unownedPoints;
   "matchup/commentaryAt": typeof matchup_commentaryAt;
