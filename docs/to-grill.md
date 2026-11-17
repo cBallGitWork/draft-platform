@@ -111,7 +111,6 @@ liverpools team, and it goes red and white"; then "put on to do list").
 **Overriding any player's or team's score, the rest**: who, what, when, undo and the team
 override's place are settled in `spec/14` (Craig, 7 Nov 2026; #903). Still open:
 - Whether each player's row on the matchup carries the player override too, as well as his card.
-- Fantrax's Commissioner fixes (Smaller pages, below) may be part of this.
 
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
 Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
@@ -150,7 +149,7 @@ places these; none says yet what it holds or does, and each is a placeholder unt
 **Home's tabs, Overview | News | Calendar**. News was settled on 8 Nov 2026
 (`docs/design/approved/home/README.md`, The News tab).
 - What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
-  below) and waivers' runs (Run the league, below).
+  below) and waivers' runs (`spec/08`).
 
 **The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
 Table).
@@ -172,16 +171,6 @@ a booking from a ban.
 - Which of Sportmonks' injury and suspension statuses it reads, as Status chips' data and Who's
   doubtful, on Tactics (above) ask.
 - Only your squad, or your starters first.
-
-**Run the league**: a to-do list for the commissioner and co-commissioner on Home. Craig said "ok"
-to the lineup count as a number only (1 Nov 2026): "Teams with no lineup yet 3", never whose, as
-neither sees a lineup before the deadline (`spec/10`).
-- What else is on the list: join requests, waivers to run, the draft order, next season.
-- The commissioner's tools move here off Your leagues' rows, where they are built today
-  (Gameweeks, Invites and join requests, Squads, League settings, deleting); the approved Your
-  leagues picture has none on its rows (`docs/design/approved/leagues/`). Player scoring, on every
-  manager's row today, leaves them too: where does it go?
-- Whether Fantrax's Commissioner fixes (Smaller pages, below) join it.
 
 **Home through the season**: the boards for each state, drawn as the plan for later, each grilled
 when its feature is built (`docs/design/approved/home/`).
@@ -253,7 +242,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | A new season from the last | Copy the league, its rules and its managers into next season |
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
-| Commissioner fixes | Block one team from trading or claiming; adjust the standings |
 | Polls | A league vote on a rule change. Check it isn't the chat that's out of scope |
 | Help | How the game works, for a new manager |
 

@@ -73,6 +73,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 
 - **Mock drafts**: managers practising before the real draft (Craig, 2 Nov 2026).
 - **Undoing a waiver run**, for the commissioner (Craig, 5 Nov 2026; spec/08).
+- **Commissioner fixes**, as Fantrax has them: block one team from trading or claiming, adjust the
+  standings (Craig, 16 Nov 2026, #2267: "later").
 - **The salary cap**, the first thing cut if scope must shrink.
 - **The market**, its own feature with its own `/grill` when the salary cap comes in. Craig's
   ideas so far, not decisions: free agents take a signing-on fee and higher wages, waivers take a

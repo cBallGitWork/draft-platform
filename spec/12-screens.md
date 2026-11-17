@@ -32,11 +32,22 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   the sign-in link). No league is visible without signing in.
 - Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
   to all").
+- The commissioner and co-commissioner see a to-do list on Home that no one else sees. It lists
+  only what needs them now, each line opening where it's done: join requests waiting (a count),
+  teams with no lineup yet (a number only, never whose: neither sees a lineup before the deadline,
+  `spec/10`), the draft order not set before the draft, trades waiting their veto, and a team with
+  no manager (Craig, 16 Nov 2026, #2267). `S12.16`
+- The commissioner's screens move off Your leagues' rows into a **Commissioner** item in the top
+  menu, shown only to the commissioner and co-commissioner, with the tabs Gameweeks | Invites |
+  Squads | Settings; deleting the league is under Settings, for the commissioner alone
+  (`spec/13`, Who runs it; Craig, 16 Nov 2026, #2267). `S12.17`
+- Player scoring becomes a Scoring tab on the Table page, for every manager (Craig, 16 Nov 2026,
+  #2267). `S12.18`
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
   free agents, waivers, stats), player card, trades, draft room (with the queue before it), Mail,
-  league settings (commissioner), admin (Craig).
+  Commissioner (Gameweeks, Invites, Squads, Settings), admin (Craig). `S12.19`
 
 ## The look: Plate
 
