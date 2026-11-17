@@ -54,6 +54,7 @@
   "draft/pickWindow:endDraft": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "draft/pickWindow:undoMyPick": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "draft/undrafted:putUndraftedOnWaivers": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"claimableFrom":{"fieldType":{"type":"number"},"optional":false}}},
+  "e2e/seed:seed": {"type":"object","value":{}},
   "feedback/feedback:list": {"type":"object","value":{}},
   "feedback/feedback:markRead": {"type":"object","value":{"feedbackId":{"fieldType":{"type":"id","tableName":"feedback"},"optional":false}}},
   "feedback/feedback:remove": {"type":"object","value":{"feedbackId":{"fieldType":{"type":"id","tableName":"feedback"},"optional":false}}},
