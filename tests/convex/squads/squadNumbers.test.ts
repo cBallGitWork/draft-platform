@@ -5,6 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { tacticsOf, teamSquadOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, actingAs, addManagers, type TestConvex, ANN, BOB, EVE, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
@@ -41,9 +42,9 @@ describe("a manager numbers his players", () => {
   test("#13 Done: his number holds, and his Squad tab and the pitch both read it", async () => {
     await setAs(ANN, SAKA, 7);
     const ann = await actingAs(t, ANN);
-    const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId, now: Date.now() });
+    const squad = await teamSquadOf(ann, leagueId);
     expect(squad.players.map(({ code, number }) => [code, number])).toEqual(expect.arrayContaining([[SAKA, 7], [RICE, null]]));
-    const tactics = await ann.query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+    const tactics = await tacticsOf(ann, leagueId);
     expect(tactics.kind === "open" && tactics.squad.find((each) => each.playerCode === SAKA)?.number).toBe(7);
   });
 
@@ -105,8 +106,8 @@ describe("his shirt wears his club's number until his manager gives one (Craig, 
   /** A player's shirt on Ann's Squad tab, checked against her pitch, which always agrees. */
   const shirtOf = async (playerCode: number) => {
     const ann = await actingAs(t, ANN);
-    const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId, now: Date.now() });
-    const tactics = await ann.query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+    const squad = await teamSquadOf(ann, leagueId);
+    const tactics = await tacticsOf(ann, leagueId);
     const onSquadTab = squad.players.find((each) => each.code === playerCode)?.number;
     expect(tactics.kind === "open" && tactics.squad.find((each) => each.playerCode === playerCode)?.number).toBe(onSquadTab);
     return onSquadTab;

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { saveGameweeksInHour } from "../../../convex/gameweeks/saveGameweek";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { clockHourOf } from "../../../convex/home/homeAt";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { clubsByCode } from "../../../convex/shared/players";
 import { squadSchedule } from "../../../convex/squads/squadSchedule";
@@ -35,7 +37,8 @@ async function holdSeason(next: number) {
 /** The schedule, its map as entries: a test run returns only Convex values. */
 const scheduleOf = async () => {
   const { gameweeks, byClub } = await t.run(async (ctx) => {
-    const schedule = await squadSchedule(ctx, leagueId, Date.now(), new Set([ARSENAL.code, CHELSEA.code]), clubsByCode(ctx));
+    const saves = await saveGameweeksInHour(ctx, leagueId, clockHourOf(Date.now()));
+    const schedule = await squadSchedule(ctx, leagueId, saves, new Set([ARSENAL.code, CHELSEA.code]), clubsByCode(ctx));
     return { gameweeks: schedule.gameweeks, byClub: [...schedule.byClub] };
   });
   return { gameweeks, byClub: new Map(byClub) };

@@ -4,6 +4,7 @@
 import { renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { beforeEach, expect, test, vi } from "vitest";
+import { MINUTE_MS } from "../../../../convex/shared/time";
 import { liveTactics } from "../../../../src/myTeam/tactics/liveTactics";
 import { saveFailedWords } from "../../../../src/myTeam/tactics/words";
 import { silenceConsoleError } from "../../../support/console.setup";
@@ -28,11 +29,23 @@ const LINEUP = { starters: [{ playerCode: 1, area: "goalkeeper", lane: "centre" 
 const BASED_ON = { tab: "tab", seen: "tab:1" };
 const changes = () => renderHook(() => liveTactics.useLineupChanges()).result.current;
 
-test("it asks lineup/tactics:ofMyTeam with the league and the minute, and hands on what comes back", () => {
+test("it asks lineup/tactics:ofMyTeam with the league and the hour, and hands on the minute's answer (#2008)", () => {
   const tactics = { kind: "seasonOver" };
-  convex.ofMyTeam.mockReturnValue(tactics);
-  expect(renderHook(() => liveTactics.useTactics(A_LEAGUE_ID, NOW)).result.current).toBe(tactics);
-  expect(convex.ofMyTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: NOW });
+  convex.ofMyTeam.mockReturnValue([{ from: NOW, tactics }]);
+  expect(renderHook(() => liveTactics.useTactics(A_LEAGUE_ID, NOW + 5 * MINUTE_MS)).result.current).toBe(tactics);
+  expect(convex.ofMyTeam).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, hour: NOW });
+});
+
+test("S05.25: a minute's turn asks for the same hour, and a deadline inside it moves the tab on to the next gameweek from its minute", () => {
+  const deadline = NOW + 30 * MINUTE_MS;
+  const before = { kind: "open", gameweek: 9 };
+  const after = { kind: "open", gameweek: 10 };
+  convex.ofMyTeam.mockReturnValue([{ from: NOW, tactics: before }, { from: deadline, tactics: after }]);
+  const { result, rerender } = renderHook(({ now }) => liveTactics.useTactics(A_LEAGUE_ID, now), { initialProps: { now: deadline - MINUTE_MS } });
+  expect(result.current).toBe(before);
+  rerender({ now: deadline });
+  expect(result.current).toBe(after);
+  expect(new Set(convex.ofMyTeam.mock.calls.map(([{ hour }]) => hour))).toEqual(new Set([NOW]));
 });
 
 test("a save asks lineup/lineups:save with the league and the lineup, and hands on the gameweek it saved from", async () => {

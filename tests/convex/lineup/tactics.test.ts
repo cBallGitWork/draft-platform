@@ -20,6 +20,7 @@ import { movedToFullBack } from "../../support/convex/positionStarts.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { tacticsOf as tacticsAt } from "../../support/convex/screenReads.harness";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -39,7 +40,7 @@ beforeEach(async () => {
   await holdSquad(t, leagueId, annsTeam);
 });
 
-const tacticsOf = async (email: string) => (await actingAs(t, email)).query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+const tacticsOf = async (email: string) => tacticsAt(await actingAs(t, email), leagueId);
 /** The next gameweek's kickoff, as holdGameweeks sets it, less the first rules' deadline. */
 const nextDeadline = () => Date.now() + KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
 

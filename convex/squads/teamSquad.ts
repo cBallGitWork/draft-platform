@@ -20,6 +20,8 @@ import { squadMaximumOf } from "../rules/squadMaximums";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN } from "./squadLimits";
 import { squadLimit, squadLimits } from "./squadRulesView";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
+import { saveGameweeksInHour } from "../gameweeks/saveGameweek";
+import { HOUR_MS } from "../shared/time";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His season
@@ -79,8 +81,8 @@ const squadRow = v.object({
   gone: v.boolean(),
   /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
-  /** His club's next matches after `now`, soonest first, at most NEXT_MATCHES_SHOWN: none while
-   *  it has none with a kickoff time. */
+  /** His club's next matches after the minute, soonest first, at most NEXT_MATCHES_SHOWN: none
+   *  while it has none with a kickoff time. */
   nextFixtures: v.array(nextFixture),
   /** His club's matches in the Schedule view's gameweeks (`scheduleGameweeks`), in their order:
    *  none in a blank week, two in a double. */
@@ -169,12 +171,22 @@ const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRa
 export const bySquadOrder = (one: Pick<SquadRow, "positions" | "name">, other: Pick<SquadRow, "positions" | "name">): number =>
   positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name);
 
-/** The caller's team's squad at `now`, the screen's minute (a query may not read the clock),
- *  back to front by his first position, then by name. Refused for anyone who runs no team. */
+/** What `ofMyTeam` sends for an hour: the squad with every match a minute of it may show
+ *  (teamSquadAt.ts keeps the minute's), and from when in the hour each gameweek is the one being
+ *  set (null once none is left), which starts the Schedule view's gameweeks. */
+const heldTeamSquad = v.object({
+  ...teamSquad.fields,
+  scheduleFrom: v.array(v.object({ from: v.number(), gameweek: v.union(v.number(), v.null()) })),
+});
+export type HeldTeamSquad = Infer<typeof heldTeamSquad>;
+
+/** The caller's team's squad through the hour starting at `hour`, back to front by his first
+ *  position, then by name. It takes the hour, never the minute, so it isn't run again, uncached,
+ *  every minute (#2008). Refused for anyone who runs no team. */
 export const ofMyTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: teamSquad,
-  handler: async (ctx, { leagueId, now }) => {
+  args: { leagueId: v.id("leagues"), hour: v.number() },
+  returns: heldTeamSquad,
+  handler: async (ctx, { leagueId, hour }): Promise<HeldTeamSquad> => {
     const { league, team } = await managerOf(ctx, leagueId);
     const { positionsOf: positionsOfNow, minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
@@ -192,8 +204,9 @@ export const ofMyTeam = query({
       }),
     );
     const clubCodes = new Set(players.map(({ player }) => player.clubCode));
-    const next = await nextFixturesOf(ctx, clubCodes, now, clubs);
-    const schedule = await squadSchedule(ctx, leagueId, now, clubCodes, clubs);
+    const next = await nextFixturesOf(ctx, clubCodes, hour, clubs);
+    const saves = await saveGameweeksInHour(ctx, leagueId, hour);
+    const schedule = await squadSchedule(ctx, leagueId, saves, clubCodes, clubs);
     const rows = players.map(({ player, number, positions, club, matches, stats }) => ({
       code: player.code,
       name: player.name,
@@ -221,6 +234,7 @@ export const ofMyTeam = query({
       unheld,
       squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
+      scheduleFrom: saves.map((save) => ({ from: save.from, gameweek: save.kind === "open" ? save.gameweek : null })),
       limits: squadLimits(
         await Promise.all(rows.map(async (row) => ({ ...row, minimumAreas: await minimumAreasOf(row.code) }))),
         unheld.length,
@@ -254,20 +268,24 @@ export async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
     }));
 }
 
-/** Each of these clubs' next NEXT_MATCHES_SHOWN matches after `now`, soonest first, by club code:
- *  the matches ahead are read soonest first until every club has all of them or none is left. */
-async function nextFixturesOf(ctx: QueryCtx, clubCodes: ReadonlySet<number>, now: number, clubs: Clubs): Promise<Map<number, NextFixture[]>> {
+/** Each of these clubs' matches after the hour starting at `hour` began, soonest first, by club
+ *  code, up to its NEXT_MATCHES_SHOWN after the hour's end, so every minute of it has its next
+ *  NEXT_MATCHES_SHOWN: the matches ahead are read soonest first until every club has all of them
+ *  or none is left. */
+async function nextFixturesOf(ctx: QueryCtx, clubCodes: ReadonlySet<number>, hour: number, clubs: Clubs): Promise<Map<number, NextFixture[]>> {
   const next = new Map<number, NextFixture[]>();
   if (clubCodes.size === 0) return next;
+  const afterHour = (held: readonly NextFixture[]) => held.filter(({ kickoff }) => kickoff >= hour + HOUR_MS).length;
   let full = 0;
-  const ahead = ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).gt("kickoff", now));
+  const ahead = ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).gt("kickoff", hour));
   for await (const fixture of ahead) {
     for (const [clubCode, opponentCode, home] of sidesOf(fixture)) {
       const held = next.get(clubCode) ?? [];
-      if (!clubCodes.has(clubCode) || held.length === NEXT_MATCHES_SHOWN) continue;
-      // The index reads only matches kicking off after `now`, so each has a kickoff time.
-      next.set(clubCode, [...held, { gameweek: fixture.gameweek, kickoff: fixture.kickoff!, opponent: await clubs(opponentCode), home }]);
-      if (held.length + 1 === NEXT_MATCHES_SHOWN) full += 1;
+      if (!clubCodes.has(clubCode) || afterHour(held) === NEXT_MATCHES_SHOWN) continue;
+      // The index reads only matches kicking off after `hour`, so each has a kickoff time.
+      const added = [...held, { gameweek: fixture.gameweek, kickoff: fixture.kickoff!, opponent: await clubs(opponentCode), home }];
+      next.set(clubCode, added);
+      if (afterHour(added) === NEXT_MATCHES_SHOWN) full += 1;
     }
     if (full === clubCodes.size) break;
   }
