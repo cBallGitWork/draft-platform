@@ -11,23 +11,23 @@ import { EXAMPLE_SET, shotStopper } from "../../support/convex/scoring.example";
 type RoleScoring = NonNullable<ScoringSet["roles"]>[number];
 const side = (bars: number[], stat: string) => ({ bars, parts: [{ stat, weight: 1 }] });
 /** A poacher on goals, costing nothing anyone makes here. */
-const poacher: RoleScoring = { role: "poacher", bonus: side([1, 2, 3], "goals_scored"), cost: side([1, 2, 3], "own_goals") };
+const goalPoacher: RoleScoring = { role: "poacher", bonus: side([1, 2, 3], "goals_scored"), cost: side([1, 2, 3], "own_goals") };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });
 
 const start = (player: PastStart["player"], startingPosition: string, stats: Record<string, number>): PastStart => ({ season: 2024, player, kickoff: 1, startingPosition, stats });
-const SAKA = 10;
-const HAALAND = 11;
+const WINGER = 10;
+const CENTRE_FORWARD = 11;
 const UNMATCHED = 12;
 const matched = new Map<number, Position[]>([
-  [SAKA, ["W"]],
-  [HAALAND, ["ST"]],
+  [WINGER, ["W"]],
+  [CENTRE_FORWARD, ["ST"]],
 ]);
 const goals = (goals_scored: number) => ({ goals_scored, own_goals: 0 });
 
 describe("who may take a role, in the backtest", () => {
   test("S05.29 a matched winger's start up front doesn't count for poacher; a striker's and an unmatched man's do", () => {
-    const starts = [start(SAKA, "ST", goals(3)), start(HAALAND, "ST", goals(1)), start(UNMATCHED, "ST", goals(0)), start("no-code", "ST", goals(0))];
-    const { roles } = roleBacktest(setWith(poacher), starts, matched);
+    const starts = [start(WINGER, "ST", goals(3)), start(CENTRE_FORWARD, "ST", goals(1)), start(UNMATCHED, "ST", goals(0)), start("no-code", "ST", goals(0))];
+    const { roles } = roleBacktest(setWith(goalPoacher), starts, matched);
     expect(roles).toEqual([{ role: "poacher", slot: "ST", target: 0.5, starts: 3, average: 0.33, offTarget: false }]);
   });
 
@@ -68,7 +68,7 @@ describe("a role off its target", () => {
 describe("the command's printout", () => {
   test("S05.10 S05.28 prints every role: starts, average, target, pass or fail, or not tested", () => {
     const numberTen: RoleScoring = { role: "numberTen", bonus: side([1, 2, 3], "accurate_through_ball"), cost: side([1, 2, 3], "own_goals") };
-    const backtest = roleBacktest(setWith(shotStopper([2, 4, 6]), poacher, numberTen), [start(HAALAND, "ST", goals(1))], matched);
+    const backtest = roleBacktest(setWith(shotStopper([2, 4, 6]), goalPoacher, numberTen), [start(CENTRE_FORWARD, "ST", goals(1))], matched);
     expect(backtestLines(backtest).slice(0, 3)).toEqual([
       "GK shotStopper: not tested, no past start",
       "CAM numberTen: not tested, the past seasons have no accurate_through_ball",
