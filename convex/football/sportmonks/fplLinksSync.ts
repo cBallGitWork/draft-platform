@@ -18,7 +18,7 @@ import { SPORTMONKS_STAT_IDS } from "./sportmonksStats";
 /** The most rows of each kind read whole: a season's 20 clubs, their squads' several hundred men
  *  and 380 matches, with room for clubs relegated and men gone. */
 const CLUBS_MOST = 200;
-const PLAYERS_MOST = 5000;
+export const PLAYERS_MOST = 5000;
 const MATCHES_MOST = 2000;
 const LINKS_MOST = CLUBS_MOST + PLAYERS_MOST + MATCHES_MOST;
 

@@ -28,7 +28,7 @@ import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
 /** Each slot's target role bonus a start (spec/05 Roles: half its gap in base points to strikers,
  *  plus 0.5 for every slot; Craig, 4 Nov 2026). */
-const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
+export const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
   ST: 0.5,
   W: 0.6,
   CAM: 0.6,
@@ -130,7 +130,10 @@ export function startersWithNoPosition(starts: readonly PastStart[]): { count: n
 const hundredths = (points: number): number => Math.round(points * 100);
 
 /** The average of `total` over `count`, to the hundredth; null over none. */
-const averageOf = (total: number, count: number): number | null => (count === 0 ? null : hundredths(total / count) / 100);
+export const averageOf = (total: number, count: number): number | null => (count === 0 ? null : hundredths(total / count) / 100);
+
+/** Whether an average lands more than ROLE_TARGET_MARGIN off its target. */
+export const isOffTarget = (average: number, target: number): boolean => Math.abs(hundredths(average) - hundredths(target)) > hundredths(ROLE_TARGET_MARGIN);
 
 /** One starter of a club's XI: where he stood, and his stats for the whole match. */
 interface XiStarter {
@@ -173,10 +176,17 @@ function labInstructions(set: ScoringSet, xis: readonly XiStarter[][]): LabInstr
   });
 }
 
-/** The lab's report on `set` from the past seasons' real starts: each role the set scores, slot by
- *  slot in SLOT_POSITIONS' order (DEFAULT_ROLES'), tested or not, and each team instruction it
- *  scores. */
-export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabReport {
+/** Whether the past player may take the role. The admin's lab counts every start for every role in
+ *  its slot; the redrawn roles' backtest only the men who may take it (roleBacktest.ts, `S05.29`). */
+export type TakesRole = (player: PastStart["player"], role: string) => boolean;
+
+/** Those of a slot's starts the role is tested on: each whose man may take it, with every stat it
+ *  scores copied for that match. */
+export const testedStarts = (starts: readonly PastStart[], stats: readonly string[], role: string, takes: TakesRole): PastStart[] =>
+  starts.filter((start) => takes(start.player, role) && stats.every((stat) => stat in start.stats));
+
+/** Each past start that maps to a slot, by its slot, and how many map to none. */
+export function startsBySlot(starts: readonly PastStart[]): { bySlot: Map<SlotPosition, PastStart[]>; skipped: number } {
   const bySlot = new Map<SlotPosition, PastStart[]>();
   let skipped = 0;
   for (const start of starts) {
@@ -189,6 +199,14 @@ export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabRe
     if (held === undefined) bySlot.set(slot, [start]);
     else held.push(start);
   }
+  return { bySlot, skipped };
+}
+
+/** The lab's report on `set` from the past seasons' real starts: each role the set scores, slot by
+ *  slot in SLOT_POSITIONS' order (DEFAULT_ROLES'), tested or not, and each team instruction it
+ *  scores. */
+export function balanceLab(set: ScoringSet, starts: readonly PastStart[], takes: TakesRole = () => true): LabReport {
+  const { bySlot, skipped } = startsBySlot(starts);
   const roles: LabRole[] = [];
   for (const [slot, offered] of Object.entries(DEFAULT_ROLES) as [SlotPosition, (typeof DEFAULT_ROLES)[SlotPosition]][]) {
     const target = ROLE_TARGETS[slot];
@@ -200,10 +218,10 @@ export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabRe
         roles.push({ role, slot, target, missing });
         continue;
       }
-      const tested = (bySlot.get(slot) ?? []).filter((start) => stats.every((stat) => stat in start.stats));
+      const tested = testedStarts(bySlot.get(slot) ?? [], stats, role, takes);
       const total = tested.reduce((sum, start) => sum + roleTotal(start.stats, set, role), 0);
       const average = averageOf(total, tested.length);
-      const offTarget = average !== null && Math.abs(hundredths(average) - hundredths(target)) > hundredths(ROLE_TARGET_MARGIN);
+      const offTarget = average !== null && isOffTarget(average, target);
       roles.push({ role, slot, target, starts: tested.length, average, offTarget });
     }
   }
