@@ -23,7 +23,7 @@ import { MY_TEAM_NAME } from "../../support/src/teams.harness";
 
 const LINE = { minutes: 67, goals: 1, assists: 1, shots: 4, shotsOnTarget: 2, keyPasses: 2, tackles: 1, cleanSheets: 0, goalsConceded: 1, saves: 0, yellowCards: 0, redCards: 0 };
 
-const MEN = [
+const STATS_MEN = [
   man(1, "Saka", "home", { ownerTeamName: MY_TEAM_NAME, statLine: LINE, points: 10 }),
   man(2, "Eze", "home", { started: false, played: true, statLine: { ...LINE, minutes: 5, goals: 0, assists: 0 }, points: 1 }),
   man(3, "Nwaneri", "home", { started: false, played: false, statLine: { ...LINE, minutes: 0 }, points: 0 }),
@@ -40,14 +40,14 @@ function statRows(club: string) {
 }
 
 async function openPlayerStats(provisional = true) {
-  openMatch({ match: matchOf({ men: MEN, provisional }) });
+  openMatch({ match: matchOf({ men: STATS_MEN, provisional }) });
   const tabs = await screen.findByRole("group", { name: matchTabsLabel });
   await userEvent.click(within(tabs).getByRole("button", { name: matchTabWords.playerStats }));
   return tabs;
 }
 
 test("S10.8 the tabs under the scoreboard open on Overview, and Player stats swaps the team sheets for each man's stats", async () => {
-  openMatch({ match: matchOf({ men: MEN }) });
+  openMatch({ match: matchOf({ men: STATS_MEN }) });
   const tabs = await screen.findByRole("group", { name: matchTabsLabel });
   expect(within(tabs).getByRole("button", { name: matchTabWords.overview, pressed: true })).toBeTruthy();
   expect(screen.getByRole("table", { name: sheetLabel(ARSENAL.name) })).toBeTruthy();

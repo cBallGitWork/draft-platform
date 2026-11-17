@@ -2,7 +2,7 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD } from "../shared/words";
+import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD, statColumns, statNames } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
@@ -183,18 +183,18 @@ export const playerStatsLabel = (club: string) => `${club}'s player stats`;
 export const matchStatColumns = {
   position: { short: "Pos", long: "Position" },
   player: { short: "Player", long: "Player" },
-  minutes: { short: "Min", long: "Minutes played" },
-  goals: { short: "G", long: "Goals" },
-  assists: { short: "A", long: "Assists" },
-  shots: { short: "Sh", long: "Shots" },
-  shotsOnTarget: { short: "SoT", long: "Shots on target" },
-  keyPasses: { short: "KP", long: "Key passes" },
+  minutes: { short: "Min", long: statNames.minutes },
+  goals: statColumns.goals,
+  assists: statColumns.assists,
+  shots: { short: "Sh", long: teamStatRows.shots },
+  shotsOnTarget: { short: "SoT", long: teamStatRows.shotsOnTarget },
+  keyPasses: { short: "KP", long: statNames.keyPasses },
   tackles: { short: "Tkl", long: "Tackles" },
-  cleanSheets: { short: "CS", long: "Clean sheets" },
-  goalsConceded: { short: "GC", long: "Goals conceded" },
+  cleanSheets: statColumns.cleanSheets,
+  goalsConceded: { short: "GC", long: statNames.goalsConceded },
   saves: { short: "Sv", long: "Saves" },
-  yellowCards: { short: "YC", long: "Yellow cards" },
-  redCards: { short: "RC", long: "Red cards" },
+  yellowCards: { short: "YC", long: teamStatRows.yellowCards },
+  redCards: { short: "RC", long: teamStatRows.redCards },
   points: matchColumns.points,
 } as const;
 export const SHOTS_TITLE = "Shots";
