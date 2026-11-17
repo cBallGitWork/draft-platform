@@ -1,7 +1,9 @@
 # Commissioner › Gameweeks
 
-Route: the Commissioner item's Gameweeks tab (spec/12 `S12.17`), today
-`/leagues/$leagueId/gameweeks`. For #2267 (UI 9).
+Route: none yet. The picture draws a Commissioner item's Gameweeks tab, which no spec line settles:
+it waits on the Run the league grill (docs/to-grill.md). For #2267 (UI 9).
+
+Today's Gameweeks page is at /leagues/$leagueId/gameweeks, on Your leagues' rows.
 
 ## The picture
 
@@ -21,6 +23,8 @@ summing up what the schedule leads to. Its organisation, never its colours.
 
 ## Interaction notes
 
+As drawn; the top menu and its tabs wait on the Run the league grill.
+
 - **Top menu:** a Commissioner item after Mail, shown only to the commissioner and co-commissioner;
   tabs Gameweeks, Invites, Squads, Settings on its title plate.
 - **Plays:** a tick box per gameweek that hasn't begun; each tick saves on its own. A begun
@@ -35,7 +39,8 @@ summing up what the schedule leads to. Its organisation, never its colours.
 
 ## Placeholders
 
-- None: every fact here is held today.
+- None: every fact here is held today. The dates and the "Locks in 4d 1h" countdown are samples,
+  read as of 17 Nov 2026.
 
 ## Canvas
 

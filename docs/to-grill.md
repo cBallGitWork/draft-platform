@@ -182,6 +182,8 @@ neither sees a lineup before the deadline (`spec/10`).
   leagues picture has none on its rows (`docs/design/approved/leagues/`). Player scoring, on every
   manager's row today, leaves them too: where does it go?
 - Whether Fantrax's Commissioner fixes (Smaller pages, below) join it.
+- Or a Commissioner item in the top menu, after Mail, with tabs Gameweeks, Invites, Squads,
+  Settings: the approved Gameweeks picture draws it so (`docs/design/approved/commissioner-gameweeks/`).
 
 **Home through the season**: the boards for each state, drawn as the plan for later, each grilled
 when its feature is built (`docs/design/approved/home/`).
