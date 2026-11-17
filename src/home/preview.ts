@@ -21,7 +21,8 @@ import { previewMatchdayLines } from "../matchup/preview";
 import { previewSeasonOf } from "../playerCard/preview";
 import { RECAP_PLAYERS } from "../../convex/home/recapWords";
 import { previewPlayers, previewRivals } from "../scouting/preview";
-import { playsIn, previewGameweekMatches } from "../premierLeague/preview";
+import { playsIn, previewClubMatch, previewGameweekMatches } from "../premierLeague/preview";
+import { flaggedStartersAt } from "../../convex/home/yourGameweek";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
@@ -64,6 +65,12 @@ const deadline = deadlineOf(current.gameweek);
  *  server's rule (yourGameweek.ts; #2450, #2455). */
 const squadNews = previewSquad.flatMap(({ playerCode, name, news }) => (news === null ? [] : [{ playerCode, name, news, chanceOfPlaying: previewChanceOf(playerCode) }]));
 const startersOf = new Set(previewStarterCodes);
+/** Its flagged starters, each with his club's Football match this gameweek, which leaves him out of
+ *  Your lineup once it has kicked off, as the server's (#2466). */
+const flaggedStarters = previewSquad.flatMap(({ playerCode, clubCode }) => {
+  const news = squadNews.find((each) => each.playerCode === playerCode);
+  return news === undefined || !startersOf.has(playerCode) ? [] : [{ ...news, kickoff: previewClubMatch(current.gameweek, clubCode)?.kickoff ?? null }];
+});
 const theirs = previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === previewOpponent);
 const premierLeague = previewGameweekMatches(current.gameweek)
   .map(({ fixtureCode, kickoff, home, away }) => ({
@@ -78,7 +85,7 @@ const premierLeague = previewGameweekMatches(current.gameweek)
   .toSorted((one, other) => (one.kickoff ?? 0) - (other.kickoff ?? 0));
 const yours: LeagueHome["yours"] = {
   squadNews,
-  lineup: { set: true, flagged: squadNews.filter(({ playerCode }) => startersOf.has(playerCode)) },
+  lineup: { set: true, flagged: flaggedStartersAt(flaggedStarters, Date.now()) },
   waiverRuns: FIRST_RULES.waivers.runs,
   claims: 2,
   premierLeague,

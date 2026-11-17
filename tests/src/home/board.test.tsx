@@ -55,7 +55,7 @@ const follows = (first: Element, second: Element) => Boolean(first.compareDocume
 describe("Mail", () => {
   const letter: LetterSummary = { ...mailLetter(1, false), subject: "Draft night", body: "Friday at eight." };
   const offer: LetterSummary = { ...mailLetter(2, false, null, "trade"), subject: "Trade offer: Rice for Palmer", needsYou: true };
-  const flagged = (playerCode: number, name: string, chanceOfPlaying: number | null) => ({ playerCode, name, news: "Knock", chanceOfPlaying });
+  const flagged = (playerCode: number, name: string, chanceOfPlaying: number | null) => ({ playerCode, name, news: "Knock", chanceOfPlaying, kickoff: null });
   const lineup = { set: true, flagged: [flagged(1, "Saka", 50), flagged(2, "Watkins", 0), flagged(3, "Rice", 100)] };
   const needsYouTab = (mail: HTMLElement) => within(mail).getByRole("radio", { name: new RegExp(`^${mailViews.needsYou}`) }) as HTMLInputElement;
 

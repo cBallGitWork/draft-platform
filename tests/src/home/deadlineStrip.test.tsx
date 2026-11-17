@@ -14,7 +14,7 @@ import { league } from "../../support/src/shell.harness";
 
 const gameweekNine = { gameweek: 9, fixtures: [homeFixture("Team 1", "Team 2")], byes: [] };
 const MONDAY_EIGHT = [{ day: "monday", hour: 20, minute: 0 }] as const;
-const flagged = (name: string, chanceOfPlaying: number | null, playerCode = name.length) => ({ playerCode, name, news: `${name}'s news`, chanceOfPlaying });
+const flagged = (name: string, chanceOfPlaying: number | null, playerCode = name.length) => ({ playerCode, name, news: `${name}'s news`, chanceOfPlaying, kickoff: null });
 const boxes = async () => within(await screen.findByRole("list", { name: stripLabel })).getAllByRole("listitem").map((box) => box.textContent);
 
 describe("the title plate and the deadline strip", () => {
