@@ -133,6 +133,19 @@ test("S05.56 a match abandoned while live writes to a league whose squad holds a
   expect(await leaguesTold(unabandonedSubject(MATCH_NAME))).toEqual(new Set([leagueId]));
 });
 
+test("S05.56 a mark made before marks kept their team sheet sends no letter when taken back, though the league's squads hold men who played", async () => {
+  const league = await storedLeague();
+  await marks(league);
+  // A mark from before #2483 has no team sheet on its row.
+  await league.t.run(async (ctx) => {
+    const held = (await ctx.db.query("abandonedMatches").first())!;
+    await ctx.db.patch("abandonedMatches", held._id, { teamSheet: undefined });
+  });
+
+  await unmarks(league);
+  expect(await lettersAbout(league, unabandonedSubject(MATCH_NAME))).toEqual([]);
+});
+
 test("only the admin marks a match, once, and only one that has kicked off", async () => {
   const league = await storedLeague();
   await expectRefused(marks(league, COMMISSIONER), refusals.notAdmin);
