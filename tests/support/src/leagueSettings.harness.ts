@@ -2,6 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { LeagueGameweek } from "../../../convex/gameweeks/leagueGameweeks";
 import type { ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
@@ -36,8 +37,10 @@ export type LeagueSettingsData = {
   claimsLoading?: boolean;
   /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
   scoringStart?: ScoringStartView;
-  /** The draft's start: no date and not started unless a test says. */
-  draftStart?: DraftStart;
+  /** The draft's start: no date, not started and no rounds (no squad size), with TEAMS_IN_ORDER's teams, unless a test says. */
+  draftStart?: Partial<DraftStart>;
+  /** The league's gameweeks, for the Gameweeks widget: none unless a test says. */
+  gameweeks?: LeagueGameweek[];
 };
 
 /** Saving succeeds from CHANGES_FROM, and a draft order at once, unless a test says otherwise. */
@@ -50,8 +53,10 @@ export function fakeLeagueSettings({
   claims = [],
   claimsLoading = false,
   scoringStart = { start: null, ticked: [], seasonBegun: false },
-  draftStart = { startsAt: null, started: false },
+  draftStart = {},
+  gameweeks = [],
 }: LeagueSettingsData = {}) {
+  const draft: DraftStart = { startsAt: null, started: false, rounds: null, teams: TEAMS_IN_ORDER.length, ...draftStart };
   return {
     useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : { ...view, seasonGameweeks: PL_GAMEWEEKS })),
     save: vi.fn<LeagueSettingsSeam["save"]>(async () => CHANGES_FROM),
@@ -60,7 +65,8 @@ export function fakeLeagueSettings({
     drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
     useScoringStart: vi.fn<LeagueSettingsSeam["useScoringStart"]>(() => scoringStart),
     setScoringStart: vi.fn<LeagueSettingsSeam["setScoringStart"]>(async () => null),
-    useDraftStart: vi.fn<LeagueSettingsSeam["useDraftStart"]>(() => draftStart),
+    useGameweeks: vi.fn<LeagueSettingsSeam["useGameweeks"]>(() => gameweeks),
+    useDraftStart: vi.fn<LeagueSettingsSeam["useDraftStart"]>(() => draft),
     setDraftStart: vi.fn<LeagueSettingsSeam["setDraftStart"]>(async () => null),
     useWaivers: vi.fn<LeagueSettingsSeam["useWaivers"]>(() => waivers),
     usePendingClaims: vi.fn<LeagueSettingsSeam["usePendingClaims"]>(() => (claimsLoading ? undefined : claims)),

@@ -200,3 +200,20 @@ export const settingsTabWords: Record<SettingsTab, string> = {
   trades: tradesTitle,
   draftOrder: teamOrderTitle,
 };
+
+/** The right-hand widgets (README, Interaction notes): what the Fixtures and Draft tabs' rules lead to. */
+export const gameweeksWidgetTitle = "Gameweeks";
+export const editGameweeksWords = "Edit ›";
+export const gameweeksLoadingWords = "Loading the gameweeks…";
+/** A ticked gameweek before the scoring start, the start itself, and an unticked gameweek. */
+export const noScoresWords = "No scores";
+export const scoringStartsWords = "Scoring starts";
+export const notUsedWords = "Not used";
+export const draftWidgetTitle = "The draft";
+export const draftRoundsLabel = "Rounds";
+export const draftPicksLabel = "Picks";
+export const draftTeamsLabel = "Teams";
+/** The draft's start once it has begun. */
+export const draftBegunWords = "Started";
+export const draftRoomWords = "Draft room ›";
+export const draftOrderLinkWords = "Draft order ›";
