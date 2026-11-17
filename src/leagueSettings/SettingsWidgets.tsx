@@ -189,7 +189,7 @@ export function RoundTwoWidget({ leagueId, seam }: { leagueId: Id<"leagues">; se
           .slice(order.teams.length)
           .map(({ teamId, name }, place) => (
             <li key={teamId} className={ROW}>
-              <span className="w-6 text-right text-figure tabular-nums">{place + 1}</span>
+              <span className="w-4 tabular-nums">{place + 1}</span>
               <span className="font-bold">{name}</span>
             </li>
           ))}
