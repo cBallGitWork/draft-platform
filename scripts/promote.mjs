@@ -90,9 +90,10 @@ export function decide({ now, scheduled, lastMoved, candidate, released, staging
   return { move: true, red: false, why: `moving live up to ${short}` };
 }
 
-/** `gh api <path>` and its parsed answer, as a list of pages so either shape reads the same; throws, naming the call, when it fails. */
-function ghApi(path) {
-  const run = spawnSync("gh", ["api", path], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+/** `gh api <path>` and its parsed answer, as a list of pages so either shape reads the same; throws, naming the call, when it fails.
+ *  `spawn` is spawnSync or a test's stand-in; the reads below take this as `gh`, so a test can answer for GitHub. */
+export function ghApi(path, spawn = spawnSync) {
+  const run = spawn("gh", ["api", path], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   if (run.status !== 0) throw new Error(`gh api ${path} failed: ${run.stderr.trim() || `exit ${run.status}`}`);
   return [JSON.parse(run.stdout)].flat();
 }
@@ -106,8 +107,8 @@ function lastMove(repo) {
 }
 
 /** The commit the newest full test pass on main ran on, if it finished within NIGHTLY_MAX_AGE_HOURS. */
-function nightlyPass(repo, now) {
-  const [run] = ghApi(`repos/${repo}/actions/workflows/${NIGHTLY_WORKFLOW}/runs?branch=${STAGING_BRANCH}&status=success&per_page=1`)
+export function nightlyPass(repo, now, gh = ghApi) {
+  const [run] = gh(`repos/${repo}/actions/workflows/${NIGHTLY_WORKFLOW}/runs?branch=${STAGING_BRANCH}&status=success&per_page=1`)
     .flatMap((page) => page.workflow_runs ?? []);
   if (!run) return null;
   const age = now.getTime() - Date.parse(run.updated_at);
@@ -115,14 +116,14 @@ function nightlyPass(repo, now) {
 }
 
 /** Whether `sha` is `base` or comes after it. */
-const atOrAfter = (repo, base, sha) => ["identical", "ahead"].includes(ghApi(`repos/${repo}/compare/${base}...${sha}`)[0].status);
+const atOrAfter = (repo, base, sha, gh = ghApi) => ["identical", "ahead"].includes(gh(`repos/${repo}/compare/${base}...${sha}`)[0].status);
 
 /** BUILT, BUILDING or BROKEN, for staging's newest build at or before `sha`. */
-function stagingState(repo, sha) {
-  for (const deployment of ghApi(`repos/${repo}/deployments?ref=${STAGING_BRANCH}&per_page=${DEPLOYMENTS_SEARCHED}`)) {
+export function stagingState(repo, sha, gh = ghApi) {
+  for (const deployment of gh(`repos/${repo}/deployments?ref=${STAGING_BRANCH}&per_page=${DEPLOYMENTS_SEARCHED}`)) {
     if (!STAGING_ENVIRONMENT.test(deployment.environment ?? "")) continue;
-    if (!atOrAfter(repo, deployment.sha, sha)) continue;
-    const [latest] = ghApi(`repos/${repo}/deployments/${deployment.id}/statuses?per_page=1`);
+    if (!atOrAfter(repo, deployment.sha, sha, gh)) continue;
+    const [latest] = gh(`repos/${repo}/deployments/${deployment.id}/statuses?per_page=1`);
     if (latest?.state === "success") return BUILT;
     return !latest || BUILDING_STATES.has(latest.state) ? BUILDING : BROKEN;
   }

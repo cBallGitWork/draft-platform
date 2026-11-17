@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { BROKEN, BUILDING, BUILT, KICKOFF_GAP_MINUTES, PROMOTE_HOUR, PROMOTE_UNTIL_HOUR, RELEASE_BRANCH, STAGING_ENVIRONMENT, decide, hourInLondon, matchOn, sameLondonDay } from "../../scripts/promote.mjs";
+import { BROKEN, BUILDING, BUILT, KICKOFF_GAP_MINUTES, PROMOTE_HOUR, PROMOTE_UNTIL_HOUR, RELEASE_BRANCH, STAGING_ENVIRONMENT, decide, ghApi, hourInLondon, matchOn, nightlyPass, sameLondonDay, stagingState } from "../../scripts/promote.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/promote.yml"), "utf8");
@@ -74,4 +74,54 @@ test("staging is Vercel's preview environment", () => {
   expect(STAGING_ENVIRONMENT.test("Preview")).toBe(true);
   expect(STAGING_ENVIRONMENT.test("Preview – draft-platform")).toBe(true);
   expect(STAGING_ENVIRONMENT.test("Production")).toBe(false);
+});
+
+/** A stand-in for `gh api`: answers each call from the first route whose text the path holds, and throws as ghApi does for one it has none for. */
+const github = (routes) => (path) => {
+  const route = Object.keys(routes).find((part) => path.includes(part));
+  if (!route) throw new Error(`gh api ${path} failed: HTTP 502`);
+  return [routes[route]].flat();
+};
+const REPO = "owner/repo";
+const LATER = "c".repeat(40);
+const runs = (...workflow_runs) => ({ workflow_runs });
+
+test("the candidate is the newest full test pass on main, only while it is under 30 hours old (S20.20)", () => {
+  const passed = (hoursAgo) => github({ "actions/workflows": runs({ head_sha: TESTED, updated_at: new Date(SEVEN_WINTER.getTime() - hoursAgo * 3_600_000).toISOString() }) });
+  expect(nightlyPass(REPO, SEVEN_WINTER, passed(4))).toBe(TESTED);
+  expect(nightlyPass(REPO, SEVEN_WINTER, passed(31))).toBeNull();
+  expect(nightlyPass(REPO, SEVEN_WINTER, github({ "actions/workflows": runs() }))).toBeNull();
+});
+
+test("staging's newest build at or before the candidate decides: built, still building, or broken (S20.20)", () => {
+  const staging = (state, environment = "Preview") => github({
+    "/deployments?": [{ id: 1, sha: OLD, environment: "Production" }, { id: 2, sha: OLD, environment }],
+    compare: { status: "ahead" },
+    "/statuses": state ? [{ state }] : [],
+  });
+  expect(stagingState(REPO, TESTED, staging("success"))).toBe(BUILT);
+  for (const state of ["pending", "queued", "in_progress", null]) expect(stagingState(REPO, TESTED, staging(state))).toBe(BUILDING);
+  for (const state of ["failure", "error"]) expect(stagingState(REPO, TESTED, staging(state))).toBe(BROKEN);
+  // no preview build among the newest deployments
+  expect(stagingState(REPO, TESTED, staging("success", "Production"))).toBe(BROKEN);
+});
+
+test("a build after the candidate is passed over for the one at or before it (S20.20)", () => {
+  const gh = github({
+    "/deployments?": [{ id: 9, sha: LATER, environment: "Preview" }, { id: 2, sha: OLD, environment: "Preview" }],
+    [`compare/${LATER}`]: { status: "behind" },
+    [`compare/${OLD}`]: { status: "ahead" },
+    "/deployments/9/statuses": [{ state: "failure" }],
+    "/deployments/2/statuses": [{ state: "success" }],
+  });
+  expect(stagingState(REPO, TESTED, gh)).toBe(BUILT);
+});
+
+test("a failed gh call stops the run naming the call, never reading as no pass or a failed staging build (S20.20)", () => {
+  const failed = () => ({ status: 1, stdout: "", stderr: "HTTP 502: Bad Gateway" });
+  expect(() => ghApi("repos/owner/repo/branches/release", failed)).toThrow("gh api repos/owner/repo/branches/release failed: HTTP 502: Bad Gateway");
+  expect(ghApi("any", () => ({ status: 0, stdout: "[1,2]", stderr: "" }))).toEqual([1, 2]);
+  expect(() => nightlyPass(REPO, SEVEN_WINTER, github({}))).toThrow(/actions\/workflows.*failed/);
+  // the compare call failing part-way through the staging search
+  expect(() => stagingState(REPO, TESTED, github({ "/deployments?": [{ id: 2, sha: OLD, environment: "Preview" }] }))).toThrow(/compare.*failed/);
 });
