@@ -1,15 +1,15 @@
 import { HOUR_MS } from "../shared/time";
-import type { LeagueDeadlines } from "./deadline";
 
 // A read asked for by the hour, never the minute (#2008): a query taking the minute runs again,
-// uncached, every minute for every open screen. Where what it sends turns on a deadline, it sends
-// one answer from the hour's start and one from each deadline in the hour, and the screen picks
-// its minute's here. Pure, so the screen and the tests alike.
+// uncached, every minute for every open screen. Where what it sends turns on a moment (a deadline,
+// a scoring version taking effect), it sends one answer from the hour's start and one from each
+// such moment in the hour, and the screen picks its minute's here. Pure, so the screen and the
+// tests alike.
 
-/** The moments of the hour starting at `hour` a deadline can turn a read at: its start, then each
- *  deadline inside it, in order. */
-export function turnsInHour(deadlines: LeagueDeadlines, hour: number): number[] {
-  const inside = [...deadlines.values()].filter((deadline): deadline is number => deadline !== null && deadline > hour && deadline < hour + HOUR_MS);
+/** The moments of the hour starting at `hour` a read can turn at: its start, then each of
+ *  `moments` (a league's deadlines, the site's scoring versions' starts) inside it, in order. */
+export function turnsInHour(moments: Iterable<number | null>, hour: number): number[] {
+  const inside = [...moments].filter((moment): moment is number => moment !== null && moment > hour && moment < hour + HOUR_MS);
   return [hour, ...new Set(inside.toSorted((one, other) => one - other))];
 }
 

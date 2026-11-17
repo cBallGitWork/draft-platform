@@ -11,10 +11,10 @@ import { silenceConsoleError } from "../../../support/console.setup";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
 import { REFUSAL } from "../../../support/src/tacticsScreen.harness";
 
-const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), save: vi.fn(), openedTactics: vi.fn() }));
+const convex = vi.hoisted(() => ({ ofMyTeam: vi.fn(), forSlot: vi.fn(), save: vi.fn(), openedTactics: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "lineup/tactics:ofMyTeam": convex.ofMyTeam },
+    queries: { "lineup/tactics:ofMyTeam": convex.ofMyTeam, "lineup/roleCard:forSlot": convex.forSlot },
     mutations: { "lineup/lineups:save": convex.save, "lineup/lineupDue:openedTactics": convex.openedTactics },
   }),
 );
@@ -46,6 +46,21 @@ test("S05.25: a minute's turn asks for the same hour, and a deadline inside it m
   rerender({ now: deadline });
   expect(result.current).toBe(after);
   expect(new Set(convex.ofMyTeam.mock.calls.map(([{ hour }]) => hour))).toEqual(new Set([NOW]));
+});
+
+test("S14.1: an open role card asks for the same hour each minute, and a patch taking effect inside it turns the card from its minute (#2008)", () => {
+  const patchAt = NOW + 20 * MINUTE_MS;
+  const before = { roles: [], matches: [] };
+  const after = { roles: [], matches: [] };
+  convex.forSlot.mockReturnValue([{ from: NOW, card: before }, { from: patchAt, card: after }]);
+  const cell = { area: "attack", lane: "centre" } as const;
+  const { result, rerender } = renderHook(({ now }) => liveTactics.useRoleCard(A_LEAGUE_ID, 7, cell, [cell], now), { initialProps: { now: patchAt - MINUTE_MS } });
+  expect(result.current).toBe(before);
+  rerender({ now: patchAt });
+  expect(result.current).toBe(after);
+  expect(new Set(convex.forSlot.mock.calls.map(([args]) => JSON.stringify(args)))).toEqual(
+    new Set([JSON.stringify({ leagueId: A_LEAGUE_ID, playerCode: 7, cell, formation: [cell], hour: NOW })]),
+  );
 });
 
 test("a save asks lineup/lineups:save with the league and the lineup, and hands on the gameweek it saved from", async () => {

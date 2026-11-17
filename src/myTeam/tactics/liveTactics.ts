@@ -30,8 +30,13 @@ export const liveTactics: TacticsSeam = {
     );
   },
   usePlans: (leagueId) => useQuery(api.lineup.savedPlans.mine, { leagueId }),
-  useRoleCard: (leagueId, playerCode, cell, formation, now) =>
-    useQuery(api.lineup.roleCard.forSlot, { leagueId, playerCode, cell, formation: formation.map(({ area, lane }) => ({ area, lane })), now }),
+  // By the hour too (#2008): the card's roles and last season's prices turn when a scoring version
+  // takes effect, so the hour's cards are picked from at the minute, the last held at the hour's turn.
+  useRoleCard: function useRoleCard(leagueId, playerCode, cell, formation, now) {
+    const cells = formation.map(({ area, lane }) => ({ area, lane }));
+    const loaded = useQuery(api.lineup.roleCard.forSlot, { leagueId, playerCode, cell, formation: cells, hour: clockHourOf(now) });
+    return useLastLoaded(loaded && answerAt(loaded, now)?.card, JSON.stringify([leagueId, playerCode, cell, cells]));
+  },
   usePlanChanges: () => {
     const save = useMutation(api.lineup.savedPlans.save);
     const remove = useMutation(api.lineup.savedPlans.remove);

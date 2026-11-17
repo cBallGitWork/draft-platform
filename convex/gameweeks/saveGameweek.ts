@@ -42,7 +42,7 @@ export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now
 /** The gameweek a save goes to through the hour starting at `hour`: at its start, then from each
  *  deadline in it that moves it on (hourAnswers.ts's `turnsInHour`), in order. */
 export async function saveGameweeksInHour(ctx: QueryCtx, leagueId: Id<"leagues">, hour: number): Promise<(SaveGameweek & { from: number })[]> {
-  const turns = turnsInHour(await leagueDeadlines(ctx, leagueId), hour);
+  const turns = turnsInHour((await leagueDeadlines(ctx, leagueId)).values(), hour);
   const saves = await Promise.all(turns.map(async (from) => ({ from, ...(await saveGameweekOf(ctx, leagueId, from)) })));
   const gameweekOf = (save: SaveGameweek) => (save.kind === "open" ? save.gameweek : null);
   return saves.filter((save, index) => index === 0 || gameweekOf(save) !== gameweekOf(saves[index - 1]));
