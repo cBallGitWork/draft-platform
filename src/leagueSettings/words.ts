@@ -204,7 +204,7 @@ export const settingsTabWords: Record<SettingsTab, string> = {
 /** The right-hand widgets (README, Interaction notes): what the Fixtures and Draft tabs' rules lead to. */
 export const gameweeksWidgetTitle = "Gameweeks";
 export const editGameweeksWords = "Edit ›";
-export const gameweeksLoadingWords = "Loading the gameweeks…";
+export const gameweeksLoadingWords = "Loading the gameweeks…"; // one-home-ok: the Gameweeks screen's own words are another feature's, which featureImports keeps out
 /** A ticked gameweek before the scoring start, the start itself, and an unticked gameweek. */
 export const noScoresWords = "No scores";
 export const scoringStartsWords = "Scoring starts";

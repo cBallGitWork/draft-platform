@@ -27,17 +27,17 @@ import { openedOn, openedSettings, openTab, SETTINGS_PAGE } from "../../support/
 import { adminSeeing, league, openApp } from "../../support/src/shell.harness";
 
 const widget = (title: string) => screen.getByRole("region", { name: title });
-const rows = () => within(widget(gameweeksWidgetTitle)).getAllByRole("listitem");
+const gameweekRows =() => within(widget(gameweeksWidgetTitle)).getAllByRole("listitem");
 /** A season whose gameweek 10 kicks off in an hour, so 1 to 9 have begun, with 14 unticked. */
-const season = weeklySeason(Date.now() + HOUR_MS - 9 * WEEK_MS, [14]);
-const ticked = season.filter(({ used }) => used).map(({ gameweek, deadline }) => ({ gameweek, deadline }));
+const upcomingSeason =weeklySeason(Date.now() + HOUR_MS - 9 * WEEK_MS, [14]);
+const ticked = upcomingSeason.filter(({ used }) => used).map(({ gameweek, deadline }) => ({ gameweek, deadline }));
 
 describe("the Gameweeks widget (#2503)", () => {
   it("S04.12: lists the gameweeks from the next not begun, the ones before the scoring start scoring nothing, the start marked and an unticked one not used", async () => {
-    await openedSettings({ gameweeks: season, scoringStart: { start: 11, ticked, seasonBegun: false } });
+    await openedSettings({ gameweeks: upcomingSeason, scoringStart: { start: 11, ticked, seasonBegun: false } });
 
-    expect(rows()).toHaveLength(GAMEWEEKS_SHOWN);
-    expect(rows().map((row) => row.textContent)).toEqual([
+    expect(gameweekRows()).toHaveLength(GAMEWEEKS_SHOWN);
+    expect(gameweekRows().map((row) => row.textContent)).toEqual([
       expect.stringMatching(new RegExp(`^GW10.*${noScoresWords}$`)),
       expect.stringMatching(new RegExp(`^GW11.*${scoringStartsWords}$`)),
       expect.stringMatching(/^GW12[^A-Za-z]*[A-Za-z]{3} \d+ [A-Za-z]{3}, \d\d:\d\d$/),
@@ -50,7 +50,7 @@ describe("the Gameweeks widget (#2503)", () => {
   });
 
   it("S04.12: marks nothing when no scoring start is set", async () => {
-    await openedSettings({ gameweeks: season, scoringStart: { start: null, ticked, seasonBegun: false } });
+    await openedSettings({ gameweeks: upcomingSeason, scoringStart: { start: null, ticked, seasonBegun: false } });
 
     expect(within(widget(gameweeksWidgetTitle)).queryByText(scoringStartsWords)).toBeNull();
     expect(within(widget(gameweeksWidgetTitle)).queryByText(noScoresWords)).toBeNull();
