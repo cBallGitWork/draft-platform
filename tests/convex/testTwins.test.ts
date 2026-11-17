@@ -185,7 +185,6 @@ const STILL_TWINNED: string[] = [
   "tests/src/scouting/statRace.test.tsx defines rowOf, team",
   "tests/src/squads/squadsAutoTeam.test.tsx defines team",
   "tests/src/trades/counter.test.tsx defines box",
-  "tests/src/trades/minuteTurn.test.tsx defines turnTheMinute",
   "tests/src/trades/offerSides.test.ts defines DEADLINE",
   "tests/src/ui/columnHeads.test.tsx defines table",
   "tests/src/ui/tickBox.test.tsx defines box",
