@@ -44,8 +44,10 @@ commentary` (16 Oct 2026).
   the column naming a player's team is headed "Owner" (Craig, 10 Nov 2026, on #1032). `S10.7`
 - Two tabs: Overview, and Player stats, each player's stats for the match: "A match needs a ten for
   detailed stats Tab" (Craig, 10 Nov 2026, on #1032). Player stats has a Stats | Points switch,
-  Points showing what each stat earned him, and a shot map with each shot's xG (Craig, 10 Nov 2026,
-  on #1032). `S10.8`
+  Points showing what each stat earned him (Craig, 10 Nov 2026, on #1032). In place of a shot map,
+  each player's shots, on target, blocked, woodwork and big chances missed show as numbers in the
+  table: Sportmonks sends no shot's time or position, and no xG ("Keep, no xG"; "Shot counts
+  instead", Craig, 17 Nov 2026). `S10.8`
 - Overview shows the lineups as a list or on a pitch; clicking a player opens his panel; your own
   players are highlighted; a goal, an assist and a card each have a mark after the player's name:
   "We probably need an assist icon somewhere too" (Craig, 10 Nov 2026, on #1032). `S10.9`
