@@ -134,9 +134,6 @@ const SHEETS: Unsubbed[] = [
   man(60689, "Wood", "ST", "away", false, true, 2, 0, false),
 ];
 
-/** As the server sends them, in the match page's one order. */
-const MEN = SHEETS.map(withSub).toSorted(bySheetOrder);
-
 /** The recording's substitutions, oldest first, as its SUB lines below give them: the minute, the
  *  man on, the man off. */
 const SUBS: [string, string, string][] = [
@@ -157,6 +154,9 @@ function withSub(man: Unsubbed): MatchMan {
   const off = SUBS.find(([, , name]) => name === man.name);
   return { ...man, sub: { cameOn: on === undefined ? null : { minute: on[0], replaced: codeOf(on[2]) }, wentOff: off === undefined ? null : { minute: off[0] } } };
 }
+
+/** As the server sends them, in the match page's one order. */
+const MEN = SHEETS.map(withSub).toSorted(bySheetOrder);
 
 /** The recording's lines at full time, newest first, with the points a few move for owned men. */
 const LINES: [number, string, string?][] = [

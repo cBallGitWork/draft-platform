@@ -144,8 +144,10 @@ export const matchColumns = {
 } as const;
 /** Each mark after a man's name, read out (spec/10 S10.9): one a goal, an assist or a card. */
 export const markLabels = { goals: "Goal", assists: "Assist", yellowCards: "Yellow card", redCards: "Red card" } as const;
-/** A substitute who came on. */
-export const cameOnWords = "On";
+/** A substitute who came on, at his minute ("On 62'") once the commentary holds it. */
+export const cameOnWords = (minute: string | null) => (minute === null ? "On" : `On ${minute}`);
+/** A man who went off ("Off 62'"; the approved picture `1440-pitch.png`). */
+export const wentOffWords = (minute: string) => `Off ${minute}`;
 /** Read out for a substitute who never came on, greyed on screen. */
 export const unusedLabel = "unused substitute";
 

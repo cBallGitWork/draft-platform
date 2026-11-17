@@ -24,6 +24,7 @@ import {
   backLabel,
   backWords,
   cameOnWords,
+  wentOffWords,
   COMMENTARY_TITLE,
   goalsWords,
   highlightsNotHeldLabel,
@@ -105,7 +106,8 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
 }
 
 /** The lineups beside the team stats and the commentary: two team sheets with List; with Pitch, both
- *  starting elevens on one pitch, each side's substitutes on its sheet beside it (S10.9). */
+ *  elevens on one pitch as they stand now, each side's substitutes and men who went off on its sheet
+ *  beside it (S10.9). */
 function Overview({ match: { home, away, men, teamStats, commentary }, prov, view }: { match: MatchPageData; prov: ReactNode; view: LineupView }) {
   const moved = men.filter((man) => man.side === null);
   const sideMen = { home: men.filter((man) => man.side === "home"), away: men.filter((man) => man.side === "away") };
@@ -251,7 +253,7 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
  *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
  *  think grey means no teams" (Craig, 31 Oct 2026). */
 function ManRow({ man }: { man: MatchMan }) {
-  const { name, position, started, played, ownerTeamName, mine, marks } = man;
+  const { name, position, started, played, sub, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
   return (
     <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
@@ -259,7 +261,8 @@ function ManRow({ man }: { man: MatchMan }) {
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
         {name}
         <MatchMarks marks={marks} />
-        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
+        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords(sub.cameOn?.minute ?? null)}</span>}
+        {sub.wentOff !== null && <span className="ml-2 font-normal text-event">{wentOffWords(sub.wentOff.minute)}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
       </th>
       <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>
