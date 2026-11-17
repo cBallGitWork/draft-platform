@@ -10,6 +10,8 @@ import type { Position } from "../../convex/positions/positionTables";
 import { previewClub, previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchMarks, MatchPageData } from "./seam";
 
+type Unsubbed = Omit<MatchMan, "sub">;
+
 /** FPL's code for the recorded match. */
 const RECORDED_MATCH = 2645271;
 /** When it kicked off: Fri 23 Oct 2026, 20:00 BST. */
@@ -25,7 +27,7 @@ function man(
   owner: number | null,
   points: number | null,
   counts = owner !== null,
-): MatchMan {
+): Unsubbed {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
   const marks = { ...NO_MARKS, ...MARKS[name] };
   return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, statPoints: played ? statPointsOf(started, marks) : null, points, counts };
@@ -59,7 +61,7 @@ const MARKS: Record<string, Partial<MatchMarks>> = {
 };
 
 /** The sheets in the recording's order. */
-const SHEETS: MatchMan[] = [
+const SHEETS: Unsubbed[] = [
   man(108813, "Walton", "GK", "home", true, true, 0, 2),
   man(218543, "Palacios", "FB", "home", true, true, null, 5),
   man(455084, "Davis", "CB", "home", true, true, null, 2),
@@ -103,7 +105,28 @@ const SHEETS: MatchMan[] = [
 ];
 
 /** As the server sends them, in the match page's one order. */
-const MEN = SHEETS.toSorted(bySheetOrder);
+const MEN = SHEETS.map(withSub).toSorted(bySheetOrder);
+
+/** The recording's substitutions, oldest first, as its SUB lines below give them: the minute, the
+ *  man on, the man off. */
+const SUBS: [string, string, string][] = [
+  ["60'", "Flemming", "Emersonn"],
+  ["61'", "Clarke", "Philogene"],
+  ["69'", "Hudson-Odoi", "Ndoye"],
+  ["73'", "Maeda", "Fatawu"],
+  ["84'", "Netz", "N.Williams"],
+  ["85'", "Matusiwa", "Florentino"],
+  ["86'", "Akpom", "Enciso"],
+  ["90+4'", "Wood", "Delap"],
+];
+
+/** A man with his substitution, as the server reads it from the lines. */
+function withSub(man: Unsubbed): MatchMan {
+  const codeOf = (name: string) => SHEETS.find((each) => each.name === name)!.playerCode;
+  const on = SUBS.find(([, name]) => name === man.name);
+  const off = SUBS.find(([, , name]) => name === man.name);
+  return { ...man, sub: { cameOn: on === undefined ? null : { minute: on[0], replaced: codeOf(on[2]) }, wentOff: off === undefined ? null : { minute: off[0] } } };
+}
 
 /** The recording's lines at full time, newest first, with the points a few move for owned men. */
 const LINES: [number, string, string?][] = [

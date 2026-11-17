@@ -4,6 +4,7 @@
 import type { MatchMan, MatchPageData } from "../../../src/premierLeague/seam";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { NO_SUB } from "../../../convex/match/matchSubs";
 import { ARSENAL, CHELSEA, type PremierLeagueData } from "./premierLeague.harness";
 import { manager, openApp } from "./shell.harness";
 import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
@@ -19,6 +20,7 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   side,
   started: true,
   played: true,
+  sub: NO_SUB,
   ownerTeamName: null,
   mine: more.ownerTeamName === MY_TEAM_NAME,
   marks: { goals: 0, assists: 0, yellowCards: 0, redCards: 0 },
