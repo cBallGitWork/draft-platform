@@ -53,6 +53,6 @@ export async function unownedPointsOf(
     const { total, position, categories } = basePoints(stats, set, positions)[0];
     const points = overrides.get(playerCode) ?? total;
     if (record === undefined || position === null) return { points, categories, lines: null };
-    return { points, categories, lines:{ cell: cellAt(position), inMatch: new Map([[fixtureCode, { stats, played: record.played === true, points }]]) } };
+    return { points, categories, lines: { cell: cellAt(position), inMatch: new Map([[fixtureCode, { stats, played: record.played === true, points }]]) } };
   };
 }

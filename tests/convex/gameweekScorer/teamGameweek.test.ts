@@ -50,12 +50,12 @@ const scored: TeamInGameweek = {
 };
 
 test("a man with two matches has each match's own points, by its order in his matches", () => {
-  expect(pointsInMatch(scored, DOUBLE_MAN, FIRST_FIXTURE)).toEqual({ slot: doubleMan, points: 3 });
-  expect(pointsInMatch(scored, DOUBLE_MAN, SECOND_FIXTURE)).toEqual({ slot: doubleMan, points: 11 });
+  expect(pointsInMatch(scored, DOUBLE_MAN, FIRST_FIXTURE)).toEqual({ slot: doubleMan, points: 3, categories: [] });
+  expect(pointsInMatch(scored, DOUBLE_MAN, SECOND_FIXTURE)).toEqual({ slot: doubleMan, points: 11, categories: [] });
 });
 
 test("a bench man's points in his match are found as a starter's are", () => {
-  expect(pointsInMatch(scored, BENCH_MAN, OTHER_FIXTURE)).toEqual({ slot: benchMan, points: 5 });
+  expect(pointsInMatch(scored, BENCH_MAN, OTHER_FIXTURE)).toEqual({ slot: benchMan, points: 5, categories: [] });
 });
 
 test("points not yet arrived are null, not 0", () => {
