@@ -213,7 +213,6 @@ import type * as matchup_vidiprinter from "../matchup/vidiprinter.js";
 import type * as migrations_deadlineDefaultBackfill from "../migrations/deadlineDefaultBackfill.js";
 import type * as migrations_everyTieBreak from "../migrations/everyTieBreak.js";
 import type * as migrations_firstInstructionsVersion from "../migrations/firstInstructionsVersion.js";
-import type * as migrations_firstLineupBackfill from "../migrations/firstLineupBackfill.js";
 import type * as migrations_firstRolesVersion from "../migrations/firstRolesVersion.js";
 import type * as outbound_claude from "../outbound/claude.js";
 import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
@@ -656,7 +655,6 @@ declare const fullApi: ApiFromModules<{
   "migrations/deadlineDefaultBackfill": typeof migrations_deadlineDefaultBackfill;
   "migrations/everyTieBreak": typeof migrations_everyTieBreak;
   "migrations/firstInstructionsVersion": typeof migrations_firstInstructionsVersion;
-  "migrations/firstLineupBackfill": typeof migrations_firstLineupBackfill;
   "migrations/firstRolesVersion": typeof migrations_firstRolesVersion;
   "outbound/claude": typeof outbound_claude;
   "outbound/deploymentSettings": typeof outbound_deploymentSettings;
