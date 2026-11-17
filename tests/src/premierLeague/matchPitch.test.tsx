@@ -18,21 +18,21 @@ import { man, matchOf, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
 import { MY_TEAM_NAME } from "../../support/src/teams.harness";
 
-const at = (line: number, place: number) => ({ formationPlace: { formation: "4-3-3", line, place } });
+const placedAt = (line: number, place: number) => ({ formationPlace: { formation: "4-3-3", line, place } });
 
 /** Arsenal placed by a 4-3-3 sheet, Raya in goal and two along the back from the right; Chelsea's
  *  sheet drew no formation. */
-const MEN = [
-  man(1, "Raya", "home", { ...at(0, 0), position: "GK", ownerTeamName: MY_TEAM_NAME, points: 2 }),
-  man(2, "Timber", "home", { ...at(1, 0), points: 3 }),
-  man(3, "Calafiori", "home", { ...at(1, 1), marks: { goals: 1, assists: 0, yellowCards: 1, redCards: 0 }, points: 6 }),
+const PLACED_MEN = [
+  man(1, "Raya", "home", { ...placedAt(0, 0), position: "GK", ownerTeamName: MY_TEAM_NAME, points: 2 }),
+  man(2, "Timber", "home", { ...placedAt(1, 0), points: 3 }),
+  man(3, "Calafiori", "home", { ...placedAt(1, 1), marks: { goals: 1, assists: 0, yellowCards: 1, redCards: 0 }, points: 6 }),
   man(4, "Eze", "home", { started: false, played: true, points: 1 }),
   man(5, "Palmer", "away", { points: 7 }),
 ];
 
 /** The match page opened on Overview with Pitch chosen. */
 async function openPitch() {
-  openMatch({ match: matchOf({ men: MEN }) });
+  openMatch({ match: matchOf({ men: PLACED_MEN }) });
   const views = await screen.findByRole("radiogroup", { name: lineupViewLabel });
   expect(within(views).getByRole("radio", { name: lineupViewWords.list, checked: true })).toBeTruthy();
   await userEvent.click(within(views).getByRole("radio", { name: lineupViewWords.pitch }));
