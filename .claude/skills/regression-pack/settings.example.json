@@ -1,0 +1,9 @@
+{
+  "pack": "qa/regression-pack.csv",
+  "areas": {
+    "LG": "Leagues, sign-in, rules, set-up",
+    "UI": "Every screen and route"
+  },
+  "specIds": "S\\d{2}\\.\\d+",
+  "spec": ["SPEC.md", "spec"]
+}
