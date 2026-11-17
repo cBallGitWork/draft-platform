@@ -22,6 +22,14 @@ export const MATCH_ROUTE = `${PREMIER_LEAGUE_PATH}/match/$fixtureCode`;
 /** One match's page, by FPL's season-stable fixture code. */
 export const matchPath = (fixtureCode: number) => MATCH_ROUTE.replace("$fixtureCode", String(fixtureCode));
 
+/** The match page's search: the man whose panel is open (S10.9), so Back and a reload keep him. */
+export type MatchSearch = { player?: number };
+
+/** The search as the address holds it: a player must be a whole number, else it is dropped. */
+export function matchSearchOf({ player }: Record<string, unknown>): MatchSearch {
+  return { player: wholeNumber(player) };
+}
+
 /** A club's page's route, as the router matches it. */
 export const CLUB_ROUTE = `${PREMIER_LEAGUE_PATH}/club/$clubCode`;
 
