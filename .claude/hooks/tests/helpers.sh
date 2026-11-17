@@ -88,4 +88,5 @@ EOF
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
 gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
+filled_body() { printf '## What\n\nA manager sees his squad.\n\nPart of #12\n'; }  # a pull request body that passes (Flol)
 template_body() { sed 's/^Part of #.*/Part of #12/' "$hooks/../../.github/pull_request_template.md"; }  # the whole template, filled in
