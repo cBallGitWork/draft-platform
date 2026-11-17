@@ -27,6 +27,9 @@ const FRONT_AT = 45;
 /** The men the pitch stands: starters the sheets placed. */
 const onPitch = (men: MatchMan[]) => men.filter((man) => man.formationPlace !== null);
 
+/** Whether a sheet has placed anyone yet: until one has, the match page offers no pitch (S10.13). */
+export const anyPlaced = (men: MatchMan[]) => onPitch(men).length > 0;
+
 /** The men a side's list beside the pitch keeps: its substitutes, those who came on among them, the
  *  men who went off, and every man while no sheet drawing its formation is held. */
 export const offPitch = (men: MatchMan[]) => men.filter((man) => man.formationPlace === null || man.sub.wentOff !== null);
