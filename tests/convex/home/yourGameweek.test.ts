@@ -70,7 +70,7 @@ test("still flags a starter released since the deadline, who starts this gamewee
   expect(yours.lineup).toEqual({ set: true, flagged: [{ ...suspended, kickoff: LEAGUE_KICKOFF }] });
 });
 
-test("S12.16: leaves a flagged starter out of Your lineup from his match's kickoff, his note still in Your squad news", async () => {
+test("S12.16: leaves a flagged starter out of Your lineup from his match's kickoff, his note still in his squad's news", async () => {
   const league = await scoresLeague();
   await giveNews(league, HULL_SCORER, KNOCK, 75);
   const knock = { playerCode: HULL_SCORER, name: await nameOf(league, HULL_SCORER), news: KNOCK, chanceOfPlaying: 75 };

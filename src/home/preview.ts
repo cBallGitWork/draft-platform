@@ -22,7 +22,7 @@ import { previewSeasonOf } from "../playerCard/preview";
 import { RECAP_PLAYERS } from "../../convex/home/recapWords";
 import { previewPlayers, previewRivals } from "../scouting/preview";
 import { playsIn, previewClubMatch, previewGameweekMatches } from "../premierLeague/preview";
-import { flaggedStartersAt } from "../../convex/home/yourGameweek";
+import { flaggedStartersAt } from "../../convex/home/homeAt";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 

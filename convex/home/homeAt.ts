@@ -7,7 +7,7 @@ import { groupedBy } from "../shared/groupedBy";
 import { DAY_MS, HOUR_MS } from "../shared/time";
 import type { HeldLeagueHome, LeagueHome } from "./leagueHome";
 import { matchdayAt } from "./matchday";
-import { flaggedStartersAt } from "./yourGameweek";
+import type { FlaggedStarter } from "./yourGameweek";
 
 // League home as the screen shows it at its minute (#1550). A query taking the minute runs again,
 // uncached, every minute for every open screen, so league home is read in three, none taking it
@@ -79,6 +79,12 @@ export function leagueHomeAt(held: HeldLeagueHome, matchday: HeldMatchday, now: 
     recap: recap === null ? null : recapAt(recap, now),
   };
 }
+
+/** The flagged starters still in doubt at `now`: those whose club has yet to kick off this gameweek,
+ *  or has no match dated in it (Craig, 17 Nov 2026, on #2466). The preview judges its own alike.
+ *  `S12.16` */
+export const flaggedStartersAt = (flagged: readonly FlaggedStarter[], now: number): FlaggedStarter[] =>
+  flagged.filter(({ kickoff }) => kickoff === null || kickoff > now);
 
 /** The recap at `now`: gone once the moment it leaves has come. */
 function recapAt({ until, ...recap }: NonNullable<HeldLeagueHome["recap"]>, now: number): LeagueHome["recap"] {
