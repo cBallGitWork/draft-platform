@@ -449,7 +449,9 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   them.
 - Every other feature folder, one job each. Server (`convex/`): `admin` (the feeds page, run logs,
   failure emails, platform settings), `availability` (a player's availability, #1211), `balanceLab`
-  (the rule balance lab, #843), `feedback`, `football` (the feeds and what they fill), `gameweeks`
+  (the rule balance lab, #843), `e2e` (test-only functions, every one internal and refused unless
+  the deployment carries `E2E_FUNCTIONS_ON`, which a release refuses on live; S20.17, #2519),
+  `feedback`, `football` (the feeds and what they fill), `gameweeks`
   (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
   lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
   `lineup` (a team's lineup: its pitch, roles, instructions, saved plans and auto-subs), `mail`,
