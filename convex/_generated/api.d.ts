@@ -23,6 +23,8 @@ import type * as balanceLab_balanceLab from "../balanceLab/balanceLab.js";
 import type * as balanceLab_balanceLabLimits from "../balanceLab/balanceLabLimits.js";
 import type * as balanceLab_balanceLabRun from "../balanceLab/balanceLabRun.js";
 import type * as balanceLab_labReportShape from "../balanceLab/labReportShape.js";
+import type * as balanceLab_roleBacktest from "../balanceLab/roleBacktest.js";
+import type * as balanceLab_roleBacktestRun from "../balanceLab/roleBacktestRun.js";
 import type * as crons from "../crons.js";
 import type * as draft_autoPickOrder from "../draft/autoPickOrder.js";
 import type * as draft_autoPickSwitch from "../draft/autoPickSwitch.js";
@@ -464,6 +466,8 @@ declare const fullApi: ApiFromModules<{
   "balanceLab/balanceLabLimits": typeof balanceLab_balanceLabLimits;
   "balanceLab/balanceLabRun": typeof balanceLab_balanceLabRun;
   "balanceLab/labReportShape": typeof balanceLab_labReportShape;
+  "balanceLab/roleBacktest": typeof balanceLab_roleBacktest;
+  "balanceLab/roleBacktestRun": typeof balanceLab_roleBacktestRun;
   crons: typeof crons;
   "draft/autoPickOrder": typeof draft_autoPickOrder;
   "draft/autoPickSwitch": typeof draft_autoPickSwitch;

@@ -46,16 +46,21 @@ export const startsPage = internalQuery({
   },
 });
 
-/** The lab's report on `set` over every past season copied. */
-async function labOn(ctx: ActionCtx, set: StoredScoringSet): Promise<LabReport> {
+/** Every real start in every past season copied, a page at a time. */
+export async function pastStarts(ctx: ActionCtx): Promise<PastStart[]> {
   const starts: PastStart[] = [];
   let cursor: string | null = null;
   for (;;) {
     const page: { starts: PastStart[]; cursor: string; isDone: boolean } = await ctx.runQuery(internal.balanceLab.balanceLabRun.startsPage, { cursor });
     starts.push(...page.starts);
-    if (page.isDone) break;
+    if (page.isDone) return starts;
     cursor = page.cursor;
   }
+}
+
+/** The lab's report on `set` over every past season copied. */
+async function labOn(ctx: ActionCtx, set: StoredScoringSet): Promise<LabReport> {
+  const starts = await pastStarts(ctx);
   const { count, first } = startersWithNoPosition(starts);
   const names: string[] = await ctx.runQuery(internal.balanceLab.balanceLabRun.pastNames, { players: first.map(({ player }) => player) });
   const named = first.map(({ club, kickoff }, at) => ({ name: names[at]!, ...(club === undefined ? {} : { club }), kickoff }));
