@@ -17,10 +17,9 @@ Python 3.9+.
 from __future__ import annotations
 
 import json
-import os
 import sys
 
-from hook_payload import project_dir
+from hook_payload import project_dir, report
 from run_command import call
 from where import REMOTE_MAIN
 
@@ -80,9 +79,7 @@ def main():
         paths = differing(folder)
         line = summary(paths, merged_since(folder)) if paths else None
     except GitFailed as error:
-        name = os.path.basename(sys.argv[0])
-        print(f"{name}: {error}, so it can't say whether this session's setup is the merged one.", file=sys.stderr)
-        return 1
+        return report(error, "it can't say whether this session's setup is the merged one")
     if line:  # additionalContext reaches Claude; systemMessage shows it to Craig
         print(json.dumps({"systemMessage": line,
                           "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": line}}))

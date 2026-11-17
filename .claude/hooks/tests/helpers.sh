@@ -43,6 +43,17 @@ fails_loudly() { # text hook payload [env...]: the hook exits 1, prints nothing 
 bad_payloads=( # each with what the hook says of it
   '' 'is empty'  'not json' "isn't JSON"  '[]' 'is JSON but not an object'  '"x"' 'is JSON but not an object'
 )
+rejects_bad_payloads() { # hook...: each hook exits 1 on each payload it can't read, saying what came
+  local hook i
+  for hook in "$@"; do
+    for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
+      fails_loudly "${bad_payloads[i + 1]}" "$hook" "${bad_payloads[i]}"
+    done
+  done
+}
+tool_call() { # tool input [session]: a hook payload calling the tool, with the session id when given
+  "$jq" -nc --arg t "$1" --argjson i "$2" --arg s "${3:-}" '{tool_name:$t,tool_input:$i} + (if $s == "" then {} else {session_id:$s} end)'
+}
 denies_unreadable() { # hook: a guard denies each payload it can't read, saying what came, never lets it through
   local i
   for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do

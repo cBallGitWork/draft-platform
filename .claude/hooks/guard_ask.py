@@ -133,8 +133,8 @@ def record_answered(payload):
     if not isinstance(answers, dict):
         if not isinstance(response, dict):
             return  # Craig met the questions with a message instead of answers: nothing was answered
-        print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
-              "so no question was recorded as asked.", file=sys.stderr)
+        report(f"AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)})",
+               "no question was recorded as asked")
         return
     picked = {str(q): str(a).strip() for q, a in answers.items() if str(a or "").strip()}
     # what he picked is his latest message, so guard_mode.py reads "Yes, build them all" as a go (#1228)
@@ -146,8 +146,7 @@ def record_answered(payload):
                 ASKED_DIR.mkdir(exist_ok=True)
                 mark_of(text).write_text(text, encoding="utf-8")
             except OSError as error:
-                print(f"guard_ask.py: couldn't record an answered question ({error}), so it can be asked again.",
-                      file=sys.stderr)
+                report(f"couldn't record an answered question ({error})", "it can be asked again")
 
 
 def decide(payload):
