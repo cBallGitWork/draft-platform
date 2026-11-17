@@ -20,6 +20,7 @@ import { movedToFullBack } from "../../support/convex/positionStarts.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { tacticsOf } from "../../support/convex/screenReads.harness";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -39,14 +40,14 @@ beforeEach(async () => {
   await holdSquad(t, leagueId, annsTeam);
 });
 
-const tacticsOf = async (email: string) => (await actingAs(t, email)).query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+const tacticsAs = async (email: string) => tacticsOf(await actingAs(t, email), leagueId);
 /** The next gameweek's kickoff, as holdGameweeks sets it, less the first rules' deadline. */
 const nextDeadline = () => Date.now() + KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
 
 describe("the lineup to set", () => {
   test("is the next gameweek's, with its league deadline, the league's limits and presets, and the squad", async () => {
     const deadline = nextDeadline();
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
 
     expect(tactics).toMatchObject({
       kind: "open",
@@ -67,16 +68,16 @@ describe("the lineup to set", () => {
 
   // S05.8
   test("sends the roles' runs the site's scoring set holds in the gameweek, none while it holds none", async () => {
-    const before = await tacticsOf(ANN);
+    const before = await tacticsAs(ANN);
     expect(before.kind === "open" && before.runs).toEqual([]);
     await t.run((ctx) => holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, runs: [...FIRST_RUNS] }, kind: "fix" }));
-    const after = await tacticsOf(ANN);
+    const after = await tacticsAs(ANN);
     expect(after.kind === "open" && after.runs).toEqual(FIRST_RUNS);
   });
 
   test("keeps a squad player the football sync doesn't hold, saying so in place of his name (#323)", async () => {
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: UNHELD }));
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], flagged: [], number: null, stars: [], availability: null, news: null });
     expect(tactics.squad).toHaveLength(SQUAD.length + 1);
@@ -88,7 +89,7 @@ describe("the lineup to set", () => {
       const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", benched)).unique();
       await ctx.db.patch("playerPositions", row!._id, { starts: movedToFullBack(3), approved: ["CB", "FB"], set: [] });
     });
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad.find((member) => member.playerCode === benched)).toMatchObject({ positions: ["CB", "FB"], flagged: [{ position: "CB", startsElsewhere: 3 }] });
   });
@@ -106,7 +107,7 @@ describe("the lineup to set", () => {
       await pickFirstLineupAgain(ctx, leagueId, annsTeam);
     });
 
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad.find((member) => member.playerCode === keeper.playerCode)?.stars).toEqual(ratings.map(({ area, role, stars }) => ({ area, role, stars })));
     expect(tactics.lineup.starters[0]).toEqual({ ...keeper, role: "sweeperKeeper" });
@@ -119,7 +120,7 @@ describe("the lineup to set", () => {
       await ctx.db.patch("players", row!._id, { availability: "doubtful" });
       await ctx.db.insert("availabilitySettings", { code: back.playerCode, availability: "out" });
     });
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     const availabilityOf = (code: number) => tactics.squad.find((member) => member.playerCode === code)?.availability;
     expect([availabilityOf(keeper.playerCode), availabilityOf(back.playerCode)]).toEqual(["doubtful", "out"]);
@@ -131,7 +132,7 @@ describe("the lineup to set", () => {
       const row = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", keeper.playerCode)).unique();
       await ctx.db.patch("players", row!._id, { news: "Knock - 75% chance of playing", chanceOfPlaying: 75 });
     });
-    const tactics = await tacticsOf(ANN);
+    const tactics = await tacticsAs(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad.filter(({ news }) => news !== null).map(({ playerCode, news }) => [playerCode, news])).toEqual([[keeper.playerCode, "Knock - 75% chance of playing"]]);
   });
@@ -140,13 +141,13 @@ describe("the lineup to set", () => {
     const ann = await actingAs(t, ANN);
     await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
 
-    expect(await tacticsOf(ANN)).toMatchObject({ lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench } });
+    expect(await tacticsAs(ANN)).toMatchObject({ lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench } });
   });
 
   test("S05.55: hands on the mark of the save the lineup was last left by, new with each save", async () => {
     const ann = await actingAs(t, ANN);
     const markOf = async () => {
-      const tactics = await tacticsOf(ANN);
+      const tactics = await tacticsAs(ANN);
       if (tactics.kind !== "open") throw new Error("expected an open gameweek");
       return tactics.lineupEdit;
     };
@@ -165,7 +166,7 @@ describe("the lineup to set", () => {
   test("moves on to the gameweek after once the deadline passes, counting down to that one's", async () => {
     const deadline = nextDeadline();
     vi.advanceTimersByTime(deadline - Date.now());
-    expect(await tacticsOf(ANN)).toMatchObject({ gameweek: NEXT + 1, deadline: deadline + WEEK_MS });
+    expect(await tacticsAs(ANN)).toMatchObject({ gameweek: NEXT + 1, deadline: deadline + WEEK_MS });
   });
 
   test("counts down to the league's recorded deadline for its gameweek once one is recorded", async () => {
@@ -176,17 +177,17 @@ describe("the lineup to set", () => {
     });
     // deadlineRecorder.ts writes the row once the deadline passes; here it is ahead of the clock
     // asked, so the gameweek is still open and the recorded time is the one counted down to.
-    expect(await tacticsOf(ANN)).toMatchObject({ gameweek: NEXT, deadline: recorded });
+    expect(await tacticsAs(ANN)).toMatchObject({ gameweek: NEXT, deadline: recorded });
   });
 });
 
 describe("no lineup to set", () => {
   test("once every gameweek has begun", async () => {
     vi.advanceTimersByTime((PL_GAMEWEEKS - NEXT + 1) * WEEK_MS);
-    expect(await tacticsOf(ANN)).toEqual({ kind: "seasonOver" });
+    expect(await tacticsAs(ANN)).toEqual({ kind: "seasonOver" });
   });
 
   test("is refused to someone who runs no team in the league", async () => {
-    await expectRefused(tacticsOf(COMMISSIONER), refusals.runsNoTeam);
+    await expectRefused(tacticsAs(COMMISSIONER), refusals.runsNoTeam);
   });
 });

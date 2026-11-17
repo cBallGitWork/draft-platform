@@ -1,10 +1,10 @@
 // My team's seam's live wiring, with Convex's query faked by name: what it asks the server, and
 // that it hands on what comes back as it comes.
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { liveMyTeam } from "../../../src/myTeam/liveMyTeam";
 import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
@@ -37,13 +37,20 @@ test("it asks squads/teamTransactions:ofMyTeam for the league, and hands on what
   expect(convex.transactions).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
 });
 
-test("it asks squads/teamSquad:ofMyTeam for the league at the start of the current minute, and hands on what comes back", () => {
-  const squad = { teamName: "Team 1", lastGameweek: null, players: [] };
-  convex.squad.mockReturnValue(squad);
-  expect(renderHook(() => liveMyTeam.useTeamSquad(A_LEAGUE_ID)).result.current).toBe(squad);
-  const [{ leagueId: asked, now }] = convex.squad.mock.calls[0];
-  expect(asked).toBe(A_LEAGUE_ID);
-  expect(now % MINUTE_MS).toBe(0);
+test("it asks squads/teamSquad:ofMyTeam for the league for the current hour, and a minute's turn asks for the same hour (#2008)", () => {
+  vi.useFakeTimers({ now: Date.parse("2026-11-17T12:00:00Z") + SECOND_MS });
+  try {
+    const squad = { teamName: "Team 1", lastGameweek: null, players: [], scheduleGameweeks: [] };
+    convex.squad.mockImplementation(({ hour }: { hour: number }) => ({ ...squad, scheduleFrom: [{ from: hour, gameweek: null }] }));
+    const { result } = renderHook(() => liveMyTeam.useTeamSquad(A_LEAGUE_ID));
+    expect(result.current).toEqual(squad);
+    act(() => vi.advanceTimersByTime(MINUTE_MS));
+    expect(convex.squad.mock.calls.length).toBeGreaterThan(1);
+    const asked = new Set(convex.squad.mock.calls.map(([{ leagueId, hour }]) => [leagueId, hour].join()));
+    expect(asked).toEqual(new Set([[A_LEAGUE_ID, Date.parse("2026-11-17T12:00:00Z")].join()]));
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test("a squad number is set through squads/squadNumbers:set, and a refusal comes back as the server's words (#13)", async () => {

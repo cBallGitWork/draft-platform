@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import {
   HULL_KEEPER,
   HULL_SCORER,
@@ -13,6 +12,7 @@ import {
 import { fullTimeRecords, liveRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole } from "../../support/convex/gameweekScoresFixes.harness";
 import { actingAs, ANN } from "../../support/convex/leagues.harness";
+import { teamSquadOf } from "../../support/convex/screenReads.harness";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 
 // The Squad panel's Started and Role points (#1005; spec/12 Squad; Craig, 6 Nov 2026), read through
@@ -26,7 +26,7 @@ const ROLE_GOAL = 2;
 
 async function annsSquad(league: ScoresLeague) {
   const ann = await actingAs(league.t, ANN);
-  const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId: league.leagueId, now: LEAGUE_FULL_TIME_READ });
+  const squad = await teamSquadOf(ann, league.leagueId, LEAGUE_FULL_TIME_READ);
   return (code: number) => squad.players.find((each) => each.code === code)!;
 }
 
