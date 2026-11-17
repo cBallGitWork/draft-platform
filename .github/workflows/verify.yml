@@ -182,7 +182,7 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20  # 204 tests on 2 workers took about 10 minutes, so two failures' retries cancelled five pull requests (17 Nov 2026)
     container:
       image: mcr.microsoft.com/playwright:v${{ needs.changes.outputs.playwright_version }}-noble
     steps:
