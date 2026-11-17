@@ -28,8 +28,38 @@ function man(
 ): MatchMan {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
   const marks = { ...NO_MARKS, ...MARKS[name] };
-  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, statPoints: played ? statPointsOf(started, marks) : null, points, counts };
+  const drawn = PLACES[name];
+  const formationPlace = started && drawn !== undefined ? { formation: FORMATION, line: drawn[0], place: drawn[1] } : null;
+  return { playerCode, name, position, side, started, formationPlace, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, statPoints: played ? statPointsOf(started, marks) : null, points, counts };
 }
+
+/** Each starter's line and place along it, from his side's right, for Overview's Pitch: made up, as
+ *  the positions are, both sides in one formation. */
+const FORMATION = "4-2-3-1";
+const PLACES: Record<string, [number, number]> = {
+  Walton: [0, 0],
+  Palacios: [1, 0],
+  Davis: [1, 1],
+  "O'Shea": [1, 2],
+  Ouattara: [1, 3],
+  Florentino: [2, 0],
+  Diop: [2, 1],
+  Fatawu: [3, 0],
+  Enciso: [3, 1],
+  Philogene: [3, 2],
+  Emersonn: [4, 0],
+  Sels: [0, 0],
+  "Jair Cunha": [1, 0],
+  Milenković: [1, 1],
+  Murillo: [1, 2],
+  "N.Williams": [1, 3],
+  Schlager: [2, 0],
+  Muñoz: [2, 1],
+  Ndoye: [3, 0],
+  "Gibbs-White": [3, 1],
+  McAtee: [3, 2],
+  Delap: [4, 0],
+};
 
 /** What his stats earned him, for the Points switch: made up as his points are, at FPL's values
  *  for a midfielder. */

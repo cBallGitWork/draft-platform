@@ -206,6 +206,16 @@ export const statViewLabel = "Show each stat's count or its points";
 /** A stat's points in the Points view, signed ("+2", "−1"); the dash where it earned none, as the
  *  approved picture draws it. */
 export const statPointsWords = (points: number | null) => (points === null || points === 0 ? noFigureWords : signedWords(points));
+/** The List | Pitch switch at the right of the tabs row while Overview is open (S10.9): the lineups
+ *  as two team sheets or on one pitch. */
+export const LINEUP_VIEWS = ["list", "pitch"] as const;
+export type LineupView = (typeof LINEUP_VIEWS)[number];
+export const lineupViewWords: Record<LineupView, string> = { list: "List", pitch: "Pitch" };
+export const lineupViewLabel = "Show the lineups as team sheets or on a pitch";
+/** The pitch's head, each side's name and its formation ("Chelsea, 4-2-3-1"); the name alone while
+ *  no sheet drawing it is held. */
+export const sideFormationWords = (club: string, formation: string | null) => (formation === null ? club : `${club}, ${formation}`);
+export const matchPitchLabel = (home: string, away: string) => `${home} and ${away} on the pitch`;
 export const SHOTS_TITLE = "Shots";
 /** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
 export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";

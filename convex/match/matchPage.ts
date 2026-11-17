@@ -9,7 +9,7 @@ import { vidiprinterTeam } from "../matchup/instructionLines";
 import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
-import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
+import { clubRecord, formationPlace, position, scoreRead, sideTeamStats } from "../schema";
 import type { CategoryPoints } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
@@ -57,6 +57,9 @@ const matchMan = v.object({
   /** The club he played the match for, by the match's sides (#502); null when it is neither. */
   side: v.union(side, v.null()),
   started: v.boolean(),
+  /** Where a starter stood in his side's formation by the held sheets, for Overview's pitch (S10.9);
+   *  null for a substitute, or while no sheet drawing it is held. */
+  formationPlace: v.union(formationPlace, v.null()),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
   /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
@@ -81,6 +84,7 @@ const matchMan = v.object({
   counts: v.boolean(),
 });
 export type MatchMan = Infer<typeof matchMan>;
+type FormationPlace = Infer<typeof formationPlace>;
 
 const heldMatchPage = v.object({
   fixtureCode: v.number(),
@@ -121,7 +125,9 @@ export const ofMatch = query({
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
-    const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
+    const sheetMen = (await heldTeamSheetsOf(ctx, fixtureCode))?.men ?? [];
+    const named = records.length > 0 ? records : sheetMen.map(({ playerCode, started }) => ({ playerCode, started, played: null }));
+    const places = new Map(sheetMen.flatMap(({ playerCode, formationPlace }) => (formationPlace === undefined ? [] : [[playerCode, formationPlace] as const])));
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
     const deadlineLineups = begunGameweek === null ? null : await deadlineLineupsOf(ctx, leagueId, begunGameweek);
     const owners = await matchOwnersOf(ctx, leagueId, deadlineLineups, named.map(({ playerCode }) => playerCode));
@@ -131,7 +137,7 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, lineupOwners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null }, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null, places }, priced, unownedPoints);
     const { commentary, lines } = await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held);
     return {
       fixtureCode,
@@ -151,12 +157,6 @@ export const ofMatch = query({
     };
   },
 });
-
-/** The men the held sheets name, before kickoff; none before a read has named any. */
-async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[]> {
-  const sheets = await heldTeamSheetsOf(ctx, fixtureCode);
-  return (sheets?.men ?? []).map(({ playerCode, started }) => ({ playerCode, started, played: null }));
-}
 
 /** The match's gameweek once the league has begun it, as the matchup shows lineups only then; null
  *  before, or for a match no gameweek holds. */
@@ -243,7 +243,12 @@ async function menOf(
   leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
-  { owners, lineupOwners, viewerTeam }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null },
+  {
+    owners,
+    lineupOwners,
+    viewerTeam,
+    places,
+  }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null; places: Map<PlayerCode, FormationPlace> },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
 ): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
@@ -266,6 +271,7 @@ async function menOf(
         position: positions[0] ?? null,
         side: playedFor === undefined ? null : sideOf(fixture, playedFor),
         started,
+        formationPlace: started ? (places.get(playerCode) ?? null) : null,
         played,
         ownerTeamName: owner?.name ?? null,
         mine: owner !== undefined && owner._id === viewerTeam,
