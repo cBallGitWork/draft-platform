@@ -6,7 +6,10 @@ import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
-import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { answerAt } from "../../../convex/gameweeks/hourAnswers";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { clockHourOf } from "../../../convex/home/homeAt";
 import { gameModeOf } from "../../../convex/rules/gameMode";
 import { HELD_FIRST_RULES, KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -178,6 +181,40 @@ describe("the lineup to set", () => {
     // deadlineRecorder.ts writes the row once the deadline passes; here it is ahead of the clock
     // asked, so the gameweek is still open and the recorded time is the one counted down to.
     expect(await tacticsAs(ANN)).toMatchObject({ gameweek: NEXT, deadline: recorded });
+  });
+});
+
+describe("the hour's read (#2008)", () => {
+  /** What `ofMyTeam` sends for the hour holding `moment`, each answer as its start and gameweek. */
+  const hourOf = async (moment: number) => {
+    const hour = clockHourOf(moment);
+    const answers = await (await actingAs(t, ANN)).query(api.lineup.tactics.ofMyTeam, { leagueId, hour });
+    return { hour, answers, turns: answers.map(({ from, tactics }) => [from, tactics.kind === "open" ? tactics.gameweek : tactics.kind]) };
+  };
+
+  test("S05.25 with the deadline inside the hour, sends the gameweek to set from its start and the next from the deadline's minute", async () => {
+    const deadline = nextDeadline();
+    const { hour, answers, turns } = await hourOf(deadline);
+    expect(deadline).toBeGreaterThan(hour);
+    expect(turns).toEqual([
+      [hour, NEXT],
+      [deadline, NEXT + 1],
+    ]);
+    expect(answerAt(answers, deadline - MINUTE_MS)?.tactics).toMatchObject({ gameweek: NEXT, deadline });
+    expect(answerAt(answers, deadline)?.tactics).toMatchObject({ gameweek: NEXT + 1, deadline: deadline + WEEK_MS });
+  });
+
+  test("S05.25 sends one answer for an hour with no deadline in it", async () => {
+    const { hour, turns } = await hourOf(nextDeadline() - HOUR_MS);
+    expect(turns).toEqual([[hour, NEXT]]);
+  });
+
+  test("S05.25 sends one answer when the deadline inside the hour leaves no lineup to set either side of it", async () => {
+    // The league's season ends before NEXT, so the hour holding NEXT's deadline has none to set
+    // at its start or after it: the deadline's turn changes nothing and is dropped.
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: seasonGameweeks(PL_GAMEWEEKS).filter((gameweek) => gameweek >= NEXT) }));
+    const { hour, turns } = await hourOf(nextDeadline());
+    expect(turns).toEqual([[hour, "seasonOver"]]);
   });
 });
 

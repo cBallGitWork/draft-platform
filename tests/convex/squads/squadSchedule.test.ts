@@ -3,12 +3,15 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { saveGameweeksInHour } from "../../../convex/gameweeks/saveGameweek";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { clockHourOf } from "../../../convex/home/homeAt";
-import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
+import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { clubsByCode } from "../../../convex/shared/players";
+import { api } from "../../../convex/_generated/api";
+import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { squadSchedule } from "../../../convex/squads/squadSchedule";
-import { type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
+import { teamSquadAt } from "../../../convex/squads/teamSquadAt";
+import { ANN, actingAs, type TestConvex, freshLeague } from "../../support/convex/leagues.harness";
 import { holdGameweeks, KICKS_OFF_IN } from "../../support/convex/leagueRules.harness";
-import { ARSENAL, CHELSEA, insertClubs, PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, insertClubs, insertPlayers, PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 
 // The Squad tab's Schedule view (#1006): his club's matches in the next six gameweeks, from the one
 // a lineup is being set for; a blank week has none, a double two, and the gameweeks are those the
@@ -16,8 +19,9 @@ import { ARSENAL, CHELSEA, insertClubs, PL_GAMEWEEKS } from "../../support/conve
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
+let annsTeam: Id<"teams">;
 beforeEach(async () => {
-  ({ t, leagueId } = await freshLeague());
+  ({ t, leagueId, teams: [annsTeam] } = await freshLeague({ managers: [ANN] }));
   await t.run((ctx) => insertClubs(ctx, [ARSENAL, CHELSEA]));
 });
 
@@ -80,5 +84,31 @@ describe("the schedule", () => {
   test("holds no gameweeks once every gameweek has begun", async () => {
     await holdGameweeks(t, { next: 40 });
     expect(await scheduleOf()).toEqual({ gameweeks: [], byClub: new Map() });
+  });
+});
+
+// My team's read takes the hour and teamSquadAt.ts keeps the minute's six (#2008).
+describe("through an hour holding the deadline", () => {
+  test("S05.25 moves on to the six gameweeks from the next at the deadline's minute", async () => {
+    const deadline = Date.now() + KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
+    await holdSeason(10);
+    await t.run(async (ctx) => {
+      await insertPlayers(ctx, [{ code: 1001, name: "Saka", fullName: "Saka in full", clubCode: ARSENAL.code, positions: ["W"] }]);
+      await ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: 1001 });
+    });
+    const hour = clockHourOf(deadline);
+    const held = await (await actingAs(t, ANN)).query(api.squads.teamSquad.ofMyTeam, { leagueId, hour });
+    expect(deadline).toBeGreaterThan(hour);
+    expect(held.scheduleFrom).toEqual([
+      { from: hour, gameweek: 10 },
+      { from: deadline, gameweek: 11 },
+    ]);
+    /** The minute's gameweeks, and Saka's matches in them. */
+    const at = (now: number) => {
+      const { scheduleGameweeks, players } = teamSquadAt(held, now)!;
+      return { scheduleGameweeks, sakas: players[0].schedule.map(({ gameweek }) => gameweek) };
+    };
+    expect(at(deadline - MINUTE_MS)).toEqual({ scheduleGameweeks: [10, 11, 12, 13, 14, 15], sakas: [10, 12, 12] });
+    expect(at(deadline)).toEqual({ scheduleGameweeks: [11, 12, 13, 14, 15, 16], sakas: [12, 12] });
   });
 });
