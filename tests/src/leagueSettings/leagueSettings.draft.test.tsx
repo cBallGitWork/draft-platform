@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
-import { discardWords, unchangedWords } from "../../../src/rules/words";
+import { discardWords, notSavedWords } from "../../../src/rules/words";
 import {
   autoPickWords,
   blankPickClockWords,
@@ -148,7 +148,7 @@ describe("the draft's start date (#1476)", () => {
     expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, new Date(SUNDAY).getTime());
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(draftStartSavedWords));
-    expect(screen.queryByText(unchangedWords)).toBeNull();
+    expect(screen.queryByText(notSavedWords)).toBeNull();
   });
 
   it("says a date saved alone was saved, not an earlier settings save's gameweek (#1780)", async () => {

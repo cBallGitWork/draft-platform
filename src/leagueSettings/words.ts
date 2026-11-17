@@ -87,6 +87,9 @@ export const blankPickClockWords = noNumberWords(pickClockLabel);
 /** The Draft tab's row for auto-pick, the approved picture's short label. */
 export const autoPickLabel = "Auto-pick"; // literal-ok: the settings row's label; the draft room's AUTO_PICK_TITLE is another feature's, which featureImports keeps out
 export const autoPickWords = "Auto-pick after timeouts";
+/** The Auto-pick line as 1440-draft.png has it: a tick, "After", the box, "timeouts". */
+export const autoPickAfterWords = "After";
+export const timeoutsUnitWords = "timeouts";
 export const timeoutsLabel = "Timeouts before auto-pick";
 /** spec/04, Auto-pick. */
 export const timeoutsHint = `A whole number, ${TIMEOUTS_FEWEST} to ${TIMEOUTS_MOST}. A clock that runs out makes the pick and counts as a timeout; a manager on auto-pick can take control back himself.`;
@@ -109,11 +112,13 @@ export const tradeReviewWords: Record<TradeReview, string> = {
 export const tradeReviewHint =
   `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
+/** The Trade deadline line as 1440-trades.png has it: a tick, "No trades after", the gameweek. */
+export const tradeDeadlineAfterWords = "No trades after";
 export const tradeDeadlineLabel = "No trades after gameweek";
 /** Craig, 6 Nov 2026, on #383; the season's last gameweek is however many it has (#1618). */
 export const tradeDeadlineHint = (seasonGameweeks: number) =>
   `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
-export const blankTradeDeadlineWords = noNumberWords(tradeDeadlineLabel, "turn the trade deadline off");
+export const blankTradeDeadlineWords = "The trade deadline has no gameweek. Choose one, or turn the deadline off, then save.";
 
 /** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */
 export const waiversTitle = "Waivers";

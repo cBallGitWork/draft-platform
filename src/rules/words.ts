@@ -15,6 +15,8 @@ export const appliesFromWords = "Changes apply from";
 export const saveWords = "Save changes";
 export const discardWords = "Discard changes";
 export const unchangedWords = "Nothing changed yet.";
+/** League settings' bar while a change waits to be saved (docs/design/approved/settings/1440.png). */
+export const notSavedWords = "Not saved";
 /** A save went through: "Saved. The new settings apply from Gameweek 9", then anything else the
  *  save did (Craig, 1 Nov 2026, on #351: "Word them alike"). */
 export const savedFromWords = (applies: string, gameweek: number, also = "") => `Saved. ${applies} from ${gameweekWords(gameweek)}${also}.`;
