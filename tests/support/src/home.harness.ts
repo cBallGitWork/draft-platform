@@ -89,7 +89,7 @@ export const quietNews: LeagueNews = {
  *  letters, none unless `mail` says. */
 export type HomeData = { leagueHome?: LeagueHome; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews; mail?: LatestMail | null };
 
-export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0 } }: HomeData = {}) {
+export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0, needsYou: [] } }: HomeData = {}) {
   return {
     useLatestMail: vi.fn<HomeSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),

@@ -5,8 +5,6 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../../convex/_generated/dataModel";
-import type { LetterSummary } from "../../../../convex/mail/mail";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../../../src/frame/menu";
 import { MAIL_TITLE, unreadCount } from "../../../../src/mail/words";
 import { playerCardPath } from "../../../../src/playerCard/paths";
@@ -37,6 +35,7 @@ import { everyRoleOf } from "../../../../convex/lineup/roles";
 import { starsLabel } from "../../../../src/ui/StarRating";
 import { closeSelectedLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
+import { mailLetter } from "../../../support/src/mailScreen.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
 import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
 
@@ -52,18 +51,7 @@ const panelOf = (name: string) => screen.getByRole("region", { name });
 /** What a panel's row says beside its name. */
 const factOf = (panel: HTMLElement, term: string) => within(panel).getByText(term, { selector: "dt" }).nextElementSibling!.textContent;
 
-const letter = (number: number, read: boolean): LetterSummary => ({
-  letterId: `letter-${number}` as Id<"letters">,
-  leagueName: league.name,
-  at: Date.UTC(2026, 9, 10 + number, 12),
-  kind: null,
-  from: null,
-  subject: `Letter ${number}`,
-  body: `The text of letter ${number}.`,
-  read,
-  link: null,
-});
-const mail = { letters: [letter(3, false), letter(2, true)], unread: 4 };
+const mail = { letters: [mailLetter(3, false), mailLetter(2, true)], unread: 4, needsYou: [] };
 
 describe("the table's plate", () => {
   it("says how full the squad is against the league's maximum", async () => {
