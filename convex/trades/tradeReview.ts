@@ -17,7 +17,7 @@ import {
   type TradeWords,
 } from "../mail/tradeLetterWords";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
+import { isAdmin, managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { joinAnother, placeOf } from "../squads/squadPlace";
 import { closeOffersHolding, endOffer } from "./tradeClose";
 import { leagueOf, managersOf, teamsOfTrade, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
@@ -62,8 +62,9 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   const scheduledId = await ctx.scheduler.runAt(endsAt, internal.trades.tradeReview.finish, { offerId: offer._id });
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer: storedReviewer(review) } });
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
-  await fileLetter(ctx, league, "trade", reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
+  const link = { offer: offer._id };
+  await fileLetter(ctx, league, "trade", await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy, link);
+  await fileLetter(ctx, league, "trade", reviewers, (tell) => reviewLetter(words, review, endsAt, tell), undefined, link);
 }
 
 /** The player in the trade no longer on his side's team, if one is. */
@@ -171,7 +172,8 @@ async function inReview(ctx: QueryCtx, leagueId: Id<"leagues">, offerId: Id<"tra
   return { ...offer, review: offer.review };
 }
 
-/** Under a veto, its reviewer blocks the trade. */
+/** Under a veto, its reviewer or the admin blocks the trade, and the blocked letter names whoever
+ *  did (spec/15, The admin; S08.28). */
 export const block = mutation({
   args: { leagueId: v.id("leagues"), offerId: v.id("tradeOffers") },
   returns: v.null(),
@@ -179,8 +181,8 @@ export const block = mutation({
     const { email } = await memberOf(ctx, leagueId);
     const offer = await inReview(ctx, leagueId, offerId);
     const { reviewer } = offer.review;
-    if (reviewer.kind !== "veto" || reviewer.by !== email) refuse(reviewRefusals.notYourBlock);
-    await blockTrade(ctx, offer, reviewer, email);
+    if (reviewer.kind !== "veto" || (reviewer.by !== email && !isAdmin(email))) refuse(reviewRefusals.notYourBlock);
+    await blockTrade(ctx, offer, { kind: "veto", by: email }, email);
     return null;
   },
 });

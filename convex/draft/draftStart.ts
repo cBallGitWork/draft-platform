@@ -8,7 +8,7 @@ import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
-import { tellNotStarted, tellUpNext } from "./draftLetters";
+import { tellNotStarted, tellStartDate, tellUpNext } from "./draftLetters";
 import { checkSoon } from "../leagues/leagueChecks";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
@@ -94,12 +94,12 @@ export async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc
 /** The commissioner sets the date the draft starts, or clears it with null, so the draft waits for
  *  him to press start. Refused once it has started, for a date not in the future, and for a league
  *  the draft couldn't start in, but for its squads: one still holding players can be emptied before
- *  the date comes (Craig, 11 Nov 2026, on #1459). */
+ *  the date comes (Craig, 11 Nov 2026, on #1459). The whole league is told (S04.31). */
 export const setStart = mutation({
   args: { leagueId: v.id("leagues"), startsAt: v.union(v.number(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { leagueId, startsAt }) => {
-    await runnerOf(ctx, leagueId);
+    const { email, league } = await runnerOf(ctx, leagueId);
     const draft = await draftOf(ctx, leagueId);
     if (draft?.started !== undefined) refuse(draftStartRefusals.started);
     if (startsAt !== null) {
@@ -108,6 +108,7 @@ export const setStart = mutation({
       if (can.refusal !== null) refuse(can.refusal);
     }
     await scheduleStart(ctx, leagueId, draft, startsAt);
+    await tellStartDate(ctx, league, email, startsAt);
     return null;
   },
 });

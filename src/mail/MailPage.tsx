@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
@@ -10,6 +11,7 @@ import { PlateTabs } from "../ui/PlateTabs";
 import { KindChip } from "../ui/KindChip";
 import { Placeholder } from "../ui/Placeholder";
 import { runs } from "../leagues/access";
+import { offerLink } from "../trades/paths";
 import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";
 import {
@@ -30,6 +32,7 @@ import {
   noLettersWords,
   noUnreadWords,
   onlyLatestWords,
+  openOfferWords,
   senderWords,
   unreadWords,
   type MailTab,
@@ -191,7 +194,8 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
   );
 }
 
-/** The open letter: its kind, who it's from and when on the plate, then its subject over its text. */
+/** The open letter: its kind, who it's from and when on the plate, then its subject over its text,
+ *  and last its one link to where you act on it, when it has one (S16.2). */
 function OpenLetter({ letter }: { letter: LetterSummary }) {
   const from = fromWords(senderWords(letter.leagueName, letter.from));
   const title = letter.kind === null ? from : (
@@ -205,6 +209,11 @@ function OpenLetter({ letter }: { letter: LetterSummary }) {
       <article className="flex flex-col gap-3 p-4">
         <h3 className="text-heading font-bold text-fact">{letter.subject}</h3>
         <p className="whitespace-pre-line wrap-anywhere">{letter.body}</p>
+        {letter.link !== null && (
+          <Link {...offerLink(letter.link.offer)} className="secondary-action self-start">
+            {openOfferWords}
+          </Link>
+        )}
       </article>
     </Panel>
   );

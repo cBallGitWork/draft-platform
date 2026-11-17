@@ -9,10 +9,11 @@ import { gameweekShort, gameweekWords } from "../shared/when/words";
 export { figureWords } from "../shared/words";
 export { liveWords, scoreWords } from "../shared/match/words";
 export { gameweekWords } from "../shared/when/words";
-/** The table's title, said while every team has played nothing, beside points a live match still
- *  moves (spec/07), a gameweek begun that couldn't be scored (#287), the reader's own team for
- *  screen readers, and the league average: src/shared/words.ts, as other screens say them too. */
+/** The table's title, said while every team has played nothing, a gameweek begun that couldn't be
+ *  scored (#287), the reader's own team for screen readers, and the league average:
+ *  src/shared/words.ts, as other screens say them too. */
 export { leagueAverageWords, noResultsWords, TABLE_TITLE, unscoredWords, yourTeamWords } from "../shared/words";
+/** Beside points a live match still moves (spec/07). */
 export { provisionalWords } from "../shared/match/words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";

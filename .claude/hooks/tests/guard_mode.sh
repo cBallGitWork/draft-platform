@@ -73,7 +73,7 @@ for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" 
   "1a 2b" "1 a
 2 a
 3 a" "1. a" "3 a" "1) b, 2) c" \
-  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more"; do
+  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more" "Post it" "post them"; do
   said "$go"
   check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
   check allow guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
@@ -82,7 +82,7 @@ done
 for talk in "file naming is odd" "go figure, the cameo rule again" "what if we run the draft live" \
   "merge conflicts again" "i think one team tactic might be better?" "or shall i answer more qs first?" \
   "the file looks wrong" "yesterday was slow" "2 things bother me" "1 a but what about cameos" \
-  "is the draft done yet" "the fix was odd"; do
+  "is the draft done yet" "the fix was odd" "post-match stats look off"; do
   said "$talk"
   check deny guard_mode.py "$(bash_call 'gh issue create --title t')"
 done

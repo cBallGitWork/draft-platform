@@ -48,7 +48,7 @@ const factIn = (panel: HTMLElement, label: string) => within(panel).getByText(la
 describe("selecting a player", () => {
   it("a row opens his panel: his season points and minutes, and the row is marked", async () => {
     openScouting(WITH_FIGURES);
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Rice")).toBeTruthy();
     expect(factIn(panel, panelSeasonPointsWords).textContent).toBe("42");
@@ -58,7 +58,7 @@ describe("selecting a player", () => {
 
   it("before the new season's first match, names his minutes by last season, as the list does (#1566)", async () => {
     openScouting({ ...WITH_FIGURES, pointsSeason: 2025 });
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     expect(panelMinutesWords("season", 2025)).toBe("Minutes in 25/26");
     expect(factIn(panelOf("CDM"), panelMinutesWords("season", 2025)).textContent).toBe("540");
   });
@@ -73,7 +73,7 @@ describe("selecting a player", () => {
 
   it("offers the player card's pickup and shortlist, and asks the server for each", async () => {
     const app = openScouting({ ...WITH_FIGURES, actions: new Map([[RICE.code, { kind: "pickUp", squad: [] }]]) });
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     const panel = panelOf("CDM");
     await userEvent.click(within(panel).getByRole("button", { name: pickUpWords }));
     expect(app.scouting.waiverChanges.pickUp).toHaveBeenCalledWith(league.leagueId, RICE.code, null);
@@ -83,7 +83,7 @@ describe("selecting a player", () => {
 
   it("links to his card, and ✕ closes the panel", async () => {
     const app = openScouting();
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     const card = within(panelOf("CDM")).getByRole("link", { name: playerCardLinkWords });
     expect(card.getAttribute("href")).toBe(playerCardPath(league.leagueId, RICE.code));
 
@@ -94,7 +94,7 @@ describe("selecting a player", () => {
 
   it("a pickup that takes him out of the free agents still shows on his panel, with the period's minutes (#1551)", async () => {
     const app = openScouting(WITH_FIGURES);
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     expect(lastAsk(app)[5]).toBe(RICE.code);
     expect(within(panelOf("CDM")).getByText(freeAgentWords)).toBeTruthy();
 
@@ -102,7 +102,7 @@ describe("selecting a player", () => {
     const pickedUp = WITH_FIGURES.players!.map((player) => (player.code === RICE.code ? { ...player, ownerTeamName: "Saka Potatoes", figures: { ...NO_FIGURES, minutes: 90 } } : player));
     app.scouting.usePlayersList.mockImplementation(fakeScouting({ ...WITH_FIGURES, players: pickedUp }).usePlayersList);
     await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
-    expect(screen.queryByRole("button", { name: selectPlayerLabel("Rice") })).toBeNull();
+    expect(screen.queryByRole("button", { name: selectPlayerLabel("Rice", "CDM") })).toBeNull();
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Saka Potatoes")).toBeTruthy();
     expect(within(panel).queryByText(freeAgentWords)).toBeNull();
@@ -111,7 +111,7 @@ describe("selecting a player", () => {
 
   it("after one who has left, the next selected shows while his list loads", async () => {
     const app = await openOnAll(WITH_FIGURES);
-    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice", "CDM") }));
     // Rice leaves the Premier League: the server keeps nobody and the list drops him.
     const gone = fakeScouting({ ...WITH_FIGURES, players: WITH_FIGURES.players!.filter(({ code }) => code !== RICE.code) }).usePlayersList;
     app.scouting.usePlayersList.mockImplementation(gone);
@@ -120,7 +120,7 @@ describe("selecting a player", () => {
 
     // Saka's list is still loading, so the last one, kept null for Rice, stays up.
     app.scouting.usePlayersList.mockImplementation((...args) => (args[5] === SAKA.code ? undefined : gone(...args)));
-    await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka") }));
+    await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka", "W") }));
     expect(panelOf("W")).toBeTruthy();
   });
 

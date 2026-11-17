@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { ANN, BOB, ELEVENS } from "../../support/convex/miniBeta.harness";
@@ -11,9 +12,9 @@ import { waiverStateOf } from "../../support/convex/waivers.harness";
 // The clock-change weekend (#2134): the season chain (../../support/convex/seasonChain.harness.ts)
 // carried on from gameweek 7 across Sunday 25 Oct 2026, when the clocks go back at 01:00 UTC and UK
 // time goes from UTC+1 to UTC. It asserts only the times the spec sets: the waiver runs at 18:00 UK
-// (S08.22, S03.5; case LG-186 in #2302) and the positions sync at 06:00 UK (S06.8). Deadlines
-// across the change wait for Craig's answer, so gameweek 8's is only passed, never checked. Each moment is written in UTC,
-// with what it is in the UK. The in-memory backend only.
+// (S08.22, S03.5; case LG-186 in #2302), the positions sync at 06:00 UK (S06.8) and gameweek 8's
+// deadline the rule's real-time gap before its kickoff (S03.7; a rule long enough to straddle the
+// change is deadline.test.ts's). Each moment is written in UTC, with what it is in the UK. The in-memory backend only.
 
 /** Gameweek 8, Hull v Everton a week on again, on the Sunday the clocks go back, and its code. */
 const CLOCK_CHANGE_GAMEWEEK = NEXT_GAMEWEEK + 1;
@@ -28,7 +29,7 @@ const WINTER_WEDNESDAY = Date.parse("2026-10-28T18:00:00Z");
 const SATURDAY_SIX = Date.parse("2026-10-24T05:00:00Z");
 const SUNDAY_SIX = Date.parse("2026-10-25T06:00:00Z");
 
-test("the season chain across the clocks going back on 25 Oct 2026: waivers run at 18:00 UK and the positions sync starts at 06:00 UK either side", SLOW_TEST, async () => {
+test("the season chain across the clocks going back on 25 Oct 2026: waivers run at 18:00 UK and the positions sync starts at 06:00 UK either side, and the deadline keeps its real-time gap (S08.22, S06.8, S03.7)", SLOW_TEST, async () => {
   const { t, leagueId, annsTeam, bobsTeam, annsDrop, bobsDrop } = await chainToGameweekSeven();
   /** When the league's latest waiver run was. */
   const ranAt = () => t.run(async (ctx) => (await ctx.db.query("waiverOrders").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!.ranAt);
@@ -77,10 +78,13 @@ test("the season chain across the clocks going back on 25 Oct 2026: waivers run 
   expect(started).toEqual([SATURDAY_SIX, SUNDAY_SIX]);
   for (const { _id } of await positionRuns()) await t.run((ctx) => ctx.scheduler.cancel(_id));
 
-  // Gameweek 8's deadline passes on the Sunday and the cron puts the free agents back on waivers,
+  // Gameweek 8's deadline passes on the Sunday, the league's minutes of real time before the
+  // kickoff, and the cron puts the free agents back on waivers,
   // the man Bob let go among them; the match is played and locks. Ann claims him on Monday.
   await waiverCronAt(firstRulesDeadline(CLOCK_CHANGE_KICKOFF) + MINUTE_MS);
   await t.run((ctx) => recordPassedDeadlines(ctx));
+  const deadline = await t.run(async (ctx) => (await leagueDeadlines(ctx, leagueId)).get(CLOCK_CHANGE_GAMEWEEK));
+  expect(deadline).toBe(firstRulesDeadline(CLOCK_CHANGE_KICKOFF));
   await playedAndLocked(t, CLOCK_CHANGE_MATCH, CLOCK_CHANGE_KICKOFF);
   expect(await waiverStateOf(t, leagueId, bobsDrop.playerCode)).toMatchObject({ kind: "onWaivers" });
   const annsMidfielder = ELEVENS[ANN].find(({ area, playerCode }) => area === "midfield" && playerCode !== annsDrop.playerCode)!;

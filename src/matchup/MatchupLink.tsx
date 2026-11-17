@@ -27,16 +27,24 @@ export function MatchupLink({
   points: { team: number; opponent: number } | null;
   live?: boolean;
 }) {
+  const score = points === null ? versusWords : scoreWords(points.team, points.opponent);
+  // What it shows starts its name (WCAG 2.5.3; S12.14), the Live tag included.
+  const shown = live === true ? `${score} ${liveWords}` : score;
   return (
-    <Link {...matchupLink(teamId, gameweek, game)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap min-w-tap items-center justify-center lg:min-h-0 lg:min-w-0">
+    <Link {...matchupLink(teamId, gameweek, game)} aria-label={matchupLinkLabel(shown, team, opponent, gameweek)} className="flex min-h-tap min-w-tap items-center justify-center lg:min-h-0 lg:min-w-0">
       {points === null ? (
         <span>{versusWords}</span>
       ) : live === undefined ? (
-        <span className="whitespace-nowrap font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
+        <span className="whitespace-nowrap font-bold text-figure">{score}</span>
       ) : (
         <span className="whitespace-nowrap">
-          <span className="font-bold text-figure">{scoreWords(points.team, points.opponent)}</span>
-          {live && <span className="ml-1 text-derived">{liveWords}</span>}
+          <span className="font-bold text-figure">{score}</span>
+          {live && (
+            <>
+              {" "}
+              <span className="text-derived">{liveWords}</span>
+            </>
+          )}
         </span>
       )}
     </Link>

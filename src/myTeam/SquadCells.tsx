@@ -67,9 +67,13 @@ export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
   );
 }
 
+type MarkedMatch = { opponent: Row["club"]; home: boolean; kickoff: number | null };
+/** The words a match mark shows: "IPS (A)". */
+export const matchMarkShort = (match: Pick<MarkedMatch, "opponent" | "home">) => nextFixtureShort(match.opponent.shortName, match.home);
+
 /** One of his club's matches: the opponent's code and where, named in full in its hover. */
-export function MatchMark({ match }: { match: { opponent: Row["club"]; home: boolean; kickoff: number | null } }) {
-  const short = nextFixtureShort(match.opponent.shortName, match.home);
+export function MatchMark({ match }: { match: MarkedMatch }) {
+  const short = matchMarkShort(match);
   const when = match.kickoff === null ? noKickoffWords : whenWords(match.kickoff);
   const long = `${nextFixtureLong(match.opponent.name, match.home, when)}, ${difficultyNotRatedWords}`;
   return (

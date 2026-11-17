@@ -3,7 +3,7 @@
 
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
-import { failedWords, menuWords, statColumns } from "../../shared/words";
+import { failedWords, menuWords, statColumns, statNames } from "../../shared/words";
 import { gameweekShort, gameweekWords } from "../../shared/when/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
@@ -76,7 +76,7 @@ export const squadColumns = {
   season: { short: "Pts", long: "Points this season" },
   last: { short: "Last", long: "Points last gameweek" },
   appearances: statColumns.appearances,
-  minutes: { short: "Mins", long: "Minutes played" },
+  minutes: { short: "Mins", long: statNames.minutes },
   goals: statColumns.goals,
   assists: statColumns.assists,
   cleanSheets: statColumns.cleanSheets,

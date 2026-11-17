@@ -34,6 +34,7 @@ import {
   roleShown,
   rowOf,
   swap,
+  swapNamed,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
 
@@ -108,7 +109,7 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
   it.each(PAIRS)("$one swaps with $other by a tap, each into the other's cell", async ({ players: [one, other], from, to }) => {
     await openedPitch({ tactics: FIVE });
     await pickUp(one);
-    await userEvent.click(within(pitch()).getByRole("button", { name: swapLabel(one.name, other.name) }));
+    await userEvent.click(within(pitch()).getByRole("button", { name: swapNamed(one.name, other.name) }));
     expect(blockOf(one, to)).toBeTruthy();
     expect(blockOf(other, from)).toBeTruthy();
   });
@@ -124,7 +125,7 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
     await openedPitch({ tactics: FIVE });
     await pickUp(MOSQUERA);
     expect(allSwaps()).toEqual(expect.arrayContaining([SALIBA, GABRIEL, KIWIOR].map((each) => swapLabel(MOSQUERA.name, each.name))));
-    await userEvent.click(within(pitch()).getByRole("button", { name: swapLabel(MOSQUERA.name, GABRIEL.name) }));
+    await userEvent.click(within(pitch()).getByRole("button", { name: swapNamed(MOSQUERA.name, GABRIEL.name) }));
     expect(blockOf(MOSQUERA, back("centre"))).toBeTruthy();
     drag(rowOf(GABRIEL), cellOn(back("centre")));
     expect(blockOf(GABRIEL, back("centre"))).toBeTruthy();

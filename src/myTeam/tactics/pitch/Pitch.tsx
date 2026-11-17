@@ -1,11 +1,11 @@
-import type { CSSProperties, DragEvent } from "react";
+import { Fragment, type CSSProperties, type DragEvent } from "react";
 import { cellKey, GOALKEEPER_AREA, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { chipColoursOf } from "../../../ui/PositionChip";
 import { PitchLines } from "../../../ui/pitch/PitchLines";
 import { RoleRuns } from "../../../ui/pitch/RoleRuns";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "../../../ui/pitch/rowLayout";
 import { Shirt } from "../../../ui/pitch/Shirt";
-import { MatchMark } from "../../SquadCells";
+import { MatchMark, matchMarkShort } from "../../SquadCells";
 import { markOf } from "../focusMarks";
 import type { SeasonOf } from "../SelectionTable";
 import { pitchChipOf, type PitchChip } from "./pitchChip";
@@ -13,7 +13,7 @@ import { StarRating } from "../../../ui/StarRating";
 import type { RoleRun } from "../../../../convex/scoring/scoringSet";
 import { landingOf, positionsIn, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
 import type { DropTarget, Reach } from "../swaps";
-import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
+import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapOnPitchLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style, the rows nobody stands in closed up (src/ui/pitch/rowLayout.ts). Presets only (Craig, 1 Nov 2026; #1022): a player is moved by picking him up (Move, in his
@@ -145,13 +145,18 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   const isSelected = moving.selected === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   const swapsWith = landing !== null && picked !== null;
+  const slotPosition = positionOfSlot(cell);
+  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14).
+  const shown = [player.number, chip.code, slotPosition, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
+    .filter((bit) => bit !== null)
+    .join(" ");
   return (
     <button
       type="button"
       draggable
       {...markOf("player", player.playerCode)}
       aria-pressed={isSelected}
-      aria-label={swapsWith ? swapLabel(picked.name, player.name) : playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
+      aria-label={swapsWith ? swapOnPitchLabel(shown, picked.name, player.name) : playerOnPitchLabel(shown, player.positions, cell.area, cell.lane)}
       onClick={(event) => {
         if (swapsWith) moving.onSwap(player.playerCode);
         // His role's chip opens his role card; the rest of him, his panel. A keyboard reaches the
@@ -163,19 +168,22 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
-      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === GOALKEEPER_AREA} size="size-pitch-shirt" />
-      <RoleChip chip={chip} />
+      {/* A space between each bit of text, so none runs into the next as one word (WCAG 2.5.3). */}
+      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === GOALKEEPER_AREA} size="size-pitch-shirt" />{" "}
+      <RoleChip chip={chip} />{" "}
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>
-        <span data-slot-label>{positionOfSlot(cell)}</span> {player.name}
-      </span>
+        <span data-slot-label>{slotPosition}</span> {player.name}
+      </span>{" "}
       {chip.opponents !== undefined && chip.opponents.length > 0 && (
         // One under another: two side by side don't fit a lane in a double gameweek.
         <span className="flex max-w-full flex-col gap-px bg-name-plate leading-pitch-chip">
           {chip.opponents.map((match) => (
-            <MatchMark key={match.kickoff} match={match} />
+            <Fragment key={match.kickoff}>
+              <MatchMark match={match} />{" "}
+            </Fragment>
           ))}
         </span>
-      )}
+      )}{" "}
       {swapsWith && (
         // His name under the stars, as a pitch cell is too narrow for both on one line.
         <span className="flex max-w-full flex-col items-center bg-name-plate px-1">

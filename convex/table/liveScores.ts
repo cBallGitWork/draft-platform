@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { begunGameweeks, gameweekScorer, tableGameweek } from "../gameweekScorer/gameweekScores";
+import { begunGameweeks, cantScoreGameweek, gameweekScorer, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
 import { heldLiveScores } from "../shared/liveScoreRows";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
@@ -94,8 +94,7 @@ async function scoredLive(ctx: MutationCtx, league: Doc<"leagues">, teamIds: Id<
     const { scores } = await scoredGameweek(gameweek, teamIds);
     teams = { kind: "scored", scores: teamIds.map((teamId) => ({ teamId, ...scores.get(teamId)! })) };
   } catch (error) {
-    // As leagueScores words it.
-    teams = { kind: "unscored", reason: logFailure(`${leagueLabel(league)} can't score gameweek ${gameweek}`, error) };
+    teams = { kind: "unscored", reason: logFailure(cantScoreGameweek(league, gameweek), error) };
   }
   return { leagueId: league._id, gameweek, teamIds, fixtureCodes, teams, vidiprinter: await gameweekVidiprinter(ctx, league, season, teamIds, gameweek) };
 }

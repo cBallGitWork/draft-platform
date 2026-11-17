@@ -24,6 +24,8 @@ export const unreadTabLabel = (label: string, unread: number) => `${label}, ${un
 export const senderWords = (leagueName: string, from: string | null) => from ?? leagueName;
 /** The open letter's plate: "From Kroos Control". */
 export const fromWords = (sender: string) => `From ${sender}`;
+/** The open letter's one link, its last line (S16.2; approved/mail, The one link). */
+export const openOfferWords = "Open the offer in Trades";
 
 /** When a letter was filed, in the reader's own time: "20 Oct" and "09:00"; the day its group in
  *  the list stands under, "Tue 10 Nov"; and when the open letter came, "Tue 10 Nov, 08:12". */

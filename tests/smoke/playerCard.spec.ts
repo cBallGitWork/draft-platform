@@ -1,12 +1,12 @@
 // The player card in a real browser on the dev server's preview: opened from Scouting, its game
 // log's Scoring | All stats switch and a match row's breakdown (#1027); and its claim or drop
 // (#1200): the preview manager drops his own Saka, claims James off waivers naming Saka to go, and
-// picks up Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
+// picks up Raya; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
 import { previewSaid, proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
-import { previewWaiverOutcomes } from "../../src/playerCard/preview";
+import { previewPlayerCard, previewWaiverOutcomes } from "../../src/playerCard/preview";
 import { SCOUTING_PATH } from "../../src/frame/menu";
 import { previewPlayers } from "../../src/scouting/preview";
 import { availabilityWords } from "../../src/scouting/words";
@@ -14,11 +14,12 @@ import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pick
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
-/** A Scouting preview player's code, by his name: the preview manager's own Saka, Rice a free agent
+/** A Scouting preview player's code, by his name: the preview manager's own Saka, Raya a free agent
  *  and James on waivers. */
 const codeOf = (name: string) => previewPlayers.find((player) => player.name === name)!.code;
+const codeOfClub = (name: string) => previewPlayers.find((player) => player.name === name)!.club.code;
 const SAKA = codeOf("Saka");
-const RICE = codeOf("Rice");
+const RAYA = codeOf("Raya");
 const JAMES = codeOf("James");
 
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
@@ -36,10 +37,14 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(1);
     await expect(season.getByText(postponedWords)).toBeVisible();
 
-    // The newest match is selected; pressing gameweek 8's shows its breakdown instead.
-    await season.getByRole("button", { name: "LIV (A)" }).first().click();
-    await expect(page.getByRole("region", { name: "GW8, LIV (A) 1–2" })).toBeVisible();
-    await expect(page.getByLabel(breakdownLabel(8)).getByText(/^Goals scored/)).toBeVisible();
+    // The newest match is selected; pressing the one before it shows its breakdown instead. His
+    // matches are his club's in Football's preview (#2455).
+    const { gameweek, home, away, score } = previewPlayerCard.usePlayerCard(proLeague.leagueId, codeOf("Palmer"), Date.now())!.matches[1];
+    const atHome = home.code === codeOfClub("Palmer");
+    const against = `${(atHome ? away : home).shortName} (${atHome ? "H" : "A"})`;
+    await season.getByRole("button", { name: against }).first().click();
+    await expect(page.getByRole("region", { name: `GW${gameweek}, ${against} ${score!.home}–${score!.away}` })).toBeVisible();
+    await expect(page.getByLabel(breakdownLabel(gameweek)).getByText(/^Minutes/)).toBeVisible();
   });
 
   test("drops, claims and picks up", async ({ page }) => {
@@ -58,7 +63,7 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await page.getByRole("button", { name: claimWords }).click();
     await said(previewWaiverOutcomes.claim);
 
-    await card(RICE);
+    await card(RAYA);
     await page.getByRole("button", { name: pickUpWords }).click();
     await said(previewWaiverOutcomes.pickUp);
   });

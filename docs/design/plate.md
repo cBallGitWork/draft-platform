@@ -137,7 +137,7 @@ name (the score).
   and a wing-back's WB take the defence's, a support striker's SS the attacking midfield's. Built
   once, `src/ui/PositionChip.tsx`.
 - **Form**: a team's last five results, W, L or D, each a square chip in the figure colour with
-  the ground's ink (14.8:1), oldest first. Built once, `src/myTeam/header/FormChips.tsx`.
+  the ground's ink (14.8:1), oldest first. Built once, `src/ui/FormChips.tsx`.
 - **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
   size, drawn as a 1px muted (`--color-muted`) outline; its `title` and label say what will show
   there ("Role fit: not rated yet"). One on a panel keeps its outline with that label written inside

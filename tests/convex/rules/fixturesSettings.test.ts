@@ -34,7 +34,7 @@ describe("the Fixtures tab's rules", () => {
       format: "totalPoints",
       deadline: { minutesBeforeFirstKickoff: 90 },
       doubleGameweek: "bestMatch",
-      tieBreaks: ["headToHead", "pointsFor"],
+      tieBreaks: ["headToHead", "pointsAgainst", "pointsFor"],
     } as const satisfies Partial<LeagueSettings>;
     await changeTo(changed);
 
@@ -48,6 +48,7 @@ describe("the Fixtures tab's rules", () => {
     ["a fractional deadline", { deadline: { minutesBeforeFirstKickoff: 2.5 } }, "The deadline's minutes before the first kickoff must be a whole number, 0 or more, not 2.5."],
     ["a deadline after the first kickoff", { deadline: { minutesBeforeFirstKickoff: -1 } }, "The deadline's minutes before the first kickoff must be a whole number, 0 or more, not -1."],
     ["a tie-break listed twice", { tieBreaks: ["pointsFor", "pointsFor"] }, "The tie-break pointsFor is listed twice."],
+    ["a tie-break left out (S03.2)", { tieBreaks: ["headToHead", "pointsFor"] }, "The tie-break pointsAgainst is missing: every league has all 3."],
   ] satisfies [string, Partial<LeagueSettings>, string][])("refuse %s with the reason, and save nothing", async (_, changed, reason) => {
     await expectRefused(changeTo(changed), reason);
     expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);

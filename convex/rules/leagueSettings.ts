@@ -33,7 +33,7 @@ export const settings = query({
  *  Premier League squad, and the minimums by area adding up to no more than it; the pick clock and
  *  the timeouts before auto-pick within ../draft/draftLimits.ts's; a trade deadline a gameweek of
  *  the season; waivers run at least once a week, never twice at one time; the deadline's minutes a
- *  whole number, 0 or more; no tie-break listed twice. A format change is refused once the league's
+ *  whole number, 0 or more; every tie-break listed, once. A format change is refused once the league's
  *  first scored gameweek has begun (formatLock.ts). */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },

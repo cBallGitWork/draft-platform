@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
-import { memberOf, teamsOf } from "../shared/leagueAccess";
+import { isAdmin, memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { leagueOffers } from "./tradeClose";
 import { namedPicks, teamNameIn, tradedPlayer } from "./tradedPlayers";
@@ -10,7 +10,7 @@ import { votersAmong } from "./tradeReviewers";
 import { termsShown } from "./tradeScreen";
 
 // The trades the caller reviews, for the Offers tab's To review group (#383; Craig, 10 Nov 2026):
-// under a veto, those he may Block; under a vote, those he may vote Against, with only his own vote
+// under a veto, those he may Block, and for the admin every one (S08.28); under a vote, those he may vote Against, with only his own vote
 // shown, never the count, until the review ends. A commissioner with no team of his own sees them
 // too, so the gate is a member's, not a manager's.
 
@@ -46,7 +46,7 @@ function yoursOn(
 ): YourReview | null {
   if (offer.review === undefined) return null;
   const { reviewer } = offer.review;
-  if (reviewer.kind === "veto") return reviewer.by === email ? "block" : null;
+  if (reviewer.kind === "veto") return reviewer.by === email || isAdmin(email) ? "block" : null;
   if (!votersAmong(teams, offer).includes(email)) return null;
   return reviewer.against.includes(email) ? "takeBack" : "against";
 }
