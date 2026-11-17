@@ -2,6 +2,7 @@
 // Convex fills it in live (liveSettings.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { ScoringStartView } from "../../convex/gameweeks/scoringStart";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import type { Revision, RulesView } from "../rules/rulesEdits";
@@ -30,7 +31,11 @@ export type LeagueSettingsSeam = {
   /** Sets the gameweek scoring starts in: resolves with null once saved, or the words saying why
    *  not. It never rejects. */
   setScoringStart(leagueId: Id<"leagues">, gameweek: number): Change;
-  /** Live (a hook): the draft's start date and whether it has started; undefined while it loads. */
+  /** Live (a hook): the league's gameweeks, ticked or not, with their deadlines, for the Gameweeks
+   *  widget; undefined while they load. */
+  useGameweeks(leagueId: Id<"leagues">): readonly LeagueGameweek[] | undefined;
+  /** Live (a hook): the draft's start date, whether it has started, its rounds and its teams;
+   *  undefined while it loads. */
   useDraftStart(leagueId: Id<"leagues">): DraftStart | undefined;
   /** Sets the date the draft starts, or with null clears it, so it waits for the commissioner to
    *  press start: resolves with null once saved, or the words saying why not. It never rejects. */
@@ -49,5 +54,6 @@ export type TeamInOrder = { teamId: Id<"teams">; name: string };
 export type TeamOrder = { teams: TeamInOrder[]; started: boolean };
 
 /** The draft's start date (null: none, so it waits for the commissioner to press start), and
- *  whether it has started, which ends the date's use (convex/draft/draftStart.ts). */
-export type DraftStart = { startsAt: number | null; started: boolean };
+ *  whether it has started, which ends the date's use (convex/draft/draftStart.ts); its rounds (null:
+ *  the league has no squad size limit) and how many teams it has. */
+export type DraftStart = { startsAt: number | null; started: boolean; rounds: number | null; teams: number };
