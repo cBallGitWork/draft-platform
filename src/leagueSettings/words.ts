@@ -15,7 +15,7 @@ import type { TieBreak } from "../../convex/table/standings";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, menuWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, inReviewWords, leagueVoteWords, menuWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -218,7 +218,7 @@ export const draftBegunWords = "Started";
 export const draftRoomWords = "Draft room ›";
 export const draftOrderLinkWords = "Draft order ›";
 /** The Trades tab's widget (S08.30). */
-export const inReviewWidgetTitle = "In review";
+export const inReviewWidgetTitle = inReviewWords;
 export const inReviewLoadingWords = "Loading the trades in review…";
 export const tradeInReviewWords = (fromTeamName: string, toTeamName: string) => `${fromTeamName} ⇄ ${toTeamName}`;
 export const reviewEndsAtWords = (when: string) => `Ends ${when}`;
