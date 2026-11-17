@@ -1,9 +1,8 @@
-import type { Infer } from "convex/values";
+import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx, MutationCtx } from "../_generated/server";
 import { emailIfFailed, type FailedCompetition } from "./feedFailureEmails";
 import { failureOf, type FeedRuns, type RunOutcome } from "./feedState";
 import { FEED_RUN_TABLES, isSportmonksFeed, type Feed } from "../shared/feedSchedule";
-import type { feedStatusTables } from "../schema/feeds";
 
 // Each feed's status row (#2500): its last run, last success and last error, kept as each run is
 // logged, so the feeds page (admin/feeds.ts) reads one row a feed, where it read up to `RUNS_READ`
@@ -14,7 +13,7 @@ import type { feedStatusTables } from "../schema/feeds";
  *  football sync, or an hour and 40 minutes of live ticks. */
 export const RUNS_READ = 100;
 
-type Status = Infer<(typeof feedStatusTables)["feedStatuses"]["validator"]>;
+type Status = Omit<Doc<"feedStatuses">, "_id" | "_creationTime">;
 type Run = { ranAt: number; outcome: RunOutcome };
 
 /** What the feeds page shows of a feed: its runs, and its newest error. */
@@ -40,7 +39,7 @@ export async function keepFeedStatus(ctx: MutationCtx, feed: Feed, { ranAt, outc
   await ctx.db.replace("feedStatuses", held._id, {
     feed,
     competition,
-    lastRun: { ranAt, failure, betweenSeasons: outcome.ok && outcome.betweenSeasons === true },
+    lastRun: lastRunOf({ ranAt, outcome }),
     lastSuccessAt: failure === null ? ranAt : held.lastSuccessAt,
     lastError: failure === null ? held.lastError : { at: ranAt, error: failure },
     runsSinceSuccess: failure === null ? 0 : held.runsSinceSuccess + 1,
@@ -57,6 +56,9 @@ export async function feedStatusOf(ctx: QueryCtx, feed: Feed, competition?: numb
     lastError: status.runsSinceError < RUNS_READ ? status.lastError : null,
   };
 }
+
+/** A run as its status row's `lastRun`. */
+const lastRunOf = ({ ranAt, outcome }: Run) => ({ ranAt, failure: failureOf(outcome), betweenSeasons: outcome.ok && outcome.betweenSeasons === true });
 
 function statusRowOf(ctx: QueryCtx, feed: Feed, competition: number | undefined) {
   return ctx.db
@@ -88,7 +90,7 @@ async function statusFromRuns(runs: AsyncIterable<Run>): Promise<Omit<Status, "f
   let count = 0;
   for await (const { ranAt, outcome } of runs) {
     const failure = failureOf(outcome);
-    status.lastRun ??= { ranAt, failure, betweenSeasons: outcome.ok && outcome.betweenSeasons === true };
+    status.lastRun ??= lastRunOf({ ranAt, outcome });
     if (failure === null && status.lastSuccessAt === null) Object.assign(status, { lastSuccessAt: ranAt, runsSinceSuccess: count });
     if (failure !== null && status.lastError === null) Object.assign(status, { lastError: { at: ranAt, error: failure }, runsSinceError: count });
     count += 1;
