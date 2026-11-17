@@ -106,5 +106,16 @@
         ]
       }
     ]
+  },
+  "extraKnownMarketplaces": {
+    "forge": {
+      "source": {
+        "source": "github",
+        "repo": "cBallGitWork/forge"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "forge@forge": true
   }
 }
