@@ -135,15 +135,17 @@ export async function chainToGameweekSeven() {
   expect(six.get(ANN)).toBe(HULL_POINTS);
   expect(six.get(BOB)).toBe(EVERTON_POINTS);
 
-  // The table: one game each on the stored scores. Ann and Bob both won, level on points, Bob
-  // above on the tie-breaks (S03.2); Dan marked as on the auto team (spec/09).
+  // The table: one game each on the stored scores. Bob and Cat both won, level on points, Bob
+  // above on the tie-breaks (S03.2), and Ann below them; Dan marked as on the auto team (spec/09).
+  // The draw is seeded by the league's id, which any row written before the league moves in
+  // convex-test, so a new such row can move these places (#2500).
   const table = (await tableOf({ t, leagueId }))!.table;
   for (const row of table) {
     expect(row.pointsFor).toBe(six.get(emailOf.get(row.teamId)!));
     expect(row.played).toBe(1);
     expect(row.points).toBe(row.won === 1 ? MATCHUP_POINTS.win : row.drawn === 1 ? MATCHUP_POINTS.draw : MATCHUP_POINTS.loss);
   }
-  expect(table.map(({ teamId }) => emailOf.get(teamId))).toEqual([BOB, ANN, CAT, DAN]);
+  expect(table.map(({ teamId }) => emailOf.get(teamId))).toEqual([BOB, CAT, ANN, DAN]);
   expect(table[0].points).toBe(table[1].points);
   expect(table.find((row) => row.teamId === dansTeam)?.onAutoTeam).toBe(true);
   expect(table.filter((row) => row.onAutoTeam)).toHaveLength(1);
