@@ -1,6 +1,6 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema } from "convex/server";
-import { feedCheckTables, feedFailureEmailTables } from "./schema/feeds";
+import { feedCheckTables, feedFailureEmailTables, feedStatusTables } from "./schema/feeds";
 import { footballTables } from "./schema/football";
 import { signInTables } from "./schema/signIn";
 import { matchStatsTables } from "./schema/matchStats";
@@ -68,6 +68,7 @@ export default defineSchema({
   ...teamStatsTables,
   ...teamSheetTables,
   ...feedFailureEmailTables,
+  ...feedStatusTables,
   ...leagueTables,
   ...joiningTables,
   ...mailTables,

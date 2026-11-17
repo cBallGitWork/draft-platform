@@ -4,7 +4,7 @@ import { internalAction, internalMutation, internalQuery, type ActionCtx, type Q
 import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
 import { FEED_SCHEDULES } from "../../shared/feedSchedule";
-import { emailIfFailed } from "../../admin/feedFailureEmails";
+import { afterRunLogged } from "../../admin/feedStatuses";
 import { LIVE_WINDOW_MS } from "../../shared/dueMatches";
 import { takeAllOrThrow } from "../../shared/cappedRead";
 import { MATCH_RECORDS_MOST } from "../../stats/matchRecordReads";
@@ -189,7 +189,7 @@ export const recordTick = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("sportmonksLiveTicks", row);
-    await emailIfFailed(ctx, "sportmonksLive", row, await competitionNamed(ctx, row.competition));
+    await afterRunLogged(ctx, "sportmonksLive", row, await competitionNamed(ctx, row.competition));
     return null;
   },
 });

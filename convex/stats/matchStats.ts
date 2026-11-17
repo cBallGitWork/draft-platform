@@ -6,7 +6,7 @@ import { isMatchComplete, isWhole, lockTime, statChanges, withCutOffHeld, type P
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
-import { emailIfFailed } from "../admin/feedFailureEmails";
+import { afterRunLogged } from "../admin/feedStatuses";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
@@ -161,7 +161,7 @@ export const record = internalMutation({
   handler: async (ctx, { unseenFrom, ...row }) => {
     await ctx.db.insert("matchStatsSyncs", row);
     if (unseenFrom !== undefined) await storeUnseenFrom(ctx, unseenFrom);
-    await emailIfFailed(ctx, "matchStats", row);
+    await afterRunLogged(ctx, "matchStats", row);
     if (!row.outcome.ok) return null;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
       const tried = await triedOf(ctx, fixtureCode);

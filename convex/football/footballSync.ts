@@ -16,7 +16,7 @@ import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
 import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
 import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
-import { emailIfFailed } from "../admin/feedFailureEmails";
+import { afterRunLogged } from "../admin/feedStatuses";
 import { writeScores } from "./matchScores";
 import { seedColours } from "./clubKits";
 import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
@@ -195,7 +195,7 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("footballSyncs", row);
-    await emailIfFailed(ctx, "football", row);
+    await afterRunLogged(ctx, "football", row);
     return null;
   },
 });

@@ -234,11 +234,12 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   match due writes no row (#2002): the feeds page owes late stats a success only while a match
   this season is past full time and not locked (`admin/feeds.ts`). `unemailedDeletions` rows
   keep their own 30 days (`leagues/deletionNotices.ts`).
-- The feeds page (#35): `admin/feeds:feeds` reads each run table back and calls a feed late
-  when it has gone longer than its schedule allows without a success. Each feed's interval is in
+- The feeds page (#35): `admin/feeds:feeds` reads each feed's status row, kept as each run is
+  logged (`admin/feedStatuses.ts`, #2500), and the screen calls a feed late when it has gone
+  longer than its schedule allows without a success. Each feed's interval is in
   `convex/shared/feedSchedule.ts`, which `crons.ts` runs from; a feed no cron runs is "not
-  scheduled", never late. The screen passes the time, a new minute each minute, since a query
-  mustn't read the clock.
+  scheduled", never late. `admin/feeds:owed` takes the time, a new minute each minute, since a
+  query mustn't read the clock.
 - Positions (#22): each player's in `playerPositions`, keyed on FPL's `code`, apart from
   `players` so no feed read touches the admin's say; `positionsSync` files each match's starts
   once (`positionSheets`) and runs daily at 06:00 UK time by a cron (#1194, spec/20), each run a

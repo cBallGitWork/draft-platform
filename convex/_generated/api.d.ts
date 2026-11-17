@@ -10,6 +10,7 @@
 
 import type * as admin_feedFailureEmails from "../admin/feedFailureEmails.js";
 import type * as admin_feedState from "../admin/feedState.js";
+import type * as admin_feedStatuses from "../admin/feedStatuses.js";
 import type * as admin_feeds from "../admin/feeds.js";
 import type * as admin_platformSettingDefaults from "../admin/platformSettingDefaults.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
@@ -450,6 +451,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "admin/feedFailureEmails": typeof admin_feedFailureEmails;
   "admin/feedState": typeof admin_feedState;
+  "admin/feedStatuses": typeof admin_feedStatuses;
   "admin/feeds": typeof admin_feeds;
   "admin/platformSettingDefaults": typeof admin_platformSettingDefaults;
   "admin/platformSettings": typeof admin_platformSettings;
