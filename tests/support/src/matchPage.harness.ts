@@ -22,6 +22,7 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   ownerTeamName: null,
   mine: more.ownerTeamName === MY_TEAM_NAME,
   marks: { goals: 0, assists: 0, yellowCards: 0, redCards: 0 },
+  statLine: null,
   points: null,
   counts: (more.ownerTeamName ?? null) !== null,
   ...more,

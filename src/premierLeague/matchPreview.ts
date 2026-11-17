@@ -1,10 +1,11 @@
 // The match page in the preview (src/app/preview.ts): Ipswich Town 1–1 Nottingham Forest, the match
 // recorded live on 23 Oct 2026 (tests/support/recorded/live.payloads.ts), at full time. Its team
 // sheets, team stats and commentary are the recording's, written as the live tick writes them; the
-// positions, who owns whom and the points are made up; a free agent's count for no team. Every
-// fixture opens it: one to come, as it stood before kickoff.
+// positions, who owns whom and the points are made up; a free agent's count for no team. It opens
+// by its own code; every other fixture opens its own page (preview.ts), on this one's empty parts.
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
+import type { MatchStatLine } from "../../convex/match/matchStatLine";
 import type { Position } from "../../convex/positions/positionTables";
 import { previewClub, previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchMarks, MatchPageData } from "./seam";
@@ -26,7 +27,16 @@ function man(
   counts = owner !== null,
 ): MatchMan {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
-  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks: { ...NO_MARKS, ...MARKS[name] }, points, counts };
+  const marks = { ...NO_MARKS, ...MARKS[name] };
+  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, points, counts };
+}
+
+/** A man's stats for the preview's Player stats tab: his marks as the lines below give them, each
+ *  goal a shot on target; his minutes (a starter's 90, a substitute's 20) made up, as the points
+ *  are, and the rest 0. */
+function statLineOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
+  const zero = { keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  return { ...zero, minutes: started ? 90 : 20, goals, assists, shots: goals, shotsOnTarget: goals, yellowCards, redCards };
 }
 
 /** The preview manager's team, Saka Potatoes (proLeague's), whose men the sheets light. */
@@ -213,12 +223,13 @@ export const previewMatch: MatchPageData = {
 };
 
 /** The same match 58 minutes before kickoff, as the recording's first read found it: the sheets
- *  out, nobody yet played, no points, team stats or lines. The fixtures still to come open it. */
+ *  out, nobody yet played, no points, team stats or lines. Each fixture's own page (preview.ts) is
+ *  made from it, its sheets left out. */
 export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
   scorers: { home: [], away: [] },
-  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, points: null, counts: each.ownerTeamName !== null })),
+  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };

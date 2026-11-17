@@ -17,7 +17,7 @@ import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A starter of the preview opponent's. */
-const OPPONENTS_STRIKER = "Haaland";
+const OPPONENTS_STRIKER = "Mateta";
 /** Dense tables' short codes and the full name each gives on hover, as spec/14 (On screen) names them;
  *  "Clean sheet" stays singular so "Clean sheets" matches it too. */
 const SHORT_CODES = {

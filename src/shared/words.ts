@@ -63,6 +63,8 @@ export const statColumns = {
   assists: { short: "A", long: "Assists" },
   cleanSheets: { short: "CS", long: "Clean sheets" },
 } as const;
+/** Stats' names Scouting, My team's squad and the match page's Player stats share. */
+export const statNames = { minutes: "Minutes played", keyPasses: "Key passes", goalsConceded: "Goals conceded" } as const;
 /** A squad table's name, as My team's and a trade's say it. */
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 /** A count of players: "1 player", "12 players". */

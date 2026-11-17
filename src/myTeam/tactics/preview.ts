@@ -141,11 +141,14 @@ const tacticsWith = ({ starters, bench, classicFormation, instructions: picked }
   runs: [...FIRST_RUNS],
 });
 
-// A new object only when it changes, as useSyncExternalStore needs.
-let tactics = tacticsWith({
+/** The first lineup, each starter in his cell, then the bench: the matchup's preview plays it. */
+export const previewFirstLineup = {
   starters: PLAYERS.flatMap(([playerCode, , , , cell]) => (cell === null ? [] : [{ playerCode, ...cell }])),
   bench: PLAYERS.flatMap(([playerCode, , , , cell]) => (cell === null ? [playerCode] : [])),
-});
+};
+
+// A new object only when it changes, as useSyncExternalStore needs.
+let tactics = tacticsWith(previewFirstLineup);
 const listeners = new Set<() => void>();
 const subscribe = (listener: () => void) => {
   listeners.add(listener);

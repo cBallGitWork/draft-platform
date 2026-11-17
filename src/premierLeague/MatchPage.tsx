@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { footballLink } from "./paths";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
@@ -14,6 +14,8 @@ import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
+import { MatchPlayerStats, PointsCell } from "./MatchPlayerStats";
+import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
 import { AbandonedMark } from "./AbandonedMark";
 import {
@@ -21,20 +23,23 @@ import {
   backWords,
   cameOnWords,
   COMMENTARY_TITLE,
-  figureWords,
   goalsWords,
+  highlightsNotHeldLabel,
   inGameweekWords,
   livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
+  MATCH_TABS,
   matchColumns,
+  type MatchTab,
+  matchTabsLabel,
+  matchTabWords,
   matchWhereWords,
   MOVED_TITLE,
   noFigureWords,
   noLinesWords,
   noMatchWords,
   noMenWords,
-  notCountingLabel,
   noTeamStatsWords,
   pointsProblemWords,
   possessionWords,
@@ -75,14 +80,28 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
 
 /** `mark` is the admin's abandoned mark, at the scoreboard's foot; null for anyone else. */
 function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
-  const { home, away, men, pointsProblem, teamStats, commentary, gameweek, provisional } = match;
-  const moved = men.filter((man) => man.side === null);
+  const { pointsProblem, gameweek, provisional } = match;
+  const [tab, choose] = useState<MatchTab>("overview");
   const prov = provisional ? <ProvTag /> : undefined;
   return (
     <>
       <BackRow gameweek={gameweek} />
       <Scoreboard match={match}>{mark}</Scoreboard>
+      {/* Overview | Player stats | Highlights under the scoreboard (S10.8, S10.11); Highlights greyed until it is built. */}
+      <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
+        <PlateTabs label={matchTabsLabel} tabs={MATCH_TABS} words={matchTabWords} chosen={tab} choose={choose} greyed={{ highlights: highlightsNotHeldLabel }} alone />
+      </div>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} /> : <Overview match={match} prov={prov} />}
+    </>
+  );
+}
+
+/** The team sheets beside the team stats and the commentary. */
+function Overview({ match: { home, away, men, teamStats, commentary }, prov }: { match: MatchPageData; prov: ReactNode }) {
+  const moved = men.filter((man) => man.side === null);
+  return (
+    <>
       <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
         <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} aside={prov} />
         <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} aside={prov} />
@@ -249,9 +268,9 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
  *  instead), the viewer's own men lit, and his points, greyed while his team's lineup doesn't count
  *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
  *  think grey means no teams" (Craig, 31 Oct 2026). */
-function ManRow({ man: { name, position, started, played, ownerTeamName, mine, marks, points, counts } }: { man: MatchMan }) {
+function ManRow({ man }: { man: MatchMan }) {
+  const { name, position, started, played, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
-  const greyed = !counts && ownerTeamName !== null;
   return (
     <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
@@ -264,10 +283,7 @@ function ManRow({ man: { name, position, started, played, ownerTeamName, mine, m
       <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>
         <OwnerName teamName={ownerTeamName} />
       </td>
-      <td className={`px-2 text-right ${!greyed && points !== null ? "font-bold text-figure" : "text-muted"}`}>
-        {points === null ? noFigureWords : figureWords(points)}
-        {greyed && <span className="sr-only"> {notCountingLabel}</span>}
-      </td>
+      <PointsCell man={man} />
     </tr>
   );
 }

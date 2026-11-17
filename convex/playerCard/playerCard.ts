@@ -18,16 +18,13 @@ import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { lastSeasonCopied, pastRowsOf } from "../pastSeasons/pastSeasonPoints";
+import { NEXT_FIXTURES_SHOWN } from "./cardLimits";
 import { basePoints, cardPositions, logCategories } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches at his base points, at each position he
 // has (Craig, 31 Oct 2026), with his role's line where his team started him (scoredMatches.ts), and
-// last season's one line, and his club's next fixtures.
-
-/** How many of his club's next matches the card shows: "the next few" (spec/12). Claude's choice,
- *  not yet Craig's. */
-export const NEXT_FIXTURES_SHOWN = 5;
+// last season's one line, and his club's next fixtures, at most NEXT_FIXTURES_SHOWN (cardLimits.ts).
 
 const match = v.object({
   fixtureCode: v.number(),

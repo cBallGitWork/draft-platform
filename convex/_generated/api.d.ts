@@ -190,6 +190,7 @@ import type * as match_matchOwners from "../match/matchOwners.js";
 import type * as match_matchPage from "../match/matchPage.js";
 import type * as match_matchPageCommentary from "../match/matchPageCommentary.js";
 import type * as match_matchScorers from "../match/matchScorers.js";
+import type * as match_matchStatLine from "../match/matchStatLine.js";
 import type * as match_sheetOrder from "../match/sheetOrder.js";
 import type * as match_unownedPoints from "../match/unownedPoints.js";
 import type * as matchup_commentaryAt from "../matchup/commentaryAt.js";
@@ -220,6 +221,7 @@ import type * as pastSeasons_pastSeasonLoad from "../pastSeasons/pastSeasonLoad.
 import type * as pastSeasons_pastSeasonPoints from "../pastSeasons/pastSeasonPoints.js";
 import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.js";
 import type * as pastSeasons_pastStatColumns from "../pastSeasons/pastStatColumns.js";
+import type * as playerCard_cardLimits from "../playerCard/cardLimits.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
 import type * as playerCard_positionRank from "../playerCard/positionRank.js";
@@ -621,6 +623,7 @@ declare const fullApi: ApiFromModules<{
   "match/matchPage": typeof match_matchPage;
   "match/matchPageCommentary": typeof match_matchPageCommentary;
   "match/matchScorers": typeof match_matchScorers;
+  "match/matchStatLine": typeof match_matchStatLine;
   "match/sheetOrder": typeof match_sheetOrder;
   "match/unownedPoints": typeof match_unownedPoints;
   "matchup/commentaryAt": typeof matchup_commentaryAt;
@@ -651,6 +654,7 @@ declare const fullApi: ApiFromModules<{
   "pastSeasons/pastSeasonPoints": typeof pastSeasons_pastSeasonPoints;
   "pastSeasons/pastSeasonRows": typeof pastSeasons_pastSeasonRows;
   "pastSeasons/pastStatColumns": typeof pastSeasons_pastStatColumns;
+  "playerCard/cardLimits": typeof playerCard_cardLimits;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
   "playerCard/positionRank": typeof playerCard_positionRank;
