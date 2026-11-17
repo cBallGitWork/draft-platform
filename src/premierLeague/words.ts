@@ -85,7 +85,7 @@ export const tableLineWords: Record<TableLine, string> = {
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureOrNone, figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/match/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
@@ -169,6 +169,37 @@ export const teamStatRows = {
 export const STAT_COLUMN = { short: STAT_WORD, long: "What's counted" };
 /** A side's possession, to the whole percent: Opta's 49.4 is "49%". */
 export const possessionWords = (share: number) => `${Math.round(share)}%`;
+
+// The match page's tabs under the scoreboard, and Player stats (#2490; spec/10 S10.8, S10.11).
+
+export const MATCH_TABS = ["overview", "playerStats", "highlights"] as const;
+export type MatchTab = (typeof MATCH_TABS)[number];
+export const matchTabWords: Record<MatchTab, string> = { overview: "Overview", playerStats: "Player stats", highlights: "Highlights" };
+export const matchTabsLabel = "The match's tabs";
+/** The Highlights tab, greyed until it is built (S10.11). */
+export const highlightsNotHeldLabel = "The match's YouTube highlights: not held yet";
+export const playerStatsLabel = (club: string) => `${club}'s player stats`;
+/** Player stats' columns, as the approved picture heads them: a short head, and what it stands for. */
+export const matchStatColumns = {
+  position: { short: "Pos", long: "Position" },
+  player: { short: "Player", long: "Player" },
+  minutes: { short: "Min", long: "Minutes played" },
+  goals: { short: "G", long: "Goals" },
+  assists: { short: "A", long: "Assists" },
+  shots: { short: "Sh", long: "Shots" },
+  shotsOnTarget: { short: "SoT", long: "Shots on target" },
+  keyPasses: { short: "KP", long: "Key passes" },
+  tackles: { short: "Tkl", long: "Tackles" },
+  cleanSheets: { short: "CS", long: "Clean sheets" },
+  goalsConceded: { short: "GC", long: "Goals conceded" },
+  saves: { short: "Sv", long: "Saves" },
+  yellowCards: { short: "YC", long: "Yellow cards" },
+  redCards: { short: "RC", long: "Red cards" },
+  points: matchColumns.points,
+} as const;
+export const SHOTS_TITLE = "Shots";
+/** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
+export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";
 
 // A club's page (#1936; spec/18, Club pages).
 
