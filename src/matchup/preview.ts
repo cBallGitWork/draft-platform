@@ -12,7 +12,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { areasOf, positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../convex/lineup/roles";
-import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
+import { signedWords } from "../../convex/shared/numberWords";
+import type { MatchBreakdown, MatchupCommentary, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewClubMatch, previewFullTimeGoals, previewGameweekMatches } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
@@ -22,7 +23,7 @@ import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previ
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
 import { MY_POINTS, pointsOf, THEIR_AREAS, THEIR_POINTS, type Man, type Men } from "./previewMen";
-import { categoriesOf, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
+import { categoriesOf, GOAL_POINTS, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** The replay's last minute of play, then a minute at full time before the result is final. */
@@ -179,12 +180,20 @@ function sideAt(teamName: string, men: Men, at: GameweekAt, gameweek: number): M
 const DELAYED_FROM = 70;
 const DELAYED_UNTIL = 75;
 
-/** The lines of the men's matches so far at `at`, newest first. */
-function commentaryAt(at: GameweekAt): TeamsCommentary {
+/** The lines of the men's matches so far at `at`, newest first. A goal line is worth GOAL_POINTS to
+ *  its scorer, and moves the column of the side he counts for, team then opponent, as the
+ *  server's (readCommentary.ts): a bench man not on moves none (#2466). */
+function commentaryAt(at: GameweekAt, sides: readonly MatchupSide[]): TeamsCommentary {
+  const counting = sides.map((side) => (side.kind === "team" ? new Set([...side.lineup.starters, ...side.lineup.bench].filter((slot) => slot.counts).map((slot) => slot.playerCode)) : new Set<number>()));
+  const worth = signedWords(GOAL_POINTS);
+  const priced = (about: readonly number[]) => ({
+    points: about.length === 0 ? null : worth,
+    columns: counting.map((counts) => (about.some((code) => counts.has(code)) ? worth : null)),
+  });
   const lines = at.played
     .flatMap((match) =>
       linesOf(match, EVERY_MAN)
-        .map(({ minute, text, about }, index) => ({ minute, when: at.when(match, minute), line: { key: `${match.fixtureCode}-${index}`, text, points: null, about, columns: [null, null] as [null, null] } }))
+        .map(({ minute, text, about }, index) => ({ minute, when: at.when(match, minute), line: { key: `${match.fixtureCode}-${index}`, text, about, ...priced(about) } }))
         .filter(({ minute }) => minute <= at.playedIn(match)),
     )
     .sort((one, other) => other.when - one.when)
@@ -193,12 +202,20 @@ function commentaryAt(at: GameweekAt): TeamsCommentary {
   return { kind: "read", lines, delayed };
 }
 
+/** The gameweek's game at `clock`: the draw's opponent, both sides, the manager's first, and their
+ *  commentary. */
+function gameAt(clock: Clock, gameweek: number) {
+  const opponent = previewOpponentOf(gameweek) ?? previewOpponent;
+  const at = gameweekAt(gameweek, clock);
+  const sides = [sideAt(MINE, MY_MEN, at, gameweek), sideAt(opponent, THEIR_MEN, at, gameweek)] as const;
+  return { opponent, sides, commentary: commentaryAt(at, sides) };
+}
+
 /** The gameweek's matchup at `clock`: the manager against the draw's opponent, each side's total
  *  the table's for the gameweek (#2450). His opponent's men are Scouting's for this gameweek's
  *  opponent, whichever week is asked. */
 function matchupAt(clock: Clock, gameweek: number): Matchup {
-  const opponent = previewOpponentOf(gameweek) ?? previewOpponent;
-  const at = gameweekAt(gameweek, clock);
+  const { opponent, sides, commentary } = gameAt(clock, gameweek);
   return {
     kind: "headToHead",
     teamId: previewIdOf(MINE),
@@ -210,14 +227,23 @@ function matchupAt(clock: Clock, gameweek: number): Matchup {
     games: [{ kind: "team", teamName: opponent }],
     game: {
       kind: "scored",
-      team: sideAt(MINE, MY_MEN, at, gameweek),
-      opponent: sideAt(opponent, THEIR_MEN, at, gameweek),
-      commentary: commentaryAt(at),
+      team: sides[0],
+      opponent: sides[1],
+      commentary,
       pointsDelayed: false,
       version: null,
     },
     mode: previewGameMode,
   };
+}
+
+/** League home's matchday Vidiprinter (#2466): the matchup's lines as Football's gameweek stands,
+ *  each priced only where it moves a man whose points count, as the server's matchday reads only
+ *  those men (home/matchday.ts). */
+export function previewMatchdayLines(gameweek: number): MatchupCommentary {
+  const { commentary } = gameAt({ kind: "now" }, gameweek);
+  if (commentary.kind !== "read") return commentary;
+  return { ...commentary, lines: commentary.lines.map(({ key, text, points, columns }) => ({ key, text, points: columns.some((column) => column !== null) ? points : null })) };
 }
 
 /** Where `?minute=` holds the matchup, or null to run the replay (`?minute=replay`); with none,
