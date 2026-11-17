@@ -159,9 +159,10 @@ export const closeDue = internalMutation({
  *  offers are next looked at. A league gone closes nothing, and one frozen for deletion nothing
  *  until an undo wakes it (#1493); a league with no open offer waits for one to be made. */
 export const closeLeagueDue = internalMutation({
-  args: { leagueId: v.id("leagues") },
+  // `now` is passed only by an e2e test, to run as if it were then (../e2e/runJobNow.ts).
+  args: { leagueId: v.id("leagues"), now: v.optional(v.number()) },
   returns: v.null(),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, { leagueId, now = Date.now() }) => {
     const league = await ctx.db.get("leagues", leagueId);
     if (league === null) {
       await forgetChecks(ctx, leagueId);
@@ -172,7 +173,6 @@ export const closeLeagueDue = internalMutation({
       await checkAgainAt(ctx, leagueId, "offers", NEVER_DUE);
       return null;
     }
-    const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const shut = await tradesShut(ctx, league, deadlines, now);
     let left = 0;

@@ -25,6 +25,7 @@ import {
   backLabel,
   backWords,
   cameOnWords,
+  wentOffWords,
   COMMENTARY_TITLE,
   goalsWords,
   highlightsNotHeldLabel,
@@ -112,8 +113,8 @@ function HeldMatch({ match, picking, mark }: { match: MatchPageData; picking: Pi
 }
 
 /** The lineups beside the team stats and the commentary: two team sheets with List; with Pitch, both
- *  starting elevens on one pitch, each side's substitutes on its sheet beside it (S10.9). The picked
- *  man's panel tops the right column. */
+ *  elevens on one pitch as they stand now, each side's substitutes and men who went off on its sheet
+ *  beside it (S10.9). The picked man's panel tops the right column. */
 function Overview({ match: { home, away, men, teamStats, commentary }, prov, view, picking }: { match: MatchPageData; prov: ReactNode; view: LineupView; picking: Picking }) {
   const pickedMan = men.find((man) => man.playerCode === picking.picked);
   const moved = men.filter((man) => man.side === null);
@@ -264,7 +265,7 @@ function TeamSheet({ title, men, aside, picking }: { title: string; men: MatchMa
  *  think grey means no teams" (Craig, 31 Oct 2026). His name opens his panel, and the picked man's
  *  row has the cyan bar (S10.9). */
 function ManRow({ man, picking }: { man: MatchMan; picking: Picking }) {
-  const { playerCode, name, position, started, played, ownerTeamName, mine, marks } = man;
+  const { playerCode, name, position, started, played, sub, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
   const isPicked = picking.picked === playerCode;
   return (
@@ -275,7 +276,8 @@ function ManRow({ man, picking }: { man: MatchMan; picking: Picking }) {
           {name}
         </button>
         <MatchMarks marks={marks} />
-        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
+        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords(sub.cameOn?.minute ?? null)}</span>}
+        {sub.wentOff !== null && <span className="ml-2 font-normal text-event">{wentOffWords(sub.wentOff.minute)}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
       </th>
       <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>
