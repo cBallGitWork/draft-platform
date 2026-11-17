@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { columns, noFigureWords, noStatWords, statLabel } from "../../../src/scouting/words";
-import { catalogueGroupWords, ownStatsGroupWords } from "../../../src/shared/words";
+import { ownStatsGroupWords, scoredGroupWords, statKindWords } from "../../../src/shared/words";
 import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openOnAll, PALMER, RICE, rowOf, SAKA, table } from "../../support/src/scoutingScreen.harness";
 
@@ -74,12 +74,15 @@ describe("any stat, as a season total", () => {
   const TOTALS = { [RICE.code]: { goals_scored: 2, expected_goals: 1.234 }, [PALMER.code]: { goals_scored: 5, expected_goals: 4.5 } };
   const openWithTotals = () => openOnAll({ ...HELD, totals: TOTALS });
   const chooseStat = async (name: string) => userEvent.selectOptions(await screen.findByRole("combobox", { name: statLabel }), name);
+  const optionsIn = (groups: readonly HTMLElement[]) => groups.flatMap((group) => within(group).getAllByRole("option").map((option) => option.textContent));
   const statCells = () => within(table()).getAllByRole("row").slice(1).map((row) => within(row).getAllByRole("cell").at(-1)!.textContent);
 
   it("offers every stat of the catalogue, and none by default", async () => {
     const app = await openWithTotals();
     const picker = await screen.findByRole("combobox", { name: statLabel });
-    expect(within(picker).getAllByRole("option").map((option) => option.textContent)).toEqual([noStatWords, ...STAT_CATALOGUE.map((each) => each.name)]);
+    const offered = within(picker).getAllByRole("option").map((option) => option.textContent);
+    expect(offered[0]).toBe(noStatWords);
+    expect(offered.slice(1).sort()).toEqual(STAT_CATALOGUE.map((each) => each.name).sort());
     expect((picker as HTMLSelectElement).value).toBe("");
     expect(lastAsk(app)[3]).toBeNull();
   });
@@ -124,14 +127,28 @@ describe("any stat, as a season total", () => {
     const app = await openOnAll({ ...HELD, ownStats: [OWN], totals: { [RICE.code]: { [OWN.stat]: 1.5 }, [PALMER.code]: { [OWN.stat]: 3 } } });
     const picker = await screen.findByRole("combobox", { name: statLabel });
     const groups = within(picker).getAllByRole("group");
-    expect(groups.map((group) => group.getAttribute("label"))).toEqual([ownStatsGroupWords, catalogueGroupWords]);
+    expect(groups.map((group) => group.getAttribute("label"))).toEqual([ownStatsGroupWords, ...Object.values(statKindWords)]);
     expect(within(groups[0]).getAllByRole("option").map((option) => option.textContent)).toEqual([OWN.name]);
-    expect(within(groups[1]).getAllByRole("option").map((option) => option.textContent)).toEqual(STAT_CATALOGUE.map((each) => each.name));
+    expect(optionsIn(groups.slice(1)).sort()).toEqual(STAT_CATALOGUE.map((each) => each.name).sort());
 
     await chooseStat(OWN.name);
     expect(lastAsk(app).slice(2, 4)).toEqual([{ by: "stat", descending: true }, OWN.stat]);
     expect(statCells()).toEqual(["3", "1.5", "0"]);
     expect(screen.getByRole("button", { name: sortLabelOf({ short: OWN.shortCode, long: OWN.name }) })).toBeTruthy();
+  });
+
+  it("leads with the stats the site's set scores, in its order, the rest grouped by kind (S19.5)", async () => {
+    const OWN = { stat: "league:involvements", name: "Involvements", shortCode: "INV" };
+    const ASSISTS = STAT_CATALOGUE.find((each) => each.stat === "assists")!;
+    const SCORED = [GOALS.stat, OWN.stat, ASSISTS.stat];
+    await openOnAll({ ...HELD, ownStats: [OWN], scored: SCORED });
+    const groups = within(await screen.findByRole("combobox", { name: statLabel })).getAllByRole("group");
+    expect(groups.map((group) => group.getAttribute("label"))).toEqual([scoredGroupWords, ...Object.values(statKindWords)]);
+    expect(optionsIn(groups.slice(0, 1))).toEqual([GOALS.name, OWN.name, ASSISTS.name]);
+    const rest = optionsIn(groups.slice(1));
+    expect(rest.sort()).toEqual(STAT_CATALOGUE.filter((each) => !SCORED.includes(each.stat)).map((each) => each.name).sort());
+    expect(optionsIn(groups.slice(1, 2))).toContain("Att obxd left");
+    expect(optionsIn(groups.slice(4, 5))).toContain("Saves");
   });
 
   it("none chosen again drops the column, and a sort by it goes back to names", async () => {
