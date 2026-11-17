@@ -10,6 +10,7 @@ import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
+import type { CategoryPoints } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { leagueLabel, logFailure } from "../shared/errors";
@@ -23,7 +24,7 @@ import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
-import { matchStatLine, statLineOf } from "./matchStatLine";
+import { matchStatLine, statLineOf, statPointsOf } from "./matchStatLine";
 import { commentaryOf } from "./matchPageCommentary";
 import { matchScorers, scorersOf } from "./matchScorers";
 import { bySheetOrder } from "./sheetOrder";
@@ -66,6 +67,9 @@ const matchMan = v.object({
   marks: matchMarks,
   /** His stats for the match, the Player stats tab's (S10.8); null before his record arrives. */
   statLine: v.union(matchStatLine, v.null()),
+  /** What each of those stats earned him, the Stats | Points switch's Points (S10.8); null while his
+   *  points can't be told by stat. */
+  statPoints: v.union(matchStatLine, v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
    *  and for every man before the league's gameweek begins, as his card opens on him (basePoints).
@@ -165,7 +169,7 @@ async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek
  *  set is the site's that gameweek, which every man's card prices him under; no set for a match no
  *  gameweek holds. */
 interface Priced {
-  slots: Map<PlayerCode, { points: number | null; counts: boolean }>;
+  slots: Map<PlayerCode, { points: number | null; categories: CategoryPoints[]; counts: boolean }>;
   players: Map<PlayerCode, VidiprinterPlayer>;
   set: ScoringSet | null;
   problem: string | null;
@@ -221,7 +225,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (!inThisMatch.has(slot.playerCode)) continue;
       const inMatch = pointsInMatch(scored, slot.playerCode, fixture.code);
       if (inMatch === null) continue;
-      result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
+      result.slots.set(slot.playerCode, { points: inMatch.points, categories: inMatch.categories, counts: slot.counts });
       const name = nameOf(await playerByCode(ctx, slot.playerCode), slot.playerCode);
       result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []), team: vidiprinterTeam(scored) });
     }
@@ -253,7 +257,7 @@ async function menOf(
       const inLineup = lineupOwners.has(playerCode);
       const unownedMan = inLineup ? null : unownedPoints(playerCode, positions);
       if (unownedMan?.lines) unowned.set(playerCode, { name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
-      const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
+      const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, categories: unownedMan.categories, counts: false };
       const playedFor = clubCode ?? player?.clubCode;
       const owner = owners.get(playerCode);
       return {
@@ -267,6 +271,7 @@ async function menOf(
         mine: owner !== undefined && owner._id === viewerTeam,
         marks: marksOf(stats),
         statLine: statLineOf(stats),
+        statPoints: statPointsOf(slot?.categories ?? []),
         points: slot?.points ?? null,
         counts: slot?.counts ?? true,
       };

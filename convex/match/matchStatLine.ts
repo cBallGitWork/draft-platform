@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import type { CategoryPoints } from "../scoring/scoring";
 import {
   ASSISTS,
   CLEAN_SHEETS,
@@ -56,5 +57,16 @@ export type MatchStatLine = Infer<typeof matchStatLine>;
 export function statLineOf(stats: Readonly<Record<string, number>> | undefined): MatchStatLine | null {
   if (stats === undefined) return null;
   const line = Object.fromEntries(Object.entries(MATCH_STAT_KEYS).map(([column, stat]) => [column, stats[stat] ?? 0]));
+  return line as MatchStatLine;
+}
+
+/** What each of his stats earned him, for the Points switch (S10.8: "Points showing what each stat
+ *  earned him"), from the categories his points were scored by, never scored again: 0 for a stat
+ *  the league's set doesn't score, and null while no category is priced (his record not arrived, or
+ *  the match unpriced). His role's and instructions' points stay in his Pts alone. */
+export function statPointsOf(categories: readonly CategoryPoints[]): MatchStatLine | null {
+  if (categories.length === 0 || categories.some(({ points }) => points === null)) return null;
+  const pointsOf = (stat: string) => categories.reduce((sum, each) => sum + (each.stat === stat ? (each.points ?? 0) : 0), 0);
+  const line = Object.fromEntries(Object.entries(MATCH_STAT_KEYS).map(([column, stat]) => [column, pointsOf(stat)]));
   return line as MatchStatLine;
 }

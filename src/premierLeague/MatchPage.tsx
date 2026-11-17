@@ -14,7 +14,7 @@ import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
-import { MatchPlayerStats, PointsCell } from "./MatchPlayerStats";
+import { MatchPlayerStats, PointsCell, StatViewSwitch } from "./MatchPlayerStats";
 import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
 import { AbandonedMark } from "./AbandonedMark";
@@ -32,6 +32,7 @@ import {
   MATCH_TABS,
   matchColumns,
   type MatchTab,
+  type StatView,
   matchTabsLabel,
   matchTabWords,
   matchWhereWords,
@@ -82,6 +83,7 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
 function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
   const { pointsProblem, gameweek, provisional } = match;
   const [tab, choose] = useState<MatchTab>("overview");
+  const [view, chooseView] = useState<StatView>("stats");
   const prov = provisional ? <ProvTag /> : undefined;
   return (
     <>
@@ -90,9 +92,10 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
       {/* Overview | Player stats | Highlights under the scoreboard (S10.8, S10.11); Highlights greyed until it is built. */}
       <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
         <PlateTabs label={matchTabsLabel} tabs={MATCH_TABS} words={matchTabWords} chosen={tab} choose={choose} greyed={{ highlights: highlightsNotHeldLabel }} alone />
+        {tab === "playerStats" && <StatViewSwitch view={view} choose={chooseView} />}
       </div>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
-      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} /> : <Overview match={match} prov={prov} />}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} />}
     </>
   );
 }

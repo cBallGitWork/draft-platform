@@ -2,7 +2,7 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { lastSeasonPointsColumn, listSeparator, menuWords, STAT_WORD, statColumns, statNames } from "../shared/words";
+import { lastSeasonPointsColumn, listSeparator, menuWords, noFigureWords, signedWords, STAT_WORD, statColumns, statNames } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
@@ -197,6 +197,15 @@ export const matchStatColumns = {
   redCards: { short: "RC", long: teamStatRows.redCards },
   points: matchColumns.points,
 } as const;
+/** The Stats | Points switch at the right of the tabs row (S10.8): Points swaps each stat's count
+ *  for the points it earned him. */
+export const STAT_VIEWS = ["stats", "points"] as const;
+export type StatView = (typeof STAT_VIEWS)[number];
+export const statViewWords: Record<StatView, string> = { stats: "Stats", points: "Points" };
+export const statViewLabel = "Show each stat's count or its points";
+/** A stat's points in the Points view, signed ("+2", "−1"); the dash where it earned none, as the
+ *  approved picture draws it. */
+export const statPointsWords = (points: number | null) => (points === null || points === 0 ? noFigureWords : signedWords(points));
 export const SHOTS_TITLE = "Shots";
 /** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
 export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";
