@@ -23,7 +23,7 @@ import {
   roleLabel,
   selectionColumns,
   selectionTableLabel,
-  swapLabel,
+  swapInTableLabel,
 } from "./words";
 
 type Column = keyof typeof selectionColumns;
@@ -182,7 +182,7 @@ function SelectionRow({
           type="button"
           {...(benchIndex !== null ? markOf("player", player.playerCode) : {})}
           aria-pressed={swapsWith ? undefined : moving.selected === player.playerCode}
-          aria-label={swapsWith ? swapLabel(picked.name, player.name) : undefined}
+          aria-label={swapsWith ? swapInTableLabel(picked.name, player.name) : undefined}
           onClick={() => (swapsWith ? moving.onSwap(player.playerCode) : moving.onSelect(player.playerCode))}
           className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${player.unheld ? "max-w-error-name text-event lg:max-w-none" : ""} ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : ""}`}
         >
@@ -234,15 +234,16 @@ function PositionCell({ player, place }: { player: SquadMember; place: { starter
 /** A starter's Role ▾: his role, which opens his role card, where another his slot offers is picked
  *  (spec/05 Roles; #848). */
 function RoleButton({ player, starter, onRoleCard }: { player: SquadMember; starter: Starter; onRoleCard(playerCode: number): void }) {
+  const role = roleIn(starter, starter.role).name;
   return (
     <button
       type="button"
-      aria-label={roleLabel(player.name)}
+      aria-label={roleLabel(player.name, role)}
       {...markOf("role", player.playerCode)}
       onClick={() => onRoleCard(player.playerCode)}
       className="text-box flex w-full items-center justify-between gap-1 text-left lg:min-h-0"
     >
-      <span className="truncate">{roleIn(starter, starter.role).name}</span>
+      <span className="truncate">{role}</span>
       <span aria-hidden="true">{menuGlyph}</span>
     </button>
   );

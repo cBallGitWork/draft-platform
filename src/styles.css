@@ -100,6 +100,7 @@
   --spacing-vidiprinter-column: 56px; /* a team's points column in it ("Saka P", "+4") */
   --spacing-vidiprinter-minute: 48px; /* the matchup's minute column in it ("Min", "~45+2'", "KO") */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
+  --spacing-shot-map: 480px; /* the match page's Shots panel, its approved picture's pitch */
   /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
      approved Tactics picture's 340px and the room a player's block needs, so each stays in his
      cell (a phone's is the screen's width; both checked by tests/smoke/smoke.spec.ts); a shirt */

@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { DEFAULT_DEADLINE_RULE, isLocked, leagueDeadline, type DeadlineRule } from "../../../convex/gameweeks/deadline";
 import { mapFpl } from "../../../convex/football/fpl/fpl";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
+import { londonHour } from "../../../convex/shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 
@@ -187,6 +188,16 @@ describe("from a gameweek's matches", () => {
     test("a match rescheduled in ahead of a deadline already recorded leaves it where it fell", () => {
       expect(leagueDeadline(GAMEWEEK, movedIn, rule, FRIDAY_DEADLINE)).toBe(FRIDAY_DEADLINE);
     });
+  });
+
+  test.each([
+    { clocks: "go back", kickoff: Date.parse("2026-10-25T14:00:00Z"), ukHours: [15, 14] },
+    { clocks: "go forward", kickoff: Date.parse("2027-03-28T13:00:00Z"), ukHours: [13, 14] },
+  ])("across the clocks that $clocks, a 24-hour deadline keeps 24 hours of real time before the kickoff, not the same UK clock time (S03.7)", ({ kickoff, ukHours }) => {
+    const deadline = leagueDeadline(GAMEWEEK, [match(GAMEWEEK, kickoff)], minutesBefore(24 * 60), NOTHING_RECORDED)!;
+
+    expect(kickoff - deadline).toBe(DAY_MS);
+    expect([londonHour(deadline), londonHour(kickoff)]).toEqual(ukHours);
   });
 
   test.each([-1, 1.5, Number.NaN])("a rule of %s minutes is refused with the reason", (minutes) => {

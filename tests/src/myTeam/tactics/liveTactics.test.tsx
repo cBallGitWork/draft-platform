@@ -24,6 +24,8 @@ beforeEach(() => {
 
 const NOW = Date.parse("2026-10-24T10:00:00Z");
 const LINEUP = { starters: [{ playerCode: 1, area: "goalkeeper", lane: "centre" }] as const, bench: [2] };
+/** What the save was made from (spec/05 `S05.55`): the tab's mark and the row's it loaded. */
+const BASED_ON = { tab: "tab", seen: "tab:1" };
 const changes = () => renderHook(() => liveTactics.useLineupChanges()).result.current;
 
 test("it asks lineup/tactics:ofMyTeam with the league and the minute, and hands on what comes back", () => {
@@ -35,16 +37,16 @@ test("it asks lineup/tactics:ofMyTeam with the league and the minute, and hands 
 
 test("a save asks lineup/lineups:save with the league and the lineup, and hands on the gameweek it saved from", async () => {
   convex.save.mockResolvedValue(9);
-  expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe(9);
-  expect(convex.save).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, lineup: { starters: [...LINEUP.starters], bench: LINEUP.bench } });
+  expect(await changes().save(A_LEAGUE_ID, LINEUP, BASED_ON)).toBe(9);
+  expect(convex.save).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, lineup: { starters: [...LINEUP.starters], bench: LINEUP.bench }, basedOn: BASED_ON });
 });
 
 test("a refusal comes back as the server's words; any other failure is said plainly", async () => {
   convex.save.mockRejectedValue(new ConvexError(REFUSAL));
-  expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe(REFUSAL);
+  expect(await changes().save(A_LEAGUE_ID, LINEUP, BASED_ON)).toBe(REFUSAL);
   convex.save.mockRejectedValue(new Error("offline"));
   const logged = silenceConsoleError();
-  expect(await changes().save(A_LEAGUE_ID, LINEUP)).toBe(saveFailedWords);
+  expect(await changes().save(A_LEAGUE_ID, LINEUP, BASED_ON)).toBe(saveFailedWords);
   expect(logged).toHaveBeenCalledOnce();
 });
 
@@ -52,7 +54,7 @@ test("a refusal comes back as the server's words; any other failure is said plai
 test("a save failing with Convex's Server Error is said plainly, never in the server's words", async () => {
   convex.save.mockRejectedValue(new Error("[CONVEX M(lineup/lineups:save)] [Request ID: 1a2b3c] Server Error"));
   silenceConsoleError();
-  const answer = await changes().save(A_LEAGUE_ID, LINEUP);
+  const answer = await changes().save(A_LEAGUE_ID, LINEUP, BASED_ON);
   expect(answer).toBe(saveFailedWords);
   expect(answer).not.toMatch(/Server Error|CONVEX/);
 });

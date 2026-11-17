@@ -125,10 +125,14 @@ def record_answered(payload):
     if field(payload, "tool_name", str, "") != ASK_TOOL:
         return
     response = payload.get("tool_response")
-    if not isinstance(response, dict):
-        return  # Craig met the questions with a message instead of answers: nothing was answered
-    answers = response.get(ANSWERS)
+    asked = field(payload, "tool_input", dict, {})
+    # the desktop app puts the picked answers in the call's input, not its result (#2388, 15 Nov 2026)
+    answers = response.get(ANSWERS) if isinstance(response, dict) else None
     if not isinstance(answers, dict):
+        answers = asked.get(ANSWERS)
+    if not isinstance(answers, dict):
+        if not isinstance(response, dict):
+            return  # Craig met the questions with a message instead of answers: nothing was answered
         print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
               "so no question was recorded as asked.", file=sys.stderr)
         return
@@ -136,7 +140,7 @@ def record_answered(payload):
     # what he picked is his latest message, so guard_mode.py reads "Yes, build them all" as a go (#1228)
     remember(field(payload, "session_id", str, ""), "\n".join(picked.values()))
     answered = {normal(q) for q in picked}
-    for text in ask_texts(field(payload, "tool_input", dict, {})):
+    for text in ask_texts(asked):
         if normal(text) in answered:
             try:
                 ASKED_DIR.mkdir(exist_ok=True)

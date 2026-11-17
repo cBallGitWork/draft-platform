@@ -66,7 +66,7 @@ export async function delayPoints(ctx: MutationCtx, fixtureCode: number, readAt:
   if ((await livePointsDelayOf(ctx, fixtureCode)) === null) await ctx.db.insert("livePointsDelays", { fixtureCode, delayedFrom: readAt });
 }
 
-/** The match's live points no longer delayed: a full read, or full time, wrote them. */
+/** The match's live points no longer delayed: a full read, live or at full time, wrote them. */
 export async function undelayPoints(ctx: MutationCtx, fixtureCode: number): Promise<void> {
   const delay = await livePointsDelayOf(ctx, fixtureCode);
   if (delay !== null) await ctx.db.delete("livePointsDelays", delay._id);

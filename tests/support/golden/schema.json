@@ -26325,6 +26325,12 @@
               }
             },
             "optional": true
+          },
+          "edit": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           }
         }
       }

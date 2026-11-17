@@ -132,7 +132,7 @@ export function ranOutInBreak(draft: Doc<"drafts">, clock: Clock, team: Doc<"tea
 /** The site is back after its clock ran out while it was down (Craig, 14 Nov 2026, grill batch 2,
  *  on #2204; S04.22): no pick is made and no timeout counted, and the pick on the clock gets its
  *  full clock at the league's pick time from now, as after a resume, marked `afterBreak` so everyone
- *  sees the draft resumed after a break. A pick the commissioner's undo put back still waits out its
+ *  sees the draft resumed after a break; like a resume, it sends no letter (S04.14; #2275). A pick the commissioner's undo put back still waits out its
  *  clock. The caller is the clock's own job, so the clock goes without it. */
 export async function restartAfterBreak(ctx: MutationCtx, leagueId: Id<"leagues">, clock: Clock): Promise<void> {
   console.warn(`League ${leagueId}'s pick ${clock.pick} ran out while the site was down, so it is back on its full clock`);

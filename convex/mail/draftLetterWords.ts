@@ -56,6 +56,27 @@ export function draftUndoneLetter(who: string, { pick, playerName, teamName }: P
   };
 }
 
+/** To the whole league when the commissioner, `who`, puts the teams in draft order, or draws it at
+ *  random when `drawn`: the order, first pick first (S04.31; #2149). */
+export function draftOrderLetter(who: string, teamNames: readonly string[], drawn: boolean): Words {
+  const how = drawn ? "drew the draft order at random" : "set the draft order";
+  return { subject: "The draft order is set", body: `${who} ${how}: ${teamNames.map((name, at) => `${at + 1}. ${name}`).join(", ")}.` };
+}
+
+/** To the whole league when the commissioner, `who`, sets the draft's start, told with `tell`, or
+ *  clears it with null, so the draft waits for him to press start (S04.31; #2149). */
+export function draftStartDateLetter(who: string, startsAt: number | null, tell: TellMoment): Words {
+  if (startsAt === null) return { subject: "The draft has no start date", body: `${who} cleared the draft's start date. The draft starts when the commissioner presses start.` };
+  return { subject: `The draft starts on ${tell(startsAt)}`, body: `${who} set the draft to start on ${tell(startsAt)}.` };
+}
+
+/** To the whole league when the commissioner, `who`, marks a team with no manager "I'll pick for
+ *  this one", or unmarks it, so the draft picks for it (S04.31; #2149). */
+export function draftPickerLetter(who: string, teamName: string, marked: boolean): Words {
+  if (marked) return { subject: `The commissioner picks for ${teamName}`, body: `${who} will make ${teamName}'s picks in the draft.` };
+  return { subject: `The draft picks for ${teamName}`, body: `${who} no longer picks for ${teamName}: the draft makes its picks.` };
+}
+
 /** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
  *  `refusal` (draftStart.ts `draftStartRefusals`). */
 export function draftNotStartedLetter(startsAt: number, refusal: string, tell: TellMoment): Words {

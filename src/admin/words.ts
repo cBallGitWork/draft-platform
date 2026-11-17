@@ -189,7 +189,8 @@ export const moreFeedbackWords = moreCorrectionsWords;
 export const feedbackWords = {
   read: "Read",
   markRead: "Mark read",
-  markReadLabel: (from: string) => `Mark ${from}'s feedback read`,
+  /** Starts with the button's own words, as a screen reader's name must (WCAG 2.5.3; S12.14). */
+  markReadLabel: (from: string) => `Mark read: ${from}'s feedback`,
   remove: "Delete",
   removeLabel: (from: string) => `Delete ${from}'s feedback`,
   confirm: (from: string) => `Delete this feedback from ${from}? It can't be undone.`,
@@ -215,7 +216,8 @@ export const availabilityChoiceLabel = "Availability";
 export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOICE) => (choice === FEED_CHOICE ? "The feed" : AVAILABILITY_WORDS[choice]);
 /** What it changes (spec/06, spec/09): our own availability, the same in every league. */
 export const autoTeamReadsWords = "The auto team reads this in every league.";
-export const pickPlayerLabel = (name: string) => `Open ${name}'s availability`;
+/** A player's row button: his name and club, as it shows them (WCAG 2.5.3; S12.14), then what it does. */
+export const pickPlayerLabel = (name: string, club: string) => `${name} ${club}: open his availability`;
 
 /** Moving a match to another gameweek (#1417; spec/07 S07.9), and his log of moves (spec/15). */
 export const moveMatchTitle = "Move a match";

@@ -59,6 +59,30 @@ test("a read that leaves out a man it named before keeps his record and flags th
   expect(await delayedFrom(t)).toBe(stageTime(31));
 });
 
+// #2224: a man the feed stops naming keeps the match delayed until a read names him again (or full
+// time), not dropped so the scoreboard clears while his points sit as last read.
+test("a man every later read leaves out keeps the points delayed from the first such read until one names him again (S10.12)", async () => {
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(30), stagedGw6(30));
+  const before = await heldRecords(t);
+  const readWithout = (minute: number) =>
+    t.mutation(internal.stats.liveStats.upsertLive, {
+      fixtureCode: HULL_EVERTON,
+      readAt: stageTime(minute),
+      minute,
+      records: mergedHullEverton(stagedGw6(minute)).filter((record) => record.playerCode !== mcBurnie.code),
+    });
+
+  for (const minute of [31, 32, 33]) await readWithout(minute);
+
+  expect((await heldRecords(t)).get(mcBurnie.code)).toEqual(before.get(mcBurnie.code));
+  expect(await delayedFrom(t)).toBe(stageTime(31));
+
+  await tickAt(t, stageTime(34), stagedGw6(34));
+  expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(34), "provisional"));
+  expect(await delayedFrom(t)).toBeNull();
+});
+
 test("a repeated read, or a man sent twice in one, never doubles anyone's points (S10.12)", async () => {
   const t = await withHullEverton();
   await tickAt(t, stageTime(80), stagedGw6(80));
@@ -136,4 +160,15 @@ test("a full-time read cut off for a man keeps his last read and the match provi
   await syncAt(t, FULL_TIME_READ + 60_000, recordedGw6());
   expect((await heldMatch(t)).status?.state).toBe("complete");
   expect(await heldRecords(t)).toEqual(recordsIn(recordedGw6(), "complete"));
+});
+
+test("a full-time read cut off for a man keeps the points flagged as delayed until the next full read (S10.12)", async () => {
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(80), stagedGw6(80));
+
+  await syncAt(t, FULL_TIME_READ, withFplBlocksEmpty(recordedGw6(), mcBurnie.code));
+  expect(await delayedFrom(t)).toBe(FULL_TIME_READ);
+
+  await syncAt(t, FULL_TIME_READ + 60_000, recordedGw6());
+  expect(await delayedFrom(t)).toBeNull();
 });

@@ -20,9 +20,16 @@
 // Just before deploying, it sets TIMED_JOBS_ON on the live deployment, which runs the timed feed,
 // waiver and trade jobs there and only there (#1997); if it can't, nothing is deployed.
 //
-// Before any of that, it refuses a build that isn't production's, or that has no deploy key, and
-// says why in the build log: a preview (a `vercel deploy` from the CLI, say) must never put its
-// code on the live deployment, and without the key `convex deploy` can't reach it. It refuses too
+// Before any of that, it refuses a build that isn't production's or staging's, or that has no
+// deploy key, and says why in the build log: a preview (a `vercel deploy` from the CLI, say) must
+// never put its code on a deployment, and without the key `convex deploy` can't reach one.
+//
+// Staging (spec/20, S20.19, S20.21; #2464): `main` builds as Vercel's preview of that branch, with
+// a development deploy key, and deploys only to the development deployment, with no backup, no
+// recorded shape and no timed jobs, which stay off on development (S20.8). Live builds from the
+// `release` branch, which the promote workflow moves up to a tested `main` once a day (S20.20),
+// and takes only a production key. A key of the wrong kind is refused, so neither build can reach
+// the other's deployment. It refuses too
 // when the live deployment carries a setting only an e2e run's throwaway server may hold
 // (TEST_ONLY_SETTINGS; spec/20, S20.17; #2288), such as one pointing its feeds and emails at a fake.
 
@@ -60,20 +67,54 @@ export const DEPLOY_KEY_SETTING = "CONVEX_DEPLOY_KEY";
 /** The variable a Vercel build reads its environment from. */
 export const VERCEL_ENV = "VERCEL_ENV";
 
-/** Why this build mustn't release, or null when it may. Outside Vercel there is no VERCEL_ENV,
- *  and the key alone decides. */
+/** Vercel's name for a build of a branch other than the production one. */
+export const VERCEL_PREVIEW = "preview";
+/** The variable a Vercel build reads its branch from. */
+export const VERCEL_BRANCH = "VERCEL_GIT_COMMIT_REF";
+/** The branch whose preview is the staging site (S20.21). */
+export const STAGING_BRANCH = "main";
+/** How a Convex deploy key names its deployment's kind: `prod:<name>|…` or `dev:<name>|…`. */
+const PROD_KEY_PREFIX = "prod:";
+const DEV_KEY_PREFIX = "dev:";
+/** Where a build deploys. */
+export const LIVE = "live";
+export const STAGING = "staging";
+
+/** Where this build deploys: the live deployment for a production build, the development one for
+ *  main's preview (staging). Outside Vercel there is no VERCEL_ENV, and the key's kind decides. */
+export function targetOf(env) {
+  const environment = env[VERCEL_ENV];
+  if (environment === VERCEL_PREVIEW && env[VERCEL_BRANCH] === STAGING_BRANCH) return STAGING;
+  if (!environment && env[DEPLOY_KEY_SETTING]?.startsWith(DEV_KEY_PREFIX)) return STAGING;
+  return LIVE;
+}
+
+/** Why this build mustn't release, or null when it may. */
 export function refusal(env) {
   const environment = env[VERCEL_ENV];
-  if (environment && environment !== VERCEL_PRODUCTION) {
-    return `${STOPPED}: this is a ${environment} build (${VERCEL_ENV}=${environment}), and only a ${VERCEL_PRODUCTION} build deploys to the live database.`;
+  const target = targetOf(env);
+  if (environment && environment !== VERCEL_PRODUCTION && target !== STAGING) {
+    return `${STOPPED}: this is a ${environment} build (${VERCEL_ENV}=${environment}) of ${env[VERCEL_BRANCH] || "no branch"}, and only a ${VERCEL_PRODUCTION} build or ${STAGING_BRANCH}'s ${VERCEL_PREVIEW} (staging) deploys.`;
   }
-  if (!env[DEPLOY_KEY_SETTING]) {
+  const key = env[DEPLOY_KEY_SETTING];
+  const deployment = target === STAGING ? "development" : "live";
+  if (!key) {
     return (
-      `${STOPPED}: ${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the live deployment. ` +
-      `Vercel holds it for ${VERCEL_PRODUCTION} builds only; \`npm run setup:live\` puts it there (docs/setup.md).`
+      `${STOPPED}: ${DEPLOY_KEY_SETTING} isn't set, so this build can't reach the ${deployment} deployment. ` +
+      `Vercel holds the live key for ${VERCEL_PRODUCTION} builds and the development key for ${STAGING_BRANCH}'s ${VERCEL_PREVIEW}s; docs/setup.md says how to set each.`
     );
   }
+  const wanted = target === STAGING ? DEV_KEY_PREFIX : PROD_KEY_PREFIX;
+  if (!key.startsWith(wanted)) {
+    return `${STOPPED}: a ${target} build needs a ${deployment} deploy key (${wanted}…), and ${DEPLOY_KEY_SETTING} holds another kind, so nothing was deployed.`;
+  }
   return null;
+}
+
+/** Staging's release: main's code onto the development deployment, nothing else. */
+export function stagingRelease({ convex, log = console.log }) {
+  log(`Staging: deploying ${STAGING_BRANCH} to the development deployment (no backup, timed jobs stay off there).`);
+  return convex(DEPLOY_ARGS).status;
 }
 
 /** The settings only an e2e run's throwaway server carries (spec/20, S20.17; #2288): the live
@@ -239,11 +280,14 @@ export function release({ convex, shape, backupPath, log = console.log }) {
 }
 
 async function main() {
-  const refused = refusal(process.env) ?? testSettingRefusal(convexCli);
+  const staging = targetOf(process.env) === STAGING;
+  // The test-only settings guard the live deployment; development may hold them while testing.
+  const refused = refusal(process.env) ?? (staging ? null : testSettingRefusal(convexCli));
   if (refused) {
     console.log(refused);
     return 1;
   }
+  if (staging) return stagingRelease({ convex: convexCli });
   let shape = null;
   try {
     shape = savedShape(await schemaJson());

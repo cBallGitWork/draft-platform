@@ -9,8 +9,10 @@ import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { previewClubs, previewDone, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
-import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
+import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, MatchPageData, PremierLeagueSeam, SquadGroup, SquadPlayer } from "./seam";
 import { previewPlayers } from "../scouting/preview";
+import { previewChanceOf } from "../myTeam/tactics/preview";
+import { squadGroupOf } from "../../convex/positions/positionTables";
 import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
 const CLUBS = previewClubs;
@@ -36,7 +38,7 @@ const CURRENT_STATES = [
 const goals = (gameweek: number, index: number, side: number) => (gameweek * 3 + index * 5 + side * 7) % 4;
 
 /** The preview's code for a gameweek's match, by its place in the gameweek. */
-export const previewFixtureCode = (gameweek: number, index: number) => gameweek * 100 + index;
+const previewFixtureCode = (gameweek: number, index: number) => gameweek * 100 + index;
 
 function matchesOf(gameweek: number): GameweekMatch[] {
   // Each gameweek pairs the clubs afresh: a rotation, so no club meets itself. The sides swap every
@@ -70,6 +72,26 @@ const firstKickoffs: FirstKickoff[] = SEASON.map((gameweek) => ({
 }));
 const matches = new Map(SEASON.map((gameweek) => [gameweek, matchesOf(gameweek)]));
 
+/** A gameweek's matches, as Football lists them: every other preview reads its Premier League
+ *  matches here, so a club's match is the same on every screen (#2455). */
+export const previewGameweekMatches = (gameweek: number): readonly GameweekMatch[] => matches.get(gameweek) ?? [];
+/** Whether `match` is one of the club's. */
+export const playsIn = (clubCode: number, { home, away }: Pick<GameweekMatch, "home" | "away">) => home.code === clubCode || away.code === clubCode;
+/** A club's match in a gameweek: every club plays once in each. */
+export const previewClubMatch = (gameweek: number, clubCode: number): GameweekMatch | undefined =>
+  previewGameweekMatches(gameweek).find((match) => playsIn(clubCode, match));
+/** A club's matches still to come, soonest first, each with its gameweek. */
+export const previewClubUpcoming = (clubCode: number) =>
+  [...matches].flatMap(([gameweek, gameweekMatches]) =>
+    gameweekMatches.filter((match) => match.score?.state === "upcoming" && playsIn(clubCode, match)).map((match) => ({ ...match, gameweek, kickoff: match.kickoff ?? 0 })),
+  );
+/** A match's goals at full time, home side first: its score once over, the made-up result it is
+ *  heading for before then, which the matchup's replay plays it to. */
+export function previewFullTimeGoals({ fixtureCode }: Pick<GameweekMatch, "fixtureCode">): readonly [number, number] {
+  const [gameweek, index] = [Math.floor(fixtureCode / 100), fixtureCode % 100];
+  return [goals(gameweek, index, 0), goals(gameweek, index, 1)];
+}
+
 /** The table from the made-up results by the server's own rules (plTable.ts): the current
  *  gameweek's live and half-time matches count as they stand, so it is provisional. */
 const resultsOf = (played: readonly GameweekMatch[]) =>
@@ -77,13 +99,15 @@ const resultsOf = (played: readonly GameweekMatch[]) =>
     score === null || score.homeGoals === null || score.awayGoals === null ? [] : [{ home, away, homeGoals: score.homeGoals, awayGoals: score.awayGoals }],
   );
 const results = resultsOf([...matches.values()].flat());
-/** Each match still to come, opening the recorded match as it stood before kickoff, on its own
- *  day and in its own gameweek. */
-const upcoming = new Map(
+/** Each match's own page: its clubs, gameweek, kickoff and score as the gameweek lists them, so
+ *  the score pressed is the score opened (#2450); the sheets and lines are the recorded match's
+ *  alone, so none here. */
+const pages = new Map(
   [...matches].flatMap(([gameweek, gameweekMatches]) =>
-    gameweekMatches.flatMap(({ fixtureCode, kickoff, score }) =>
-      score?.state === "upcoming" ? [[fixtureCode, { ...previewMatchBeforeKickoff, fixtureCode, gameweek, kickoff }] as const] : [],
-    ),
+    gameweekMatches.map(({ fixtureCode, kickoff, home, away, score }) => {
+      const page: MatchPageData = { ...previewMatchBeforeKickoff, men: [], fixtureCode, gameweek, kickoff, home, away, score: score?.state === "upcoming" ? null : score };
+      return [fixtureCode, page] as const;
+    }),
   ),
 );
 const unplayed = [...matches.values()].flat().filter(({ score }) => score?.state === "upcoming");
@@ -102,8 +126,8 @@ const standings = {
 export const previewPremierLeague: PremierLeagueSeam = {
   useGameweeks: () => ({ seasonGameweeks: previewSeasonGameweeks, firstKickoffs }),
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
-  // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
-  useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
+  // Each fixture opens its own page; the recorded match (matchPreview.ts) opens by its own code.
+  useMatch: (_leagueId, _now, fixtureCode) => pages.get(fixtureCode) ?? (fixtureCode === previewMatch.fixtureCode ? previewMatch : null),
   useStandings: () => standings,
   useClub: (_leagueId, clubCode) => previewClub(clubCode),
   useClubSquad: (_leagueId, clubCode) => previewClubSquad(clubCode),
@@ -122,6 +146,14 @@ const SQUAD_ROWS: Record<number, Pick<SquadPlayer, "group" | "lastGameweeks" | "
   6: { group: "AM", lastGameweeks: [13, 2, 8, 9, 2], starts: 9, minutes: 800, chanceOfPlaying: null },
   7: { group: "DEF", lastGameweeks: [6, 1, 2, 6, 1], starts: 9, minutes: 810, chanceOfPlaying: null },
 };
+/** A row for a preview player SQUAD_ROWS leaves out, made up from his code, his doubt My team's. */
+const madeUpRow = (code: number, positions: SquadPlayer["positions"]): (typeof SQUAD_ROWS)[number] => ({
+  group: squadGroupOf(positions),
+  lastGameweeks: [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
+  starts: 4 + (code % 6),
+  minutes: 500 + ((code * 37) % 310),
+  chanceOfPlaying: previewChanceOf(code),
+});
 const SQUAD_GROUP_ORDER: readonly (SquadGroup | null)[] = ["GK", "DEF", "MID", "AM", "FWD", null];
 
 /** A club's Squad tab from Scouting's preview players at it: his season points the five gameweeks
@@ -131,7 +163,7 @@ function previewClubSquad(clubCode: number): ClubSquad | null {
   const players: SquadPlayer[] = previewPlayers
     .filter(({ club }) => club.code === clubCode)
     .map(({ code, name, fullName, positions, ownerTeamName, onWaivers }) => {
-      const row = SQUAD_ROWS[code];
+      const row = SQUAD_ROWS[code] ?? madeUpRow(code, positions);
       return { code, name, fullName, positions, ownerTeamName, onWaivers: onWaivers !== null, seasonPoints: row.lastGameweeks.reduce<number>((sum, points) => sum + (points ?? 0), 0), ...row };
     })
     .toSorted((one, other) => SQUAD_GROUP_ORDER.indexOf(one.group) - SQUAD_GROUP_ORDER.indexOf(other.group) || one.name.localeCompare(other.name));

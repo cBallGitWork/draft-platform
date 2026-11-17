@@ -18,7 +18,7 @@ import {
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
 import { runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, underSiteScoringWords } from "../shared/words";
+import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, statNames, underSiteScoringWords } from "../shared/words";
 import { afterLastMatchWords, gameweekShort, seasonShortWords, weekdayTimeWords } from "../shared/when/words";
 import type { HeldByFilter, Period } from "./seam";
 
@@ -132,8 +132,9 @@ export function periodColumns(period: Period, gameweeks: readonly number[]) {
 
 /** The star after a shortlisted player's name, for screen readers and the hover. */
 export const shortlistedLabel = "On your shortlist";
-/** A row of the list, for screen readers: pressing it opens his panel. */
-export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
+/** A row of the list, for screen readers: pressing it opens his panel. The chip it shows, if any,
+ *  comes first (WCAG 2.5.3; S12.14): "CDM: show Rice's panel". */
+export const selectPlayerLabel = (name: string, chip: string | null) => `${chip === null ? "" : `${chip}: `}Show ${name}'s panel`;
 
 /** The selected player's panel at the top of the right column (the approved picture). */
 export const panelSeasonPointsWords = "Season points";
@@ -157,12 +158,12 @@ const AREA_PLAYERS: Record<Area, string> = {
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
   [GOALS]: "Goals",
   [ASSISTS]: "Assists",
-  [KEY_PASSES]: "Key passes",
+  [KEY_PASSES]: statNames.keyPasses,
   [SHOTS_ON_TARGET]: "Shots on target",
   [BIG_CHANCES_CREATED]: "Big chances created",
   [TACKLES_WON]: "Tackles won",
   [SAVES]: "Saves",
-  [GOALS_CONCEDED]: "Goals conceded",
+  [GOALS_CONCEDED]: statNames.goalsConceded,
   [CLEAN_SHEETS]: "Clean sheets",
   [PASSES]: "Passes",
   [INTERCEPTIONS]: "Interceptions",

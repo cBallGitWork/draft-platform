@@ -91,7 +91,7 @@ flowchart TD
   FR -.->|"signed out"| SIGNIN
   FR -.->|"in no league"| LEAGUES
   TEAM -- "Squad / Fixtures / Transactions" --> TSQ & TFX & TTR
-  TEAM -- "a player's name" --> CARD
+  TEAM -- "a player's name, then Player card" --> CARD
 
   MENU(["League frame: top menu and top bar"])
   MENU -- "Home" --> HOME

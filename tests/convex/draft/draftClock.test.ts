@@ -195,6 +195,17 @@ describe("after the site was down", () => {
     expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { afterBreak: true } });
   });
 
+  // As after a resume, which sends none (S04.14): Craig, 15 Nov 2026, on #2275.
+  test("S04.22 the clock that restarts after the outage sends its manager no fresh up-next letter", async () => {
+    await start();
+    const before = await letterCount();
+    siteDown(OUTAGE_MS);
+    await pass(FIRST_PICK_MS);
+
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { afterBreak: true } });
+    expect(await newLetterSubjects(before)).toEqual([]);
+  });
+
   test("S04.22 the restarted clock runs out as any other: the pick is made, a timeout counted, and the next clock is no longer after a break", async () => {
     await start();
     siteDown(OUTAGE_MS);

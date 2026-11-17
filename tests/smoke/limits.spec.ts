@@ -5,12 +5,12 @@
 
 import { expect } from "@playwright/test";
 import { TABLE_PATH } from "../../src/frame/menu";
-import { ERROR_PAGE_TITLE } from "../../src/frame/words";
 import { limitsTeamNames } from "../../src/shared/preview";
 import { TABLE_TITLE } from "../../src/table/words";
 import { DESK } from "../../scripts/viewports.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 import { test } from "../support/smoke/errorsTest";
+import { expectPageSound } from "../support/smoke/pageChecks";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
@@ -21,12 +21,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       test(`?preview=${session} at ${path} loads at the limits and doesn't scroll sideways`, async ({ page }) => {
         await page.goto(previewUrl(path, session, { atLimits: true }));
         await expect(page.getByRole("main").getByRole("heading", { level: 1 }).first()).toBeVisible();
-        await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
-        const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-          scrollWidth: document.documentElement.scrollWidth,
-          innerWidth: window.innerWidth,
-        }));
-        expect(scrollWidth, "the page's width, against the window's").toBeLessThanOrEqual(innerWidth);
+        await expectPageSound(page);
       });
     }
 

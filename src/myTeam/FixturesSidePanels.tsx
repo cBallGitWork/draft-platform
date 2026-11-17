@@ -8,7 +8,7 @@ import { Fact } from "../trades/OfferParts";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { MoreLink } from "../ui/MoreLink";
 import { Panel } from "../ui/Panel";
-import { FormChips } from "./header/FormChips";
+import { FormChips } from "../ui/FormChips";
 import { placeIn, standingOf } from "./header/teamStanding";
 import { countdownWords, pointsShort } from "./header/words";
 import type { Game } from "./FixturesPage";
