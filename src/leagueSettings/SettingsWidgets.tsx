@@ -42,7 +42,7 @@ export function GameweeksWidget({ leagueId, seam }: { leagueId: Id<"leagues">; s
   const scoring = seam.useScoringStart(leagueId);
   const now = useNowEachMinute();
   const aside = (
-    <Link to={gameweeksPath(leagueId)} className="inline-flex min-h-tap items-center lg:min-h-0">
+    <Link to={gameweeksPath(leagueId)} className="inline-flex min-h-tap min-w-tap items-center justify-end lg:min-h-0 lg:min-w-0">
       {editGameweeksWords}
     </Link>
   );

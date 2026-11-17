@@ -27,9 +27,9 @@ import { openedOn, openedSettings, openTab, SETTINGS_PAGE } from "../../support/
 import { adminSeeing, league, openApp } from "../../support/src/shell.harness";
 
 const widget = (title: string) => screen.getByRole("region", { name: title });
-const gameweekRows =() => within(widget(gameweeksWidgetTitle)).getAllByRole("listitem");
+const gameweekRows = () => within(widget(gameweeksWidgetTitle)).getAllByRole("listitem");
 /** A season whose gameweek 10 kicks off in an hour, so 1 to 9 have begun, with 14 unticked. */
-const upcomingSeason =weeklySeason(Date.now() + HOUR_MS - 9 * WEEK_MS, [14]);
+const upcomingSeason = weeklySeason(Date.now() + HOUR_MS - 9 * WEEK_MS, [14]);
 const ticked = upcomingSeason.filter(({ used }) => used).map(({ gameweek, deadline }) => ({ gameweek, deadline }));
 
 describe("the Gameweeks widget (#2503)", () => {
