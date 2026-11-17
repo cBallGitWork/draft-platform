@@ -28,7 +28,14 @@ function man(
 ): MatchMan {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
   const marks = { ...NO_MARKS, ...MARKS[name] };
-  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, points, counts };
+  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, statPoints: played ? statPointsOf(started, marks) : null, points, counts };
+}
+
+/** What his stats earned him, for the Points switch: made up as his points are, at FPL's values
+ *  for a midfielder. */
+function statPointsOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
+  const zero = { shots: 0, shotsOnTarget: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  return { ...zero, minutes: started ? 2 : 1, goals: goals * 5, assists: assists * 3, yellowCards: -yellowCards, redCards: redCards * -3 };
 }
 
 /** A man's stats for the preview's Player stats tab: his marks as the lines below give them, each
@@ -229,7 +236,7 @@ export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
   scorers: { home: [], away: [] },
-  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, points: null, counts: each.ownerTeamName !== null })),
+  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, statPoints: null, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };
