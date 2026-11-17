@@ -414,6 +414,11 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (`/qa-panel`, the `qa-tester` agent, `scripts/qa-walk.mjs`, forge#27; Craig, 16 Nov 2026); this
   project's own panel, its start command, personas and jobs, is `.studio/qa-panel.json`. knip skips
   `scripts/qa-walk.mjs`, whose tests are Forge's.
+  Craig's shared skills (`/forge:grill`, `/forge:retro` and the rest) are Forge's `forge` plugin, which
+  `.claude/settings.json` switches on so his sessions on the Mac and the PC get one copy (17 Nov 2026).
+  It follows Forge's `main`, unpinned on purpose: it holds skills only (no hooks, no code), and a
+  pinned copy per project is the drift it replaces. GitHub's runs can't reach the private repo and
+  skip it (tested on sideband, run 44082610565), so builds and reviews use only this repo's files.
 
 - `src/shared/`: non-visual code every screen uses: the hooks, refusal handling, the common words.
   The common words sit in `words.ts` and, by job, three sub-folders' `words.ts` (#2232):
