@@ -63,8 +63,8 @@ export function MatchManPanel({ man, clubCode, leagueId, prov }: { man: MatchMan
           </tr>
         </tbody>
       </table>
-      <div className="px-3 py-2">
-        <Link to={playerCardPath(leagueId, man.playerCode)} className="action">
+      <div className="flex px-3 py-2">
+        <Link to={playerCardPath(leagueId, man.playerCode)} className="secondary-action">
           {manPanelWords.hisCard}
         </Link>
       </div>
