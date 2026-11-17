@@ -25970,12 +25970,6 @@
             },
             "optional": false
           },
-          "noLineup": {
-            "fieldType": {
-              "type": "boolean"
-            },
-            "optional": true
-          },
           "fixtureCodes": {
             "fieldType": {
               "type": "array",

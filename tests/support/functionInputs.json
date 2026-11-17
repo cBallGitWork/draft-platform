@@ -194,7 +194,6 @@
   "migrations/everyTieBreak:addLeagueTieBreaks": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "migrations/firstInstructionsVersion:addFirstInstructions": {"type":"object","value":{}},
   "migrations/firstInstructionsVersion:redrawForSportmonks": {"type":"object","value":{}},
-  "migrations/firstLineupBackfill:saveTeamsTheirLineup": {"type":"object","value":{}},
   "migrations/firstRolesVersion:addFirstRoles": {"type":"object","value":{}},
   "migrations/firstRolesVersion:addFirstRuns": {"type":"object","value":{}},
   "migrations/firstRolesVersion:addRedrawnRoles": {"type":"object","value":{}},
