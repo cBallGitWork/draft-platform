@@ -151,7 +151,7 @@ function HomeMail({ mail, lineup }: { mail: LatestMail | null | undefined; lineu
         <ol>
           {starters.map(({ playerCode, words }) => (
             <li key={playerCode} className="border-b border-panel-rule">
-              <Link to={MY_TEAM_PATH} className="flex px-3 py-1 font-semibold shadow-event-edge hover:bg-stepper">
+              <Link to={MY_TEAM_PATH} className="flex min-h-tap items-center px-3 py-1 font-semibold lg:min-h-0 shadow-event-edge hover:bg-stepper">
                 {words}
               </Link>
             </li>
