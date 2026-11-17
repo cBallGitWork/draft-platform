@@ -30,7 +30,7 @@ import {
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { WAIVER_ORDER_TITLE } from "../../../src/myTeam/claims/words";
 import type { Revision } from "../../../src/rules/rulesEdits";
-import { discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
+import { discardWords, gameweekWords, loadLatestWords, notSavedWords, overtakenWords, saveWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { REVISION } from "../../support/src/leagueSettings.harness";
@@ -109,14 +109,23 @@ describe("its tabs (#1034, the approved pictures)", () => {
 });
 
 describe("editing them", () => {
-  it("opens on the league's settings, from which gameweek a change applies, and nothing changed yet", async () => {
+  it("opens on the league's settings, the bar muted with nothing changed; a change says Not saved and from which gameweek it applies", async () => {
     await openedSettings();
 
     expect(option("bothMatches").checked).toBe(true);
     expect(gamesBox().value).toBe("1");
-    expect(screen.getByText(gameweekWords(CHANGES_FROM))).toBeTruthy();
-    expect(screen.getByText(unchangedWords)).toBeTruthy();
     expect(saveButton().disabled).toBe(true);
+    expect(screen.queryByText(notSavedWords)).toBeNull();
+    expect(screen.queryByText(unchangedWords)).toBeNull();
+    expect(screen.queryByRole("button", { name: discardWords })).toBeNull();
+
+    await userEvent.click(option("bestMatch"));
+    expect(screen.getByText(notSavedWords)).toBeTruthy();
+    expect(screen.getByText(gameweekWords(CHANGES_FROM))).toBeTruthy();
+    expect(saveButton().disabled).toBe(false);
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+    expect(option("bothMatches").checked).toBe(true);
+    expect(screen.queryByText(notSavedWords)).toBeNull();
   });
 
   it("S03.4: offers no bye, as the team left over always plays the league average", async () => {

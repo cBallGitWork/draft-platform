@@ -22,3 +22,14 @@ export function SettingRow({ label, labelId, muted = false, children }: { label:
 
 /** A row's controls side by side, such as a number's box and its unit. */
 export const SETTING_LINE = "flex flex-wrap items-center gap-x-3 gap-y-1";
+
+/** A control's label shown short, as a line's first words ("After" a box of timeouts), and read
+ *  out whole (`children`) for screen readers. */
+export function ShownAs({ shown, children }: { shown: string; children: string }) {
+  return (
+    <>
+      <span aria-hidden>{shown}</span>
+      <span className="sr-only">{children}</span>
+    </>
+  );
+}

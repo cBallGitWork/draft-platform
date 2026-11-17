@@ -98,7 +98,7 @@ function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: Leag
           {tab === "draftOrder" ? (
             <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
           ) : (
-            <SaveBar draft={bar} savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
+            <SaveBar draft={bar} notSaved savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
           )}
         </BoxRefusalContext>
       </div>

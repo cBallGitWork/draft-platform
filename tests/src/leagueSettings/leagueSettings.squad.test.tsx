@@ -22,7 +22,7 @@ import {
   squadMaximumHint,
   squadMaximumLabel,
 } from "../../../src/leagueSettings/words";
-import { unchangedWords } from "../../../src/rules/words";
+import { notSavedWords } from "../../../src/rules/words";
 import { REVISION } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedOn, openedSettings, openTab, save, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
@@ -73,7 +73,7 @@ describe("the squad (#341)", () => {
     await fill(areaMinimumLabel("attack"), "2");
     await fill(areaMinimumLabel("attack"), "0");
 
-    expect(screen.getByText(unchangedWords)).toBeTruthy();
+    expect(screen.queryByText(notSavedWords)).toBeNull();
   });
 
   it.each([
@@ -107,7 +107,7 @@ describe("the squad (#341)", () => {
   ])("with %s left without a number, Save is offered, refuses it itself, and asks the server nothing (#623)", async (_, leaveBlank, words) => {
     const app = await openedOn("squad");
     await leaveBlank();
-    expect(screen.queryByText(unchangedWords)).toBeNull();
+    expect(screen.getByText(notSavedWords)).toBeTruthy();
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(words);

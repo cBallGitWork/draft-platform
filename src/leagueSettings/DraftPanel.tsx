@@ -7,11 +7,11 @@ import { Choice } from "../ui/Choice";
 import { Panel } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
 import { DraftStartRow, type DraftStartEdit } from "./DraftStartRow";
-import { NumberRow } from "./NumberRow";
 import { SETTINGS_DRAFT_HASH } from "./paths";
-import { SETTING_LINE, SETTING_ROWS, SettingRow } from "./SettingRow";
+import { SETTING_LINE, SETTING_ROWS, SettingRow, ShownAs } from "./SettingRow";
 import { inUnit, PICK_CLOCK_UNITS, toSeconds, unitFor, type PickClockUnit } from "./pickClock";
 import {
+  autoPickAfterWords,
   autoPickLabel,
   autoPickWords,
   draftTitle,
@@ -22,6 +22,7 @@ import {
   pickClockUnitWords,
   timeoutsHint,
   timeoutsLabel,
+  timeoutsUnitWords,
   undraftedLabel,
   undraftedWords,
 } from "./words";
@@ -47,23 +48,30 @@ export function DraftPanel({ draft, edit, start }: { draft: Draft; edit: (draft:
             <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
           </SettingRow>
           <SettingRow label={autoPickLabel}>
-            <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: blankOrOff(on) })}>
-              {autoPickWords}
-            </TickBox>
+            <div className={SETTING_LINE}>
+              <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: blankOrOff(on) })}>
+                <ShownAs shown={autoPickAfterWords}>{autoPickWords}</ShownAs>
+              </TickBox>
+              {draft.timeoutsBeforeAutoPick !== null && (
+                <>
+                  <NumberBox
+                    label={timeoutsLabel}
+                    hintId={TIMEOUTS_HINT_ID}
+                    value={draft.timeoutsBeforeAutoPick}
+                    onChange={(timeoutsBeforeAutoPick) => edit({ ...draft, timeoutsBeforeAutoPick })}
+                  />
+                  <span aria-hidden className="text-soft">
+                    {timeoutsUnitWords}
+                  </span>
+                </>
+              )}
+            </div>
             {draft.timeoutsBeforeAutoPick === null ? (
               <p className="text-muted">{neverAutoPickWords}</p>
             ) : (
-              <>
-                <NumberRow
-                  label={timeoutsLabel}
-                  hintId={TIMEOUTS_HINT_ID}
-                  value={draft.timeoutsBeforeAutoPick}
-                  onChange={(timeoutsBeforeAutoPick) => edit({ ...draft, timeoutsBeforeAutoPick })}
-                />
-                <p id={TIMEOUTS_HINT_ID} className="text-muted">
-                  {timeoutsHint}
-                </p>
-              </>
+              <p id={TIMEOUTS_HINT_ID} className="text-muted">
+                {timeoutsHint}
+              </p>
             )}
           </SettingRow>
           <SettingRow label={undraftedLabel}>
