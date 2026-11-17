@@ -7,7 +7,7 @@
     "tests/**/*.{test,spec}.{ts,tsx,mjs}"
   ],
   "project": ["src/**/*.{ts,tsx}!", "convex/**/*.ts!", "scripts/**/*.mjs!", "tests/**/*.{ts,tsx,mjs}"],
-  "ignore": ["convex/_generated/**"],
+  "ignore": ["convex/_generated/**", "scripts/qa-walk.mjs"],
   "ignoreExportsUsedInFile": false,
   "includeEntryExports": true
 }
