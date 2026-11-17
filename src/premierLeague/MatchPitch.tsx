@@ -13,7 +13,8 @@ import { figureOrNone, matchPitchLabel, notCountingLabel, sideFormationWords } f
 // down from the top, each at his place in his side's formation as the held sheets draw it, his
 // goals, assists and cards after his name and his points after them, the viewer's own men with the
 // cyan underline. The pitch, its markings and the shirts are the Tactics pitch's and the matchup's
-// (src/ui/pitch). A man the sheets didn't place stays on the list beside it (`offPitch`).
+// (src/ui/pitch). A substitute who came on stands in the place of the man he replaced, who leaves
+// the pitch for the list beside it (#2525), where a man the sheets didn't place stays (`offPitch`).
 
 type Club = MatchPageData["home"];
 type Side = "home" | "away";
@@ -26,9 +27,21 @@ const FRONT_AT = 45;
 /** The men the pitch stands: starters the sheets placed. */
 const onPitch = (men: MatchMan[]) => men.filter((man) => man.formationPlace !== null);
 
-/** The men a side's list beside the pitch keeps: its substitutes, and every man while no sheet
- *  drawing its formation is held. */
-export const offPitch = (men: MatchMan[]) => men.filter((man) => man.formationPlace === null);
+/** The men a side's list beside the pitch keeps: its substitutes, those who came on among them, the
+ *  men who went off, and every man while no sheet drawing its formation is held. */
+export const offPitch = (men: MatchMan[]) => men.filter((man) => man.formationPlace === null || man.sub.wentOff !== null);
+
+/** The men with the places they stand in now: none for a man who went off, and for a substitute
+ *  who came on the place of the man he replaced, or of whoever that man came on for. */
+function standingNow(men: MatchMan[]): MatchMan[] {
+  const byCode = new Map(men.map((man) => [man.playerCode, man]));
+  const placeOf = (man: MatchMan, seen: Set<number>): MatchMan["formationPlace"] => {
+    if (man.formationPlace !== null) return man.formationPlace;
+    const replaced = man.sub.cameOn === null ? undefined : byCode.get(man.sub.cameOn.replaced);
+    return replaced === undefined || seen.has(replaced.playerCode) ? null : placeOf(replaced, seen.add(man.playerCode));
+  };
+  return men.map((man) => ({ ...man, formationPlace: man.sub.wentOff === null ? placeOf(man, new Set()) : null }));
+}
 
 /** A side's formation as its sheet labels it; null while no sheet drawing it is held. */
 const formationOf = (men: MatchMan[]) => onPitch(men)[0]?.formationPlace?.formation ?? null;
@@ -48,7 +61,8 @@ function standingOf(man: MatchMan, side: Side, men: MatchMan[]): CSSProperties {
 /** Both lineups on one pitch, under a head naming each side and its formation, away's left as it
  *  attacks down the pitch and home's right (the approved picture). */
 export function MatchPitch({ home, away, men }: { home: Club; away: Club; men: MatchMan[] }) {
-  const sides = { home: onPitch(men.filter((man) => man.side === "home")), away: onPitch(men.filter((man) => man.side === "away")) };
+  const standing = onPitch(standingNow(men));
+  const sides = { home: standing.filter((man) => man.side === "home"), away: standing.filter((man) => man.side === "away") };
   return (
     <Panel title={sideFormationWords(away.name, formationOf(sides.away))} aside={sideFormationWords(home.name, formationOf(sides.home))}>
       <div style={PITCH_ROOM_STYLE} className="pitch-room-full p-2">

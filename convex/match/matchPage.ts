@@ -27,6 +27,7 @@ import { marksOf, matchMarks } from "./matchMarks";
 import { matchStatLine, statLineOf, statPointsOf } from "./matchStatLine";
 import { commentaryOf } from "./matchPageCommentary";
 import { matchScorers, scorersOf } from "./matchScorers";
+import { matchSub, NO_SUB, subsOf } from "./matchSubs";
 import { bySheetOrder } from "./sheetOrder";
 import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 
@@ -62,6 +63,9 @@ const matchMan = v.object({
   formationPlace: v.union(formationPlace, v.null()),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
+  /** When he came on and for whom, and when he went off, by the commentary, for Overview's pitch
+   *  (S10.9; matchSubs.ts). */
+  sub: matchSub,
   /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** Whether that team is the viewer's own, whose men the sheets light (spec/10 S10.9). */
@@ -139,6 +143,7 @@ export const ofMatch = query({
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
     const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null, places }, priced, unownedPoints);
     const { commentary, lines } = await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held);
+    const subs = subsOf(lines, `Match ${fixture.code}`);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -146,7 +151,7 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men,
+      men: men.map((man) => ({ ...man, sub: subs.get(man.playerCode) ?? NO_SUB })),
       pointsProblem: priced.problem,
       scorers: scorersOf(lines, new Map(men.map((man) => [man.playerCode, man])), `Match ${fixture.code}`),
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
@@ -251,7 +256,7 @@ async function menOf(
   }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null; places: Map<PlayerCode, FormationPlace> },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
-): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
+): Promise<{ men: Omit<MatchMan, "sub">[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(

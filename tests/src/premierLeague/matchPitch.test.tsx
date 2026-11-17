@@ -6,13 +6,17 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test } from "vitest";
 import {
+  cameOnWords,
   lineupViewLabel,
   lineupViewWords,
   markLabels,
   matchPitchLabel,
+  noFigureWords,
   sheetLabel,
   sideFormationWords,
   SUBSTITUTES_TITLE,
+  unusedLabel,
+  wentOffWords,
 } from "../../../src/premierLeague/words";
 import { man, matchOf, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
@@ -69,4 +73,35 @@ test("S10.9: the viewer's own men have the cyan underline on the pitch, and only
   const pitch = await openPitch();
   expect(within(pitchMan(pitch, "Raya")).getByText("Raya").className).toContain("shadow-subtab-active");
   expect(within(pitchMan(pitch, "Timber")).getByText("Timber").className).not.toContain("shadow-subtab-active");
+});
+
+/** Calafiori off for Eze at 62', then Eze off for Nwaneri at 88'; Timber off for White at 70'. */
+const SUBBED_MEN = [
+  man(1, "Raya", "home", { ...placedAt(0, 0), position: "GK" }),
+  man(2, "Timber", "home", { ...placedAt(1, 0), sub: { cameOn: null, wentOff: { minute: "70'" } } }),
+  man(3, "Calafiori", "home", { ...placedAt(1, 1), sub: { cameOn: null, wentOff: { minute: "62'" } } }),
+  man(4, "Eze", "home", { started: false, sub: { cameOn: { minute: "62'", replaced: 3 }, wentOff: { minute: "88'" } } }),
+  man(6, "White", "home", { started: false, sub: { cameOn: { minute: "70'", replaced: 2 }, wentOff: null } }),
+  man(7, "Nwaneri", "home", { started: false, sub: { cameOn: { minute: "88'", replaced: 4 }, wentOff: null } }),
+  man(8, "Lewis-Skelly", "home", { started: false, played: false }),
+];
+
+test("S10.9: a substitute who came on stands in the place of the man he replaced, and the man who went off joins the list, marked Off with his minute", async () => {
+  openMatch({ match: matchOf({ men: SUBBED_MEN }) });
+  await userEvent.click(within(await screen.findByRole("radiogroup", { name: lineupViewLabel })).getByRole("radio", { name: lineupViewWords.pitch }));
+  const pitch = screen.getByRole("list", { name: matchPitchLabel(ARSENAL.name, CHELSEA.name) });
+  expect(within(pitch).getAllByRole("listitem").map((each) => each.textContent)).toEqual(["Raya", "White", "Nwaneri"].map((name) => `${name}${noFigureWords}`));
+  expect(pitchMan(pitch, "White").style.left).toBe("75%");
+  // Nwaneri came on for Eze, who came on for Calafiori: he stands in Calafiori's place.
+  expect(pitchMan(pitch, "Nwaneri").style.left).toBe("25%");
+
+  const arsenal = screen.getByRole("table", { name: sheetLabel(ARSENAL.name) });
+  expect(within(arsenal).getAllByRole("rowheader").map((each) => each.textContent)).toEqual([
+    `Timber${wentOffWords("70'")}`,
+    `Calafiori${wentOffWords("62'")}`,
+    `Eze${cameOnWords("62'")}${wentOffWords("88'")}`,
+    `White${cameOnWords("70'")}`,
+    `Nwaneri${cameOnWords("88'")}`,
+    `Lewis-Skelly ${unusedLabel}`,
+  ]);
 });
