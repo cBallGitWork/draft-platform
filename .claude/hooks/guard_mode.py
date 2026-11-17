@@ -32,6 +32,8 @@ from where import MAIN, arguments, runs_at
 GO_WORDS = re.compile(
     r"\b(build|go ahead|go for it|do it|do that|do them|do all|do both|do more|"
     r"file (it|them|that|these|those|all|both|the rest|an issue|issues)|"
+    # "post" files too: Craig's "Post it" was refused, 16 Nov 2026 (#2459)
+    r"post (it|them|that|these|those|all|both|the rest|the run|an issue|issues)|"
     r"ship|merge (it|them|that|this|these|those|the|a|an|now|#\d+)|open (a|the) (pr|pull request)|start (it|them|the build|building)|run it|make it|create|"
     r"sort it|set it up|set up|implement|land|label it|fix (it|that|them|those|the|this|all|everything|where|what)|"
     r"just do|get on with|crack on|carry on|proceed|"

@@ -445,11 +445,11 @@ jobs:
           # again, every night for BUILT_DAYS days
           cleared=$(jq -r '.[] | select(any(.labels[]?; .name == env.CLEAR_LABEL)) | .number' <<<"$issues")
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs" && ! grep -qx "$n" <<<"$cleared"; then echo "$n:sweep"; else echo "$row"; fi; done)
-          # an issue whose "Blocked by" (a `**Blocked by**:` line, or a `## Blocked by` section) names an issue still
+          # an issue whose "Blocked by" (a `**Blocked by**:` line, colon or not (#2421: `Blocked by #2288.` slipped through), read to its first full stop so a `Part of #n` after it is no blocker, or a `## Blocked by` section) names an issue still
           # open waits on that issue: built, it only stops and says so again each day (14 Nov 2026: #1424-#1431 waited
           # on #1423 and each stopped daily). It shows on the board with what it waits on, and builds once those close
           waits=$(jq -r '[.[].number] as $open | .[] | .number as $n
-              | [(.body // "") | (scan("(?i)\\*{0,2}blocked by\\*{0,2}:([^\\n]*)") | .[0]),
+              | [(.body // "") | (scan("(?i)\\*{0,2}\\bblocked by\\*{0,2}:?([^\\n.]*)") | .[0]),
                                  (split("\n## ") | .[] | select(test("^#* ?blocked by\\s*\\n"; "i")) | sub("^[^\\n]*\\n"; ""))
                  | scan("#([0-9]+)") | .[0] | tonumber | select(. != $n) | select(. as $b | $open | index($b))] | unique
               | select(length > 0) | "\($n) \(map("#\(.)") | join(" "))"' <<<"$issues")

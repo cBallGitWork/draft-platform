@@ -1,6 +1,7 @@
 # Setting up
 
-**Contents:** [Start](#start) · [The live site](#the-live-site) · [Restoring saved data](#restoring-saved-data)
+**Contents:** [Start](#start) · [The live site](#the-live-site) · [Staging](#staging) ·
+[Restoring saved data](#restoring-saved-data)
 
 How to get the app running locally, and how the live site is set up. The project's own docs are
 [SPEC.md](../SPEC.md), [ARCHITECTURE.md](../ARCHITECTURE.md) and [CLAUDE.md](../CLAUDE.md).
@@ -172,6 +173,30 @@ tokens, make a token for the account the builds run as (CBHelper180). Its only r
 Convex dashboard's development deployment, Settings, Environment Variables. A refused wake-up (an expired
 token, say) shows as a failed `wake the lead` run in the Convex dashboard's logs, and, if GitHub's
 schedule has dropped too, as Healthchecks' `lead-pass` email after 3 hours with no pass.
+
+## Staging
+
+Every merge to `main` goes to staging, `https://staging.fantasydraftmanager.net`, on the
+development deployment; the live site builds from the `release` branch, which `promote.yml`
+moves up once a day at 07:00 London ([spec/20](../spec/20-going-live.md), S20.19 to S20.21;
+#2464). Set up once:
+
+1. **Claude**: makes the `release` branch on `main`'s newest commit, so live keeps its code;
+   then, in the Vercel project, sets the production branch to `release` and adds the domain
+   `staging.fantasydraftmanager.net` on the `main` branch.
+2. **Craig**: makes the development deploy key in the Convex dashboard: the `draft-platform`
+   project, its Development deployment (not Production), then Settings, where the deploy key is
+   generated. It starts `dev:`. Then, in this checkout, puts it in Vercel for `main`'s previews
+   only, pasting it when asked (it isn't shown):
+   `npx vercel env add CONVEX_DEPLOY_KEY preview main`.
+
+Until the key is there, staging's builds stop, saying `CONVEX_DEPLOY_KEY isn't set`, and nothing
+moves up to live. A key of the wrong kind stops the build too (`scripts/release.mjs`).
+
+To move live up by hand, or see what the 07:00 run would do: the Actions tab, `promote`, Run
+workflow (tick `dry_run` to only see). To undo a bad release at once, run `promote` by hand
+with `back_to` set to the commit live was on before; then revert the merge on `main`, so the next
+move up doesn't bring it back.
 
 ## Restoring saved data
 

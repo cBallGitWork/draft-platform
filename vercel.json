@@ -3,7 +3,7 @@
   "buildCommand": "node scripts/release.mjs",
   "ignoreCommand": "node scripts/release-skip.mjs",
   "git": {
-    "deploymentEnabled": { "**": false, "main": true }
+    "deploymentEnabled": { "**": false, "main": true, "release": true }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
