@@ -7,7 +7,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
 import { letterAsRead } from "./letterMoments";
 import type { Doc, Id } from "../_generated/dataModel";
-import { letterKind } from "./letterShape";
+import { letterKind, letterLink } from "./letterShape";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
@@ -33,6 +33,8 @@ const letterSummary = v.object({
   subject: v.string(),
   body: v.string(),
   read: v.boolean(),
+  /** Where its one link goes (S16.2); null on a letter with none. */
+  link: v.union(letterLink, v.null()),
 });
 export type LetterSummary = Infer<typeof letterSummary>;
 
@@ -83,6 +85,7 @@ const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary
   from: row.from ?? null,
   ...letterAsRead(row, zone),
   read: row.readAt !== undefined,
+  link: row.link ?? null,
 });
 
 /** The signed-in person's newest LATEST_LETTERS letters, and how many of `letters`' are unread:
