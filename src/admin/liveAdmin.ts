@@ -27,6 +27,8 @@ const useGameweekMatches: AdminSeam["useGameweekMatches"] = (gameweek) =>
 
 const useMatchMoveLog: AdminSeam["useMatchMoveLog"] = () => useQuery(api.gameweeks.matchMoves.log, {});
 
+const useCommissionerAsks: AdminSeam["useCommissionerAsks"] = () => useQuery(api.leagues.commissionerAsks.waiting, {});
+
 /** No player asks the server nothing. */
 const useAvailabilityOf: AdminSeam["useAvailabilityOf"] = (code) => useQuery(api.availability.availability.forAdmin, code === null ? "skip" : { code });
 
@@ -51,9 +53,12 @@ export function useLiveAdmin(): AdminSeam {
   const setAvailability = useMutation(api.availability.availability.set);
   const savePlatformSettings = useMutation(api.admin.platformSettings.save);
   const moveMatch = useMutation(api.gameweeks.matchMoves.move);
+  const approveAsk = useMutation(api.leagues.commissionerAsks.approve);
+  const refuseAsk = useMutation(api.leagues.commissionerAsks.refuseAsk);
   return useMemo(
     () => ({
       useQueue,
+      useCommissionerAsks,
       useGameweekMatches,
       useMatchMoveLog,
       useFoundPlayers,
@@ -72,8 +77,12 @@ export function useLiveAdmin(): AdminSeam {
       setAvailability: (code, availability) => refusalOf(() => setAvailability({ code, availability }), "Setting a player's availability", changeFailedWords),
       savePlatformSettings: (settings) => refusalOf(() => savePlatformSettings(settings), "Saving the site's settings", changeFailedWords),
       moveMatch: (fixtureCode, gameweek) => answerOf(() => moveMatch({ fixtureCode, gameweek }), "Moving a match", changeFailedWords),
+      approveAsk: (askId) => refusalOf(() => approveAsk({ askId }), "Approving an ask to be commissioner", changeFailedWords),
+      refuseAsk: (askId) => refusalOf(() => refuseAsk({ askId }), "Refusing an ask to be commissioner", changeFailedWords),
     }),
     [
+      approveAsk,
+      refuseAsk,
       approvePlayer,
       approveClub,
       setPosition,

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
 import type { MailSeam } from "./seam";
+import { changeFailedWords } from "../shared/words";
 import { sendFailedWords } from "./words";
 
 const useLetters: MailSeam["useLetters"] = (leagueId) => {
@@ -18,6 +19,7 @@ export function useLiveMail(): { mail: MailSeam; unreadMail: number } {
   const unreadMail = useQuery(api.mail.mail.unreadCount, isAuthenticated ? {} : "skip") ?? 0;
   const open = useMutation(api.mail.mail.open);
   const write = useMutation(api.mail.mail.writeToLeague);
+  const ask = useMutation(api.leagues.commissionerAsks.ask);
 
   const mail = useMemo<MailSeam>(
     () => ({
@@ -30,8 +32,9 @@ export function useLiveMail(): { mail: MailSeam; unreadMail: number } {
         }
       },
       writeToLeague: (letter) => refusalOf(() => write(letter), "Sending a letter to the league", sendFailedWords),
+      askToBeCommissioner: (leagueId) => refusalOf(() => ask({ leagueId }), "Asking to be commissioner", changeFailedWords),
     }),
-    [open, write],
+    [open, write, ask],
   );
   return { mail, unreadMail };
 }

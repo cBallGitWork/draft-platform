@@ -12,6 +12,7 @@ import type {
   MatchMoveLogRow,
   PlatformSettings,
   PositionsQueue,
+  WaitingAsk,
 } from "../../../src/admin/seam";
 
 /** What the fake server holds: the queue, who a search finds, the feeds page's report
@@ -31,6 +32,8 @@ export type AdminData = {
   /** Any gameweek's matches (#1417), and his log of moves (undefined: still loading). */
   gameweekMatches?: readonly GameweekMatch[];
   moveLog?: { rows: readonly MatchMoveLogRow[]; more: boolean };
+  /** Managers' asks to be commissioner (spec/01 S01.3). */
+  commissionerAsks?: readonly WaitingAsk[];
 };
 export const EMPTY_QUEUE: PositionsQueue = {
   newSignings: [],
@@ -56,6 +59,7 @@ export function fakeAdmin({
   settingsLoading = false,
   gameweekMatches = [],
   moveLog,
+  commissionerAsks = [],
 }: AdminData = {}) {
   return {
     useQueue: vi.fn<AdminSeam["useQueue"]>(() => (loading ? undefined : queue)),
@@ -77,5 +81,8 @@ export function fakeAdmin({
     useGameweekMatches: vi.fn<AdminSeam["useGameweekMatches"]>((gameweek) => (gameweek === null ? undefined : gameweekMatches)),
     useMatchMoveLog: vi.fn<AdminSeam["useMatchMoveLog"]>(() => moveLog),
     moveMatch: vi.fn<AdminSeam["moveMatch"]>(async () => ({ warnings: [] })),
+    useCommissionerAsks: vi.fn<AdminSeam["useCommissionerAsks"]>(() => ({ asks: commissionerAsks, more: false })),
+    approveAsk: vi.fn<AdminSeam["approveAsk"]>(async () => null),
+    refuseAsk: vi.fn<AdminSeam["refuseAsk"]>(async () => null),
   };
 }
