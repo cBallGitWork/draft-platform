@@ -131,9 +131,9 @@ export function Pitch({
 }
 
 /** A player on the pitch (spec/05 What the pitch shows): his shirt, a little bigger than a list's;
- *  his chip, the role's code in his area's colour, its name on hover, with his stars for it (#845);
- *  his name plate, which opens with his slot's position label ("ST Haaland": the position, never
- *  its side, so a sweeper or libero reads CB; Craig, 4 Nov 2026); his opponents this gameweek,
+ *  his chip, the role's short name in his area's colour, its full name on hover (#2649), with his
+ *  stars for it (#845); his name plate, which opens with his slot's position label ("ST Haaland":
+ *  the position, never its side, so a sweeper or libero reads CB; Craig, 4 Nov 2026); his opponents this gameweek,
  *  each outlined until fixture difficulty fills it (Craig, 6 Nov 2026: "Build now, colour later").
  *  His positions are in his name for screen readers. A tap opens his panel, and his block is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
@@ -145,10 +145,12 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   const isSelected = moving.selected === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   const swapsWith = landing !== null && picked !== null;
-  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14).
-  const shown = [player.number, chip.code, chip.slotLabel,player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
+  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14); the
+  // role's full name, which the chip may shorten or cut, comes after them all (#2649).
+  const visible = [player.number, chip.shortName, chip.slotLabel, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
     .filter((bit) => bit !== null)
     .join(" ");
+  const shown = chip.roleName === chip.shortName ? visible : `${visible} ${chip.roleName}`;
   return (
     <button
       type="button"
@@ -197,16 +199,18 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
 /** The attribute marking a starter's role chip on the pitch, which opens his role card (#848). */
 export const ROLE_CHIP_MARK = "data-role-chip";
 
-/** The role's code on his area's colour, its name on hover, then his stars for it on the plate. */
+/** The role's short name on his area's colour, on a line of its own so it has the lane's width, cut
+ *  to fit it with its full name on hover (#2649); his stars for it sit on the plate above it, over
+ *  his shirt's hem, so the extra line still fits the shortest cell (4-1-2-1-2's). */
 function RoleChip({ chip }: { chip: PitchChip }) {
   const { fill, ink } = chipColoursOf(chip.position);
   return (
-    <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer items-center leading-pitch-chip">
-      <abbr title={chip.roleName} className={`px-1 font-bold no-underline ${fill} ${ink}`}>
-        {chip.code}
-      </abbr>
-      <span className="flex items-center self-stretch bg-name-plate px-0.5">
+    <span {...{ [ROLE_CHIP_MARK]: "" }} className="-mt-2.5 flex max-w-full cursor-pointer flex-col items-center leading-pitch-chip">
+      <span className="flex items-center bg-name-plate px-0.5 py-px">
         <StarRating stars={chip.stars} subject={chip.roleName} size="h-pitch-star w-pitch-stars" />
+      </span>
+      <span title={chip.roleName} className={`max-w-full truncate px-1 font-bold ${fill} ${ink}`}>
+        {chip.shortName}
       </span>
     </span>
   );
