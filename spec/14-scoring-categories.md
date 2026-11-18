@@ -163,6 +163,9 @@ change is good".
 - Its numbers go in the patch notes.
 - On Announce the lab runs once more by itself, on exactly the announced draft, and those numbers
   go in the patch notes: "5 a" (Craig, 6 Nov 2026, on #843). `S14.12`
+- Only the admin sees the lab's numbers in the patch notes; a manager sees what changed and from
+  when: "Show the lab only to the admin; a manager sees what changed and from when" (Craig, 18 Nov
+  2026, #2653). `S14.32`
 - Past seasons: "not much data this season, might need last". The five seasons 2021/22 to 2025/26
   from ai-carling-premiership, copied once into our own data by a script, stay, each player matched
   to his Sportmonks player through his FPL `code`: "sure" (Craig, 9 Nov 2026, on #1196). They hold
