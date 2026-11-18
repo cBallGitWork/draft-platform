@@ -1,7 +1,7 @@
 import type { MatchupBenchSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { Shirt } from "../ui/pitch/Shirt";
 import { chipColoursOf } from "../ui/PositionChip";
-import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, offWords, pitchPlayerLabel, statusLabels, statusText, tileButtonLabel } from "./words";
+import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, offWords, overriddenLabel, pitchPlayerLabel, statusLabels, statusText, tileButtonLabel } from "./words";
 
 // A man on the matchup as FPL's points pitch draws him (the approved picture; Craig, 8 Nov 2026:
 // "Look at how FPL and draft and sleeper have the player tiles on pitch, much easier to read"): a
@@ -20,20 +20,25 @@ export type Picking = { picked: number | null; pick(playerCode: number): void };
 
 /** All a tile says, read out: "Delap, ST Poacher, 5, Finished FT", then whether his points count
  *  and what the auto-subs did with him. */
-export function tileLabel({ name, place, role, points, counts, status, autoSub }: TileMan): string {
+export function tileLabel({ name, place, role, points, counts, overridden, status, autoSub }: TileMan): string {
   const figure = points === null ? noFigureWords : figureWords(points);
   const head = place !== null && role !== null ? pitchPlayerLabel(name, place.label, role.name, figure) : `${name}, ${figure}`;
   const atHalfTime = status.kind === "playing" && status.state === "halfTime";
   const parts = [head, `${atHalfTime ? statusLabels.halfTime : statusLabels[status.kind]} ${statusText(status)}`];
+  if (overridden) parts.push(overriddenLabel);
   if (!counts) parts.push(notCountingLabel);
   if (autoSub !== null) parts.push(autoSub.kind === "unreplaced" ? autoSubWords.unreplaced : autoSubWords[autoSub.kind](autoSub.playerName));
   return parts.join(", ");
 }
 
+/** The figure's ink: muted while his points don't count or haven't arrived, a colour of its own once
+ *  the league overrode them (spec/14 S14.31), else the figure yellow. */
+const figureInk = (counting: boolean, overridden: boolean) => (!counting ? "text-muted" : overridden ? "text-overridden" : "text-figure");
+
 /** `strip` is the pitch's: the bench's tiles have none, and are greyed. `className` is the tile's
  *  place in its pitch cell or bench row. */
 export function PlayerTile({ man, picking, strip, className }: { man: TileMan; picking: Picking; strip: boolean; className: string }) {
-  const { playerCode, name, area, clubCode, number, points, counts, status, autoSub, place, role } = man;
+  const { playerCode, name, area, clubCode, number, points, counts, overridden, status, autoSub, place, role } = man;
   const picked = picking.picked === playerCode;
   const wentOff = autoSub?.kind === "off";
   const colours = place === null ? null : chipColoursOf(place.label);
@@ -64,7 +69,7 @@ export function PlayerTile({ man, picking, strip, className }: { man: TileMan; p
           <span aria-hidden="true" className={`relative flex justify-center pt-1 ${strip ? "bg-pitch-stripe" : "bg-panel-edge"}`}>
             {/* A space between each bit of text, so none runs into the next as one word (WCAG 2.5.3). */}
             <Shirt number={number} clubCode={clubCode} goalkeeper={area === "goalkeeper"} size="size-shirt-tile" />{" "}
-            <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${counts && points !== null ? "text-figure" : "text-muted"}`}>{figure}</span>
+            <span className={`absolute top-0 right-0 bg-name-plate px-1 font-bold ${figureInk(counts && points !== null, overridden)}`}>{figure}</span>
           </span>{" "}
           <span aria-hidden="true" className={`truncate bg-fact px-1 text-center font-semibold text-ground ${autoSub?.kind === "on" ? "shadow-event-edge" : ""}`}>
             {name}
