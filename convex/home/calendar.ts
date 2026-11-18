@@ -2,15 +2,10 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { draftOf } from "../draft/draftRow";
-import type { ScheduledMatch } from "../gameweeks/deadline";
-import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
-import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
-import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
+import { playedGameweekTimes, type PlayedGameweekTimes } from "../gameweeks/playedGameweekTimes";
 import { historyOf, type RulesRow } from "../rules/rulesHistory";
-import { seasonOfMatches } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
-import { seasonStartYear } from "../shared/time";
 import { firstRunFrom, ukMoment, wasRunTime } from "../waivers/waiverTimes";
 
 // Home's Calendar tab (spec/12, S12.24): a month's league events, for FM's month grid. Each gameweek
@@ -31,7 +26,7 @@ export const calendarEvent = v.union(
 export type CalendarEvent = Infer<typeof calendarEvent>;
 
 /** The moment a UK month starts, `month` 1 for January; 13 is the next year's January. */
-export const ukMonthStart = (year: number, month: number) => ukMoment(Date.UTC(year, month - 1, 1), 0, 0);
+const ukMonthStart = (year: number, month: number) => ukMoment(Date.UTC(year, month - 1, 1), 0, 0);
 
 /** The league's events in the UK month, in time order. For anyone with a part in the league. */
 export const ofMonth = query({
@@ -42,40 +37,21 @@ export const ofMonth = query({
     const { league } = await memberOf(ctx, leagueId);
     const [from, to] = [ukMonthStart(year, month), ukMonthStart(year, month + 1)];
     const matches = await scheduledMatches(ctx);
-    const deadlines = await leagueDeadlinesIn(ctx, leagueId, matches);
-    const kickoffs = firstKickoffsOf(matches, await gameweekStartsOf(ctx, matches));
-    const draft = await draftOf(ctx, leagueId);
+    const gameweeks = await playedGameweekTimes(ctx, league, matches, await leagueDeadlinesIn(ctx, leagueId, matches));
     const events: CalendarEvent[] = [
-      ...gameweekEvents(league, await seasonGameweekCount(ctx), kickoffs, deadlines),
-      ...draftEvent(draft),
+      ...gameweeks.flatMap(gameweekEvents),
+      ...draftEvent(await draftOf(ctx, leagueId)),
       ...runsBetween(await historyOf(ctx, leagueId), from, to).map((at) => ({ kind: "waiverRun" as const, at })),
     ];
     return events.filter(({ at }) => at >= from && at < to).sort((one, other) => one.at - other.at);
   },
 });
 
-/** Each gameweek's first kickoff this season: the recorded one once passed (gameweekStarts.ts), else
- *  the earliest held. Last season's matches, still held while this one's arrive, start nothing. */
-function firstKickoffsOf(matches: readonly ScheduledMatch[], recorded: ReadonlyMap<number, number>): Map<number, number> {
-  const season = seasonOfMatches(matches);
-  const thisSeason = matches.filter(({ kickoff }) => kickoff !== null && seasonStartYear(kickoff) === season);
-  return new Map([...firstKickoffs(thisSeason), ...recorded]);
-}
-
-function gameweekEvents(
-  league: Doc<"leagues">,
-  count: number,
-  kickoffs: ReadonlyMap<number, number>,
-  deadlines: ReadonlyMap<number, number | null>,
-): CalendarEvent[] {
-  return usedGameweeksOf(league, count).flatMap((gameweek) => {
-    const kickoff = kickoffs.get(gameweek);
-    const deadline = deadlines.get(gameweek) ?? null;
-    return [
-      ...(kickoff === undefined ? [] : [{ kind: "firstKickoff" as const, at: kickoff, gameweek }]),
-      ...(deadline === null ? [] : [{ kind: "deadline" as const, at: deadline, gameweek }]),
-    ];
-  });
+function gameweekEvents({ gameweek, firstKickoff, deadline }: PlayedGameweekTimes): CalendarEvent[] {
+  return [
+    ...(firstKickoff === null ? [] : [{ kind: "firstKickoff" as const, at: firstKickoff, gameweek }]),
+    ...(deadline === null ? [] : [{ kind: "deadline" as const, at: deadline, gameweek }]),
+  ];
 }
 
 function draftEvent(draft: Doc<"drafts"> | null): CalendarEvent[] {
