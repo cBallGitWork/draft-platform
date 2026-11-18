@@ -47,7 +47,7 @@ node scripts/shoot.mjs <route> <name> --phone    # and .shots/<name>-390.png
 
 It uses the Mac's Chrome, and prints for each width where the page landed and whether it scrolls
 sideways, and at 390 every tap under the tap size (`--spacing-tap`; plate.md, The phone):
-measured, not eyeballed. The phone waits until Craig asks (CLAUDE.md, Decided), so shoot 390
+measured, not eyeballed. The phone waits until Craig asks (`.claude/rules/ui.md`), so shoot 390
 (`--phone`) only when your caller asks for it. The smoke run in CI still loads each built screen
 at 390 and fails on sideways scroll or a tap under the tap size, and at 1440 lists plate.md's
 look-rule breaks as notes that never fail (`tests/smoke/builtScreens.spec.ts`,
