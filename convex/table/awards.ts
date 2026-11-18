@@ -87,7 +87,7 @@ export function managerOfTheMonth<Team>(
 }
 
 /** Awards each month made ready by the gameweeks just stored final (finalScores.ts), from
- *  `results`, every gameweek the league has begun scored, and Mails the whole league. A month
+ *  `results`, every gameweek of the league's season scored, begun or not, and Mails the whole league. A month
  *  awarded already is left as it is. */
 export async function awardMonths(
   ctx: MutationCtx,
