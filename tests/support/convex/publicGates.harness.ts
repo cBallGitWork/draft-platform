@@ -111,6 +111,7 @@ export const gates: Record<string, Gate> = {
   "gameweeks/matchMoves:move": "admin",
   "gameweeks/scoringStart:ofLeague": "runner",
   "gameweeks/scoringStart:setScoringStart": "runner",
+  "home/calendar:ofMonth": "member",
   "home/homeClock:clockOf": "member",
   "home/leagueHome:matchdayOf": "member",
   "home/leagueHome:ofLeague": "member",

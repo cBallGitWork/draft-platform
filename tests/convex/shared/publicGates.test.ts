@@ -90,6 +90,7 @@ beforeEach(async () => {
       "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
       "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
+      "home/calendar:ofMonth": () => caller.query(api.home.calendar.ofMonth, { leagueId, year: 2026, month: 10 }),
       "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, hour: now }),
       "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),
       "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, gameweek: null }),

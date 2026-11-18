@@ -118,6 +118,7 @@ import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js
 import type * as gameweeks_matchMoves from "../gameweeks/matchMoves.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
+import type * as gameweeks_playedGameweekTimes from "../gameweeks/playedGameweekTimes.js";
 import type * as gameweeks_roundStarts from "../gameweeks/roundStarts.js";
 import type * as gameweeks_saveGameweek from "../gameweeks/saveGameweek.js";
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
@@ -125,6 +126,7 @@ import type * as gameweeks_seasonGameweeks from "../gameweeks/seasonGameweeks.js
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as heartbeats_leadWake from "../heartbeats/leadWake.js";
+import type * as home_calendar from "../home/calendar.js";
 import type * as home_glance from "../home/glance.js";
 import type * as home_homeAt from "../home/homeAt.js";
 import type * as home_homeClock from "../home/homeClock.js";
@@ -566,6 +568,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/matchMoves": typeof gameweeks_matchMoves;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
+  "gameweeks/playedGameweekTimes": typeof gameweeks_playedGameweekTimes;
   "gameweeks/roundStarts": typeof gameweeks_roundStarts;
   "gameweeks/saveGameweek": typeof gameweeks_saveGameweek;
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
@@ -573,6 +576,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
   "heartbeats/leadWake": typeof heartbeats_leadWake;
+  "home/calendar": typeof home_calendar;
   "home/glance": typeof home_glance;
   "home/homeAt": typeof home_homeAt;
   "home/homeClock": typeof home_homeClock;
