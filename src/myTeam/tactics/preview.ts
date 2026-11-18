@@ -1,8 +1,9 @@
 // The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with
 // four on the bench (fourteen at the league limits, a full 25), under the first rules, set for the
 // first gameweek the preview league's season (previewDraw.ts) hasn't locked, at its deadline, so
-// My team and League home's strip read one season (#2652). A save is judged by the server's own check (lineup.ts) and said in its
-// words, so a refusal shows as it would live. Saved plans start none. A role card prices made-up last matches as the server does (roleCardShape.ts).
+// My team and League home's strip read one season (#2652). A save is judged by the server's own
+// check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved plans start
+// none. A role card prices made-up last matches as the server does (roleCardShape.ts).
 
 import { useMemo, useSyncExternalStore } from "react";
 import { cardRolesOf, pricedMatch } from "../../../convex/lineup/roleCardShape";
@@ -24,7 +25,9 @@ import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
 /** The gameweek being set: the first the preview season hasn't locked, the one after Football's. */
-export const PREVIEW_GAMEWEEK = nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, Date.now())!;
+export const PREVIEW_GAMEWEEK = nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, Date.now()) ?? (() => {
+  throw new Error("The preview season has locked every gameweek: none is left to set (src/shared/previewDraw.ts).");
+})();
 const PREVIEW_DEADLINE = previewSeason.deadlineOf(PREVIEW_GAMEWEEK);
 
 /** A club's FPL code by its short name, for its shirt's colours. */
