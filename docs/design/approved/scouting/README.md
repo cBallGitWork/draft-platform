@@ -73,7 +73,7 @@ mark for a shortlisted player. Their organisation, never their colours.
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
 | The Next 3 cells' difficulty colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
-| The status chips after a name (knock, booking) | which FPL statuses each chip reads | to-grill: Status chips' data |
+| The status chips after a name (knock, booking) | settled: the chips from Sportmonks' statuses | `spec/05` S05.59-S05.60 |
 
 ## Builds it unblocks
 

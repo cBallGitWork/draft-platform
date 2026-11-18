@@ -28,6 +28,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   Continue takes him to his Tactics tab, whether or not anything is wrong with his lineup, until
   he opens Tactics that gameweek. A manager with no team in the league has no lineup step (Craig,
   1 Nov 2026).
+- Continue walks the same list as Mail's Needs you (`spec/16`), then unread letters, then "nothing
+  to do": one to-do list (Craig, 18 Nov 2026: "Yes, all four"). `S12.21`
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
 - Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
@@ -74,9 +76,10 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   all").
   - Craig, 13 Nov 2026, on #1976, "yes to all five" of Claude's recommendations, wiring the
     panels the picture draws:
-    - Flagged means any player FPL gives a news note, the note shown word for word, with no chip:
-      the status chips stay placeholders until they are settled. Your squad news lists the whole
-      squad's; Tactics' Lineup check lists only the starters'. `S12.8`
+    - Flagged means any player with a mark from `spec/05` (S05.57, S05.59, S05.60): his chip, and
+      Sportmonks' reason when it sends one ("Hamstring"), in place of FPL's news note (Craig,
+      18 Nov 2026: "Mark + Sportmonks reason"). Your squad news lists the whole squad's, by name
+      ("sorry whole squad"); Tactics' Lineup check lists only the starters'. `S12.8`
     - The deadline strip's Your lineup box names the first flagged starter in the pitch's order,
       "out" or "doubtful" by Tactics' marks from Sportmonks (`spec/05`, S05.57; Craig, 18 Nov
       2026: "Same marks"), with "and 1 more" when there are others; with none flagged it says Set,
