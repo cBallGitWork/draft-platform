@@ -246,6 +246,27 @@ it("scores each matchup man his player card's points in the last two gameweeks, 
   }
 });
 
+it("names each matchup goal line for a man whose card has that goal, and gives every card goal of a man in the matchup its line (#2478)", () => {
+  window.history.replaceState(null, "", "/?preview=manager");
+  let named = 0;
+  for (const gameweek of [previewGameweek - 1, previewGameweek]) {
+    const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, { gameweek })).result.current;
+    if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored" || matchup.game.commentary.kind !== "read") throw new Error("the matchup preview is a scored head-to-head");
+    const { team, opponent, commentary } = matchup.game;
+    if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+    const goalLines = commentary.lines.filter(({ text }) => text.includes(" GOAL "));
+    const men = [team, opponent].flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench]);
+    for (const { about } of goalLines) expect(about.every((code) => men.some(({ playerCode }) => playerCode === code))).toBe(true);
+    for (const { playerCode, name } of men) {
+      const onCard = previewPlayerCard.usePlayerCard(leagueId, playerCode, now)!.matches.find((match) => match.gameweek === gameweek);
+      const lines = goalLines.filter(({ about }) => about.includes(playerCode));
+      named += lines.length;
+      expect({ name, gameweek, goals: lines.length }).toEqual({ name, gameweek, goals: onCard?.stats?.goals_scored ?? 0 });
+    }
+  }
+  expect(named).toBeGreaterThan(0);
+});
+
 /** A man's status in the matchup while his club's match is in each of Football's states. */
 const STATUS_OF = { upcoming: "yetToPlay", live: "playing", halfTime: "playing", fullTime: "finished" } as const;
 

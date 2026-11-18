@@ -30,20 +30,28 @@ const SCORES_IN_TEN: Partial<Record<Area, number>> = { attack: 4, attackingMidfi
 /** How long he plays in a match he is in, by turn. */
 const MINUTES_PLAYED = [90, 90, 90, 78, 64, 90, 58, 90];
 
+/** Whether he plays in his club's match in `gameweek`: not where he sits it out. */
+const playsIn = (player: PreviewPlayer, gameweek: number) => player.code !== PREVIEW_UNPLAYED && (player.code * 7 + gameweek * 13) % 6 !== 0;
+/** His furthest forward area, which his goals go by. */
+const goalAreaOf = (player: PreviewPlayer) => areasOf(player.positions).at(-1)!;
+/** Whether he is due a goal in `gameweek`, should his club score. */
+const dueAGoal = (player: PreviewPlayer, gameweek: number) => playsIn(player, gameweek) && (player.code * 31 + gameweek * 17) % 10 < (SCORES_IN_TEN[goalAreaOf(player)] ?? 0);
+
 /** His made-up record in his club's match, worked out from his code and the gameweek so a reload
- *  shows the same, his goals and assists never more than his club scored and his clean sheet and
- *  goals conceded its own: null for a gameweek he sat out. The one season both his card and My
- *  team's Squad tab read (#2455). */
+ *  shows the same, his goals and assists never more than his club scored, nor his club's men's
+ *  goals together (#2478), and his clean sheet and goals conceded its own: null for a gameweek he
+ *  sat out. The one season his card, My team's Squad tab and the matchup read (#2455). */
 function recordIn(player: PreviewPlayer, gameweek: number, match: GameweekMatch): MatchStats | null {
   const seed = player.code * 7 + gameweek * 13;
-  if (player.code === PREVIEW_UNPLAYED || seed % 6 === 0 || match.score === null || match.score.state === "upcoming") return null;
+  if (!playsIn(player, gameweek) || match.score === null || match.score.state === "upcoming") return null;
   const home = match.home.code === player.club.code;
   const [scored, conceded] = home ? [match.score.homeGoals ?? 0, match.score.awayGoals ?? 0] : [match.score.awayGoals ?? 0, match.score.homeGoals ?? 0];
   const minutes = Math.min(MINUTES_PLAYED[seed % MINUTES_PLAYED.length], match.score.minutes ?? 90);
-  // His furthest forward area, which his goals go by.
-  const area = areasOf(player.positions).at(-1)!;
+  const area = goalAreaOf(player);
   const keeper = area === "goalkeeper";
-  const goals = scored > 0 && (player.code * 31 + gameweek * 17) % 10 < (SCORES_IN_TEN[area] ?? 0) ? 1 : 0;
+  // The club's men due a goal take its goals in their codes' order, one each.
+  const dueBefore = previewPlayers.filter((each) => each.club.code === player.club.code && each.code < player.code && dueAGoal(each, gameweek)).length;
+  const goals = dueAGoal(player, gameweek) && dueBefore < scored ? 1 : 0;
   const record: Record<string, number> = { [MINUTES_STAT]: minutes };
   if (goals > 0) record[GOALS] = goals;
   if (!keeper && scored > goals && seed % 4 === 1) record[ASSISTS] = 1;
@@ -192,6 +200,12 @@ export function previewCardMatchIn(playerCode: number, gameweek: number, atFullT
 /** A match's points and categories on his card at his first position, an override in, as the
  *  matchup's breakdown takes them (#2478). */
 export const previewCardScore = (match: PlayedMatch) => ({ points: pointsOf(match, 0), categories: match.points[0].categories, override: match.override });
+/** What a goal is worth on his card's match at his first position: his goals' points over his
+ *  goals, null with none there. The matchup's Vidiprinter prices his goal lines at it (#2478). */
+export function previewCardGoalWorth(match: PlayedMatch | null): number | null {
+  const goals = match?.points[0].categories.find(({ stat }) => stat === GOALS);
+  return goals === undefined || goals.points === null || goals.why.actions === 0 ? null : goals.points / goals.why.actions;
+}
 /** A record's base points at a preview player's first position, as his card prices it, with no
  *  override: the matchup's replay prices his record so far with it (#2478). */
 export function previewCardPriced(playerCode: number, record: MatchStats | null) {

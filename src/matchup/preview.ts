@@ -24,9 +24,10 @@ import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from 
 import { previewIdOf, previewOpponent, previewOpponentOf, previewSeason } from "../shared/previewDraw";
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
-import { previewCardMatchIn, previewCardPriced, previewCardScore } from "../playerCard/preview";
+import { GOALS } from "../../convex/stats/matchRecords";
+import { previewCardGoalWorth, previewCardMatchIn, previewCardPriced, previewCardScore } from "../playerCard/preview";
 import { THEIR_AREAS, type Man, type Men } from "./previewMen";
-import { GOAL_POINTS, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, recordAt, SAT_OUT, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
+import { goalsOf, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, recordAt, SAT_OUT, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** The replay's last minute of play, then a minute at full time before the result is final. */
@@ -85,18 +86,23 @@ function gameweekAt(gameweek: number, clock: Clock) {
   const when = (match: GameweekMatch, minute: number) =>
     clock.kind === "replay" ? kickoffs.indexOf(match.kickoff) * KICKOFF_GAP + minute : (match.kickoff ?? 0) + minute * MINUTE_MS;
   const played = new Map(EVERY_MAN.map(({ clubCode }) => matchOf(clubCode)).map((match) => [match.fixtureCode, match]));
-  return { gameweek, clock, matchOf, playedIn, when, played: [...played.values()] };
+  /** Each match's goals, worked out once from the men's cards at full time (#2478). */
+  const goalsBy = (man: Man) => previewCardMatchIn(man.code, gameweek, true)?.stats?.[GOALS] ?? 0;
+  const goals = new Map([...played.values()].map((match) => [match.fixtureCode, goalsOf(match, EVERY_MAN, goalsBy)]));
+  const goalsIn = (match: GameweekMatch) => goals.get(match.fixtureCode)!;
+  return { gameweek, clock, matchOf, playedIn, when, goalsIn, played: [...played.values()] };
 }
 type GameweekAt = ReturnType<typeof gameweekAt>;
 
 /** A man's points and breakdown `played` minutes into his match at `at`, his player card's (#2478):
  *  none before kickoff; his card's match as Football stands now, or at the replay's full time,
- *  nothing where he sits it out; in the replay before then, his card's full-time record so far. */
-function cardScoreAt(code: number, played: number, at: GameweekAt): Pick<MatchBreakdown, "points" | "categories" | "override"> {
+ *  nothing where he sits it out; in the replay before then, his card's full-time record so far,
+ *  his goals at their lines' minutes. */
+function cardScoreAt(code: number, match: GameweekMatch, played: number, at: GameweekAt): Pick<MatchBreakdown, "points" | "categories" | "override"> {
   if (played < 0) return previewCardPriced(code, null);
   const card = previewCardMatchIn(code, at.gameweek, at.clock.kind === "replay");
   if (at.clock.kind === "now" || played > MATCH_MINUTES) return card === null ? previewCardPriced(code, SAT_OUT) : previewCardScore(card);
-  return previewCardPriced(code, recordAt(card?.stats ?? SAT_OUT, played));
+  return previewCardPriced(code, recordAt(card?.stats ?? SAT_OUT, played, at.goalsIn(match), code));
 }
 
 /** A man in his club's match at `at`. */
@@ -111,7 +117,7 @@ function slotAt({ code, name, area, clubCode, number }: Man, at: GameweekAt, onB
       : played <= MATCH_MINUTES
         ? { kind: "playing", fixtureCode, state: score?.state === "halfTime" ? "halfTime" : "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: score?.clockLabel ?? null }
         : { kind: "finished", fixtureCode };
-  const scored = cardScoreAt(code, played, at);
+  const scored = cardScoreAt(code, match, played, at);
   const satOut = code === STARTING_KEEPER.code && status.kind === "finished" && previewCardMatchIn(code, at.gameweek, true) === null;
   const autoSub = satOut ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
   const breakdown: MatchBreakdown = { fixtureCode, kickoff, home: match.home.shortName, away: match.away.shortName, score, counted: true, ...scored };
@@ -178,19 +184,19 @@ function sideAt(teamName: string, men: Men, at: GameweekAt): MatchupSide {
 const DELAYED_FROM = 70;
 const DELAYED_UNTIL = 75;
 
-/** The lines of the men's matches so far at `at`, newest first. A goal line is worth GOAL_POINTS to
- *  its scorer, and moves the column of the side he counts for, team then opponent, as the
- *  server's (readCommentary.ts): a bench man not on moves none (#2466). */
+/** The lines of the men's matches so far at `at`, newest first. A goal line is worth to its scorer
+ *  what a goal is on his card (#2478), and moves the column of the side he counts for, team then
+ *  opponent, as the server's (readCommentary.ts): a bench man not on moves none (#2466). */
 function commentaryAt(at: GameweekAt, sides: readonly MatchupSide[]): TeamsCommentary {
   const counting = sides.map((side) => (side.kind === "team" ? new Set([...side.lineup.starters, ...side.lineup.bench].filter((slot) => slot.counts).map((slot) => slot.playerCode)) : new Set<number>()));
-  const worth = signedWords(GOAL_POINTS);
-  const priced = (about: readonly number[]) => ({
-    points: about.length === 0 ? null : worth,
-    columns: counting.map((counts) => (about.some((code) => counts.has(code)) ? worth : null)),
-  });
+  const priced = (about: readonly number[]) => {
+    const goalWorth = about.length === 0 ? null : previewCardGoalWorth(previewCardMatchIn(about[0], at.gameweek, true));
+    const worth = goalWorth === null ? null : signedWords(goalWorth);
+    return { points: worth, columns: counting.map((counts) => (about.some((code) => counts.has(code)) ? worth : null)) };
+  };
   const lines = at.played
     .flatMap((match) =>
-      linesOf(match, EVERY_MAN)
+      linesOf(match, at.goalsIn(match))
         .map(({ minute, text, about }, index) => ({ minute, when: at.when(match, minute), line: { key: `${match.fixtureCode}-${index}`, text, about, ...priced(about) } }))
         .filter(({ minute }) => minute <= at.playedIn(match)),
     )
