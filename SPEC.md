@@ -112,7 +112,6 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   with the player-by-player detail marked unavailable, in place of "can't be scored" (Craig,
   29 Oct 2026; spec/07).
 - **Player news**: a note on every player, from his matches and from real news (spec/21).
-- **Classic mode's rates checked on Sportmonks' stats**, once the paid API is back (spec/22).
 - **Preview sites** for unmerged changes (spec/20).
 - **A team's total explained** on the matchup: who started, and who came off the bench for whom
   (spec/10).
@@ -229,7 +228,7 @@ follows it; tables and fields already saved keep their names.
 | formation | how a lineup stands on the pitch's grid: a preset, a classic formation, or custom | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | classic formation | a famous side's formation, with its roles and team instructions, such as Keegan's Newcastle | classic alone ("classic is the game mode, classic isint a formation", Craig, 11 Nov 2026) |
-| classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are to grill (`docs/to-grill.md`) | classic alone |
+| classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are spec/22 | classic alone |
 | custom | a classic formation the manager has changed | |
 | team instruction | how the whole team plays, one attacking and one defensive, adjusting everyone's scoring | team tactic |
 | plan | a saved formation, its roles and team instructions, never players | saved tactics, saved preset |
