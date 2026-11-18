@@ -92,7 +92,7 @@ describe("a classic league's lineup", () => {
 });
 
 describe("a classic league's auto-subs", () => {
-  test("S22.11 the first on the bench, in bench order, who keeps the lineup valid comes on, whatever his line", () => {
+  test("S22.11 the first sub, in bench order, who keeps the lineup valid comes on, whatever his line", () => {
     // A CM didn't play: a second keeper would break GK's limit, so the striker behind him comes on.
     const result = subbedIn(classic(["GK", "FWD", "CM"]), [LEFT_MIDFIELDER]);
     expect(result.substitutions).toEqual([{ off: LEFT_MIDFIELDER, on: SECOND, area: "midfield", lane: "left", into: "theSlot" }]);
