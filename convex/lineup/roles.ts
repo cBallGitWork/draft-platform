@@ -13,11 +13,11 @@ export interface Role {
   key: string;
   /** As managers say it, such as "Overlapping full-back". */
   name: string;
-  /** At most three characters, one per role (spec/05 What the pitch shows). The pitch shows the
-   *  short name instead (Craig, 18 Nov 2026, #2649). */
+  /** At most three characters, one per role (spec/05 What the pitch shows). No screen shows it:
+   *  the pitch shows the short name (Craig, 18 Nov 2026, #2649); whether it stays is #2687. */
   code: string;
   /** What the pitch's chip shows: the name, or a shorter one managers say ("No. 10"), never the
-   *  code (SPEC.md Glossary, role; Craig, 18 Nov 2026, #2649). */
+   *  code (Craig, 18 Nov 2026, #2649). */
   shortName: string;
   /** What he does on the role, and where his run takes him, for the role card (spec/05 Roles:
    *  "Each role's description is held with the role"). */
@@ -46,7 +46,7 @@ const role = (key: string, name: string, code: string, description: string, rewa
 /** The role, marked not tested (spec/05 `S05.30`). */
 const notTested = (each: Role): Role => ({ ...each, notTested: true });
 
-/** The role, its chip naming it shorter than its name (SPEC.md Glossary, role: "No. 10"). */
+/** The role, its chip naming it shorter than its name ("No. 10"; Craig, 18 Nov 2026, #2649). */
 const shortened = (each: Role, shortName: string): Role => ({ ...each, shortName });
 
 /** The roles only a back of three or more centre-backs offers, last in the centre-back's list so a

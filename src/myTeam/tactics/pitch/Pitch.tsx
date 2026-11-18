@@ -132,8 +132,8 @@ export function Pitch({
 
 /** A player on the pitch (spec/05 What the pitch shows): his shirt, a little bigger than a list's;
  *  his chip, the role's short name in his area's colour, its full name on hover (#2649), with his
- *  stars for it (#845); his name plate, which opens with his slot's position label ("ST Haaland": the position, never
- *  its side, so a sweeper or libero reads CB; Craig, 4 Nov 2026); his opponents this gameweek,
+ *  stars for it (#845); his name plate, which opens with his slot's position label ("ST Haaland":
+ *  the position, never its side, so a sweeper or libero reads CB; Craig, 4 Nov 2026); his opponents this gameweek,
  *  each outlined until fixture difficulty fills it (Craig, 6 Nov 2026: "Build now, colour later").
  *  His positions are in his name for screen readers. A tap opens his panel, and his block is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
