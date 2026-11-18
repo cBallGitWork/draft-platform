@@ -9,7 +9,7 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
 import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
-import { awardsHead } from "../../../src/myTeam/words";
+import { awardLong, awardsHead, awardWords } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
@@ -80,9 +80,11 @@ describe("the page", () => {
     openTeam({ otherSquad: { ...POTATOES, awards: ["2026-10", "2027-01"] } });
     await table();
     const awards = screen.getByText(awardsHead).nextElementSibling!;
-    const each = within(awards as HTMLElement).getAllByText(/^Manager of the Month/);
-    expect(each.map((award) => award.textContent)).toEqual(["Manager of the Month, Oct", "Manager of the Month, Jan"]);
-    expect(each[0].getAttribute("title")).toBe("Manager of the Month, October 2026");
+    const each = [...awards.firstElementChild!.children];
+    expect(each.map((award) => award.textContent)).toEqual([awardWords("2026-10"), awardWords("2027-01")]);
+    expect(each[0].getAttribute("title")).toBe(awardLong("2026-10"));
+    // The spec's own words (S09.8): the month short, its year on the hover.
+    expect([awardWords("2026-10"), awardLong("2027-01")]).toEqual(["Manager of the Month, Oct", "Manager of the Month, January 2027"]); // one-home-ok: S09.8's wording, pinned
   });
 
   it("S09.8 a team that has won nothing shows no awards", async () => {
