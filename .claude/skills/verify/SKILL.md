@@ -1,61 +1,30 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the unused-exports check, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the project's local gate before a commit, a push or a pull request, and report exactly what ran and what it printed. Use before any commit, after /refactor and before the reviewer, and whenever Craig asks whether it passes.
+argument-hint: "[--push]"
 ---
 
 # Verify
 
-```bash
-npm run verify   # install check, vitest run, tsc on convex/ and on the app, the lint step
-                 # (eslint's hook rules, no arbitrary Tailwind values), then
-                 # scripts/unused-exports.mjs (no export nothing reads, past its shrinking baseline),
-                 # scripts/recorded-add-only.mjs (payloads, goldens add-only),
-                 # scripts/tests-kept.mjs (no test origin/main has is cut),
-                 # scripts/spec-ids.mjs (spec answer IDs and tests' citations),
-                 # scripts/contents-lists.mjs (a doc over 100 lines opens with a contents list),
-                 # scripts/studio-kit.mjs (the studio kit's copies match .studio/kit.json),
-                 # .claude/hooks/test.sh
-npm test -- <file>   # one test file
-```
+**The gate is the project's:** `.studio/skills.md`, section *Verify*, names its commands in order,
+and any extra ones for `--push`. Run them all, in that order, in full. With no `.studio/skills.md`,
+use the gate `CLAUDE.md` or `README.md` names, and say which you used.
 
-`npm run verify` is the local gate, and CI runs the same steps, as jobs side by side, on every pull request, which the
-`main` ruleset requires, so a failure you didn't catch here stops the merge.
+**A gate you did not run did not pass.** If one is skipped (a tool missing, no network, a build
+already running), say so in those words, never three greens reported as four.
 
-CI also runs `npm run build`, `npm run smoke` and actionlint on the workflows (with shellcheck, warnings and above). A pull request that changes only docs (docs/, spec/, .claude/, *.md) or the agents' prompt workflows skips the unit tests, build and smoke; any other change runs all three (`NOT_CODE` in `.github/workflows/verify.yml`). Smoke needs Google Chrome locally (the Smoke
-tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
+**Say what it printed.** Quote failing lines before anything else. Report counts ("669 passed"),
+not "tests pass"; if a count fell against the last run you know of, say which file lost tests
+first.
 
-**After a change to a screen, the router, `src/main.tsx`, `index.html` or the Vite config,** run
-`npm run build` and `npm run smoke` yourself, or report them as "not run (CI runs them)".
-
-Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
-the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
-instead of hanging the session. On a 4-core cloud box vitest alone took
-108-134s (27 Oct 2026, #467), about the Bash tool's default timeout, so give the tool call a
-timeout over the deadline or run it in the background.
-
-**Report the test count.** "3 passed" is a fact the next session can compare against;
-"tests pass" is not. If the count fell, say which file lost tests before anything else.
-
-**A gate you did not run did not pass.** If one is skipped (no network, no `node_modules`, no
-Chrome for smoke), say so in those words.
-
-**A stale install is not a code failure.** Verify first checks `node_modules` against
-`package-lock.json`. If it prints `node_modules is behind package-lock.json: run npm ci`, no test ran:
-report "install stale (run npm ci)" in place of the test counts, and never present it as a code
-failure.
+**Never cut a test, skip one or switch a rule off** to get to green. A check that is wrong is
+fixed in the open, in the same pull request, with the reason in its commit message. No disable
+comment without its reason on the same line.
 
 ## Report
 
+One line per command, in the order run:
+
 ```
-test       <n> passed / FAILED (<which>) / install stale (run npm ci)
-typecheck  clean / <n> errors
-lint       clean / <n> problems (<which files>)
-exports    none unread past the baseline / FAILED (<which exports, or stale baseline lines>)
-recorded   add-only / FAILED (<which file>)
-tests kept none cut / FAILED (<which tests>)
-spec IDs   <n> answers, uncited: <ids or none> / FAILED (<which>)
-contents   every long doc has one / FAILED (<which docs>)
-hooks      all checks pass / <n> FAIL
-build      passed / FAILED / not run (CI runs it)
-smoke      <n> passed / FAILED (<which>) / not run (CI runs it)
+<command>   passed (<count>) / FAILED (<what>) / not run (<why>)
 ```
