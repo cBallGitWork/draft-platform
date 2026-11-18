@@ -33,7 +33,7 @@ import { previewUrl } from "../support/smoke/previewUrl";
 
 const L1 = proLeague.leagueId;
 const SAKA = previewPlayers.find((player) => player.name === "Saka")!;
-/** The preview's offer to the manager: Kroos Control's Salah for his Palmer and Kerkez (src/trades/preview.ts). */
+/** The preview's offer to the manager: Kroos Control's Gyökeres for his Palmer and Muñoz (src/trades/preview.ts). */
 const OFFER = "preview-offer-1";
 const OFFER_FROM = "Kroos Control";
 
@@ -90,7 +90,7 @@ test.describe("links and routes, on the dev server's preview", { tag: "@dev" }, 
     await page.goto(previewUrl(`${TRADES_PATH}?offer=${OFFER}`, "manager"));
     await page.getByRole("button", { name: counterWords, exact: true }).or(page.getByRole("link", { name: counterWords, exact: true })).click();
     await expect(page).toHaveURL((url) => url.pathname === TRADES_NEW_PATH && url.searchParams.get("counter") === OFFER);
-    for (const name of ["Salah", "Palmer", "Kerkez"]) await expect(page.getByRole("checkbox", { name: tickLabel(name) })).toBeChecked();
+    for (const name of ["Gyökeres", "Palmer", "Muñoz"]) await expect(page.getByRole("checkbox", { name: tickLabel(name) })).toBeChecked();
   });
 
   test("UI-097 (flow.md:125, matchup README ◄ ►): a manager on the matchup clicks ◄ then ►, the address changing each step", async ({ page }) => {
