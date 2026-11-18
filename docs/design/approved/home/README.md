@@ -88,7 +88,8 @@ colours.
 - The recap's Read the recap: opens the recap.
 - Your squad news: a player's name opens his player card (`spec/12`).
 - Run the league, for the commissioner and co-commissioner only: Run the league ▸ opens the
-  commissioner's pages; what each line opens is its grill's.
+  commissioner's pages; each line of its to-do list opens where it's done (Craig, 16 Nov 2026, the
+  Run the league grill on #2267).
 
 ## Placeholders
 
@@ -101,7 +102,7 @@ Each shows in its place and size until its data comes.
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
 | Your squad news's chips | the notes, FPL's word for word, are wired, with no chip (`spec/12` S12.8; #1976); which statuses each chip reads | to-grill: Status chips' data |
-| Run the league | what its to-do list holds | to-grill: Run the league |
+| Run the league | settled 16 Nov 2026: join requests waiting (a count), teams with no lineup yet (a number only), the draft order not set before the draft, trades waiting their veto, a team with no manager | #2267 |
 | The score boxes, before the deadline (empty) | lineups locked and matches scored | `spec/12`, matchday mode (#387) |
 | GW8 recap (empty lines) | the weekly recap | #387 |
 | The state boards: after, locked, break, pre-season, new joiner, season over | each state's grill | to-grill: Home through the season; to-grill: Break weeks |

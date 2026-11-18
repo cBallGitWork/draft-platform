@@ -41,31 +41,42 @@ async function refuseIfInvited(ctx: QueryCtx, leagueId: Id<"leagues">, email: st
   if (live.some((invite) => invite.leagueId === leagueId && invite._id !== except)) refuse(joiningRefusals.alreadyInvited(email));
 }
 
-/** For the league's commissioners and the admin: refuses someone already managing a team in it, a
- *  new team once the draft has started, a full league or a team not vacated, and a second live
- *  invite to the same email. */
+/** An invite sent by the league's runner `by`: refuses someone already managing a team in it, a new
+ *  team once the draft has started, a full league or a team not vacated, and a second live invite
+ *  to the same email. `send`'s body, shared with the e2e seed (convex/e2e/seed.ts), which has no
+ *  one signed in. */
+export async function sendInvite(
+  ctx: MutationCtx,
+  by: string,
+  league: Doc<"leagues">,
+  args: { email: string; teamId?: Id<"teams"> },
+): Promise<Id<"invites">> {
+  const email = namedEmail(args.email);
+  const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId, await draftHasStarted(ctx, league._id))?.name ?? null;
+  const now = Date.now();
+  await refuseIfInvited(ctx, league._id, email, now);
+
+  await admitEmail(ctx, email);
+  const inviteId = await ctx.db.insert("invites", {
+    leagueId: league._id,
+    email,
+    teamId: args.teamId,
+    invitedBy: by,
+    expiresAt: now + INVITE_LIFETIME_MS,
+    delivery: "sending",
+  });
+  await recordEvent(ctx, league._id, by, { kind: "invited", email, teamId: args.teamId ?? null, teamName });
+  await ctx.scheduler.runAfter(0, internal.joining.invites.deliver, { inviteId });
+  return inviteId;
+}
+
+/** For the league's commissioners and the admin, refusing as `sendInvite` says. */
 export const send = mutation({
   args: { leagueId: v.id("leagues"), email: v.string(), teamId: v.optional(v.id("teams")) },
   returns: v.id("invites"),
   handler: async (ctx, args) => {
     const { email: by, league } = await runnerOf(ctx, args.leagueId);
-    const email = namedEmail(args.email);
-    const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId, await draftHasStarted(ctx, league._id))?.name ?? null;
-    const now = Date.now();
-    await refuseIfInvited(ctx, league._id, email, now);
-
-    await admitEmail(ctx, email);
-    const inviteId = await ctx.db.insert("invites", {
-      leagueId: league._id,
-      email,
-      teamId: args.teamId,
-      invitedBy: by,
-      expiresAt: now + INVITE_LIFETIME_MS,
-      delivery: "sending",
-    });
-    await recordEvent(ctx, league._id, by, { kind: "invited", email, teamId: args.teamId ?? null, teamName });
-    await ctx.scheduler.runAfter(0, internal.joining.invites.deliver, { inviteId });
-    return inviteId;
+    return sendInvite(ctx, by, league, { email: args.email, teamId: args.teamId });
   },
 });
 

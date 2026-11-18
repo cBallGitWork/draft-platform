@@ -147,3 +147,6 @@ From `/grill trades` (25 Oct 2026).
   to "Take back" (Craig, 10 Nov 2026, #383). `S08.3`
 - Nobody sees how a vote stands until the review ends: the blocked or made letter is the result,
   and each voter sees only his own vote (Craig, 10 Nov 2026, #383). `S08.4`
+- League settings' Trades tab lists every trade in review in the league, those its commissioner
+  can't review included, each with its end; with none, it says "None in review", with a Trades ›
+  link (Craig, 17 Nov 2026, on #2504). `S08.30`

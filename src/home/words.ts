@@ -29,8 +29,12 @@ export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} loc
  *  "out" at 0), and how many more are flagged; or whether it is set at all. */
 export const lineupSetWords = "Set";
 export const lineupNotSetWords = notSetWords;
-export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) =>
-  chanceOfPlaying === 0 ? `${name} out` : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? `${name} doubtful` : name;
+export const flagOf = (chanceOfPlaying: number | null) =>
+  chanceOfPlaying === 0 ? "out" : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? "doubtful" : null;
+export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) => {
+  const flag = flagOf(chanceOfPlaying);
+  return flag === null ? name : `${name} ${flag}`;
+};
 export const moreFlaggedWords = (more: number) => ` and ${more} more`;
 /** Claims close's box: the next waiver run, then the claims waiting on it. */
 export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
@@ -41,11 +45,14 @@ export { versusWords } from "../shared/match/words";
 export { countdownWords, weekdayTimeWords } from "../shared/when/words";
 export const pointsShortWords = "pts";
 
-/** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
+/** The Mail panel and its Needs you | All switch, Needs you with how many wait on him (S12.15). */
 export { MAIL_TITLE } from "../shared/words";
 export const mailViewLabel = "Show";
 export const mailViews = { needsYou: "Needs you", all: "All" } as const;
-export const needsYouToComeWords = "Which letters need you is still to come.";
+export const needsYouCountWords = (count: number) => `${mailViews.needsYou} (${count})`;
+export const nothingNeedsYouWords = "Nothing waits on you.";
+/** A doubtful or out starter, a Needs you item opening Tactics (S16.7). */
+export const starterNeedsYouWords = (name: string, flag: "doubtful" | "out") => `${name} is ${flag} and starts`;
 
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";

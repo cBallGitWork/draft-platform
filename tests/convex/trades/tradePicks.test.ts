@@ -9,6 +9,7 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, eventsIn, lettersTo, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
+import { tradesOf } from "../../support/convex/screenReads.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 // Draft picks in trades (spec/04, The picks; #1096): before the draft starts only, one pick for one
@@ -86,7 +87,7 @@ describe("a pick swap", () => {
   test("is on the Trades screen: each team's picks it holds now, held while in review, none once the draft starts", async () => {
     await tradesAre({ review: "veto", deadline: null });
     const picksOn = async (email: string) => {
-      const view = await (await as(email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+      const view = await tradesOf(await as(email), leagueId);
       return new Map(view.teams.map((team) => [team.teamId, team.picks.map(({ round, teamId, held }) => ({ round, teamId, held }))]));
     };
     expect((await picksOn(ANN)).get(ann)).toEqual([
@@ -95,7 +96,7 @@ describe("a pick swap", () => {
     ]);
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     // The open offer carries its picks for a counter to start with (#1471).
-    const open = await (await as(BOB)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    const open = await tradesOf(await as(BOB), leagueId);
     expect(open.offers[0].pickTerms).toEqual({ gives: pickOf(ann, 1), gets: pickOf(bob, 2) });
     await accept(BOB, offerId);
     const inReview = await picksOn(CAT);
@@ -113,7 +114,7 @@ describe("a pick swap", () => {
       { round: 1, teamId: ann, held: false },
       { round: 1, teamId: bob, held: false },
     ]);
-    const view = await (await as(ANN)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    const view = await tradesOf(await as(ANN), leagueId);
     expect(view.teams[0].picks[1].teamName).toBe(await teamName(bob));
 
     await start();
@@ -172,7 +173,7 @@ describe("a pick swap", () => {
     await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     const annsTeam = await teamName(ann);
     const bobsTeam = await teamName(bob);
-    const { offers: [shown] } = await (await as(BOB)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    const { offers: [shown] } = await tradesOf(await as(BOB), leagueId);
     expect(shown.picks).toEqual({ gives: `the ${annsTeam} round 1 pick`, gets: `the ${bobsTeam} round 2 pick` });
     expect(shown.pickTerms).toEqual({ gives: { round: 1, teamId: ann }, gets: { round: 2, teamId: bob } });
     expect(shown.gives).toEqual([]);

@@ -35,6 +35,9 @@ const letterSummary = v.object({
   read: v.boolean(),
   /** Where its one link goes (S16.2); null on a letter with none. */
   link: v.union(letterLink, v.null()),
+  /** Whether it waits on its reader (S16.3): a trade offer to his team still to answer, or, under a
+   *  commissioner's veto, a trade in review he blocks or lets through. */
+  needsYou: v.boolean(),
 });
 export type LetterSummary = Infer<typeof letterSummary>;
 
@@ -72,12 +75,36 @@ export const letters = query({
     if (email === null) return [];
     const zone = await zoneOf(ctx, email);
     const rows = leagueId === undefined ? await listedLetters(ctx, email) : await leagueLetters(ctx, email, leagueId);
-    return rows.map((row) => summaryOf(row, zone));
+    const waiting = await waitingOn(ctx, email, rows);
+    return rows.map((row) => summaryOf(row, zone, waiting));
   },
 });
 
-/** A letter as the screens list it, its times told in `zone`, the reader's as they read it (#912). */
-const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary => ({
+/** Which of `rows`, someone's letters newest first, wait on them (S16.3; Craig, 14 Nov 2026, on
+ *  #1030: a letter leaves Needs you once nothing waits on him, and stays in All): the newest letter
+ *  about an offer still open to their team, or about a trade in review under their veto. */
+async function waitingOn(ctx: QueryCtx, email: string, rows: readonly Doc<"letters">[]): Promise<Set<Id<"letters">>> {
+  const waiting = new Set<Id<"letters">>();
+  const seen = new Set<Id<"tradeOffers">>();
+  for (const row of rows) {
+    const offerId = row.link?.offer;
+    if (offerId === undefined || seen.has(offerId)) continue;
+    seen.add(offerId);
+    const offer = await ctx.db.get("tradeOffers", offerId);
+    if (offer === null) continue;
+    const reviewer = offer.review?.reviewer;
+    const waits =
+      reviewer === undefined
+        ? (await ctx.db.get("teams", offer.toTeamId))?.managerEmail === email
+        : reviewer.kind === "veto" && reviewer.by === email;
+    if (waits) waiting.add(row._id);
+  }
+  return waiting;
+}
+
+/** A letter as the screens list it, its times told in `zone`, the reader's as they read it (#912),
+ *  and whether it is among those `waiting` on them. */
+const summaryOf = (row: Doc<"letters">, zone: string | undefined, waiting: ReadonlySet<Id<"letters">>): LetterSummary => ({
   letterId: row._id,
   leagueName: row.leagueName ?? PRODUCT_NAME,
   at: row.at,
@@ -86,20 +113,23 @@ const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary
   ...letterAsRead(row, zone),
   read: row.readAt !== undefined,
   link: row.link ?? null,
+  needsYou: waiting.has(row._id),
 });
 
-/** The signed-in person's newest LATEST_LETTERS letters, and how many of `letters`' are unread:
- *  what a screen's Mail widget shows (My team's Squad tab) without holding every letter open
- *  (#211). Null when signed out. */
+/** The signed-in person's newest LATEST_LETTERS letters, how many of `letters`' are unread, and
+ *  every one of those waiting on them (S16.3): what a screen's Mail widget shows (My team's Squad
+ *  tab, league home's Needs you) without holding every letter open (#211). Null when signed out. */
 export const latest = query({
   args: {},
-  returns: v.union(v.object({ letters: v.array(letterSummary), unread: v.number() }), v.null()),
+  returns: v.union(v.object({ letters: v.array(letterSummary), unread: v.number(), needsYou: v.array(letterSummary) }), v.null()),
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return null;
     const rows = await listedLetters(ctx, email);
     const zone = await zoneOf(ctx, email);
-    return { letters: rows.slice(0, LATEST_LETTERS).map((row) => summaryOf(row, zone)), unread: rows.filter((row) => row.readAt === undefined).length };
+    const waiting = await waitingOn(ctx, email, rows);
+    const summaries = rows.map((row) => summaryOf(row, zone, waiting));
+    return { letters: summaries.slice(0, LATEST_LETTERS), unread: rows.filter((row) => row.readAt === undefined).length, needsYou: summaries.filter((letter) => letter.needsYou) };
   },
 });
 

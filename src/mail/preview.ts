@@ -23,6 +23,7 @@ const letter = (number: number, hoursAgo: number, { from = null, kind = "commiss
   from,
   ...made,
   link: null,
+  needsYou: false,
 });
 
 const previewLetters: LetterSummary[] = [
@@ -61,6 +62,6 @@ const unreadMail = previewLetters.filter((each) => !each.read).length;
 // and no offer waits for him.
 export const previewTopBar: TopBarState = { unreadMail, next: nextStep({ unreadMail, lineupDue: false, offersWaiting: 0 }) };
 
-/** The newest letters a screen's Mail panel shows (My team's Squad tab, League home), and how many
- *  are unread. */
-export const previewLatestMail = { letters: previewLetters.slice(0, LATEST_LETTERS), unread: unreadMail };
+/** The newest letters a screen's Mail panel shows (My team's Squad tab, League home), how many are
+ *  unread, and none waiting on him, as no offer does. */
+export const previewLatestMail = { letters: previewLetters.slice(0, LATEST_LETTERS), unread: unreadMail, needsYou: [] };

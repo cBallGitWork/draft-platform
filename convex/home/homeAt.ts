@@ -7,6 +7,7 @@ import { groupedBy } from "../shared/groupedBy";
 import { DAY_MS, HOUR_MS } from "../shared/time";
 import type { HeldLeagueHome, LeagueHome } from "./leagueHome";
 import { matchdayAt } from "./matchday";
+import type { FlaggedStarter } from "./yourGameweek";
 
 // League home as the screen shows it at its minute (#1550). A query taking the minute runs again,
 // uncached, every minute for every open screen, so league home is read in three, none taking it
@@ -67,15 +68,23 @@ function matchdayOpen(matches: HeldClock["matches"], margins: HeldClock["margins
 /** The open matchday's Vidiprinter as `matchdayOf` sends it; null while none is open. */
 export type HeldMatchday = { gameweek: number; commentary: HeldCommentary } | null;
 
-/** League home at `now`, from `ofLeague`'s read and the open matchday's. */
+/** League home at `now`, from `ofLeague`'s read and the open matchday's, its lineup's flagged
+ *  starters those not yet kicked off (`flaggedStartersAt`). */
 export function leagueHomeAt(held: HeldLeagueHome, matchday: HeldMatchday, now: number): LeagueHome {
-  const { recap, ...home } = held;
+  const { recap, yours, ...home } = held;
   return {
     ...home,
+    yours: yours?.lineup ? { ...yours, lineup: { ...yours.lineup, flagged: flaggedStartersAt(yours.lineup.flagged, now) } } : yours,
     matchday: matchday === null ? null : { gameweek: matchday.gameweek, commentary: commentaryAt(matchday.commentary, now) },
     recap: recap === null ? null : recapAt(recap, now),
   };
 }
+
+/** The flagged starters still in doubt at `now`: those whose club has yet to kick off this gameweek,
+ *  or has no match dated in it (Craig, 17 Nov 2026, on #2466). The preview judges its own alike.
+ *  `S12.16` */
+export const flaggedStartersAt = (flagged: readonly FlaggedStarter[], now: number): FlaggedStarter[] =>
+  flagged.filter(({ kickoff }) => kickoff === null || kickoff > now);
 
 /** The recap at `now`: gone once the moment it leaves has come. */
 function recapAt({ until, ...recap }: NonNullable<HeldLeagueHome["recap"]>, now: number): LeagueHome["recap"] {

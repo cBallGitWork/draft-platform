@@ -95,7 +95,7 @@ type RunnerSeams = Pick<ShellContext, "gameweeks" | "squads" | "leagueSettings">
 function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$leagueId/${string}`>(
   path: Path,
   seam: Seam,
-  Page: ComponentType<{ league: LeagueSummary; seam: RunnerSeams[Seam] }>,
+  Page: ComponentType<{ league: LeagueSummary; seam: RunnerSeams[Seam]; inCurrentLeague: boolean }>,
 ) {
   const route = createRoute({
     getParentRoute: () => leaguePagesRoute,
@@ -106,7 +106,9 @@ function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$le
       // Read loosely: the registered router can't look up a generic Path, and every Path has $leagueId.
       const { leagueId } = useParams({ strict: false });
       const league = leagueId === undefined ? undefined : leagueRunBy(context.session, leagueId);
-      return league ? <Page league={league} seam={context[seam]} /> : null;
+      // Whether it's the league the app is in, whose frame pages (the draft room) a page may link to.
+      const inCurrentLeague = currentLeagueOf(context.session)?.leagueId === leagueId;
+      return league ? <Page league={league} seam={context[seam]} inCurrentLeague={inCurrentLeague} /> : null;
     },
   });
   return route;

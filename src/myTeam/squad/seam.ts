@@ -3,10 +3,11 @@
 
 import type { LetterSummary } from "../../../convex/mail/mail";
 
-export type LatestMail = { letters: readonly LetterSummary[]; unread: number };
+export type LatestMail = { letters: readonly LetterSummary[]; unread: number; needsYou: readonly LetterSummary[] };
 
 export type SquadSeam = {
-  /** The signed-in person's newest letters, at most LATEST_LETTERS, and how many of Mail's are
-   *  unread, live (a hook): undefined while they load, null for someone signed out. */
+  /** The signed-in person's newest letters, at most LATEST_LETTERS, how many of Mail's are unread,
+   *  and those waiting on them (S16.3), live (a hook): undefined while they load, null for someone
+   *  signed out. */
   useLatestMail(): LatestMail | null | undefined;
 };

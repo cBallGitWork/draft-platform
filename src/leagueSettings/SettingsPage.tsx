@@ -13,6 +13,7 @@ import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { DraftPanel } from "./DraftPanel";
+import { DraftWidget, GameweeksWidget, InReviewWidget, PresetsWidget, RoundTwoWidget } from "./SettingsWidgets";
 import { FixturesPanels } from "./FixturesPanel";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { SquadPanel } from "./SquadPanel";
@@ -52,7 +53,7 @@ import {
  *  it starts (spec/04; #1087, #1476), how waivers run, beside the waiver order (spec/08; #1200),
  *  how trades do (spec/08; #383), and the commissioner's draft order, which saves at once. The way
  *  back to Your leagues sits beside the league's name, as on the league's other runner pages (#2348). */
-export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
+export function SettingsPage({ league, seam, inCurrentLeague }: { league: LeagueSummary; seam: LeagueSettingsSeam; inCurrentLeague: boolean }) {
   // The settings are asked again each minute (liveSettings.ts), and the next minute's load mustn't
   // unmount the editor and throw its unsaved edits away; another league's loads afresh.
   const view = useLastLoaded(seam.useSettings(league.leagueId), league.leagueId);
@@ -70,18 +71,32 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
   );
   return (
     <PageSection title={SETTINGS_TITLE} aside={aside} className={PAGE_STACK}>
-      {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor league={league} seam={seam} view={view} tab={tab} />}
+      {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor league={league} seam={seam} view={view} tab={tab} choose={choose} inCurrentLeague={inCurrentLeague} />}
     </PageSection>
   );
 }
 
 /** The chosen tab's settings, its panels on the left and what they lead to on the right (the
  *  approved pictures), and the bar that saves them at the end of each tab but Draft order, whose
- *  moves save at once. Edits are kept as the tabs switch, and one Save sends them all
+ *  moves save at once; the right-hand widgets are SettingsWidgets.tsx's. Edits are kept as the tabs switch, and one Save sends them all
  *  (rulesEdits.ts says how the draft follows the latest settings, and what a save over someone
  *  else's does). A save refused for a box left without a number says so beside that box, the
  *  cursor in it. */
-function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView; tab: SettingsTab }) {
+function Editor({
+  league,
+  seam,
+  view,
+  tab,
+  choose,
+  inCurrentLeague,
+}: {
+  league: LeagueSummary;
+  seam: LeagueSettingsSeam;
+  view: SettingsView;
+  tab: SettingsTab;
+  choose: (tab: SettingsTab) => void;
+  inCurrentLeague: boolean;
+}) {
   const rulesEdits = useRulesEdits(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
   const { draft, edit } = rulesEdits;
   const start = useDraftStartEdit(league.leagueId, seam);
@@ -98,10 +113,15 @@ function Editor({ league, seam, view, tab }: { league: LeagueSummary; seam: Leag
           {tab === "draftOrder" ? (
             <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
           ) : (
-            <SaveBar draft={bar} savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
+            <SaveBar draft={bar} notSaved savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
           )}
         </BoxRefusalContext>
       </div>
+      {tab === "fixtures" && <GameweeksWidget leagueId={league.leagueId} seam={seam} />}
+      {tab === "squad" && <PresetsWidget presetNames={view.presetNames} />}
+      {tab === "trades" && <InReviewWidget leagueId={league.leagueId} seam={seam} inCurrentLeague={inCurrentLeague} />}
+      {tab === "draftOrder" && <RoundTwoWidget leagueId={league.leagueId} seam={seam} />}
+      {tab === "draft" && <DraftWidget leagueId={league.leagueId} seam={seam} inCurrentLeague={inCurrentLeague} openDraftOrder={() => choose("draftOrder")} />}
       {tab === "waivers" && (
         <div className={PAGE_STACK}>
           <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />

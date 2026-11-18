@@ -25,8 +25,9 @@ got, with what's waiting beside it. Its organisation, never its colours.
 - Undo, on a deleted league: undoes the deletion (`spec/13`, Deleting).
 - Your join request: reads only, until the commissioner answers (`spec/13`, Joining).
 - No links on a row: the commissioner's tools (Gameweeks, Invites and join requests, Squads,
-  League settings, deleting) move to Run the league on League home, and Player scoring leaves the
-  rows too (to-grill: Run the league).
+  League settings, deleting) move to a Commissioner item in the top menu, with the tabs Gameweeks |
+  Invites | Squads | Settings, and Player scoring becomes a Scoring tab on Table (Craig, 16 Nov
+  2026, the Run the league grill on #2267).
 - The admin's Create a league and Admin dashboard: on the page for the admin (`spec/02`); drawn on
   Create a league's picture.
 
@@ -36,7 +37,7 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| Where the commissioner's tools and Player scoring go once off the rows | Run the league's grill | to-grill: Run the league |
+| Where the commissioner's tools and Player scoring go once off the rows | settled 16 Nov 2026: the Commissioner item in the top menu and a Scoring tab on Table; their pictures | #2267 |
 
 ## Canvas
 

@@ -10,6 +10,8 @@ import type { Position } from "../../convex/positions/positionTables";
 import { previewClub, previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchMarks, MatchPageData } from "./seam";
 
+type Unsubbed = Omit<MatchMan, "sub">;
+
 /** FPL's code for the recorded match. */
 const RECORDED_MATCH = 2645271;
 /** When it kicked off: Fri 23 Oct 2026, 20:00 BST. */
@@ -25,10 +27,47 @@ function man(
   owner: number | null,
   points: number | null,
   counts = owner !== null,
-): MatchMan {
+): Unsubbed {
   const ownerTeamName = owner === null ? null : previewTeamNames[owner];
   const marks = { ...NO_MARKS, ...MARKS[name] };
-  return { playerCode, name, position, side, started, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, points, counts };
+  const drawn = PLACES[name];
+  const formationPlace = started && drawn !== undefined ? { formation: FORMATION, line: drawn[0], place: drawn[1] } : null;
+  return { playerCode, name, position, side, started, formationPlace, played, ownerTeamName, mine: owner === MY_TEAM, marks, statLine: played ? statLineOf(started, marks) : null, statPoints: played ? statPointsOf(started, marks) : null, points, counts };
+}
+
+/** Each starter's line and place along it, from his side's right, for Overview's Pitch: made up, as
+ *  the positions are, both sides in one formation. */
+const FORMATION = "4-2-3-1";
+const PLACES: Record<string, [number, number]> = {
+  Walton: [0, 0],
+  Palacios: [1, 0],
+  Davis: [1, 1],
+  "O'Shea": [1, 2],
+  Ouattara: [1, 3],
+  Florentino: [2, 0],
+  Diop: [2, 1],
+  Fatawu: [3, 0],
+  Enciso: [3, 1],
+  Philogene: [3, 2],
+  Emersonn: [4, 0],
+  Sels: [0, 0],
+  "Jair Cunha": [1, 0],
+  Milenković: [1, 1],
+  Murillo: [1, 2],
+  "N.Williams": [1, 3],
+  Schlager: [2, 0],
+  Muñoz: [2, 1],
+  Ndoye: [3, 0],
+  "Gibbs-White": [3, 1],
+  McAtee: [3, 2],
+  Delap: [4, 0],
+};
+
+/** What his stats earned him, for the Points switch: made up as his points are, at FPL's values
+ *  for a midfielder. */
+function statPointsOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
+  const zero = { shots: 0, shotsOnTarget: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  return { ...zero, minutes: started ? 2 : 1, goals: goals * 5, assists: assists * 3, yellowCards: -yellowCards, redCards: redCards * -3 };
 }
 
 /** A man's stats for the preview's Player stats tab: his marks as the lines below give them, each
@@ -52,7 +91,7 @@ const MARKS: Record<string, Partial<MatchMarks>> = {
 };
 
 /** The sheets in the recording's order. */
-const SHEETS: MatchMan[] = [
+const SHEETS: Unsubbed[] = [
   man(108813, "Walton", "GK", "home", true, true, 0, 2),
   man(218543, "Palacios", "FB", "home", true, true, null, 5),
   man(455084, "Davis", "CB", "home", true, true, null, 2),
@@ -95,8 +134,29 @@ const SHEETS: MatchMan[] = [
   man(60689, "Wood", "ST", "away", false, true, 2, 0, false),
 ];
 
+/** The recording's substitutions, oldest first, as its SUB lines below give them: the minute, the
+ *  man on, the man off. */
+const SUBS: [string, string, string][] = [
+  ["60'", "Flemming", "Emersonn"],
+  ["61'", "Clarke", "Philogene"],
+  ["69'", "Hudson-Odoi", "Ndoye"],
+  ["73'", "Maeda", "Fatawu"],
+  ["84'", "Netz", "N.Williams"],
+  ["85'", "Matusiwa", "Florentino"],
+  ["86'", "Akpom", "Enciso"],
+  ["90+4'", "Wood", "Delap"],
+];
+
+/** A man with his substitution, as the server reads it from the lines. */
+function withSub(man: Unsubbed): MatchMan {
+  const codeOf = (name: string) => SHEETS.find((each) => each.name === name)!.playerCode;
+  const on = SUBS.find(([, name]) => name === man.name);
+  const off = SUBS.find(([, , name]) => name === man.name);
+  return { ...man, sub: { cameOn: on === undefined ? null : { minute: on[0], replaced: codeOf(on[2]) }, wentOff: off === undefined ? null : { minute: off[0] } } };
+}
+
 /** As the server sends them, in the match page's one order. */
-const MEN = SHEETS.toSorted(bySheetOrder);
+const MEN = SHEETS.map(withSub).toSorted(bySheetOrder);
 
 /** The recording's lines at full time, newest first, with the points a few move for owned men. */
 const LINES: [number, string, string?][] = [
@@ -229,7 +289,7 @@ export const previewMatchBeforeKickoff: MatchPageData = {
   ...previewMatch,
   score: null,
   scorers: { home: [], away: [] },
-  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, points: null, counts: each.ownerTeamName !== null })),
+  men: MEN.map((each) => ({ ...each, played: null, marks: NO_MARKS, statLine: null, statPoints: null, points: null, counts: each.ownerTeamName !== null })),
   teamStats: null,
   commentary: { kind: "read", lines: [], delayed: false },
 };

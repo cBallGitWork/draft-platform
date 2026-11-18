@@ -15,6 +15,8 @@ import {
   provWords,
   sheetLabel,
   shotsNotHeldLabel,
+  statViewLabel,
+  statViewWords,
 } from "../../../src/premierLeague/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { man, matchOf, openMatch } from "../../support/src/matchPage.harness";
@@ -75,6 +77,21 @@ test("S10.10 each club's stats carry prov. while the points are live, and drop i
   cleanup();
   await openPlayerStats(false);
   expect(screen.queryAllByText(provWords)).toHaveLength(0);
+});
+
+test("S10.8 Stats | Points: Points swaps each stat's count for the points it earned him, signed, and Pts stays the same", async () => {
+  const earned = { ...LINE, minutes: 2, goals: 5, assists: 3, shots: 0, shotsOnTarget: 0, keyPasses: 0, tackles: 0, goalsConceded: -1 };
+  openMatch({ match: matchOf({ men: [man(1, "Saka", "home", { statLine: LINE, statPoints: earned, points: 9 }), STATS_MEN[3]] }) });
+  const tabs = await screen.findByRole("group", { name: matchTabsLabel });
+  expect(screen.queryByRole("radiogroup", { name: statViewLabel })).toBeNull();
+  await userEvent.click(within(tabs).getByRole("button", { name: matchTabWords.playerStats }));
+  const views = screen.getByRole("radiogroup", { name: statViewLabel });
+  expect(within(views).getByRole("radio", { name: statViewWords.stats, checked: true })).toBeTruthy();
+  await userEvent.click(within(views).getByRole("radio", { name: statViewWords.points }));
+  const none = noFigureWords;
+  expect(statRows(ARSENAL.name)).toEqual([["CM", "Saka", "+2", "+5", "+3", none, none, none, none, none, "−1", none, none, none, "9"]]);
+  // His record not yet arrived: every stat's points the dash.
+  expect(statRows(CHELSEA.name)).toEqual([["CM", "Palmer", ...Array(12).fill(none), `${none} ${notCountingLabel}`]]);
 });
 
 test("S10.8 the Shots panel is a greyed placeholder until shot positions and xG are held", async () => {

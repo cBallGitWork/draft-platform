@@ -27,6 +27,7 @@ export const mailLetter = (
   body: `The text of letter ${number}.`,
   read,
   link,
+  needsYou: false,
 });
 export const mailLetters = [mailLetter(3, false, "commish@example.com", "commissioner"), mailLetter(2, false, null, "trade"), mailLetter(1, true)];
 export const twoUnread = { unreadMail: 2, next: null };

@@ -46,7 +46,7 @@ Among them:
 - Across a clock change, the deadline keeps the same real-time gap before the first kickoff: a
   24-hour deadline before a 14:00 UK kickoff on the Sunday the clocks go back falls at 15:00 UK on
   the Saturday (Craig, 15 Nov 2026, on #2168: "Same gap"). `S03.7`
-- Each area's minimum and maximum on the pitch, and the formation presets.
+- Each area's minimum and maximum on the pitch, and the formation presets. `S03.10`
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
   at 18:00 UK time by default. The waiver order: reverse table order (the default), or rotating,

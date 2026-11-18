@@ -31,6 +31,10 @@ export async function gameweekEnd(ctx: QueryCtx, gameweek: number): Promise<{ un
  *  through it". The waiver lock already covers that span for waivers and free agency; trades
  *  (../trades/tradeShut.ts) and lineup saves (../lineup/lineups.ts) read this. */
 export async function inUnplayedGameweek(ctx: QueryCtx, league: WithUnusedGameweeks, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
-  const gameweek = latestBegun(deadlines, now);
-  return gameweek !== null && !isGameweekUsed(league, gameweek, await seasonGameweekCount(ctx)) && (await gameweekUnderWay(ctx, gameweek));
+  return unplayedUnderWay(ctx, league, latestBegun(deadlines, now));
+}
+
+/** `inUnplayedGameweek` with `begun` the latest gameweek begun, or null before any has. */
+export async function unplayedUnderWay(ctx: QueryCtx, league: WithUnusedGameweeks, begun: number | null): Promise<boolean> {
+  return begun !== null && !isGameweekUsed(league, begun, await seasonGameweekCount(ctx)) && (await gameweekUnderWay(ctx, begun));
 }

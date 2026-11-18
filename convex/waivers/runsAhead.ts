@@ -61,7 +61,8 @@ export function lockCandidates(deadlines: LeagueDeadlines, hour: number): number
 /** The run that can first take a player a run may take from `claimableFrom` on. */
 export type FirstRunOf = (claimableFrom: number) => RunAhead | null;
 
-const deadlinesOf = (gameweeks: HeldWaiverClock["gameweeks"]): LeagueDeadlines => new Map(gameweeks.map(({ gameweek, deadline }) => [gameweek, deadline]));
+/** The deadlines as a clock sent them. */
+export const deadlinesOf = (gameweeks: HeldWaiverClock["gameweeks"]): LeagueDeadlines => new Map(gameweeks.map(({ gameweek, deadline }) => [gameweek, deadline]));
 
 /** The gameweek under way at `now`, in the lock, or null outside it, given which gameweeks are
  *  under way: waiverLock.ts's `underWayIn`. Pure. */

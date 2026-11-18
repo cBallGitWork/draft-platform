@@ -25,6 +25,11 @@ const flaggedPlayer = v.object({
 });
 export type FlaggedPlayer = Infer<typeof flaggedPlayer>;
 
+/** A flagged starter, with his club's first kickoff this gameweek: null while it has none dated.
+ *  From it on, Your lineup leaves him out (homeAt.ts's `flaggedStartersAt`). */
+const flaggedStarter = v.object({ ...flaggedPlayer.fields, kickoff: v.union(v.number(), v.null()) });
+export type FlaggedStarter = Infer<typeof flaggedStarter>;
+
 const premierLeagueMatch = v.object({
   fixtureCode: v.number(),
   kickoff: v.union(v.number(), v.null()),
@@ -40,7 +45,7 @@ export const yourGameweek = v.object({
   squadNews: v.array(flaggedPlayer),
   /** His lineup in this gameweek: null with no gameweek; `set` false while he has none saved, else
    *  its flagged starters in the pitch's order. */
-  lineup: v.union(v.null(), v.object({ set: v.boolean(), flagged: v.array(flaggedPlayer) })),
+  lineup: v.union(v.null(), v.object({ set: v.boolean(), flagged: v.array(flaggedStarter) })),
   /** The league's waiver run times, which the screen finds the next of at its minute. */
   waiverRuns: waiverRulesShape.fields.runs,
   /** His claims waiting on a run. */
@@ -79,6 +84,16 @@ export async function yourGameweekOf(
   };
 }
 
+/** Each club's soonest match among `matches` by its kickoff, a postponed one left out. */
+function clubsKickoffs(matches: readonly Doc<"fixtures">[]): Map<number, number> {
+  const soonest = new Map<number, number>();
+  for (const { homeClubCode, awayClubCode, kickoff } of byKickoff(matches)) {
+    if (kickoff === null) continue;
+    for (const club of [homeClubCode, awayClubCode]) if (!soonest.has(club)) soonest.set(club, kickoff);
+  }
+  return soonest;
+}
+
 async function lineupOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number, squad: readonly HeldPlayer[]) {
   const lineup = await lineupInGameweek(ctx, leagueId, teamId, gameweek);
   if (lineup.fromGameweek === null) return { set: false, flagged: [] };
@@ -87,7 +102,11 @@ async function lineupOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"team
   // A begun gameweek's lineup is its squad at the deadline, so a starter who has left since still
   // starts and is read on his own; one the football sync doesn't hold has no note to flag.
   const players = await Promise.all(starters.map(({ playerCode }) => byCode.get(playerCode) ?? playerByCode(ctx, playerCode)));
-  return { set: true, flagged: players.flatMap((player) => (player === null ? [] : flagged(player))) };
+  const kickoffs = clubsKickoffs(await gameweekFixtures(ctx, gameweek, "league home's Your lineup would be cut short"));
+  return {
+    set: true,
+    flagged: players.flatMap((player) => (player === null ? [] : flagged(player).map((each) => ({ ...each, kickoff: kickoffs.get(player.clubCode) ?? null })))),
+  };
 }
 
 async function premierLeagueOf(ctx: QueryCtx, current: ThisGameweek, squad: readonly HeldPlayer[]) {

@@ -5,7 +5,7 @@ import type { Doc } from "../../_generated/dataModel";
 import { internalAction, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../../_generated/server";
 import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
-import { emailIfFailed } from "../../admin/feedFailureEmails";
+import { afterRunLogged } from "../../admin/feedStatuses";
 import { clubRow, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { isPlaying, wins } from "../matchScores";
 import { keyOf, sameFields } from "../footballSync";
@@ -149,7 +149,7 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("sportmonksSyncs", row);
-    await emailIfFailed(ctx, "sportmonks", row, await competitionNamed(ctx, row.competition));
+    await afterRunLogged(ctx, "sportmonks", row, await competitionNamed(ctx, row.competition));
     return null;
   },
 });

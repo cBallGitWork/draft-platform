@@ -4,6 +4,7 @@ import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plCompSeasonsUrl, plFixturesUrl, p
 import { PL_THIS_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
+import { sheetManOf } from "../../../convex/football/matchTeamSheets";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague/premierLeague";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { outcomesOf } from "../../support/convex/feeds.harness";
@@ -46,10 +47,10 @@ function beforeKickoff(): Gw6Payloads {
   return payloads;
 }
 
-/** A match's men as its sheets name them, by FPL code. */
+/** A match's men as its sheets name them, by FPL code, each starter with his place. */
 function sheetMen(payloads: Gw6Payloads, plId: number) {
   const fixture = payloads.pl.fixtures.find((each) => each.id === plId)!;
-  return matchSlots(fixture, codesByOpta(payloads.fpl.bootstrap.elements)).slots.map(({ playerCode, started }) => ({ playerCode, started }));
+  return matchSlots(fixture, codesByOpta(payloads.fpl.bootstrap.elements)).slots.map(sheetManOf);
 }
 
 test("a match's sheets are due from an hour before its kickoff until it kicks off, and not a minute either side", async () => {
@@ -88,6 +89,27 @@ test("a tick within the hour reads only the match's sheets and keeps both sides'
   expect(latest).toBeUndefined();
   expect(await outcomesOf(t, "teamSheets")).toEqual([{ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: true }] }]);
   expect(await t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toEqual([]);
+});
+
+test("S10.9: the held sheets keep each starter's place in his side's formation, for the pitch, and a change of place alone replaces them", async () => {
+  const t = await withHullEvertonMen();
+  const payloads = beforeKickoff();
+  await tickAt(t, SHEETS_OPEN, payloads);
+  const held = (await heldSheets(t))!.men;
+  const starters = held.filter((man) => man.started);
+  expect(starters).toHaveLength(BOTH_ELEVENS);
+  expect(starters.every((man) => man.formationPlace !== undefined)).toBe(true);
+  expect(held.filter((man) => !man.started).every((man) => man.formationPlace === undefined)).toBe(true);
+  // Each side's keeper alone on line 0.
+  expect(starters.filter((man) => man.formationPlace!.line === 0)).toHaveLength(2);
+
+  // Two of Hull's back line swap places in the warm-up.
+  const swapped = beforeKickoff();
+  const backLine = swapped.pl.fixtures.find((each) => each.id === MATCH.hullEverton.pl)!.teamLists![0]!.formation!.players[1];
+  [backLine[0], backLine[1]] = [backLine[1], backLine[0]];
+  await tickAt(t, SHEETS_OPEN + MINUTE_MS, swapped);
+  expect((await heldSheets(t))!.men).toEqual(sheetMen(swapped, MATCH.hullEverton.pl));
+  expect((await heldSheets(t))!.men).not.toEqual(held);
 });
 
 test("a tick with no match within the hour reads no sheets and writes no sheets' row", async () => {

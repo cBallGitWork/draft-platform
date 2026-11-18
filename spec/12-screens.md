@@ -80,6 +80,8 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     - The deadline strip's Your lineup box names the first flagged starter in the pitch's order,
       "doubtful" when FPL gives him 25 to 75% and "out" at 0%, with "and 1 more" when there are
       others; with none flagged it says Set, and with no lineup yet Not set. `S12.9`
+      - Craig, 17 Nov 2026, on #2466: from his match's kickoff, Your lineup leaves him out ("Leave
+        him out from his match's kickoff"), while Your squad news still shows his note. `S12.16`
     - The strip's other three boxes are built as pictured and open nothing: GW9 locks shows its
       day, time and how long is left ("Tue 11:00 in 1d 17h"); Claims close the next waiver run
       and how many claims you have waiting ("Mon 20:00, 2 claims"); Table your place, points and

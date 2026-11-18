@@ -1,12 +1,15 @@
+import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { TRADE_REVIEWS } from "../../convex/rules/leagueRulesShape";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { blankOrOff } from "../rules/blank";
+import { gameweekShort } from "../shared/when/words";
+import { notSetWords } from "../shared/words";
 import { Choice } from "../ui/Choice";
 import { Panel } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
-import { NumberRow } from "./NumberRow";
-import { SETTING_ROWS, SettingRow } from "./SettingRow";
+import { SETTING_LINE, SETTING_ROWS, SettingRow, ShownAs } from "./SettingRow";
 import {
+  tradeDeadlineAfterWords,
   tradeDeadlineHint,
   tradeDeadlineLabel,
   tradeDeadlineRowLabel,
@@ -20,6 +23,8 @@ import {
 
 const TRADE_REVIEW_CHOICE = "trade-review";
 const TRADE_DEADLINE_HINT_ID = "settings-trade-deadline-hint";
+/** The deadline picker's value while no gameweek is chosen. */
+const NONE_CHOSEN = "";
 
 type Trades = LeagueSettings["trades"];
 
@@ -43,19 +48,49 @@ export function TradesPanel({ trades, seasonGameweeks, edit }: { trades: Trades;
           <p className="text-muted">{tradeReviewHint}</p>
         </SettingRow>
         <SettingRow label={tradeDeadlineRowLabel}>
-          <TickBox checked={trades.deadline !== null} onChange={(on) => edit({ ...trades, deadline: blankOrOff(on) })}>
-            {tradeDeadlineWords}
-          </TickBox>
+          <div className={SETTING_LINE}>
+            <TickBox checked={trades.deadline !== null} onChange={(on) => edit({ ...trades, deadline: blankOrOff(on) })}>
+              <ShownAs shown={tradeDeadlineAfterWords}>{tradeDeadlineWords}</ShownAs>
+            </TickBox>
+            {trades.deadline !== null && (
+              <DeadlinePicker deadline={trades.deadline} seasonGameweeks={seasonGameweeks} onChange={(deadline) => edit({ ...trades, deadline })} />
+            )}
+          </div>
           {trades.deadline !== null && (
-            <>
-              <NumberRow label={tradeDeadlineLabel} hintId={TRADE_DEADLINE_HINT_ID} value={trades.deadline} onChange={(deadline) => edit({ ...trades, deadline })} />
-              <p id={TRADE_DEADLINE_HINT_ID} className="text-muted">
-                {tradeDeadlineHint(seasonGameweeks)}
-              </p>
-            </>
+            <p id={TRADE_DEADLINE_HINT_ID} className="text-muted">
+              {tradeDeadlineHint(seasonGameweeks)}
+            </p>
           )}
         </SettingRow>
       </div>
     </Panel>
+  );
+}
+
+/** The deadline's gameweek, one of the season's (1440-trades.png). Turned on, it holds none until
+ *  one is chosen, which SettingsPage's `blankRefusal` stops before the server sees it; a deadline
+ *  past the season's last gameweek still shows. */
+function DeadlinePicker({ deadline, seasonGameweeks, onChange }: { deadline: number; seasonGameweeks: number; onChange: (deadline: number) => void }) {
+  const gameweeks = Array.from({ length: seasonGameweeks }, (_, index) => FIRST_GAMEWEEK + index);
+  if (!Number.isNaN(deadline) && !gameweeks.includes(deadline)) gameweeks.push(deadline);
+  return (
+    <select
+      aria-label={tradeDeadlineLabel}
+      aria-describedby={TRADE_DEADLINE_HINT_ID}
+      className="text-box"
+      value={Number.isNaN(deadline) ? NONE_CHOSEN : deadline}
+      onChange={(event) => onChange(Number(event.target.value))}
+    >
+      {Number.isNaN(deadline) && (
+        <option value={NONE_CHOSEN} disabled>
+          {notSetWords}
+        </option>
+      )}
+      {gameweeks.map((gameweek) => (
+        <option key={gameweek} value={gameweek}>
+          {gameweekShort(gameweek)}
+        </option>
+      ))}
+    </select>
   );
 }

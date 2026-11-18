@@ -207,6 +207,8 @@ export const underSiteScoringWords = "under the site's scoring";
 /** A trade review rule by name, as League settings offers it and a trade's Review fact says it. */
 export const commissionerVetoWords = "Commissioner veto";
 export const leagueVoteWords = "League vote";
+/** Trades' Offers group of accepted trades under review, and League settings' widget of them. */
+export const inReviewWords = "In review";
 
 /** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
  *  card and a shortlist. */

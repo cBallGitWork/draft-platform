@@ -12,6 +12,7 @@ import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadStats } from "../../../convex/squads/teamSquad";
 import { latestRules } from "../../../convex/rules/rulesHistory";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamSquadOf } from "../../support/convex/screenReads.harness";
 import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
@@ -71,7 +72,7 @@ beforeEach(async () => {
 const priceSeasons = () => t.mutation(internal.stats.seasonPoints.refresh, { playerCodes: [SAKA, RAYA, PALMER, NOBODY].map(({ code }) => code) });
 const read = async (email = ANN) => {
   await priceSeasons();
-  return (await actingAs(t, email)).query(api.squads.teamSquad.ofMyTeam, { leagueId, now: NOW });
+  return teamSquadOf(await actingAs(t, email), leagueId, NOW);
 };
 const rowOf = async (code: number) => (await read()).players.find((each) => each.code === code)!;
 const priced = (stats: Record<string, number>, positions: Position[], slot: Cell | null) =>

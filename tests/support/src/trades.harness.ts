@@ -5,6 +5,7 @@ import { act } from "@testing-library/react";
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { HeldTrades } from "../../../convex/trades/tradeScreen";
 import type {
   ClosedOffer,
   ScreenOffer,
@@ -95,6 +96,17 @@ export const quietTrades: TradesView = {
   offers: [],
   closed: [],
 };
+
+/** `view` as the server's hour read sends it (convex/trades/tradesAt.ts), before any gameweek has
+ *  begun, so it shows the same at every minute. */
+export function heldTrades({ shut, offers, ...view }: TradesView): HeldTrades {
+  return {
+    ...view,
+    offers: offers.map(({ closes: _closes, reviewer: _reviewer, ...offer }) => offer),
+    gameweeks: [],
+    phases: [{ begun: null, shut, offers: offers.map(({ closes, reviewer }) => ({ closes, reviewer })) }],
+  };
+}
 
 /** Team 2's offer to Team 1, Palmer for Saka, which Team 1 rejected, unless `rest` says. */
 export const closedOffer = (rest: Partial<ClosedOffer> = {}): ClosedOffer => ({

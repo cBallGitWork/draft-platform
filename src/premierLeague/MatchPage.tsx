@@ -14,7 +14,9 @@ import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
-import { MatchPlayerStats, PointsCell } from "./MatchPlayerStats";
+import { MatchPlayerStats, PointsCell, StatViewSwitch, ViewSwitch } from "./MatchPlayerStats";
+import { anyPlaced, MatchPitch, offPitch } from "./MatchPitch";
+import { TeamStats } from "./MatchTeamStats";
 import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
 import { AbandonedMark } from "./AbandonedMark";
@@ -22,16 +24,22 @@ import {
   backLabel,
   backWords,
   cameOnWords,
+  wentOffWords,
   COMMENTARY_TITLE,
   goalsWords,
   highlightsNotHeldLabel,
   inGameweekWords,
+  LINEUP_VIEWS,
+  lineupViewLabel,
+  lineupViewWords,
+  type LineupView,
   livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
   MATCH_TABS,
   matchColumns,
   type MatchTab,
+  type StatView,
   matchTabsLabel,
   matchTabWords,
   matchWhereWords,
@@ -40,9 +48,7 @@ import {
   noLinesWords,
   noMatchWords,
   noMenWords,
-  noTeamStatsWords,
   pointsProblemWords,
-  possessionWords,
   previousGlyph,
   provisionalWords,
   provWords,
@@ -50,11 +56,7 @@ import {
   scorersLabel,
   scorersWords,
   sheetLabel,
-  STAT_COLUMN,
   SUBSTITUTES_TITLE,
-  TEAM_STATS_TITLE,
-  teamStatRows,
-  teamStatsLabel,
   unusedLabel,
   versusWords,
 } from "./words";
@@ -82,7 +84,11 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
 function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
   const { pointsProblem, gameweek, provisional } = match;
   const [tab, choose] = useState<MatchTab>("overview");
+  const [view, chooseView] = useState<StatView>("stats");
+  const [lineupView, chooseLineupView] = useState<LineupView>("list");
   const prov = provisional ? <ProvTag /> : undefined;
+  // No pitch until a sheet has placed the men (S10.13): no switch, and the list.
+  const pitchHeld = anyPlaced(match.men);
   return (
     <>
       <BackRow gameweek={gameweek} />
@@ -90,29 +96,47 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
       {/* Overview | Player stats | Highlights under the scoreboard (S10.8, S10.11); Highlights greyed until it is built. */}
       <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
         <PlateTabs label={matchTabsLabel} tabs={MATCH_TABS} words={matchTabWords} chosen={tab} choose={choose} greyed={{ highlights: highlightsNotHeldLabel }} alone />
+        {tab === "playerStats" && <StatViewSwitch view={view} choose={chooseView} />}
+        {tab === "overview" && pitchHeld && (
+          <ViewSwitch label={lineupViewLabel} name="match-lineup-view" views={LINEUP_VIEWS} words={lineupViewWords} view={lineupView} choose={chooseLineupView} />
+        )}
       </div>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
-      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} /> : <Overview match={match} prov={prov} />}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={pitchHeld ? lineupView : "list"} />}
     </>
   );
 }
 
-/** The team sheets beside the team stats and the commentary. */
-function Overview({ match: { home, away, men, teamStats, commentary }, prov }: { match: MatchPageData; prov: ReactNode }) {
+/** The lineups beside the team stats and the commentary: two team sheets with List; with Pitch, both
+ *  elevens on one pitch as they stand now, each side's substitutes and men who went off on its sheet
+ *  beside it (S10.9). */
+function Overview({ match: { home, away, men, teamStats, commentary }, prov, view }: { match: MatchPageData; prov: ReactNode; view: LineupView }) {
   const moved = men.filter((man) => man.side === null);
-  return (
+  const sideMen = { home: men.filter((man) => man.side === "home"), away: men.filter((man) => man.side === "away") };
+  const beside = view === "pitch" ? offPitch : (each: MatchMan[]) => each;
+  const sheets = (
     <>
-      <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
-        <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} aside={prov} />
-        <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} aside={prov} />
-        {/* Side by side under the sheets on the desk, stacked in the third column on a wide one. */}
-        <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
-          <TeamStats home={home} away={away} stats={teamStats} />
-          <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
-        </div>
-        {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
-      </div>
+      <TeamSheet title={home.name} men={beside(sideMen.home)} aside={prov} />
+      <TeamSheet title={away.name} men={beside(sideMen.away)} aside={prov} />
     </>
+  );
+  return (
+    <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
+      {view === "pitch" ? (
+        <>
+          <div className="grid items-start gap-2">{sheets}</div>
+          <MatchPitch home={home} away={away} men={men} />
+        </>
+      ) : (
+        sheets
+      )}
+      {/* Side by side under the lineups on the desk, stacked in the third column on a wide one. */}
+      <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+        <TeamStats home={home} away={away} stats={teamStats} />
+        <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
+      </div>
+      {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
+    </div>
   );
 }
 
@@ -190,45 +214,7 @@ function ScoreboardSide({ club, className }: { club: Club; className: string }) 
   );
 }
 
-type SideStats = NonNullable<MatchPageData["teamStats"]>["home"];
 type Club = MatchPageData["home"];
-/** The team stats' heads and cells: home's figures read right, toward the stat between them, which
- *  takes half the width. */
-const TEAM_STAT_CELLS = { home: "px-2 text-right", stat: "w-1/2 px-2 text-center", away: "px-2 text-left" } as const;
-
-/** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
-function TeamStats({ home, away, stats }: { home: Club; away: Club; stats: MatchPageData["teamStats"] }) {
-  return (
-    <Panel title={TEAM_STATS_TITLE}>
-      {stats === null ? (
-        <PanelNote>{noTeamStatsWords}</PanelNote>
-      ) : (
-        <table aria-label={teamStatsLabel(home.shortName, away.shortName)} className="w-full table-fixed border-collapse">
-          <ColumnHeads
-            columns={{ home: { short: home.shortName, long: home.name }, stat: STAT_COLUMN, away: { short: away.shortName, long: away.name } }}
-            unseen={["stat"]}
-            classOf={(column) => TEAM_STAT_CELLS[column]}
-          />
-          <tbody>
-            {(Object.keys(teamStatRows) as (keyof typeof teamStatRows)[]).map((stat) => (
-              <tr key={stat} className="border-t border-panel-rule">
-                <td className={`${TEAM_STAT_CELLS.home} font-bold`}>{statWords(stats.home, stat)}</td>
-                <th scope="row" className={`${TEAM_STAT_CELLS.stat} font-normal text-muted`}>{teamStatRows[stat]}</th>
-                <td className={`${TEAM_STAT_CELLS.away} font-bold`}>{statWords(stats.away, stat)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </Panel>
-  );
-}
-
-function statWords(side: SideStats, stat: keyof SideStats): string {
-  const value = side[stat];
-  if (value === null) return noFigureWords;
-  return stat === "possession" ? possessionWords(value) : String(value);
-}
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */
 function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; aside: ReactNode }) {
@@ -269,7 +255,7 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
  *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
  *  think grey means no teams" (Craig, 31 Oct 2026). */
 function ManRow({ man }: { man: MatchMan }) {
-  const { name, position, started, played, ownerTeamName, mine, marks } = man;
+  const { name, position, started, played, sub, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
   return (
     <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
@@ -277,7 +263,8 @@ function ManRow({ man }: { man: MatchMan }) {
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
         {name}
         <MatchMarks marks={marks} />
-        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
+        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords(sub.cameOn?.minute ?? null)}</span>}
+        {sub.wentOff !== null && <span className="ml-2 font-normal text-event">{wentOffWords(sub.wentOff.minute)}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
       </th>
       <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>

@@ -264,9 +264,10 @@ export const runDue = internalMutation({
 /** Starts the run if its latest run time came unrun and was one then (`wasRunTime`), a league never run only if it came since the last check;
  *  first, its draft over and its window shut since a deadline, free agents go back on waivers, in the run's tries if any (waiverRunRetries.ts). */
 export const runLeagueDue = internalMutation({
-  args: { leagueId: v.id("leagues") },
+  // `now` is passed only by an e2e test, to run as if it were then (../e2e/runJobNow.ts).
+  args: { leagueId: v.id("leagues"), now: v.optional(v.number()) },
   returns: v.null(),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, { leagueId, now = Date.now() }) => {
     const league = await ctx.db.get("leagues", leagueId);
     if (league === null) {
       await forgetChecks(ctx, leagueId);
@@ -277,7 +278,6 @@ export const runLeagueDue = internalMutation({
       await checkAgainAt(ctx, leagueId, "waivers", NEVER_DUE);
       return null;
     }
-    const now = Date.now();
     const held = await waiverOrderRow(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const shut = await windowShutSince(ctx, leagueId, deadlines, now);

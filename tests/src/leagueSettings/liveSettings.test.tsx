@@ -25,13 +25,14 @@ const convex = vi.hoisted(() => ({
   setTeamOrder: vi.fn(),
   drawTeamOrder: vi.fn(),
   scoringStart: vi.fn(),
+  gameweeks: vi.fn(),
   setScoringStart: vi.fn(),
   draft: vi.fn(),
   setStart: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder, "gameweeks/scoringStart:ofLeague": convex.scoringStart, "draft/draftStart:ofLeague": convex.draft },
+    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder, "gameweeks/scoringStart:ofLeague": convex.scoringStart, "gameweeks/leagueGameweeks:ofLeague": convex.gameweeks, "draft/draftStart:ofLeague": convex.draft },
     mutations: {
       "rules/leagueSettings:changeSettings": convex.changeSettings,
       "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
@@ -130,6 +131,14 @@ test("the scoring start is read from gameweeks/scoringStart:ofLeague", () => {
   expect(convex.scoringStart).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID });
 });
 
+test("S04.12: the Gameweeks widget's gameweeks are read from gameweeks/leagueGameweeks:ofLeague", () => {
+  const gameweeks = [{ gameweek: 8, used: false, deadline: null }];
+  convex.gameweeks.mockReturnValue(gameweeks);
+
+  expect(renderHook(() => useLiveLeagueSettings().useGameweeks(A_LEAGUE_ID)).result.current).toBe(gameweeks);
+  expect(convex.gameweeks).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID });
+});
+
 test("setting the scoring start calls gameweeks/scoringStart:setScoringStart, and resolves with null, the server's refusal, or the failure said plainly", async () => {
   convex.setScoringStart.mockResolvedValueOnce(null);
   expect(await seam().setScoringStart(A_LEAGUE_ID, 8)).toBeNull();
@@ -147,12 +156,13 @@ test("setting the scoring start calls gameweeks/scoringStart:setScoringStart, an
 
 test("the draft's start is read from draft/draftStart:ofLeague: a waiting draft's date, and any other as started", () => {
   const startsAt = Date.parse("2026-11-15T19:00:00Z");
-  convex.draft.mockReturnValue({ status: "waiting", startsAt, rounds: 15, order: [] });
-  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt, started: false });
+  const order = [{ teamId: "team-1", name: "Saka Potatoes" }];
+  convex.draft.mockReturnValue({ status: "waiting", startsAt, rounds: null, order });
+  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt, started: false, rounds: null, teams: 1 });
   expect(convex.draft).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID });
 
-  convex.draft.mockReturnValue({ status: "over", startedAt: startsAt, rounds: 15, order: [], picksMade: 120 });
-  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt: null, started: true });
+  convex.draft.mockReturnValue({ status: "over", startedAt: startsAt, rounds: 15, order, picksMade: 15 });
+  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt: null, started: true, rounds: 15, teams: 1 });
 
   convex.draft.mockReturnValue(undefined);
   expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toBeUndefined();

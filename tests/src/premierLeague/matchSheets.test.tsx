@@ -51,7 +51,7 @@ describe("the team sheets", () => {
       ["CM", "Saka", "Team 2", "11"],
       ["CM", "Rice", "Team 1", noFigureWords],
       [SUBSTITUTES_TITLE],
-      ["CM", `Ødegaard${cameOnWords}`, freeAgentWords, "3"],
+      ["CM", `Ødegaard${cameOnWords(null)}`, freeAgentWords, "3"],
       ["GK", `Arrizabalaga ${unusedLabel}`, "Team 1", `0 ${notCountingLabel}`],
     ]);
     expect(sheetRows(CHELSEA.name)).toEqual([["CM", "Palmer", "Team 2", "7"]]);
@@ -70,7 +70,7 @@ describe("the team sheets", () => {
   it("marks a substitute who came on in the event colour", async () => {
     openMatch({ match: matchOf() });
     await screen.findByRole("table", { name: sheetLabel(ARSENAL.name) });
-    expect(screen.getByText(cameOnWords).className).toContain("text-event");
+    expect(screen.getByText(cameOnWords(null)).className).toContain("text-event");
   });
 
   it("before the sheets are out, says they come about an hour before kickoff", async () => {

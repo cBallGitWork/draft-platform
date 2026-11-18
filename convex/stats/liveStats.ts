@@ -9,7 +9,7 @@ import { isCutOff } from "./matchRecords";
 import { countedStats, moveSeasonTotals } from "./seasonStats";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
-import { emailIfFailed } from "../admin/feedFailureEmails";
+import { afterRunLogged } from "../admin/feedStatuses";
 import { storeThresholdSteps } from "../matchup/thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
 import { anyLiveScores } from "../shared/liveScoreRows";
@@ -157,7 +157,7 @@ export const recordTick = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("liveStatsTicks", row);
-    await emailIfFailed(ctx, "liveStats", row);
+    await afterRunLogged(ctx, "liveStats", row);
     return null;
   },
 });

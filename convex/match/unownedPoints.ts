@@ -14,6 +14,7 @@ import type { InMatch } from "../gameweekScorer/teamGameweek";
 import type { Cell } from "../lineup/pitch";
 import { basePoints, cellAt } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
+import type { CategoryPoints } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import type { PlayerCode } from "../shared/players";
 import { statsIfWhole } from "../stats/matchRecords";
@@ -22,7 +23,7 @@ import { statsIfWhole } from "../stats/matchRecords";
 /** A man's points in the match from his positions, null while they can't be priced; and where his
  *  commentary lines are priced, null while no position of his has a price and his record hasn't
  *  arrived. */
-export type UnownedPricer = (playerCode: PlayerCode, positions: readonly Position[]) => { points: number | null; lines: UnownedLines | null };
+export type UnownedPricer = (playerCode: PlayerCode, positions: readonly Position[]) => { points: number | null; categories: CategoryPoints[]; lines: UnownedLines | null };
 
 /** The cell his lines are priced at, and his part in the match, as the commentary reads it. */
 export interface UnownedLines {
@@ -30,7 +31,7 @@ export interface UnownedLines {
   inMatch: InMatch;
 }
 
-const UNPRICED = { points: null, lines: null };
+const UNPRICED = { points: null, categories: [], lines: null };
 
 /** The pricer for the match's men `owners` doesn't name, under `set`: null for every man while the
  *  match isn't priced (no set) or none of its records is unowned. Reads the match's overrides once,
@@ -49,9 +50,9 @@ export async function unownedPointsOf(
   return (playerCode, positions) => {
     const record = recordOf.get(playerCode);
     const stats = record === undefined ? null : statsIfWhole(record);
-    const { total, position } = basePoints(stats, set, positions)[0];
+    const { total, position, categories } = basePoints(stats, set, positions)[0];
     const points = overrides.get(playerCode) ?? total;
-    if (record === undefined || position === null) return { points, lines: null };
-    return { points, lines: { cell: cellAt(position), inMatch: new Map([[fixtureCode, { stats, played: record.played === true, points }]]) } };
+    if (record === undefined || position === null) return { points, categories, lines: null };
+    return { points, categories, lines: { cell: cellAt(position), inMatch: new Map([[fixtureCode, { stats, played: record.played === true, points }]]) } };
   };
 }

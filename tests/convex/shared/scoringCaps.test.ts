@@ -135,7 +135,7 @@ test(`a league's stored final scores: ${FINAL_SCORES_MOST} are read, one more th
     holdRows(
       async (ctx) => (await ctx.db.query("finalScores").collect()).length,
       // A gameweek the league hasn't begun, so gameweek 6 is still worked out from its records.
-      (ctx) => ctx.db.insert("finalScores", { leagueId, gameweek: FIRST_GAMEWEEK, teamId: annsTeam, points: 0, noLineup: false, fixtureCodes: [], storedAt: 0 }),
+      (ctx) => ctx.db.insert("finalScores", { leagueId, gameweek: FIRST_GAMEWEEK, teamId: annsTeam, points: 0, fixtureCodes: [], storedAt: 0 }),
     ),
     () =>
       league.t.run(async (ctx) => {

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Notice, PanelNote, Problem, Status } from "../ui/Panel";
 import type { RulesEdits } from "./rulesEdits";
-import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "./words";
+import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, notSavedWords, overtakenWords, saveWords, unchangedWords } from "./words";
 
 /** The bar under a rules screen: the gameweek a change applies from, any of the screen's own
  *  controls (`children`), Discard and Save, then what came of the last save. Once someone else has
@@ -9,13 +9,16 @@ import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtak
  *  so, and offers the latest in place of Discard. `savedWords` says a save was made, from when;
  *  `saveLabel` names the save; a save that applies to no gameweek, such as a draft patch's, passes
  *  `appliesFrom` false. `savedNote`, when set, says a save that applies from no gameweek was made,
- *  in place of the unchanged note (League settings' draft start date alone, #1780). */
+ *  in place of the unchanged note (League settings' draft start date alone, #1780). The `notSaved`
+ *  kind (League settings, docs/design/approved/settings/1440.png) is muted until something
+ *  changes, with no note, then says "Not saved" before the gameweek the change applies from. */
 export function SaveBar<Part>({
   draft,
   savedWords,
   saveLabel = saveWords,
   appliesFrom = true,
   savedNote = null,
+  notSaved = false,
   children,
 }: {
   draft: RulesEdits<Part>;
@@ -23,20 +26,23 @@ export function SaveBar<Part>({
   saveLabel?: string;
   appliesFrom?: boolean;
   savedNote?: string | null;
+  notSaved?: boolean;
   children?: ReactNode;
 }) {
   const said = draft.savedFrom === null ? savedNote : savedWords(draft.savedFrom);
+  const changed = !draft.unchanged && !draft.overtaken;
   return (
     <div className="bg-panel">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2">
-        {appliesFrom && (
+        {notSaved && changed && <span className="text-event">{notSavedWords}</span>}
+        {appliesFrom && (!notSaved || changed) && (
           <span>
             <span className="text-soft">{appliesFromWords}</span> <span className="font-semibold text-derived">{gameweekWords(draft.changesFrom)}</span>
           </span>
         )}
         {children}
         <span className="flex grow flex-wrap justify-end gap-2">
-          {!draft.unchanged && !draft.overtaken && (
+          {changed && (
             <button type="button" onClick={draft.drop} className="secondary-action">
               {discardWords}
             </button>
@@ -46,7 +52,7 @@ export function SaveBar<Part>({
           </button>
         </span>
       </div>
-      {draft.unchanged && said === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
+      {draft.unchanged && said === null && !notSaved && <PanelNote edge="b">{unchangedWords}</PanelNote>}
       <Status words={said} className="px-3 pb-2" />
       <Problem problem={draft.problem} />
       {draft.overtaken && (
