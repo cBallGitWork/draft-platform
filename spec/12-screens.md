@@ -188,6 +188,26 @@ From `/grill club colours` (31 Oct 2026).
   waits for managers' crests (SPEC.md, Later).
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
+
+### Team colours
+
+From the look grill (Craig, 18 Nov 2026).
+
+- A team's colour shows on its page's header and a stripe only; title plates stay the plate's
+  indigo, so the contrast and meaning colours keep working ("Header + stripe only"). `S12.25`
+- The manager picks his team's primary and second colour from a set palette on his team's
+  settings, from the beta; it is stored on the team, and crests stay Later ("Manager, from the
+  beta"). `S12.26`
+- A matchup's header splits into both teams' colours. When the two are too close to tell apart,
+  the second team listed shows its second colour, as with a kit clash ("Away uses its second
+  colour"). `S12.27`
+
+### Colour that means something
+
+- Each team's last five results show as W/D/L squares, green, grey and red, in the table and on
+  League home (Craig, 18 Nov 2026). `S12.28`
+- Wherever a squad is listed, each player's position line takes his area's colour (goalkeeper,
+  defence, midfield, attack), as the pitch's chips do (Craig, 18 Nov 2026). `S12.29`
 - Who keeps the colours: `spec/15`, The admin.
 - The mark's, the striped shirt's and the scoreboard's values go into `docs/design/plate.md` when
   they are built.

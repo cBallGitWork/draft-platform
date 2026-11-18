@@ -135,11 +135,15 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - **A club page's ownership history**: who owned each of a club's players in the league, and
   when ("Saka: Dave GW1-9, you since GW10"); and **past seasons** on a club page (Craig, 12 Nov
   2026; spec/18).
+- **A live screen of its own**: every matchup, a vidiprinter strip of every match and a score box;
+  League home's matchday mode carries the beta (Craig, 18 Nov 2026: "Yes, later").
 - **A colour-blind setting**: "lets not focus on colour blind, we can have a colour blind setting
   later" (Craig, 31 Oct 2026).
 
 ## Out of scope
 
+- Points shaded by band: not picked when colour that means something was grilled (Craig, 18 Nov
+  2026).
 - Set-piece lists and set-piece takers: "we didthced set piece taker (unless its a role)" (Craig,
   9 Nov 2026, on #1196). A set-piece duty can only come back as a role (spec/17).
 - A sleep timer that pauses the pick clock overnight: the commissioner pauses and resumes by hand (spec/04).
