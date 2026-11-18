@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Football · Arsenal's club page, Fixtures tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Archivo:wdth,wght@125,800&amp;display=swap">
+<style>
+body{margin:0;background:#111214}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button{font-family:inherit;font-size:13px;border-radius:0;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.disp{font-family:'Archivo','Archivo Narrow',sans-serif;font-weight:800;font-stretch:125%}
+.fig{color:#ffe600;font-weight:700}
+.muted{color:#a1a5ab}
+.soft{color:#caced4}
+.crest{width:16px;height:16px;flex:none;display:inline-block;vertical-align:-3px}
+.panel{background:rgba(26,27,31,0.84);box-shadow:inset 0 1px 0 #34363c}
+.plate{height:32px;background:#2a1f86;box-shadow:inset 0 2px 0 #6a5fe0,inset 0 -2px 0 #110a4a;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px}
+.plate h2{margin:0;font-size:15px;line-height:20px;font-weight:700}
+.chip{display:inline-block;min-width:30px;padding:0 3px;box-sizing:border-box;text-align:center;font-size:11px;line-height:18px;font-weight:700}
+.form{display:inline-block;width:18px;text-align:center;font-size:11px;line-height:18px;font-weight:700;background:#ffe600;color:#111214}
+.tb{width:100%;border-collapse:collapse;table-layout:fixed}
+.tb th{height:24px;padding:0 8px;text-align:left;font-weight:600;color:#111214;background:#b9bcc4;white-space:nowrap}
+.tb td{height:28px;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 -1px 0 #111214}
+.tb .r{text-align:right}
+.ph{display:inline-block;width:14px;height:14px;box-sizing:border-box;border:1px solid #a1a5ab;vertical-align:-3px}
+.row{display:flex;align-items:center;gap:8px;min-height:28px;padding:0 12px;box-shadow:inset 0 -1px 0 #111214}
+</style>
+</helmet>
+<div style="width: 1440px; box-sizing: border-box; background-color: #111214; background-image: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(70, 96, 84, 0.22), rgba(70, 96, 84, 0) 70%); font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums; padding-bottom: 16px">
+
+<header style="background: #173a94; box-shadow: inset 0 2px 0 #4a6cc8, inset 0 -2px 0 #001a5e; display: flex; align-items: stretch; min-height: 44px; padding: 0 16px">
+  <div class="disp" style="display: flex; align-items: center; font-size: 15px; padding-right: 16px">Draft Manager</div>
+  <button style="display: flex; align-items: center; gap: 8px; background: none; border: 0; border-left: 1px solid #001a5e; border-right: 1px solid #001a5e; color: #ffffff; font-size: 13px; padding: 0 12px"><span style="color: #caced4">League:</span><span style="font-weight: 600">Tim Hortons Pro League</span></button>
+  <nav aria-label="Main" style="display: flex; align-items: stretch">
+    <sc-for list="{{ menu }}" as="m" hint-placeholder-count="8">
+      <a href="#" aria-current="{{m.current}}" style="display: flex; align-items: center; padding: 0 12px; color: {{m.ink}}; font-weight: {{m.weight}}; border-right: 1px solid #001a5e; font-size: 15px; box-shadow: {{m.edge}}">{{m.name}}<sc-if value="{{ m.count }}" hint-placeholder-val="{{ false }}"><span style="margin-left: 6px; background: #ff9b3d; color: #111214; font-size: 13px; font-weight: 700; padding: 0 5px; line-height: 18px">{{m.count}}</span></sc-if></a>
+    </sc-for>
+  </nav>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+    <button style="height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-size: 15px; font-weight: 600">Continue</button>
+    <button style="background: none; border: 0; color: #ffffff; font-size: 13px">Sign out</button>
+  </div>
+</header>
+
+<main style="padding: 8px 16px 0; display: flex; flex-direction: column; gap: 8px">
+
+  <!-- Title plate: back to where he came from, the club, its place and form; its two tabs on the plate's foot -->
+  <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px 6px">
+      <a href="#" class="soft" style="display: flex; align-items: center; gap: 6px; color: #caced4"><svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M6 0 L0 5 L6 10 Z" fill="#caced4"></path></svg>Football</a>
+      <img alt="" src="https://resources.premierleague.com/premierleague/badges/70/t3.png" style="width: 40px; height: 40px; background: linear-gradient(90deg, #EF0107 50%, #FFFFFF 50%)">
+      <div style="display: flex; flex-direction: column">
+        <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 32px">Arsenal</h1>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span><span class="fig">2nd</span> <span class="soft">Premier League,</span> <span class="fig">20</span> <span class="soft">pts</span></span>
+          <span role="img" aria-label="Last five, oldest first: won, won, drawn, won, lost" style="display: flex; gap: 2px"><sc-for list="{{ form }}" as="f" hint-placeholder-count="5"><span class="form">{{f}}</span></sc-for></span>
+        </div>
+      </div>
+      <div style="margin-left: 24px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid #110a4a; padding-left: 16px">
+        <div class="soft">Emirates Stadium, 60,704. Manager: <span style="color: #ffffff">Mikel Arteta</span></div>
+      </div>
+    </div>
+    <nav aria-label="Club" style="display: flex; height: 36px; box-shadow: inset 0 1px 0 #34363c">
+      <a href="#" style="display: flex; align-items: center; padding: 0 20px; font-size: 15px; color: #caced4; border-right: 1px solid #110a4a">Squad</a>
+      <a href="#" aria-current="page" style="display: flex; align-items: center; padding: 0 20px; font-size: 15px; font-weight: 600; border-right: 1px solid #110a4a; box-shadow: inset 0 -3px 0 #6bfdfa">Fixtures</a>
+    </nav>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 8px; align-items: start">
+
+    <!-- The club's season: every match in the competitions the league plays; a row opens its match page (S18.9) -->
+    <section class="panel" aria-labelledby="cl-fix">
+      <div class="plate"><h2 id="cl-fix">Fixtures</h2><span class="soft">Premier League 2026/27</span></div>
+      <table class="tb" aria-label="Arsenal's matches this season: gameweek, date, opponent, home or away, and the result or kick-off">
+        <colgroup><col style="width: 90px"><col style="width: 180px"><col><col style="width: 80px"><col style="width: 260px"></colgroup>
+        <thead><tr><th>GW</th><th>Date</th><th>Opponent</th><th>H/A</th><th>Result</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ fixtures }}" as="f" hint-placeholder-count="38">
+            <tr style="background: {{f.bg}}">
+              <td style="{{f.edge}}"><span class="{{f.gwClass}}">GW{{f.gw}}</span></td>
+              <td class="soft" style="{{f.edge}}">{{f.date}}</td>
+              <td style="{{f.edge}}"><span style="display: inline-flex; align-items: center; gap: 8px"><img class="crest" alt="" src="{{f.badge}}" style="background: {{f.mark}}"><a href="#" style="font-weight: 600">{{f.opp}}</a></span></td>
+              <td class="soft" style="{{f.edge}}">{{f.ha}}</td>
+              <td style="{{f.edge}}"><sc-if value="{{ f.played }}" hint-placeholder-val="{{ true }}"><a href="#" style="display: inline-flex; align-items: center; gap: 8px"><span class="form">{{f.wdl}}</span><span style="font-weight: 600">{{f.score}}</span></a></sc-if><sc-if value="{{ f.ahead }}" hint-placeholder-val="{{ false }}"><a href="#" class="soft">{{f.ko}}</a></sc-if><sc-if value="{{ f.next }}" hint-placeholder-val="{{ false }}"><span style="color: #6bfdfa">, in 6 days</span></sc-if></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Right: the club's widgets, FM's portal style -->
+    <div style="display: flex; flex-direction: column; gap: 8px">
+
+      <section class="panel" aria-labelledby="cl-next">
+        <div class="plate"><h2 id="cl-next">Next match</h2></div>
+        <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 8px 12px">
+          <img alt="" src="https://resources.premierleague.com/premierleague/badges/70/t8.png" style="width: 32px; height: 32px; background: linear-gradient(90deg, #034694 50%, #FFFFFF 50%)">
+          <span style="display: flex; flex-direction: column">
+            <span style="font-size: 15px; font-weight: 600">Chelsea (H)</span>
+            <span><span class="soft">GW11, Sat 21 Nov, 17:30,</span> <span style="color: #6bfdfa">in 6 days</span></span>
+          </span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 0 12px 8px">
+          <span><span class="fig">5th</span> <span class="soft">Premier League</span></span>
+          <span role="img" aria-label="Chelsea's last five, oldest first: lost, won, won, drawn, won" style="display: flex; gap: 2px"><sc-for list="{{ oppForm }}" as="f" hint-placeholder-count="5"><span class="form">{{f}}</span></sc-for></span>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="cl-leaders">
+        <div class="plate"><h2 id="cl-leaders">Top scorers</h2><span class="soft">this league's points</span></div>
+        <sc-for list="{{ leaders }}" as="t" hint-placeholder-count="3">
+          <div class="row"><span class="chip" style="background: {{t.posBg}}; color: {{t.posInk}}">{{t.pos}}</span><a href="#" style="flex: 1 1 auto; font-weight: 600">{{t.name}}</a><span class="muted">{{t.team}}</span><span class="fig" style="width: 28px; text-align: right">{{t.pts}}</span></div>
+        </sc-for>
+      </section>
+
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1740}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const MENU = ['Home', 'My team', 'Matchup', 'Table', 'Scouting', 'Trades', 'Football', 'Mail'];
+    const menu = MENU.map((name) => ({ name, current: name === 'Football' ? 'page' : 'false', ink: name === 'Football' ? '#ffffff' : '#caced4', weight: name === 'Football' ? 600 : 400, edge: name === 'Football' ? 'inset 0 -3px 0 #6bfdfa' : 'none', count: name === 'Mail' ? 3 : false }));
+    const AREA = { GK: ['#e3cf98', '#111214'], CB: ['#2f6bd8', '#ffffff'], FB: ['#2f6bd8', '#ffffff'], CDM: ['#4e6b45', '#ffffff'], CM: ['#41c3ae', '#111214'], CAM: ['#9a3db8', '#ffffff'], W: ['#9a3db8', '#ffffff'], ST: ['#f28c8c', '#111214'] };
+    const ME = 'Kroos Control';
+    // pos, name, team ('' free agent, 'W' waivers), pts, last five, starts, min
+    const S = [
+      ['GK', 'David Raya', 'Saka Potatoes', 58, [6, 2, 3, 7, 1], 10, 900],
+      ['GK', 'Kepa Arrizabalaga', '', 2, [0, 0, 0, 0, 0], 0, 0],
+      ['GK', 'Tommy Setford', '', 0, [0, 0, 0, 0, 0], 0, 0],
+      ['CB', 'William Saliba', ME, 61, [6, 6, 2, 8, 1], 10, 892],
+      ['CB', 'Gabriel', 'Lingard Franca', 66, [7, 6, 2, 13, 1], 10, 870],
+      ['CB/FB', 'Jurrien Timber', 'Saka Potatoes', 54, [6, 7, 1, 6, 2], 9, 801],
+      ['CB', 'Piero Hincapié', 'W', 18, [0, 2, 0, 6, 0], 3, 296],
+      ['CB', 'Cristhian Mosquera', '', 12, [2, 0, 0, 1, 0], 2, 210],
+      ['FB/CB', 'Riccardo Calafiori', 'Ole Gunnar Solskjaer', 41, [6, 1, 0, 9, 1], 7, 612],
+      ['FB/CM', 'Myles Lewis-Skelly', '', 17, [0, 1, 2, 0, 0], 2, 233],
+      ['FB', 'Ben White', '', 9, [0, 0, 1, 2, 0], 1, 121],
+      ['CDM/CM', 'Declan Rice', ME, 62, [5, 9, 3, 7, 2], 10, 884],
+      ['CDM', 'Martín Zubimendi', 'Kroos Control', 47, [3, 4, 2, 6, 1], 10, 860],
+      ['CDM', 'Christian Nørgaard', '', 6, [0, 0, 1, 0, 0], 1, 90],
+      ['CM/ST', 'Mikel Merino', 'W', 31, [2, 5, 0, 2, 3], 5, 488],
+      ['CAM', 'Martin Ødegaard', 'Dave FC', 44, [0, 0, 6, 9, 2], 6, 520],
+      ['CAM/W', 'Eberechi Eze', 'Dave FC', 57, [12, 2, 1, 8, 3], 8, 701],
+      ['CAM/W', 'Ethan Nwaneri', '', 13, [0, 2, 0, 0, 6], 1, 140],
+      ['W', 'Bukayo Saka', 'Saka Potatoes', 74, [14, 3, 2, 10, 5], 9, 790],
+      ['W/ST', 'Gabriel Martinelli', '', 22, [0, 2, 8, 0, 0], 3, 300],
+      ['W', 'Noni Madueke', 'Lingard Franca', 39, [2, 9, 0, 3, 1], 6, 545],
+      ['W/ST', 'Leandro Trossard', 'Dave FC', 36, [5, 0, 3, 2, 6], 5, 466],
+      ['ST', 'Viktor Gyökeres', 'Dave FC', 68, [9, 2, 13, 2, 8], 10, 838],
+      ['ST/CAM', 'Kai Havertz', '', 4, [0, 0, 0, 0, 2], 0, 34],
+      ['ST', 'Gabriel Jesus', '', 0, [0, 0, 0, 0, 0], 0, 0]
+    ];
+    // grouped GK, DEF, MID, AM, FWD by his first position (S18.8), most points first in each
+    const GROUP = { GK: 0, CB: 1, FB: 1, WB: 1, CDM: 2, CM: 2, WM: 2, CAM: 3, W: 3, SS: 4, ST: 4 };
+    const first = (r) => r[0].split('/')[0];
+    S.sort((a, b) => GROUP[first(a)] - GROUP[first(b)] || b[3] - a[3]);
+    const squad = S.map(([posList, name, team, pts, last, starts, min], i) => {
+      const pos = posList.split('/')[0];
+      const gap = i > 0 && GROUP[pos] !== GROUP[first(S[i - 1])] ? 'box-shadow: inset 0 2px 0 #4a4d55, inset 0 -1px 0 #111214' : '';
+      const free = team === '' || team === 'W';
+      const mine = team === ME;
+      return {
+        pos, name, pts, starts, gap, min: min.toLocaleString('en-GB'),
+        chips: posList.split('/').map((c) => ({ pos: c, bg: AREA[c][0], ink: AREA[c][1] })),
+        posBg: AREA[pos][0], posInk: AREA[pos][1],
+        owned: !free, free, team: team === '' ? 'Free agent' : team === 'W' ? 'Waivers' : mine ? team + ' (you)' : team,
+        ownWeight: mine ? 700 : 400,
+        bg: mine ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+        last: last.map((n) => ({ n, ink: n ? '#ffe600' : '#a1a5ab' }))
+      };
+    });
+    const count = {};
+    S.forEach(([, , team]) => { if (team && team !== 'W') count[team] = (count[team] || 0) + 1; });
+    const owners = Object.entries(count).sort((a, b) => b[1] - a[1] || (a[0] === ME ? -1 : 1)).map(([team, n], i, all) => ({ team: team === ME ? 'you' : team, n, weight: team === ME ? 700 : 400, sep: ',' }));
+    const leaders = [['W', 'Bukayo Saka', 'Saka Potatoes', 74], ['ST', 'Viktor Gyökeres', 'Dave FC', 68], ['CB', 'Gabriel', 'Lingard Franca', 66]].map(([pos, name, team, pts]) => ({ pos, name, team, pts, posBg: AREA[pos][0], posInk: AREA[pos][1] }));
+    const ownedN = S.filter(([, , t]) => t && t !== 'W').length;
+    const waiverN = S.filter(([, , t]) => t === 'W').length;
+    const C = { ARS: ['Arsenal', 3, '#E50107', '#FFFFFF'], AVL: ['Aston Villa', 7, '#670E36', '#95BFE5'], BOU: ['Bournemouth', 91, '#DA291C', '#000000'], BRE: ['Brentford', 94, '#E30613', '#FFFFFF'], BHA: ['Brighton', 36, '#0057B8', '#FFFFFF'], BUR: ['Burnley', 90, '#6C1D45', '#99D6EA'], CHE: ['Chelsea', 8, '#034694', '#FFFFFF'], CRY: ['Crystal Palace', 31, '#1B458F', '#C4122E'], EVE: ['Everton', 11, '#003399', '#FFFFFF'], FUL: ['Fulham', 54, '#FFFFFF', '#000000'], LEE: ['Leeds United', 2, '#FFFFFF', '#1D428A'], LIV: ['Liverpool', 14, '#C8102E', '#00B2A9'], MCI: ['Manchester City', 43, '#6CABDD', '#1C2C5B'], MUN: ['Manchester United', 1, '#DA291C', '#FBE122'], NEW: ['Newcastle United', 4, '#241F20', '#FFFFFF'], NFO: ['Nottingham Forest', 17, '#DD0000', '#FFFFFF'], SUN: ['Sunderland', 56, '#E8172B', '#FFFFFF'], TOT: ['Tottenham Hotspur', 6, '#FFFFFF', '#132257'], WHU: ['West Ham United', 21, '#7A263A', '#1BB1E7'], WOL: ['Wolves', 39, '#F5A12D', '#000000'] };
+    // gw, date, opponent, H/A, score ('' not played yet), kick-off
+    const F = [
+      [1, 'Sat 22 Aug', 'LEE', 'H', '3-1'], [2, 'Sat 29 Aug', 'WOL', 'A', '2-0'], [3, 'Sun 13 Sep', 'MCI', 'H', '1-1'],
+      [4, 'Sat 19 Sep', 'BHA', 'A', '2-1'], [5, 'Sat 26 Sep', 'NEW', 'H', '0-1'], [6, 'Sat 3 Oct', 'FUL', 'A', '2-0'],
+      [7, 'Sun 18 Oct', 'TOT', 'H', '3-0'], [8, 'Sat 24 Oct', 'CRY', 'A', '1-1'], [9, 'Sat 31 Oct', 'BUR', 'H', '2-0'],
+      [10, 'Sun 8 Nov', 'LIV', 'A', '1-2'],
+      [11, 'Sat 21 Nov', 'CHE', 'H', '', '17:30'], [12, 'Sat 28 Nov', 'EVE', 'A', '', '15:00'], [13, 'Wed 2 Dec', 'SUN', 'H', '', '19:30'],
+      [14, 'Sat 5 Dec', 'AVL', 'A', '', '12:30'], [15, 'Sat 12 Dec', 'BOU', 'H', '', '15:00'], [16, 'Sun 20 Dec', 'MUN', 'A', '', '16:30'],
+      [17, 'Sat 26 Dec', 'NFO', 'H', '', '15:00'], [18, 'Tue 29 Dec', 'BRE', 'A', '', '20:00'], [19, 'Sat 2 Jan', 'WHU', 'H', '', '15:00'],
+      [20, 'Wed 6 Jan', 'MCI', 'A', '', '20:00'], [21, 'Sat 16 Jan', 'WOL', 'H', '', '15:00'], [22, 'Sat 23 Jan', 'LEE', 'A', '', 'TBC'],
+      [23, 'Sat 30 Jan', 'TOT', 'A', '', 'TBC'], [24, 'Sat 6 Feb', 'CRY', 'H', '', 'TBC'], [25, 'Wed 10 Feb', 'FUL', 'H', '', 'TBC']
+     , [26, 'Sat 13 Feb', 'BHA', 'A', '', 'TBC'], [27, 'Sat 27 Feb', 'NEW', 'A', '', 'TBC'], [28, 'Wed 3 Mar', 'LIV', 'H', '', 'TBC']
+     , [29, 'Sat 6 Mar', 'BUR', 'A', '', 'TBC'], [30, 'Sat 13 Mar', 'EVE', 'H', '', 'TBC'], [31, 'Sat 20 Mar', 'CHE', 'A', '', 'TBC']
+     , [32, 'Sat 3 Apr', 'SUN', 'A', '', 'TBC'], [33, 'Sat 10 Apr', 'AVL', 'H', '', 'TBC'], [34, 'Sat 17 Apr', 'BOU', 'A', '', 'TBC']
+     , [35, 'Sat 24 Apr', 'MUN', 'H', '', 'TBC'], [36, 'Sat 1 May', 'NFO', 'A', '', 'TBC'], [37, 'Sat 8 May', 'BRE', 'H', '', 'TBC']
+     , [38, 'Sun 16 May', 'WHU', 'A', '', 'TBC']
+    ];
+    const fixtures = F.map(([gw, date, code, ha, score, ko], i) => {
+      const [opp, t, c1, c2] = C[code];
+      const [a, b] = score ? score.split('-').map(Number) : [0, 0];
+      const played = score !== '';
+      const next = !played && (i === 0 || F[i - 1][4] !== '');
+      return {
+        gw, date, ha, opp, played, ahead: !played, next, score: score.replace('-', '–'), ko: ko || '',
+        wdl: a > b ? 'W' : a === b ? 'D' : 'L',
+        badge: 'https://resources.premierleague.com/premierleague/badges/70/t' + t + '.png',
+        mark: 'linear-gradient(90deg, ' + c1 + ' 50%, ' + c2 + ' 50%)',
+        gwClass: next ? '' : played ? 'soft' : 'muted',
+        bg: next ? 'rgba(255, 255, 255, 0.06)' : 'transparent',
+        edge: next ? 'box-shadow: inset 0 2px 0 #4a4d55, inset 0 -1px 0 #111214' : ''
+      };
+    });
+    return { fixtures, ownedN, waiverN, squadN: S.length, freeN: S.length - ownedN - waiverN, menu, form: ['W', 'W', 'D', 'W', 'L'], oppForm: ['L', 'W', 'W', 'D', 'W'], squad, owners, leaders };
+  }
+}
+</script>
+</body>
+</html>

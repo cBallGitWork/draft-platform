@@ -171,7 +171,7 @@ function MineTable({
                 <button
                   type="button"
                   aria-expanded={selected === claim.claimId}
-                  aria-label={selectClaimLabel(claim.claim.playerName)}
+                  aria-label={selectClaimLabel(claim.claim.playerName, claim.claim.club.shortName)}
                   className="flex min-h-tap items-center lg:min-h-0"
                   onClick={(event) => {
                     event.stopPropagation();

@@ -1,3 +1,4 @@
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 
@@ -22,9 +23,26 @@ export type RowFields = Pick<Doc<"lineups">, "starters" | "bench"> & {
   [Field in "classic" | "instructions" | "keptOutOfPosition" | "firstLineup"]: Doc<"lineups">[Field] | undefined;
 };
 
+/** Between a tab's own mark and the rest of a row's `edit`. */
+const EDIT_JOIN = ":";
+
+/** Whether the row's `edit` mark is from a save by the Tactics tab `tab` (spec/05 `S05.55`). */
+export const isOwnEdit = (edit: string | undefined, tab: string) => tab !== "" && edit !== undefined && edit.startsWith(`${tab}${EDIT_JOIN}`);
+
+/** A Tactics tab's save, as it says what it was made from (spec/05 `S05.55`; #2350): the tab's own
+ *  mark, and the row's `edit` mark it last loaded, absent for none. */
+export const basedOnShape = v.object({ tab: v.string(), seen: v.optional(v.string()) });
+export type BasedOn = Infer<typeof basedOnShape>;
+
+/** Whether a save made from `basedOn` would replace another tab's moves: the row in force was
+ *  written since the tab loaded it, by anything but the tab's own saves. */
+export const changedSince = (inForce: Doc<"lineups"> | null, { tab, seen }: BasedOn) =>
+  inForce?.edit !== seen && !isOwnEdit(inForce?.edit, tab);
+
 /** The one writer of a team's lineup row from `fromGameweek` (#1759): it replaces the row from
  *  that gameweek if `inForce`, the row in force in it, is one, and adds a row otherwise. `fields`
- *  is handed the row it replaces, or null, so a writer can keep what it keeps. */
+ *  is handed the row it replaces, or null, so a writer can keep what it keeps. Each write marks the
+ *  row anew (`edit`), after `tab`, the saving Tactics tab's mark, when a manager's save makes it. */
 export async function writeRowFor(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
@@ -32,7 +50,10 @@ export async function writeRowFor(
   fromGameweek: number,
   inForce: Doc<"lineups"> | null,
   fields: (replacing: Doc<"lineups"> | null) => RowFields,
+  tab = "",
 ): Promise<void> {
-  if (inForce?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", inForce._id, fields(inForce));
-  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...fields(null) });
+  // Convex seeds Math.random in each mutation, so the mark is new each write.
+  const edit = `${tab}${EDIT_JOIN}${Math.random().toString(36).slice(2)}`;
+  if (inForce?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", inForce._id, { ...fields(inForce), edit });
+  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...fields(null), edit });
 }

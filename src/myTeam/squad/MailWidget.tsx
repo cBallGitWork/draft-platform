@@ -14,7 +14,7 @@ import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, noMailWords } from "
 
 /** `mail` is undefined while it loads, and null for someone signed out, who has none. League home
  *  passes its own `title`, its Needs you | All switch as `controls`, and, while Needs you is chosen,
- *  what shows in place of the letters as `children`. */
+ *  its list in place of the letters as `children`. */
 export function MailWidget({
   mail,
   title = MAIL_WIDGET_TITLE,
@@ -49,7 +49,7 @@ export function MailWidget({
   );
 }
 
-function MailLine({ letter }: { letter: LetterSummary }) {
+export function MailLine({ letter }: { letter: LetterSummary }) {
   return (
     <li className="border-b border-panel-rule">
       <Link {...letterLink(letter.letterId)} className={`flex flex-col px-3 py-1 hover:bg-stepper ${letter.read ? "" : "shadow-event-edge"}`}>

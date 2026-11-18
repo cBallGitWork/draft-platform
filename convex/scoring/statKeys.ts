@@ -27,6 +27,8 @@ export {
  *  long, in base scoring and in Park the bus alike. */
 export const CLEAN_SHEET_MINUTES = 60;
 
+/** Sendings-off for a second yellow, which cost what a straight red does (spec/14 `S14.27`). */
+export const SECOND_YELLOWS = "second_yellow";
 export const SHOTS = "total_scoring_att";
 export const SHOTS_ON_TARGET = "ontarget_scoring_att";
 export const BIG_CHANCES_MISSED = "big_chance_missed";

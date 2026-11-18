@@ -74,6 +74,17 @@ describe("a logged-out visitor", () => {
     expect(app.auth.requestSignInLink).toHaveBeenCalledWith("craig@example.com");
   });
 
+  it(`LG-006 S02.1: ${signInWords.send} pressed with the box empty asks for nothing, and the page stays as it was`, async () => {
+    const app = openApp(SIGN_IN_PATH, visitor);
+    const box = (await screen.findByRole("textbox", { name: signInWords.emailLabel })) as HTMLInputElement;
+    await userEvent.click(screen.getByRole("button", { name: signInWords.send }));
+
+    expect(box.validity.valueMissing).toBe(true);
+    expect(app.auth.requestSignInLink).not.toHaveBeenCalled();
+    expect(screen.queryByRole("status")?.textContent ?? "").toBe("");
+    expect(app.path()).toBe(SIGN_IN_PATH);
+  });
+
   it("the email box is described by its hint, for screen readers", async () => {
     openApp(SIGN_IN_PATH, visitor);
     expect(descriptionOf(await screen.findByRole("textbox", { name: signInWords.emailLabel }))).toBe(signInWords.hint);

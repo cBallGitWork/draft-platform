@@ -11,7 +11,8 @@ Route: `/home`, the Overview tab, checked on `/home?preview=manager`, and on
 
 - `1440.png`: the main board in a gameweek before its deadline, Overview open (Home E). Its
   layout binds: where each panel sits. What a placeholder panel holds (below) binds only once its
-  grill settles it.
+  grill settles it. Redrawn 16 Nov 2026 with Mail top left, opening on Needs you; its source is
+  `SP1-HomeE.dc.html`.
 
 The plan for later, each grilled when its feature is built. These show where each state's panels
 go; they don't bind until that grill settles what they hold:
@@ -37,6 +38,11 @@ go; they don't bind until that grill settles what they hold:
 - that Table stays in the top menu.
 
 With it: "ditch team of the week", so Team of the Week is off Home (`spec/12`, League home).
+
+16 Nov 2026, Craig, "Go ahead", on the main board redrawn for #2443 (what needs a manager this
+week): no new panel; Mail moves to the top of the left column, under the deadline strip, and
+opens on Needs you; a doubtful or out starter is a Needs you letter ("Saka is doubtful and
+starts"), opening Tactics; claims waiting stay in the strip (`spec/12` S12.15, `spec/16` S16.7).
 
 ## The News tab
 
@@ -69,8 +75,9 @@ colours.
 - Overview | News | Calendar: Home's own tabs. Overview and News are drawn; Calendar is not.
 - The patch banner's Read the patch notes: opens Patch notes. The cross hides the banner.
 - The deadline strip: reads only; none of its boxes opens anything (`spec/12` S12.10).
-- Mail's Needs you | All: switches the panel between letters waiting on him and every letter. A
-  letter opens it in Mail; All mail opens Mail.
+- Mail's Needs you | All: opens on Needs you; switches the panel between letters waiting on him
+  and every letter. A letter opens it in Mail, except a doubtful or out starter's, which opens
+  Tactics; All mail opens Mail.
 - News: More, on News opens the News tab. The commissioner's latest letter stays pinned on top
   (`spec/12`).
 - Your matchup: Open the matchup and the score open the matchup; Set lineup opens the Tactics tab.
@@ -81,7 +88,8 @@ colours.
 - The recap's Read the recap: opens the recap.
 - Your squad news: a player's name opens his player card (`spec/12`).
 - Run the league, for the commissioner and co-commissioner only: Run the league ▸ opens the
-  commissioner's pages; what each line opens is its grill's.
+  commissioner's pages; each line of its to-do list opens where it's done (Craig, 16 Nov 2026, the
+  Run the league grill on #2267).
 
 ## Placeholders
 
@@ -91,10 +99,10 @@ Each shows in its place and size until its data comes.
 |---|---|---|
 | The Calendar tab | what it holds | to-grill: Home's tabs |
 | The deadline strip in the other states (after, locked, break, pre-season) | which boxes each state shows; the gameweek before its deadline is wired (`spec/12` S12.9, S12.10; #1976) | to-grill: The deadline strip |
-| Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`); the panel gains Unread as Mail has | #1030 |
+| Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
 | Your squad news's chips | the notes, FPL's word for word, are wired, with no chip (`spec/12` S12.8; #1976); which statuses each chip reads | to-grill: Status chips' data |
-| Run the league | what its to-do list holds | to-grill: Run the league |
+| Run the league | settled 16 Nov 2026: join requests waiting (a count), teams with no lineup yet (a number only), the draft order not set before the draft, trades waiting their veto, a team with no manager | #2267 |
 | The score boxes, before the deadline (empty) | lineups locked and matches scored | `spec/12`, matchday mode (#387) |
 | GW8 recap (empty lines) | the weekly recap | #387 |
 | The state boards: after, locked, break, pre-season, new joiner, season over | each state's grill | to-grill: Home through the season; to-grill: Break weeks |

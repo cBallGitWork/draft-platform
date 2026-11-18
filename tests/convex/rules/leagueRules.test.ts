@@ -9,7 +9,7 @@ import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, REORDERED_TIE_BREAKS, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import {
   actingAs,
@@ -110,9 +110,9 @@ describe("a commissioner's change", () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId);
-    await change(leagueId, rulesWith({ tieBreaks: ["headToHead"] }));
+    await change(leagueId, rulesWith({ tieBreaks: REORDERED_TIE_BREAKS }));
 
-    expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ tieBreaks: ["headToHead"] }));
+    expect(await rulesIn(t, leagueId, 9)).toEqual(rulesWith({ tieBreaks: REORDERED_TIE_BREAKS }));
     expect(await rulesIn(t, leagueId, 8)).toEqual(HELD_FIRST_RULES);
     const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged");
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);
@@ -134,13 +134,10 @@ describe("a commissioner's change", () => {
     },
   );
 
-  test("the odd team out is changed like any other rule, and only to a bye or the league's average", async () => {
+  test("S03.4: the odd team out is no rule, so a save naming a bye is refused", async () => {
     const leagueId = await adminCreatesLeague(t);
-    await change(leagueId, rulesWith({ oddTeamOut: "bye" }));
-    expect((await latestRules(t, leagueId))?.rules.oddTeamOut).toBe("bye");
-
-    const unknown = { ...FIRST_RULES, oddTeamOut: "sitOut" } as unknown as LeagueRules;
-    await expect(change(leagueId, unknown)).rejects.toThrow(/sitOut/);
+    const withBye = { ...FIRST_RULES, oddTeamOut: "bye" } as unknown as LeagueRules;
+    await expect(change(leagueId, withBye)).rejects.toThrow(/oddTeamOut/);
   });
 
   test("games a gameweek are changed like any other rule, and refused, with the reason, below 1", async () => {

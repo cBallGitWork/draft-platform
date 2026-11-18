@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { changeRulesTo, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline } from "../../support/convex/leagueRules.harness";
+import { changeRulesTo, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, playUpTo, storeWithBye } from "../../support/convex/leagueRules.harness";
+import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { seasonRules } from "../../../convex/rules/rulesHistory";
+import { standingsOf } from "../../../convex/table/leagueTable";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN, freshLeague } from "../../support/convex/leagues.harness";
@@ -56,8 +59,8 @@ describe("the fixtures", () => {
 
   test("with byes, the team left over plays nobody", async () => {
     await holdSeasonToCome();
-    await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    await changeRulesTo(t, leagueId, { oddTeamOut: "bye" });
+    // A gameweek played with a bye before S03.4 keeps it.
+    await storeWithBye(t, leagueId, 1, await addManagers(t, leagueId, [ANN, BOB, CAT]));
     const [first] = (await read())!.gameweeks;
     expect(first.fixtures).toHaveLength(1);
     expect(first.byes).toHaveLength(1);
@@ -101,16 +104,18 @@ describe("the fixtures", () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await holdGameweeks(t, { next: CHANGE_FROM });
     const before = (await read())!.gameweeks;
-    expect(await changeRulesTo(t, leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
+    expect(await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
     const after = (await read())!.gameweeks;
 
     const played = ({ gameweek }: { gameweek: number }) => gameweek < CHANGE_FROM;
     expect(after.filter(played)).toEqual(before.filter(played));
     for (const { fixtures, byes } of after.filter((each) => !played(each))) {
-      // Two of three teams' rounds: a fixture and a bye each, never one team's two byes.
-      expect(fixtures).toHaveLength(2);
-      expect(fixtures.every(({ opponent }) => opponent !== null)).toBe(true);
-      expect(new Set(byes).size).toBe(2);
+      // Two of three teams' rounds: a fixture and a game against the league's average each, never
+      // one team against the average twice.
+      expect(fixtures).toHaveLength(4);
+      const onAverage = fixtures.filter(({ opponent }) => opponent === null).map(({ team }) => team);
+      expect(new Set(onAverage).size).toBe(2);
+      expect(byes).toEqual([]);
     }
   });
 
@@ -229,4 +234,26 @@ test("a league-average game is sent final once its gameweek's drawn teams are, t
   ]);
   const [, catsGame] = scoredFixtures(drawn, results, String);
   expect(catsGame.points).toEqual({ team: 20, opponent: 30, provisional: false });
+});
+
+// The table ranks by the tie-breaks in force in the latest gameweek begun, so a change of them
+// shows once the gameweek it counts from begins, never in a table already played (#2279).
+test("S03.9: a change of the tie-breaks ranks the table only once the gameweek it counts from has begun", async () => {
+  await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  const firstKickoff = Date.now() + KICKS_OFF_IN;
+  await holdGameweeks(t, { next: 1 });
+  const playTo = async (gameweek: number) => {
+    playUpTo(firstKickoff, gameweek);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+  };
+  const tieBreaksNow = () =>
+    t.run(async (ctx) => (await standingsOf(ctx, (await ctx.db.get(leagueId))!, await seasonRules(ctx, leagueId))).tieBreaks);
+
+  await playTo(CHANGE_FROM - 1);
+  const changed = ["headToHead", "pointsAgainst", "pointsFor"] as const;
+  expect(await changeRulesTo(t, leagueId, { tieBreaks: [...changed] })).toBe(CHANGE_FROM);
+  expect(await tieBreaksNow()).toEqual(FIRST_RULES.tieBreaks);
+
+  await playTo(CHANGE_FROM);
+  expect(await tieBreaksNow()).toEqual(changed);
 });

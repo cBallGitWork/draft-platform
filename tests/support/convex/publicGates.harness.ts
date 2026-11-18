@@ -51,6 +51,7 @@ export const GATE_REFUSALS = new Set<string>(
  *  fails the last test here until it is given its row. */
 export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
+  "admin/feeds:owed": "admin",
   "admin/platformSettings:save": "admin",
   "admin/platformSettings:settings": "admin",
   "auth:isAuthenticated": "open",
@@ -221,6 +222,7 @@ export const gates: Record<string, Gate> = {
   "trades/tradeOffers:offer": "manager",
   "trades/tradeOffers:reject": "manager",
   "trades/tradeOffers:withdraw": "manager",
+  "trades/reviewScreen:inLeague": "runner",
   "trades/reviewScreen:toReview": "member",
   "trades/tradeReview:against": "manager",
   "trades/tradeReview:block": "member",

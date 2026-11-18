@@ -13,7 +13,7 @@ import { formationPosition, isDrawn, labelPositions } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { inBatches, latestRuns } from "../shared/syncRuns";
-import { emailIfFailed } from "../admin/feedFailureEmails";
+import { afterRunLogged } from "../admin/feedStatuses";
 import { CRON_TRIGGER, scheduleHeartbeat, timedJobsOn } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
 
@@ -155,7 +155,7 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("positionsSyncs", row);
-    await emailIfFailed(ctx, "positions", row);
+    await afterRunLogged(ctx, "positions", row);
     // A good sync after a league's deadline moves where its starts are judged: warn of what changed.
     if (row.outcome.ok) await warnEveryLeague(ctx);
     return null;

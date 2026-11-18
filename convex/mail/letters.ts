@@ -5,7 +5,7 @@ import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
 import type { LeagueEvent } from "../schema";
-import type { LetterKind } from "./letterShape";
+import type { LetterKind, LetterLink } from "./letterShape";
 import { isSquadMove } from "../squads/squadPlace";
 import { rescoreLive } from "../table/liveRescore";
 
@@ -31,9 +31,9 @@ export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promis
   return [league.commissionerEmail, league.coCommissionerEmail, ...managers].filter((email) => email !== undefined);
 }
 
-/** Files `letter`, of `kind`, in the league's name to each of `to`, once each. The copy to `by`,
- *  who wrote it or did what it reports, is filed read: they know. With no `by`, every copy is
- *  unread. */
+/** Files `letter`, of `kind`, in the league's name to each of `to`, once each, ending in `link` when
+ *  given (S16.2). The copy to `by`, who wrote it or did what it reports, is filed read: they know.
+ *  With no `by`, every copy is unread. */
 export async function fileLetter(
   ctx: MutationCtx,
   league: Doc<"leagues">,
@@ -41,6 +41,7 @@ export async function fileLetter(
   to: readonly string[],
   letter: Written,
   by?: string,
+  link?: LetterLink,
 ): Promise<void> {
   const at = Date.now();
   const copy = filed(letter);
@@ -52,6 +53,7 @@ export async function fileLetter(
       at,
       kind,
       ...copy,
+      ...(link === undefined ? {} : { link }),
       readAt: email === by ? at : undefined,
     });
   }

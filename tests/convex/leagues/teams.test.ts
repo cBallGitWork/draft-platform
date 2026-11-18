@@ -142,6 +142,21 @@ describe("renaming a team", () => {
     await expectRefused(ann.mutation(api.leagues.teams.rename, { teamId: annsTeam, name: "team 2" }), refusals.teamNameTaken("team 2"));
   });
 
+  test(`LG-074 S13.2: Bob and Cat both rename to "Rovers" at once: one is saved, the other refused as taken`, async () => {
+    const [catsTeam] = await addManagers(t, leagueId, [CAT]);
+    const bobsTeam = (await teamsIn(t, leagueId))[1]._id;
+    const [bob, cat] = [await actingAs(t, BOB), await actingAs(t, CAT)];
+    const results = await Promise.allSettled([
+      bob.mutation(api.leagues.teams.rename, { teamId: bobsTeam, name: "Rovers" }),
+      cat.mutation(api.leagues.teams.rename, { teamId: catsTeam, name: "Rovers" }),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const refused = results.find((result) => result.status === "rejected");
+    expect(String(refused?.reason)).toContain(refusals.teamNameTaken("Rovers"));
+    expect((await teamNames()).filter(({ name }) => name === "Rovers")).toHaveLength(1);
+  });
+
   test("a name a team in another league has is fine", async () => {
     const otherLeague = await adminCreatesLeague(t, 2, "Other league");
     const [catsTeam] = await addManagers(t, otherLeague, [CAT]);

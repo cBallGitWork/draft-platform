@@ -39,9 +39,7 @@ silent guard_ask.py "$("$jq" -nc '{tool_name:"mcp__ccd_turn__wrap_up",tool_input
 silent guard_ask.py "$("$jq" -nc '{tool_name:"Bash",tool_input:{command:"echo shall I merge"}}')"  # not a question
 
 # an unreadable payload is said, and the question goes ahead
-for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" guard_ask.py "${bad_payloads[i]}"
-done
+rejects_bad_payloads guard_ask.py
 fails_loudly "questions is str" guard_ask.py '{"tool_name":"AskUserQuestion","tool_input":{"questions":"x"}}'
 
 # at most five questions in one batch
@@ -78,6 +76,11 @@ real=$("$jq" -nc --arg q "$crests" '{session_id:"s",transcript_path:"/t.jsonl",c
     answers:{($q):"Crests"}}}')
 silent guard_ask.py "$real"
 check deny guard_ask.py "$(ask "$crests")"
+# the desktop app's shape (#2388, 15 Nov 2026): the picked answers sit in the call's input, the result is text
+pitch="Pitch colour (#2388): striped or plain?"
+silent guard_ask.py "$("$jq" -nc --arg q "$pitch" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+  tool_input:{questions:[{header:"H",question:$q}],answers:{($q):"Plain"}},tool_response:"User has answered your questions"}')"
+check deny guard_ask.py "$(ask "$pitch")"
 # a result whose shape changed (no answers dict) is said on stderr, never recorded in silence
 odd=$("$jq" -nc --arg q "Which kit colour?" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
   tool_input:{questions:[{header:"H",question:$q}]},tool_response:{questions:[],replies:{($q):"Red"}}}')

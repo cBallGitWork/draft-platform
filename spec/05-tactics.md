@@ -111,6 +111,9 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it
   last did ("Lineup saved 14:02"; Craig, 1 Nov 2026).
+- With Tactics open in two tabs, a save in one never replaces moves made in the other: the older
+  tab is told the lineup changed and reloads it before saving, so no move is lost ("Reload
+  first"; Craig, 15 Nov 2026, on #2350). `S05.55`
 - Undo goes back through every move since the manager opened the Tactics tab this visit. A save
   doesn't clear it: "save doesn't mean we leave the page" (Craig, 31 Oct 2026).
 - Quick Pick fills the current shape with the best eleven by stars.
@@ -318,8 +321,8 @@ From Craig, 1 Nov 2026.
   2026, on #1196). `S05.11`
 - The redrawn roles' backtest runs on all of ai-carling's past seasons, each player matched to his
   Sportmonks player through FPL's code ("All past seasons", Craig, 9 Nov 2026, on #1196). `S05.33`
-- Sportmonks' xG add-on is priced during the paid trial, with no spend agreed ("Price it in the
-  trial", Craig, 9 Nov 2026, on #1196). `S05.34`
+- Sportmonks' xG add-on was priced during the paid trial (Basic €19 a month, per player after full
+  time; live €199) and isn't bought: "leave the extra cost" (Craig, 17 Nov 2026). `S05.34`
 - A role the backtest puts more than 0.25 points a start off its target fails it, and the build
   redrafts its values until it lands within 0.25. The new values go into the site's set as a patch
   from the next gameweek not begun, and the PR lists each role it changed, old against new, for
@@ -476,9 +479,16 @@ From Craig, 1 Nov 2026.
   13 Nov 2026, on #904: yes to both recommendations). `S05.46`
 - A match marked abandoned, by the admin or the feed, files one Mail letter in each league with a
   player in that match (Craig, 13 Nov 2026, on #904). `S05.47`
+- That letter goes only to leagues holding a man on that match's team sheets, never to one holding
+  only other men of either club: "Only who played" (Craig, 15 Nov 2026, on #2166). `S05.56`
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
   not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
+- A gameweek with a postponed match and no new date goes final once its other matches lock, the
+  postponed match's players auto-subbed as not having played. If the match is later rearranged
+  into that gameweek's window, the gameweek reopens and is scored again: gameweek 12's Arsenal v
+  Spurs postponed, the rest locked by Monday night, so gameweek 12 is final on Monday night (Craig,
+  14 Nov 2026, on #2040). `S05.54`
 - A goalkeeper is replaced only by a goalkeeper, and never comes on for an outfield player, even
   where the league's limits allow two in goal: "dont allow 2 in goal" (Craig, 1 Nov 2026; #900). `S05.5`
 - In a double gameweek, a starter who plays in either match is not subbed.

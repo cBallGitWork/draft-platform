@@ -67,6 +67,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   competition (10 Nov 2026).
 - [`premier-league-match`](premier-league-match/README.md): The match page, live: Overview as a list
   or a pitch, Player stats with its shot map, and Highlights (10 Nov 2026).
+- [`club`](club/README.md): A club's page, its Squad and Fixtures tabs (16 Nov 2026).
 - [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
   every team, and League settings' Waivers tab (8 Nov 2026).
 - [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new
@@ -76,3 +77,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`settings`](settings/README.md): League settings' Fixtures (with the scoring start), Squad, Draft,
   Trades and Draft order tabs; its Waivers tab is in `waivers` (9 Nov 2026).
 - [`mail`](mail/README.md): Mail, a trade offer open (9 Nov 2026).
+- [`commissioner-gameweeks`](commissioner-gameweeks/README.md): Commissioner › Gameweeks, mid-season
+  (17 Nov 2026).

@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { feedsReportAt } from "../../convex/admin/feedState";
 import { answerOf, refusalOf } from "../shared/refusal";
 import type { AdminSeam } from "./seam";
 import { useMinute } from "../shared/useMinute";
@@ -8,9 +9,12 @@ import { changeFailedWords } from "../shared/words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
 
+/** Each feed's status, read again only when a run is logged, judged against the minute's read of
+ *  what each owes (#2500). */
 const useFeeds: AdminSeam["useFeeds"] = () => {
-  const now = useMinute();
-  return useQuery(api.admin.feeds.feeds, { now });
+  const read = useQuery(api.admin.feeds.feeds, {});
+  const owed = useQuery(api.admin.feeds.owed, { now: useMinute() });
+  return useMemo(() => (read === undefined || owed === undefined ? undefined : feedsReportAt(read, owed)), [read, owed]);
 };
 
 const useSetByHand: AdminSeam["useSetByHand"] = () => useQuery(api.availability.availability.setByHand, {});

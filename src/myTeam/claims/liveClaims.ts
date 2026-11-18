@@ -1,9 +1,11 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
-import { pendingClaimsAt } from "../../../convex/waivers/runsAhead";
+import { clockHourOf } from "../../../convex/home/homeAt";
+import { pendingClaimsAt, waiversAt } from "../../../convex/waivers/runsAhead";
 import { refusalOf } from "../../shared/refusal";
 import { useFirstRuns } from "../../shared/useFirstRuns";
+import { useLastLoaded } from "../../shared/useLastLoaded";
 import { useMinute } from "../../shared/useMinute";
 import type { ClaimChanges, ClaimsSeam } from "./seam";
 import { claimFailedWords } from "./words";
@@ -18,8 +20,14 @@ export const liveClaims: ClaimsSeam = {
     const firstRunOf = useFirstRuns(leagueId);
     return useMemo(() => (held === undefined || firstRunOf === undefined ? undefined : pendingClaimsAt(held, firstRunOf)), [held, firstRunOf]);
   },
-  // Asked at the screen's minute, as a query may not read the clock: the next runs move on with it.
-  useWaivers: (leagueId) => useQuery(api.waivers.waiverOrder.ofLeague, { leagueId, now: useMinute() }),
+  // Asked for the hour, never the minute (#2008): the next runs, the lock and the window move on with
+  // the clock, so they are worked out here at the screen's minute (runsAhead.ts's `waiversAt`). The
+  // last answer is held across the hour's turn, so the order never flashes off (#1777).
+  useWaivers: function useWaivers(leagueId) {
+    const minute = useMinute();
+    const held = useLastLoaded(useQuery(api.waivers.waiverOrder.ofLeague, { leagueId, hour: clockHourOf(minute) }), leagueId);
+    return useMemo(() => (held === undefined ? undefined : waiversAt(held, minute)), [held, minute]);
+  },
   useClaimChanges: function useClaimChanges() {
     const rank = useMutation(api.waivers.waiverClaims.rank);
     const withdraw = useMutation(api.waivers.waiverClaims.withdraw);

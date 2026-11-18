@@ -25,9 +25,12 @@ import { newlyBroken } from "../squads/limitsCompare";
 import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
-import { managersAmong, reviewUnder, tradeRulesAt } from "./tradeReviewers";
+import { managersAmong, reviewUnder } from "./tradeReviewers";
 import { onAutoTeam } from "../lineup/autoTeamSwitch";
-import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { offerCloses, tradeRulesOnceBegun, tradesShutOnceBegun } from "./tradeShut";
+import type { TradesShut } from "./tradeShutWords";
+import { begunInHour } from "./tradesAt";
+import { gameweekDeadline } from "../gameweeks/nextGameweek";
 import { tradePick } from "../schema";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
@@ -45,7 +48,20 @@ const reviewer = v.union(
 );
 export type Reviewer = Infer<typeof reviewer>;
 
-const screenOffer = v.object({
+/** An offer's part that moves with the clock, through the latest gameweek begun (tradesAt.ts). */
+const offerAtMinute = v.object({
+  /** While open, when it closes unanswered: the next deadline, `gameweek`'s at `at`; or, made in the
+   *  trade deadline's gameweek, once that gameweek's last match is over, a time nobody knows ahead,
+   *  so `at` is null (#1492). Null while no deadline is known, and once accepted. */
+  closes: v.union(
+    v.object({ gameweek: v.number(), at: v.union(v.number(), v.null()) }),
+    v.null(),
+  ),
+  /** Who would review it once accepted, or reviews it now; null for nobody. */
+  reviewer: v.union(reviewer, v.null()),
+});
+
+const heldOffer = v.object({
   offerId: v.id("tradeOffers"),
   fromTeamId: v.id("teams"),
   fromTeamName: v.string(),
@@ -60,22 +76,13 @@ const screenOffer = v.object({
   pickTerms: v.union(v.object({ gives: tradePick, gets: tradePick }), v.null()),
   note: v.union(v.string(), v.null()),
   madeAt: v.number(),
-  /** While open, when it closes unanswered: the next deadline, `gameweek`'s at `at`; or, made in the
-   *  trade deadline's gameweek, once that gameweek's last match is over, a time nobody knows ahead,
-   *  so `at` is null (#1492). Null while no deadline is known, and once accepted. */
-  closes: v.union(
-    v.object({ gameweek: v.number(), at: v.union(v.number(), v.null()) }),
-    v.null(),
-  ),
-  /** Who would review it once accepted, or reviews it now; null for nobody. */
-  reviewer: v.union(reviewer, v.null()),
   /** Null while it is open; once accepted, when its review ends. */
   reviewEndsAt: v.union(v.number(), v.null()),
   /** The league's squad limits the manager's own squad would be pushed past by it, newly or
    *  further, which warn only (spec/08, as an assignment's, spec/15). */
   warnings: v.array(squadWarning),
 });
-export type ScreenOffer = Infer<typeof screenOffer>;
+export type ScreenOffer = Infer<typeof heldOffer> & Infer<typeof offerAtMinute>;
 
 const screenTeam = v.object({
   teamId: v.id("teams"),
@@ -91,20 +98,33 @@ const screenTeam = v.object({
 });
 export type ScreenTeam = Infer<typeof screenTeam>;
 
-const tradesView = v.object({
+const heldTrades = v.object({
   myTeamId: v.id("teams"),
-  /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
-  shut: tradesShutReason,
   /** The most players the league's rules let a squad hold; null with no limit. */
   squadMaximum: v.union(v.number(), v.null()),
   /** Every team in the league, the manager's own first. */
   teams: v.array(screenTeam),
-  /** Open or in review, oldest first. */
-  offers: v.array(screenOffer),
+  /** Open or in review, oldest first, without their part that moves with the clock. */
+  offers: v.array(heldOffer),
   /** Those that ended this season without going through, newest first (closedOffers.ts). */
   closed: v.array(closedOffer),
+  /** The league's deadlines (null where none is known), to tell the latest gameweek begun at a minute. */
+  gameweeks: v.array(gameweekDeadline),
+  /** For each latest gameweek begun a minute of the hour can see (tradesAt.ts's `begunInHour`): why
+   *  trades are shut then (tradeShut.ts), and each offer's part that moves with the clock, in order. */
+  phases: v.array(
+    v.object({ begun: v.union(v.number(), v.null()), shut: tradesShutReason, offers: v.array(offerAtMinute) }),
+  ),
 });
-export type TradesView = Infer<typeof tradesView>;
+export type HeldTrades = Infer<typeof heldTrades>;
+
+/** The Trades screen at a minute (tradesAt.ts's `tradesAt`). */
+export type TradesView = Omit<HeldTrades, "offers" | "gameweeks" | "phases"> & {
+  /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
+  shut: TradesShut;
+  /** Open or in review, oldest first. */
+  offers: ScreenOffer[];
+};
 
 /** The log line for a squad player the football sync doesn't hold, left off the Trades screen. */
 export const missingPlayerLog = (teamName: string, code: number) =>
@@ -151,16 +171,16 @@ function reviewerNamed(
     : "coCommissioner";
 }
 
-/** The Trades screen for the manager's team at the minute `now` (a query may not read the clock). */
+/** The Trades screen for the manager's team for any minute of the hour starting at `hour`, judged at
+ *  the screen's minute (tradesAt.ts). It takes the hour, never the minute, so it isn't run again,
+ *  uncached, every minute (#2008); it runs again when an offer, a squad, a rule or a score changes. */
 export const ofMyTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: tradesView,
-  handler: async (ctx, { leagueId, now }) => {
+  args: { leagueId: v.id("leagues"), hour: v.number() },
+  returns: heldTrades,
+  handler: async (ctx, { leagueId, hour }): Promise<HeldTrades> => {
     const { league, team: mine } = await managerOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
-    const tradeDeadline = await tradeDeadlineInForce(ctx, leagueId, deadlines, now);
-    const { review } = await tradeRulesAt(ctx, leagueId, deadlines, now);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
@@ -221,10 +241,6 @@ export const ofMyTeam = query({
           ...myCodes.filter((code) => !out.includes(code)),
           ...into,
         ];
-        const reviewNow =
-          offer.review === undefined
-            ? reviewUnder(review, league, managersAmong(teams, offer))
-            : offer.review.reviewer;
         return {
           offerId: offer._id,
           fromTeamId: offer.fromTeamId,
@@ -235,11 +251,6 @@ export const ofMyTeam = query({
           pickTerms: offer.picks ?? null,
           note: offer.note ?? null,
           madeAt: offer.madeAt,
-          closes:
-            offer.review === undefined
-              ? offerCloses(deadlines, offer.madeAt, tradeDeadline)
-              : null,
-          reviewer: reviewerNamed(league, reviewNow),
           reviewEndsAt: offer.review?.endsAt ?? null,
           warnings: newlyBroken(
             myLimitsNow,
@@ -249,15 +260,34 @@ export const ofMyTeam = query({
       }),
     );
 
+    const phases = await Promise.all(
+      begunInHour(deadlines, hour).map(async (begun) => {
+        const { deadline, review } = await tradeRulesOnceBegun(ctx, leagueId, begun);
+        return {
+          begun,
+          shut: await tradesShutOnceBegun(ctx, league, begun, deadline),
+          offers: myOffers.map((offer) => ({
+            closes: offer.review === undefined ? offerCloses(deadlines, offer.madeAt, deadline) : null,
+            reviewer: reviewerNamed(
+              league,
+              offer.review === undefined ? reviewUnder(review, league, managersAmong(teams, offer)) : offer.review.reviewer,
+            ),
+          })),
+        };
+      }),
+    );
+
     return {
       myTeamId: mine._id,
-      shut: await tradesShut(ctx, league, deadlines, now),
       squadMaximum: squadMaximumOf(rules),
       teams: shownTeams,
       offers: shownOffers,
-      closed: await closedOffersOf(ctx, mine._id, teams, now, (code) =>
+      // A season begins on an hour's start (time.ts's `seasonStartAt`), so the hour's is its minutes'.
+      closed: await closedOffersOf(ctx, mine._id, teams, hour, (code) =>
         tradedShown(ctx, code, positionsOf, clubOf),
       ),
+      gameweeks: [...deadlines].map(([gameweek, deadline]) => ({ gameweek, deadline })),
+      phases,
     };
   },
 });

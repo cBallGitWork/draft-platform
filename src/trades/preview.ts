@@ -2,13 +2,14 @@
 // (docs/design/approved/trades): an offer to you, one from you, one in review under a commissioner
 // veto, closed offers below, and the squads to make one from, a player held in the trade under
 // review; and a trade between two other teams for the manager to review, which the pictures don't
-// draw (Craig's words, 10 Nov 2026, on #383). Made up.
+// draw (Craig's words, 10 Nov 2026, on #383). The teams and their men are the Pro League's, as
+// Scouting's preview holds them (#2450). Made up.
 
 import type { Id } from "../../convex/_generated/dataModel";
-import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
-import { ARSENAL, CHELSEA, LIVERPOOL } from "../scouting/preview";
-import { previewClub, previewDone } from "../shared/preview";
+import type { ListedPlayer } from "../../convex/scouting/playersList";
+import { previewPlayers, previewRivals } from "../scouting/preview";
+import { previewDone, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import type {
   ClosedOffer,
@@ -20,39 +21,30 @@ import type {
   TradeToReview,
 } from "./seam";
 
-const CLUBS = {
-  ARS: ARSENAL,
-  AVL: previewClub("AVL"),
-  CHE: CHELSEA,
-  LIV: LIVERPOOL,
-  NEW: previewClub("NEW"),
-  NFO: previewClub("NFO"),
-  // Trades has always named code 43 in full; the shared list's "Man City" would change its screen.
-  MCI: { ...previewClub("MCI"), name: "Manchester City" },
-} as const;
+/** A Pro League player as Trades names him: Scouting's (../scouting/preview.ts), at his first
+ *  position, so each team holds the men it holds on every other screen (#2450). Trades has always
+ *  named Man City in full. */
+const traded = ({ code, name, positions, club }: ListedPlayer): TradedPlayer => ({
+  code,
+  name,
+  position: positions[0],
+  club: club.shortName === "MCI" ? { ...club, name: "Manchester City" } : club,
+});
+const squadOf = (teamName: string) => previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === teamName).map(traded);
+/** A man of `players`, the same object the team's list holds, so a held one shows as held. */
+const named = (players: readonly TradedPlayer[], name: string) => players.find((each) => each.name === name)!;
 
-let nextCode = 1;
-const player = (
-  name: string,
-  position: Position,
-  club: keyof typeof CLUBS,
-): TradedPlayer => ({ code: nextCode++, name, position, club: CLUBS[club] });
-
-const PALMER = player("Palmer", "CAM", "CHE");
-const KERKEZ = player("Kerkez", "FB", "LIV");
-const ROGERS = player("Rogers", "W", "AVL");
-const MURILLO = player("Murillo", "CB", "NFO");
-const SALAH = player("Salah", "W", "LIV");
-const ODEGAARD = player("Ødegaard", "CAM", "ARS");
-const WISSA = player("Wissa", "ST", "NEW");
-const mine = [
-  player("Gvardiol", "CB", "MCI"),
-  MURILLO,
-  KERKEZ,
-  PALMER,
-  ROGERS,
-  player("Haaland", "ST", "MCI"),
-];
+const ME = proLeague.teamName!;
+const [RIVAL, THIRD, FOURTH] = previewRivals;
+const [mine, rivals, thirds, fourths] = [ME, RIVAL, THIRD, FOURTH].map(squadOf);
+const PALMER = named(mine, "Palmer");
+const MUNOZ = named(mine, "Muñoz");
+const ROGERS = named(mine, "Rogers");
+const MURILLO = named(mine, "Murillo");
+const GYOKERES = named(rivals, "Gyökeres");
+const DOKU = named(thirds, "Doku");
+const TONALI = named(thirds, "Tonali");
+const WELBECK = named(fourths, "Welbeck");
 
 const team = (
   teamName: string,
@@ -67,7 +59,6 @@ const team = (
   picks: [],
 });
 
-const ME = "Saka Potatoes";
 const now = Date.now();
 const offer = (
   offerId: string,
@@ -120,34 +111,23 @@ const view: TradesView = {
   myTeamId: previewIdOf(ME),
   shut: null,
   squadMaximum: 20,
-  teams: [
-    team(ME, mine, [MURILLO]),
-    team("Kroos Control", [
-      player("Raya", "GK", "ARS"),
-      player("Saliba", "CB", "ARS"),
-      player("Gusto", "FB", "CHE"),
-      SALAH,
-      player("Isak", "ST", "LIV"),
-    ]),
-    team("Rovers XI", [ODEGAARD, player("Rice", "CDM", "ARS")]),
-    team("Pique Blinders", [WISSA, player("Wood", "ST", "NFO")]),
-  ],
+  teams: [team(ME, mine, [MURILLO]), team(RIVAL, rivals), team(THIRD, thirds), team(FOURTH, fourths)],
   offers: [
-    offer("preview-offer-1", "Kroos Control", ME, [SALAH], [PALMER, KERKEZ], {
-      note: "Salah for your two. Palmer's flying, I need a 10.",
+    offer("preview-offer-1", RIVAL, ME, [GYOKERES], [PALMER, MUNOZ], {
+      note: "Gyökeres for your two. Palmer's flying, I need a 10.",
     }),
-    offer("preview-offer-2", ME, "Rovers XI", [ROGERS], [ODEGAARD], {
+    offer("preview-offer-2", ME, THIRD, [ROGERS], [DOKU], {
       note: "Rogers is a better fit for your 4-3-3.",
     }),
-    offer("preview-offer-3", "Pique Blinders", ME, [WISSA], [MURILLO], {
+    offer("preview-offer-3", FOURTH, ME, [WELBECK], [MURILLO], {
       closes: null,
       reviewEndsAt: now + 20 * HOUR_MS,
     }),
   ],
   closed: [
-    closedOffer("preview-closed-1", ME, "Rovers XI", [ROGERS], [ODEGAARD], "rejected", 2),
-    closedOffer("preview-closed-2", "Pique Blinders", ME, [WISSA], [MURILLO], "rejected", 4),
-    closedOffer("preview-closed-3", ME, "Kroos Control", [ROGERS], [SALAH], "withdrawn", 5),
+    closedOffer("preview-closed-1", ME, THIRD, [ROGERS], [DOKU], "rejected", 2),
+    closedOffer("preview-closed-2", FOURTH, ME, [WELBECK], [MURILLO], "rejected", 4),
+    closedOffer("preview-closed-3", ME, RIVAL, [ROGERS], [GYOKERES], "withdrawn", 5),
   ],
 };
 
@@ -155,10 +135,10 @@ const view: TradesView = {
 const toReview: TradeToReview[] = [
   {
     offerId: "preview-review-1" as Id<"tradeOffers">,
-    fromTeamName: "Rovers XI",
-    toTeamName: "Kroos Control",
-    gives: [player("Rice", "CDM", "ARS")],
-    gets: [player("Isak", "ST", "LIV")],
+    fromTeamName: THIRD,
+    toTeamName: RIVAL,
+    gives: [TONALI],
+    gets: [GYOKERES],
     picks: null,
     note: "Need a 9.",
     reviewEndsAt: now + 15 * HOUR_MS,

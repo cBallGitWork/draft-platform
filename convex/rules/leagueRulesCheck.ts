@@ -10,6 +10,7 @@ import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
+import { TIE_BREAKS, type TieBreak } from "../table/standings";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
 // UnsoundRules carrying the reason a commissioner is told. The shape (a known format, a number
@@ -30,11 +31,18 @@ export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, ma
   if (rules.classics !== undefined) checkClassicFormations(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
+  checkEveryTieBreak(rules.tieBreaks);
   checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", GAMES_FEWEST);
   if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
   if (rules.trades !== undefined) checkTrades(rules.trades, seasonGameweeks);
+}
+
+/** Every league has every tie-break, in its own order (Craig, 15 Nov 2026, on #1034). */
+function checkEveryTieBreak(tieBreaks: readonly TieBreak[]): void {
+  const missing = TIE_BREAKS.find((tieBreak) => !tieBreaks.includes(tieBreak));
+  if (missing !== undefined) throw new UnsoundRules(`The tie-break ${missing} is missing: every league has all ${TIE_BREAKS.length}.`);
 }
 
 /** A trade deadline, if any, is a gameweek of the season. */
@@ -59,11 +67,11 @@ function checkWholeNumberWithin(value: number, what: string, least: number, most
 export const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);
 
 /** Why `maxTeams` teams play at most so many games a gameweek: one against each other team, and
- *  with an odd number, one more for the team left over, against the league's average or a bye. */
+ *  with an odd number, one more for the team left over, against the league's average (S03.4). */
 export function whyMostGames(maxTeams: number): string {
   const others = maxTeams - 1;
   const eachOther = others === 1 ? "one against the other team" : `one against each of the other ${others}`;
-  return maxTeams % 2 === 0 ? eachOther : `${eachOther}, and one left over, against the league's average or a bye`;
+  return maxTeams % 2 === 0 ? eachOther : `${eachOther}, and one left over, against the league's average`;
 }
 
 /** A league asking more games a gameweek than `maxTeams` teams have rounds for would quietly play

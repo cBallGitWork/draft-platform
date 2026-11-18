@@ -96,18 +96,24 @@ describe("fuzzed files", () => {
   /** Fields near a good line's: player ids, ranks, headers, blanks and things that are neither. */
   const FIELDS = ["1001", "1002", "1", "2", "0", "-1", "1.5", "player", "Rank", "", " ", "Saka", "99999999999999999999"];
 
-  const nearlyGood = () => {
-    const random = seededRandom("ranking-file");
-    return Array.from({ length: FUZZ_RUNS }, () =>
-      Array.from({ length: Math.floor(random() * 8) }, () =>
-        Array.from({ length: 1 + Math.floor(random() * 3) }, () => pickFrom(random, FIELDS)).join(","),
-      ).join(pickFrom(random, ["\n", "\r\n"])),
-    );
+  /** Files of lines near a good line's shape. As Excel saves them (S04.23), each file's values may be
+   *  divided by ";" and it may start with a byte-order mark. */
+  const nearlyGood = (seed: string, asExcelSaves: boolean) => {
+    const random = seededRandom(seed);
+    return Array.from({ length: FUZZ_RUNS }, () => {
+      const separator = asExcelSaves ? pickFrom(random, [",", ";"]) : ",";
+      const mark = asExcelSaves ? pickFrom(random, ["", BYTE_ORDER_MARK]) : "";
+      const lines = Array.from({ length: Math.floor(random() * 8) }, () =>
+        Array.from({ length: 1 + Math.floor(random() * 3) }, () => pickFrom(random, FIELDS)).join(separator),
+      );
+      return mark + lines.join(pickFrom(random, ["\n", "\r\n"]));
+    });
   };
 
   test.each([
     ["random text", fuzzedTexts("ranking-text", 60)],
-    ["lines near a good line's shape", nearlyGood()],
+    ["lines near a good line's shape", nearlyGood("ranking-file", false)],
+    ["S04.23: lines near a good line's shape, divided by \";\" or \",\", some after a byte-order mark", nearlyGood("ranking-file-excel", true)],
   ])("%s", (_, files) => {
     for (const file of files) {
       const { ranked, problems } = readRankingFile(file);

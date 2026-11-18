@@ -63,6 +63,8 @@ export const statColumns = {
   assists: { short: "A", long: "Assists" },
   cleanSheets: { short: "CS", long: "Clean sheets" },
 } as const;
+/** Stats' names Scouting, My team's squad and the match page's Player stats share. */
+export const statNames = { minutes: "Minutes played", keyPasses: "Key passes", goalsConceded: "Goals conceded" } as const;
 /** A squad table's name, as My team's and a trade's say it. */
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 /** A count of players: "1 player", "12 players". */
@@ -84,10 +86,19 @@ export const noPointsYetWords = "No points yet: none of his matches is scored.";
 export const notLastSeasonWords = "No points: he isn't in last season's data.";
 /** Why a player's season points are "—": none priced yet, or not in last season's data. */
 export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
-/** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
- *  (spec/14, Own stats; #910). */
+/** The stat box's groups (src/ui/StatBox.tsx; spec/19, `S19.5`): first the stats the site's set
+ *  scores, then any own stat it doesn't (spec/14, Own stats; #910), then the feeds' others by kind
+ *  (src/ui/statKinds.ts), in this order. */
+export const scoredGroupWords = "Scored";
 export const ownStatsGroupWords = "The site's own stats";
-export const catalogueGroupWords = "The feeds' stats";
+export const statKindWords = {
+  attacking: "Attacking",
+  passing: "Passing",
+  defending: "Defending",
+  goalkeeping: "Goalkeeping",
+  discipline: "Discipline",
+  other: "Other",
+};
 
 /** Every number a screen shows, with the one minus sign: "−3", and signed, "+4". */
 export { figureWords, signedWords } from "../../convex/shared/numberWords";
@@ -196,6 +207,8 @@ export const underSiteScoringWords = "under the site's scoring";
 /** A trade review rule by name, as League settings offers it and a trade's Review fact says it. */
 export const commissionerVetoWords = "Commissioner veto";
 export const leagueVoteWords = "League vote";
+/** Trades' Offers group of accepted trades under review, and League settings' widget of them. */
+export const inReviewWords = "In review";
 
 /** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
  *  card and a shortlist. */

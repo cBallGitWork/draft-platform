@@ -3,7 +3,7 @@
 import { TOP_ROWS } from "../../convex/home/glance";
 import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, tradedNames } from "../shared/words";
+import { fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, TABLE_TITLE, tradedNames } from "../shared/words";
 import { foldedGlyph } from "../shared/controls/words";
 import { gameweekShort } from "../shared/when/words";
 import { columns as tableColumns } from "../table/words";
@@ -24,34 +24,41 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 
 /** The deadline strip's boxes, as the picture has them (Craig, 13 Nov 2026, on #1976). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, YOUR_LINEUP, "Claims close", "Table"] as const;
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, YOUR_LINEUP, "Claims close", TABLE_TITLE] as const;
 /** Your line-up's box: its first flagged starter, by FPL's chance he plays ("doubtful" at 25 to 75%,
  *  "out" at 0), and how many more are flagged; or whether it is set at all. */
 export const lineupSetWords = "Set";
 export const lineupNotSetWords = notSetWords;
-export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) =>
-  chanceOfPlaying === 0 ? `${name} out` : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? `${name} doubtful` : name;
+export const flagOf = (chanceOfPlaying: number | null) =>
+  chanceOfPlaying === 0 ? "out" : chanceOfPlaying !== null && chanceOfPlaying >= 25 && chanceOfPlaying <= 75 ? "doubtful" : null;
+export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null) => {
+  const flag = flagOf(chanceOfPlaying);
+  return flag === null ? name : `${name} ${flag}`;
+};
 export const moreFlaggedWords = (more: number) => ` and ${more} more`;
 /** Claims close's box: the next waiver run, then the claims waiting on it. */
 export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
 /** The Table box: "2nd, 18 pts", then the gap: "1 behind 1st", or "3 ahead of 2nd" on top. */
 export const gapWords = (gap: number, onTop: boolean) => (onTop ? `${gap} ahead of 2nd` : `${gap} behind 1st`);
-export { noFigureWords, placeWords } from "../shared/words";
+export { listSeparator, noFigureWords, placeWords } from "../shared/words";
 export { versusWords } from "../shared/match/words";
 export { countdownWords, weekdayTimeWords } from "../shared/when/words";
 export const pointsShortWords = "pts";
 
-/** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
+/** The Mail panel and its Needs you | All switch, Needs you with how many wait on him (S12.15). */
 export { MAIL_TITLE } from "../shared/words";
 export const mailViewLabel = "Show";
 export const mailViews = { needsYou: "Needs you", all: "All" } as const;
-export const needsYouToComeWords = "Which letters need you is still to come.";
+export const needsYouCountWords = (count: number) => `${mailViews.needsYou} (${count})`;
+export const nothingNeedsYouWords = "Nothing waits on you.";
+/** A doubtful or out starter, a Needs you item opening Tactics (S16.7). */
+export const starterNeedsYouWords = (name: string, flag: "doubtful" | "out") => `${name} is ${flag} and starts`;
 
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";
 export const openMatchupLink = "Open the matchup";
 export const setLineupLink = "Set line-up";
-export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} pts`;
+export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} ${pointsShortWords}`;
 export const scoreToComeLabel = toComeLabel("The score");
 
 export const THIS_GAMEWEEK_TITLE = "This gameweek";

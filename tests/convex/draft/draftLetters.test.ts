@@ -163,7 +163,7 @@ describe("the email", () => {
     expect((await letters()).filter(({ subject }) => subject === UP_NEXT)).toHaveLength(1);
   });
 
-  test("DR-208 (spec/11): refused by the email provider, is logged, and the draft carries on with the letter filed", async () => {
+  test("spec/11: refused by the email provider, is logged, and the draft carries on with the letter filed", async () => {
     await setPickSeconds(HOUR_MS / SECOND_MS);
     fakeResend(500);
     const logged = silenceConsoleError();

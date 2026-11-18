@@ -43,6 +43,17 @@ fails_loudly() { # text hook payload [env...]: the hook exits 1, prints nothing 
 bad_payloads=( # each with what the hook says of it
   '' 'is empty'  'not json' "isn't JSON"  '[]' 'is JSON but not an object'  '"x"' 'is JSON but not an object'
 )
+rejects_bad_payloads() { # hook...: each hook exits 1 on each payload it can't read, saying what came
+  local hook i
+  for hook in "$@"; do
+    for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
+      fails_loudly "${bad_payloads[i + 1]}" "$hook" "${bad_payloads[i]}"
+    done
+  done
+}
+tool_call() { # tool input [session]: a hook payload calling the tool, with the session id when given
+  "$jq" -nc --arg t "$1" --argjson i "$2" --arg s "${3:-}" '{tool_name:$t,tool_input:$i} + (if $s == "" then {} else {session_id:$s} end)'
+}
 denies_unreadable() { # hook: a guard denies each payload it can't read, saying what came, never lets it through
   local i
   for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
@@ -77,4 +88,5 @@ EOF
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
 gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
+filled_body() { printf '## What\n\nA manager sees his squad.\n\nPart of #12\n'; }  # a pull request body that passes (Flol)
 template_body() { sed 's/^Part of #.*/Part of #12/' "$hooks/../../.github/pull_request_template.md"; }  # the whole template, filled in

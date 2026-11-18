@@ -40,6 +40,7 @@ export function Filters({
   clubs,
   filterBy,
   ownStats,
+  scored,
   stat,
   show,
   name,
@@ -52,6 +53,7 @@ export function Filters({
   clubs: PlayersList["clubs"] | undefined;
   filterBy: (change: Partial<PlayersFilters>) => void;
   ownStats: PlayersList["ownStats"] | undefined;
+  scored: PlayersList["scored"] | undefined;
   stat: CatalogueStat | null;
   show: (chosen: CatalogueStat | null) => void;
   /** What the name box holds, and a change to it. */
@@ -119,7 +121,7 @@ export function Filters({
             ))}
           </select>
         </span>
-        <StatBox id={STAT_ID} label={statLabel} noneWords={noStatWords} ownStats={ownStats} stat={stat} show={show} />
+        <StatBox id={STAT_ID} label={statLabel} noneWords={noStatWords} ownStats={ownStats} scored={scored} stat={stat} show={show} />
         <span className="flex items-center gap-2">
           <label htmlFor={PERIOD_ID} className="text-soft">
             {periodLabel}

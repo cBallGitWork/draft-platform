@@ -10,7 +10,7 @@ import { byGameweek, type DueMatch } from "../shared/dueMatches";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { codesByOpta, fixtureCodeIn } from "./feedIds";
 import { fplSeason, type readFplPayloads } from "./fpl/fpl";
-import { matchSlots } from "./premierLeague/plMatch";
+import { matchSlots, type MatchSlot } from "./premierLeague/plMatch";
 import { readPlSeasons } from "./premierLeague/plSeasons";
 import { readPlFixture, readPlFixtures } from "./premierLeague/premierLeague";
 
@@ -70,7 +70,7 @@ async function readTeamSheets(ctx: ActionCtx, due: DueMatch[], fpl: typeof readF
           const id = listed.get(fixtureCode);
           if (id === undefined) throw new Error(`the Premier League lists no match ${fixtureCode} in gameweek ${gameweek}`);
           const { slots } = matchSlots(await readPlFixture(id), codeByOpta);
-          const men = slots.map(({ playerCode, started }) => ({ playerCode, started }));
+          const men = slots.map(sheetManOf);
           if (men.length > 0) await ctx.runMutation(internal.football.matchTeamSheets.store, { fixtureCode, men });
           matches.push({ fixtureCode, ok: true });
         } catch (error: unknown) {
@@ -82,6 +82,12 @@ async function readTeamSheets(ctx: ActionCtx, due: DueMatch[], fpl: typeof readF
   } catch (error: unknown) {
     return { ok: false, error: logFailure("the team sheets before kickoff failed", error) };
   }
+}
+
+/** A man as the sheets keep him: a starter with his place in the formation the sheet draws, for the
+ *  match page's pitch (spec/10 S10.9); a substitute, or a starter on a sheet drawing none, without. */
+export function sheetManOf({ playerCode, started, formation, line, place }: MatchSlot): TeamSheetMan {
+  return formation === null || line === null || place === null ? { playerCode, started } : { playerCode, started, formationPlace: { formation, line, place } };
 }
 
 /** A match's held sheets; null before a read has named anyone. */
@@ -113,7 +119,9 @@ export const store = internalMutation({
   },
 });
 
-/** The same men, in the same order, each starting or not as before. */
+/** The same men, in the same order, each starting or not as before, in the same place. */
 function sameMen(held: TeamSheetMan[], next: TeamSheetMan[]): boolean {
-  return held.length === next.length && held.every((man, index) => man.playerCode === next[index].playerCode && man.started === next[index].started);
+  const samePlace = (a: TeamSheetMan, b: TeamSheetMan) =>
+    a.formationPlace?.formation === b.formationPlace?.formation && a.formationPlace?.line === b.formationPlace?.line && a.formationPlace?.place === b.formationPlace?.place;
+  return held.length === next.length && held.every((man, index) => man.playerCode === next[index].playerCode && man.started === next[index].started && samePlace(man, next[index]));
 }

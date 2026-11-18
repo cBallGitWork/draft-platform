@@ -4,6 +4,7 @@
 import type { MatchMan, MatchPageData } from "../../../src/premierLeague/seam";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { NO_SUB } from "../../../convex/match/matchSubs";
 import { ARSENAL, CHELSEA, type PremierLeagueData } from "./premierLeague.harness";
 import { manager, openApp } from "./shell.harness";
 import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
@@ -18,10 +19,14 @@ export const man = (playerCode: number, name: string, side: MatchMan["side"], mo
   position: "CM",
   side,
   started: true,
+  formationPlace: null,
   played: true,
+  sub: NO_SUB,
   ownerTeamName: null,
   mine: more.ownerTeamName === MY_TEAM_NAME,
   marks: { goals: 0, assists: 0, yellowCards: 0, redCards: 0 },
+  statLine: null,
+  statPoints: null,
   points: null,
   counts: (more.ownerTeamName ?? null) !== null,
   ...more,
@@ -44,6 +49,7 @@ export const matchOf = (more: Partial<MatchPageData> = {}): MatchPageData => ({
   away: CHELSEA,
   score: { state: "live", homeGoals: 2, awayGoals: 1, minutes: 67, clockLabel: "67'12" },
   men: MEN,
+  scorers: { home: [], away: [] },
   pointsProblem: null,
   abandoned: false,
   pointsDelayed: false,

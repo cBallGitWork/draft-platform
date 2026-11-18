@@ -37,3 +37,8 @@ export const TIMED_JOBS_SETTING = "TIMED_JOBS_ON";
  *  throwaway server, pointing it at the run's one fake server (spec/20, S20.17; #2288). A release
  *  refuses a live deployment that carries it (scripts/release.mjs). */
 export const OUTSIDE_WORLD_SETTING = "OUTSIDE_WORLD_URL";
+
+/** Turns on the test-only functions (convex/e2e/), such as the seed: set only on an e2e run's
+ *  throwaway server (spec/20, S20.17; #2288). A release refuses a live deployment that carries it
+ *  (scripts/release.mjs). */
+export const E2E_FUNCTIONS_SETTING = "E2E_FUNCTIONS_ON";

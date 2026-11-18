@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import { nextDeadline } from "../../../convex/gameweeks/deadline";
 import { missingPlayerLog } from "../../../convex/trades/tradeScreen";
 import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
@@ -11,6 +10,7 @@ import {
   tradeLeague,
   type TradeLeague,
 } from "../../support/convex/trades.harness";
+import { tradesOf } from "../../support/convex/screenReads.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -39,10 +39,7 @@ beforeEach(async () => {
 });
 
 const viewOf = async (email: string) =>
-  (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, {
-    leagueId: w.leagueId,
-    now: Date.now(),
-  });
+  tradesOf(await actingAs(w.t, email), w.leagueId);
 
 describe("the Trades screen", () => {
   test("puts the manager's own team first, then the rest, each with its squad", async () => {

@@ -93,8 +93,8 @@ describe("a pick that arrives after its turn (S04.20)", () => {
     await expectRefused(pick(ANN, THIRD, 1), pickRefusals.tooLateOwn(midfielder(THIRD).name));
   });
 
-  // DR-070: her network drops as she presses Draft and her app sends the pick again on reconnecting.
-  test("DR-070 case 1: re-sent at once, within the clock, her pick lands once and the re-send is refused saying she made it", async () => {
+  // Her network drops as she presses Draft and her app sends the pick again on reconnecting.
+  test("re-sent at once, within the clock, her pick lands once and the re-send is refused saying she made it", async () => {
     // Back to halfway through her clock: the network came back in time.
     vi.setSystemTime(Date.now() - FIRST_PICK_MS / 2);
     await pick(ANN, THIRD, 1);
@@ -104,7 +104,7 @@ describe("a pick that arrives after its turn (S04.20)", () => {
     expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] } });
   });
 
-  test("DR-070 case 2: re-sent after her clock ran out, it is refused with what auto-pick took, and lands nowhere", async () => {
+  test("re-sent after her clock ran out, it is refused with what auto-pick took, and lands nowhere", async () => {
     await autoPickFirst();
     await expectRefused(pick(ANN, THIRD, 1), pickRefusals.tooLateAuto(midfielder(FIRST).name));
 

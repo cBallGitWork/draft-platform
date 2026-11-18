@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { NEXT_FIXTURES_SHOWN } from "../../../convex/playerCard/playerCard";
+import { NEXT_FIXTURES_SHOWN } from "../../../convex/playerCard/cardLimits";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";

@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { tacticsOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD_CLUB } from "../../support/convex/lineupSquad.harness";
@@ -26,7 +27,7 @@ const ann = async () => {
     save: (lineup: Lineup, instructions?: InstructionPair) =>
       person.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...lineup.starters], bench: [...lineup.bench], instructions } }),
     picked: async () => {
-      const tactics = await person.query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+      const tactics = await tacticsOf(person, leagueId);
       if (tactics.kind !== "open") throw new Error(`No gameweek open: ${tactics.kind}`);
       return tactics.picked;
     },

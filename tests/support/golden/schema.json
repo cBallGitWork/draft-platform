@@ -3141,6 +3141,15 @@
               "type": "number"
             },
             "optional": false
+          },
+          "teamSheet": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -4519,6 +4528,32 @@
                       "type": "boolean"
                     },
                     "optional": false
+                  },
+                  "formationPlace": {
+                    "fieldType": {
+                      "type": "object",
+                      "value": {
+                        "formation": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "line": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        },
+                        "place": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    "optional": true
                   }
                 }
               }
@@ -4606,6 +4641,178 @@
             "optional": true
           },
           "emailedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "feedStatuses",
+      "indexes": [
+        {
+          "indexDescriptor": "by_feed_and_competition",
+          "fields": [
+            "feed",
+            "competition"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "feed": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "football"
+                },
+                {
+                  "type": "literal",
+                  "value": "positions"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "liveStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "teamSheets"
+                },
+                {
+                  "type": "literal",
+                  "value": "teamStats"
+                },
+                {
+                  "type": "literal",
+                  "value": "thresholdSteps"
+                },
+                {
+                  "type": "literal",
+                  "value": "sportmonks"
+                },
+                {
+                  "type": "literal",
+                  "value": "sportmonksLive"
+                },
+                {
+                  "type": "literal",
+                  "value": "sportmonksPositions"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "lastRun": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "ranAt": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "failure": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "betweenSeasons": {
+                      "fieldType": {
+                        "type": "boolean"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "lastSuccessAt": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "lastError": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "at": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "error": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "runsSinceSuccess": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "runsSinceError": {
             "fieldType": {
               "type": "number"
             },
@@ -7097,6 +7304,21 @@
             },
             "optional": true
           },
+          "link": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "offer": {
+                  "fieldType": {
+                    "type": "id",
+                    "tableName": "tradeOffers"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
           "readAt": {
             "fieldType": {
               "type": "number"
@@ -7761,22 +7983,6 @@
                   },
                   "optional": false
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": false
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -11778,6 +11984,22 @@
                     }
                   },
                   "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
+                  },
+                  "optional": true
                 }
               }
             },
@@ -12348,22 +12570,6 @@
                   },
                   "optional": true
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": true
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -12621,6 +12827,22 @@
                         }
                       }
                     }
+                  },
+                  "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
                   },
                   "optional": true
                 }
@@ -13213,22 +13435,6 @@
                   },
                   "optional": false
                 },
-                "oddTeamOut": {
-                  "fieldType": {
-                    "type": "union",
-                    "value": [
-                      {
-                        "type": "literal",
-                        "value": "bye"
-                      },
-                      {
-                        "type": "literal",
-                        "value": "leagueAverage"
-                      }
-                    ]
-                  },
-                  "optional": false
-                },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
@@ -17228,6 +17434,22 @@
                         "optional": true
                       }
                     }
+                  },
+                  "optional": true
+                },
+                "oddTeamOut": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "literal",
+                        "value": "bye"
+                      },
+                      {
+                        "type": "literal",
+                        "value": "leagueAverage"
+                      }
+                    ]
                   },
                   "optional": true
                 }
@@ -25748,12 +25970,6 @@
             },
             "optional": false
           },
-          "noLineup": {
-            "fieldType": {
-              "type": "boolean"
-            },
-            "optional": true
-          },
           "fixtureCodes": {
             "fieldType": {
               "type": "array",
@@ -26323,6 +26539,12 @@
               "value": {
                 "type": "number"
               }
+            },
+            "optional": true
+          },
+          "edit": {
+            "fieldType": {
+              "type": "string"
             },
             "optional": true
           }

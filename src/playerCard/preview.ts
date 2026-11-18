@@ -1,39 +1,61 @@
 // The player card in the preview (src/app/preview.ts): a card for each of Scouting's preview players,
-// with six matches and a postponed one, each at his base points at each of his positions under the first scoring set by the
-// server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
-// override on one match.
+// with his season in his club's matches in Football's preview and any it postponed, each at his base
+// points at each of his positions under the first scoring set by the server's own rule
+// (cardPoints), and his club's next fixtures, Football's too. My team's Squad tab adds up the same
+// season (#2455). Saka carries FPL's news, and an override on one match.
 
-import type { SlotPosition } from "../../convex/lineup/pitch";
+import { areasOf, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import { basePoints, cardPositions, logCategories, rankOfPlayer } from "../../convex/playerCard/cardPoints";
+import { NEXT_FIXTURES_SHOWN } from "../../convex/playerCard/cardLimits";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
-import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
-import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
+import { ASSISTS, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT, SAVES, YELLOW_CARDS } from "../../convex/stats/matchRecords";
+import { previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
 import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
-import { seasonFigures } from "./gameLog";
+import { PREVIEW_SAKA_NEWS, PREVIEW_UNPLAYED } from "../myTeam/tactics/preview";
+import { previewClubMatch, previewClubPostponed, previewClubUpcoming } from "../premierLeague/preview";
+import type { GameweekMatch } from "../premierLeague/seam";
+import { pointsOf, seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
 
-const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
-const lastSaturday = Date.now() - ((new Date().getDay() + 1) % 7) * DAY_MS;
-const opponentOf = (clubCode: number, index: number) => CLUBS.filter((club) => club.code !== clubCode)[index % 2];
+type PreviewPlayer = (typeof previewPlayers)[number];
+/** The season's gameweeks so far, the current one in. */
+const SO_FAR = Array.from({ length: previewGameweek }, (_, index) => index + 1);
 
-/** His newest matches, newest first: the newest still being played, then one his club's
- *  postponement leaves a row for (the gameweek between the second and the third). */
-const RECORDS: readonly (MatchStats | null)[] = [
-  { minutes: 58 },
-  { minutes: 90, goals_scored: 1, assists: 1, big_chance_created: 1 },
-  { minutes: 64, yellow_cards: 1 },
-  { minutes: 90, goals_scored: 2, clean_sheets: 1 },
-  { minutes: 74, assists: 1, goals_conceded: 1 },
-  null,
-];
-/** Each match's score, home side first, in RECORDS' order. */
-const SCORES = [{ home: 0, away: 0 }, { home: 1, away: 2 }, { home: 3, away: 0 }, { home: 2, away: 2 }, { home: 1, away: 0 }, null];
-/** The gameweek his club's postponed match was in. */
-const POSTPONED_GAMEWEEK = previewGameweek - 2;
+/** How many matches in ten a man in each area scores in, where his club scores; a keeper never. */
+const SCORES_IN_TEN: Partial<Record<Area, number>> = { attack: 4, attackingMidfield: 4, midfield: 2, defensiveMidfield: 1, defence: 1 };
+/** How long he plays in a match he is in, by turn. */
+const MINUTES_PLAYED = [90, 90, 90, 78, 64, 90, 58, 90];
+
+/** His made-up record in his club's match, worked out from his code and the gameweek so a reload
+ *  shows the same, his goals and assists never more than his club scored and his clean sheet and
+ *  goals conceded its own: null for a gameweek he sat out. The one season both his card and My
+ *  team's Squad tab read (#2455). */
+function recordIn(player: PreviewPlayer, gameweek: number, match: GameweekMatch): MatchStats | null {
+  const seed = player.code * 7 + gameweek * 13;
+  if (player.code === PREVIEW_UNPLAYED || seed % 6 === 0 || match.score === null || match.score.state === "upcoming") return null;
+  const home = match.home.code === player.club.code;
+  const [scored, conceded] = home ? [match.score.homeGoals ?? 0, match.score.awayGoals ?? 0] : [match.score.awayGoals ?? 0, match.score.homeGoals ?? 0];
+  const minutes = Math.min(MINUTES_PLAYED[seed % MINUTES_PLAYED.length], match.score.minutes ?? 90);
+  // His furthest forward area, which his goals go by.
+  const area = areasOf(player.positions).at(-1)!;
+  const keeper = area === "goalkeeper";
+  const goals = scored > 0 && (player.code * 31 + gameweek * 17) % 10 < (SCORES_IN_TEN[area] ?? 0) ? 1 : 0;
+  const record: Record<string, number> = { [MINUTES_STAT]: minutes };
+  if (goals > 0) record[GOALS] = goals;
+  if (!keeper && scored > goals && seed % 4 === 1) record[ASSISTS] = 1;
+  if (!keeper && seed % 7 === 2) record.big_chance_created = 1;
+  if (seed % 9 === 4) record[YELLOW_CARDS] = 1;
+  if (keeper) record[SAVES] = 1 + (seed % 5);
+  if ((keeper || area === "defence") && minutes >= 60) {
+    if (conceded === 0 && match.score.state === "fullTime") record[CLEAN_SHEETS] = 1;
+    if (conceded > 0) record[GOALS_CONCEDED] = conceded;
+  }
+  return record;
+}
 
 /** One match the league overrode, so the card shows how an override reads (#32). */
 const PREVIEW_OVERRIDDEN = "Saka";
@@ -43,33 +65,39 @@ const PREVIEW_OVERRIDE = { points: 9, reason: "The feed gave his assist to Odega
 const PREVIEW_ROLE_PLAYER = "Palmer";
 const PREVIEW_ROLE = { name: "Number 10", points: 1, sides: [{ points: 1, lines: [{ stat: "big_chance_created", name: categoryName("big_chance_created"), actions: 1 }] }] };
 
-function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
-  return RECORDS.map((record, index) => {
+/** His matches this season, newest first: his club's in Football's gameweeks (../premierLeague/
+ *  preview.ts) he played in, the newest maybe still being played. */
+function matchesOf(player: PreviewPlayer): PlayedMatch[] {
+  const played = SO_FAR.flatMap((gameweek) => {
+    const match = previewClubMatch(gameweek, player.club.code);
+    const record = match === undefined ? null : recordIn(player, gameweek, match);
+    return match === undefined || record === null ? [] : [{ gameweek, match, record }];
+  });
+  return played.toReversed().map(({ gameweek, match, record }, index) => {
     const points = basePoints(record, FIRST_SCORING, player.positions).map(({ position, total, categories }) => ({
       position,
       total,
       categories: categories.map((each) => ({ ...each, name: categoryName(each.stat) })),
     }));
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
-    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && record !== null ? { role: PREVIEW_ROLE } : {};
-    // A week further back past the postponed one.
-    const weeksAgo = index < 2 ? index : index + 1;
+    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 ? { role: PREVIEW_ROLE } : {};
+    const { fixtureCode, kickoff, home, away, score } = match;
     return {
-      fixtureCode: player.code * 100 + index,
-      gameweek: previewGameweek - weeksAgo,
-      kickoff: lastSaturday - weeksAgo * WEEK_MS,
-      home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
-      away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
-      minutes: record?.minutes ?? null,
-      score: SCORES[index],
+      fixtureCode,
+      gameweek,
+      kickoff,
+      home,
+      away,
+      minutes: record[MINUTES_STAT],
+      score: score === null || score.homeGoals === null || score.awayGoals === null ? null : { home: score.homeGoals, away: score.awayGoals },
       stats: record,
       points,
       // The preview plays the first set, which has no version's name.
       version: null,
       ...started,
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
-      // The newest may still move: it is still being played.
-      provisional: index === 0,
+      // One still being played may still move.
+      provisional: score?.state !== "fullTime",
     };
   });
 }
@@ -79,9 +107,10 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
 const PREVIEW_LAST_SEASON = 2025;
 const PREVIEW_APPEARANCES = 34;
 const PREVIEW_NEWCOMER = "Van Dijk";
-function lastSeasonOf(player: (typeof previewPlayers)[number]): PlayerCard["lastSeason"] {
+const LAST_SEASON_MATCH: MatchStats = { [MINUTES_STAT]: 90, [GOALS]: 1, [ASSISTS]: 1, big_chance_created: 1 };
+function lastSeasonOf(player: PreviewPlayer): PlayerCard["lastSeason"] {
   if (player.name === PREVIEW_NEWCOMER) return { season: PREVIEW_LAST_SEASON, played: null };
-  const match = RECORDS[1]!;
+  const match = LAST_SEASON_MATCH;
   return {
     season: PREVIEW_LAST_SEASON,
     played: {
@@ -92,7 +121,7 @@ function lastSeasonOf(player: (typeof previewPlayers)[number]): PlayerCard["last
   };
 }
 
-function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
+function cardOf(player: PreviewPlayer): PlayerCard {
   const injured = player.name === "Saka";
   return {
     code: player.code,
@@ -106,32 +135,33 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     pricedAt: cardPositions(player.positions),
     ownerTeamName: player.ownerTeamName,
     ownerTeamId: player.ownerTeamName === null ? null : previewIdOf(player.ownerTeamName),
-    news: injured ? "Hamstring injury - 75% chance of playing" : null,
+    news: injured ? PREVIEW_SAKA_NEWS : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),
-    postponed: [
-      {
-        fixtureCode: player.code * 100 + 40,
-        gameweek: POSTPONED_GAMEWEEK,
-        kickoff: null,
-        home: opponentOf(player.club.code, 1),
-        away: player.club,
-      },
-    ],
+    // His club's matches Football's preview has postponed, waiting for a new date (#2466).
+    postponed: previewClubPostponed(player.club.code).map(({ fixtureCode, gameweek, kickoff, home, away }) => ({ fixtureCode, gameweek, kickoff, home, away })),
     categories: logCategories(FIRST_SCORING, cardPositions(player.positions)),
     lastSeason: lastSeasonOf(player),
-    nextFixtures: [1, 2, 3, 4, 5].map((weeksOn) => ({
-      fixtureCode: player.code * 100 + 50 + weeksOn,
-      gameweek: previewGameweek + weeksOn,
-      kickoff: lastSaturday + weeksOn * WEEK_MS,
-      home: weeksOn % 2 === 0 ? player.club : opponentOf(player.club.code, weeksOn),
-      away: weeksOn % 2 === 0 ? opponentOf(player.club.code, weeksOn) : player.club,
-    })),
+    // His club's next matches in Football's preview, as My team's Squad tab has them.
+    nextFixtures: previewClubUpcoming(player.club.code)
+      .slice(0, NEXT_FIXTURES_SHOWN)
+      .map(({ fixtureCode, gameweek, kickoff, home, away }) => ({ fixtureCode, gameweek, kickoff, home, away })),
     mode: previewGameMode,
   };
 }
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
+/** A preview player's season on his card, by his code, for My team's Squad tab to add up (#2455):
+ *  his matches, his season points as the card totals them at his first position, and his points
+ *  in a gameweek, null ("—") with no match there. */
+export function previewSeasonOf(playerCode: number) {
+  const matches = cards.get(playerCode)?.matches ?? [];
+  const pointsIn = (gameweek: number) => {
+    const there = matches.filter((match) => match.gameweek === gameweek);
+    return there.length === 0 ? null : there.reduce((sum, match) => sum + (pointsOf(match, 0) ?? 0), 0);
+  };
+  return { matches, seasonPoints: seasonFigures(matches, 0).seasonPoints, pointsIn };
+}
 
 /** His rank at a position among the preview's players holding it, by their cards' base points
  *  there, placed by the server's own rule (positionRank.ts). */

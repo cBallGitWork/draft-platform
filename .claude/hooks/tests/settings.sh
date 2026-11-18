@@ -14,6 +14,8 @@ wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'PostToolUse|Write|Edit|line_ceiling.py'
   'PostToolUse|AskUserQuestion|guard_ask.py'
   'UserPromptSubmit||context_size.py'
+  'SessionStart||quick_check.py'
+  'Stop||quick_check.py'
 )
 
 unwired() { # settings-file: a loud line for each row it doesn't wire, so silence means all are
@@ -37,3 +39,10 @@ problems=$(unwired "$settings")
 problems=$(unwired "$tmp/no-guard.json")
 [ "$problems" = "settings.json: no PreToolUse/Bash hook runs guard_bash.py" ] ||
   fail "settings.sh: a settings.json with no Bash guard gave: ${problems:-nothing}"
+
+# no session deploys to production around the merge to main (forge#56): the deny list holds each way in
+for rule in 'Read(./.env*)' 'Bash(vercel --prod*)' 'Bash(vercel * --prod*)' 'Bash(vercel promote*)' 'Bash(vercel rollback*)' \
+  'Bash(npx vercel --prod*)' 'Bash(npx vercel * --prod*)' 'Bash(npx vercel promote*)' \
+  mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__{create_deployment,request_promote,request_rollback,assign_alias}; do
+  "$jq" -e --arg r "$rule" '.permissions.deny | index($r)' "$settings" >/dev/null || fail "settings.json: deny list lacks $rule"
+done

@@ -40,14 +40,14 @@ describe("a team's games", () => {
   });
 
   it("against the league's average, in a league with an odd team out", () => {
-    const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores, oddTeamOut: "leagueAverage" });
+    const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores });
     const average = gamesOfTeam(table, "Cal").find(({ against }) => against.kind === "leagueAverage");
     // The average of 60, 50 and 40.
     expect(average?.score).toEqual({ team: 40, opponent: 50, provisional: false });
   });
 
   it("is live or final as its fixture was sent, whatever the gameweek's other results say (#1745)", () => {
-    const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores, oddTeamOut: "leagueAverage" });
+    const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores });
     const averageGame = (each: (typeof table.gameweeks)[number]["fixtures"][number]) => each.team === "Cal" && each.opponent === null;
     const gameweek = table.gameweeks.find((each) => each.fixtures.some(averageGame))!;
     const fixture = gameweek.fixtures.find(averageGame)!;

@@ -4,7 +4,8 @@ import { AREAS, type Area } from "../lineup/pitch";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { FIRST_PRESETS } from "../lineup/presets";
 import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classicFormations";
-import type { DrawRules, OddTeamOut } from "../table/roundRobin";
+import type { DrawRules } from "../table/roundRobin";
+import { TIE_BREAKS } from "../table/standings";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
@@ -13,8 +14,8 @@ import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 // rules saved before the draft, trades, the team instructions and the classic formations were among them. The scoring is not a league's rule but the
 // site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
 //
-// Only the presets, the team instructions, the deadline, the double-gameweek rule, the odd team
-// out, games a gameweek, the draft's rules and the trades' are the spec's own or Craig's (spec/05,
+// Only the presets, the team instructions, the deadline, the double-gameweek rule, games a
+// gameweek, the draft's rules and the trades' are the spec's own or Craig's (spec/05,
 // spec/03, spec/09, spec/04, spec/08). The rest are starting values the commissioner edits, settled
 // as such by Craig (spec/01: "stop tunneling in on first format we will edit later"), each marked
 // where it stands, against docs/research/fantrax-options.md's live values where it has them.
@@ -22,9 +23,6 @@ import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 function everyArea<Value>(value: Value): Record<Area, Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
 }
-
-/** Craig's: with an odd number of teams, the team left over plays the league's average (spec/09). */
-const FIRST_ODD_TEAM_OUT: OddTeamOut = "leagueAverage";
 
 /** Craig's: one head-to-head game a gameweek, unless a league chooses more (spec/09). */
 const FIRST_GAMES_PER_GAMEWEEK = 1;
@@ -58,8 +56,17 @@ export const FIRST_RUN_TIME = { hour: 18, minute: 0 } as const;
 /** How the league's trades run: the first rules' for rules saved before #383 made it a rule. */
 export const tradeRulesOf = (rules: LeagueRules): TradeRules => rules.trades ?? FIRST_TRADE_RULES;
 
-/** How the league's round robin is drawn: its odd team out and games a gameweek. */
-export const drawRulesOf = ({ oddTeamOut, gamesPerGameweek }: LeagueRules): DrawRules => ({ oddTeamOut, gamesPerGameweek });
+/** The league's tie-breaks with each it lacks added after its own (Craig, 15 Nov 2026, on #1034):
+ *  every league has all three, and rules saved with fewer keep theirs first. A save puts them in
+ *  the rules from the next gameweek (../migrations/everyTieBreak.ts); the table reads the rules'
+ *  own until then. */
+export const tieBreaksOf = ({ tieBreaks }: LeagueRules): LeagueRules["tieBreaks"] => [
+  ...tieBreaks,
+  ...TIE_BREAKS.filter((tieBreak) => !tieBreaks.includes(tieBreak)),
+];
+
+/** How the league's round robin is drawn: its games a gameweek. */
+export const drawRulesOf = ({ gamesPerGameweek }: LeagueRules): DrawRules => ({ gamesPerGameweek });
 
 /** The team instructions a league picks from: the first rules' for rules saved before #990 made
  *  them rules. */
@@ -85,10 +92,9 @@ export const FIRST_RULES: LeagueRules = {
   classics: firstClassicFormations(),
   deadline: { ...DEFAULT_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
-  // A starting value (spec/01): the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
-  // the standings' these are; it has no standings value.
-  tieBreaks: ["pointsFor"],
-  oddTeamOut: FIRST_ODD_TEAM_OUT,
+  // Craig's (S03.8; 15 Nov 2026, on #1034): every league has all three tie-breaks, in its own
+  // order, these to start.
+  tieBreaks: [...TIE_BREAKS],
   gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
   // Craig's (spec/03, spec/08; 5 Nov 2026): Wednesday and Thursday at 18:00 UK time, "for now",
   // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverLimits.ts).

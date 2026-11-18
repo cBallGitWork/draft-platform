@@ -9,6 +9,7 @@ import { PanelLink } from "./PanelLink";
 import type { LeagueHome } from "./seam";
 import {
   allFixturesLink,
+  listSeparator,
   matchListLabel,
   noMatchesWords,
   noSquadNewsWords,
@@ -56,7 +57,7 @@ function Side({ label, names }: { label: string; names: readonly string[] }) {
   if (names.length === 0) return null;
   return (
     <span>
-      <span className="text-soft">{label}</span> {names.join(", ")}
+      <span className="text-soft">{label}</span> {names.join(listSeparator)}
     </span>
   );
 }

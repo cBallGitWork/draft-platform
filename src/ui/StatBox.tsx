@@ -1,6 +1,7 @@
 import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogueList";
-import { catalogueGroupWords, ownStatsGroupWords } from "../shared/words";
+import { ownStatsGroupWords, scoredGroupWords } from "../shared/words";
 import { menuGlyph } from "../shared/controls/words";
+import { byKind } from "./statKinds";
 
 /** The select's value for no stat. */
 const NO_STAT = "";
@@ -19,14 +20,16 @@ const STAT_BOX_LOOKS = {
   },
 } as const;
 
-/** Scouting's stat box (spec/19): every stat of the catalogue, and the site set's own stats
- *  (`ownStats`, #910) in a group above them, or none (`noneWords`), the one chosen shown beside the
- *  list; the draft room's list picks its stats with it too, drawn as a button. */
+/** Scouting's stat box (spec/19): every stat of the catalogue and the site set's own stats
+ *  (`ownStats`, #910), the ones the set scores (`scored`, by key, in its order) leading and the
+ *  rest grouped by kind (`S19.5`), or none (`noneWords`), the one chosen shown beside the list;
+ *  the draft room's list picks its stats with it too, drawn as a button. */
 export function StatBox({
   id,
   label,
   noneWords,
   ownStats = [],
+  scored = [],
   stat,
   show,
   look = "box",
@@ -35,6 +38,7 @@ export function StatBox({
   label: string;
   noneWords: string;
   ownStats?: readonly CatalogueStat[];
+  scored?: readonly string[];
   stat: CatalogueStat | null;
   show: (chosen: CatalogueStat | null) => void;
   look?: keyof typeof STAT_BOX_LOOKS;
@@ -48,18 +52,11 @@ export function StatBox({
       </label>
       <select id={id} value={stat?.stat ?? NO_STAT} onChange={(event) => show(chosenOf(event.target.value))} className={classes.select}>
         <option value={NO_STAT}>{noneWords}</option>
-        {ownStats.length === 0 ? (
-          <StatOptions stats={STAT_CATALOGUE} />
-        ) : (
-          <>
-            <optgroup label={ownStatsGroupWords}>
-              <StatOptions stats={ownStats} />
-            </optgroup>
-            <optgroup label={catalogueGroupWords}>
-              <StatOptions stats={STAT_CATALOGUE} />
-            </optgroup>
-          </>
-        )}
+        {statGroups(ownStats, scored, chosenOf).map((group) => (
+          <optgroup key={group.name} label={group.name}>
+            <StatOptions stats={group.stats} />
+          </optgroup>
+        ))}
       </select>
       {look === "button" && (
         <span aria-hidden="true" className="pointer-events-none absolute right-2">
@@ -68,6 +65,23 @@ export function StatBox({
       )}
     </span>
   );
+}
+
+/** The box's groups (spec/19, `S19.5`): the stats the site's set scores, in its order, then its
+ *  own stats it doesn't score, then the catalogue's others by kind; a group holding none is left
+ *  out. */
+function statGroups(
+  ownStats: readonly CatalogueStat[],
+  scored: readonly string[],
+  chosenOf: (key: string) => CatalogueStat | null,
+): { name: string; stats: readonly CatalogueStat[] }[] {
+  const leading = scored.flatMap((key) => chosenOf(key) ?? []);
+  const isScored = (each: CatalogueStat) => scored.includes(each.stat);
+  return [
+    { name: scoredGroupWords, stats: leading },
+    { name: ownStatsGroupWords, stats: ownStats.filter((each) => !isScored(each)) },
+    ...byKind(STAT_CATALOGUE.filter((each) => !isScored(each))),
+  ].filter((group) => group.stats.length > 0);
 }
 
 /** An option for each stat, by its name. */

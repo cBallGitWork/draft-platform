@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
-import { query } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
+import { query, type QueryCtx } from "../_generated/server";
 import { classicFormationShape, leagueRulesShape } from "../rules/leagueRulesShape";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
 import { gameModeOf, gameModeShape } from "../rules/gameMode";
@@ -14,7 +15,9 @@ import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek } from "./lineups";
-import { saveGameweekOf } from "../gameweeks/saveGameweek";
+import { rowInForce } from "./lineupRows";
+import { saveGameweeksInHour } from "../gameweeks/saveGameweek";
+import type { SeasonRules } from "../rules/rulesHistory";
 import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
@@ -76,6 +79,9 @@ const tacticsShape = v.union(
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
+    /** The `edit` mark of the lineup's row (lineupRows.ts), which a save sends back, and a change to
+     *  tells the tab another tab saved (spec/05 `S05.55`); absent for a row not marked. */
+    lineupEdit: v.optional(v.string()),
     /** What the league plays in the gameweek, for the role parts (#1582). */
     mode: gameModeShape,
     /** Each moving role's run, as the site's scoring set in the gameweek holds it (spec/05 Runs,
@@ -86,61 +92,80 @@ const tacticsShape = v.union(
 export type Tactics = Infer<typeof tacticsShape>;
 export type OpenTactics = Extract<Tactics, { kind: "open" }>;
 
-/** The caller's own team's lineup to set, for the next gameweek not begun at `now` (the screen's:
- *  a query may not read the clock). Refused for anyone who runs no team in the league. */
-export const ofMyTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: tacticsShape,
-  handler: async (ctx, { leagueId, now }) => {
-    const { team } = await managerOf(ctx, leagueId);
-    const next = await saveGameweekOf(ctx, leagueId, now);
-    if (next.kind !== "open") return { kind: next.kind };
-    const { season, gameweek } = next;
+/** The Tactics tab through an hour: one answer from its start, and another from each deadline in
+ *  it that moves the gameweek on (hourAnswers.ts's `answerAt` picks the minute's). */
+const tacticsInHour = v.array(v.object({ from: v.number(), tactics: tacticsShape }));
+export type TacticsInHour = Infer<typeof tacticsInHour>;
 
-    const how = await howPositionsCount(ctx, leagueId);
-    const members = await squadOf(ctx, team._id);
-    const starsOf = await starsLookup(
-      ctx,
-      members.map(({ playerCode }) => playerCode),
+/** The caller's own team's lineup to set, for the next gameweek not begun, through the hour
+ *  starting at `hour`. It takes the hour, never the minute, so it isn't run again, uncached, every
+ *  minute (#2008). Refused for anyone who runs no team in the league. */
+export const ofMyTeam = query({
+  args: { leagueId: v.id("leagues"), hour: v.number() },
+  returns: tacticsInHour,
+  handler: async (ctx, { leagueId, hour }): Promise<TacticsInHour> => {
+    const { team } = await managerOf(ctx, leagueId);
+    return Promise.all(
+      (await saveGameweeksInHour(ctx, leagueId, hour)).map(async ({ from, ...save }) => ({
+        from,
+        tactics: save.kind === "open" ? await openTactics(ctx, leagueId, team._id, save) : { kind: save.kind },
+      })),
     );
-    const squad = await Promise.all(
-      members.map(async (member) => {
-        const { playerCode } = member;
-        const player = await playerByCode(ctx, playerCode);
-        // His positions are read as for any other player: the lineup's check says where he may stand.
-        const { positions } = await workedOutNow(ctx, playerCode, how);
-        return {
-          playerCode,
-          name: player === null ? unheldPlayerWords(playerCode) : player.name,
-          clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
-          clubCode: player?.clubCode ?? null,
-          unheld: player === null,
-          positions: positions.map(({ position }) => position),
-          flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
-          number: await shirtNumber(ctx, member),
-          stars: starsOf(playerCode),
-          availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
-          news: player?.news || null,
-        };
-      }),
-    );
-    const rules = season.inGameweek(gameweek);
-    const { areaLimits, presets } = rules;
-    const instructions = [...instructionsOf(rules)];
-    const lineup = await lineupInGameweek(ctx, leagueId, team._id, gameweek);
-    return {
-      kind: "open" as const,
-      gameweek,
-      deadline: (await leagueDeadlineOf(ctx, leagueId))(gameweek),
-      areaLimits,
-      presets,
-      classicFormations: classicFormationsOf(rules),
-      instructions,
-      picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
-      squad,
-      lineup,
-      mode: gameModeOf(rules),
-      runs: [...((await siteScoringInGameweek(ctx, gameweek)).runs ?? [])],
-    };
   },
 });
+
+/** The Tactics tab for `gameweek`, the one a save goes to. */
+async function openTactics(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  teamId: Id<"teams">,
+  { season, gameweek }: { season: SeasonRules; gameweek: number },
+): Promise<OpenTactics> {
+  const how = await howPositionsCount(ctx, leagueId);
+  const members = await squadOf(ctx, teamId);
+  const starsOf = await starsLookup(
+    ctx,
+    members.map(({ playerCode }) => playerCode),
+  );
+  const squad = await Promise.all(
+    members.map(async (member) => {
+      const { playerCode } = member;
+      const player = await playerByCode(ctx, playerCode);
+      // His positions are read as for any other player: the lineup's check says where he may stand.
+      const { positions } = await workedOutNow(ctx, playerCode, how);
+      return {
+        playerCode,
+        name: player === null ? unheldPlayerWords(playerCode) : player.name,
+        clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
+        clubCode: player?.clubCode ?? null,
+        unheld: player === null,
+        positions: positions.map(({ position }) => position),
+        flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
+        number: await shirtNumber(ctx, member),
+        stars: starsOf(playerCode),
+        availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
+        news: player?.news || null,
+      };
+    }),
+  );
+  const rules = season.inGameweek(gameweek);
+  const { areaLimits, presets } = rules;
+  const instructions = [...instructionsOf(rules)];
+  const lineup = await lineupInGameweek(ctx, leagueId, teamId, gameweek);
+  const lineupEdit = (await rowInForce(ctx, leagueId, teamId, gameweek))?.edit;
+  return {
+    kind: "open" as const,
+    gameweek,
+    deadline: (await leagueDeadlineOf(ctx, leagueId))(gameweek),
+    areaLimits,
+    presets,
+    classicFormations: classicFormationsOf(rules),
+    instructions,
+    picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
+    squad,
+    lineup,
+    ...(lineupEdit !== undefined && { lineupEdit }),
+    mode: gameModeOf(rules),
+    runs: [...((await siteScoringInGameweek(ctx, gameweek)).runs ?? [])],
+  };
+}

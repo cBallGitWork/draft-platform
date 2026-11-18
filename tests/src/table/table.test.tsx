@@ -14,6 +14,7 @@ import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
+import { withByes } from "../../support/src/table.harness";
 import { openTable } from "../../support/src/tableScreen.harness";
 import {
   byeWords,
@@ -226,14 +227,14 @@ describe("the fixtures", () => {
   });
 
   it("give the team left over a bye in a league that has them", async () => {
-    const drawn = leagueTableOf(FIVE, { oddTeamOut: "bye" });
+    const drawn = withByes(leagueTableOf(FIVE));
     openTable({ leagueTable: drawn });
     expect(await screen.findByText(byeWords(drawn.gameweeks[0].byes))).toBeTruthy();
     expect(fixtureLines(1)).toHaveLength(2);
   });
 
   it("with two games a gameweek, list both rounds' fixtures and every team with a bye", async () => {
-    const drawn = leagueTableOf(FIVE, { oddTeamOut: "bye", gamesPerGameweek: 2 });
+    const drawn = withByes(leagueTableOf(FIVE, { gamesPerGameweek: 2 }));
     openTable({ leagueTable: drawn });
     const [first] = drawn.gameweeks;
     const [one, other] = first.byes;

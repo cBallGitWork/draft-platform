@@ -24,7 +24,7 @@ test.describe("Scouting's Players tab, on the dev server's preview", { tag: "@de
     await expect(list.getByRole("link", { name: "Salah", exact: true })).toBeVisible();
 
     // Salah's main position is W, where the preview manager holds Saka.
-    await list.getByRole("button", { name: selectPlayerLabel("Salah") }).click();
+    await list.getByRole("button", { name: selectPlayerLabel("Salah", "W") }).click();
     await page.getByRole("button", { name: compareWithYourWords("W", "Saka") }).click();
     const compare = page.getByRole("region", { name: COMPARE_YOURS_TITLE });
     await expect(compare.getByRole("columnheader", { name: /^Salah/ })).toBeVisible();

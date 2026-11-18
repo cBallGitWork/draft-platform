@@ -11,6 +11,7 @@ import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myT
 import { gamesIn } from "../../../../src/myTeam/header/teamStanding";
 import { MATCHUP_PATH } from "../../../../src/frame/menu";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
+import { withByes } from "../../../support/src/table.harness";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import { SAVED, openTacticsTab } from "../../../support/src/tacticsScreen.harness";
@@ -82,7 +83,7 @@ describe("the Tactics tab's GW opponent widget", () => {
   });
 
   it("shows the odd team out playing the league's average, as a link to its matchup", async () => {
-    const table = leagueTableOf(TEAMS.slice(0, 3), { oddTeamOut: "leagueAverage" });
+    const table = leagueTableOf(TEAMS.slice(0, 3));
     const gameweek = sittingOutIn(table);
     openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });
     const widget = await screen.findByRole("region", { name: opponentTitle(gameweek) });
@@ -90,7 +91,7 @@ describe("the Tactics tab's GW opponent widget", () => {
   });
 
   it("shows the odd team out on a bye, with no matchup", async () => {
-    const table = leagueTableOf(TEAMS.slice(0, 3), { oddTeamOut: "bye" });
+    const table = withByes(leagueTableOf(TEAMS.slice(0, 3)));
     const gameweek = sittingOutIn(table);
     openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });
     const widget = await screen.findByRole("region", { name: opponentTitle(gameweek) });

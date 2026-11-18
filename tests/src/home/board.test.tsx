@@ -21,8 +21,10 @@ import {
   MAIL_TITLE,
   mailViews,
   moreOnNewsLink,
-  needsYouToComeWords,
+  needsYouCountWords,
   NEWS_PANEL_TITLE,
+  nothingNeedsYouWords,
+  starterNeedsYouWords,
   noMatchesWords,
   noMovesWords,
   noSquadNewsWords,
@@ -46,36 +48,56 @@ import { scoreWords } from "../../../src/matchup/words";
 import { formLabel } from "../../../src/shared/match/words";
 import { gameweekOneRecap, homeFixture, homeRow, quietYours } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";
+import { mailLetter } from "../../support/src/mailScreen.harness";
 import { commissioner, league, manager, openApp, panel } from "../../support/src/shell.harness";
 const follows = (first: Element, second: Element) => Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 describe("Mail", () => {
-  const letter: LetterSummary = { letterId: "letter-1" as Id<"letters">, leagueName: league.name, at: Date.now(), kind: null, from: null, subject: "Set your lineup", body: "GW1 locks soon.", read: false };
+  const letter: LetterSummary = { ...mailLetter(1, false), subject: "Draft night", body: "Friday at eight." };
+  const offer: LetterSummary = { ...mailLetter(2, false, null, "trade"), subject: "Trade offer: Rice for Palmer", needsYou: true };
+  const flagged = (playerCode: number, name: string, chanceOfPlaying: number | null) => ({ playerCode, name, news: "Knock", chanceOfPlaying, kickoff: null });
+  const lineup = { set: true, flagged: [flagged(1, "Saka", 50), flagged(2, "Watkins", 0), flagged(3, "Rice", 100)] };
+  const needsYouTab = (mail: HTMLElement) => within(mail).getByRole("radio", { name: new RegExp(`^${mailViews.needsYou}`) }) as HTMLInputElement;
 
-  it("lists the newest letters, each opening in Mail; Needs you holds a line until its grill", async () => {
-    const app = withHome({}, { mail: { letters: [letter], unread: 1 } });
+  it("S12.15 S16.7: opens on Needs you: each doubtful or out starter, opening Tactics, then each letter waiting on you, opening Mail", async () => {
+    const app = withHome({ yours: { ...quietYours, lineup } }, { mail: { letters: [letter], unread: 2, needsYou: [offer] } });
     const mail = await panel(MAIL_TITLE);
-    expect(within(mail).getByText("Set your lineup")).toBeTruthy();
+    expect(needsYouTab(mail).checked).toBe(true);
+    expect(needsYouTab(mail).labels?.[0].textContent).toBe(needsYouCountWords(3));
+    const rows = within(mail).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([starterNeedsYouWords("Saka", "doubtful"), starterNeedsYouWords("Watkins", "out"), expect.stringContaining(offer.subject)]);
+    expect(within(mail).queryByText(letter.subject)).toBeNull();
 
-    await userEvent.click(within(mail).getByRole("radio", { name: mailViews.needsYou }));
-    expect(within(mail).getByText(needsYouToComeWords)).toBeTruthy();
-    expect(within(mail).queryByText("Set your lineup")).toBeNull();
+    await userEvent.click(within(mail).getByRole("link", { name: starterNeedsYouWords("Saka", "doubtful") }));
+    expect(app.path()).toBe(MY_TEAM_PATH);
+  });
 
+  it("S16.3: a letter waiting on you opens in Mail, and All lists the newest letters", async () => {
+    const app = withHome({}, { mail: { letters: [letter], unread: 2, needsYou: [offer] } });
+    const mail = await panel(MAIL_TITLE);
     await userEvent.click(within(mail).getByRole("radio", { name: mailViews.all }));
-    await userEvent.click(within(mail).getByRole("link", { name: /Set your lineup/ }));
+    expect(within(mail).queryByText(offer.subject)).toBeNull();
+    await userEvent.click(within(mail).getByRole("link", { name: /Draft night/ }));
     expect(app.path()).toBe(MAIL_PATH);
   });
 
-  it("keeps the board up, and Needs you chosen, while the next minute's league home loads (#1534)", async () => {
-    const app = withHome({}, { mail: { letters: [letter], unread: 1 } });
-    await userEvent.click(within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.needsYou }));
+  it("S12.15: with nothing waiting, Needs you says so", async () => {
+    withHome({}, { mail: { letters: [letter], unread: 1, needsYou: [] } });
+    const mail = await panel(MAIL_TITLE);
+    expect(needsYouTab(mail).labels?.[0].textContent).toBe(needsYouCountWords(0));
+    expect(within(mail).getByText(nothingNeedsYouWords)).toBeTruthy();
+  });
+
+  it("keeps the board up, and All chosen, while the next minute's league home loads (#1534)", async () => {
+    const app = withHome({}, { mail: { letters: [letter], unread: 1, needsYou: [] } });
+    await userEvent.click(within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.all }));
 
     app.home.useLeagueHome.mockReturnValue(undefined);
     app.becomes({ ...manager });
     await waitFor(() => expect(app.home.useLeagueHome).toHaveLastReturnedWith(undefined));
 
     expect(screen.queryByText(loadingWords)).toBeNull();
-    expect((within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.needsYou }) as HTMLInputElement).checked).toBe(true);
+    expect((within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.all }) as HTMLInputElement).checked).toBe(true);
   });
 });
 

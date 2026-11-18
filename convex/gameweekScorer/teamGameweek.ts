@@ -227,12 +227,12 @@ export function slotInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fixt
   return { slot, inMatch: scoredByMatch(slot, his).find(({ match }) => match.fixture.code === fixtureCode) ?? null };
 }
 
-/** A man's slot in the team and his points in one match: null when the lineup doesn't hold him,
- *  or the match isn't one of his. */
-export function pointsInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fixtureCode: number): { slot: SlotPoints; points: number | null } | null {
+/** A man's slot in the team and his points in one match, with each category's: null when the
+ *  lineup doesn't hold him, or the match isn't one of his. */
+export function pointsInMatch(scored: TeamInGameweek, playerCode: PlayerCode, fixtureCode: number): { slot: SlotPoints; points: number | null; categories: MatchPoints["categories"] } | null {
   const found = slotInMatch(scored, playerCode, fixtureCode);
   if (found === null || found.inMatch === null) return null;
-  return { slot: found.slot, points: found.inMatch.points.total };
+  return { slot: found.slot, points: found.inMatch.points.total, categories: found.inMatch.points.categories };
 }
 
 /** A man's part in each match he has a record in, by match code: his record once whole, whether he

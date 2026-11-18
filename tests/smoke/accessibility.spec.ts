@@ -1,8 +1,7 @@
-// Accessibility on the plate's settled rules only (#2137), on the dev server's preview at the desk's
-// width. Two of plate.md's rules are WCAG's, and axe holds every built screen to just those:
-// text contrast at AA (1.4.3; plate.md, Colour roles: "The pairs meet WCAG 2.1 AA") and a link in
-// running text told from its words by more than colour (1.4.1; Colour roles: link). The rest of
-// WCAG waits for Craig's answer on how far to go. One Tab shows the focus ring as plate.md draws it
+// Accessibility, on the dev server's preview at the desk's width. axe holds every built screen to the
+// whole of WCAG 2.1 AA (spec/12 S12.14; Craig, 15 Nov 2026, #2176), plate.md's two WCAG rules among
+// it: text contrast at AA (1.4.3; Colour roles: "The pairs meet WCAG 2.1 AA") and a link in running
+// text told from its words by more than colour (1.4.1; Colour roles: link). One Tab shows the focus ring as plate.md draws it
 // (Colour roles: focus); tests/src/focusRing.test.ts fails any CSS that takes it away.
 
 import AxeBuilder from "@axe-core/playwright";
@@ -12,8 +11,8 @@ import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 import { test } from "../support/smoke/errorsTest";
 import { previewUrl } from "../support/smoke/previewUrl";
 
-/** axe's rules for the WCAG criteria plate.md settles, and no others. */
-const PLATE_RULES = ["color-contrast", "link-in-text-block"];
+/** axe's tags for every WCAG 2.1 rule at levels A and AA (S12.14). */
+const WCAG_21_AA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
 /** The focus ring's colour, `--color-derived`, as the browser reports it. */
 const RING_COLOUR = "rgb(107, 253, 250)";
@@ -22,14 +21,16 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test.use({ viewport: DESK });
 
   for (const [session, path, title] of BUILT_SCREENS) {
-    test(`?preview=${session} at ${path} keeps plate.md's contrast and link rules (axe)`, async ({ page }) => {
+    test(`?preview=${session} at ${path} meets WCAG 2.1 AA (axe, S12.14)`, async ({ page }) => {
       await page.goto(previewUrl(path, session));
       await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
-      const { violations, passes } = await new AxeBuilder({ page }).withRules(PLATE_RULES).analyze();
+      const { violations, passes } = await new AxeBuilder({ page }).withTags(WCAG_21_AA).analyze();
       // axe measured text here, rather than leaving every node unsure over the see-through panels
       expect(passes.find(({ id }) => id === "color-contrast")?.nodes.length ?? 0, "text axe measured").toBeGreaterThan(0);
-      const found = violations.flatMap(({ id, nodes }) => nodes.map((node) => `${id}: ${node.target.join(" ")}: ${node.failureSummary ?? ""}`));
-      expect(found, "breaks of plate.md's WCAG rules").toEqual([]);
+      const found = violations.flatMap(({ id, nodes }) =>
+        nodes.map((node) => `${id}: ${node.target.join(" ")}: ${node.failureSummary ?? ""}`),
+      );
+      expect(found, "breaks of WCAG 2.1 AA").toEqual([]);
     });
   }
 

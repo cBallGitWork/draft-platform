@@ -107,3 +107,21 @@ export function labelPositions(positionInfo: string): Position[] | null {
   }
   return Object.hasOwn(ROLE_POSITIONS, role) ? [...ROLE_POSITIONS[role]] : null;
 }
+
+/** A club page's Squad tab's groups (scouting/clubSquad.ts), in order, and the positions each takes: FM's split (Craig, 12 Nov 2026:
+ *  "GK DEF MID AM FWD"). A player goes in the group of his first position, back to front. */
+export const SQUAD_GROUPS = {
+  GK: ["GK"],
+  DEF: ["CB", "FB", "WB"],
+  MID: ["CDM", "CM", "WM"],
+  AM: ["CAM", "W"],
+  FWD: ["SS", "ST"],
+} as const satisfies Record<string, readonly Position[]>;
+export type SquadGroup = keyof typeof SQUAD_GROUPS;
+
+/** His group: the one of his first position, back to front; null with no position, at the bottom. */
+export function squadGroupOf(positions: readonly Position[]): SquadGroup | null {
+  const first = positions.toSorted((one, other) => positionRank(one) - positionRank(other))[0];
+  if (first === undefined) return null;
+  return (Object.keys(SQUAD_GROUPS) as SquadGroup[]).find((group) => (SQUAD_GROUPS[group] as readonly Position[]).includes(first))!;
+}

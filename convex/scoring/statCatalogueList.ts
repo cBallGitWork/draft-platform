@@ -15,7 +15,7 @@ import {
   DRIBBLED_PAST, DRIBBLES_WON, DUELS_WON, ERRORS_TO_A_GOAL, ERRORS_TO_A_SHOT, FOULS, FOULS_DRAWN, GOALS,
   GOALS_CONCEDED, HIGH_CLAIMS, INTERCEPTIONS, KEY_PASSES, LAST_MAN_TACKLES, LAUNCHES, LONG_BALLS, OFFSIDES,
   OWN_GOALS, PASSES, PENALTIES_MISSED, PENALTIES_SAVED, POSSESSION_LOST, PUNCHES, RECOVERIES, RED_CARDS, SAVES,
-  SAVES_INSIDE_THE_BOX, SHOTS, SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
+  SAVES_INSIDE_THE_BOX, SECOND_YELLOWS, SHOTS, SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
 } from "./statKeys";
 
 export interface CatalogueStat {
@@ -248,7 +248,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "saved_obox", name: "Saved obox", shortCode: "SO" },
   { stat: SAVES, name: "Saves", shortCode: "S" },
   { stat: "second_goal_assist", name: "Second goal assist", shortCode: "SGA" },
-  { stat: "second_yellow", name: "Second yellow", shortCode: "SY" },
+  { stat: SECOND_YELLOWS, name: "Second yellow", shortCode: "SY" },
   { stat: "shield_ball_oop", name: "Shield ball oop", shortCode: "SBO" },
   { stat: "shot_created", name: "Shot created", shortCode: "SC" },
   { stat: "shot_fastbreak", name: "Shot fastbreak", shortCode: "SF" },

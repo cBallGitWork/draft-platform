@@ -1,11 +1,11 @@
 import { v, type Infer } from "convex/values";
-import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
+import { draftRulesOf, drawRulesOf, tieBreaksOf, tradeRulesOf } from "./firstRules";
 import { squadMaximumOf } from "./squadMaximums";
-import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
+import { draftRulesShape, leagueRulesShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
 // league; players' points are the site's (spec/14, Who owns it). The format, the deadline, the
-// double gameweek rule and the table's tie-breaks (spec/03; #1034), the round robin's two (spec/09),
+// double gameweek rule and the table's tie-breaks (spec/03; #1034), the round robin's games a gameweek (spec/09),
 // the squad's make-up (spec/03, Squad make-up; #341), how the draft runs (spec/04; #1087), how
 // trades do (spec/08; #383) and how waivers do (spec/08; #1200). Pure, so the screens' previews read it too; leagueSettings.ts reads
 // and saves it.
@@ -20,7 +20,6 @@ export const leagueSettingsShape = v.object({
   doubleGameweek: rules.doubleGameweek,
   /** In the league's order, which the commissioner changes (S03.2). */
   tieBreaks: rules.tieBreaks,
-  oddTeamOut: oddTeamOutShape,
   gamesPerGameweek: v.number(),
   /** The squad size's maximum; null for rules with no squad size limit, which keep none. */
   squadMaximum: v.union(v.number(), v.null()),
@@ -35,12 +34,12 @@ export type LeagueSettings = Infer<typeof leagueSettingsShape>;
 
 /** The league's settings as League settings shows them: the draw's as it plays by them, so rules
  *  saved before they were rules read as the first rules' values (`drawRulesOf`), and the draft's
- *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`). */
+ *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`), and every tie-break (`tieBreaksOf`). */
 export const leagueSettingsOf = (rules: LeagueRules): LeagueSettings => ({
   format: rules.format,
   deadline: rules.deadline,
   doubleGameweek: rules.doubleGameweek,
-  tieBreaks: rules.tieBreaks,
+  tieBreaks: tieBreaksOf(rules),
   ...drawRulesOf(rules),
   squadMaximum: squadMaximumOf(rules),
   minimumByArea: rules.squad.minimumByArea,

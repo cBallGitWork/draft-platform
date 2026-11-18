@@ -6,7 +6,7 @@
 
 import { expect } from "@playwright/test";
 import { MY_TEAM_PATH } from "../../src/frame/menu";
-import { moveLabel, pitchLabel, playerOnPitchLabel, savedWords, selectionTableLabel, swapLabel } from "../../src/myTeam/tactics/words";
+import { moveLabel, onPitchWords, pitchLabel, savedWords, selectionTableLabel, swapLabel } from "../../src/myTeam/tactics/words";
 import { FIXED_NOW } from "../../scripts/fixedClock.mjs";
 import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
@@ -23,7 +23,8 @@ test.describe("the lineup, on the dev server's preview", { tag: "@dev" }, () => 
   test("swaps a starter with a bench player, saves, and the pitch shows it", async ({ page }) => {
     await page.goto(previewUrl(MY_TEAM_PATH, "manager"));
     const pitch = page.getByRole("group", { name: pitchLabel });
-    const onPitch = (name: string) => pitch.getByRole("button", { name: playerOnPitchLabel(name, ["ST"], UP_FRONT.area, UP_FRONT.lane) });
+    // His block's name opens with the words it shows, his among them, and ends with his place.
+    const onPitch = (name: string) => pitch.getByRole("button", { name: new RegExp(`\\b${name}\\b.*, ${onPitchWords(["ST"], UP_FRONT.area, UP_FRONT.lane)}$`) });
     await expect(onPitch(HAALAND)).toBeVisible();
 
     await page.getByRole("table", { name: selectionTableLabel }).getByRole("button", { name: HAALAND, exact: true }).click();

@@ -7,6 +7,8 @@ letters, newest first. It reports; it never advises.
 
 - Its own screen, and also down the side of My team.
 - An unread count in the menu.
+- The count stops at 99: past it, the menu shows "99+" (Craig, 7 Nov 2026, on #906: "sure keep";
+  #2351). `S16.6`
 - It files: the next deadline; your results; injury doubts, yours and your next opponent's (from
   Sportmonks' injuries and suspensions, judged in the trial (`spec/20`; Craig, 9 Nov 2026, on
   #1196: "ive heard its not great but lets see"));
@@ -29,5 +31,8 @@ letters, newest first. It reports; it never advises.
 - Needs you: the letters waiting on you are a lineup to set, a trade offer to you and, for the
   commissioner, a trade to review; Mail and Home's Mail panel both split All | Needs you | Unread
   (Craig, 9 Nov 2026). `S16.3`
+- A starter flagged doubtful or out (`spec/12` S12.9) is a Needs you letter too, such as "Saka is
+  doubtful and starts", opening Tactics; claims waiting are not (Craig, 16 Nov 2026, on #2443).
+  `S16.7`
 - The deadline letter says how your lineup stands, such as "Lineup set, 1 doubt in your eleven"
   (Craig, 9 Nov 2026: "Yes, show it"). `S16.4`
