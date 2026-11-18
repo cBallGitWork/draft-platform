@@ -66,6 +66,12 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this line-up has ${problem.centreBacks}.`;
     case "roleNotHis":
       return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't play ${roleName(problem.role)}.`;
+    case "lineUnknown":
+      return `${nameOf(problem.playerCode)} has no line yet, so he can't start.`;
+    case "lineAboveMaximum":
+      return `The league starts at most ${problem.maximum} ${problem.line}; this line-up starts ${problem.starterCount}.`;
+    case "lineBelowMinimum":
+      return `The league starts at least ${problem.minimum} ${problem.line}; this line-up starts ${problem.starterCount}.`;
   }
 }
 

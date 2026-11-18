@@ -1,6 +1,8 @@
 import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
+import type { AreaLimit } from "../lineup/lineup";
+import type { Line } from "../positions/lines";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { FIRST_PRESETS } from "../lineup/presets";
 import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classicFormations";
@@ -10,8 +12,8 @@ import { TIE_BREAKS } from "../table/standings";
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
-// reads this file but `draftRulesOf`, `tradeRulesOf`, `instructionsOf` and `classicFormationsOf`, for
-// rules saved before the draft, trades, the team instructions and the classic formations were among them. The scoring is not a league's rule but the
+// reads this file but `draftRulesOf`, `tradeRulesOf`, `instructionsOf`, `classicFormationsOf` and `lineLimitsOf`,
+// for rules saved before the draft, trades, the team instructions, the classic formations and the line limits were among them. The scoring is not a league's rule but the
 // site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
 //
 // Only the presets, the team instructions, the deadline, the double-gameweek rule, games a
@@ -71,6 +73,19 @@ export const drawRulesOf = ({ gamesPerGameweek }: LeagueRules): DrawRules => ({ 
 /** The team instructions a league picks from: the first rules' for rules saved before #990 made
  *  them rules. */
 export const instructionsOf = (rules: Pick<LeagueRules, "instructions">): readonly Instruction[] => rules.instructions ?? FIRST_INSTRUCTIONS;
+
+/** Craig's (15 Nov 2026; spec/22 `S22.9`): each line's limits on a classic league's pitch, a
+ *  league rule its commissioner can change (16 Nov 2026). */
+const FIRST_LINE_LIMITS: Record<Line, AreaLimit> = {
+  GK: { minimum: 1, maximum: 1 },
+  DEF: { minimum: 3, maximum: 5 },
+  CM: { minimum: 1, maximum: 5 },
+  AM: { minimum: 0, maximum: 4 },
+  FWD: { minimum: 1, maximum: 3 },
+};
+
+/** Each line's limits on a classic league's pitch: the first rules' for rules that never set them. */
+export const lineLimitsOf = (rules: Pick<LeagueRules, "lineLimits">): Record<Line, AreaLimit> => rules.lineLimits ?? FIRST_LINE_LIMITS;
 
 export const FIRST_RULES: LeagueRules = {
   format: "headToHead", // a starting value (spec/01): the Tim Hortons league plays head-to-head matchups

@@ -1,5 +1,6 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area, type Cell } from "../lineup/pitch";
+import { LINE_NAMES } from "../positions/lines";
 import { AREA_WORDS, LANE_WORDS } from "../lineup/pitchWords";
 import { inClassicFormationShape } from "../lineup/classicFormations";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
@@ -25,7 +26,8 @@ export class UnsoundRules extends Error {}
  *  many can play its games a gameweek. */
 export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, maxTeams?: number): void {
   checkSquad(rules.squad);
-  checkAreaLimits(rules.areaLimits);
+  checkPitchLimits(rules.areaLimits, AREAS, (area) => `On the pitch, ${areaWords(area)}`, "areas'");
+  if (rules.lineLimits !== undefined) checkPitchLimits(rules.lineLimits, LINE_NAMES, (line) => `On the pitch, ${line}`, "lines'");
   checkPresets(rules.presets, rules.areaLimits);
   checkInstructions(instructionsOf(rules), rules.presets);
   if (rules.classics !== undefined) checkClassicFormations(rules.classics, rules.presets, instructionsOf(rules));
@@ -103,18 +105,18 @@ const areaWords = (area: Area) => AREA_WORDS[area].toLowerCase();
 /** A cell mid-sentence: its area then its lane, "midfield right-centre". */
 const cellWords = ({ area, lane }: Cell) => `${areaWords(area)} ${LANE_WORDS[lane]}`;
 
-const sumOf = (limits: Record<Area, AreaLimit>, end: keyof AreaLimit) =>
-  AREAS.reduce((total, area) => total + limits[area][end], 0);
-
-function checkAreaLimits(limits: Record<Area, AreaLimit>): void {
-  for (const area of AREAS) checkLimit(limits[area], `On the pitch, ${areaWords(area)}`);
-  const minimums = sumOf(limits, "minimum");
-  const maximums = sumOf(limits, "maximum");
+/** Each area's limits on the pitch, or in classic mode each line's (spec/22 `S22.9`): each sound,
+ *  and room for the eleven who start. */
+function checkPitchLimits<Key extends string>(limits: Record<Key, AreaLimit>, keys: readonly Key[], what: (key: Key) => string, whose: string): void {
+  for (const key of keys) checkLimit(limits[key], what(key));
+  const sumOf = (end: keyof AreaLimit) => keys.reduce((total, key) => total + limits[key][end], 0);
+  const minimums = sumOf("minimum");
+  const maximums = sumOf("maximum");
   if (minimums > STARTER_COUNT) {
-    throw new UnsoundRules(`The areas' minimums on the pitch add up to ${minimums}, more than the ${STARTER_COUNT} who start.`);
+    throw new UnsoundRules(`The ${whose} minimums on the pitch add up to ${minimums}, more than the ${STARTER_COUNT} who start.`);
   }
   if (maximums < STARTER_COUNT) {
-    throw new UnsoundRules(`The areas' maximums on the pitch add up to ${maximums}, fewer than the ${STARTER_COUNT} who start.`);
+    throw new UnsoundRules(`The ${whose} maximums on the pitch add up to ${maximums}, fewer than the ${STARTER_COUNT} who start.`);
   }
 }
 

@@ -200,6 +200,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring" | "oddTeamOut", str
   trades: "trade settings",
   instructions: "team instructions",
   classic: "classic mode",
+  lineLimits: "line limits on the pitch",
   scoring: "scoring",
 };
 
