@@ -23,7 +23,7 @@ export const refusals = {
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
   notCommissioner: "Only the league's commissioner can step down as its commissioner.",
   noOneToTakeOver: "There's no co-commissioner or other manager in the league to take the role on.",
-  notDeleter:"Only the league's commissioner or the admin can delete it.",
+  notDeleter: "Only the league's commissioner or the admin can delete it.",
   beingDeleted: "This league is being deleted, so nothing in it can change unless that is undone.",
   notBeingDeleted: "This league isn't being deleted.",
   notUndoer: "Only the league's commissioner or the admin can undo it.",
