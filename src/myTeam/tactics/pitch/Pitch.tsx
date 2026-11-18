@@ -200,16 +200,16 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
 /** The attribute marking a starter's role chip on the pitch, which opens his role card (#848). */
 export const ROLE_CHIP_MARK = "data-role-chip";
 
-/** The role's short name on his area's colour, cut to fit the lane with its full name on hover
- *  (#2649), then his stars for it on the plate. */
+/** The role's short name on his area's colour, on a line of its own so it has the lane's width, cut
+ *  to fit it with its full name on hover (#2649), then his stars for it on the plate under it. */
 function RoleChip({ chip }: { chip: PitchChip }) {
   const { fill, ink } = chipColoursOf(chip.position);
   return (
-    <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer items-center leading-pitch-chip">
-      <span title={chip.roleName} className={`min-w-0 truncate px-1 font-bold ${fill} ${ink}`}>
+    <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer flex-col items-center leading-pitch-chip">
+      <span title={chip.roleName} className={`max-w-full truncate px-1 font-bold ${fill} ${ink}`}>
         {chip.shortName}
       </span>
-      <span className="flex shrink-0 items-center self-stretch bg-name-plate px-0.5">
+      <span className="flex items-center bg-name-plate px-0.5 py-px">
         <StarRating stars={chip.stars} subject={chip.roleName} size="h-pitch-star w-pitch-stars" />
       </span>
     </span>
