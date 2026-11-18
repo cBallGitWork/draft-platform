@@ -250,6 +250,7 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam | "usePe
   ...previewShortlist,
   ...previewScouts,
   useAddToQueue: () => addToQueue,
+  useDraftNotOver: () => true,
   useComparison: (_leagueId, codes, stat, period) => {
     if (codes === null) return undefined;
     const area = mainArea(previewPlayer(codes[0]).positions);

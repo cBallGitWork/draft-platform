@@ -12,7 +12,9 @@ import { previewGameweek, previewTeamNames, proLeague } from "../../../src/share
 import { previewTable } from "../../../src/table/preview";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { previewMail } from "../../../src/mail/preview";
-import { previewFirstLineup, previewSquad } from "../../../src/myTeam/tactics/preview";
+import { previewFirstLineup, previewSquad, previewTactics } from "../../../src/myTeam/tactics/preview";
+import { previewSeason } from "../../../src/shared/previewDraw";
+import { nextByDeadlines } from "../../../convex/gameweeks/nextGameweek";
 import { previewTrades } from "../../../src/trades/preview";
 import { previewMyTeam } from "../../../src/myTeam/preview";
 import { pointsOf, seasonFigures } from "../../../src/playerCard/gameLog";
@@ -82,6 +84,18 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(openingGameweek(previewPremierLeague.useGameweeks()!.firstKickoffs, now)).toBe(previewGameweek);
   // The card's newest match is the one still being played.
   expect(card.matches[0].gameweek).toBe(previewGameweek);
+});
+
+it("S12.10: dates League home's strip and My team's deadline from the one season, My team's the next it hasn't locked (#2652)", () => {
+  const home = previewHome.useLeagueHome(leagueId, now)!;
+  const tactics = renderHook(() => previewTactics.useTactics(leagueId, now)).result.current;
+  if (tactics?.kind !== "open") throw new Error("the tactics preview is open");
+
+  expect(home.deadline).toBe(previewSeason.deadlineOf(home.thisGameweek!.gameweek));
+  expect(tactics.deadline).toBe(previewSeason.deadlineOf(tactics.gameweek));
+  expect(tactics.gameweek).toBe(nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, now));
+  // The last matches and the last-played gameweek hang off previewGameweek: the one being set follows it.
+  expect(tactics.gameweek).toBe(previewGameweek + 1);
 });
 
 /** The matchup preview's head-to-head as it opens, with no minute asked, and its commentary. */
