@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { UNDRAFTED_GO_TO } from "../draft/draftRules";
 import { instructionPairShape, instructionShape } from "../lineup/instructionsShape";
-import { byArea, cellShape } from "../lineup/pitchShape";
+import { byArea, cellShape, objectOf } from "../lineup/pitchShape";
+import { LINE_NAMES } from "../positions/lines";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
 import { TIE_BREAKS } from "../table/standings";
@@ -124,6 +125,10 @@ export const leagueRulesShape = v.object({
   /** Whether the league plays classic mode (spec/22, `S22.1`): picked when it is made, never
    *  changed (`S22.2`). Absent from every league that doesn't, so their rules are as before. */
   classic: v.optional(v.boolean()),
+  /** Each line's minimum and maximum on the pitch in classic mode (spec/22, `S22.9`): lineup.ts's
+   *  ClassicLineup["lineLimits"]. Absent, as `draft` is, from rules that never set them, which
+   *  play the first rules' (firstRules.ts, `lineLimitsOf`). */
+  lineLimits: v.optional(objectOf(LINE_NAMES, limit)),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
