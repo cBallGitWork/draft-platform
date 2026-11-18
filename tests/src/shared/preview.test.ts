@@ -86,7 +86,7 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(card.matches[0].gameweek).toBe(previewGameweek);
 });
 
-it("S12.10: dates League home's strip, My team's deadline and its waiver window from the one season, My team's the next it hasn't locked (#2652, #2697)", () => {
+it("S12.10: dates League home's strip and My team's deadline from the one season, My team's the next it hasn't locked (#2652)", () => {
   const home = previewHome.useLeagueHome(leagueId, now)!;
   const tactics = renderHook(() => previewTactics.useTactics(leagueId, now)).result.current;
   if (tactics?.kind !== "open") throw new Error("the tactics preview is open");
