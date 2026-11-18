@@ -42,3 +42,17 @@ From the same grill.
   so every team plays the same number of games ("ok").
 - An edit leaves every other gameweek as drawn; nothing is redrawn to even it out.
 - With an odd number of teams, the league's average can be swapped like a team.
+
+## Awards
+
+From the awards grill (Craig, 18 Nov 2026).
+
+- Manager of the Month goes to the team with the most points over the gameweeks that start in
+  that month; Player of the Season to the player with the most points over the season. Mail
+  announces each ("Most points"). `S09.5`
+- Teams level for Manager of the Month are split by the league's table tie-breaks, in its order
+  ("Tie-break"). `S09.6`
+- A month in which no gameweek starts has no Manager of the Month, and nothing is sent ("No
+  award"). `S09.7`
+- Each team's page lists the awards it has won ("Manager of the Month, Oct"); a league history
+  page is not settled ("On the team's page"). `S09.8`

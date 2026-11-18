@@ -102,6 +102,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
       only the matches where one of the two of you has a player; All fixtures opens the Premier
       League. `S12.12`
+    - Once a match kicks off, the panel shows its live score, and the full-time score after; the
+      live screen keeps the detail (Craig, 18 Nov 2026: "Yes, live scores"). `S12.23`
+  - Home's Calendar tab is a month grid, as FM's is: each day holds the league's gameweeks and
+    deadlines, the draft, breaks (`spec/13`) and waiver runs (`spec/08`). It is drawn and approved
+    through `/design` before it is built (Craig, 18 Nov 2026: "Month grid, like FM"). `S12.24`
   - Craig, 16 Nov 2026, on #2443, how Home shows what needs a manager: no new panel. The
     deadline strip and Mail's Needs you are the to-do: Mail's panel sits at the top of the left
     column, under the strip, and opens on Needs you. Nothing more says what happens if he does

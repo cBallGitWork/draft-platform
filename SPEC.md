@@ -72,6 +72,11 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 ## Later
 
 - **Mock drafts**: managers practising before the real draft (Craig, 2 Nov 2026).
+- **Redrafts and split seasons**: a whole or top-up redraft mid-season, and teams joining at a
+  split; after the beta (Craig, 18 Nov 2026). FPL Draft allows up to three that leave the table
+  alone.
+- **Our own home stadiums**: each team names its ground, its logo on the pitch; after the beta
+  (Craig, 18 Nov 2026).
 - **Undoing a waiver run**, for the commissioner (Craig, 5 Nov 2026; spec/08).
 - **Contesting a rule change**: every change already sends the league a letter (Craig, 18 Nov 2026;
   spec/03).
