@@ -26441,6 +26441,13 @@
             "leagueId",
             "month"
           ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_month",
+          "fields": [
+            "teamId",
+            "month"
+          ]
         }
       ],
       "stagedDbIndexes": [],

@@ -9,6 +9,7 @@ import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
 import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
+import { awardsHead } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
@@ -21,6 +22,7 @@ const POTATOES: OtherSquad = {
     { code: 2001, name: "Palmer", fullName: "Cole Palmer", positions: ["CAM", "W"], club: CHELSEA, gone: false, seasonPoints: 41.5 },
     { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", positions: ["W"], club: ARSENAL, gone: true, seasonPoints: null },
   ],
+  awards: [],
 };
 
 const openTeam = (myTeam: MyTeamData = { otherSquad: POTATOES }) => openApp(otherTeamPath(league.leagueId, SAKA_POTATOES), manager, { myTeam, playerCard: HELD });
@@ -70,8 +72,23 @@ describe("the page", () => {
   });
 
   it("says so when the squad is empty", async () => {
-    openTeam({ otherSquad: { teamName: "Team 2", players: [] } });
+    openTeam({ otherSquad: { teamName: "Team 2", players: [], awards: [] } });
     expect(await screen.findByText(otherSquadEmptyWords)).toBeTruthy();
+  });
+
+  it("S09.8 lists the awards the team has won, each with its year on hover", async () => {
+    openTeam({ otherSquad: { ...POTATOES, awards: ["2026-10", "2027-01"] } });
+    await table();
+    const awards = screen.getByText(awardsHead).nextElementSibling!;
+    const each = within(awards as HTMLElement).getAllByText(/^Manager of the Month/);
+    expect(each.map((award) => award.textContent)).toEqual(["Manager of the Month, Oct", "Manager of the Month, Jan"]);
+    expect(each[0].getAttribute("title")).toBe("Manager of the Month, October 2026");
+  });
+
+  it("S09.8 a team that has won nothing shows no awards", async () => {
+    openTeam();
+    await table();
+    expect(screen.queryByText(awardsHead)).toBeNull();
   });
 
   it("someone not in the league is sent to their leagues", async () => {
