@@ -321,8 +321,8 @@ From Craig, 1 Nov 2026.
   2026, on #1196). `S05.11`
 - The redrawn roles' backtest runs on all of ai-carling's past seasons, each player matched to his
   Sportmonks player through FPL's code ("All past seasons", Craig, 9 Nov 2026, on #1196). `S05.33`
-- Sportmonks' xG add-on is priced during the paid trial, with no spend agreed ("Price it in the
-  trial", Craig, 9 Nov 2026, on #1196). `S05.34`
+- Sportmonks' xG add-on was priced during the paid trial (Basic €19 a month, per player after full
+  time; live €199) and isn't bought: "leave the extra cost" (Craig, 17 Nov 2026). `S05.34`
 - A role the backtest puts more than 0.25 points a start off its target fails it, and the build
   redrafts its values until it lands within 0.25. The new values go into the site's set as a patch
   from the next gameweek not begun, and the PR lists each role it changed, old against new, for
