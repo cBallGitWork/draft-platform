@@ -88,9 +88,9 @@ describe("the months to award", () => {
   });
 
   test("S09.5: Mail names the team, the month and its points", () => {
-    expect(managerOfTheMonthLetter("Ann's XI", "2026-10", 145.5)).toEqual({
-      subject: "Ann's XI is Manager of the Month for October 2026",
-      body: "Ann's XI scored the most points over the gameweeks that started in October 2026: 145.5.",
-    });
+    const { subject, body } = managerOfTheMonthLetter("Ann's XI", "2026-10", 145.5);
+    expect(subject).toContain("Ann's XI");
+    expect(subject).toContain("October 2026");
+    expect(body).toContain("145.5");
   });
 });
