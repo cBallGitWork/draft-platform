@@ -108,18 +108,6 @@ liverpools team, and it goes red and white"; then "put on to do list").
   back.
 - Premier League clubs' colours come from the admin's club colours (`spec/15`).
 
-**Overriding any player's or team's score, the rest**: who, what, when, undo and the team
-override's place are settled in `spec/14` (Craig, 7 Nov 2026; #903). Still open:
-- Whether each player's row on the matchup carries the player override too, as well as his card.
-
-**Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
-Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
-- What marks a doubtful or out player: Sportmonks' injuries and suspensions (in place of FPL's
-  chance of playing, Craig, 9 Nov 2026, on #1196), a blank gameweek, or both.
-- Where it shows: the pitch's starters, the bench, the squad list, or all of them.
-- Whether its levels each look different, once the trial shows what levels Sportmonks sends, and
-  what a phone shows.
-
 **Formation descriptions**: the formation window shows each formation's and each classic side's
 description, and the Guide would too.
 - Where a formation's description lives: held with the formation, shown in the formation window
@@ -148,8 +136,8 @@ places these; none says yet what it holds or does, and each is a placeholder unt
 
 **Home's tabs, Overview | News | Calendar**. News was settled on 8 Nov 2026
 (`docs/design/approved/home/README.md`, The News tab).
-- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
-  below) and waivers' runs (`spec/08`).
+- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (`spec/13`,
+  Breaks) and waivers' runs (`spec/08`).
 
 **The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
 Table).
@@ -168,8 +156,8 @@ The picture lists this gameweek's matches with your players and your opponent's 
 
 **Your squad news on Home**: the picture lists your players who are injured, suspended, doubtful or
 a booking from a ban.
-- Which of Sportmonks' injury and suspension statuses it reads, as Status chips' data and Who's
-  doubtful, on Tactics (above) ask.
+- Which of Sportmonks' injury and suspension statuses it reads, as Status chips' data (above) and
+  Tactics' marks (`spec/05`, S05.57) ask.
 - Only your squad, or your starters first.
 
 **Home through the season**: the boards for each state, drawn as the plan for later, each grilled
@@ -181,12 +169,6 @@ when its feature is built (`docs/design/approved/home/`).
 - The Monday after: the gameweek final, its result and the recap (#387).
 - When each state starts and ends.
 
-**Break weeks**: "when its international break, we lock everything and give the league a break"
-(Craig, 1 Nov 2026; https://trello.com/c/YD6AFJW2).
-- Claims, waivers and trades lock too: settled in `spec/13`, Gameweeks (Craig, 1 Nov 2026: "yes").
-- Every international break, or the commissioner's pick, as gameweeks are ticked now.
-- What Home and Mail say during one (the break picture).
-
 **A league's name on Your leagues opens its League home**: the approved Your leagues picture
 (Craig, 1 Nov 2026: "yes to all").
 - Does it switch the current league too (`spec/13`, Several leagues)?
@@ -196,17 +178,6 @@ on #454). Rules can change many times a season (`spec/03`); when a change takes 
 - Can a commissioner change the league's rules after a gameweek's deadline, with games under way,
   such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
 - Can a manager contest a change, and who settles it?
-
-**A league with no commissioner**: League settings, the draft, trades, season admin (Craig,
-18 Nov 2026: "add it, and allow somebody to take the role at some point"). Every league has one
-now (`spec/01`).
-- Is "no commissioner" chosen when the league is made, or by the commissioner stepping down?
-- Each commissioner job then runs on its default: the draft order random, the start date fixed,
-  waivers on their schedule, trades with no review or a league vote. Which jobs fall to the
-  admin instead: pausing the draft, undoing a pick, picking for a team, handing a team on?
-- Taking the role later: any manager asks and the admin approves, the league votes, or the
-  first to ask gets it? Can it be taken mid-draft or mid-gameweek?
-- With about 80 teams over 5–6 leagues, how many rescues can land on the admin?
 
 ## Suggested, not yet picked
 

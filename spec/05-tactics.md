@@ -133,6 +133,12 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   labels. "We don't need side specific, that's the game getting in the
   way."
 - The team's next head-to-head opponent shows on the Tactics tab.
+- A player carries one of three marks: out (red) or doubtful (amber), from Sportmonks' injuries
+  and suspensions, and no game (grey) when his club has no match in the gameweek. Which Sportmonks
+  levels make out and which doubtful is set after the trial (Craig, 18 Nov 2026: "Both", "Three
+  marks"; "has to be sportsmonks for other leagues"). `S05.57`
+- The mark shows on the pitch's starters, the bench and the squad list (Craig, 18 Nov 2026:
+  "Everywhere"). `S05.58`
 - Everything settled here is built on the desk first, then cut from the real page: "show ALL
   info first and then refactor from there... I need the context of our full pages built so we can
   then see what's needed".

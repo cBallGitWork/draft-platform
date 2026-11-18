@@ -133,6 +133,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   row: "we can always admin update later" (Craig, 31 Oct 2026, #810). `S14.5`
 - The team override is on the matchup, for the commissioner, the co-commissioner and the admin;
   the player override stays on the player card: "matchup" (Craig, 7 Nov 2026, on #903). `S14.6`
+- The player override is made only on his card. His row on the matchup shows the overridden
+  points in a colour of their own: "card only, 'marked' could be just a colour change" (Craig,
+  18 Nov 2026). `S14.31`
 
 ## The rule balance lab
 
