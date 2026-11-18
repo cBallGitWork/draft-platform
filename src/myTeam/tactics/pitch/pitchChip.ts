@@ -1,7 +1,8 @@
 // What a starter's chip on the pitch carries (spec/05 What the pitch shows; #845): one read, so
 // the pitch draws from it and tests can poke it. His slot's position picks the area's colour, the
-// role he plays gives its short name, never its code (#2649), and his stars for it, and his club's matches in the gameweek being
-// picked are his opponents: two in a double gameweek, none in a blank one.
+// role he plays gives its short name, never its code (#2649), and his stars for it, and his club's
+// matches in the gameweek being picked are his opponents: two in a double gameweek, none in a
+// blank one.
 //
 // The opponents are the Squad tab's next NEXT_MATCHES_SHOWN matches (teamSquad.ts) kept to this
 // gameweek, so they hold only while it is the next one to be picked, as the Tactics tab's open
