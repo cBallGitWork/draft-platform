@@ -98,7 +98,7 @@ Each shows in its place and size until its data comes.
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
 | The Calendar tab | what it holds | to-grill: Home's tabs |
-| The deadline strip in the other states (after, locked, break, pre-season) | which boxes each state shows; the gameweek before its deadline is wired (`spec/12` S12.9, S12.10; #1976) | to-grill: The deadline strip |
+| The deadline strip in the other states (after, locked, break, pre-season) | settled: the same four boxes all season, each saying what is true now (`spec/12` S12.22); the gameweek before its deadline is wired (S12.9, S12.10; #1976) | `spec/12` S12.22 |
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
 | Your squad news's chips | settled: each player's chip and Sportmonks' reason, the whole squad by name (`spec/12` S12.8) | `spec/05` S05.59-S05.60 |

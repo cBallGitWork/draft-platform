@@ -91,6 +91,10 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       and how many claims you have waiting ("Mon 20:00, 2 claims"); Table your place, points and
       the gap ("2nd, 18 pts, 1 behind 1st", or "N ahead of 2nd" on top), in total points only
       place and points. `S12.10`
+    - The strip keeps its four boxes all season, each saying what is true now: before the draft
+      the first reads "Draft Sat 19:00", in a break "Break · reopens Wed" (`spec/13`, S13.9), and
+      once the season is over "Season over" (Craig, 18 Nov 2026: "Same 4 boxes, say what's
+      true"). `S12.22`
     - A placeholder keeps its outline, with its label written inside in muted words ("Role fit:
       not rated yet"); a tiny one, a status chip or stars, stays an empty outline
       (`docs/design/plate.md`, Marks). `S12.11`

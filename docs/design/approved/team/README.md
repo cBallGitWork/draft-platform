@@ -18,8 +18,8 @@ Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
   previewed, GW4 tapped (Role card B1, source `RoleCardB1.dc.html`).
 
 On 1 Nov 2026 Craig floated that the slot behind the striker could read SS, the support striker,
-as in the 4-4-1-1: "maybe am becomes a ss (like a the 4-4-1-1)". It isn't settled (to-grill: Where
-the support striker sits). The formation pictures were taken again from the latest Formation card
+as in the 4-4-1-1: "maybe am becomes a ss (like a the 4-4-1-1)". Settled 18 Nov 2026: the
+label follows the role played there (`spec/06` S06.10). The formation pictures were taken again from the latest Formation card
 A8 the same day and look as before: neither previews a 4-4-1-1, and the Arsenal Invincibles tile's
 thumbnail has no labels.
 
