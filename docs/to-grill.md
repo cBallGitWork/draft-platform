@@ -197,6 +197,17 @@ on #454). Rules can change many times a season (`spec/03`); when a change takes 
   such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
 - Can a manager contest a change, and who settles it?
 
+**A league with no commissioner**: League settings, the draft, trades, season admin (Craig,
+18 Nov 2026: "add it, and allow somebody to take the role at some point"). Every league has one
+now (`spec/01`).
+- Is "no commissioner" chosen when the league is made, or by the commissioner stepping down?
+- Each commissioner job then runs on its default: the draft order random, the start date fixed,
+  waivers on their schedule, trades with no review or a league vote. Which jobs fall to the
+  admin instead: pausing the draft, undoing a pick, picking for a team, handing a team on?
+- Taking the role later: any manager asks and the admin approves, the league votes, or the
+  first to ask gets it? Can it be taken mid-draft or mid-gameweek?
+- With about 80 teams over 5–6 leagues, how many rescues can land on the admin?
+
 ## Suggested, not yet picked
 
 | What | Why |
