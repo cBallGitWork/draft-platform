@@ -18,8 +18,8 @@ Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
   previewed, GW4 tapped (Role card B1, source `RoleCardB1.dc.html`).
 
 On 1 Nov 2026 Craig floated that the slot behind the striker could read SS, the support striker,
-as in the 4-4-1-1: "maybe am becomes a ss (like a the 4-4-1-1)". It isn't settled (to-grill: Where
-the support striker sits). The formation pictures were taken again from the latest Formation card
+as in the 4-4-1-1: "maybe am becomes a ss (like a the 4-4-1-1)". Settled 18 Nov 2026: the
+label follows the role played there (`spec/06` S06.10). The formation pictures were taken again from the latest Formation card
 A8 the same day and look as before: neither previews a 4-4-1-1, and the Arsenal Invincibles tile's
 thumbnail has no labels.
 
@@ -92,7 +92,7 @@ Each shows in its place and size until its data comes.
 | Preset names (marked sample names) | a manager's own saved presets | `spec/05`, The pitch |
 | "Last 5 in role" | what it counts; scouts decide whose stars a manager sees (#375); Role fit and the panel's stars are built (#11) | #375 |
 | The Next column and fixture chips' colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
-| The status chips after a name; Lineup check's booking lines | which statuses each chip reads, and a count of bookings; Lineup check lists each starter's FPL note word for word (`spec/12` S12.8; #1976) | to-grill: Status chips' data; to-grill: Who's doubtful, on Tactics |
+| The status chips after a name; Lineup check's booking lines | settled: the chips and the booking chip (`spec/05` S05.57-S05.60), squad news (`spec/12` S12.8) | `spec/05`, What the pitch shows |
 | The formation window's group counts (Back 3 5, Back 4 12, Back 5 4, Classics 6) | the league's presets and the classics listed; the picture's counts are sample | `spec/05`, The pitch |
 | The formation window's Modern row ("to come") | the modern sides to list | to-grill: Formation descriptions |
 

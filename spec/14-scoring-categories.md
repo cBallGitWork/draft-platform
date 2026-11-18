@@ -133,6 +133,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   row: "we can always admin update later" (Craig, 31 Oct 2026, #810). `S14.5`
 - The team override is on the matchup, for the commissioner, the co-commissioner and the admin;
   the player override stays on the player card: "matchup" (Craig, 7 Nov 2026, on #903). `S14.6`
+- The player override is made only on his card. His row on the matchup shows the overridden
+  points in a colour of their own: "card only, 'marked' could be just a colour change" (Craig,
+  18 Nov 2026). `S14.31`
 
 ## The rule balance lab
 
@@ -221,5 +224,6 @@ change is good".
 - Bench players' points show greyed on the matchup, and count only if the player is subbed on
   (`spec/05`). The player card shows every match at his base points, the bench's included
   (`spec/12`; Craig, 31 Oct 2026).
-- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles
-  won) with the full name on hover; the rules editor uses full names.
+- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, Tkl tackles
+  won) with the full name on hover; the rules editor uses full names. Tackles won is Tkl, not TW,
+  which is the Touchline winger role's initials (18 Nov 2026, the matchup's Stats picture). `S14.30`

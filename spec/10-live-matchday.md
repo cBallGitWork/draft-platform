@@ -37,6 +37,14 @@ commentary` (16 Oct 2026).
   involves either team's players.
 - No line for an auto-sub: whether a player played is known only after his match.
 - The commentary is kept with the matchup after the gameweek.
+- Beside the vidiprinter, a Stats view: a dense table of both teams' players (`spec/14`, On
+  screen), starters then the bench greyed and not counted, each with his minutes, a column for each
+  stat the league scores, his role's points and his total ("League's scoring stats"; Craig, 18 Nov
+  2026, #2334). `S10.14`
+- The vidiprinter opens first while any of the matchup's players is still to finish; the Stats
+  view once the gameweek is over ("Vidiprinter while live", Craig, 18 Nov 2026, #2334). `S10.15`
+- Tapping a player's row in the Stats view opens his breakdown, as tapping his tile does ("Yes,
+  same as the tile", Craig, 18 Nov 2026, #2334). `S10.16`
 
 ## The match page
 

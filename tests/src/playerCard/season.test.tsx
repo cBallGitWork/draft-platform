@@ -24,7 +24,9 @@ import {
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
 import { ARSENAL, CHELSEA, COVENTRY } from "../../support/convex/footballRows.harness";
-import { expectColumnHeads } from "../../support/src/columnHeads";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
+import { GOALS } from "../../../convex/scoring/statKeys";
+import { columnHeadIn, expectColumnHeads } from "../../support/src/columnHeads";
 import {
   AT_ONE,
   AT_W,
@@ -216,6 +218,16 @@ describe("the game log (#1027)", () => {
       columns.points,
     ]);
     expect(cellsOf(season)).toEqual(["2", "2–1", "90", "1", "1", "54", "11"]);
+  });
+
+  it("S14.30: a stat's head shows its short code, its full name from the catalogue on hover and to a screen reader (#2620)", async () => {
+    openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [AT_W] }] });
+    const { panel, season } = await seasonOf();
+    await userEvent.click(within(season.getByRole("radiogroup", { name: logViewLabel })).getByRole("radio", { name: logViews.all }));
+    const goals = STAT_CATALOGUE.find((each) => each.stat === GOALS)!;
+    const head = columnHeadIn(panel, { short: goals.shortCode, long: goals.name });
+    expect(head.textContent).toBe(goals.shortCode);
+    expect(head.title).toBe(goals.name);
   });
 
   it("a postponed match keeps its row by its gameweek, saying so and naming the side he'd have met (#1496)", async () => {

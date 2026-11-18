@@ -218,6 +218,10 @@ export const lineupViewLabel = "Show the line-ups as team sheets or on a pitch";
  *  no sheet drawing it is held. */
 export const sideFormationWords = (club: string, formation: string | null) => (formation === null ? club : `${club}, ${formation}`);
 export const matchPitchLabel = (home: string, away: string) => `${home} and ${away} on the pitch`;
+/** A man's panel atop Overview's right column, opened by his name (S10.9): this match's points by stat, then his card. */
+export const manPanelLabel = (name: string) => `${name}'s points in this match`;
+export const manPanelColumns = { stat: { short: "This match", long: "What he did in this match" }, count: { short: "No.", long: "How many" }, points: { short: "Pts", long: "The points it earned him" } } as const;
+export const manPanelWords = { total: "Total", hisCard: "His card" } as const;
 export const SHOTS_TITLE = "Shots";
 /** The Shots panel, greyed until its shot counts are built (spec/10: counts, no xG; #2560). */
 export const shotsNotHeldLabel = notHeldLabel("Shot counts");

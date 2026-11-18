@@ -41,7 +41,7 @@ Each shows in its place and size until its data comes.
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
 | Next 3's colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
-| The status chips after a name, and the panel's Doubt line | which FPL statuses each chip reads, and a count of bookings | to-grill: Status chips' data |
+| The status chips after a name, and the panel's Doubt line | settled: the chips from Sportmonks' statuses, and the booking chip | `spec/05` S05.59-S05.60 |
 | The panel's Best role, with no lineup open to set (the season over) | its stars come with the lineup being set; built otherwise (#11) | #11 |
 | The panel's Started and Role points (empty boxes) | their build: what each counts is answered below | answered 1 Nov 2026 |
 

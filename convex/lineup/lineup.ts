@@ -8,6 +8,7 @@
 
 import { AREAS, cellKey, cellOf, playsCell, sameCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
+import { LINE_NAMES, type Line } from "../positions/lines";
 import type { Position } from "../positions/positionTables";
 import type { PlayerCode } from "../shared/players";
 
@@ -43,6 +44,20 @@ export interface LineupRules {
   areaLimits: Record<Area, AreaLimit>;
 }
 
+/** How a lineup is judged in the game mode its league plays (../rules/gameMode.ts): on its cells,
+ *  roles and area limits, or in classic mode (spec/22, The lineup) on each starter's line alone. */
+export type LineupMode = { classic: false } | ({ classic: true } & ClassicLineup);
+
+/** Classic mode's own: no formation, cell or role, only the line each player is locked to and the
+ *  league's limits on each (`S22.8`, `S22.9`). Auto-subs read the bench's lines too. */
+export interface ClassicLineup {
+  lines: ReadonlyMap<PlayerCode, Line>;
+  lineLimits: Record<Line, AreaLimit>;
+}
+
+/** Every league but a classic one. */
+export const NOT_CLASSIC: LineupMode = { classic: false };
+
 /** Each starter's positions. An unconfirmed position is passed like any other: it counts
  *  (spec/06). The bench's aren't read: where a sub may come on is the auto-subs' question. */
 export type PlayerPositions = ReadonlyMap<PlayerCode, readonly Position[]>;
@@ -63,16 +78,21 @@ export type LineupProblem =
   /** A sweeper or libero with fewer than three centre-backs (spec/05 The pitch). */
   | { kind: "noBackThree"; playerCode: PlayerCode; role: string; centreBacks: number }
   /** A role his positions can't take, such as a striker's for a CAM up front (spec/05 `S05.29`). */
-  | { kind: "roleNotHis"; playerCode: PlayerCode; role: string; positions: readonly Position[] };
+  | { kind: "roleNotHis"; playerCode: PlayerCode; role: string; positions: readonly Position[] }
+  /** Classic mode's (spec/22): a starter with no line yet, and a line's limits missed. */
+  | { kind: "lineUnknown"; playerCode: PlayerCode }
+  | { kind: "lineAboveMaximum"; line: Line; starterCount: number; maximum: number }
+  | { kind: "lineBelowMinimum"; line: Line; starterCount: number; minimum: number };
 
 /** Every player the lineup names: the starters' codes in order, then the bench. */
 export function namedCodes(lineup: { starters: readonly Pick<Placement, "playerCode">[]; bench: readonly PlayerCode[] }): PlayerCode[] {
   return [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
 }
 
-/** Every reason the lineup can't stand under these rules; none means it is legal. */
-export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules): LineupProblem[] {
-  throwOnInvalidAreaLimits(rules);
+/** Every reason the lineup can't stand under these rules, in the league's game mode; none means it
+ *  is legal. */
+export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules, mode: LineupMode = NOT_CLASSIC): LineupProblem[] {
+  throwOnInvalidLimits(rules.areaLimits);
   const problems: LineupProblem[] = [];
   if (lineup.starters.length !== STARTER_COUNT) {
     problems.push({ kind: "wrongStarterCount", starterCount: lineup.starters.length });
@@ -83,6 +103,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (named.has(playerCode)) problems.push({ kind: "playerTwice", playerCode });
     named.add(playerCode);
   }
+  if (mode.classic) return [...problems, ...lineProblems(lineup.starters, mode)];
 
   const centreBacks = centreBacksIn(lineup.starters.flatMap((starter) => cellOf(starter) ?? []));
   const standing = new Map<string, CellStanding>();
@@ -126,6 +147,26 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     const { minimum, maximum } = rules.areaLimits[area];
     if (starterCount > maximum) problems.push({ kind: "aboveMaximum", area, starterCount, maximum });
     if (starterCount < minimum) problems.push({ kind: "belowMinimum", area, starterCount, minimum });
+  }
+  return problems;
+}
+
+/** Classic mode's (spec/22): any eleven whose lines are each inside the league's limits stand
+ *  (`S22.8`, `S22.9`), wherever they are placed and on whatever role. */
+function lineProblems(starters: readonly Placement[], { lines, lineLimits }: ClassicLineup): LineupProblem[] {
+  throwOnInvalidLimits(lineLimits);
+  const problems: LineupProblem[] = [];
+  const counts = new Map<Line, number>();
+  for (const { playerCode } of starters) {
+    const line = lines.get(playerCode);
+    if (line === undefined) problems.push({ kind: "lineUnknown", playerCode });
+    else counts.set(line, (counts.get(line) ?? 0) + 1);
+  }
+  for (const line of LINE_NAMES) {
+    const starterCount = counts.get(line) ?? 0;
+    const { minimum, maximum } = lineLimits[line];
+    if (starterCount > maximum) problems.push({ kind: "lineAboveMaximum", line, starterCount, maximum });
+    if (starterCount < minimum) problems.push({ kind: "lineBelowMinimum", line, starterCount, minimum });
   }
   return problems;
 }
@@ -219,13 +260,13 @@ export function reconciled<Starter extends Pick<Placement, "playerCode">>(
   };
 }
 
-/** An invalid limit is the league's mistake, not the manager's: it is thrown, never reported as
- *  a problem with their lineup. leagueRulesCheck.ts refuses it when the league sets it (#25). */
-function throwOnInvalidAreaLimits(rules: LineupRules): void {
-  for (const area of AREAS) {
-    const { minimum, maximum } = rules.areaLimits[area];
+/** An invalid limit, an area's or in classic mode a line's, is the league's mistake, not the
+ *  manager's: it is thrown, never reported as a problem with their lineup. leagueRulesCheck.ts
+ *  refuses it when the league sets it (#25). */
+function throwOnInvalidLimits(limits: Readonly<Record<string, AreaLimit>>): void {
+  for (const [key, { minimum, maximum }] of Object.entries(limits)) {
     if (!Number.isInteger(minimum) || !Number.isInteger(maximum) || minimum < 0 || maximum < minimum) {
-      throw new Error(`An area's limits are whole numbers, 0 ≤ minimum ≤ maximum, not ${area} ${minimum}–${maximum}`);
+      throw new Error(`A limit on the pitch is whole numbers, 0 ≤ minimum ≤ maximum, not ${key} ${minimum}–${maximum}`);
     }
   }
 }

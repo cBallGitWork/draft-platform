@@ -86,6 +86,25 @@ comes to exist, fills, changes and ends.
   waivers, free agency and trades are locked through it: "when its international break, we lock
   everything and give the league a break" (Craig, 1 Nov 2026), and asked whether that means claims,
   waivers and trades too: "yes".
+
+### Breaks
+
+From the break weeks grill (Craig, 18 Nov 2026).
+
+- A break locks a league's claims, waivers, free agency and trades. Each competition's breaks are
+  held as data: FIFA's international windows between two of its rounds ("check fifa calendar"),
+  and its own, such as the Bundesliga's winter break. The admin can add or move one. Breaks are
+  per competition: a Bundesliga break never locks a Premier League league. `S13.5`
+- A league locks on its competition's breaks by default, and the commissioner can switch that off
+  ("Yes, on by default"). `S13.6`
+- A break locks from the last match before it, "as it lets the international games play out for
+  injuries etc", and reopens the Wednesday before the next deadline the league plays, with a
+  waiver run then ("wed before deadline"). An unticked gameweek is a break too, with the same
+  timing. `S13.7`
+- Claims made during a break wait for the reopening run. A trade already accepted and in review
+  finishes; no trade can be offered or accepted until the reopening. `S13.8`
+- When a break starts, the league gets a Mail letter ("League on break, reopens Wed 25 Nov") and
+  Home's deadline strip says "Break · reopens Wed". `S13.9`
 - The head-to-head round robin ([9. Season admin](09-season-admin.md)) is drawn over the ticked
   gameweeks only, and a change reshuffles only fixtures not yet played.
 - Once a gameweek has begun, its fixtures are fixed: neither the commissioner's edits nor a rule
@@ -97,6 +116,8 @@ comes to exist, fills, changes and ends.
 
 - A manager in several leagues switches between them from a list in the top bar, and the app
   opens the one they used last.
+- A league's name on Your leagues opens its League home and makes it the current league, so the
+  top bar follows (Craig, 18 Nov 2026: "Yes, switch too"). `S13.10`
 
 ## Deleting
 

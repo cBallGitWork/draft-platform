@@ -98,14 +98,14 @@ Each shows in its place and size until its data comes.
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
 | The Calendar tab | what it holds | to-grill: Home's tabs |
-| The deadline strip in the other states (after, locked, break, pre-season) | which boxes each state shows; the gameweek before its deadline is wired (`spec/12` S12.9, S12.10; #1976) | to-grill: The deadline strip |
+| The deadline strip in the other states (after, locked, break, pre-season) | settled: the same four boxes all season, each saying what is true now (`spec/12` S12.22); the gameweek before its deadline is wired (S12.9, S12.10; #1976) | `spec/12` S12.22 |
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
-| Your squad news's chips | the notes, FPL's word for word, are wired, with no chip (`spec/12` S12.8; #1976); which statuses each chip reads | to-grill: Status chips' data |
+| Your squad news's chips | settled: each player's chip and Sportmonks' reason, the whole squad by name (`spec/12` S12.8) | `spec/05` S05.59-S05.60 |
 | Run the league | settled 16 Nov 2026: join requests waiting (a count), teams with no lineup yet (a number only), the draft order not set before the draft, trades waiting their veto, a team with no manager | #2267 |
 | The score boxes, before the deadline (empty) | lineups locked and matches scored | `spec/12`, matchday mode (#387) |
 | GW8 recap (empty lines) | the weekly recap | #387 |
-| The state boards: after, locked, break, pre-season, new joiner, season over | each state's grill | to-grill: Home through the season; to-grill: Break weeks |
+| The state boards: after, locked, break, pre-season, new joiner, season over | each state's grill | to-grill: Home through the season; `spec/13`, Breaks |
 
 The issue that builds the rest of the screen: #387.
 

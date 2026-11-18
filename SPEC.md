@@ -73,6 +73,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 
 - **Mock drafts**: managers practising before the real draft (Craig, 2 Nov 2026).
 - **Undoing a waiver run**, for the commissioner (Craig, 5 Nov 2026; spec/08).
+- **Contesting a rule change**: every change already sends the league a letter (Craig, 18 Nov 2026;
+  spec/03).
 - **Commissioner fixes**, as Fantrax has them: block one team from trading or claiming, adjust the
   standings (Craig, 16 Nov 2026, #2267: "later").
 - **The salary cap**, the first thing cut if scope must shrink.
@@ -216,6 +218,7 @@ follows it; tables and fields already saved keep their names.
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
 | commissioner | the person who runs one league, with or without a team in it | |
+| break | a stretch a league is locked: a FIFA window, its competition's own break, or an unticked gameweek | rest week |
 | co-commissioner | a league's second person, named by the commissioner or the admin, with the commissioner's powers except naming or removing either and deleting the league | |
 | invite | the email a commissioner sends one person, carrying their sign-in link and the team it's for | |
 | invite link | a league's one shareable link; opening it only asks to join | |

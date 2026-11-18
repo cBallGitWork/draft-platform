@@ -7,14 +7,16 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pickFirstLineupAgain, lineupInGameweek } from "../../../convex/lineup/lineups";
-import { MOST_WARNINGS_A_TEAM, positionLetter } from "../../../convex/positions/positionWarnings";
+import { lineNow } from "../../../convex/positions/playerLines";
+import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
+import { lineLetter, MOST_WARNINGS_A_TEAM, positionLetter } from "../../../convex/positions/positionWarnings";
 import type { Start } from "../../../convex/positions/positions";
 import { lostPlayerName } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, freshLeague } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
-import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
+import { CENTRE_BACK, HOLDING, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { elapse, pendingJobs } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/lineupSquad.harness";
 
@@ -301,5 +303,64 @@ describe("a player joining a team (#1615; Craig, 11 Nov 2026: no letter for what
     await syncRecorded();
 
     expect(await lettersTo(ANN)).toEqual([{ ...lost(), leagueId }]);
+  });
+});
+
+describe("S22.6 a classic league's lines", () => {
+  /** Each letter to `email` about Barnes's line, oldest first, by subject. */
+  const lineLettersTo = (email: string) =>
+    t.run(async (ctx) =>
+      (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect())
+        .map(({ subject }) => subject)
+        .filter((subject) => ["Barnes may move to ", "Barnes has moved to "].some((start) => subject.startsWith(start))),
+    );
+  const fromDefence = (count: number) => played(...times(CENTRE_BACK, 10), ...times(HOLDING, count));
+
+  let bobsTeam: Id<"teams">;
+  beforeEach(async () => {
+    const classicLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Classic League", true);
+    bobsTeam = await addManager(t, classicLeague, BOB);
+  });
+
+  test("S22.6 a run of 3 in another line warns a classic league's manager, 6 tells him he has moved, each once; no other league's", async () => {
+    await barnesOn(annsTeam, fromDefence(3));
+    await barnesOn(bobsTeam, fromDefence(3));
+    await syncRecorded();
+    await syncRecorded();
+    expect(await lineLettersTo(BOB)).toEqual(["Barnes may move to CM"]);
+
+    await barnesStarted(fromDefence(6));
+    await syncRecorded();
+
+    expect(await lineLettersTo(BOB)).toEqual(["Barnes may move to CM", "Barnes has moved to CM"]);
+    expect(await lineLettersTo(ANN)).toEqual([]);
+  });
+
+  test("S22.6 the letters name the lines, the gameweek and the thresholds", () => {
+    const news = { playerName: "Barnes", line: "CM", from: "DEF", fromGameweek: 9, removeAfter: 6 } as const;
+    expect(lineLetter({ ...news, step: "lineFlagged", startsThere: 3 })).toEqual({
+      subject: "Barnes may move to CM",
+      body: "From gameweek 9, Barnes is flagged to move from DEF to CM: his last 3 starts in a row were at CM. After 6 in a row he moves there; a start at DEF keeps him at DEF.",
+    });
+    expect(lineLetter({ ...news, step: "lineMoved" })).toEqual({
+      subject: "Barnes has moved to CM",
+      body: "From gameweek 9, Barnes plays CM, not DEF: he has started 6 matches in a row there. He stays where he stands in your line-up until you move him.",
+    });
+  });
+
+  test("S22.7 the admin's line stands over his starts, so no run warns of a move, and clearing it hands him back to them", async () => {
+    const admin = await asAdmin(t);
+    await barnesOn(bobsTeam, fromDefence(3));
+    await admin.mutation(api.positions.playerLines.setLine, { code: BARNES.code, line: "FWD" });
+    await elapse(t, 0);
+    const how = { thresholds: FIRST_THRESHOLDS, judgedBefore: null, approveMode: "proposals" } as const;
+    expect(await t.run((ctx) => lineNow(ctx, BARNES.code, how))).toMatchObject({ line: "FWD", source: "admin" });
+    await syncRecorded();
+    expect(await lineLettersTo(BOB)).toEqual([]);
+
+    await admin.mutation(api.positions.playerLines.setLine, { code: BARNES.code, line: null });
+    await elapse(t, 0);
+
+    expect(await lineLettersTo(BOB)).toEqual(["Barnes may move to CM"]);
   });
 });

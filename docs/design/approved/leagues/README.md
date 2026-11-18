@@ -21,7 +21,7 @@ got, with what's waiting beside it. Its organisation, never its colours.
 
 ## Interaction notes
 
-- A league's name: opens its League home (to-grill: A league's name opens its League home).
+- A league's name: opens its League home and makes it the current league (`spec/13` S13.10).
 - Undo, on a deleted league: undoes the deletion (`spec/13`, Deleting).
 - Your join request: reads only, until the commissioner answers (`spec/13`, Joining).
 - No links on a row: the commissioner's tools (Gameweeks, Invites and join requests, Squads,
