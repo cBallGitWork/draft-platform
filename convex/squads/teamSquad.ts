@@ -15,7 +15,7 @@ import { newestSeasonWithTotals, playerSeasonTotals } from "../stats/seasonStats
 import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
 import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN } from "./squadLimits";
 import { squadLimit, squadLimits } from "./squadRulesView";
@@ -226,7 +226,7 @@ export const ofMyTeam = query({
       chanceOfPlaying: player.chanceOfPlaying ?? null,
     }));
     rows.sort(bySquadOrder);
-    const rules = await latestRules(ctx, leagueId);
+    const rules = await rulesInForceNow(ctx, leagueId);
     return {
       teamName: team.name,
       lastGameweek,

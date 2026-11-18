@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode, type Clubs } from "../shared/players";
@@ -179,7 +179,7 @@ export const ofMyTeam = query({
   returns: heldTrades,
   handler: async (ctx, { leagueId, hour }): Promise<HeldTrades> => {
     const { league, team: mine } = await managerOf(ctx, leagueId);
-    const rules = await latestRules(ctx, leagueId);
+    const rules = await rulesInForceNow(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
