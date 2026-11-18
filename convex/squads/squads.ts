@@ -7,7 +7,7 @@ import { recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { areaShape } from "../lineup/pitchShape";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { Area } from "../lineup/pitch";
@@ -167,7 +167,7 @@ export const squads = query({
   handler: async (ctx, { leagueId }) => {
     const { email, league } = await memberOf(ctx, leagueId);
     const seesEmails = powersIn(league, email).runs;
-    const rules = await latestRules(ctx, leagueId);
+    const rules = await rulesInForceNow(ctx, leagueId);
     const { minimumAreasOf } = await playerPositionsNow(ctx, leagueId);
     const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
     return Promise.all(

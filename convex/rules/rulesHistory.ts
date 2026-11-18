@@ -1,6 +1,8 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { latestOf } from "../gameweeks/deadline";
+import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { heldChanges, heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
 
 // A league's rules history (spec/03; #25), read: its rows, and the rules in force in a gameweek.
@@ -72,8 +74,9 @@ export function newestRow(history: readonly RulesRow[], leagueId: Id<"leagues">)
   return row;
 }
 
-/** The league's latest rules, a waiting change's among them: what the squad's warnings read (#31),
- *  as a change of squad limits is best known at once. Trades read `rulesSinceBegun` instead. */
+/** The league's latest rules, a waiting change's among them: what the draft and position warnings
+ *  read, and the waiver runs. Squads, trades, free agents and plans read `rulesInForceNow` or
+ *  `rulesSinceBegun` instead. */
 export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules> {
   return newestRow(await historyOf(ctx, leagueId), leagueId).rules;
 }
@@ -98,6 +101,13 @@ function rulesSince(history: readonly RulesRow[], leagueId: Id<"leagues">, begun
  *  from the next gameweek, like any rule (spec/03; #25, #1473). */
 export async function rulesSinceBegun(ctx: QueryCtx, leagueId: Id<"leagues">, begun: number | null): Promise<LeagueRules> {
   return rulesSince(await historyOf(ctx, leagueId), leagueId, begun);
+}
+
+/** The league's `rulesSinceBegun` for the latest gameweek its recorded deadlines say has begun
+ *  (passedDeadlines.ts), so a read needs no clock. What squads, trades, free agents and plans read: a
+ *  change saved mid-gameweek acts only from the next deadline (S03.11). */
+export async function rulesInForceNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules> {
+  return rulesSinceBegun(ctx, leagueId, latestOf([...(await passedDeadlinesOf(ctx, leagueId)).keys()]));
 }
 
 /** The league's rules over the season: its latest, a waiting change's among them, those in force in

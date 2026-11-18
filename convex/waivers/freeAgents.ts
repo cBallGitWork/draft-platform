@@ -3,7 +3,7 @@ import { mutation } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { recordEvent } from "../mail/letters";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { managerOf, playerOrRefuse, refuse } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
 import { waiversOpenFor } from "./waiverLock";
@@ -44,7 +44,7 @@ export const pickUp = mutation({
     if (player.droppedAt !== undefined) refuse(pickUpRefusals.playerGone(player.name));
     const dropPlayer = dropCode === null ? null : (await playerOrRefuse(ctx, dropCode));
     const dropPlace = dropPlayer === null ? null : await placeToDrop(ctx, leagueId, team._id, dropPlayer);
-    const squadRules = (await latestRules(ctx, leagueId)).squad;
+    const squadRules = (await rulesInForceNow(ctx, leagueId)).squad;
     if (await joiningBreaksLimits(ctx, leagueId, team._id, playerCode, dropCode, squadRules)) refuse(pickUpRefusals.limits(player.name));
 
     const onTeam = { teamId: team._id, teamName: team.name };

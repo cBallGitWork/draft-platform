@@ -4,7 +4,8 @@ import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { dropRefusals } from "../../../convex/waivers/waivers";
-import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, setUsed } from "../../support/convex/leagueRules.harness";
+import { withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import { actingAs, eventsIn, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -36,8 +37,8 @@ const cronRuns = async () => {
 /** Gameweek NEXT's deadline, once it has passed. */
 const nextDeadlineWas = () => w.t.run(async (ctx) => (await leagueDeadlines(ctx, w.leagueId)).get(NEXT));
 
-/** Ann's squad at the league's maximum, so a pickup needs a drop. */
-const annsSquadFull = () => changeRules(w.t, w.leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: SQUAD.length } } }));
+/** Ann's squad at the league's maximum, in force at once, so a pickup needs a drop. */
+const annsSquadFull = () => changeEveryRules(w.t, w.leagueId, (rules) => withSquadMaximum(rules, SQUAD.length));
 
 describe("in the window", () => {
   beforeEach(async () => {

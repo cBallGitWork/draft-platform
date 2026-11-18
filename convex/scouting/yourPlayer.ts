@@ -6,7 +6,7 @@ import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { heldCell, positionOfSlot } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
 import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
@@ -51,7 +51,7 @@ export const at = query({
     const squad = await squadOf(ctx, team._id);
     const { held } = await heldOrNot(ctx, squad);
     // Every row counts, a player the football sync no longer holds too, as the Squad page does (#1737).
-    const squadFull = squad.length >= (squadMaximumOf(await latestRules(ctx, leagueId)) ?? MOST_IN_SQUAD);
+    const squadFull = squad.length >= (squadMaximumOf(await rulesInForceNow(ctx, leagueId)) ?? MOST_IN_SQUAD);
     const positionsOf = await positionsNow(ctx, leagueId);
     const main = cardOpensAt(await positionsOf(playerCode));
     if (main === null) return { player: null, squadFull };
