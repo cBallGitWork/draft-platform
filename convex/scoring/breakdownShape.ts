@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { areaShape, slotPosition } from "../lineup/pitchShape";
-import { line } from "../schema/positions";
+import { line } from "../schema";
 import { roleName } from "../lineup/roles";
 import type { OwnStat } from "./scoringSet";
 import { categoryName } from "./categories";

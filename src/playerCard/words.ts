@@ -106,7 +106,8 @@ const pricedByWords = (pricedBy: PricedBy) => {
       return ` for ${pricedBy.position}`;
     case "formation":
       return ` for a ${pricedBy.formation}`;
-    case "line":
+    default:
+      // A classic league's: "for CM" (spec/22 `S22.19`).
       return ` for ${pricedBy.line}`;
   }
 };
