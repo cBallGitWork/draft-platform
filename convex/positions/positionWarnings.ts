@@ -39,7 +39,8 @@ type PositionNews = {
   fromGameweek: number;
 } & ({ step: "flagged"; startsElsewhere: number; removeAfter: number } | { step: "lost"; removeAfter: number } | { step: "takenByAdmin" });
 
-const staysPut = "He stays where he stands in your line-up until you move him, and the line-up check shows him out of position.";
+const staysInSlot = "He stays where he stands in your line-up until you move him";
+const staysPut = `${staysInSlot}, and the line-up check shows him out of position.`;
 
 /** The letter warning a manager of `news`, in one place for Craig to change. */
 export function positionLetter(news: PositionNews): { subject: string; body: string } {
@@ -85,7 +86,7 @@ export function lineLetter(news: LineNews): { subject: string; body: string } {
   }
   return {
     subject: `${playerName} has moved to ${line}`,
-    body: `From gameweek ${fromGameweek}, ${playerName} plays ${line}, not ${from}: he has started ${removeAfter} matches in a row there. He stays where he stands in your line-up until you move him.`,
+    body: `From gameweek ${fromGameweek}, ${playerName} plays ${line}, not ${from}: he has started ${removeAfter} matches in a row there. ${staysInSlot}.`,
   };
 }
 
