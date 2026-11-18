@@ -184,10 +184,17 @@ From `/grill club colours` (31 Oct 2026).
 - A club mark, a small square in the club's two colours, stands before a club code wherever the
   code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
   like"). Never inside a fixture-difficulty cell.
-- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
-  waits for managers' crests (SPEC.md, Later).
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup's
+  header takes the two teams' own colours (S12.27); their crests stay Later. `S12.31`
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
+- Who keeps the colours: `spec/15`, The admin.
+- The mark's, the striped shirt's and the scoreboard's values go into `docs/design/plate.md` when
+  they are built.
+- The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
+  difficulty, shown as a coloured cell). (Craig left this to Claude.)
+- Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
+  look's generic-AI tells, a strip of position slots, and the pitch-first layout.
 
 ### Team colours
 
@@ -208,13 +215,8 @@ From the look grill (Craig, 18 Nov 2026).
   League home (Craig, 18 Nov 2026). `S12.28`
 - Wherever a squad is listed, each player's position line takes his area's colour (goalkeeper,
   defence, midfield, attack), as the pitch's chips do (Craig, 18 Nov 2026). `S12.29`
-- Who keeps the colours: `spec/15`, The admin.
-- The mark's, the striped shirt's and the scoreboard's values go into `docs/design/plate.md` when
-  they are built.
-- The number leads; a verdict sits beside it only where there is a real one (role stars, fixture
-  difficulty, shown as a coloured cell). (Craig left this to Claude.)
-- Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
-  look's generic-AI tells, a strip of position slots, and the pitch-first layout.
+- A player with several positions shows each code in its own area's colour ("DM CM") (Craig,
+  18 Nov 2026: "Each code its own colour"). `S12.30`
 
 ## Data in mock-ups
 
