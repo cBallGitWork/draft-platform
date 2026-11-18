@@ -191,6 +191,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   button adds as many as fit under 250 and tells the manager how many were left out. Neither puts
   an already-drafted player in the queue; adding one by hand says he's already taken (Craig, 4 Nov
   2026, on #1137). `S04.26`
+- The shortlist's "Add to queue" shows only while the draft is to come or live: once it is over, it
+  goes, as testers read it during the season as the bid list (Craig, 18 Nov 2026, on #2651). `S04.32`
 - The admin's ranking is a file the admin uploads, a list of players with a rank number, from
   research the admin does himself. It is one ranking for the whole platform. Last season's points
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).

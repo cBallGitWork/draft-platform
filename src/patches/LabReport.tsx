@@ -24,7 +24,7 @@ import {
 } from "./words";
 
 // The rule balance lab's report (spec/14, The rule balance lab; #843): on the draft patch once the
-// admin runs it, and in an announced patch's notes. Each role the set scores, slot by slot, its
+// admin runs it, and in an announced patch's notes, the admin's alone (S14.32). Each role the set scores, slot by slot, its
 // average a start against its slot's target, flagged off it, or "not tested", naming the stats the
 // past seasons lack. Then each team instruction the set scores, its average for a whole XI over the
 // clubs' real XIs (S14.9; #1541), or "not tested", naming any stat they lack.
