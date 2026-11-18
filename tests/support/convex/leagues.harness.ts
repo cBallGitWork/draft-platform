@@ -106,6 +106,21 @@ export async function addManagers(t: TestConvex, leagueId: Id<"leagues">, emails
   return teamIds;
 }
 
+/** A fresh deployment and a league the admin makes with no commissioner (spec/01 S01.1), its
+ *  first three MANAGERS managing, the first its set-up manager. */
+export async function noCommissionerLeague(): Promise<{ t: TestConvex; leagueId: Id<"leagues"> }> {
+  const t = await signInDeployment();
+  fakeResend();
+  const leagueId = await (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, {
+    name: LEAGUE_NAME,
+    maxTeams: TEST_LEAGUE_TEAMS,
+    commissionerEmail: MANAGERS[0],
+    noCommissioner: true,
+  });
+  await addManagers(t, leagueId, MANAGERS.slice(0, 3));
+  return { t, leagueId };
+}
+
 export function teamsIn(t: TestConvex, leagueId: Id<"leagues">) {
   return t.run((ctx) =>
     ctx.db

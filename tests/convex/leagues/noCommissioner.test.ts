@@ -9,16 +9,15 @@ import { changeRules, rulesWith } from "../../support/convex/leagueRules.harness
 import {
   ADMIN,
   actingAs,
-  addManagers,
   COMMISSIONER,
   LEAGUE_NAME,
   leagueRow,
   lettersTo,
   MANAGERS,
+  noCommissionerLeague,
   TEST_LEAGUE_TEAMS,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league made with no commissioner (spec/01 S01.1, S01.2, S01.4; #2660): its set-up manager runs
@@ -29,15 +28,7 @@ const SET_UP_BY = MANAGERS[0];
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, {
-    name: LEAGUE_NAME,
-    maxTeams: TEST_LEAGUE_TEAMS,
-    commissionerEmail: SET_UP_BY,
-    noCommissioner: true,
-  });
-  await addManagers(t, leagueId, MANAGERS.slice(0, 3));
+  ({ t, leagueId } = await noCommissionerLeague());
 });
 
 const setMaxTeams = async (email: string, maxTeams: number) =>

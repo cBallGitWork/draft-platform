@@ -16,8 +16,6 @@ import { confirmDeleteWords } from "../shared/controls/words";
 import { versusWords } from "../shared/match/words";
 import { whenWords } from "../shared/when/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
-import { requestsWords } from "../joining/words";
-
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
 
 export const ADMIN_TITLE = "Admin dashboard";
@@ -244,7 +242,7 @@ function gameweekWords(gameweek: number | null) {
 export const commissionerAsksTitle = "Asks to be commissioner";
 export const commissionerAsksLoadingWords = "Loading the asks to be commissioner…";
 export const noCommissionerAsksWords = "No one is asking to be commissioner.";
-export const refuseWords = requestsWords.refuse;
+export const refuseWords = "Refuse";
 export const approveAskLabel = (email: string, league: string) => `Approve ${email} as commissioner of ${league}`;
 export const refuseAskLabel = (email: string, league: string) => `Refuse ${email} as commissioner of ${league}`;
 /** Past the oldest the panel shows: those decided make room for the rest. */

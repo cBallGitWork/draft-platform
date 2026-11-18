@@ -12,7 +12,7 @@ import { letterButton, lettersPanel, mailLetter } from "../../support/src/mailSc
 const offering = (asked: boolean) => ({ ...mailLetter(1, true, null, "draft"), askToRun: { leagueId: league.leagueId, asked } });
 
 describe("a commissioner's letter in a league with none", () => {
-  it("S01.2 ends in Ask to be commissioner, which asks for the letter's league (S01.3)", async () => {
+  it("S01.2 ends in the ask to be commissioner, which asks for the letter's league (S01.3)", async () => {
     const app = openApp(MAIL_PATH, manager, { letters: [offering(false)] });
     await lettersPanel();
     await userEvent.click(letterButton("Letter 1"));
