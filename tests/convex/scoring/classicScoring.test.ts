@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { CLASSIC_SCORING, DEFENDER_STAT, MIDFIELD_STAT } from "../../../convex/scoring/classicScoring";
 import { checkedOnce } from "../../../convex/scoring/scoringSet";
-import { LINE_NAMES, type Line } from "../../../convex/positions/lines";
+import { LINE_NAMES, type Line } from "../../../convex/shared/lineNames";
 import { SPORTMONKS_STAT_IDS } from "../../../convex/football/sportmonks/sportmonksStats";
 import {
   ASSISTS,

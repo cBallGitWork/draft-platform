@@ -6,18 +6,16 @@
 
 import { formationPosition, SQUAD_GROUPS, type Position } from "./positionTables";
 import { START_WINDOW, type PositionInputs, type Start } from "./positions";
+import { LINE_NAMES, type Line } from "../shared/lineNames";
 
-/** The lines, back to front, and the positions each holds (`S22.3`): Scouting's squad groups, the
- *  middle one named CM. */
-export const LINES = {
+/** The positions each line holds (`S22.3`): Scouting's squad groups, the middle one named CM. */
+const LINES = {
   GK: SQUAD_GROUPS.GK,
   DEF: SQUAD_GROUPS.DEF,
   CM: SQUAD_GROUPS.MID,
   AM: SQUAD_GROUPS.AM,
   FWD: SQUAD_GROUPS.FWD,
-} as const satisfies Record<string, readonly Position[]>;
-export type Line = keyof typeof LINES;
-export const LINE_NAMES = Object.keys(LINES) as Line[];
+} as const satisfies Record<Line, readonly Position[]>;
 
 /** The one line a position is in (`S22.3`). */
 export const lineOfPosition = (position: Position): Line =>
