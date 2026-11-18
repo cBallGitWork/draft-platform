@@ -3,6 +3,8 @@
 // match comes with its goals at full time, home first, which preview.ts reads from Football's.
 
 import type { MatchBreakdown } from "../../convex/matchup/matchupShape";
+import type { MatchStats } from "../../convex/scoring/values";
+import { CLEAN_SHEETS, MINUTES_STAT } from "../../convex/stats/matchRecords";
 import type { GameweekMatch } from "../premierLeague/seam";
 
 /** A match of Football's gameweek and its goals at full time, home first. */
@@ -40,21 +42,15 @@ export function scoreAt(match: ReplayMatch, played: number, clock: Clock): Match
   return { state: played <= MATCH_MINUTES ? "live" : "fullTime", homeGoals: goals(home), awayGoals: goals(away), minutes: Math.min(played, MATCH_MINUTES), clockLabel: null };
 }
 
-/** What a made-up man's goal is worth, in his breakdown and on its Vidiprinter line. */
+/** What a made-up man's goal is worth on its Vidiprinter line. */
 export const GOAL_POINTS = 1;
 
-/** A made-up man's match broken down: a point for appearing, the rest goals at GOAL_POINTS each. */
-export function categoriesOf(points: number | null): MatchBreakdown["categories"] {
-  const all = { by: "all" } as const;
-  return points === null
-    ? [
-        { stat: "minutes", name: "Minutes played", points: null },
-        { stat: "goalsScored", name: "Goals scored", points: null },
-      ]
-    : [
-        { stat: "minutes", name: "Minutes played", points: Math.min(points, 1), why: { actions: 1, value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
-        { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: Math.max(points - 1, 0) / GOAL_POINTS, value: { shape: "perAction", points: GOAL_POINTS }, pricedBy: all, cut: null } },
-      ];
+/** His record `played` minutes into a match of the replay, from his card's at full time (#2478): his
+ *  minutes so far, no clean sheet before full time, and the rest of his figures coming in step with
+ *  the clock. */
+export function recordAt(fullTime: MatchStats, played: number): MatchStats {
+  const soFar = (stat: string, count: number) => (stat === MINUTES_STAT ? Math.min(count, played) : stat === CLEAN_SHEETS ? 0 : Math.round((count * played) / MATCH_MINUTES));
+  return Object.fromEntries(Object.entries(fullTime).map(([stat, count]) => [stat, soFar(stat, count)]));
 }
 
 /** A match's lines, by its minute: kickoff, each goal, named for one of `men` at the scoring club

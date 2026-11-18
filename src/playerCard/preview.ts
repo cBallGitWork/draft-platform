@@ -2,7 +2,7 @@
 // with his season in his club's matches in Football's preview and any it postponed, each at his base
 // points at each of his positions under the first scoring set by the server's own rule
 // (cardPoints), and his club's next fixtures, Football's too. My team's Squad tab adds up the same
-// season (#2455). Saka carries FPL's news, and an override on one match.
+// season (#2455), and the matchup scores its men by it (#2478). Saka carries FPL's news, and an override on one match.
 
 import { areasOf, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import { basePoints, cardPositions, logCategories, rankOfPlayer } from "../../convex/playerCard/cardPoints";
@@ -16,7 +16,7 @@ import { previewScouts } from "../scouting/scouts/preview";
 import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../shared/previewDraw";
 import { PREVIEW_SAKA_NEWS, PREVIEW_UNPLAYED } from "../myTeam/tactics/preview";
-import { previewClubMatch, previewClubPostponed, previewClubUpcoming } from "../premierLeague/preview";
+import { previewClubMatch, previewClubPostponed, previewClubUpcoming, previewFullTimeGoals } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";
 import { pointsOf, seasonFigures } from "./gameLog";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
@@ -65,41 +65,50 @@ const PREVIEW_OVERRIDE = { points: 9, reason: "The feed gave his assist to Odega
 const PREVIEW_ROLE_PLAYER = "Palmer";
 const PREVIEW_ROLE = { name: "Number 10", points: 1, sides: [{ points: 1, lines: [{ stat: "big_chance_created", name: categoryName("big_chance_created"), actions: 1 }] }] };
 
+/** A record's base points at each of his positions under the first set, each category named. */
+const pricedAt = (player: PreviewPlayer, record: MatchStats | null): PlayedMatch["points"] =>
+  basePoints(record, FIRST_SCORING, player.positions).map(({ position, total, categories }) => ({
+    position,
+    total,
+    categories: categories.map((each) => ({ ...each, name: categoryName(each.stat) })),
+  }));
+
+/** His club's match with his record in it, priced as his card prices it, with no role or override:
+ *  the one match his card and the matchup read (#2478). */
+function playedOf(player: PreviewPlayer, gameweek: number, match: GameweekMatch, record: MatchStats): PlayedMatch {
+  const { fixtureCode, kickoff, home, away, score } = match;
+  return {
+    fixtureCode,
+    gameweek,
+    kickoff,
+    home,
+    away,
+    minutes: record[MINUTES_STAT],
+    score: score === null || score.homeGoals === null || score.awayGoals === null ? null : { home: score.homeGoals, away: score.awayGoals },
+    stats: record,
+    points: pricedAt(player, record),
+    // The preview plays the first set, which has no version's name.
+    version: null,
+    override: null,
+    // One still being played may still move.
+    provisional: score?.state !== "fullTime",
+  };
+}
+
 /** His matches this season, newest first: his club's in Football's gameweeks (../premierLeague/
  *  preview.ts) he played in, the newest maybe still being played. */
 function matchesOf(player: PreviewPlayer): PlayedMatch[] {
   const played = SO_FAR.flatMap((gameweek) => {
     const match = previewClubMatch(gameweek, player.club.code);
     const record = match === undefined ? null : recordIn(player, gameweek, match);
-    return match === undefined || record === null ? [] : [{ gameweek, match, record }];
+    return match === undefined || record === null ? [] : [playedOf(player, gameweek, match, record)];
   });
-  return played.toReversed().map(({ gameweek, match, record }, index) => {
-    const points = basePoints(record, FIRST_SCORING, player.positions).map(({ position, total, categories }) => ({
-      position,
-      total,
-      categories: categories.map((each) => ({ ...each, name: categoryName(each.stat) })),
-    }));
+  return played.toReversed().map((match, index) => ({
+    ...match,
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
-    const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 ? { role: PREVIEW_ROLE } : {};
-    const { fixtureCode, kickoff, home, away, score } = match;
-    return {
-      fixtureCode,
-      gameweek,
-      kickoff,
-      home,
-      away,
-      minutes: record[MINUTES_STAT],
-      score: score === null || score.homeGoals === null || score.awayGoals === null ? null : { home: score.homeGoals, away: score.awayGoals },
-      stats: record,
-      points,
-      // The preview plays the first set, which has no version's name.
-      version: null,
-      ...started,
-      override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
-      // One still being played may still move.
-      provisional: score?.state !== "fullTime",
-    };
-  });
+    ...(player.name === PREVIEW_ROLE_PLAYER && index === 1 ? { role: PREVIEW_ROLE } : {}),
+    override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
+  }));
 }
 
 /** Last season, in the preview: 34 matches like his best one here at each of his positions, but for
@@ -163,6 +172,27 @@ export function previewSeasonOf(playerCode: number) {
   return { matches, seasonPoints: seasonFigures(matches, 0).seasonPoints, pointsIn };
 }
 
+const playerOf = (playerCode: number) => previewPlayers.find(({ code }) => code === playerCode);
+
+/** A preview player's match in `gameweek` on his card, an override in, null where it has none (he
+ *  sat it out, or it is to come): the matchup's men score it (#2478). `atFullTime` asks for it as
+ *  his card will have it once over, for the matchup's replay: a match still being played or to
+ *  come plays to Football's made-up result. */
+export function previewCardMatchIn(playerCode: number, gameweek: number, atFullTime: boolean): PlayedMatch | null {
+  const onCard = cards.get(playerCode)?.matches.find((match) => match.gameweek === gameweek) ?? null;
+  const player = playerOf(playerCode);
+  const match = player === undefined ? undefined : previewClubMatch(gameweek, player.club.code);
+  if (!atFullTime || onCard?.provisional === false || player === undefined || match === undefined || match.score === null) return onCard;
+  const [homeGoals, awayGoals] = previewFullTimeGoals(match);
+  const over: GameweekMatch = { ...match, score: { state: "fullTime", homeGoals, awayGoals, minutes: 90, clockLabel: null } };
+  const record = recordIn(player, gameweek, over);
+  return record === null ? null : playedOf(player, gameweek, over, record);
+}
+
+/** A record's base points at a preview player's first position, as his card prices it: the
+ *  matchup's replay prices his record so far with it (#2478). */
+export const previewCardPriced = (playerCode: number, record: MatchStats | null) => pricedAt(playerOf(playerCode)!, record)[0];
+
 /** His rank at a position among the preview's players holding it, by their cards' base points
  *  there, placed by the server's own rule (positionRank.ts). */
 function rankOf(playerCode: number, position: SlotPosition): PositionRank {
@@ -193,7 +223,7 @@ const PREVIEW_SQUAD = previewPlayers.filter((player) => player.ownerTeamName ===
 /** In the preview the manager drops his own team's player, has nothing on another team's, claims
  *  one on Scouting's preview waivers and picks up any other. */
 function cardActionOf(playerCode: number): CardAction {
-  const player = previewPlayers.find(({ code }) => code === playerCode);
+  const player = playerOf(playerCode);
   if (player === undefined) return { kind: "none" };
   if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
   return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD };
