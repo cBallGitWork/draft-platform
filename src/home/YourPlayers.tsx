@@ -2,9 +2,9 @@ import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import { PREMIER_LEAGUE_PATH } from "../frame/menu";
 import { playerCardPath } from "../playerCard/paths";
-import { MatchState } from "../premierLeague/MatchState";
 import { matchPath } from "../premierLeague/paths";
-import { goalsWords } from "../premierLeague/words";
+import { hasKickedOff, PlayedState } from "../shared/match/PlayedState";
+import { goalsWords } from "../shared/match/words";
 import { PanelNote } from "../ui/Panel";
 import { FoldingPanel } from "./FoldingPanel";
 import { PanelLink } from "./PanelLink";
@@ -60,8 +60,8 @@ function MatchLine({ match: { fixtureCode, kickoff, home, away, score } }: { mat
       <Link to={matchPath(fixtureCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
         {home.shortName} {goals === null ? versusWords : <span className="font-bold text-figure">{goals}</span>} {away.shortName}
       </Link>
-      {goals !== null ? (
-        <MatchState kickoff={kickoff} score={score} long={false} />
+      {hasKickedOff(score) ? (
+        <PlayedState score={score} long={false} />
       ) : (
         kickoff !== null && <span className="text-soft">{weekdayTimeWords(kickoff)}</span>
       )}
