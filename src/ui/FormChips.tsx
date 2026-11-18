@@ -3,13 +3,18 @@ import { noFigureWords } from "../shared/words";
 import { formLabel, liveFormLabel, liveResultWords, resultWords } from "../shared/match/words";
 
 const CHIP = "inline-block min-w-chip-tight text-center font-bold no-underline";
-/** A result locked, solid in the figure colour; one still live, a 1px muted outline until it locks
- *  (the approved table's live picture). */
-const LOCKED = "bg-figure text-ground";
+/** A result locked, solid in its own colour, green, grey or red (spec/12 S12.28); one still live, a
+ *  1px muted outline until it locks (the approved table's live picture). Whole class strings, so
+ *  Tailwind finds them. */
+const LOCKED: Record<Result, string> = {
+  won: "bg-form-won text-ground",
+  drawn: "bg-form-drawn text-ground",
+  lost: "bg-form-lost text-ground",
+};
 const LIVE = "text-fact outline -outline-offset-1 outline-muted";
 
-/** A team's form (plate.md, Marks: form): its last results, oldest first, each a square chip in the
- *  figure colour, the whole set named for screen readers; a dash before any result. `live` draws the
+/** A team's form (plate.md, Marks: form): its last results, oldest first, each a square chip in its
+ *  result's colour, the whole set named for screen readers; a dash before any result. `live` draws the
  *  last as an outline while its gameweek may still move (the table's live picture). */
 export function FormChips({ form, live = false }: { form: readonly Result[]; live?: boolean }) {
   if (form.length === 0) return <span className="text-muted">{noFigureWords}</span>;
@@ -27,7 +32,7 @@ export function FormChips({ form, live = false }: { form: readonly Result[]; liv
  *  its gameweek may still move. Form's own, and a result's on My team's Fixtures tab. */
 export function ResultChip({ result, live = false }: { result: Result; live?: boolean }) {
   return (
-    <abbr title={live ? liveResultWords(result) : resultWords[result].long} className={`${CHIP} ${live ? LIVE : LOCKED}`}>
+    <abbr title={live ? liveResultWords(result) : resultWords[result].long} className={`${CHIP} ${live ? LIVE : LOCKED[result]}`}>
       {resultWords[result].short}
     </abbr>
   );

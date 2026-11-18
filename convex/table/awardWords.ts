@@ -5,11 +5,14 @@ import { LOCALE } from "../shared/moments";
 
 const MONTH_WORDS = new Intl.DateTimeFormat(LOCALE, { timeZone: "UTC", month: "long", year: "numeric" });
 
-/** A month kept as "2026-10", as a person reads it: "October 2026". */
-export function monthWords(month: string): string {
+/** A month kept as "2026-10", as its first moment on UTC, to format on UTC. */
+export function monthStart(month: string): number {
   const [year, number] = month.split("-").map(Number);
-  return MONTH_WORDS.format(Date.UTC(year, number - 1, 1));
+  return Date.UTC(year, number - 1, 1);
 }
+
+/** A month kept as "2026-10", as a person reads it: "October 2026". */
+export const monthWords = (month: string) => MONTH_WORDS.format(monthStart(month));
 
 /** Mail's letter telling the whole league its Manager of the Month ("Most points", S09.5). */
 export function managerOfTheMonthLetter(teamName: string, month: string, points: number): Words {

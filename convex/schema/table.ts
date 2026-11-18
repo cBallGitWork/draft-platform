@@ -55,7 +55,9 @@ export const tableTables = {
     teamId: v.id("teams"),
     points: v.number(),
     awardedAt: v.number(),
-  }).index("by_leagueId_and_month", ["leagueId", "month"]),
+  })
+    .index("by_leagueId_and_month", ["leagueId", "month"])
+    .index("by_teamId_and_month", ["teamId", "month"]),
   /** The live gameweek as the league's screens read it while a match is on (#2007): each team's
    *  points and the matchday Vidiprinter's lines, scored once a live tick rather than once a
    *  viewer. One row a league and gameweek, written only by convex/table/liveScores.ts, which says

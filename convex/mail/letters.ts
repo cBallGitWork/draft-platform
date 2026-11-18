@@ -36,9 +36,16 @@ export async function commissionerOrAll(ctx: QueryCtx, league: Doc<"leagues">): 
   return league.commissionerEmail === undefined ? await wholeLeague(ctx, league) : [league.commissionerEmail];
 }
 
+/** Files the commissioner's `letter` to `commissionerOrAll`; with no commissioner, each copy
+ *  offers to ask to be one (S01.2, S01.3). */
+export async function fileCommissionerLetter(ctx: MutationCtx, league: Doc<"leagues">, kind: LetterKind, letter: Written): Promise<void> {
+  await fileLetter(ctx, league, kind, await commissionerOrAll(ctx, league), letter, undefined, undefined, league.commissionerEmail === undefined);
+}
+
 /** Files `letter`, of `kind`, in the league's name to each of `to`, once each, ending in `link` when
- *  given (S16.2). The copy to `by`, who wrote it or did what it reports, is filed read: they know.
- *  With no `by`, every copy is unread. */
+ *  given (S16.2), and offering to ask to be commissioner when `askToRun` (S01.3). The copy to `by`,
+ *  who wrote it or did what it reports, is filed read: they know. With no `by`, every copy is
+ *  unread. */
 export async function fileLetter(
   ctx: MutationCtx,
   league: Doc<"leagues">,
@@ -47,6 +54,7 @@ export async function fileLetter(
   letter: Written,
   by?: string,
   link?: LetterLink,
+  askToRun = false,
 ): Promise<void> {
   const at = Date.now();
   const copy = filed(letter);
@@ -59,6 +67,7 @@ export async function fileLetter(
       kind,
       ...copy,
       ...(link === undefined ? {} : { link }),
+      ...(askToRun ? { askToRun: true as const } : {}),
       readAt: email === by ? at : undefined,
     });
   }

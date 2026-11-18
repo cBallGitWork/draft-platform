@@ -16,7 +16,7 @@ import {
   type PickNews,
 } from "../mail/draftLetterWords";
 import type { MovedStart } from "../gameweeks/scoringStart";
-import { bylineOf, commissionerOrAll, fileLetter, wholeLeague } from "../mail/letters";
+import { bylineOf, fileCommissionerLetter, fileLetter, wholeLeague } from "../mail/letters";
 import { tellIn } from "../mail/letterMoments";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
@@ -63,9 +63,9 @@ export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, pi
   await fileLetter(ctx, league, "draft", await wholeLeague(ctx, league), draftOverLetter(picks));
 }
 
-/** Tells the commissioner (with none, everyone: `commissionerOrAll`) the draft's end moved the league's scoring start (scoringStart.ts). */
+/** Tells the commissioner (with none, everyone: `fileCommissionerLetter`) the draft's end moved the league's scoring start (scoringStart.ts). */
 export async function tellScoringStartMoved(ctx: MutationCtx, league: Doc<"leagues">, moved: MovedStart): Promise<void> {
-  await fileLetter(ctx, league, "draft", await commissionerOrAll(ctx, league), scoringStartMovedLetter(moved));
+  await fileCommissionerLetter(ctx, league, "draft", scoringStartMovedLetter(moved));
 }
 
 /** Tells the whole league `by`, the commissioner, paused the draft. */
@@ -103,7 +103,7 @@ export async function tellPicker(ctx: MutationCtx, league: Doc<"leagues">, by: s
 
 /** Tells the commissioner (with none, everyone) the draft didn't start at its date, `startsAt`, for `refusal`. */
 export async function tellNotStarted(ctx: MutationCtx, league: Doc<"leagues">, startsAt: number, refusal: string): Promise<void> {
-  await fileLetter(ctx, league, "draft", await commissionerOrAll(ctx, league), (tell) => draftNotStartedLetter(startsAt, refusal, tell));
+  await fileCommissionerLetter(ctx, league, "draft", (tell) => draftNotStartedLetter(startsAt, refusal, tell));
 }
 
 /** Sends the "you're up next" email, already counted; a refusal is logged. */

@@ -58,6 +58,7 @@ export async function aRowInEveryTable(t: TestConvex, leagueId: Id<"leagues">): 
   await t.run(async (ctx) => {
     const gameweek = A_GAMEWEEK;
     const playerCode = A_PLAYER;
+    await ctx.db.insert("commissionerAsks", { leagueId, email: DAN });
     await ctx.db.insert("passedDeadlines", { leagueId, gameweek, deadline: 0, recordedAt: 0 });
     await ctx.db.insert("keptDeadlines", { leagueId, gameweek, deadline: 0, keptAt: 0 });
     await ctx.db.insert("playedFixtures", { leagueId, gameweek, fixtures: [], byes: [teamId], storedAt: 0 });

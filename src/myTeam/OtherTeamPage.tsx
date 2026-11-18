@@ -6,6 +6,7 @@ import { ClubMark, ClubShort } from "../ui/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PAGE_STACK, PageSection, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
+import { AwardsMeter } from "./header/TeamHeader";
 import type { MyTeamSeam, OtherSquad } from "./seam";
 import { squadCellClass } from "./squad/SquadTable";
 import { PointsCell } from "./SquadCells";
@@ -14,7 +15,8 @@ import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadColumns, 
 // Another team's squad, read-only, opened from its name as a player's owner on his card (Craig,
 // 9 Nov 2026, #1027: "a read-only page of that team, its Squad table (players, positions, club,
 // season points), with nothing changeable and no tactics shown"). The Squad tab's table
-// (docs/design/approved/team-squad) with only those columns; each name opens his card.
+// (docs/design/approved/team-squad) with only those columns; each name opens his card. Its plate
+// lists the awards it has won (S09.8), as My team's header band does.
 
 type Column = "positions" | "player" | "season";
 const COLUMNS: readonly Column[] = ["positions", "player", "season"];
@@ -26,7 +28,17 @@ export function OtherTeamPage({ league, teamId, seam }: { league: LeagueSummary;
   if (squad === undefined) return <Loading className="bg-panel px-3 py-2">{otherSquadLoadingWords}</Loading>;
   return (
     <div className={PAGE_STACK}>
-      <PageSection title={squad.teamName} className="bg-panel">
+      <PageSection
+        title={squad.teamName}
+        aside={
+          squad.awards.length > 0 && (
+            <dl className="flex">
+              <AwardsMeter months={squad.awards} />
+            </dl>
+          )
+        }
+        className="bg-panel"
+      >
         {squad.players.length === 0 ? <PanelNote>{otherSquadEmptyWords}</PanelNote> : <OtherSquadTable leagueId={league.leagueId} squad={squad} />}
       </PageSection>
     </div>

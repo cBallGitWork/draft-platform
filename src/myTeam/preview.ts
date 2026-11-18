@@ -154,10 +154,12 @@ export const previewMyTeam: MyTeamSeam = {
   useOtherSquad: (_leagueId, teamId) => ({
     teamName: previewTeamNames.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
     players: players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })),
+    awards: [],
   }),
   useSquadNumbers: () => previewNumbers,
   useLatestMail: () => previewLatestMail,
   // Off, as the approved picture draws it; the preview holds no server, so a switch goes nowhere.
+  useMyAwards: () => [],
   useMyAutoTeam: () => previewAutoTeam,
   useAutoTeamChanges: () => previewAutoTeamChanges,
 };

@@ -6,6 +6,7 @@ import { memberOf, teamIn } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "./squadPlace";
 import { seasonPointsIn } from "../stats/seasonPoints";
+import { awardsOfTeam } from "../table/awards";
 import { bySquadOrder } from "./teamSquad";
 
 // Another team's squad, read-only, opened from its name on a player's card (Craig, 9 Nov 2026,
@@ -25,7 +26,8 @@ const otherSquadRow = v.object({
   seasonPoints: v.union(v.number(), v.null()),
 });
 
-const otherSquad = v.object({ teamName: v.string(), players: v.array(otherSquadRow) });
+/** `awards`: the months it was Manager of the Month in, as "2026-10", oldest first (S09.8). */
+const otherSquad = v.object({ teamName: v.string(), players: v.array(otherSquadRow), awards: v.array(v.string()) });
 export type OtherSquad = Infer<typeof otherSquad>;
 
 /** The team's squad, in the Squad tab's order: back to front by his first position, then by name.
@@ -55,6 +57,6 @@ export const ofTeam = query({
       }),
     );
     players.sort(bySquadOrder);
-    return { teamName: team.name, players };
+    return { teamName: team.name, players, awards: await awardsOfTeam(ctx, team._id) };
   },
 });

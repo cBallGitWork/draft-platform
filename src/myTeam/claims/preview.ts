@@ -1,11 +1,12 @@
 // The Transactions tab's claims, waiver order and runs in the preview (src/app/preview.ts), as the
-// waivers picture has them: Saka Potatoes' three claims over Wednesday's and Thursday's runs, the
+// waivers picture has them: Saka Potatoes' three claims over the gameweek's two runs, the
 // second dropping the player the first does, and another team's two for the commissioner's Every
 // team view; the preview league's teams in reverse table order. A change says it isn't saved.
 
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
-import { DAY_MS } from "../../../convex/shared/time";
+import { clockHourOf } from "../../../convex/home/homeAt";
+import { HOUR_MS } from "../../../convex/shared/time";
 import { previewSays, previewTeamNames } from "../../shared/preview";
 import { previewLeagueTable } from "../../table/preview";
 import { previewIdOf, previewSeason } from "../../shared/previewDraw";
@@ -14,13 +15,12 @@ import type { ClaimsSeam, PendingClaim, WaiversView } from "./seam";
 
 const unsavedWords = "claims aren't saved";
 
-/** The next Wednesday's 18:00 UTC, near enough to UK time for a preview, and Thursday's after it. */
-const now = Date.now();
-const WEDNESDAY = 3;
-const today = new Date(now);
-const daysToWednesday = (WEDNESDAY - today.getUTCDay() + 7) % 7 || 7;
-const wednesday = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + daysToWednesday, 18);
-const thursday = wednesday + DAY_MS;
+/** The gameweek My team sets and its deadline, from the one preview season (#2697), about a day
+ *  ahead; both runs fall on the hour between now and it, so the window they open shuts after
+ *  them (#2733). */
+const deadline = previewSeason.deadlineOf(PREVIEW_GAMEWEEK);
+const firstRun = clockHourOf(deadline - 18 * HOUR_MS);
+const secondRun = clockHourOf(deadline - 6 * HOUR_MS);
 
 const club = (shortName: string, code: number) => ({ code, name: shortName, shortName });
 const player = (playerCode: number, playerName: string, position: Position, clubShort: string, seasonPoints: number | null) => ({
@@ -51,10 +51,10 @@ const claimOf = (id: number, team: string, claim: ReturnType<typeof player>, dro
 });
 
 const claims: PendingClaim[] = [
-  claimOf(1, yourTeam, semenyo, calvertLewin, wednesday),
-  claimOf(2, yourTeam, eze, calvertLewin, wednesday),
-  claimOf(3, yourTeam, kudus, mbeumo, thursday),
-  claimOf(4, otherTeam, wissa, konsa, wednesday),
+  claimOf(1, yourTeam, semenyo, calvertLewin, firstRun),
+  claimOf(2, yourTeam, eze, calvertLewin, firstRun),
+  claimOf(3, yourTeam, kudus, mbeumo, secondRun),
+  claimOf(4, otherTeam, wissa, konsa, firstRun),
 ];
 
 const waivers: WaiversView = {
@@ -64,11 +64,10 @@ const waivers: WaiversView = {
     .map(({ teamName: name, points }, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: index + 1, points }))
     .toReversed(),
   drafted: true,
-  runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
+  runs: [firstRun, secondRun].map((at) => ({ at, skippedIf: null })),
   locked: false,
   windowOpen: false,
-  // The gameweek My team sets and its deadline, from the one preview season (#2697).
-  windowShuts: { gameweek: PREVIEW_GAMEWEEK, at: previewSeason.deadlineOf(PREVIEW_GAMEWEEK) },
+  windowShuts: { gameweek: PREVIEW_GAMEWEEK, at: deadline },
   resetsAfter: PREVIEW_GAMEWEEK,
   delayed: false,
 };

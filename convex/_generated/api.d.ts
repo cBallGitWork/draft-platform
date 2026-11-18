@@ -146,6 +146,7 @@ import type * as joining_joining from "../joining/joining.js";
 import type * as joining_joiningEmails from "../joining/joiningEmails.js";
 import type * as joining_joiningShared from "../joining/joiningShared.js";
 import type * as joining_liveInvites from "../joining/liveInvites.js";
+import type * as leagues_commissionerAsks from "../leagues/commissionerAsks.js";
 import type * as leagues_deletionNotices from "../leagues/deletionNotices.js";
 import type * as leagues_lastLeague from "../leagues/lastLeague.js";
 import type * as leagues_leagueChecks from "../leagues/leagueChecks.js";
@@ -596,6 +597,7 @@ declare const fullApi: ApiFromModules<{
   "joining/joiningEmails": typeof joining_joiningEmails;
   "joining/joiningShared": typeof joining_joiningShared;
   "joining/liveInvites": typeof joining_liveInvites;
+  "leagues/commissionerAsks": typeof leagues_commissionerAsks;
   "leagues/deletionNotices": typeof leagues_deletionNotices;
   "leagues/lastLeague": typeof leagues_lastLeague;
   "leagues/leagueChecks": typeof leagues_leagueChecks;
