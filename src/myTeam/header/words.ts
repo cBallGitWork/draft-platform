@@ -9,7 +9,7 @@ import { resultOf, type Result, type Winner } from "../../../convex/table/standi
 import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
-export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
+export { awardLong, awardsHead, awardWords, liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
 export { placeWords } from "../../shared/words";
 export { formHead, tableHead } from "../../shared/match/words";
 export { countdownWords, gameweekShort } from "../../shared/when/words";

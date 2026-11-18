@@ -25,6 +25,9 @@ export const letterFields = {
   moments: v.optional(v.array(v.number())),
   /** Where its one link goes (S16.2); absent on a letter with nowhere to act on it. */
   link: v.optional(letterLink),
+  /** A commissioner's letter filed to everyone in a league with none (spec/01 S01.2): it offers
+   *  to ask to be commissioner while the league still has none (S01.3). */
+  askToRun: v.optional(v.literal(true)),
   /** When `to` opened it; absent while unread. */
   readAt: v.optional(v.number()),
 };

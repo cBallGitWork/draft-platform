@@ -139,8 +139,14 @@ name (the score).
   `--color-area-attack` ink `--color-ground` (12.2, 5.0, 6.0, 8.6, 5.6 and 7.9:1). A sweeper's SW
   and a wing-back's WB take the defence's, a support striker's SS the attacking midfield's. Built
   once, `src/ui/PositionChip.tsx`.
-- **Form**: a team's last five results, W, L or D, each a square chip in the figure colour with
-  the ground's ink (14.8:1), oldest first. Built once, `src/ui/FormChips.tsx`.
+- **Position codes in words**: a squad's position line writes each code in its own area's colour
+  (spec/12 S12.29, S12.30): goalkeeper, midfield and attack as the colour itself (11.2, 7.9 and
+  7.3:1 on the panel), defence, defensive midfield and attacking midfield, which fall short of
+  4.5:1 as words, on their chip's fill under its ink. Built once, `src/ui/PositionCodes.tsx`.
+- **Form**: a team's last five results, W, D or L, each a square chip under the ground's ink, its
+  fill by the result (spec/12 S12.28): won `--color-form-won` green (7.4:1), drawn
+  `--color-form-drawn` grey (7.6:1), lost `--color-form-lost` red (5.6:1); oldest first. Built
+  once, `src/ui/FormChips.tsx`.
 - **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
   size, drawn as a 1px muted (`--color-muted`) outline; its `title` and label say what will show
   there ("Role fit: not rated yet"). One on a panel keeps its outline with that label written inside

@@ -107,4 +107,7 @@ export const previewAdmin: AdminSeam = {
   useGameweekMatches: (gameweek) => (gameweek === null ? undefined : gameweekMatches),
   useMatchMoveLog: () => ({ rows: moveLog, more: false }),
   moveMatch: previewSays("no match moved"),
+  useCommissionerAsks: () => ({ asks: [], more: false }),
+  approveAsk: previewSays("nobody was made commissioner"),
+  refuseAsk: previewSays("no ask was refused"),
 };

@@ -244,4 +244,15 @@ export const leagueTables = {
     .index("by_waiversAt", ["waiversAt"])
     .index("by_offersAt", ["offersAt"]),
   unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
+  /** A manager's ask to be commissioner of a league with none, which the admin approves or
+   *  refuses (spec/01 S01.3; ../leagues/commissionerAsks.ts). */
+  commissionerAsks: defineTable({
+    leagueId: v.id("leagues"),
+    email: v.string(),
+    /** Absent while it waits for the admin. */
+    decision: v.optional(v.union(v.literal("approved"), v.literal("refused"))),
+  })
+    .index("by_leagueId_and_decision", ["leagueId", "decision"])
+    .index("by_leagueId_and_email_and_decision", ["leagueId", "email", "decision"])
+    .index("by_decision", ["decision"]),
 };

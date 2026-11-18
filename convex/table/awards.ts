@@ -1,5 +1,6 @@
+import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import type { MutationCtx } from "../_generated/server";
+import { query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineOf } from "../gameweeks/deadline";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
@@ -9,7 +10,8 @@ import { gameModeOf } from "../rules/gameMode";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { LOCALE, LONDON_ZONE } from "../shared/moments";
-import { teamsOf } from "../shared/leagueAccess";
+import { takeAllOrThrow } from "../shared/cappedRead";
+import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { managerOfTheMonthLetter } from "./awardWords";
 import { scheduleOf } from "./playedFixtures";
 import type { GameweekFixtures } from "./roundRobin";
@@ -123,3 +125,24 @@ const awardOf = (ctx: MutationCtx, leagueId: Id<"leagues">, month: string) =>
     .query("awards")
     .withIndex("by_leagueId_and_month", (q) => q.eq("leagueId", leagueId).eq("month", month))
     .unique();
+
+/** The most awards one team's page reads: ten seasons of a month each. Past it the read throws. */
+const TEAM_AWARDS_MOST = 120;
+
+/** The months a team was Manager of the Month in, as "2026-10", oldest first: what its page lists
+ *  (S09.8). */
+export async function awardsOfTeam(ctx: QueryCtx, teamId: Id<"teams">): Promise<string[]> {
+  const awards = await takeAllOrThrow(
+    ctx.db.query("awards").withIndex("by_teamId_and_month", (q) => q.eq("teamId", teamId)),
+    TEAM_AWARDS_MOST,
+    `A team holds more than ${TEAM_AWARDS_MOST} awards, so its page would leave some out`,
+  );
+  return awards.map((award) => award.month);
+}
+
+/** The awards the caller's own team has won, for My team's header band (S09.8). */
+export const ofMyTeam = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.array(v.string()),
+  handler: async (ctx, { leagueId }) => awardsOfTeam(ctx, (await managerOf(ctx, leagueId)).team._id),
+});

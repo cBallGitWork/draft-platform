@@ -6,15 +6,18 @@ import { POSITION_NAMES } from "../shared/words";
 // Tailwind finds them. A slot's chip is the position it stands for; a sweeper is a centre-back's
 // role, with no label of its own (spec/05 The pitch).
 
-/** Each area's chip: its fill, and the ink that reads on it. */
-const GOALKEEPER = { fill: "bg-area-goalkeeper", ink: "text-ground" };
-const DEFENCE = { fill: "bg-area-defence", ink: "text-fact" };
-const DEFENSIVE_MIDFIELD = { fill: "bg-area-defensive-midfield", ink: "text-fact" };
-const MIDFIELD = { fill: "bg-area-midfield", ink: "text-ground" };
-const ATTACKING_MIDFIELD = { fill: "bg-area-attacking-midfield", ink: "text-fact" };
-const ATTACK = { fill: "bg-area-attack", ink: "text-ground" };
+/** Each area's chip: its fill, and the ink that reads on it; `text` is the area's colour as words on
+ *  a panel where it reads at 4.5:1 there (goalkeeper 11.2, midfield 7.9, attack 7.3:1), null where
+ *  it wouldn't (defence 3.5, defensive midfield 2.9, attacking midfield 3.1:1). */
+type AreaColours = { fill: string; ink: string; text: string | null };
+const GOALKEEPER: AreaColours = { fill: "bg-area-goalkeeper", ink: "text-ground", text: "text-area-goalkeeper" };
+const DEFENCE: AreaColours = { fill: "bg-area-defence", ink: "text-fact", text: null };
+const DEFENSIVE_MIDFIELD: AreaColours = { fill: "bg-area-defensive-midfield", ink: "text-fact", text: null };
+const MIDFIELD: AreaColours = { fill: "bg-area-midfield", ink: "text-ground", text: "text-area-midfield" };
+const ATTACKING_MIDFIELD: AreaColours = { fill: "bg-area-attacking-midfield", ink: "text-fact", text: null };
+const ATTACK: AreaColours = { fill: "bg-area-attack", ink: "text-ground", text: "text-area-attack" };
 
-const CHIP_COLOURS: Record<Position, { fill: string; ink: string }> = {
+const CHIP_COLOURS: Record<Position, AreaColours> = {
   GK: GOALKEEPER,
   CB: DEFENCE,
   FB: DEFENCE,

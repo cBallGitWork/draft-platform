@@ -13,9 +13,12 @@ export interface Role {
   key: string;
   /** As managers say it, such as "Overlapping full-back". */
   name: string;
-  /** What the pitch shows at every width: at most three characters, one per role (spec/05 What
-   *  the pitch shows). */
+  /** At most three characters, one per role (spec/05 What the pitch shows). No screen shows it:
+   *  the pitch shows the short name (Craig, 18 Nov 2026, #2649); whether it stays is #2687. */
   code: string;
+  /** What the pitch's chip shows: the name, or a shorter one managers say ("No. 10"), never the
+   *  code (Craig, 18 Nov 2026, #2649). */
+  shortName: string;
   /** What he does on the role, and where his run takes him, for the role card (spec/05 Roles:
    *  "Each role's description is held with the role"). */
   description: string;
@@ -33,6 +36,7 @@ const role = (key: string, name: string, code: string, description: string, rewa
   key,
   name,
   code,
+  shortName: name,
   description,
   rewards,
   costs,
@@ -41,6 +45,9 @@ const role = (key: string, name: string, code: string, description: string, rewa
 
 /** The role, marked not tested (spec/05 `S05.30`). */
 const notTested = (each: Role): Role => ({ ...each, notTested: true });
+
+/** The role, its chip naming it shorter than its name ("No. 10"; Craig, 18 Nov 2026, #2649). */
+const shortened = (each: Role, shortName: string): Role => ({ ...each, shortName });
 
 /** The roles only a back of three or more centre-backs offers, last in the centre-back's list so a
  *  back three keeps its first (spec/05 The pitch; Craig, 4 Nov 2026). A sweeper sweeps across behind
@@ -116,7 +123,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("trackingWinger", "Tracking winger", "TRW", "Tracks their full-back all the way back into his own third.", ["Tackles won", "Interceptions", "Blocks", "Clearances"], ["Dribbled past"]),
   ],
   CAM: [
-    role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Key passes", "Big chances created", "Through balls"], ["Shots off target"]),
+    shortened(role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Key passes", "Big chances created", "Through balls"], ["Shots off target"]), "No. 10"),
     role(SUPPORT_STRIKER_ROLE, "Shadow striker", "SSA", "Gets past the striker into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Offsides"]),
     role("carrier", "Carrier", "CAR", "Picks it up and goes straight at them, through the middle to the edge of the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
     role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker, onto their holding midfielder and then their centre-back.", ["Tackles won", "Interceptions", "Recoveries"], ["Fouls"]),

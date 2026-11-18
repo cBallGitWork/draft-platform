@@ -115,10 +115,12 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     expect(screen.queryByRole("button", { name: whoseRole(WHITE.name) })).toBeNull();
   });
 
-  it("the pitch shows the role's code over his name, its name on hover (#845)", async () => {
+  it("the pitch shows the role's short name over his name, never its code, cut to fit with its name on hover (#845, #2649)", async () => {
     await openedPitch();
     await pickRole(SALIBA.name, "Ball-playing centre-back");
-    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByTitle("Ball-playing centre-back").textContent).toBe("BPD");
+    const chip = within(blockOf(SALIBA, SALIBAS_CELL)).getByTitle("Ball-playing centre-back");
+    expect(chip.textContent).toBe("Ball-playing centre-back");
+    expect(chip.className).toContain("truncate");
     expect(document.activeElement).toBe(roleButton(SALIBA.name));
   });
 

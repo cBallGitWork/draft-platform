@@ -24,6 +24,7 @@ const letter = (number: number, hoursAgo: number, { from = null, kind = "commiss
   ...made,
   link: null,
   needsYou: false,
+  askToRun: null,
 });
 
 const previewLetters: LetterSummary[] = [
@@ -55,6 +56,7 @@ export const previewMail: MailSeam = {
   useLetters: () => previewLetters,
   open: async () => {},
   writeToLeague: previewSays("no letter was sent"),
+  askToBeCommissioner: previewSays("nobody asked to be commissioner"),
 };
 
 const unreadMail = previewLetters.filter((each) => !each.read).length;

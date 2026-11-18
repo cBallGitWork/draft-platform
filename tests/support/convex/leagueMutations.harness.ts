@@ -45,14 +45,16 @@ export async function rowsToChange(t: TestConvex, leagueId: Id<"leagues">) {
   const offerId = await t.run((ctx) =>
     ctx.db.insert("tradeOffers", { leagueId, fromTeamId: annsTeam._id, toTeamId: teams[1]._id, gives: [1], gets: [], by: ANN, madeAt: Date.now() }),
   );
-  return { leagueId, annsTeam, otherTeam: teams[1], inviteId, requestId, revision, reversedTeamIds, claimId, offerId };
+  /** ANN's ask to be commissioner, written straight in: the league has one, so she couldn't ask. */
+  const askId = await t.run((ctx) => ctx.db.insert("commissionerAsks", { leagueId, email: ANN }));
+  return { leagueId, annsTeam, otherTeam: teams[1], inviteId, requestId, revision, reversedTeamIds, claimId, offerId, askId };
 }
 
 /** A call of each public mutation given a league that would change it, by whoever might be let
  *  in to make it, keyed by its name in `mutationsGivenALeague`. */
 export function changesTo(
   { admin, ann, commissioner }: Callers,
-  { leagueId, annsTeam, otherTeam, inviteId, requestId, revision, reversedTeamIds, claimId, offerId }: RowsToChange,
+  { leagueId, annsTeam, otherTeam, inviteId, requestId, revision, reversedTeamIds, claimId, offerId, askId }: RowsToChange,
 ): Record<string, () => Promise<unknown>> {
   return {
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
@@ -63,7 +65,10 @@ export function changesTo(
     "leagues/teams:removeManager": () => admin.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam._id }),
     "leagues/teams:rename": () => ann.mutation(api.leagues.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
     "leagues/teams:leave": () => ann.mutation(api.leagues.teams.leave, { leagueId }),
-    "leagues/leagueDeletion:deleteLeague": () => admin.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId }),
+    "leagues/commissionerAsks:ask": () => ann.mutation(api.leagues.commissionerAsks.ask, { leagueId }),
+    "leagues/commissionerAsks:approve": () => admin.mutation(api.leagues.commissionerAsks.approve, { askId }),
+    "leagues/commissionerAsks:refuseAsk": () => admin.mutation(api.leagues.commissionerAsks.refuseAsk, { askId }),
+    "leagues/leagueDeletion:deleteLeague":() => admin.mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId }),
     "joining/invites:send": () => admin.mutation(api.joining.invites.send, { leagueId, email: NEWCOMER }),
     "joining/invites:resend": () => admin.mutation(api.joining.invites.resend, { inviteId }),
     "joining/invites:cancel": () => admin.mutation(api.joining.invites.cancel, { inviteId }),

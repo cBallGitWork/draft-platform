@@ -16,7 +16,6 @@ import { confirmDeleteWords } from "../shared/controls/words";
 import { versusWords } from "../shared/match/words";
 import { whenWords } from "../shared/when/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
-
 export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
 
 export const ADMIN_TITLE = "Admin dashboard";
@@ -239,6 +238,16 @@ export const moreMovesWords = moreCorrectionsWords;
 function gameweekWords(gameweek: number | null) {
   return gameweek === null ? "no gameweek" : `gameweek ${gameweek}`;
 }
+/** Managers' asks to be commissioner of a league with none (spec/01 S01.3). */
+export const commissionerAsksTitle = "Asks to be commissioner";
+export const commissionerAsksLoadingWords = "Loading the asks to be commissioner…";
+export const noCommissionerAsksWords = "No one is asking to be commissioner.";
+export const refuseWords = "Refuse";
+export const approveAskLabel = (email: string, league: string) => `Approve ${email} as commissioner of ${league}`;
+export const refuseAskLabel = (email: string, league: string) => `Refuse ${email} as commissioner of ${league}`;
+/** Past the oldest the panel shows: those decided make room for the rest. */
+export const moreAsksWords = "More are waiting than these: the rest show as you decide these.";
+
 /** One row of his log: a move, or a clear, which sends the match back where the window rule puts it. */
 export const moveLogWords = ({ from, to }: { from: number | null; to: number | null }) =>
   to === null ? `Move cleared from ${gameweekWords(from)}` : `From ${gameweekWords(from)} to ${gameweekWords(to)}`;
