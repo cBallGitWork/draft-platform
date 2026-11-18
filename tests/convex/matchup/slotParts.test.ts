@@ -7,7 +7,7 @@ import type { SlotPoints } from "../../../convex/scoring/teamPoints";
 // played there (spec/06 `S06.10`).
 
 const BEHIND_STRIKER: Cell = { area: "attackingMidfield", lane: "centre" };
-const slot = (role?: string): SlotPoints => ({
+const pricedAt = (role?: string): SlotPoints => ({
   playerCode: 1,
   cell: BEHIND_STRIKER,
   ...(role === undefined ? {} : { role }),
@@ -24,5 +24,5 @@ test.each([
   ["pressingTen", "CAM"],
   [undefined, "CAM"],
 ])("S06.10: the matchup's slot behind the striker on %s reads %s", (role, label) => {
-  expect(placeOf(slot(role))).toEqual({ lane: "centre", label });
+  expect(placeOf(pricedAt(role))).toEqual({ lane: "centre", label });
 });
