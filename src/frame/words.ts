@@ -7,15 +7,18 @@ export const ERROR_PAGE_TITLE = "This page can't be shown";
 export const readFailedWords = "Something went wrong";
 export const retryWords = "Retry";
 
-/** The top bar: its two menus, named for screen readers, Continue, and Sign out. */
+/** The top bar: its two menus, named for screen readers, its next-job button, and Sign out. */
 export const mainMenuLabel = "Main";
 export const sectionTabsLabel = "Section";
 /** My team's Transactions tab while claims are pending, for screen readers: "Transactions, 3
  *  pending claims" (#1200). */
-export const pendingClaimsTabLabel = (label: string, claims: number) => `${label}, ${claims} pending ${claims === 1 ? "claim" : "claims"}`;
-export const nothingNeedsYouWords = "Nothing needs you";
-export const continueWords = "Continue";
-export const continueLabel = (reason: string) => `Continue: ${reason}`;
+export const pendingClaimsTabLabel = (label: string, claims: number) => `${label}, ${claims} ${claims === 1 ? "bid" : "bids"} waiting`;
+export const nothingNeedsYouWords = "Nothing to do";
+/** The next-job button says the job ("3 unread", "Set line-up", "Answer offer"; Craig, 18 Nov
+ *  2026: FM's "Continue" said nothing), and names where it goes for screen readers. */
+export { setLineupLink as setLineupJob } from "../shared/words";
+export const answerOffersJob = (offers: number) => (offers === 1 ? "Answer offer" : "Answer offers");
+export const continueLabel = (job: string, place: string) => `${job}, in ${place}`;
 export const signOutWords = "Sign out";
 
 /** The top bar's league switcher (LeagueSwitcher.tsx): the league the app is in, and the way to them all. */
@@ -26,7 +29,7 @@ export const allLeaguesWords = "All your leagues";
 export const leaveWords = {
   open: "Leave this league",
   confirm: (leagueName: string, teamName: string) =>
-    `Leave ${leagueName}? You stop running ${teamName} at once. ${teamName} stays in the league, for the commissioner to hand on.`,
+    `Leave ${leagueName}? You stop running ${teamName} straight away. The team stays in the league for the commissioner to give to someone else.`,
   yes: "Leave",
   no: "Stay",
 } as const;

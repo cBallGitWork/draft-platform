@@ -14,7 +14,7 @@ type Unsubbed = Omit<MatchMan, "sub">;
 
 /** FPL's code for the recorded match. */
 const RECORDED_MATCH = 2645271;
-/** When it kicked off: Fri 23 Oct 2026, 20:00 BST. */
+/** When it kicked off: Fri 23 Oct 2026, 8pm BST. */
 const KICKOFF = 1792782000000;
 
 function man(

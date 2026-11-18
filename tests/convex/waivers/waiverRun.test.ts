@@ -76,14 +76,14 @@ describe("the letters", () => {
     await (await actingAs(w.t, ANN)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: ANNS_FIRST_DROP });
     await w.runWaivers();
 
-    const won = { subject: `${TEAM_2} claimed ${nameOf(SAKA)}`, body: `${TEAM_2} claimed ${nameOf(SAKA)} off waivers, ${BOB}'s claim.` };
+    const won = { subject: `${TEAM_2} won the bid for ${nameOf(SAKA)}`, body: `${BOB} won ${nameOf(SAKA)} for ${TEAM_2} with a bid.` }; // one-home-ok: pins the exact words a manager reads
     expect(await w.lettersTo(CAT)).toContainEqual(won);
     expect(await w.lettersTo(ANN)).toContainEqual(won);
     const ahead = claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" });
     const dropGone = claimFailedLetter({ playerName: nameOf(PALMER), dropName: nameOf(ANNS_FIRST_DROP), why: "dropGone" });
     expect(await w.lettersTo(ANN)).toEqual(expect.arrayContaining([ahead, dropGone]));
     expect(await w.lettersTo(CAT)).not.toContainEqual(ahead);
-    expect(ahead.body).toBe(`Another team was ahead of you in the waiver order for ${nameOf(SAKA)}. Your claim is gone; nobody joined or left your squad for it.`);
+    expect(ahead.body).toBe(`Another team was ahead of you in the bid order for ${nameOf(SAKA)}. The bid is off and your squad hasn't changed.`); // one-home-ok: pins the exact words a manager reads
     expect(dropGone.body).toContain(`${nameOf(ANNS_FIRST_DROP)} was no longer in your squad to drop.`);
   });
 
@@ -128,8 +128,8 @@ describe("the letters", () => {
     await w.runWaivers();
 
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `${TEAM_1} claimed ${nameOf(SAKA)}`,
-      body: `${TEAM_1} claimed ${nameOf(SAKA)} off waivers, ${ANN}'s claim. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
+      subject: `${TEAM_1} won the bid for ${nameOf(SAKA)}`, // one-home-ok: pins the exact words a manager reads
+      body: `${ANN} won ${nameOf(SAKA)} for ${TEAM_1} with a bid and dropped ${nameOf(ANNS_FIRST_DROP)}. He's released, and bids on him settle in at least 24 hours.`, // one-home-ok: pins the exact words a manager reads
     });
     expect((await eventsIn(w.t, w.leagueId)).slice(-2)).toMatchObject([
       { kind: "playerDropped", playerCode: ANNS_FIRST_DROP, teamId: w.annsTeam, toWaivers: true },

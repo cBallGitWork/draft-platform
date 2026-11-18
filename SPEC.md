@@ -195,20 +195,24 @@ follows it; tables and fields already saved keep their names.
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
-| base points | what a player earns from the site's scoring set for what he did, as in FPL: so many for a goal, an assist, a clean sheet | |
-| role adjustment | the points a starter's role adds or takes on top of his base points, in whole points by bars: +1 at each of up to three bars of the role's bonus stats, −1 at each of up to three bars of its one bad action, ±3 at most a match ([05](spec/05-tactics.md#roles)) | role bonus, multiplier, pays, paid |
+| points per game | a player's average points a match he played, on screen "Pts per game" (Craig, 18 Nov 2026) | a match (for it) |
+| base points | what a player earns from the site's scoring set for what he did, as in FPL: so many for a goal, an assist, a clean sheet; on screen "stat points"; with his role points they make his "total", and his season's total is "Season points" (Craig, 18 Nov 2026, after the four readers) | base points (on screen), bonus |
+| role adjustment | on screen "role points": the points a starter's role adds or takes on top of his base points, in whole points by bars: +1 at each of up to three bars of the role's bonus stats, −1 at each of up to three bars of its one bad action, ±3 at most a match ([05](spec/05-tactics.md#roles)) | role bonus, multiplier, pays, paid |
 | earns, loses | what a player does with points | pays, is paid |
-| run | where a starter's role goes as if in a real match, drawn as a dashed arrow on the pitch; it never changes points | lean |
+| run | where a starter's role goes as if in a real match, drawn as a dashed arrow on the pitch; it never changes points; on screen "movement" ("Show movement", "Saka's movement: cuts inside") (Craig, 18 Nov 2026) | lean, run (on screen) |
 | chip | the coloured label under a shirt on the pitch, or at the start of a squad list row | plate, badge |
 | role card | the card that opens from a starter's role: every role for his slot, with his stars, what each scores more and less for, its description and his recent matches under it | role picker, drop-down |
-| scout | one of a team's scouts (three, a number the site sets), sent to one player; the report is ready 24 hours later | |
+| scout | one of a team's scouts (three, a number the site sets), sent to one player; the report is ready 24 hours later; its button is "Get a scout report", with how many are left beside it (Craig, 18 Nov 2026) | |
+| Leaders | Scouting's tab of who leads a stat over a period, once called the stat race (Craig, 18 Nov 2026) | stat race (on screen) |
+| Period | the picker of the span a stat covers ("Period: Season", "Period: Last 5") (Craig, 18 Nov 2026) | over (for it) |
+| form | a player's points in his last five games, the five boxes on his card (Craig, 18 Nov 2026) | |
 | report | a scout's judgement on a player, in a few plain sentences | |
 | shortlist | a manager's own list of players for the season | watchlist |
-| queue | a manager's ranked list of players for the draft; it is also his auto-pick list | draft list, pre-rank |
+| queue | a manager's ranked list of players for the draft; it is also his auto-pick list; "Add to queue" shows only while the draft is to come or live (Craig, 18 Nov 2026) | draft list, pre-rank |
 | do-not-draft list | the players a manager never wants auto-pick to take | |
 | auto-pick | a pick the draft makes for a manager, from his queue first, then the admin's ranking | timeout pick, autodraft |
 | ranking | the admin's one list of players by rank, uploaded for the draft's auto-pick | |
-| patch | a new version of the site's scoring set, named like 26_27.1, announced a week before it takes effect | update |
+| patch | a new version of the site's scoring set, named like 26_27.1, announced a week before it takes effect; on screen "scoring changes" ("Scoring changes from 1 Nov"), its page "Scoring changes" (Craig, 18 Nov 2026) | update, patch (on screen) |
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
 | commissioner | the person who runs one league, with or without a team in it | |
@@ -220,14 +224,15 @@ follows it; tables and fields already saved keep their names.
 | club mark | the small square in a club's two colours before its code (spec/12) | badge, crest |
 | position | where a player can play in real life (CB, FB, CAM, W); no side. A slot has one too, from its area and lane (spec/14) | right back, left winger |
 | admin dashboard | the admin's one screen: the positions queue and corrections, thresholds, and the feeds page | |
-| role | what you tell him to do in your slot, which changes his points | |
+| role | what you tell him to do in your slot, which changes his points; the pitch shows its short name ("Poacher", "No. 10"), never a code like PCH (Craig, 18 Nov 2026) | |
 | trait | what he does in real life (inverted full-back, cuts inside) | style |
-| slot | a place in your formation | |
-| area | a band of the pitch a formation is built from: goalkeeper, defence, defensive midfield, midfield, attacking midfield, attack | line |
+| slot | a place in your formation; on screen it is a "position" ("an empty position in defence"), as "slot" reads like a video game (Craig, 18 Nov 2026) | |
+| area | a band of the pitch a formation is built from: goalkeeper, defence, defensive midfield, midfield, attacking midfield, attack. On screen a line names the band itself ("Fewest defenders: 3", "Too many in midfield"), and the attack band's players are "forwards" ("Fewest forwards: 1", Craig, 18 Nov 2026); "area" only where a heading needs one word ("By area"), as football's "the area" is the penalty box (Craig, 18 Nov 2026) | line |
 | lane | one of five columns across an area: left, left-centre, centre, right-centre, right | |
-| deadline | the one moment each gameweek that locks every lineup | lock time |
+| deadline | the one moment each gameweek that locks every lineup; every screen says "deadline" ("GW9 deadline Fri 11am") (Craig, 18 Nov 2026) | lock time, locks (for it) |
 | formation | how a lineup stands on the pitch's grid: a preset, a classic formation, or custom | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
+| Best XI | Tactics' button that picks a line-up for him (Craig, 18 Nov 2026) | quick pick |
 | classic formation | a famous side's formation, with its roles and team instructions, such as Keegan's Newcastle | classic alone ("classic is the game mode, classic isint a formation", Craig, 11 Nov 2026) |
 | classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are to grill (`docs/to-grill.md`) | classic alone |
 | custom | a classic formation the manager has changed | |
@@ -239,28 +244,37 @@ follows it; tables and fields already saved keep their names.
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
 | line-up | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | roster |
-| starter | a player in the lineup's eleven | |
+| starter | a player in the lineup's eleven; on screen "your XI" or "the eleven", as "starter" is American (Craig, 18 Nov 2026) | |
 | bench | the lineup's players who don't start, in the order auto-subs use | |
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
 | Premier League | the real competition; its menu section is Football (10 Nov 2026) | league (alone) |
 | match | a real Premier League match | |
 | fixture | a real Premier League match, never a league's head-to-head | |
-| matchup | a head-to-head between two teams in one gameweek; also "a game in a gameweek" (Craig, 8 Nov 2026) | match, fixture |
+| matchup | a head-to-head between two teams in one gameweek; also "a game in a gameweek" (Craig, 8 Nov 2026); My team's tab of them is "Matchups" (Craig, 18 Nov 2026) | match, fixture |
 | commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |
-| vidiprinter | the matchup's running list of commentary, newest first | |
+| vidiprinter | the matchup's running list of commentary, newest first; on screen "Live feed" (Craig, 18 Nov 2026) | vidiprinter (on screen) |
+| not final | the mark on a score or table until the gameweek's points are settled (Craig, 18 Nov 2026) | provisional (on screen) |
+| instructions for a formation | the team instructions a formation lets a manager pick, headed "Instructions for 4-2-3-1" (Craig, 18 Nov 2026) | unlocks |
+| trade groups | Trades' groups: "Your reply", "Sent", "Others' trades to check", "With the commissioner"; on another team's trade a manager can "Vote to stop this trade" (Craig, 18 Nov 2026) | block, veto (on screen) |
+| trade review rules | League settings' rules on who can stop a trade: "Commissioner can stop trades", "League can stop trades" (Craig, 18 Nov 2026) | commissioner veto, league veto (on screen) |
 | gameweek | a date window from its deadline to the next gameweek's; a match counts in the gameweek it kicks off in, in every competition. Gameweek N is Sportmonks' round N as first scheduled | period |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
-| auto team | the app setting an absent manager's lineup | |
+| auto team | the app setting an absent manager's lineup; on screen "Away mode", its chip "Away", as testers read "Auto team" as the draft's auto-pick (Craig, 18 Nov 2026) | auto team (on screen) |
 | super sub | a bench player who scores extra if he comes on in the real match | |
 | the market | money in the game: salaries, fees, wages, money in trades | |
-| Mail | the inbox in the app | email |
+| Mail | the inbox in the app; each item in it is a "letter", Championship Manager's word (Craig, 18 Nov 2026) | email |
+| time | on screen 12-hour, as UK football sites write a kick-off: "Sat 3pm", "Wed 7.45pm" (Craig, 18 Nov 2026) | 24-hour (on screen) |
 | email | a message sent to a manager's own inbox | Mail |
 | club captain | the real club's captain, shown as a hint | captain (for the real one) |
 | note | one item in a player's News: a match note or real news, dated and linked to its source (spec/21) | blurb, snippet |
 | squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
 | football | the game itself | soccer |
 | table | a league's teams, or the Premier League's clubs, ranked by points | standings |
-| waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent | waiver wire |
+| waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent; on screen he is "released", a claim is a "bid", a run is when bids "settle", and the order is the "bid order" (Craig, 18 Nov 2026, after four testers stalled on waivers, claim and run) | waiver wire |
+| released | on screen, a dropped player locked until bids on him settle: "Released: Reece James. Bids settle Wed 6pm." (Craig, 18 Nov 2026) | on waivers (on screen) |
+| bid | on screen, a claim: "Bid for James, dropping Watkins"; no money changes hands (Craig, 18 Nov 2026) | claim (on screen) |
+| settle | on screen, a waiver run: "Bids settle Wed 6pm" (Craig, 18 Nov 2026) | run (for bids, on screen) |
+| sign | on screen, picking up a free agent: "Sign Foden", never the bid button's word (Craig, 18 Nov 2026) | pick up (on a button) |
 | the window | from the first waiver run after a gameweek to the next deadline, when players are free agents (spec/08) | week, break (for the window), transfer window (the real one opens in January) |
 | play-offs | the games after the season that settle the places a league plays them for | playoffs |
 | kit | the shirts, shorts and socks a club or team wears | uniform |

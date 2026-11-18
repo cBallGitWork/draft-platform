@@ -6,7 +6,7 @@ import { blankBoxWords, savedWords as scoringSaved } from "../../../src/scoring/
 describe("the two rules screens' shared words", () => {
   it("say a save went through the same way, each with its own reach", () => {
     expect(scoringSaved(9)).toBe("Saved. The new scoring applies to every league from Gameweek 9.");
-    expect(settingsSaved(9)).toBe("Saved. The new settings apply from Gameweek 9, and the league has a letter saying so.");
+    expect(settingsSaved(9)).toBe("Saved. The new settings apply from Gameweek 9, and the league gets a letter about it.");
   });
 
   it("say an empty box has no number the same way", () => {

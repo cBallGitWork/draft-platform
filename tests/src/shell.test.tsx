@@ -8,13 +8,12 @@ import type { TopBarState } from "../../src/frame/topBar/topBarState";
 import { MAIL_PATH, MY_TEAM_PATH } from "../../src/frame/menu";
 import {
   continueLabel,
-  continueWords,
   mainMenuLabel,
   nothingNeedsYouWords,
   sectionTabsLabel,
   signOutWords,
 } from "../../src/frame/words";
-import { MAIL_TITLE, unreadTabLabel } from "../../src/mail/words";
+import { MAIL_TITLE, unreadCount, unreadTabLabel } from "../../src/mail/words";
 import { menuWords } from "../../src/shared/words";
 import { MATCHUP_TITLE } from "../../src/matchup/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
@@ -22,8 +21,7 @@ import { descriptionOf } from "../support/src/describedBy";
 import { LINK_REPLY, league, manager, openApp, visitor } from "../support/src/shell.harness";
 import { linkProblemWords, signInWords } from "../../src/signIn/words";
 
-const threeUnreadReason = "3 unread letters";
-const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, reason: threeUnreadReason } };
+const threeUnread: TopBarState = { unreadMail: 3, next: { path: MAIL_PATH, job: unreadCount(3), place: menuWords.mail } };
 
 describe("a logged-out visitor", () => {
   it("opening the app sees the sign-in page: the name, invite only, an email box", async () => {
@@ -158,18 +156,20 @@ describe("a signed-in manager", () => {
     expect(screen.queryByRole("navigation", { name: sectionTabsLabel })).toBeNull();
   });
 
-  it("with unread mail, sees Mail's count in the menu, and Continue going to the next thing", async () => {
+  it("with unread mail, sees Mail's count in the menu, and the next job named and going to it", async () => {
     openApp(MY_TEAM_PATH, manager, { topBar: threeUnread });
     const mail = await screen.findByRole("link", { name: unreadTabLabel(MAIL_TITLE, 3) });
     expect(mail.getAttribute("href")).toBe(MAIL_PATH);
     expect(within(mail).getByText("3")).toBeTruthy();
-    expect(screen.getByRole("link", { name: continueLabel(threeUnreadReason) }).getAttribute("href")).toBe(MAIL_PATH);
+    const next = screen.getByRole("link", { name: continueLabel(unreadCount(3), menuWords.mail) });
+    expect(next.getAttribute("href")).toBe(MAIL_PATH);
+    expect(next.textContent).toBe(unreadCount(3));
   });
 
-  it("with nothing to do, sees 'Nothing needs you' and no Continue, and Mail with no count", async () => {
+  it("with nothing to do, says so, with no next job and Mail with no count", async () => {
     openApp(MY_TEAM_PATH, manager);
     expect(await screen.findByText(nothingNeedsYouWords)).toBeTruthy();
-    expect(screen.queryByRole("link", { name: new RegExp(`^${continueWords}`) })).toBeNull();
+    expect(screen.queryByRole("link", { name: new RegExp(`, in ${MAIL_TITLE}$`) })).toBeNull();
     expect(screen.getByRole("link", { name: MAIL_TITLE }).textContent).toBe(MAIL_TITLE);
   });
 

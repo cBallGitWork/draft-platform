@@ -25,7 +25,7 @@ describe("the letters", () => {
     expect(rows[0]).toContain("commish@example.com");
     expect(rows[0]).toContain("Unread: ");
     expect(rows[0]).toContain("Letter 3");
-    expect(rows[0]).toContain("13:00");
+    expect(rows[0]).toContain("1pm");
     expect(rows[1]).toContain(`Unread: ${league.name}Letter 2`);
     expect(rows[2]).toContain(`${league.name}Letter 1`);
     expect(rows[2]).not.toContain("Unread");
@@ -89,7 +89,7 @@ describe("the letters", () => {
     const open = screen.getByRole("region", { name: new RegExp(`^${letterKindWords.commissioner}:\\s*${fromWords("commish@example.com")}$`) });
     expect(within(open).getByRole("heading", { level: 3 }).textContent).toBe("Letter 3");
     expect(within(open).getByText("The text of letter 3.")).toBeTruthy();
-    expect(within(open).getByText("Tue 13 Oct, 13:00")).toBeTruthy();
+    expect(within(open).getByText("Tue 13 Oct, 1pm")).toBeTruthy();
   });
 
   it("each row carries its letter's kind; one filed before letters held a kind, the kind's placeholder (#1030)", async () => {

@@ -51,7 +51,30 @@ export function andListWords(items: readonly string[]): string {
 /** Words with a capital first letter, as a sentence starts them. */
 export const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 
-const MOMENT = { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZoneName: "short" } as const;
+/** A time of day as UK football sites write a kick-off, 12-hour (Craig, 18 Nov 2026; SPEC.md's
+ *  Glossary, time): "3pm", "7.45pm", "12.30am", and "midnight" and "noon" on the hour. `hour` is
+ *  0 to 23. */
+export function twelveHourWords(hour: number, minute: number): string {
+  if (minute === 0 && hour === 0) return "midnight";
+  if (minute === 0 && hour === 12) return "noon";
+  const half = hour < 12 ? "am" : "pm";
+  const hours = hour % 12 === 0 ? 12 : hour % 12;
+  return minute === 0 ? `${hours}${half}` : `${hours}.${String(minute).padStart(2, "0")}${half}`;
+}
+
+/** A part `format` wrote, by its type ("" when it wrote none). */
+export const partOf = (parts: readonly Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes) =>
+  parts.find((each) => each.type === type)?.value ?? "";
+
+/** The 12-hour clock of `parts`, written by a format with `hour: "numeric", minute: "2-digit",
+ *  hourCycle: "h23"`. */
+export const twelveHourOfParts = (parts: readonly Intl.DateTimeFormatPart[]) =>
+  twelveHourWords(Number(partOf(parts, "hour")), Number(partOf(parts, "minute")));
+
+/** The options that read a clock for twelveHourOfParts: the hour 0 to 23 and the minute. */
+export const TIME_PARTS = { hour: "numeric", minute: "2-digit", hourCycle: "h23" } as const;
+
+const MOMENT = { weekday: "long", day: "numeric", month: "long", ...TIME_PARTS, timeZoneName: "short" } as const;
 const formats = new Map<string, Intl.DateTimeFormat>();
 
 /** Whether `zone` is a time zone this runtime knows, as a browser names it ("Australia/Sydney"). */
@@ -64,7 +87,7 @@ export function isTimeZone(zone: string): boolean {
   }
 }
 
-/** "Wednesday 21 October at 10:00 BST": `at` in `zone`, the reader's own, or London's when it
+/** "Wednesday 21 October at 10am BST": `at` in `zone`, the reader's own, or London's when it
  *  isn't known. */
 export function momentIn(at: number, zone: string | undefined): string {
   const key = zone ?? LONDON_ZONE;
@@ -73,7 +96,9 @@ export function momentIn(at: number, zone: string | undefined): string {
     format = new Intl.DateTimeFormat(LOCALE, { ...MOMENT, timeZone: key });
     formats.set(key, format);
   }
-  return format.format(at);
+  const parts = format.formatToParts(at);
+  const part = (type: Intl.DateTimeFormatPartTypes) => partOf(parts, type);
+  return `${part("weekday")} ${part("day")} ${part("month")} at ${twelveHourOfParts(parts)} ${part("timeZoneName")}`;
 }
 
 /** The zone this browser is in: on a screen, the reader's own. */

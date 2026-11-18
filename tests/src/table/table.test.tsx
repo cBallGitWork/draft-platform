@@ -39,7 +39,7 @@ import {
   tooFewTeamsWords,
   yourTeamWords,
 } from "../../../src/table/words";
-import { autoTeamWhatWords, autoTeamWords, noFigureWords } from "../../../src/shared/words";
+import { autoTeamWords, awayModeHoverWords, noFigureWords } from "../../../src/shared/words";
 import { formLabel, liveFormLabel } from "../../../src/shared/match/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
@@ -132,7 +132,7 @@ describe("the table", () => {
   it("in total points, has only played and points, and no fixtures", async () => {
     openTable({ leagueTable: leagueTableOf(FIVE, { format: "totalPoints" }) });
     const heads = within(await screen.findByRole("table")).getAllByRole("columnheader");
-    expect(heads.map((head) => head.textContent)).toEqual(["Pos", "Team", "P", "Pts"]);
+    expect(heads.map((head) => head.textContent)).toEqual(["", "Team", "P", "Pts"]);
     // Titled Table, with no tabs and no Fixtures panel (the approved total-points picture).
     expect(screen.getByRole("heading", { level: 1, name: TABLE_TITLE })).toBeTruthy();
     expect(screen.queryByRole("button", { name: competitionWords.cup })).toBeNull();
@@ -154,7 +154,7 @@ describe("the table", () => {
     const [ann, bob] = (await screen.findAllByRole("row")).slice(1).map((row) => within(row).getByRole("rowheader"));
     expect(within(ann).queryByText(autoTeamWords)).toBeNull();
     expect(bob.textContent).toBe(`Bob's${autoTeamWords}`);
-    expect(within(bob).getByText(autoTeamWords).getAttribute("title")).toBe(autoTeamWhatWords);
+    expect(within(bob).getByText(autoTeamWords).getAttribute("title")).toBe(awayModeHoverWords);
   });
 
   it("shows each team's form as chips, and the gameweek the table counts up to", async () => {

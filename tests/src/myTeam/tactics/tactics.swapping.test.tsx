@@ -65,7 +65,7 @@ describe("a refused drop says why, in the line under the toolbar (spec/05; Craig
   it("a starter onto a bench player who doesn't play his cell, naming him and the cell", async () => {
     await openedPitch();
     drag(blockOf(HAVERTZ, HAVERTZS_CELL), rowOf(WHITE));
-    expect(said()).toBe(`${WHITE.name} doesn't play attack, centre.`);
+    expect(said()).toBe(`${WHITE.name} doesn't play centre in attack.`);
     expect(benchOrder()).toEqual([ARRIZABALAGA.name, WHITE.name]);
   });
 

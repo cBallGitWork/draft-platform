@@ -10,7 +10,7 @@ import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { feedbackLinkWords } from "../../../src/feedback/words";
 import { DRAFT_PATH, MAIL_PATH, MY_TEAM_PATH, TABLE_PATH, TRADES_PATH } from "../../../src/frame/menu";
-import { continueWords, currentLeagueLabel, mainMenuLabel, nothingNeedsYouWords, signOutWords } from "../../../src/frame/words";
+import { currentLeagueLabel, mainMenuLabel, nothingNeedsYouWords, signOutWords } from "../../../src/frame/words";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { invitesPath } from "../../../src/joining/paths";
@@ -150,7 +150,7 @@ describe("the menu and the top bar (spec/12 The frame, spec/16)", () => {
       LEAGUES_TITLE,
       `${MAIL_TITLE} 1`,
     ]);
-    expect(within(bar).queryByText(new RegExp(`^(${continueWords}|${nothingNeedsYouWords}|${currentLeagueLabel})`))).toBeNull();
+    expect(within(bar).queryByText(new RegExp(`^(${nothingNeedsYouWords}|${currentLeagueLabel})`))).toBeNull();
   });
 
   it.each([

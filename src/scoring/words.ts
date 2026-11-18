@@ -13,7 +13,7 @@ export const SCORING_TITLE = "Player scoring";
 export const categoriesLabel = "Categories";
 export const loadingWords = "Loading the scoring…";
 /** Under the panes for everyone but the admin (spec/14, Who owns it). */
-export const readOnlyWords = "Only the admin changes the scoring.";
+export const readOnlyWords = "Only the admin can change the scoring.";
 export const wholePointsReadWords = "Points are whole only.";
 export const fractionsReadWords = "Points can be fractions, such as 0.5 a tackle.";
 
@@ -90,7 +90,7 @@ export const addBandWords = "Add a band";
 export const bandRowWords = (row: string, band: number) => `${row}, band ${band}`;
 export const removeBandWords = removeGlyph;
 export const removeBandLabel = (bandRow: string) => `Remove ${bandRow}`;
-export const noBandsWords = "No bands: earns nothing.";
+export const noBandsWords = "No bands, so no points.";
 
 /** Each slot position by its name and code, as "Centre-back (CB)". */
 export const POSITION_WORDS = Object.fromEntries(
@@ -115,13 +115,13 @@ export const draftTabWords = "Draft patch";
 export const saveDraftWords = "Save draft";
 export const draftSavedWords = "Draft saved. It changes nothing until announced.";
 export const announceGameweekLabel = "Takes effect from";
-/** "Gameweek 13, Sat 21 Nov, 12:30". */
+/** "Gameweek 13, Sat 21 Nov, 12.30pm". */
 export const patchGameweekWords = (gameweek: number, takesEffectAt: number) => `${gameweekWords(gameweek)}, ${screenMoment(takesEffectAt)}`;
 export const announceWords = "Announce";
 export const announcedWords = (name: string, gameweek: number) => `Announced. Patch ${name} applies to every league from ${gameweekWords(gameweek)}.`;
 export const saveDraftFirstWords = "Save the draft to announce it.";
 /** The server offers only gameweeks a patch's week of notice reaches (convex/scoring/siteVersions.ts). */
-export const noPatchGameweekWords = "No gameweek is far enough off for a patch's notice.";
+export const noPatchGameweekWords = "No gameweek is far enough away for a patch's notice.";
 export const draftFailedWords = failedWords("the draft wasn't saved");
 export const announceFailedWords = failedWords("the patch wasn't announced");
 /** The rule balance lab on the draft patch (spec/14; #843): run on the saved draft, saving nothing. */
@@ -134,16 +134,16 @@ export const labFailedWords = failedWords("the lab didn't run");
 export const versionsTitle = "Versions";
 export const versionColumns = {
   name: { short: "Version", long: "Version" },
-  kind: { short: "Kind", long: "Patch or fix" },
+  kind: { short: "Kind", long: "Changes or fix" },
   announcedAt: { short: "Announced", long: "Announced on" },
   fromGameweek: { short: "From", long: "Takes effect from" },
-  notes: { short: "Notes", long: "Patch notes" },
+  notes: { short: "Notes", long: "Scoring changes page" },
 } as const;
 export const comingWords = "Coming";
-export const noVersionsYetWords = "No versions yet: every league plays the first scoring set.";
+export const noVersionsYetWords = "No versions yet. Every league uses the first scoring set.";
 export const notesLinkWords = "Notes";
 export const withdrawWords = "Withdraw";
-export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to the draft, its banner goes, and every manager gets a letter saying so.`;
+export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to draft, its banner comes down and every manager gets a letter.`;
 export const withdrawYesWords = "Withdraw it";
 export const withdrawNoWords = "Keep it";
 export const withdrawFailedWords = failedWords("the patch wasn't withdrawn");

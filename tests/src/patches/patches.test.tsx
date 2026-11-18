@@ -35,7 +35,7 @@ const NOTES: VersionNotes[] = [
   { name: "26_27.1", kind: "fix", announcedAt: TAKES_EFFECT - 9 * DAY_MS, takesEffectAt: TAKES_EFFECT - 9 * DAY_MS, changes: [] },
 ];
 
-const banner = () => screen.findByText(bannerWords(WAITING.name, WAITING.takesEffectAt));
+const banner = () => screen.findByText(bannerWords(WAITING.takesEffectAt));
 
 describe("the banner", () => {
   it("#356 Done: shows the waiting patch and when it takes effect, on a manager's frame", async () => {
@@ -44,8 +44,8 @@ describe("the banner", () => {
   });
 
   it("tells the moment on London's clock with its zone, as the patch's letter does", () => {
-    expect(bannerWords(WAITING.name, TAKES_EFFECT)).toBe("Scoring patch 26_27.2 takes effect on Sunday 1 November at 12:00 GMT.");
-    expect(fromWords(TAKES_EFFECT)).toBe("From Sunday 1 November at 12:00 GMT");
+    expect(bannerWords(TAKES_EFFECT)).toBe("Scoring changes from Sunday 1 November at noon GMT.");
+    expect(fromWords(TAKES_EFFECT)).toBe("From Sunday 1 November at noon GMT");
   });
 
   it("shows on the frame of someone in no league too", async () => {
@@ -97,12 +97,13 @@ describe("the patch notes", () => {
     expect(await screen.findByRole("heading", { level: 1, name: PATCH_NOTES_TITLE })).toBeTruthy();
     const versions = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
     expect(versions).toEqual([
-      `26_27.2${KIND_WORDS.patch}${fromWords(TAKES_EFFECT)}`,
-      `26_27.1${KIND_WORDS.fix}${fromWords(TAKES_EFFECT - 9 * DAY_MS)}`,
+      `${KIND_WORDS.patch}${fromWords(TAKES_EFFECT)}`,
+      `${KIND_WORDS.fix}${fromWords(TAKES_EFFECT - 9 * DAY_MS)}`,
     ]);
-    const patch = screen.getByRole("listitem", { name: /26_27\.2/ });
-    expect(within(patch).getAllByRole("listitem").map((item) => item.textContent)).toEqual(NOTES[0].changes);
-    expect(within(screen.getByRole("listitem", { name: /26_27\.1/ })).getByText(nothingScoresDifferentlyWords)).toBeTruthy();
+    expect(versions.join(" ")).not.toContain("26_27");
+    const [patch, fix] = screen.getAllByRole("listitem").filter((item) => item.hasAttribute("aria-labelledby"));
+    expect(within(patch!).getAllByRole("listitem").map((item) => item.textContent)).toEqual(NOTES[0].changes);
+    expect(within(fix!).getByText(nothingScoresDifferentlyWords)).toBeTruthy();
   });
 
   it("say so before any version", async () => {

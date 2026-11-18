@@ -26,7 +26,7 @@ test("two sign-in emails a minute apart have different subjects, so Gmail doesn'
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = signInEmail(url, sentAt).subject;
   const next = signInEmail(url, sentAt + MINUTE_MS).subject;
-  expect(first).toBe(`${SIGN_IN_SUBJECT_START}, Sunday 1 November at 14:32 GMT`);
+  expect(first).toBe(`${SIGN_IN_SUBJECT_START}, Sunday 1 November at 2.32pm GMT`);
   expect(next.startsWith(SIGN_IN_SUBJECT_START)).toBe(true);
   expect(next).not.toBe(first);
 });
@@ -38,7 +38,7 @@ test("an invite resent a minute later has a different subject, so Gmail doesn't 
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = inviteEmail(url, facts, sentAt).subject;
   const next = inviteEmail(url, facts, sentAt + MINUTE_MS).subject;
-  expect(first).toBe(`You're invited to A league on ${PRODUCT_NAME}, Sunday 1 November at 14:32 GMT`);
+  expect(first).toBe(`You're invited to A league on ${PRODUCT_NAME}, Sunday 1 November at 2.32pm GMT`);
   expect(next).not.toBe(first);
 });
 
@@ -47,6 +47,6 @@ test("a second approval into the same league has a different subject, so Gmail d
   const facts = { leagueName: "A league", teamName: TEAM_1 };
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = approvedEmail(facts, sentAt).subject;
-  expect(first).toBe(`You're in A league on ${PRODUCT_NAME}, Sunday 1 November at 14:32 GMT`);
+  expect(first).toBe(`You're in A league on ${PRODUCT_NAME}, Sunday 1 November at 2.32pm GMT`);
   expect(approvedEmail(facts, sentAt + MINUTE_MS).subject).not.toBe(first);
 });

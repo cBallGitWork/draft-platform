@@ -86,7 +86,7 @@ describe("the Rules view", () => {
     ];
     await showView({ ...squadOf([SAKA, RAYA], 9, [99]), limits: over }, "rules");
     expect(bodyRows(rulesTableLabel("Team 1")).map(cells)).toEqual([
-      ["Squad size", "2", "3 to 5", "1 short", "Saka, and 1 not held"],
+      ["Squad size", "2", "3 to 5", "1 short", "Saka, and 1 missing"],
       [`From ${ARSENAL.name}`, "2", "at most 1", "1 over", "Saka, Raya"],
     ]);
   });

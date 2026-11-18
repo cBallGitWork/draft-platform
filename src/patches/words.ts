@@ -1,4 +1,4 @@
-// What the patch banner and the patch notes say, in one place for Craig to change in the pull
+// What the scoring changes banner and page say (a patch is "scoring changes" on screen; Craig, 18 Nov 2026), in one place for Craig to change in the pull
 // request. What each version changed is worked out on the server (convex/scoring/patchChanges.ts),
 // and reaches the screen as is.
 
@@ -11,14 +11,16 @@ import type { VersionNotes } from "./seam";
 
 type PastStarter = NonNullable<LabReport["noPosition"]>["first"][number];
 
-export const PATCH_NOTES_TITLE = "Patch notes";
-/** The banner's link, and Player scoring's, to the notes. */
+export const PATCH_NOTES_TITLE = "Scoring changes";
+/** The banner's link, and Player scoring's, to the page. */
 export const patchNotesLinkWords = PATCH_NOTES_TITLE;
-export const loadingWords = "Loading the patch notes…";
-export const noVersionsWords = "No patches yet.";
+export const loadingWords = "Loading the scoring changes…";
+export const noVersionsWords = "No scoring changes yet.";
 export const notesHint = "Gameweeks played before a version keep the scoring they had.";
 
-export const KIND_WORDS: Record<VersionNotes["kind"], string> = { patch: "Patch", fix: "Fix" };
+/** Whether a version is planned changes or a fix, on the page and the admin's list. Its stored name
+ *  (26_27.2) stays off a manager's screen: the date says which set (Craig, 18 Nov 2026). */
+export const KIND_WORDS: Record<VersionNotes["kind"], string> = { patch: "Changes", fix: "Fix" };
 /** When a version is in force from, in the viewer's own zone (convex/shared/moments.ts, #442). */
 export const fromWords = (at: number) => `From ${screenMoment(at)}`;
 /** A version made only by reordering the categories. */
@@ -33,14 +35,14 @@ export const labSummaryWords = (seasons: readonly number[], starts: number, skip
   const last = seasons.at(-1);
   if (first === undefined || last === undefined) return "No past season is copied yet, so there are no starts to test on.";
   const on = first === last ? seasonShortWords(first) : `${seasonShortWords(first)} to ${seasonShortWords(last)}`;
-  return `On ${on}: ${thousandsWords(starts)} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${thousandsWords(skipped)}.`;
+  return `On ${on}: ${thousandsWords(starts)} real starts, each in the formation position he started in. ${thousandsWords(skipped)} skipped, as they fit none.`;
 };
-export const labHint = `Each role's average a start over its slot's real starts, against the slot's target role adjustment. More than ${ROLE_TARGET_MARGIN} off it is flagged.`;
+export const labHint = `Each role's average per start in its formation position, against that position's target role adjustment. Flagged if more than ${ROLE_TARGET_MARGIN} off.`;
 export const labColumns = {
   role: { short: "Role", long: "Role" },
-  slot: { short: "Slot", long: "Slot" },
-  target: { short: "Target", long: "Target role adjustment a start" },
-  average: { short: "Avg", long: "Average a start" },
+  slot: { short: "Pos", long: "Formation position" },
+  target: { short: "Target", long: "Target role adjustment per start" },
+  average: { short: "Avg", long: "Average per start" },
   starts: { short: "Starts", long: "Starts tested on" },
 } as const;
 export const offTargetWords = "Off target";
@@ -55,16 +57,16 @@ const pastStarterWords = ({ name, club, kickoff }: PastStarter) => [name, ...(cl
 /** Past starters whose match gives no position the pitch has, so each is given none (spec/14
  *  S14.25; Craig, 13 Nov 2026, on #1541): the count, and the first ones named. */
 export const noPositionWords = (count: number, first: readonly PastStarter[]) =>
-  `Past starters with no position: ${thousandsWords(count)}${first.length === 0 ? "." : `. First ${first.length}: ${first.map(pastStarterWords).join("; ")}.`}`;
+  `Players who started past matches with no position: ${thousandsWords(count)}${first.length === 0 ? "." : `. First ${first.length}: ${first.map(pastStarterWords).join("; ")}.`}`;
 /** The set scores no team instructions (spec/05 Team instructions), so none are checked. */
 export const noTeamInstructionsWords = "The set scores no team instructions.";
 /** How a team instruction is tested (spec/14 S14.9; Craig, 12 Nov 2026, on #1541): over the clubs'
  *  real XIs, "XIs short of a starter" where one starter's position maps to no slot or his row
  *  wasn't copied. */
 export const instructionsHint = (xis: number, short: number) =>
-  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a formation that allows it. XIs: ${thousandsWords(xis)}. Short of a starter, scored on the ones they have: ${thousandsWords(short)}.`;
+  `Each team instruction's average for a whole XI over a full match, across every club's real XIs in a formation that allows it. XIs tested: ${thousandsWords(xis)}. Short of a player, scored on the rest: ${thousandsWords(short)}.`;
 /** A report kept before the averages (#1541): its instructions are each "not tested". */
-export const instructionsUntestedHint = "Team instructions: none was tested when this report was kept.";
+export const instructionsUntestedHint = "No team instructions were tested when this report was saved.";
 export const instructionColumns = {
   instruction: { short: "Instruction", long: "Team instruction" },
   average: { short: "Avg", long: "Average for a whole XI" },
@@ -75,8 +77,9 @@ export const notTestedYetWords = "Not tested";
 /** A team instruction no past XI was tested on: none in a shape it allows, or no club copied yet. */
 export const noXisWords = "No XIs";
 
-/** The banner, from a patch's announcement until it takes effect. */
-export const bannerWords = (name: string, takesEffectAt: number) => `Scoring patch ${name} takes effect on ${screenMoment(takesEffectAt)}.`;
+/** The banner, from a patch's announcement until it takes effect: "Scoring changes from Sunday 1
+ *  November at noon GMT." */
+export const bannerWords = (takesEffectAt: number) => `Scoring changes from ${screenMoment(takesEffectAt)}.`;
 export const dismissWords = "Dismiss";
 /** What a dismissal that failed left. */
 export const dismissFailedWords = failedWords("the banner wasn't dismissed");

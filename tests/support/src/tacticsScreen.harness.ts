@@ -17,6 +17,7 @@ import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "./tactics.harness";
+import { TWELVE_HOUR } from "./twelveHour";
 
 export type Member = OpenTactics["squad"][number];
 export const member = (playerCode: number, name: string, positions: Position[], number: number | null = null): Member => ({
@@ -150,7 +151,7 @@ export const whoseRole = (name: string) => (label: string) => label.endsWith(`, 
 /** The role a starter plays, by name, as his Role ▾ shows it; null for one with none (the bench). */
 export const roleShown = (name: string) => screen.queryByRole("button", { name: whoseRole(name) })?.querySelector("span")?.textContent ?? null;
 /** A starter's open role card. */
-export const roleCard = (name: string) => screen.getByRole("region", { name: new RegExp(`^${name}\\b.*, his role$`) });
+export const roleCard = (name: string) => screen.getByRole("region", { name: new RegExp(`^${name}\\b.*'s role$`) });
 /** The roles his open card lists, by name, in its order. */
 export const rolesOnCard = (name: string) =>
   within(roleCard(name))
@@ -166,8 +167,8 @@ export async function pickRole(name: string, role: string) {
 /** The server's refusal of a lineup starting five, in its own words: what a save answers in a
  *  refused-save test. */
 export const REFUSAL = problemWords({ kind: "wrongStarterCount", starterCount: 5 }, String);
-/** The line a save leaves, "Line-up saved 14:02", at whatever minute it landed. */
-export const SAVED_LINE = /^Line-up saved \d{2}:\d{2}$/;
+/** The line a save leaves, "Line-up saved 2.02pm", at whatever minute it landed. */
+export const SAVED_LINE = new RegExp(`^Line-up saved ${TWELVE_HOUR}$`);
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */
 export const IN_A_442 = (() => {
   const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));

@@ -93,7 +93,7 @@ test("an override changes the player's points, the team's total and the head-to-
   for (const letter of letters) {
     expect(letter.subject).toBe(`${name}'s points in ${MATCH_NAME} were overridden`);
     expect(letter.body).toBe(
-      `${COMMISSIONER} overrode ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}: ${SCORERS_POINTS} to ${OVERRIDDEN}. ` +
+      `${COMMISSIONER} overrode ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}, from ${SCORERS_POINTS} to ${OVERRIDDEN}. ` +
         `Why: ${REASON}\n\n${annsTeamName} now have ${ANNS_AFTER} in gameweek ${GAMEWEEK}, not ${HULL_POINTS}.`,
     );
   }
@@ -111,7 +111,7 @@ test("a second override of the same man in the same match replaces the first, an
     { teamId: league.bobsTeam, points: EVERTON_POINTS },
   ]);
   const last = (await lettersOf(league)).at(-1)!;
-  expect(last.body).toContain(`: ${OVERRIDDEN} to ${SCORERS_POINTS}. Why: Put back: the feed was right`);
+  expect(last.body).toContain(`, from ${OVERRIDDEN} to ${SCORERS_POINTS}. Why: Put back: the feed was right`);
   expect(last.body).toContain(`now have ${HULL_POINTS} in gameweek ${GAMEWEEK}, not ${ANNS_AFTER}.`);
 });
 
@@ -125,7 +125,7 @@ test("overriding a man whose points don't count moves no total, and the letter s
     { teamId: league.bobsTeam, points: EVERTON_POINTS },
   ]);
   const last = (await lettersOf(league)).at(-1)!;
-  expect(last.body).toMatch(new RegExp(`^${adminByline} overrode .*: 0 to 3\\. Why: ${REASON}\\n\\nNo team's total moved: no line-up counted him\\.$`));
+  expect(last.body).toMatch(new RegExp(`^${adminByline} overrode .*, from 0 to 3\\. Why: ${REASON}\\n\\nNo team's total changed, as no line-up counted him\\.$`));
 });
 
 test("a manager who doesn't run the league is refused, and nothing changes", async () => {
@@ -215,7 +215,7 @@ test("removing an override puts his scored points back everywhere, and the leagu
   const last = (await lettersOf(league)).at(-1)!;
   expect(last.subject).toBe(`${name}'s override in ${MATCH_NAME} was removed`);
   expect(last.body).toBe(
-    `${adminByline} removed the override of ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}: ${OVERRIDDEN} to ${SCORERS_POINTS}, as scored.\n\n` +
+    `${adminByline} removed the override on ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}. They go from ${OVERRIDDEN} back to ${SCORERS_POINTS}, as scored.\n\n` + // one-home-ok: pins the exact words a manager reads
       `${annsTeamName} now have ${HULL_POINTS} in gameweek ${GAMEWEEK}, not ${ANNS_AFTER}.`,
   );
 });

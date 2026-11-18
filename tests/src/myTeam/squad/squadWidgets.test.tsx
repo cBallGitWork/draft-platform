@@ -57,7 +57,7 @@ describe("the table's plate", () => {
   it("says how full the squad is against the league's maximum", async () => {
     openSquad({ squad: squadOf([SAKA, PALMER], 9, [], 2) });
     expect(await screen.findByText(squadCountWords(2, 2))).toBeTruthy();
-    expect(squadCountWords(2, 2)).toBe("2 of 2, the league's maximum");
+    expect(squadCountWords(2, 2)).toBe("2 of 2, full");
     expect(squadCountWords(19, 20)).toBe("19 of 20");
     expect(squadCountWords(19, null)).toBe("19 players");
   });

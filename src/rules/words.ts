@@ -7,8 +7,8 @@ export { gameweekWords };
 
 /** Someone else saved the rules while these were being edited (Craig, 22 Oct 2026: warn). The
  *  server's refusal, naming them, replaces this once a save is tried. */
-export const overtakenWords = "Someone else saved the league's rules after you started editing, so saving yours will be refused.";
-export const loadLatestWords = "Load the latest rules, dropping your changes";
+export const overtakenWords = "Someone else has saved the rules since you started. Yours can't be saved.";
+export const loadLatestWords = "Drop your changes and load the latest";
 
 /** The save bar. */
 export const appliesFromWords = "Changes apply from";

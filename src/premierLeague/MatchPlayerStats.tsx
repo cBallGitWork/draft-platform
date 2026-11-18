@@ -16,6 +16,7 @@ import {
   playerStatsLabel,
   SHOTS_TITLE,
   shotsNotHeldLabel,
+  shotsNotHeldShown,
   statPointsWords,
   STAT_VIEWS,
   statViewLabel,
@@ -73,7 +74,7 @@ export function MatchPlayerStats({ match: { home, away, men }, aside, view }: { 
       </div>
       <Panel title={SHOTS_TITLE}>
         <div className="p-3">
-          <Placeholder label={shotsNotHeldLabel} className="h-shot-map w-full justify-center" written />
+          <Placeholder label={shotsNotHeldLabel} className="h-shot-map w-full justify-center" written={shotsNotHeldShown} />
         </div>
       </Panel>
     </>

@@ -199,7 +199,7 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
     });
 
     expect(await deadlineShown(NEXT + 1)).toBe(deadline);
-    expect(momentIn(deadline, LONDON_ZONE)).toContain("13:45 GMT");
+    expect(momentIn(deadline, LONDON_ZONE)).toContain("1.45pm GMT");
     vi.setSystemTime(deadline - MINUTE_MS);
     await setUsedBy(COMMISSIONER, NEXT + 1, false);
     expect(await used(NEXT + 1)).toBe(false);

@@ -50,7 +50,7 @@ describe("a feed that fails", () => {
     expect(sent[0].to).toBe(ADMIN);
     expect(sent[0].subject).toBe(subjectOf("liveStats"));
     // 09:00 UTC on 20 Oct 2026 is 10:00 in London.
-    expect(sent[0].text).toContain(`${FEED_NAMES.liveStats.name}, from ${FEED_NAMES.liveStats.source}, failed in the run on Tuesday 20 October at 10:00 BST:`);
+    expect(sent[0].text).toContain(`${FEED_NAMES.liveStats.name}, from ${FEED_NAMES.liveStats.source}, failed in the run on Tuesday 20 October at 10am BST:`);
     expect(sent[0].text).toContain(ERROR);
     expect(await sentToday(t)).toBe(1);
   });

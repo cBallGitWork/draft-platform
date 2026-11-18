@@ -75,7 +75,7 @@ describe("a starter who lost a position, left where he stands", () => {
       const row = (await ctx.db.query("playerPositions").collect()).find(({ code }) => code === STRIKER)!;
       await ctx.db.delete("playerPositions", row._id);
     });
-    await expectRefused(save(SWAPPED), `${nameOf(STRIKER)} has no positions, so he can't stand in the right-centre cell in Attack.`);
+    await expectRefused(save(SWAPPED), `${nameOf(STRIKER)} has no positions, so he can't play right-centre in attack.`);
   });
 
   test("must be moved once the deadline has passed, and the lineup saves once he is", async () => {

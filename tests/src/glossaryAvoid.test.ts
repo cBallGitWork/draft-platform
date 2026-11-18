@@ -1,20 +1,12 @@
 // SPEC.md's Glossary has an Avoid column: the words the site never says. This reads that column and
 // fails when a words file shows one of them, naming the file and the word, so the column stays the
-// one home of the list. A words file is everything a screen or a letter says (ARCHITECTURE.md,
-// Where code lives): `src/**/words.ts` and convex's `*Words.ts`. Why: Craig (31 Oct 2026), "You
-// keep saying 'a player was paid' — UK people don't say that"; docs/research/lexicon.md has the
+// one home of the list. The words files and how their text is read: tests/support/wordsFiles.ts.
+// Why: Craig (31 Oct 2026), "You keep saying 'a player was paid' — UK people don't say that"; docs/research/lexicon.md has the
 // UK words.
 
-import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import spec from "../../SPEC.md?raw";
-import { SOURCE_PREFIX } from "../support/importLines";
-
-const WORDS_FILES = import.meta.glob<string>(["../../src/**/words.ts", "../../convex/**/*Words.ts"], {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
+import { avoidedIn, shownText, WORDS_FILES } from "../support/wordsFiles";
 
 /** The Glossary table's cells, row by row: Term, Meaning, Avoid. */
 function glossaryRows(markdown: string): string[][] {
@@ -38,27 +30,6 @@ function avoidedWords(markdown: string): string[] {
   return [...new Set(avoid.filter((word) => word !== "" && !word.includes("(") && !terms.has(word.toLowerCase())))];
 }
 
-/** The text a source file shows: its string and template literals, never comments, names or imports. */
-function shownText(source: string): string {
-  const shown: string[] = [];
-  const visit = (node: ts.Node): void => {
-    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return;
-    if (ts.isStringLiteralLike(node) || ts.isTemplateHead(node) || ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) {
-      shown.push(node.text);
-    }
-    node.forEachChild(visit);
-  };
-  visit(ts.createSourceFile("words.ts", source, ts.ScriptTarget.Latest));
-  return shown.join("\n");
-}
-
-/** Each avoided word the text holds as a whole word, any case; a hyphen joins a word ("auto-subs" isn't "subs"). */
-function avoidedIn(text: string, words: string[]): string[] {
-  // RegExp.escape is in Node 24 but not yet in TypeScript's ES2023 lib.
-  const escaped = (word: string) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return words.filter((word) => new RegExp(`(?<![\\w-])${escaped(word)}(?![\\w-])`, "i").test(text));
-}
-
 describe("the Glossary's Avoid column", () => {
   const words = avoidedWords(spec);
 
@@ -70,10 +41,10 @@ describe("the Glossary's Avoid column", () => {
   });
 
   it("finds no avoided word in any words file", () => {
-    const someOfEach = ["../../src/scoring/words.ts", "../../convex/mail/letterWords.ts"];
+    const someOfEach = ["src/scoring/words.ts", "convex/mail/letterWords.ts"];
     expect(Object.keys(WORDS_FILES)).toEqual(expect.arrayContaining(someOfEach));
     const found = Object.entries(WORDS_FILES).flatMap(([path, source]) =>
-      avoidedIn(shownText(source), words).map((word) => `${path.replace(SOURCE_PREFIX, "")}: "${word}"`),
+      avoidedIn(shownText(source), words).map((word) => `${path}: "${word}"`),
     );
     expect(found).toEqual([]);
   });

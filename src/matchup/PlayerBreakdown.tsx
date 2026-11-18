@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { MatchBreakdown } from "../../convex/matchup/matchupShape";
 import { PositionChip } from "../ui/PositionChip";
 import type { TileMan } from "./PlayerTile";
-import { CategoryLines, RoleWords } from "../playerCard/Breakdown";
+import { CategoryLines, RoleWords, TotalLine } from "../playerCard/Breakdown";
 import { playerCardPath } from "../playerCard/paths";
 import { matchPath } from "../premierLeague/paths";
 import { MoreLink } from "../ui/MoreLink";
@@ -18,6 +18,7 @@ import {
   notCountedWords,
   overriddenWords,
   playerCardWords,
+  roleLineLabel,
 } from "./words";
 
 // A lineup player's breakdown for the gameweek, opened by tapping him on the matchup (spec/10: "the
@@ -71,7 +72,7 @@ function MatchLines({ match, version }: { match: MatchBreakdown; version: string
           <CategoryLines categories={match.categories} version={version} />
           {override === null && match.role !== undefined && (
             <p>
-              <RoleWords role={match.role} />
+              <RoleWords role={match.role} label={roleLineLabel(match.role.name)} />
             </p>
           )}
           {override === null &&
@@ -80,6 +81,7 @@ function MatchLines({ match, version }: { match: MatchBreakdown; version: string
                 <RoleWords role={instruction} />
               </p>
             ))}
+          {override === null && <TotalLine points={points} />}
         </div>
       )}
       {override !== null && <p className="text-event">{overriddenWords(override.points, override.reason)}</p>}

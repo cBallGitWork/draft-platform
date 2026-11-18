@@ -62,12 +62,12 @@ describe("the formation window", () => {
 
   it("lists the preview's lines in the picture's order, Gains and Loses as placeholders", async () => {
     const window = await opened();
-    expect(window.getAllByRole("term").map((term) => term.textContent)).toEqual(["Applies", "Gains", "Loses", "Unlocks", "Costs"]);
+    expect(window.getAllByRole("term").map((term) => term.textContent)).toEqual(["Applies", "Gains", "Loses", "Instructions", "Costs"]);
     expect(window.getByRole("img", { name: gainsPlaceholder })).toBeTruthy();
     expect(window.getByRole("img", { name: losesPlaceholder })).toBeTruthy();
   });
 
-  it("shows Unlocks and Costs as placeholders that never say team instructions are still to be built (#1776)", async () => {
+  it("shows Instructions and Costs as placeholders that never say team instructions are still to be built (#1776)", async () => {
     const window = await opened();
     for (const words of [unlocksPlaceholder, costsPlaceholder]) {
       const mark = window.getByRole("img", { name: words });

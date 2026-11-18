@@ -11,6 +11,7 @@ import {
   blockQuestion,
   blockWords,
   blockYesWords,
+  leagueChecksWords,
   noteWords,
   reviewEndsWords,
   reviewWords,
@@ -82,7 +83,8 @@ export function ReviewPanel({
                 className="danger-action"
               >
                 {blockWords}
-              </button>
+              </button>{" "}
+              <span className="text-soft">{leagueChecksWords}</span>
             </span>
           ))}
         {trade.yours === "against" && (

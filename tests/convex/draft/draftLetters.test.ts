@@ -210,7 +210,7 @@ describe("the draft over", () => {
       { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted." },
       {
         subject: "Scoring starts in gameweek 2",
-        body: "The draft ended after gameweek 1's deadline, so scoring starts in gameweek 2, not 1. Squads and line-ups count from gameweek 2's deadline.",
+        body: "The draft finished after gameweek 1's deadline, so scoring starts in gameweek 2 instead. Squads and line-ups count from its deadline.", // one-home-ok: pins the exact words a manager reads
       },
     ]);
   });
@@ -288,7 +288,7 @@ describe("a start date the draft can't start on", () => {
       {
         to: COMMISSIONER,
         subject: "The draft didn't start",
-        body: `The draft was set to start on ${momentIn(startsAt, undefined)}, but couldn't. ${draftStartRefusals.noSquadSize} It waits for you to press start or set a new date.`,
+        body: `The draft was due to start on ${momentIn(startsAt, undefined)} but couldn't. ${draftStartRefusals.noSquadSize} Press start or set a new date.`, // one-home-ok: pins the exact words a manager reads
         read: false,
       },
     ]);

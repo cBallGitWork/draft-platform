@@ -4,7 +4,7 @@
 import type { PlayingState } from "../../../convex/football/matchScores";
 import { figureWords } from "../../../convex/shared/numberWords";
 import type { Result } from "../../../convex/table/standings";
-import { listSeparator } from "../words";
+import { listSeparator, notHeldLabel, notYetWords } from "../words";
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
@@ -15,9 +15,9 @@ export const awayWords = "(A)";
 export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
 /** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:
  *  Status chips' data). Only a player FPL holds a doubt about gets one. */
-export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
+export const statusNotSettledLabel = notHeldLabel("Status");
 /** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
-export const difficultyNotRatedWords = "difficulty not rated yet";
+export const difficultyNotRatedWords = `difficulty ${notYetWords}`;
 /** A match's or a fixture's score, the first side's then the other's: "2–1", or a matchup's
  *  points, which can fall below 0: "−2–5". */
 export const scoreWords = (first: number, second: number) => `${figureWords(first)}–${figureWords(second)}`;
@@ -25,7 +25,7 @@ export const scoreWords = (first: number, second: number) => `${figureWords(firs
  *  may still move (spec/07). */
 export const liveWords = "Live";
 /** Under points, or a table, that a live match may still move: the state, not how it works. */
-export const provisionalWords = "Provisional";
+export const provisionalWords = "Not final";
 /** A match at half-time and at full time, short as a column says it and in full. */
 export const halfTime = { short: "HT", long: "Half-time" } as const;
 export const fullTime = { short: "FT", long: "Full time" } as const;
@@ -49,9 +49,9 @@ export const resultWords: Record<Result, { short: string; long: string }> = {
 };
 export const formLabel = (results: readonly Result[]) =>
   results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(listSeparator)}`;
-/** Form whose last result is still live: "Form: won, lost, Provisional". */
+/** Form whose last result is still live: "Form: won, lost, Not final". */
 export const liveFormLabel = (results: readonly Result[]) => `${formLabel(results)}${listSeparator}${provisionalWords}`;
-/** A live result's chip, on hover: "won, Provisional". */
+/** A live result's chip, on hover: "won, Not final". */
 export const liveResultWords = (result: Result) => `${resultWords[result].long}${listSeparator}${provisionalWords}`;
 /** The heads over a team's form and table place: My team's header and a club's page. */
 export const formHead = "Form";
@@ -63,7 +63,7 @@ export const SCORE_LABEL = "Score";
 export const notCountingLabel = "not counting";
 /** The vidiprinter (the matchup, league home, the Premier League's pages): its title, and when the
  *  stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
-export const VIDIPRINTER_TITLE = "Vidiprinter";
+export const VIDIPRINTER_TITLE = "Live feed";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
 /** The matchup's and match page's scoreboards, while live points are held as last read (S10.12). */
@@ -75,10 +75,10 @@ export const overriddenWords = (points: number, reason: string) => `Overridden t
 export const overrideHint = "The whole league gets a letter saying what changed and why.";
 export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
 export const overrideWords = "Override";
-export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
+export const overriddenDoneWords = "Overridden. The league gets a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
 /** Taking an override off (#903, spec/14 S14.5): "remove override button". */
 export const removeOverrideWords = "Remove override";
 export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
 /** A player's points for a match whose record hasn't fully arrived, on hover. */
-export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
+export const notArrivedWords = "His stats for this match aren't all in yet.";

@@ -4,7 +4,7 @@ import { freeScoutsWords, sendScoutWords } from "../scouting/scouts/words";
 import { useChange } from "../shared/useChange";
 import { Problem } from "../ui/Panel";
 
-/** The card's Send a scout (spec/19, Scouts; the approved card), with how many of the team's scouts
+/** The card's Get a scout report (spec/19, Scouts; the approved card), with how many of the team's scouts
  *  are free. Nothing for someone who runs no team, nor while it loads, nor for a player who has left
  *  the Premier League; not pressable with every scout out or one already on him, since there is no
  *  recall and only one scout on a player at a time (Craig, 6 Nov 2026, on #375). Scouting's report

@@ -19,40 +19,41 @@ export function overrideLetterWords(event: OverrideEvent, who: string): Words {
   }
 }
 
-/** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6: 2 to 8. Why: a goal the feed
- *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
+/** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6, from 2 to 8. Why: a goal the
+ *  feed gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
 function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {
   const { playerName, matchName, gameweek, from, to, reason, teams } = event;
-  const change = from === null ? `now ${figureWords(to)}` : `${figureWords(from)} to ${figureWords(to)}`;
-  return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${movedTotals(teams, gameweek)}`;
+  const change = from === null ? `to ${figureWords(to)}` : `from ${figureWords(from)} to ${figureWords(to)}`;
+  return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}, ${change}. Why: ${reason}\n\n${movedTotals(teams, gameweek)}`;
 }
 
-/** "Ann removed the override of Saka's points in Arsenal v Chelsea, gameweek 6: 8 to 2, as
- *  scored. / Lions now have 55 in gameweek 6, not 61." */
+/** "Ann removed the override on Saka's points in Arsenal v Chelsea, gameweek 6. They go from 8
+ *  back to 2, as scored. / Lions now have 55 in gameweek 6, not 61." */
 function overrideRemovedBody(event: Extract<LeagueEvent, { kind: "pointsOverrideRemoved" }>, who: string): string {
   const { playerName, matchName, gameweek, from, to, teams } = event;
-  const change = to === null ? `${figureWords(from)} no longer stands` : `${figureWords(from)} to ${figureWords(to)}, as scored`;
-  return `${who} removed the override of ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}.\n\n${movedTotals(teams, gameweek)}`;
+  const change = to === null ? `The ${figureWords(from)} no longer stands` : `They go from ${figureWords(from)} back to ${figureWords(to)}, as scored`;
+  return `${who} removed the override on ${playerName}'s points in ${matchName}, gameweek ${gameweek}. ${change}.\n\n${movedTotals(teams, gameweek)}`;
 }
 
 /** Each team whose gameweek total a player's override moved, or that none did. */
 function movedTotals(teams: readonly { teamName: string; from: number; to: number }[], gameweek: number): string {
   return teams.length === 0
-    ? "No team's total moved: no line-up counted him."
+    ? "No team's total changed, as no line-up counted him."
     : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
 }
 
-/** "Ann overrode Lions' total in gameweek 6: 54 to 60. Why: ..." or, on its removal, "Ann
- *  removed the override of Lions' total in gameweek 6: 60 to 54, as scored." */
+/** "Ann overrode Lions' total in gameweek 6, from 54 to 60. Why: ..." or, on its removal, "Ann
+ *  removed the override on Lions' total in gameweek 6. It goes from 60 back to 54, as scored." */
 function teamOverriddenWords({ teamName, gameweek, from, to, reason }: Extract<LeagueEvent, { kind: "teamPointsOverridden" }>, who: string): Words {
-  const change = `${figureWords(from)} to ${figureWords(to)}`;
+  const fromFigure = figureWords(from);
+  const toFigure = figureWords(to);
   return reason === null
     ? {
         subject: `${teamName}'s override in gameweek ${gameweek} was removed`,
-        body: `${who} removed the override of ${teamName}'s total in gameweek ${gameweek}: ${change}, as scored.`,
+        body: `${who} removed the override on ${teamName}'s total in gameweek ${gameweek}. It goes from ${fromFigure} back to ${toFigure}, as scored.`,
       }
     : {
         subject: `${teamName}'s total in gameweek ${gameweek} was overridden`,
-        body: `${who} overrode ${teamName}'s total in gameweek ${gameweek}: ${change}. Why: ${reason}`,
+        body: `${who} overrode ${teamName}'s total in gameweek ${gameweek}, from ${fromFigure} to ${toFigure}. Why: ${reason}`,
       };
 }

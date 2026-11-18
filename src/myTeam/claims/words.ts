@@ -5,93 +5,94 @@
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import type { RunAhead } from "../../../convex/waivers/runsAhead";
 import { placeWords, pointsShort } from "../header/words";
+import { BID_ORDER_TITLE, BIDS_SETTLE_TITLE } from "../../shared/words";
 import { capitalised } from "../../../convex/shared/moments";
 import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/when/words";
 
 export { placeWords, pointsShort };
 
-export const PENDING_CLAIMS_TITLE = "Pending claims";
-export const CLAIMS_TITLE = "Claims";
+export const PENDING_CLAIMS_TITLE = "Bids waiting";
+export const CLAIMS_TITLE = "Bids";
 export const HISTORY_TITLE = "History";
 export const newestFirstWords = "Newest first";
-/** The pending claims' count, as their plate says it: "3, by run". */
-export const claimsCountWords = (claims: number) => `${claims}, by run`;
-export const noClaimsWords = "No pending claims.";
-export const claimsLoadingWords = "Loading your claims…";
+/** The waiting bids' count, as their plate says it: "3". */
+export const claimsCountWords = (claims: number) => `${claims}`;
+export const noClaimsWords = "No bids waiting.";
+export const claimsLoadingWords = "Loading your bids…";
 /** While League settings' Claims panel loads every team's, for a commissioner with no team (#1487). */
-export const everyTeamClaimsLoadingWords = "Loading every team's claims…";
-export const claimsClosedWords = "New claims are closed until the gameweek's last match is over.";
-export const claimsNotOpenWords = "Claims open once the league's draft is over.";
-export const playersOnWaiversWords = "Players on waivers, in Scouting ›";
+export const everyTeamClaimsLoadingWords = "Loading every team's bids…";
+export const claimsClosedWords = "Bids reopen after the gameweek's last match.";
+export const claimsNotOpenWords = "Bids open after the draft.";
+export const playersOnWaiversWords = "Released players, in Scouting ›";
 
 export const claimColumns = {
   handle: { short: "", long: "Drag to reorder" },
-  rank: { short: "Rank", long: "Its rank in its run" },
+  rank: { short: "Priority", long: "Your order for bids that settle together" },
   positions: { short: "Pos", long: "Positions" },
-  claim: { short: "Claim", long: "The player claimed" },
+  claim: { short: "Bid", long: "The player you bid for" },
   points: { short: "Pts", long: "Points this season" },
-  run: { short: "Run", long: "The run that can first take him" },
-  drop: { short: "Drop", long: "Who goes if it succeeds" },
+  run: { short: "Settles", long: "When bids on him first settle" },
+  drop: { short: "Drop", long: "Who you drop if it goes through" },
   /** The manager's own claims say Claim and Drop as In and Out (the team-transactions picture,
    *  #1031); the commissioner's Every team view keeps the waivers picture's words. */
-  in: { short: "In", long: "The player claimed" },
-  out: { short: "Out", long: "Who goes if it succeeds" },
+  in: { short: "In", long: "The player you bid for" },
+  out: { short: "Out", long: "Who you drop if it goes through" },
 };
-export const claimsTableLabel = "Your pending claims";
-export const everyTeamTableLabel = "Every team's pending claims";
+export const claimsTableLabel = "Your bids waiting";
+export const everyTeamTableLabel = "Every team's bids waiting";
 
-/** A run, in the viewer's own zone like every time on a screen (spec/12, Times): "Wed 11 Nov, 18:00". */
+/** A run, in the viewer's own zone like every time on a screen (spec/12, Times): "Wed 11 Nov, 6pm". */
 export const runWords = whenWords;
-/** A run, short: "Wed 18:00". */
+/** A run, short: "Wed 6pm". */
 export const runShort = weekdayTimeWords;
 /** A run's day alone: "Wed". */
 export const runDayWords = weekdayWords;
 /** A claim whose player is no longer on waivers, or a league with no run times: no run takes it. */
-const noRunWords = "No run";
+const noRunWords = "Not settling";
 /** The run that can first take a player, as a claim, the player card or Scouting has it. */
 export type FirstRun = RunAhead | null;
-/** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
+/** A run, whole: "Wed 11 Nov, 6pm", or "After GW12's last match". */
 export const firstRunWords = (run: FirstRun) =>
   run === null ? noRunWords : run.skippedIf !== null ? capitalised(afterLastMatchWords(run.skippedIf)) : runWords(run.at);
-/** A run, short: "Wed 18:00", or "After GW12's last match". */
+/** A run, short: "Wed 6pm", or "After GW12's last match". */
 export const firstRunShort = (run: FirstRun) => (run === null || run.skippedIf !== null ? firstRunWords(run) : runShort(run.at));
 /** A run by its day: "Wed run", or "Run after GW12's last match". */
 export const runNameWords = (run: FirstRun) =>
-  run === null ? noRunWords : run.skippedIf !== null ? `Run ${afterLastMatchWords(run.skippedIf)}` : `${runDayWords(run.at)} run`;
-/** A run's group in the pending claims: "Wed 11 Nov, 18:00 run", and how many it holds. */
-export const runGroupWords = (run: FirstRun) => (run === null || run.skippedIf !== null ? runNameWords(run) : `${runWords(run.at)} run`);
-export const claimsInWords = (claims: number) => `${claims} ${claims === 1 ? "claim" : "claims"}`;
+  run === null ? noRunWords : run.skippedIf !== null ? `Settles ${afterLastMatchWords(run.skippedIf)}` : `Settles ${runDayWords(run.at)}`;
+/** A run's group in the pending claims: "Wed 11 Nov, 6pm run", and how many it holds. */
+export const runGroupWords = (run: FirstRun) => (run === null || run.skippedIf !== null ? runNameWords(run) : `Settles ${runWords(run.at)}`);
+export const claimsInWords = (claims: number) => `${claims} ${claims === 1 ? "bid" : "bids"}`;
 /** Who goes when a claim names nobody. */
-export const freePlaceWords = "Free place";
+export const freePlaceWords = "No drop";
 /** A claim whose drop an earlier claim in its run names too. */
-export const failsIfWords = (rank: number) => `Fails if claim ${rank} wins`;
+export const failsIfWords = (rank: number) => `Off if bid ${rank} goes through: it drops the same player`;
 /** The selected claim's panel title, "Claim 2", its run on the plate (the team-transactions
  *  picture, #1031). */
-export const claimPanelTitle = (rank: number) => `Claim ${rank}`;
+export const claimPanelTitle = (rank: number) => `Bid ${rank}`;
 export const claimInLabel = "In";
 export const dropLabel = "Out";
-export const dropNobodyWords = "Nobody";
+export const dropNobodyWords = "Nobody, I have room";
 export const moveUpWords = "Move up";
 export const moveDownWords = "Move down";
 export const withdrawWords = "Withdraw";
 export const playerCardWords = "Player card ›";
-export const dragHandleLabel = (playerName: string) => `Drag the claim for ${playerName} to reorder it`;
+export const dragHandleLabel = (playerName: string) => `Drag the bid for ${playerName} to reorder it`;
 export const dragGlyph = "⋮⋮";
 /** A claim's player button: his name and club as it shows them first (WCAG 2.5.3; S12.14). */
-export const selectClaimLabel = (playerName: string, club: string) => `${playerName} ${club}: open the claim`;
-export const claimFailedWords = "That claim couldn't be changed. Try again.";
+export const selectClaimLabel = (playerName: string, club: string) => `${playerName} ${club}: open the bid`;
+export const claimFailedWords = "That bid couldn't be changed. Try again.";
 
 /** The commissioner's switch between his own claims and every team's. */
 export const claimsViews = ["mine", "everyTeam"] as const;
 export type ClaimsView = (typeof claimsViews)[number];
 export const claimsViewWords: Record<ClaimsView, string> = { mine: "Mine", everyTeam: "Every team" };
-export const claimsViewLabel = "Whose claims";
+export const claimsViewLabel = "Whose bids";
 /** A team's group under Every team: "1st in the waiver order, 1 claim". */
 export const teamGroupWords = (place: number | null, claims: number) =>
-  `${place === null ? "" : `${placeWords(place)} in the waiver order, `}${claimsInWords(claims)}`;
-export const teamsWithoutClaimsWords = (teams: number) => `${teams} ${teams === 1 ? "team" : "teams"}: no claims`;
+  `${place === null ? "" : `${placeWords(place)} in the bid order, `}${claimsInWords(claims)}`;
+export const teamsWithoutClaimsWords = (teams: number) => `${teams} ${teams === 1 ? "team" : "teams"} with no bids`;
 
-export const WAIVER_ORDER_TITLE = "Waiver order";
+export const WAIVER_ORDER_TITLE = BID_ORDER_TITLE;
 export const waiverOrderWords: Record<WaiverOrderType, string> = { reverseStandings: "Reverse table order", rotating: "Rotating" };
 /** A team's line in the waiver order: "8th," then its points (Craig, 10 Nov 2026: "dont need to say
  *  x in the table"). */
@@ -100,17 +101,17 @@ export const tablePlaceWords = (place: number) => `${placeWords(place)}, `;
  *  way in the lock, else the next deadline's). */
 export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | null) =>
   type === "rotating"
-    ? "Whoever last won a claim drops to the bottom, and it never resets."
-    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : gameweekShort(resetsAfter)} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
-export const waiverOrderLoadingWords = "Loading the waiver order…";
+    ? "Whoever last won a bid drops to the bottom, and it never resets."
+    : `The bottom of the table bids first. Win a bid and you drop to the bottom until ${resetsAfter === null ? "the gameweek" : gameweekShort(resetsAfter)} ends, then the order resets. Teams level on points go by the table's tie-breaks.`;
+export const waiverOrderLoadingWords = "Loading the bid order…";
 
-export const RUNS_TITLE = "Runs";
+export const RUNS_TITLE = BIDS_SETTLE_TITLE;
 export const nextRunWords = "Next";
 export const freeAgentsWords = "Free agents";
 /** A run still failing after its retries (Craig, 14 Nov 2026, S08.23). */
-export const waiversDelayedWords = "Waivers delayed";
+export const waiversDelayedWords = "Bids delayed";
 /** Free agents before the league's draft is over (S08.1), matching `claimsNotOpenWords`. */
-export const freeAgentsNotOpenWords = "Open once the league's draft is over";
+export const freeAgentsNotOpenWords = "Open after the draft";
 /** A run that falls after a gameweek's deadline: it is skipped if that gameweek's last match isn't
  *  over by then, which isn't known ahead (Craig, 11 Nov 2026, on #1488). */
 export const skippedIfWords = (gameweek: number) => `Skipped if ${gameweekShort(gameweek)} is still on`;
@@ -128,6 +129,6 @@ export const windowWords = ({ drafted, open, locked, firstRun, waitsOn, gameweek
   if (!drafted) return freeAgentsNotOpenWords;
   const to = gameweek === null ? "" : ` to the ${gameweekShort(gameweek)} deadline`;
   if (open && !locked) return `Open${to}`;
-  if (locked || waitsOn !== null) return `From the first run after ${waitsOn === null ? "the gameweek" : gameweekShort(waitsOn)}'s last match${to}`;
+  if (locked || waitsOn !== null) return `From when bids settle after ${waitsOn === null ? "the gameweek" : gameweekShort(waitsOn)}'s last match${to}`;
   return firstRun === null ? "Closed" : `From ${runShort(firstRun)}${to}`;
 };

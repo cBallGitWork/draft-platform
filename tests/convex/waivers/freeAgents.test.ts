@@ -50,8 +50,8 @@ describe("in the window", () => {
     expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: teamNumbered(2) });
     expect((await eventsIn(w.t, w.leagueId)).at(-1)).toMatchObject({ kind: "playerPickedUp", playerCode: SAKA, teamId: w.bobsTeam, dropped: null, by: BOB });
     expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: `${TEAM_2} picked up ${nameOf(SAKA)}`,
-      body: `${BOB} picked up ${nameOf(SAKA)} for ${TEAM_2} as a free agent.`,
+      subject: `${TEAM_2} signed ${nameOf(SAKA)}`,
+      body: `${BOB} signed ${nameOf(SAKA)} for ${TEAM_2} as a free agent.`, // one-home-ok: pins the exact words a manager reads
     });
     const { transactions } = await (await actingAs(w.t, BOB)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
     expect(transactions).toContainEqual(expect.objectContaining({ kind: "pickedUp", playerCode: SAKA }));
@@ -76,8 +76,8 @@ describe("in the window", () => {
       { kind: "playerPickedUp", playerCode: SAKA, dropped: { playerCode: ANNS_FIRST_DROP, toWaivers: true } },
     ]);
     expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `${TEAM_1} picked up ${nameOf(SAKA)}`,
-      body: `${ANN} picked up ${nameOf(SAKA)} for ${TEAM_1} as a free agent. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
+      subject: `${TEAM_1} signed ${nameOf(SAKA)}`,
+      body: `${ANN} signed ${nameOf(SAKA)} for ${TEAM_1} as a free agent and dropped ${nameOf(ANNS_FIRST_DROP)}. He's released, and bids on him settle in at least 24 hours.`, // one-home-ok: pins the exact words a manager reads
     });
   });
 

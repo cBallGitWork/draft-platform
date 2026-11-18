@@ -10,12 +10,13 @@ import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { LeagueRules, TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
 import type { DoubleGameweekRule } from "../../convex/scoring/values";
+import { twelveHourWords } from "../../convex/shared/moments";
 import { hoursWords } from "../../convex/shared/time";
 import type { TieBreak } from "../../convex/table/standings";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, inReviewWords, leagueVoteWords, menuWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
+import { AREA_PLAYER_WORDS, BID_ORDER_TITLE, commissionerVetoWords, failedWords, inReviewWords, leagueVoteWords, menuWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -26,18 +27,18 @@ export const gamesLabel = "Games a gameweek";
 export const gamesUnit = "head-to-heads per team";
 export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer other teams than that, each team plays every other once a gameweek.`;
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
-export const redrawWords = "Saving it redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
+export const redrawWords = "Saving redraws the head-to-heads from the gameweek it applies from. Gameweeks already played keep theirs.";
 export const blankGamesWords = noNumberWords(gamesLabel);
 /** The format (spec/03, S03.1): its lock, and why, is said again by the server's refusal. */
 export const formatLabel = "Format";
 export const formatWords: Record<LeagueRules["format"], string> = { headToHead: "Head-to-head", totalPoints: "Total points" };
-export const formatHint = "Locked once the league's first scored gameweek begins: one table with one meaning all season.";
+export const formatHint = "Locked once the first scored gameweek begins, so the table means the same all season.";
 /** spec/03: both matches count by default. */
 export const doubleGameweekLabel = "Double gameweeks";
 export const doubleGameweekWords: Record<DoubleGameweekRule, string> = { bothMatches: "Both matches count", bestMatch: "Best match" };
 /** The deadline (spec/03, S03.3). */
 export const deadlineLabel = "Deadline";
-export const deadlineUnit = "minutes before the gameweek's first kickoff";
+export const deadlineUnit = "minutes before the gameweek's first kick-off";
 export const deadlineHint = "A whole number, 0 or more.";
 export const blankDeadlineWords = noNumberWords(deadlineLabel);
 
@@ -51,15 +52,15 @@ export const playOffLegsLabel = "Play-off legs";
 
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
-export const squadMaximumHint = `A whole number, ${STARTER_COUNT} to ${MOST_IN_SQUAD}, a Premier League squad, and no fewer than the league's least squad size.`;
+export const squadMaximumHint = `A whole number from ${STARTER_COUNT} to ${MOST_IN_SQUAD} (a Premier League squad), and not below the squad's minimum size.`;
 /** Why the draft can't start without a squad size limit (Craig, 5 Nov 2026, on #1088: "Can't start
  *  without a max"). */
-export const noSquadSizeWords = "This league's squads have no size limit, so its draft can't start: the draft's rounds are the squads' most players.";
+export const noSquadSizeWords = "The draft can't start without a squad size limit. It has one round for each squad place.";
 export const blankSquadMaximumWords = noNumberWords(squadMaximumLabel);
-export const areaMinimumsLabel = "Fewest players in each area";
-/** One area's box, for screen readers: "Fewest in Defence". */
-export const areaMinimumLabel = (area: Area) => `Fewest in ${AREA_WORDS[area]}`;
-export const areaMinimumsHint = "Whole numbers, 0 for none, adding up to no more than the squad's most. A player who plays two areas counts in one, whichever helps.";
+export const areaMinimumsLabel = "Fewest players by area";
+/** One area's box, for screen readers: "Fewest defenders". */
+export const areaMinimumLabel = (area: Area) => `Fewest ${AREA_PLAYER_WORDS[area]}`;
+export const areaMinimumsHint = "Whole numbers, 0 for none. Together they can't be more than the squad size. A player who plays in two, such as defence and midfield, counts in whichever helps.";
 export const blankAreaMinimumWords = (area: Area) => noNumberWords(areaMinimumLabel(area), "put 0");
 export const clubMaximumWords = "A limit on players from one club";
 export const clubMaximumLabel = "Most players from one club";
@@ -71,7 +72,7 @@ export const draftTitle = "Draft";
  *  rest of the settings. */
 export const draftStartLabel = "Starts";
 export const clearDraftStartWords = "Clear";
-export const draftStartHint = `The draft starts itself then. With no date it waits for you to press start in the draft room. A date has to be in the future, with at least ${DRAFT_FEWEST_TEAMS} teams in the league.`;
+export const draftStartHint = `The draft starts itself at this time. With no date, you start it from the draft room. The date must be in the future, and the league needs at least ${DRAFT_FEWEST_TEAMS} teams.`;
 export const draftStartedFixedWords = "The draft has started.";
 export const draftStartLoadingWords = "Loading the draft's start…";
 /** The bar once the date alone is saved (#1780): the settings' words name a gameweek, which a date has none of. */
@@ -92,11 +93,11 @@ export const autoPickAfterWords = "After";
 export const timeoutsUnitWords = "timeouts";
 export const timeoutsLabel = "Timeouts before auto-pick";
 /** spec/04, Auto-pick. */
-export const timeoutsHint = `A whole number, ${TIMEOUTS_FEWEST} to ${TIMEOUTS_MOST}. A clock that runs out makes the pick and counts as a timeout; a manager on auto-pick can take control back himself.`;
+export const timeoutsHint = `A whole number, ${TIMEOUTS_FEWEST} to ${TIMEOUTS_MOST}. When a clock runs out, the pick is made for him and counts as a timeout. A manager on auto-pick can take control back himself.`;
 export const neverAutoPickWords = "Never: the clock runs for every pick.";
 export const blankTimeoutsWords = noNumberWords(timeoutsLabel, "turn auto-pick after timeouts off");
 export const undraftedLabel = "Undrafted players go to";
-export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Waivers", freeAgents: "Free agents" };
+export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Released", freeAgents: "Free agents" };
 
 export const tradesTitle = "Trades";
 export const tradeReviewLabel = "An accepted trade is reviewed by";
@@ -110,30 +111,31 @@ export const tradeReviewWords: Record<TradeReview, string> = {
 };
 /** spec/08, Trades, and Craig's answers on #383 (31 Oct and 6 Nov 2026). */
 export const tradeReviewHint =
-  `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
+  `With no one, an accepted trade goes through at once. A review lasts ${hoursWords(REVIEW_MS)}. With a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there isn't one. With a vote, it's blocked only if most managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
 /** The Trade deadline line as 1440-trades.png has it: a tick, "No trades after", the gameweek. */
 export const tradeDeadlineAfterWords = "No trades after";
 export const tradeDeadlineLabel = "No trades after gameweek";
 /** Craig, 6 Nov 2026, on #383; the season's last gameweek is however many it has (#1618). */
 export const tradeDeadlineHint = (seasonGameweeks: number) =>
-  `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
+  `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop after its last match. Open offers close, and a trade already in review still finishes.`;
 export const blankTradeDeadlineWords = "The trade deadline has no gameweek. Choose one, or turn the deadline off, then save.";
 
-/** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */
+/** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). The tab keeps
+ *  "Waivers" as the rule's name; the rest says bids (SPEC.md Glossary, Craig, 18 Nov 2026). */
 export const waiversTitle = "Waivers";
-export const waiverOrderLabel = "Waiver order";
+export const waiverOrderLabel = BID_ORDER_TITLE;
 /** Each order type explained, and when a change applies (Craig, 6 Nov 2026, on #1200). */
 export const waiverOrderHint =
-  "Reverse table order: the bottom of the table claims first; a team that wins a claim drops to the bottom until the gameweek ends, when the order is worked out again. Rotating: whoever last won a claim drops to the bottom, and it never resets. A change applies at once, from today's order.";
-export const runsLabel = "Runs, UK time";
-export const runDayLabel = (run: number) => `Run ${run}'s day`;
-export const runTimeLabel = (run: number) => `Run ${run}'s time`;
+  "Reverse table order: the bottom of the table bids first. A team that wins a bid drops to the bottom until the gameweek ends, then the order resets. Rotating: whoever last won a bid drops to the bottom, and it never resets. A change applies at once, from today's order.";
+export const runsLabel = "Bids settle, UK time";
+export const runDayLabel = (run: number) => `Settle ${run}, day`;
+export const runTimeLabel = (run: number) => `Settle ${run}, time`;
 export const removeRunWords = "Remove";
-export const removeRunLabel = (run: number) => `Remove run ${run}`;
-export const addRunWords = "Add a run";
-export const runsHint = `Each run takes every player whose ${hoursWords(WAIVER_MS)} on waivers are up. A run between a deadline and the gameweek's last match is skipped.`;
-export const runTwiceWords = "Two runs are at the same time: change one or remove it.";
+export const removeRunLabel = (run: number) => `Remove settle time ${run}`;
+export const addRunWords = "Add a settle time";
+export const runsHint = `Bids settle on every player released for ${hoursWords(WAIVER_MS)} or more. A settle time between a deadline and the gameweek's last match is skipped.`;
+export const runTwiceWords = "Two settle times are the same. Change or remove one.";
 export const weekdayNames: Record<(typeof WEEKDAYS)[number], string> = {
   monday: "Monday",
   tuesday: "Tuesday",
@@ -143,13 +145,13 @@ export const weekdayNames: Record<(typeof WEEKDAYS)[number], string> = {
   saturday: "Saturday",
   sunday: "Sunday",
 };
-/** A run's time of day: "18:00". */
-export const runTimeWords = (hour: number, minute: number) => `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+/** A run's time of day, 12-hour as every screen says a time: "6pm". */
+export const runTimeWords = (hour: number, minute: number) => twelveHourWords(hour, minute);
 
 /** The draft order, which the commissioner sets or draws at random (Craig, 4 Nov 2026, on #1087
  *  and #1089). */
 export const teamOrderTitle = "Draft order";
-export const teamOrderHint = "Teams start in the order they joined, and a team that joins later goes to the bottom. A move or a draw saves at once.";
+export const teamOrderHint = "Teams start in the order they joined. Later joiners go to the bottom. Moves and draws save at once.";
 export const drawOrderWords = "Draw at random";
 export const draftStartedWords = "The draft has started, so this order is fixed.";
 export const teamOrderLoadingWords = "Loading the draft order…";
@@ -163,7 +165,7 @@ export const moveDownLabel = (team: string) => `Move ${team} down`;
 export const unmovedOutcome = "the draft order didn't change";
 export const teamOrderFailedWords = failedWords(unmovedOutcome);
 
-export const savedWords = (gameweek: number) => savedFromWords("The new settings apply", gameweek, ", and the league has a letter saying so");
+export const savedWords = (gameweek: number) => savedFromWords("The new settings apply", gameweek, ", and the league gets a letter about it");
 
 /** The scoring start (spec/04, After the draft; Craig, 5 Nov 2026, on #1097), on Fixtures (#1190),
  *  saved at once, apart from the settings' Save, as it isn't one of the league's rules rows. */
@@ -172,12 +174,12 @@ export const scoringStartHint = "Earlier gameweeks score nothing and have no hea
 export const savesAtOnceWords = "A change saves at once.";
 /** The picker's choice while none is set. */
 export const noScoringStartWords = notSetWords;
-export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
+export const noScoringStartHint = "Not set. Every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
 export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
-export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;
+export const scoringStartFixedWords = (deadline: string) => `Fixed. Its deadline, ${deadline}, has passed.`;
 /** None set in a league that has already scored a gameweek, so none set is fixed (#1588). */
-export const seasonBegunStartHint = "Fixed: the league has already scored a gameweek, so every ticked gameweek scores.";
-export const noScoringStartChoicesWords = "No ticked gameweek with a known deadline is still to begin, so scoring can't start in one.";
+export const seasonBegunStartHint = "Fixed. The league has scored a gameweek already, so every ticked gameweek scores.";
+export const noScoringStartChoicesWords = "Nothing to choose. No ticked gameweek ahead has a known deadline yet.";
 export const scoringStartLoadingWords = "Loading the scoring start…";
 /** What a failed change leaves, live or in the preview. */
 export const unchangedStartOutcome = "the scoring start didn't change";

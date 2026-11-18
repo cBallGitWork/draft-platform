@@ -31,7 +31,7 @@ export function draftOverLetter(picks: number): Words {
 export function scoringStartMovedLetter({ from, to }: { from: number; to: number }): Words {
   return {
     subject: `Scoring starts in gameweek ${to}`,
-    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and line-ups count from gameweek ${to}'s deadline.`,
+    body: `The draft finished after gameweek ${from}'s deadline, so scoring starts in gameweek ${to} instead. Squads and line-ups count from its deadline.`,
   };
 }
 
@@ -45,14 +45,14 @@ export type PickNews = { pick: number; playerName: string; teamName: string };
 
 /** To the whole league when the commissioner, `who`, makes a team's pick for it (#1095). */
 export function draftPickedForLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
-  return { subject: `${playerName} was picked for ${teamName}`, body: `${who} made pick ${pick} for ${teamName}: ${playerName}.` };
+  return { subject: `${playerName} was picked for ${teamName}`, body: `${who} picked ${playerName} for ${teamName} at pick ${pick}.` };
 }
 
 /** To the whole league when the commissioner, `who`, undoes a pick (#1095). */
 export function draftUndoneLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
   return {
     subject: `Pick ${pick} was undone`,
-    body: `${who} undid pick ${pick}, ${playerName} to ${teamName}. ${playerName} can be picked again, and ${teamName} is back on the clock.`,
+    body: `${who} undid pick ${pick}, ${playerName} to ${teamName}. ${playerName} can be picked again and ${teamName} is back on the clock.`,
   };
 }
 
@@ -74,7 +74,7 @@ export function draftStartDateLetter(who: string, startsAt: number | null, tell:
  *  this one", or unmarks it, so the draft picks for it (S04.31; #2149). */
 export function draftPickerLetter(who: string, teamName: string, marked: boolean): Words {
   if (marked) return { subject: `The commissioner picks for ${teamName}`, body: `${who} will make ${teamName}'s picks in the draft.` };
-  return { subject: `The draft picks for ${teamName}`, body: `${who} no longer picks for ${teamName}: the draft makes its picks.` };
+  return { subject: `The draft picks for ${teamName}`, body: `${who} no longer picks for ${teamName}. Auto-pick makes its picks now.` };
 }
 
 /** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
@@ -82,6 +82,6 @@ export function draftPickerLetter(who: string, teamName: string, marked: boolean
 export function draftNotStartedLetter(startsAt: number, refusal: string, tell: TellMoment): Words {
   return {
     subject: "The draft didn't start",
-    body: `The draft was set to start on ${tell(startsAt)}, but couldn't. ${refusal} It waits for you to press start or set a new date.`,
+    body: `The draft was due to start on ${tell(startsAt)} but couldn't. ${refusal} Press start or set a new date.`,
   };
 }

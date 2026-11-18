@@ -21,7 +21,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 
 // The Tactics tab's controls (#14; spec/05; the approved Tactics picture): the toolbar over the
 // pitch and the table, with the Formation keys, All formations, the attacking and defensive
-// instruction, Presets, Undo and Quick Pick, and what the last save and formation change said; and
+// instruction, Presets, Undo and Best XI (Quick Pick), and what the last save and formation change said; and
 // the desk's switch for the roles' runs. The lineup they change is kept in ./useLineupEdits.ts,
 // called from ./LineupEditor.tsx.
 

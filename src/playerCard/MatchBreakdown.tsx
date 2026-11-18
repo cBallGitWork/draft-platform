@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Panel } from "../ui/Panel";
-import { CategoryLines, RoleWords } from "./Breakdown";
+import { CategoryLines, RoleWords, TotalLine } from "./Breakdown";
 import { opponentWords, pointsOf, scoreOf } from "./gameLog";
 import type { PlayedMatch } from "./seam";
 import { MatchName } from "./MatchName";
@@ -8,8 +8,8 @@ import { breakdownLabel, figureWords, liveWords, matchTitle, noFigureWords, notA
 
 /** The selected match's breakdown, at the top of the right column (the approved picture): its
  *  title with his points, a line for each category he earned or lost points in, saying why, the
- *  version it was scored under, his role's line apart from his base points where his team started
- *  him (spec/05), and the league's override with its reason. `children` is what whoever runs the
+ *  version it was scored under, his role's points apart from his stat points where his team started
+ *  him (spec/05), their total, and the league's override with its reason. `children` is what whoever runs the
  *  league does to it: the override (#32). */
 export function MatchBreakdown({ match, shown, clubCode, children }: { match: PlayedMatch; shown: number; clubCode: number; children?: ReactNode }) {
   const opponent = opponentWords(match, clubCode);
@@ -42,9 +42,10 @@ export function MatchBreakdown({ match, shown, clubCode, children }: { match: Pl
       )}
       {override === null && match.role !== undefined && match.points[shown].total !== null && (
         <p aria-label={roleLineLabel(match.role.name)} className="border-t border-panel-rule px-3 py-2 text-soft">
-          <RoleWords role={match.role} />
+          <RoleWords role={match.role} label={roleLineLabel(match.role.name)} />
         </p>
       )}
+      {override === null && total !== null && <TotalLine points={total} className="border-t border-panel-rule px-3 py-2" />}
       {override !== null && <p className="border-t border-panel-rule px-3 py-2 text-event">{overriddenWords(override.points, override.reason)}</p>}
       {children}
     </Panel>

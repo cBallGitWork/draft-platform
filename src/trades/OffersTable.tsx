@@ -8,6 +8,7 @@ import { TradedSide } from "./TradedPlayer";
 import {
   betweenWords,
   groupWords,
+  inReviewGroupWords,
   offersColumns,
   offersTableLabel,
   reviewerWords,
@@ -17,8 +18,9 @@ import {
   youWords,
 } from "./words";
 
-// The Offers tab's table (#383; docs/design/approved/trades): the trades the manager reviews To
-// review first (Craig, 10 Nov 2026), then his offers To you, From you and In review. Split from
+// The Offers tab's table (#383; docs/design/approved/trades): the trades the manager checks first
+// (Craig, 10 Nov 2026), then his offers in Your reply, Sent and With the commissioner (or With the
+// league, under a league vote). Split from
 // OffersPage.tsx.
 
 type Column = keyof typeof offersColumns;
@@ -65,7 +67,7 @@ export function OffersTable({
             if (inGroup.length === 0) return null;
             return (
               <Fragment key={group}>
-                <GroupHead>{groupWords[group]}</GroupHead>
+                <GroupHead>{group === "inReview" ? inReviewGroupWords(inGroup[0].offer.reviewer) : groupWords[group]}</GroupHead>
                 {inGroup.map((row) => (
                   <OfferRow
                     key={row.offer.offerId}

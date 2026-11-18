@@ -45,7 +45,7 @@ function liveSelected(selected: ListedPlayer | null, list: PlayersList | undefin
   return list?.kept === null ? null : selected;
 }
 
-/** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
+/** Scouting (spec/19), for anyone in the league, under Players and Leaders tabs on its title
  *  plate (the approved picture): the players, or every team's season totals in the stat race. */
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [tab, choose] = useState<ScoutingTab>("players");

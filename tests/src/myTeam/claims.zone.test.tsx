@@ -9,7 +9,7 @@ import { RUNS_TITLE } from "../../../src/myTeam/claims/words";
 import { NO_WAIVERS } from "../../support/src/myTeam.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
-/** Wednesday's 18:00 run in London, winter, so 13:00 in New York. */
+/** Wednesday's 6pm run in London, winter, so 1pm in New York. */
 const WED = Date.parse("2026-11-11T18:00:00Z");
 const NEW_YORK = "America/New_York";
 
@@ -20,12 +20,12 @@ describe("a run in the manager's own zone", () => {
     vi.resetModules();
   });
 
-  it("a manager in New York reads Wednesday's 18:00 UK run as 13:00, the same on My team as elsewhere", async () => {
+  it("a manager in New York reads Wednesday's 6pm UK run as 1pm, the same on My team as elsewhere", async () => {
     process.env.TZ = NEW_YORK;
     vi.resetModules();
     const claims = await import("../../../src/myTeam/claims/words");
     const shared = await import("../../../src/shared/when/words");
-    expect(claims.runShort(WED)).toBe("Wed 13:00");
+    expect(claims.runShort(WED)).toBe("Wed 1pm");
     expect(claims.runShort(WED)).toBe(shared.weekdayTimeWords(WED));
     expect(claims.runWords(WED)).toBe(shared.whenWords(WED));
     expect(claims.runDayWords(WED)).toBe(shared.weekdayWords(WED));

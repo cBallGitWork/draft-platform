@@ -72,9 +72,9 @@ describe("the letter", () => {
       leagueName: PRODUCT_NAME,
       from: null,
       read: false,
-      subject: `Scoring patch 26_27.1 takes effect on ${momentIn(TODAY + NOTICE, undefined)}`,
+      subject: `Scoring changes from ${momentIn(TODAY + NOTICE, undefined)}`,
     });
-    expect(letter.body).toContain(`It takes effect on ${momentIn(TODAY + NOTICE, undefined)}, from gameweek 10.`);
+    expect(letter.body).toContain(`They apply from ${momentIn(TODAY + NOTICE, undefined)}, gameweek 10.`);
     expect(letter.body).toContain("- Assists: 3 → 4\n- Tackles: newly scored, 1 per action");
   });
 
@@ -84,8 +84,8 @@ describe("the letter", () => {
     await fixAs(ADMIN, EDITED);
     const [letter] = await lettersTo(BOB);
 
-    expect(letter.subject).toBe("Scoring fix 26_27.1");
-    expect(letter.body).toContain("fixed a mistake in the scoring every league plays on: version 26_27.1, in force from gameweek 9.");
+    expect(letter.subject).toBe("Scoring fixed from gameweek 9"); // one-home-ok: pins the exact words a manager reads
+    expect(letter.body).toContain("fixed a mistake in the site's scoring. The fix applies from gameweek 9."); // one-home-ok: pins the exact words a manager reads
     expect(letter.body).toContain("- Assists: 3 → 4");
   });
 
@@ -105,7 +105,7 @@ describe("the letter", () => {
 
     await fixAs(ADMIN, EDITED);
 
-    expect((await lettersTo(ADMIN))[0]).toMatchObject({ subject: "Scoring fix 26_27.1", read: true });
+    expect((await lettersTo(ADMIN))[0]).toMatchObject({ subject: "Scoring fixed from gameweek 9", read: true }); // one-home-ok: pins the exact words a manager reads
   });
 
   test("a refused announcement files nothing", async () => {

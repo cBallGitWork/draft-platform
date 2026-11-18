@@ -73,14 +73,14 @@ describe("each team's squad", () => {
     expect(within(team1).getByText("2 players")).toBeTruthy();
     expect(within(team1).getByText(goneWords)).toBeTruthy();
     const team2 = screen.getByRole("region", { name: "Team 2" });
-    expect(within(team2).getByRole("status").textContent).toBe("0 players, under the league's least of 11.");
+    expect(within(team2).getByRole("status").textContent).toBe("0 players. The league needs at least 11.");
   });
 
   it("warns of an area short of the league's minimum, naming the area (#317)", async () => {
     openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka], [{ kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 }])] });
 
     const team1 = await screen.findByRole("region", { name: "Team 1" });
-    expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1 short of the league's least of 2.");
+    expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1 short. The league needs at least 2.");
   });
 
   it("keeps a row whose player the football sync doesn't hold, saying his code, under a notice, and every other squad (#323)", async () => {

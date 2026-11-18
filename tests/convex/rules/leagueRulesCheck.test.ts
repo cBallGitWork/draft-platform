@@ -225,7 +225,7 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "two waiver runs at one time",
     { waivers: { ...FIRST_RULES.waivers, runs: [FRIDAY_9_05, FRIDAY_9_05] } },
-    "Waivers run on friday at 9:05 twice.",
+    "Bids already settle on Friday at 9.05am.",
   ],
   [
     "a squad maximum of 26, above a Premier League squad of 25 (spec/03)",

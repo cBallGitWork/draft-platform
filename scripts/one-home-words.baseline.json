@@ -2,9 +2,6 @@
   "convex/mail/letterWords.ts": [
     "Scoring starts in gameweek"
   ],
-  "convex/trades/tradeShutWords.ts": [
-    "The league's trade deadline has passed."
-  ],
   "src/app/preview.ts": [
     "you're still in this league"
   ],
@@ -20,8 +17,7 @@
   ],
   "src/myTeam/claims/words.ts": [
     "Every team",
-    "Newest first",
-    "Waiver order"
+    "Newest first"
   ],
   "src/myTeam/squad/words.ts": [
     "No match this gameweek",
@@ -29,17 +25,12 @@
     "Set line-up"
   ],
   "src/myTeam/tactics/words.ts": [
-    "Best role",
-    "starts in a row elsewhere"
-  ],
-  "src/myTeam/words.ts": [
-    "Free agents"
+    "Best role"
   ],
   "src/patches/words.ts": [
     "Not tested"
   ],
   "src/playerCard/words.ts": [
-    "Minutes played",
     "Role fit",
     "This season"
   ],
@@ -48,17 +39,11 @@
     "Yellow cards"
   ],
   "src/scoring/words.ts": [
-    "Keep it",
     "Patch notes"
   ],
   "src/scouting/words.ts": [
-    "On waivers",
-    "Pick up",
     "Role fit",
     "Shots on target"
-  ],
-  "src/table/preview.ts": [
-    "the fixtures didn't change"
   ],
   "src/trades/words.ts": [
     "Keep it",
@@ -70,13 +55,10 @@
   ],
   "tests/convex/draft/draftLetters.test.ts": [
     ", or the draft picks for you.",
-    "It waits for you to press start or set a new date.",
     "Scoring starts in gameweek",
     "The draft didn't start",
-    "The draft ended after gameweek",
     "The draft is over",
     "The draft is paused",
-    "The draft was set to start on",
     "You're up next in the draft",
     "is on the clock: round",
     "is up next: round",
@@ -117,9 +99,7 @@
     "on the bench"
   ],
   "tests/convex/lineup/autoTeam.test.ts": [
-    "at the next deadline",
-    "is off the auto team",
-    "is on the auto team"
+    "at the next deadline"
   ],
   "tests/convex/lineup/firstLineup.test.ts": [
     "on the bench"
@@ -128,12 +108,9 @@
     "on the bench"
   ],
   "tests/convex/lineup/lineupWords.test.ts": [
-    "The league starts at least",
-    "The league starts at most",
     "has no positions",
     "has no positions yet, so he can't start.",
-    "is in the line-up twice.",
-    "players; this one starts"
+    "is in the line-up twice."
   ],
   "tests/convex/lineup/lineups.instructions.test.ts": [
     "5 at the back"
@@ -144,13 +121,9 @@
   "tests/convex/lineup/lineups.storedFirstLineup.test.ts": [
     "on the bench"
   ],
-  "tests/convex/lineup/lineups.test.ts": [
-    "The league starts at least"
-  ],
   "tests/convex/mail/letterWords.test.ts": [
     "'s invite was cancelled",
     "'s invite was sent again",
-    "No team's total moved: no line-up counted him.",
     "Scoring starts in gameweek",
     "The invite link is off",
     "The league has a new invite link",
@@ -158,8 +131,7 @@
     "is no longer being deleted",
     "joined as manager of",
     "odd team out",
-    "out of the league's season.",
-    "points are now whole only"
+    "out of the league's season."
   ],
   "tests/convex/mail/mail.test.ts": [
     "The league has a new invite link",
@@ -167,9 +139,6 @@
   ],
   "tests/convex/matchup/matchup.test.ts": [
     "the league's average"
-  ],
-  "tests/convex/matchup/matchup.twoGames.test.ts": [
-    "games a gameweek"
   ],
   "tests/convex/matchup/matchup.unheldPlayer.test.ts": [
     "on the bench"
@@ -182,7 +151,6 @@
   ],
   "tests/convex/playerCard/playerCard.test.ts": [
     "Goals conceded",
-    "Knock - 75% chance of playing",
     "Yellow cards",
     "on the bench"
   ],
@@ -201,18 +169,10 @@
     "the league's average"
   ],
   "tests/convex/rules/leagueRules.test.ts": [
-    "games a gameweek",
     "odd team out"
   ],
   "tests/convex/rules/leagueRulesCheck.test.ts": [
-    "games a gameweek",
     "the league's average"
-  ],
-  "tests/convex/rules/leagueSettings.test.ts": [
-    "games a gameweek"
-  ],
-  "tests/convex/rules/refusedAtSave.test.ts": [
-    "games a gameweek"
   ],
   "tests/convex/scoring/categoryWhy.test.ts": [
     "the first scoring set"
@@ -220,9 +180,6 @@
   "tests/convex/scoring/ownStats.test.ts": [
     "Off target",
     "Tackles won"
-  ],
-  "tests/convex/scoring/patchAnnouncements.test.ts": [
-    "fixed a mistake in the scoring every league plays on: version"
   ],
   "tests/convex/scoring/patchChanges.test.ts": [
     "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions"
@@ -244,10 +201,6 @@
   "tests/convex/scouting/shortlist.test.ts": [
     "The admin"
   ],
-  "tests/convex/squads/teamSquad.test.ts": [
-    "Knock - 75% chance of playing",
-    "on the bench"
-  ],
   "tests/convex/stats/matchStats.examples.test.ts": [
     "Premier League"
   ],
@@ -262,15 +215,12 @@
     "the league's average"
   ],
   "tests/convex/table/leagueTable.test.ts": [
-    "games a gameweek",
     "the league's average"
   ],
   "tests/convex/table/pointsOverrides.test.ts": [
-    "removed the override of",
     "the league's average"
   ],
   "tests/convex/table/roundRobin.test.ts": [
-    "games a gameweek",
     "odd team out",
     "the league's average"
   ],
@@ -278,16 +228,13 @@
     "odd team out"
   ],
   "tests/convex/table/roundRobinGolden.test.ts": [
-    "games a gameweek",
     "odd team out"
   ],
   "tests/convex/table/standings.test.ts": [
-    "games a gameweek",
     "not yet scored",
     "the league's average"
   ],
   "tests/convex/table/teamFixtures.test.ts": [
-    "games a gameweek",
     "the league's average"
   ],
   "tests/convex/table/teamFixturesScores.test.ts": [
@@ -295,12 +242,10 @@
   ],
   "tests/convex/table/teamOverrides.test.ts": [
     "'s override in gameweek",
-    "'s total in gameweek",
-    "removed the override of"
+    "'s total in gameweek"
   ],
   "tests/convex/trades/tradeOffers.test.ts": [
     "at the next deadline",
-    "can accept, reject or counter it; unanswered, it closes",
     "names a team that no longer exists"
   ],
   "tests/convex/trades/tradePickCut.test.ts": [
@@ -308,11 +253,8 @@
     "Both picks go back to the teams that held them before the trade. The trade was:",
     "went back to the team that held it before."
   ],
-  "tests/convex/trades/tradePicks.test.ts": [
-    "The draft started, and picks are traded only before it."
-  ],
   "tests/convex/trades/tradeReview.test.ts": [
-    "Block the trade between",
+    "Stop the trade between",
     "Vote on the trade between",
     "now outside the league's squad limits."
   ],
@@ -321,7 +263,7 @@
     "would hold more than"
   ],
   "tests/convex/trades/tradeReviewers.test.ts": [
-    "Block the trade between",
+    "Stop the trade between",
     "Vote on the trade between"
   ],
   "tests/convex/trades/tradeRulesInForce.test.ts": [
@@ -330,30 +272,14 @@
   "tests/convex/trades/tradeScreen.test.ts": [
     "at the next deadline"
   ],
-  "tests/convex/waivers/freeAgents.test.ts": [
-    "as a free agent."
-  ],
   "tests/convex/waivers/shortlistLetters.test.ts": [
-    ", on your shortlist, cleared waivers",
-    ", on your shortlist, was dropped",
-    "He is a free agent again, not on waivers",
-    "He is on waivers for",
-    "at the waiver run."
+    ", on your shortlist, was dropped"
   ],
   "tests/convex/waivers/waiverRun.test.ts": [
-    "Another team was ahead of you in the waiver order for",
-    "Your claim is gone; nobody joined or left your squad for it.",
     "has left the Premier League, so he couldn't join your squad.",
     "was no longer in your squad to drop."
   ],
-  "tests/convex/waivers/waivers.test.ts": [
-    "He is on waivers for"
-  ],
-  "tests/smoke/smoke.spec.ts": [
-    "No one (a bye)"
-  ],
   "tests/src/admin/admin.test.tsx": [
-    "Positions his starts give him,",
     "from his label",
     "from his starts",
     "starts in a row elsewhere"
@@ -405,15 +331,6 @@
   "tests/src/joining/invitesPage.test.tsx": [
     "to the team chosen"
   ],
-  "tests/src/leagueSettings/leagueSettings.test.tsx": [
-    "games a gameweek"
-  ],
-  "tests/src/leagueSettings/leagueSettings.waivers.test.tsx": [
-    "in the waiver order,"
-  ],
-  "tests/src/leagueSettings/settingsControls.test.tsx": [
-    "odd team out"
-  ],
   "tests/src/leagues/leagueDeletion.test.tsx": [
     "Delete league"
   ],
@@ -429,7 +346,6 @@
     "on the bench"
   ],
   "tests/src/matchup/matchup.test.tsx": [
-    "games a gameweek",
     "the league's average"
   ],
   "tests/src/matchup/pitch.test.tsx": [
@@ -444,15 +360,10 @@
     "the league's average"
   ],
   "tests/src/myTeam/claims/claims.test.tsx": [
-    "From the first run after",
-    "in the waiver order,"
+    "From when bids settle after"
   ],
   "tests/src/myTeam/fixtures.test.tsx": [
-    "games a gameweek",
     "the league's average"
-  ],
-  "tests/src/myTeam/header/autoTeamSwitch.test.tsx": [
-    "There is no gameweek left to come for the auto team to end after."
   ],
   "tests/src/myTeam/header/teamHeader.test.tsx": [
     "odd team out"
@@ -464,7 +375,6 @@
     "Free agent"
   ],
   "tests/src/myTeam/squad/squad.test.tsx": [
-    "Knock - 75% chance of playing",
     "on the bench"
   ],
   "tests/src/myTeam/squad/squadViews.test.tsx": [
@@ -472,7 +382,6 @@
     "Squad size"
   ],
   "tests/src/myTeam/squad/squadWidgets.test.tsx": [
-    "Knock - 75% chance of playing",
     "Mail and news",
     "Set his role",
     "Your eleven"
@@ -483,17 +392,8 @@
   "tests/src/myTeam/tactics/lineupMoves.test.ts": [
     "on the bench"
   ],
-  "tests/src/myTeam/tactics/liveTactics.test.tsx": [
-    "players; this one starts"
-  ],
-  "tests/src/myTeam/tactics/pitch/pitchChip.test.tsx": [
-    "difficulty not rated yet"
-  ],
   "tests/src/myTeam/tactics/positionMarks.test.tsx": [
     "has no positions"
-  ],
-  "tests/src/myTeam/tactics/quickPick.test.ts": [
-    "Quick Pick"
   ],
   "tests/src/myTeam/tactics/roleCard/roleCard.test.tsx": [
     "no matches yet"
@@ -508,9 +408,6 @@
   "tests/src/myTeam/tactics/tactics.plans.test.tsx": [
     "5 at the back"
   ],
-  "tests/src/myTeam/tactics/tactics.presets.test.tsx": [
-    "players; this one starts"
-  ],
   "tests/src/myTeam/tactics/tactics.selection.test.tsx": [
     "Role fit",
     "on the bench"
@@ -518,14 +415,8 @@
   "tests/src/myTeam/tactics/tactics.swapping.test.tsx": [
     "on the bench"
   ],
-  "tests/src/myTeam/tactics/tacticsSaving.test.tsx": [
-    "players; this one starts"
-  ],
   "tests/src/myTeam/tactics/words.test.ts": [
     "in under a minute"
-  ],
-  "tests/src/myTeam/transactions.test.tsx": [
-    "Free agent"
   ],
   "tests/src/playerCard/breakdown.test.tsx": [
     "Clean sheets",
@@ -542,12 +433,6 @@
   "tests/src/playerCard/season.test.tsx": [
     "Yellow cards",
     "this season"
-  ],
-  "tests/src/playerCard/waiverAction.test.tsx": [
-    "On waivers: first run"
-  ],
-  "tests/src/premierLeague/matchPage.test.tsx": [
-    "Premier League"
   ],
   "tests/src/premierLeague/premierLeague.test.tsx": [
     "Date to be confirmed"
@@ -581,20 +466,18 @@
     "Something went wrong"
   ],
   "tests/src/shell.test.tsx": [
-    "Nothing needs you",
     "We email you a link that signs you in.",
     "is invite only while it is in beta. A league's commissioner brings you in."
   ],
   "tests/src/squads/squads.test.tsx": [
     "on the team chosen",
-    "players, under the league's least of",
-    "short of the league's least of"
+    "players. The league needs at least",
+    "short. The league needs at least"
   ],
   "tests/src/table/fixtureSwap.test.tsx": [
     "the league's average"
   ],
   "tests/src/table/table.test.tsx": [
-    "games a gameweek",
     "the league's average"
   ],
   "tests/src/trades/newOffer.test.tsx": [
@@ -603,7 +486,7 @@
   "tests/src/trades/offers.test.tsx": [
     "The league's trade deadline has passed.",
     "once you accept",
-    "players, over the league's most of"
+    "players. The league allows"
   ],
   "tests/src/ui/confirm.test.tsx": [
     "Delete it",

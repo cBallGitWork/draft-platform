@@ -166,7 +166,7 @@ describe("withdrawing an announced patch", () => {
 
     const filed = (await subjects()).slice(before);
     expect(filed.map(([to]) => to).sort()).toEqual([COMMISSIONER, ...MANAGERS.slice(0, 2)].sort());
-    expect(new Set(filed.map(([, subject]) => subject))).toEqual(new Set(["Scoring patch 26_27.1 withdrawn"]));
+    expect(new Set(filed.map(([, subject]) => subject))).toEqual(new Set(["Scoring changes withdrawn"])); // one-home-ok: pins the exact words a manager reads
   });
 
   test("announced again, it needs a fresh 7 days, and takes the same name", async () => {

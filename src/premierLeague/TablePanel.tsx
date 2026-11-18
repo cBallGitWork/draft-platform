@@ -38,7 +38,7 @@ const LINE_CLASSES: Record<TableLine, string> = {
   relegation: "shadow-relegation-line",
 };
 
-/** The competition's table (spec/18, The table), live: marked Provisional while a match in it is
+/** The competition's table (spec/18, The table), live: marked Not final while a match in it is
  *  being played, each club's places moved since the live gameweek began, and its lines under the
  *  European places and above relegation, held per competition (tableLines.ts). */
 export function TablePanel({ seam, competition }: { seam: PremierLeagueSeam; competition: Competition }) {

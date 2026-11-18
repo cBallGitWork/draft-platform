@@ -162,7 +162,7 @@ describe("sweeper and libero (spec/05 The pitch; Craig, 4 Nov 2026)", () => {
       { kind: "noBackThree", playerCode: first.playerCode, role: "libero", centreBacks: 2 },
       { kind: "noBackThree", playerCode: second.playerCode, role: "libero", centreBacks: 2 },
     ]);
-    expect(problemWords(problems[0], (code) => `Player ${code}`)).toBe(`Player ${first.playerCode} can play Libero only with 3 or more centre-backs; this line-up has 2.`);
+    expect(problemWords(problems[0], (code) => `Player ${code}`)).toBe(`Player ${first.playerCode} can only play Libero with 3 or more centre-backs. You have 2.`);
   });
 });
 
@@ -182,7 +182,7 @@ describe("a lineup refused for a role its slot doesn't offer", () => {
   test("one it doesn't is a problem, said in words", () => {
     const problems = lineupProblems(withRole("poacher"), positions, openLimits());
     expect(problems).toEqual([{ kind: "roleNotOffered", playerCode: leftBack.playerCode, area: "defence", lane: "left", role: "poacher" }]);
-    expect(problemWords(problems[0], (code) => `Player ${code}`)).toContain("doesn't offer the role");
+    expect(problemWords(problems[0], (code) => `Player ${code}`)).toContain("isn't a role for");
   });
 });
 

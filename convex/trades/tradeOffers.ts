@@ -29,7 +29,7 @@ import { shutWords } from "./tradeShutWords";
 
 export const offerRefusals = {
   ...shutWords,
-  autoTeam: (teamName: string) => `${teamName} is on the auto team, so it can't trade.`,
+  autoTeam: (teamName: string) => `${teamName} is in Away mode, so it can't trade.`,
   sameTeam: "A trade is between two teams.",
   noPlayers: "Put at least one player in the trade.",
   twice: "A player is in the trade twice.",

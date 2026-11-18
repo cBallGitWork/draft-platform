@@ -47,7 +47,7 @@ describe("an offer", () => {
     expect(await w.mine(CAT)).toEqual([]);
     expect(await w.lettersTo(BOB)).toContainEqual({
       subject: `${TEAM_1} offered ${TEAM_2} a trade`,
-      body: `${ANN} offered ${TEAM_2} a trade for ${TEAM_1}: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)} and ${nameOf(PALMER)}. The note: "Fancy a swap?" ${TEAM_2} can accept, reject or counter it; unanswered, it closes at the next deadline.`,
+      body: `${ANN} offered ${TEAM_2} a trade for ${TEAM_1}. ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)} and ${nameOf(PALMER)}. Note: "Fancy a swap?" ${TEAM_2} can accept, reject or counter. If nobody answers, it closes at the next deadline.`, // one-home-ok: pins the exact words a manager reads
     });
     expect(await w.subjectsTo(ANN)).toContain(`${TEAM_1} offered ${TEAM_2} a trade`);
   });
@@ -170,7 +170,7 @@ describe("answering an offer", () => {
     expect(await w.offers()).toEqual([expect.objectContaining({ _id: countered.offerId, fromTeamId: w.bobsTeam, toTeamId: w.annsTeam, gives: [SAKA], gets: [ANNS_FIRST_DROP] })]);
     expect(await w.lettersTo(ANN)).toContainEqual({
       subject: `${TEAM_2} offered ${TEAM_1} a trade`,
-      body: `${BOB} countered ${TEAM_1}'s offer with this one for ${TEAM_2}, which closes the old offer: ${TEAM_2} give ${nameOf(SAKA)}; ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}. ${TEAM_1} can accept, reject or counter it; unanswered, it closes at the next deadline.`, // one-home-ok: pins the whole letter a manager reads
+      body: `${BOB} countered ${TEAM_1}'s offer for ${TEAM_2}, which closes the old one. ${TEAM_2} give ${nameOf(SAKA)}; ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}. ${TEAM_1} can accept, reject or counter. If nobody answers, it closes at the next deadline.`, // one-home-ok: pins the whole letter a manager reads
     });
     await expectRefused(w.accept(BOB, offerId), offerRefusals.closed);
   });

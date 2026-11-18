@@ -61,6 +61,9 @@ On the "Draft Manager screens" canvas, <https://claude.ai/artifact/HjawmrL2GPJ3b
   boards you wrote (`{"project/<Name>.dc.html": "project/<Name>.dc.html"}`).
 - Values from plate.md and `src/styles.css`; made-up figures that look real; every placeholder in
   its real place and size.
+- Every label, heading and line on the board is written in the Matchday voice,
+  `.claude/agents/matchday-voice.md`, with SPEC.md's Glossary words, because an approved picture's
+  labels are what the builder copies (Craig, 18 Nov 2026: "not weird ai claude").
 
 ## 4. Render check
 

@@ -2,8 +2,7 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import type { FirstRun } from "../myTeam/claims/words";
-import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, signedWords, thousandsWords, underSiteScoringWords } from "../shared/words";
+import { AREA_PLAYER_WORDS, figureWords, SEASON_POINTS_WORDS, notHeldLabel, notHeldShown, signedWords, thousandsWords, underSiteScoringWords } from "../shared/words";
 import { versusWords } from "../shared/match/words";
 import { afterLastMatchWords, gameweekColumn, gameweekShort, gameweekWords, whenWords } from "../shared/when/words";
 
@@ -11,7 +10,7 @@ export { figureWords, noFigureWords } from "../shared/words";
 export { backWords } from "../shared/controls/words";
 
 export const loadingWords = "Loading the player…";
-export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
+export const noSuchPlayerWords = "Player not found. The link may be wrong.";
 export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The card's head (the approved picture): his name, his positions, club and owner, his figures
@@ -24,29 +23,34 @@ export const ownedByWords = "Owned by";
 export const clubNumberLabel = (number: number) => `Club number ${figureWords(number)}`;
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
-export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: `Last ${LAST_MATCHES_SHOWN}` } as const;
+export const figureLabels = { seasonPoints: SEASON_POINTS_WORDS, aMatch: "Pts per game", minutes: "Minutes", lastFive: "Form" } as const;
 /** His rank among every player holding the position the switch is on (Craig, 9 Nov 2026, on
  *  #1027): "Rank at CAM", "4th of 38". */
 export const rankLabel = (position: string | null) => (position === null ? "Rank" : `Rank at ${position}`);
 export const rankOfWords = (of: number) => `of ${figureWords(of)}`;
 export { placeWords } from "../shared/words";
 /** The placeholders the card keeps in their places until their data comes (the README's table). */
-export const portraitLabel = "His portrait: waiting on FPL's terms for its photos";
+export const portraitLabel = notHeldLabel("Photo");
 /** Opens Trades' New offer with his owner chosen and him asked for (Craig, 9 Nov 2026, on #1027). */
 export const offerTradeWords = "Offer a trade";
 
 /** The left column: FPL's news on him, his news notes, and his role fit. */
 export const NEWS_TITLE = "News";
 export const noNewsWords = "No news on him.";
-/** Each placeholder's words, written inside it (Craig, 13 Nov 2026, on #1976). */
-export const newsNotesLabel = "News notes come with the news job";
+/** Each placeholder's name, and what it writes inside it: its heading and the empty-figure mark
+ *  (Craig, 13 Nov 2026, on #1976; 18 Nov 2026). */
+const NEWS_NOTES_HEAD = "News notes";
+export const newsNotesLabel = notHeldLabel(NEWS_NOTES_HEAD);
+export const newsNotesShown = notHeldShown(NEWS_NOTES_HEAD);
 export const ROLE_FIT_TITLE = "Role fit";
-export const roleFitLabel = "Role fit: not rated yet";
+export const roleFitLabel = notHeldLabel(ROLE_FIT_TITLE);
+export const roleFitShown = notHeldShown(ROLE_FIT_TITLE);
 /** Under the game log: the club captain hint (spec/17 `S17.7`, after the mini beta). Set-piece
  *  hints are dropped (`S05.24`). */
 export const CAPTAIN_TITLE = "Captain";
 export const captainLabel = "Club captain";
-export const hintNotHeldLabel = (what: string) => `${what}: after the mini beta`;
+export const hintNotHeldLabel = notHeldLabel;
+export const hintNotHeldShown = notHeldShown;
 
 /** This season's matches, as a game log. */
 export const SEASON_TITLE = "This season";
@@ -101,7 +105,7 @@ const pricedByWords = (pricedBy: PricedBy) => {
     case "all":
       return "";
     case "area":
-      return ` for ${AREA_WORDS[pricedBy.area]}`;
+      return ` for ${AREA_PLAYER_WORDS[pricedBy.area]}`;
     case "position":
       return ` for ${pricedBy.position}`;
     case "formation":
@@ -133,7 +137,7 @@ export const lastSeasonWords = (season: number, { appearances, minutes }: { appe
   `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${thousandsWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${thousandsWords(minutes)} min,`;
 export const pointsShortWords = "pts";
 export const notInLastSeasonWords = "Not in the Premier League last season.";
-export const lastSeasonNotHeldWords = "Last season isn't held yet.";
+export const lastSeasonNotHeldWords = "No stats from last season yet.";
 
 /** His club's next fixtures, in a single row (Craig, 7 Nov 2026). */
 export const nextFixturesTitle = (club: string) => `${club}'s next fixtures`;
@@ -147,28 +151,30 @@ export const OVERRIDE_TITLE = "Override points";
 export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
   `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;
 /** Taking the override off the match picked (#903, spec/14 S14.5). */
-export const overrideRemovedWords = "Override removed: his scored points are back, and the league has a letter.";
+export const overrideRemovedWords = "Override removed. His scored points are back and the league got a letter.";
 
-/** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
+/** The card's waiver action (#1200, spec/08): on screen a claim is a bid, waivers are released and
+ *  a free agent pickup is a signing (SPEC.md Glossary, Craig, 18 Nov 2026). */
 export const dropWords = "Drop";
 export const confirmDropWords = (name: string) => `Drop ${name}?`;
 export const keepWords = "Keep him";
-export const claimWords = "Claim";
-export const pickUpWords = "Pick up";
-/** With a claim or a pickup, who he names to go (spec/08). */
-export const whoGoesLabel = "Who goes";
-export const dropNobodyWords = "Nobody";
-/** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
+export const claimWords = "Bid";
+export const pickUpWords = "Sign";
+/** With a bid or a signing, who he names to go (spec/08). */
+export const whoGoesLabel = "Drop";
+export const dropNobodyWords = "Nobody, I have room";
+/** When bids on him first settle (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
 export const onWaiversUntilWords = (firstRun: FirstRun) =>
-  firstRun === null ? "On waivers" : `On waivers: first run ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
-export const claimedDoneWords = "Claim put in, last of your claims.";
+  firstRun === null ? "Released" : `Released. Bids settle ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
+export const claimedDoneWords = "Bid made. It's last in your bids.";
 export const waiverFailedWords = "That couldn't be done. Try again.";
 
-/** A role's adjustment, signed: "+2", "−1", "0". */
+/** A role's points, signed: "+2", "−1", "0". */
 export const adjustmentWords = signedWords;
 /** What made his role's points, each side that moved him with its stats (Craig, 5 Nov 2026): "+2:
  *  1 goal in box, 1 shot on target in box; −1: 1 big chance missed". */
 export const roleMadeOfWords = (sides: readonly { points: number; lines: readonly { name: string; actions: number }[] }[]) =>
   sides.map(({ points, lines }) => `${signedWords(points)}: ${lines.map(({ name, actions }) => `${actions} ${name.toLowerCase()}`).join(", ")}`).join("; ");
-/** The role line's name for screen readers: "Role adjustment, Attacking full-back". */
-export const roleLineLabel = (name: string) => `Role adjustment, ${name}`;
+/** The role line, after his stats' lines, and its name for screen readers (Craig, 18 Nov 2026);
+ *  then the breakdown's last line, his stat points and role points together. */
+export { roleLineLabel, TOTAL_WORDS as totalWords } from "../shared/words";

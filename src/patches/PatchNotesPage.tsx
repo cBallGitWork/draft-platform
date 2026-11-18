@@ -4,7 +4,7 @@ import { LabReportView } from "./LabReport";
 import { versionAnchor } from "./paths";
 import { fromWords, KIND_WORDS, labTitle, loadingWords, noVersionsWords, notesHint, nothingScoresDifferentlyWords, PATCH_NOTES_TITLE } from "./words";
 
-/** The patch notes (spec/14, Changes and corrections): every version of the site's scoring, newest
+/** The scoring changes page, the patch notes (spec/14, Changes and corrections): every version of the site's scoring, newest
  *  first, each with what it changed from the one before, as the server works it out. */
 export function PatchNotesPage({ seam }: { seam: PatchesSeam }) {
   const notes = seam.useNotes();
@@ -24,14 +24,14 @@ export function PatchNotesPage({ seam }: { seam: PatchesSeam }) {
   );
 }
 
-/** One version: its name, whether a patch or a fix, when it is in force from, and its changes. */
+/** One version: whether planned changes or a fix, when it is in force from, and its changes. Its
+ *  stored name is only the heading's anchor: the date says which set (Craig, 18 Nov 2026). */
 function Version({ version: { name, kind, takesEffectAt, changes, lab } }: { version: VersionNotes }) {
   const headingId = versionAnchor(name);
   return (
     <li aria-labelledby={headingId} className="border-t border-panel-rule">
       <h2 id={headingId} className="flex flex-wrap items-baseline gap-x-3 bg-plate px-3 py-1 shadow-bevel-plate">
-        <span className="text-lead font-bold">{name}</span>
-        <span className="font-semibold">{KIND_WORDS[kind]}</span>
+        <span className="text-lead font-bold">{KIND_WORDS[kind]}</span>
         <span className="text-soft">{fromWords(takesEffectAt)}</span>
       </h2>
       <ul className="px-3 py-2">

@@ -8,6 +8,7 @@ import {
   autoTeamHead,
   autoTeamStateWords,
   autoTeamWhatWords,
+  awayModeHoverWords,
   cancelWords,
   endGameweekLabel,
   gameweekShort,
@@ -32,7 +33,7 @@ export function AutoTeamSwitch({ league, seam }: { league: LeagueSummary; seam: 
   if (autoTeam === undefined) return null;
   return (
     <span className="relative">
-      <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)} className="inline-flex min-h-tap min-w-tap items-center gap-1 lg:min-h-0 lg:min-w-0">
+      <button type="button" title={awayModeHoverWords} aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)} className="inline-flex min-h-tap min-w-tap items-center gap-1 lg:min-h-0 lg:min-w-0">
         {autoTeamStateWords(autoTeam)} <span aria-hidden="true">{menuGlyph}</span>
       </button>
       {open && (

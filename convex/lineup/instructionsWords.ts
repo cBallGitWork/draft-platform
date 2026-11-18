@@ -42,7 +42,7 @@ export const PICK_ANOTHER = "Pick another on the Tactics tab if you'd rather.";
 
 /** Why each pick #1452 took off went, by its key, after its name (spec/05 S05.37, S05.42). */
 const WHY_LOST: Record<string, string> = {
-  holdAHighLine: "is gone until Sportmonks sends offsides won.",
+  holdAHighLine: "is off until our match data includes offsides won.",
   pressHigh: `now needs ${NEEDS_WORDS.twoUpFront}.`,
 };
 

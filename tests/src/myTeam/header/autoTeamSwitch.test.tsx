@@ -69,7 +69,7 @@ describe("My team's Auto team", () => {
   });
 
   it("keeps the panel open with the server's words when it refuses, and Cancel changes nothing", async () => {
-    const refusal = "There is no gameweek left to come for the auto team to end after.";
+    const refusal = "No gameweeks are left to choose."; // one-home-ok: pins the exact words a manager reads
     const app = openTacticsTab({ tactics: SAVED, autoTeamAnswer: refusal });
     const panel = await openPanel(autoTeamStateWords({ on: false, endsAfter: null }));
     await userEvent.click(panel.getByRole("button", { name: switchOnWords }));

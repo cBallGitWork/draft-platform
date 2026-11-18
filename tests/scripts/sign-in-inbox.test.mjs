@@ -49,7 +49,7 @@ test("an HTML body's link has its &amp; undone", () => {
 });
 
 test("the subject matches by its start, as each sign-in email's ends with when it was sent", () => {
-  const emails = [received("timed", { subject: `${SUBJECT}, Sunday 1 November at 14:32 GMT` })];
+  const emails = [received("timed", { subject: `${SUBJECT}, Sunday 1 November at 2.32pm GMT` })];
   expect(newestMatch(emails, { to: TO, subject: SUBJECT, since: ASKED_AT })?.id).toBe("timed");
 });
 

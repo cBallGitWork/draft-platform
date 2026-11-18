@@ -198,8 +198,8 @@ describe("a pending claim on him", () => {
     const app = await openOnAll({ ...HELD, claims });
     await userEvent.click(rowOf("Rice"));
     expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, { at: WED, skippedIf: null }) })).toBeTruthy();
-    expect(yourClaimWords(2, { at: WED, skippedIf: null })).toBe("Your claim 2, Wed run");
-    expect(yourClaimWords(2, { at: WED, skippedIf: 12 })).toBe("Your claim 2, run after GW12's last match");
+    expect(yourClaimWords(2, { at: WED, skippedIf: null })).toBe("Your bid 2, settles Wed");
+    expect(yourClaimWords(2, { at: WED, skippedIf: 12 })).toBe("Your bid 2, settles after GW12's last match");
     await userEvent.click(rowOf("Saka"));
     await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, { at: THU, skippedIf: null }) }));
     expect(app.path()).toBe(MY_TEAM_TRANSACTIONS_PATH);

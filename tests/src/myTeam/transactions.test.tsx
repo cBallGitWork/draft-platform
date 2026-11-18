@@ -18,6 +18,7 @@ import {
   noTeamWords,
   noTransactionsWords,
   transactionColumns,
+  transactionKindWords,
   transactionsCutWords,
   transactionsLoadingWords,
   transactionsTableLabel,
@@ -84,12 +85,12 @@ describe("the transactions", () => {
     await screen.findByRole("table");
 
     expect(rows().map(cells)).toEqual([
-      [dateWords(AT), "Assigned", "", "Saka", "commish@example.com, to free agency"],
-      [dateWords(AT), "Assigned", "Saka", "", "commish@example.com, from Team 2"],
-      [dateWords(AT), "Assigned", "", "Saka", "commish@example.com, to Team 3"],
-      [dateWords(AT), "Assigned", "Saka", "", "commish@example.com"],
-      [dateWords(AT), "Claim", "Saka", "Rice", "You"],
-      [dateWords(AT), "Free agent", "Saka", "", "commish@example.com"],
+      [dateWords(AT), transactionKindWords.assigned, "", "Saka", "commish@example.com, to free agency"],
+      [dateWords(AT), transactionKindWords.assigned, "Saka", "", "commish@example.com, from Team 2"],
+      [dateWords(AT), transactionKindWords.assigned, "", "Saka", "commish@example.com, to Team 3"],
+      [dateWords(AT), transactionKindWords.assigned, "Saka", "", "commish@example.com"],
+      [dateWords(AT), "Bid", "Saka", "Rice", "You"],
+      [dateWords(AT), "Signed", "Saka", "", "commish@example.com"],
       [dateWords(AT), "Drop", "", "Saka", "commish@example.com"],
     ]);
   });
@@ -121,7 +122,7 @@ describe("the transactions", () => {
     expect(screen.getAllByRole("radio").map((key) => key.closest("label")?.textContent)).toEqual(historyShows.map((show) => historyShowWords[show]));
 
     await userEvent.click(screen.getByRole("radio", { name: historyShowWords.assigned }));
-    expect(rows().map((row) => row.cells[1].textContent)).toEqual(["Assigned", "Assigned"]);
+    expect(rows().map((row) => row.cells[1].textContent)).toEqual([transactionKindWords.assigned, transactionKindWords.assigned]);
     await userEvent.click(screen.getByRole("radio", { name: historyShowWords.trades }));
     expect(screen.getByText(noneShownWords)).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: historyShowWords.all }));

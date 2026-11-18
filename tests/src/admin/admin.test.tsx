@@ -117,7 +117,7 @@ describe("the queue", () => {
 
   it("the starts-waiting hint names the server's starts at a place, in words", () => {
     expect(STARTS_FOR_A_POSITION).toBe(3);
-    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them.");
+    expect(waitingHint).toBe("A position needs three starts there. It counts once you approve it."); // one-home-ok: pins the hint word for word
   });
 
   it("says so when nothing waits", async () => {
@@ -132,7 +132,7 @@ describe("position changes", () => {
   it("shows each position flagged, as needing him, with its starts in a row elsewhere, and each removed, muted", async () => {
     openDashboard();
     const changes = await screen.findByRole("region", { name: changesTitle });
-    expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere, and removed after 6/)).toBeTruthy();
+    expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere and removed after 6, checked between gameweeks/)).toBeTruthy();
 
     const flagged = within(changes).getByRole("list", { name: flaggedTitle });
     expect(within(flagged).getByText(WOLTEMADE.fullName)).toBeTruthy();

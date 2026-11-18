@@ -58,7 +58,7 @@ describe("the scoring start (#1190)", () => {
 
     expect(screen.queryByRole("combobox", { name: scoringStartLabel })).toBeNull();
     expect(screen.getByText("GW5")).toBeTruthy();
-    expect(screen.getByText(/Fixed: its deadline, .+, has passed\./)).toBeTruthy();
+    expect(screen.getByText(/Fixed\. Its deadline, .+, has passed\./)).toBeTruthy();
   });
 
   it("with none set and every ticked gameweek begun, says there's none to start in", async () => {

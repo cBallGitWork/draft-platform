@@ -26,7 +26,7 @@ const inDefence = (why: Why): Why => ({ ...why, pricedBy: { by: "area", area: "d
 
 describe("each line says why", () => {
   it("a per-action rule priced by area: how many, at how much each, and for which area", async () => {
-    expect(await linesOf(cardWith([category("goals_scored", "Goals scored", 12, inDefence(perAction(2, 6)))]))).toContain("Goals scored 2 at 6 each for Defence 12");
+    expect(await linesOf(cardWith([category("goals_scored", "Goals scored", 12, inDefence(perAction(2, 6)))]))).toContain("Goals scored 2 at 6 each for defenders 12");
   });
 
   it("a per-count rule: how many, and the points for each whole number of them", async () => {
@@ -61,7 +61,7 @@ describe("each line says why", () => {
 
   it("a minutes rule that took his points away shows its line at 0, though it earned nothing", async () => {
     const short: Why = { ...inDefence(perAction(1, 4)), cut: { by: "minutes", atLeast: 60 } };
-    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 1 at 4 each for Defence, but none under 60 minutes 0");
+    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 1 at 4 each for defenders, but none under 60 minutes 0");
   });
 
   it("a rule priced by position names the position", async () => {

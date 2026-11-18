@@ -18,13 +18,13 @@ export { SCORE_LABEL } from "../shared/match/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
 export { noTeamWords } from "../shared/words";
-export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;
-export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
+export const noGamesWords = (teamName: string) => `${teamName} has no matchups yet. They're drawn once the league has ${fewestTeamsWords}.`;
+export const noGameWords = (teamName: string, gameweek: number) => `${teamName} has no matchup in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
 /** Before the deadline: no lineup is shown, the manager's own is on My team. */
 export const notBegunWords = (deadline: number | null) =>
   `Line-ups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
-export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
+export const unscoredWords = (reason: string) => `This matchup can't be scored (${reason}), so it doesn't count in the table.`;
 export const averageWords = "Every team counted once.";
 /** A side's or an opponent's name: its team's, or the league's average. */
 export const sideName = (side: { kind: "team"; teamName: string } | { kind: Exclude<MatchupSide["kind"], "team"> }) =>
@@ -55,7 +55,7 @@ export const LINEUP_TITLE = "Line-up";
 export const benchLabel = (teamName: string) => `${teamName}'s bench`;
 /** On a tile's shirt where his match's state goes: a starter who didn't play and was replaced. */
 export const offWords = "Off";
-/** A side nobody runs, its lineup the auto team's (#1207): the shared chip's words. */
+/** A side nobody runs, its lineup Away mode's (#1207): the shared chip's words, "Away". */
 export { autoTeamWords } from "../shared/words";
 /** A side's formation once its manager has edited it off every preset (Craig, 1 Nov 2026, #878:
  *  "only preset formations", a changed one "Custom"). */
@@ -68,7 +68,7 @@ export const breakdownRoleWords = (role: string | null, teamName: string) => (ro
 
 /** His match, as the status column says it. */
 export const statusWords = {
-  /** His kickoff, short as the column is: "Sat 15:00". */
+  /** His kickoff, short as the column is: "Sat 3pm". */
   yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : weekdayTimeWords(kickoff)),
   /** His match's clock, as the Premier League's pages show it: "45+1'", "HT" at half-time, or
    *  "Live" before it has a minute. */
@@ -107,24 +107,26 @@ export const statusLabels = {
 
 /** What the auto-subs did with him (spec/05, Auto-subs). */
 export const autoSubWords = {
-  off: (playerName: string) => `Didn't play: ${playerName} on`,
+  off: (playerName: string) => `Didn't play. ${playerName} came on`,
   on: (playerName: string) => `On for ${playerName}`,
-  unreplaced: "Didn't play: no one could come on",
+  unreplaced: "Didn't play, and no one could come on",
 } as const;
 
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
 export { notCountingLabel } from "../shared/match/words";
 
+/** His role's line in the breakdown, as the player card says it: "Role points, Poacher". */
+export { roleLineLabel } from "../shared/words";
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
-export const openBreakdownLabel = (name: string) => `${name}: why his points`;
+export const openBreakdownLabel = (name: string) => `${name}'s points breakdown`;
 /** His tile's button: the words the tile shows first, in its order, so a voice saying what it sees
- *  reaches him (WCAG 2.5.3; S12.14), then what it opens: "67' 9 6 Palmer ST Poacher, Palmer: why his points". */
+ *  reaches him (WCAG 2.5.3; S12.14), then what it opens: "67' 9 6 Palmer ST Poacher, Palmer's points breakdown". */
 export const tileButtonLabel = (shown: string, name: string) => `${shown}, ${openBreakdownLabel(name)}`;
 export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved
- *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 15:00". With a
- *  club the football sync doesn't hold, by its kickoff alone ("Sat 15:00"). */
+ *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 3pm". With a
+ *  club the football sync doesn't hold, by its kickoff alone ("Sat 3pm"). */
 export const breakdownMatchWords = ({ home, away, kickoff, score }: Pick<MatchBreakdown, "home" | "away" | "kickoff" | "score">) => {
   if (home === null || away === null) return kickoff === null ? "His match" : weekdayTimeWords(kickoff);
   if (score === null || score.state === "upcoming") return [home, versusWords, away, ...(kickoff === null ? [] : [weekdayTimeWords(kickoff)])].join(" ");
@@ -141,7 +143,7 @@ export const OVERRIDE_TOTAL_TITLE = "Override total";
 export const overrideTotalLabel = (teamName: string) => `${OVERRIDE_TOTAL_TITLE}: ${teamName}`;
 export const removeTotalOverrideLabel = (teamName: string) => `${removeOverrideWords}: ${teamName}`;
 export const overrideTotalLabels = { points: "Total", reason: overrideLabels.reason } as const;
-export const totalOverrideRemovedWords = "Override removed: the scored total is back, and the league has a letter.";
+export const totalOverrideRemovedWords = "Override removed. The scored total is back and the league got a letter.";
 export { cancelWords as cancelOverrideWords } from "../shared/controls/words";
 export { notArrivedWords, overriddenDoneWords, overriddenWords, overrideFailedWords, overrideHint, overrideWords, removeOverrideFailedWords, removeOverrideWords } from "../shared/match/words";
 
