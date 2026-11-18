@@ -50,7 +50,7 @@ import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { previewPlayers } from "../../../src/scouting/preview";
 import { SCOUTING_TITLE } from "../../../src/scouting/words";
-import { previewIdOf } from "../../../src/table/preview";
+import { previewIdOf } from "../../../src/shared/previewDraw";
 import { squadsPath } from "../../../src/squads/paths";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../../src/table/words";

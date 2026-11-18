@@ -48,6 +48,7 @@ const NEEDLES = {
   "src/scouting/shortlist/preview.ts": null,
   "src/shared/preview.ts": "preview-pro-league",
   "src/shared/previewCrests.ts": "./previewCrests/t",
+  "src/shared/previewDraw.ts": "preview-league",
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": null,
   "src/trades/preview.ts": "Rogers is a better fit",

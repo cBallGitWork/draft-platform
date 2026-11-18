@@ -8,7 +8,7 @@ import { leagueSettingsOf } from "../../convex/rules/leagueSettingsPart";
 import { previewChristmasBreak, previewSays, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { previewSeason } from "../gameweeks/preview";
 import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
-import { previewIdOf } from "../table/preview";
+import { previewIdOf } from "../shared/previewDraw";
 import type { LeagueSettingsSeam } from "./seam";
 import { previewClaims, previewWaivers } from "../myTeam/claims/preview";
 import { unchangedDraftStartOutcome, unchangedStartOutcome, unmovedOutcome, unsavedOutcome } from "./words";

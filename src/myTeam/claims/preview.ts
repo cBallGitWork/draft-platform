@@ -7,7 +7,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { previewSays, previewTeamNames } from "../../shared/preview";
-import { previewIdOf, previewLeagueTable } from "../../table/preview";
+import { previewLeagueTable } from "../../table/preview";
+import { previewIdOf } from "../../shared/previewDraw";
 import type { ClaimsSeam, PendingClaim, WaiversView } from "./seam";
 
 const unsavedWords = "claims aren't saved";
