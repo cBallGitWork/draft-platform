@@ -86,7 +86,7 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(card.matches[0].gameweek).toBe(previewGameweek);
 });
 
-it("S12.10: dates League home's strip and My team's deadline from the one season, My team's the next it hasn't locked (#2652)", () => {
+it("S12.10: dates League home's strip, My team's deadline and its waiver window from the one season, My team's the next it hasn't locked (#2652, #2697)", () => {
   const home = previewHome.useLeagueHome(leagueId, now)!;
   const tactics = renderHook(() => previewTactics.useTactics(leagueId, now)).result.current;
   if (tactics?.kind !== "open") throw new Error("the tactics preview is open");
@@ -96,6 +96,8 @@ it("S12.10: dates League home's strip and My team's deadline from the one season
   expect(tactics.gameweek).toBe(nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, now));
   // The last matches and the last-played gameweek hang off previewGameweek: the one being set follows it.
   expect(tactics.gameweek).toBe(previewGameweek + 1);
+  // The Transactions tab's waiver window shuts at that same deadline (#2697).
+  expect(renderHook(() => previewClaims.useWaivers(leagueId)).result.current?.windowShuts).toEqual({ gameweek: tactics.gameweek, at: tactics.deadline });
 });
 
 /** The matchup preview's head-to-head as it opens, with no minute asked, and its commentary. */
