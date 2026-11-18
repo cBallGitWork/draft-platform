@@ -16,9 +16,7 @@ import { matchPath } from "../../../src/premierLeague/paths";
 import {
   commentaryDelayedWords,
   COMMENTARY_TITLE,
-  fullTime,
   gameweekWords,
-  halfTime,
   kickoffDayWords,
   livePointsDelayedWords,
   loadingMatchWords,
@@ -32,6 +30,7 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
+import { fullTime, halfTime } from "../../../src/shared/match/words";
 import { FIXTURE, matchOf, openMatch } from "../../support/src/matchPage.harness";
 import { styledColour } from "../../support/src/styledColour";
 import { headToHead, playing, slot, teamSide } from "../../support/src/matchup.harness";

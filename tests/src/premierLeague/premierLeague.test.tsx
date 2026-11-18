@@ -14,8 +14,6 @@ import {
   dayWords,
   FIXTURES_TITLE,
   FOOTBALL_TITLE,
-  fullTime,
-  halfTime,
   kickoffWords,
   liveWords,
   loadingGameweekWords,
@@ -27,6 +25,7 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
+import { fullTime, halfTime } from "../../../src/shared/match/words";
 import { menuWords } from "../../../src/shared/words";
 import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/controls/words";
 import { gameweekShort } from "../../../src/shared/when/words";

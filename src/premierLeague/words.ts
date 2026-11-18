@@ -7,7 +7,7 @@ import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/w
 import { awayWords, homeWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
-export { clockWords, fullTime, goalsWords, halfTime, liveWords, scoreWords, versusWords } from "../shared/match/words";
+export { goalsWords, liveWords, scoreWords, versusWords } from "../shared/match/words";
 export { gameweekWords } from "../shared/when/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { signedWords as goalDifferenceWords } from "../shared/words";
