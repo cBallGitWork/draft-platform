@@ -4901,6 +4901,12 @@
           "fields": [
             "coCommissionerEmail"
           ]
+        },
+        {
+          "indexDescriptor": "by_setUpBy",
+          "fields": [
+            "setUpBy"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -4927,7 +4933,13 @@
             "fieldType": {
               "type": "string"
             },
-            "optional": false
+            "optional": true
+          },
+          "setUpBy": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           },
           "coCommissionerEmail": {
             "fieldType": {
