@@ -48,6 +48,8 @@ const leaguesRoute = createRoute({
         isAdmin={session.isAdmin}
         leagues={session.leagues}
         leaguesCut={session.leaguesCut === true}
+        switchableLeagueIds={session.switchableLeagueIds}
+        currentLeagueId={session.currentLeagueId}
         actions={leagues}
         joining={joining}
       />
