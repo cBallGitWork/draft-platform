@@ -418,6 +418,7 @@ import type * as table_pointsOverrides from "../table/pointsOverrides.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
 import type * as table_sentTables from "../table/sentTables.js";
 import type * as table_standings from "../table/standings.js";
+import type * as table_teamAwards from "../table/teamAwards.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
 import type * as table_teamOverrides from "../table/teamOverrides.js";
@@ -868,6 +869,7 @@ declare const fullApi: ApiFromModules<{
   "table/roundRobin": typeof table_roundRobin;
   "table/sentTables": typeof table_sentTables;
   "table/standings": typeof table_standings;
+  "table/teamAwards": typeof table_teamAwards;
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
   "table/teamOverrides": typeof table_teamOverrides;

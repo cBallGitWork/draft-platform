@@ -169,6 +169,7 @@ beforeEach(async () => {
       "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE }),
       "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
+      "table/teamAwards:ofTeam": () => caller.query(api.table.teamAwards.ofTeam, { leagueId, teamId: rows.otherTeam._id }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "trades/reviewScreen:inLeague": () => caller.query(api.trades.reviewScreen.inLeague, { leagueId }),
       "trades/reviewScreen:toReview": () => caller.query(api.trades.reviewScreen.toReview, { leagueId }),

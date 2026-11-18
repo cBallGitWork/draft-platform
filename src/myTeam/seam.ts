@@ -41,6 +41,9 @@ export type MyTeamSeam = TacticsSeam & TableSeam & SquadSeam & ClaimsSeam & {
   useTeamSquad(leagueId: Id<"leagues">): TeamSquad | undefined;
   /** Another team's squad, read-only (#1027), live (a hook): undefined while it loads. */
   useOtherSquad(leagueId: Id<"leagues">, teamId: Id<"teams">): OtherSquad | undefined;
+  /** The months, as "2026-10", a team was Manager of the Month in, oldest first (S09.8), live (a
+   *  hook): undefined while they load, or while `teamId` is null and nothing is asked. */
+  useTeamAwards(leagueId: Id<"leagues">, teamId: Id<"teams"> | null): string[] | undefined;
   /** The changes to its squad numbers (a hook). */
   useSquadNumbers(): SquadNumberChanges;
   /** Its auto team, for the header band, live (a hook): undefined while it loads. */

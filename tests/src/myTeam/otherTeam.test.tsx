@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
-import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
+import { awardsHead } from "../../../src/myTeam/words";
+import { goneWords,otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
@@ -72,6 +73,22 @@ describe("the page", () => {
   it("says so when the squad is empty", async () => {
     openTeam({ otherSquad: { teamName: "Team 2", players: [] } });
     expect(await screen.findByText(otherSquadEmptyWords)).toBeTruthy();
+  });
+
+  it("S09.8: lists the awards the team has won, each month's in full on its hover", async () => {
+    const app = openTeam({ otherSquad: POTATOES, awards: ["2026-09", "2026-10"] });
+    const head = within((await screen.findByText(awardsHead)).nextElementSibling as HTMLElement);
+    expect(head.getAllByText(/^Manager of the Month/).map((award) => [award.textContent, award.getAttribute("title")])).toEqual([
+      ["Manager of the Month, Sept", "September 2026"],
+      ["Manager of the Month, Oct", "October 2026"],
+    ]);
+    expect(app.myTeam.useTeamAwards.mock.lastCall).toEqual([league.leagueId, SAKA_POTATOES]);
+  });
+
+  it("S09.8: a team that has won none shows no awards", async () => {
+    openTeam();
+    await table();
+    expect(screen.queryByText(awardsHead)).toBeNull();
   });
 
   it("someone not in the league is sent to their leagues", async () => {

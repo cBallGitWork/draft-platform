@@ -22,6 +22,8 @@ export type MyTeamData = TacticsData & {
   squad?: TeamSquad;
   /** Another team's squad, read-only, whichever team is asked for. */
   otherSquad?: OtherSquad;
+  /** The months, as "2026-10", whichever team is asked for was Manager of the Month in: none by default. */
+  awards?: string[];
   /** The league's table and fixtures, which the header band reads; null for a league with no rules. */
   leagueTable?: LeagueTable;
   /** What setting a squad number answers: null once made, or the words why not. */
@@ -48,6 +50,7 @@ export function fakeMyTeam({
   transactions = { transactions: [], cut: false },
   squad = { teamName: MY_TEAM_NAME, lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
   otherSquad = { teamName: THEIR_TEAM_NAME, players: [] },
+  awards = [],
   numberAnswer = null,
   mail = { letters: [], unread: 0, needsYou: [] },
   leagueTable = undefined,
@@ -72,6 +75,7 @@ export function fakeMyTeam({
     useTeamFixtures: vi.fn<MyTeamSeam["useTeamFixtures"]>(() => (loading ? undefined : fixtures)),
     useTeamTransactions: vi.fn<MyTeamSeam["useTeamTransactions"]>(() => (loading ? undefined : transactions)),
     useOtherSquad: vi.fn<MyTeamSeam["useOtherSquad"]>(() => (loading ? undefined : otherSquad)),
+    useTeamAwards: vi.fn<MyTeamSeam["useTeamAwards"]>((_leagueId, teamId) => (loading || teamId === null ? undefined : awards)),
     useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => heldSquad.use((held) => (loading ? undefined : held))),
     /** The squad the server holds from now on. */
     serverHoldsSquad: heldSquad.set,

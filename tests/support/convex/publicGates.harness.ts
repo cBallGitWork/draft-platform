@@ -218,6 +218,7 @@ export const gates: Record<string, Gate> = {
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/pointsOverrides:removeOverride": "runner",
+  "table/teamAwards:ofTeam": "member",
   "table/teamFixtures:ofMyTeam": "manager",
   "table/teamOverrides:overrideTeam": "runner",
   "table/teamOverrides:removeTeamOverride": "runner",

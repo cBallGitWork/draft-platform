@@ -14,13 +14,16 @@ import { gamesIn, standingOf, type Standing, type TeamGame } from "./teamStandin
 import {
   againstWords,
   autoTeamHead,
+  awardsHead,
   countdownWords,
   deadlineHead,
   formHead,
   gameweekShort,
   lastGameWords,
   liveWords,
+  managerOfTheMonthWords,
   meterListLabel,
+  monthWords,
   noDeadlineWords,
   noFigureWords,
   noTeamWords,
@@ -33,8 +36,9 @@ import {
 
 // My team's header band, one on every My team tab (the approved Tactics picture; FM's team meters
 // across the header): the team's name on the page's plate, then the next deadline and its
-// countdown, the opponent then, the last result, the form, the table place and the auto team's
-// switch (AutoTeamSwitch.tsx, the approved auto-team picture). Each reading shows
+// countdown, the opponent then, the last result, the form, the table place, the team's awards
+// (S09.8; no picture places them yet) and the auto team's switch (AutoTeamSwitch.tsx, the approved
+// auto-team picture). Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
 // While the table loads its readings wait.
 // The Tactics and Squad tabs both wrap their page in it.
@@ -83,6 +87,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
   const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
   const mode = table ? gameModeOf(table) : null;
   const headToHead = mode?.hasMatchups ?? false;
+  const awards = seam.useTeamAwards(league.leagueId, standing?.teamId ?? null);
   return (
     <dl className="flex flex-wrap items-stretch">
       {open !== null && (
@@ -114,10 +119,26 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
           {placeWords(standing.place)}, <span className="text-figure">{pointsShort(standing.points)}</span>
         </Meter>
       )}
+      <AwardsMeter months={awards} />
       <Meter head={autoTeamHead}>
         <AutoTeamSwitch league={league} seam={seam} />
       </Meter>
     </dl>
+  );
+}
+
+/** The awards a team has won (S09.8), one a line: "Manager of the Month, Oct", the month in full
+ *  on its hover. Nothing while they load or where it has none. The band's and another team's page's. */
+export function AwardsMeter({ months }: { months: readonly string[] | undefined }) {
+  if (months === undefined || months.length === 0) return null;
+  return (
+    <Meter head={awardsHead}>
+      {months.map((month) => (
+        <span key={month} title={monthWords(month)} className="block">
+          {managerOfTheMonthWords(month)}
+        </span>
+      ))}
+    </Meter>
   );
 }
 

@@ -41,6 +41,7 @@ export const liveMyTeam: MyTeamSeam = {
     return useLastLoaded(useMemo(() => loaded && teamSquadAt(loaded, minute), [loaded, minute]), leagueId);
   },
   useOtherSquad: (leagueId, teamId) => useQuery(api.squads.otherSquad.ofTeam, { leagueId, teamId }),
+  useTeamAwards: (leagueId, teamId) => useQuery(api.table.teamAwards.ofTeam, teamId === null ? "skip" : { leagueId, teamId }),
   // My team is for a signed-in manager, so the query is never skipped as Mail's is.
   useLatestMail: () => useQuery(api.mail.mail.latest, {}),
   useSquadNumbers: function useSquadNumbers() {

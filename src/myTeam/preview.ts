@@ -142,6 +142,7 @@ const previewAutoTeam: MyAutoTeam = {
   endGameweeks: seasonGameweeks(previewSeasonGameweeks).filter((gameweek) => gameweek >= scheduleGameweeks[0]!),
 };
 const previewAutoTeamChanges = { set: previewDone };
+const PREVIEW_AWARDS = ["2026-09"];
 
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,
@@ -155,6 +156,8 @@ export const previewMyTeam: MyTeamSeam = {
     teamName: previewTeamNames.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
     players: players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })),
   }),
+  // Every team was Manager of the Month once in the preview, so each page shows where awards sit.
+  useTeamAwards: () => PREVIEW_AWARDS,
   useSquadNumbers: () => previewNumbers,
   useLatestMail: () => previewLatestMail,
   // Off, as the approved picture draws it; the preview holds no server, so a switch goes nowhere.
