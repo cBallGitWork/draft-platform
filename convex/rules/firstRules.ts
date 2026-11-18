@@ -2,7 +2,7 @@ import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import type { AreaLimit } from "../lineup/lineup";
-import type { Line } from "../positions/lines";
+import type { Line } from "../shared/lineNames";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { FIRST_PRESETS } from "../lineup/presets";
 import { FIRST_CLASSIC_FORMATIONS } from "../lineup/classicFormations";

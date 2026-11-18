@@ -28,7 +28,7 @@ vi.mock("convex/react", async () =>
   }),
 );
 
-const newLeague = { name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" };
+const newLeague = { name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com", noCommissioner: false };
 const createLeague = () => renderHook(useLiveLeagues).result.current.createLeague(newLeague);
 
 test("a league the server makes resolves with no problem", async () => {

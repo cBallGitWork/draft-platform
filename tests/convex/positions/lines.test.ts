@@ -3,7 +3,8 @@
 // admin's line winning over all of it.
 
 import { describe, expect, test } from "vitest";
-import { lineOf, lineOfPosition, LINE_NAMES, type LineInputs } from "../../../convex/positions/lines";
+import { lineOf, lineOfPosition, type LineInputs } from "../../../convex/positions/lines";
+import { LINE_NAMES } from "../../../convex/shared/lineNames";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
 import { POSITIONS } from "../../../convex/positions/positionTables";
 import type { Start } from "../../../convex/positions/positions";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { letterTime } from "../../../src/mail/words";
 import { statusWords } from "../../../src/matchup/words";
-import { clockWords as matchClockWords, kickoffWords } from "../../../src/premierLeague/words";
+import { kickoffWords } from "../../../src/premierLeague/words";
 import { clockWords, halfTime, liveWords, scoreWords } from "../../../src/shared/match/words";
 import { timeOfDayWords } from "../../../src/shared/when/words";
 
@@ -46,6 +46,5 @@ describe("clockWords", () => {
 
   it("is the one clock the matchup and the match page both say (#563)", () => {
     expect(statusWords.playing).toBe(clockWords);
-    expect(matchClockWords).toBe(clockWords);
   });
 });

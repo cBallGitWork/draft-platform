@@ -1,5 +1,5 @@
 import { Fragment, type CSSProperties, type DragEvent } from "react";
-import { cellKey, GOALKEEPER_AREA, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { cellKey, GOALKEEPER_AREA, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { chipColoursOf } from "../../../ui/PositionChip";
 import { PitchLines } from "../../../ui/pitch/PitchLines";
 import { RoleRuns } from "../../../ui/pitch/RoleRuns";
@@ -145,13 +145,12 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   const isSelected = moving.selected === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   const swapsWith = landing !== null && picked !== null;
-  const slotPosition = positionOfSlot(cell);
-  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14), and the
-  // role's full name follows a shorter one, which the chip may cut (#2649).
-  const fullRole = chip.roleName === chip.shortName ? null : chip.roleName;
-  const shown = [player.number, chip.shortName, fullRole, slotPosition, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
+  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14); the
+  // role's full name, which the chip may shorten or cut, comes after them all (#2649).
+  const visible = [player.number, chip.shortName, chip.slotLabel, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
     .filter((bit) => bit !== null)
     .join(" ");
+  const shown = chip.roleName === chip.shortName ? visible : `${visible}, ${chip.roleName}`;
   return (
     <button
       type="button"
@@ -174,7 +173,7 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
       <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === GOALKEEPER_AREA} size="size-pitch-shirt" />{" "}
       <RoleChip chip={chip} />{" "}
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>
-        <span data-slot-label>{slotPosition}</span> {player.name}
+        <span data-slot-label>{chip.slotLabel}</span> {player.name}
       </span>{" "}
       {chip.opponents !== undefined && chip.opponents.length > 0 && (
         // One under another: two side by side don't fit a lane in a double gameweek.

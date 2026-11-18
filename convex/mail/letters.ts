@@ -31,6 +31,11 @@ export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promis
   return [league.commissionerEmail, league.coCommissionerEmail, ...managers].filter((email) => email !== undefined);
 }
 
+/** Who gets the commissioner's letters: him, or in a league with none, everyone in it (spec/01 S01.2). */
+export async function commissionerOrAll(ctx: QueryCtx, league: Doc<"leagues">): Promise<string[]> {
+  return league.commissionerEmail === undefined ? await wholeLeague(ctx, league) : [league.commissionerEmail];
+}
+
 /** Files `letter`, of `kind`, in the league's name to each of `to`, once each, ending in `link` when
  *  given (S16.2). The copy to `by`, who wrote it or did what it reports, is filed read: they know.
  *  With no `by`, every copy is unread. */
@@ -79,6 +84,8 @@ function takenOut(event: LeagueEvent): string[] {
     case "commissionerNamed":
     case "coCommissionerNamed":
       return event.replaced === null ? [] : [event.replaced];
+    case "commissionerSteppedDown":
+      return [event.replaced];
     case "coCommissionerRemoved":
     case "managerRemoved":
     case "managerLeft":
@@ -140,6 +147,7 @@ function kindOf(event: LeagueEvent): LetterKind {
       return "league";
     case "created":
     case "commissionerNamed":
+    case "commissionerSteppedDown":
     case "coCommissionerNamed":
     case "coCommissionerRemoved":
     case "managerAdded":

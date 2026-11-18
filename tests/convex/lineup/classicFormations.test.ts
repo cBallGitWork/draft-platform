@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { FIRST_CLASSIC_FORMATIONS, inClassicFormationShape, standsAsClassicFormation } from "../../../convex/lineup/classicFormations";
+import { classicDescriptionOf, FIRST_CLASSIC_FORMATIONS, inClassicFormationShape, standsAsClassicFormation } from "../../../convex/lineup/classicFormations";
 import { FIRST_PRESETS, presetNameOf } from "../../../convex/lineup/presets";
 import { FIRST_INSTRUCTIONS, pairRefusal } from "../../../convex/lineup/instructions";
 import { offersRole } from "../../../convex/lineup/roles";
@@ -59,5 +59,15 @@ describe("a lineup on a classic", () => {
     expect(standsAsClassicFormation(KEEGANS.cells.slice(1), KEEGANS, roleOf)).toBe(false);
     expect(inClassicFormationShape(KEEGANS.cells.slice(1), KEEGANS)).toBe(false);
     expect(inClassicFormationShape(KEEGANS.cells.toReversed(), KEEGANS)).toBe(true);
+  });
+});
+
+describe("a classic's description (S05.61)", () => {
+  test("is the site's for its name, so a league's copy held with older text shows the site's", () => {
+    expect(classicDescriptionOf({ ...KEEGANS, description: "Older text" })).toBe(KEEGANS.description);
+  });
+
+  test("is the copy's own for a classic the site doesn't list", () => {
+    expect(classicDescriptionOf({ name: "A league's own", description: "Its own text" })).toBe("Its own text");
   });
 });

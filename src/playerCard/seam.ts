@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { SlotPosition } from "../../convex/lineup/pitch";
 import type { PlayedMatch, PlayerCard } from "../../convex/playerCard/playerCard";
 import type { PositionRank } from "../../convex/playerCard/positionRank";
+import type { RunAhead } from "../../convex/waivers/runsAhead";
 import type { CardAction } from "../../convex/waivers/waivers";
 import type { Change } from "../shared/refusal";
 import type { ScoutsSeam } from "../scouting/scouts/seam";
@@ -28,6 +29,9 @@ export type WaiverChanges = {
 export type PlayerCardSeam = ShortlistSeam & ScoutsSeam & {
   /** What the card offers the manager on him, live (a hook): undefined while it loads. */
   useCardAction(leagueId: Id<"leagues">, playerCode: number): CardAction | undefined;
+  /** Whether nobody owns him because he was released (#2650), live (a hook): the run that can first
+   *  take him while he is on waivers; null when he isn't on waivers; undefined while it loads. */
+  useReleased(leagueId: Id<"leagues">, playerCode: number): Released | null | undefined;
   /** The drop, the claim and the pickup (a hook). */
   useWaiverChanges(): WaiverChanges;
   /** His card at `now`, live (a hook): undefined while it loads, null for a code no feed holds. */
@@ -40,6 +44,9 @@ export type PlayerCardSeam = ShortlistSeam & ScoutsSeam & {
   /** Removing his override in a match, so he scores what his record does again (a hook; #903). */
   useRemoveOverride(): (leagueId: Id<"leagues">, overridden: OverriddenMatch) => Change;
 };
+
+/** A released player, on waivers: the run that can first take him, or null with no run times. */
+export type Released = { firstRun: RunAhead | null };
 
 /** The match a player's override is removed from. */
 export type OverriddenMatch = Pick<PointsOverride, "fixtureCode" | "playerCode">;

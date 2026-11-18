@@ -59,7 +59,7 @@ export const screenTeam = (
   teamId,
   teamName,
   onAutoTeam: false,
-  players: players.map((player) => ({ ...player, held: false })),
+  players: players.map((player) => ({ ...player, held: null })),
   picks: [],
   ...rest,
 });

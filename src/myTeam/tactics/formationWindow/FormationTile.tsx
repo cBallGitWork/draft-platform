@@ -9,9 +9,9 @@ import { descriptionPlaceholder, inUseWords, subtitlePlaceholder } from "./words
 
 // A formation's tile in the formation window (the approved formation window): its thumbnail, its
 // name with the formation's tag on the right, a subtitle and a description, and In use. A plain
-// formation's subtitle and description wait on Craig's words (to-grill: Formation descriptions), so
-// each shows as its placeholder (plate.md, Marks); a classic formation's are its own, sample until Craig
-// rewrites them (#991). A saved plan's tile says its formation instead.
+// formation's subtitle waits on Craig's words, so shows as its placeholder (plate.md, Marks), and its
+// description is the site's (spec/05 S05.61), a placeholder for a preset the site doesn't list; a
+// classic formation's are its own (#991). A saved plan's tile says its formation instead.
 
 /** Each cell of the pitch as it is drawn, attack first, for a formation's thumbnail and preview. */
 export const cellsDrawn = (each: (cell: Cell) => ReactNode) => ROWS_DRAWN.flatMap((area) => LANES.map((lane) => each({ area, lane })));
@@ -35,7 +35,7 @@ export function FormationTile({
   /** A saved plan's line under its name, or a classic formation's season and manager, in place of a
    *  formation's subtitle placeholder. */
   subtitle?: string;
-  /** A classic formation's line on what it did, under its subtitle. */
+  /** A formation's or classic formation's description, under its subtitle. */
   description?: string;
 }) {
   return (
@@ -62,7 +62,11 @@ export function FormationTile({
         {subtitle === undefined ? (
           <>
             <Placeholder label={subtitlePlaceholder(shape.name)} className="h-4 w-24" />
-            <Placeholder label={descriptionPlaceholder(shape.name)} className="h-8 w-full" />
+            {description === undefined ? (
+              <Placeholder label={descriptionPlaceholder(shape.name)} className="h-8 w-full" />
+            ) : (
+              <span className="text-soft">{description}</span>
+            )}
           </>
         ) : description === undefined ? (
           <span className="text-soft">{subtitle}</span>

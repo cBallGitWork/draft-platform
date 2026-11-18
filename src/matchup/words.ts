@@ -115,6 +115,9 @@ export const autoSubWords = {
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
 export { notCountingLabel } from "../shared/match/words";
 
+/** Read out for a man whose points the league overrode, a colour of their own on screen (spec/14 S14.31). */
+export const overriddenLabel = "overridden";
+
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
 /** His tile's button: the words the tile shows first, in its order, so a voice saying what it sees

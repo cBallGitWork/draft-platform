@@ -58,6 +58,7 @@ export function changesTo(
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
     "leagues/leagues:nameCommissioner": () => admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: ANN }),
     "leagues/leagues:nameCoCommissioner": () => admin.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: null }),
+    "leagues/leagues:stepDown": () => commissioner.mutation(api.leagues.leagues.stepDown, { leagueId }),
     "leagues/teams:addManager": () => admin.mutation(api.leagues.teams.addManager, { leagueId, email: NEWCOMER }),
     "leagues/teams:removeManager": () => admin.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam._id }),
     "leagues/teams:rename": () => ann.mutation(api.leagues.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),

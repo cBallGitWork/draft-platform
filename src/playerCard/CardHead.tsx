@@ -29,6 +29,7 @@ import {
   portraitLabel,
   rankLabel,
   rankOfWords,
+  releasedWords,
   statusNotSettledLabel,
 } from "./words";
 
@@ -58,9 +59,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
             <ClubMark code={card.club.code} />
             <ClubLink club={card.club}>{card.club.name}</ClubLink>
           </span>
-          <span>
-            <span className="text-soft">{ownedByWords}</span> <Owner leagueId={league.leagueId} card={card} />
-          </span>
+          <Owner leagueId={league.leagueId} card={card} seam={seam} />
         </span>
       </div>
       <Figures leagueId={league.leagueId} card={card} shown={shown} seam={seam} />
@@ -84,14 +83,23 @@ function ClubShirt({ card }: { card: PlayerCard }) {
   );
 }
 
-/** His owner's name, which opens that team's squad, read-only (#1027); a free agent's is plain. */
-function Owner({ leagueId, card }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard }) {
-  if (card.ownerTeamId === null) return <OwnerName teamName={card.ownerTeamName} />;
-  return (
-    <Link to={otherTeamPath(leagueId, card.ownerTeamId)} className="inline-flex min-h-tap items-center lg:min-h-0">
-      <OwnerName teamName={card.ownerTeamName} />
-    </Link>
-  );
+/** Who holds him, in plain words (#2650): "Owned by" his owner's name, which opens that team's
+ *  squad, read-only (#1027); "Released" with when the bids on him settle while he is on waivers; a
+ *  muted "Free agent" for one nobody owns; nothing while it loads. */
+function Owner({ leagueId, card, seam }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard; seam: PlayerCardSeam }) {
+  const released = seam.useReleased(leagueId, card.code);
+  if (card.ownerTeamId !== null)
+    return (
+      <span>
+        <span className="text-soft">{ownedByWords}</span>{" "}
+        <Link to={otherTeamPath(leagueId, card.ownerTeamId)} className="inline-flex min-h-tap items-center lg:min-h-0">
+          <OwnerName teamName={card.ownerTeamName} />
+        </Link>
+      </span>
+    );
+  if (released === undefined) return null;
+  if (released !== null) return <span>{releasedWords(released.firstRun)}</span>;
+  return <OwnerName teamName={null} />;
 }
 
 /** Back where the manager came from; to Scouting when the card was opened straight from a link. */

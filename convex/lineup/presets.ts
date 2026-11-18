@@ -111,6 +111,39 @@ export const FIRST_PRESETS: readonly Preset[] = [
   preset("2-3-2-3", BACK_TWO, CENTRAL_THREE, INSIDE_PAIR, row("attack", "leftCentre", "centre", "rightCentre")),
 ];
 
+/** Each preset's description, by name, for the formation window (spec/05 S05.61: Claude drafts each
+ *  from the formation's real history, Craig's edits win). Read by name, never held in a league's
+ *  copy, so an edit here reaches every league; a preset a league named itself has none. */
+const PRESET_DESCRIPTIONS = new Map<string, string>([
+  ["4-4-2", "English football's standard through the 80s and 90s: two banks of four behind a strike pair."],
+  ["4-3-3", "Michels' Ajax made it famous: three in midfield, wingers wide of a centre-forward."],
+  ["4-2-3-1", "The 2000s' favourite: two holding midfielders shield the back four, three play behind one striker."],
+  ["4-1-4-1", "An anchor screens the back four with a flat four ahead; many a 4-3-3 drops into it without the ball."],
+  ["4-4-1-1", "A 4-4-2 with the second striker dropped into the hole, the role Cantona and Bergkamp made their own."],
+  ["4-3-1-2", "Three central midfielders and a ten behind two strikers: Lippi's Juventus, with Zidane at the tip."],
+  ["3-5-2", "Three centre-backs and wing backs on the flanks: Bilardo's Argentina won the 1986 World Cup with it."],
+  ["3-4-3", "Three at the back, a flat four and a front three: Conte's Chelsea won the 2016-17 league with it."],
+  ["3-4-1-2", "Three at the back, a flat four and a ten feeding two strikers, a Serie A staple around 2000."],
+  ["5-3-2", "Wing backs drop in to make a back five, three hold the middle and two strikers wait for the break."],
+  ["5-4-1", "Five at the back, four across midfield and one striker: the deepest block here, the underdog's shape."],
+  ["4-5-1", "Five across midfield and one striker, the away side's way to win the middle and stay hard to beat."],
+  ["4-2-2-2", "The box: two holding and two attacking midfielders behind two strikers, Brazil's shape in the 80s."],
+  ["4-1-2-1-2", "The narrow diamond: an anchor, a ten and two strikers; Ancelotti's Milan won Europe with it in 2003."],
+  ["4-3-2-1", "The Christmas tree: three in midfield and two inside behind one striker, Venables' England at Euro 96."],
+  ["4-1-3-2", "An anchor behind a midfield three and two strikers: a strike pair kept without giving up the middle."],
+  ["4-2-4", "Brazil's 1958 World Cup shape: two in midfield, two wingers and two strikers."],
+  ["3-4-2-1", "Three at the back, two inside behind one striker: Tuchel's Chelsea won Europe with it in 2021."],
+  ["3-1-4-2", "Three centre-backs and an anchor stay home while a flat four and two strikers go forward."],
+  ["5-2-3", "Five at the back but three up front: wing backs give the width and two hold the middle."],
+  ["5-3-1-1", "Five at the back, three in midfield and a ten behind the striker: a deep block with a link up front."],
+  ["3-6-1", "A 3-5-2 with a ten behind one striker: six in midfield to win the ball and feed the front man."],
+  ["2-3-5", "The pyramid: two backs, three half-backs and five forwards, football's standard shape until the 1920s."],
+  ["2-3-2-3", "Il Metodo: Pozzo's Italy dropped the pyramid's inside forwards and won the 1934 and 1938 World Cups."],
+]);
+
+/** A preset's description by its name (spec/05 S05.61); undefined for a name the site doesn't list. */
+export const presetDescriptionOf = (name: string): string | undefined => PRESET_DESCRIPTIONS.get(name);
+
 /** The name of the preset a side stands in: the first of `presets` whose cells are exactly these,
  *  in any order; null for a shape none of them is, one its manager has edited off a preset
  *  (spec/10: "preset until its edited, then we name it"; #878). `presets` are the league's in force

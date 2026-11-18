@@ -21,6 +21,12 @@ export const difficultyNotRatedWords = "difficulty not rated yet";
 /** A match's or a fixture's score, the first side's then the other's: "2–1", or a matchup's
  *  points, which can fall below 0: "−2–5". */
 export const scoreWords = (first: number, second: number) => `${figureWords(first)}–${figureWords(second)}`;
+/** A match's score as the Premier League pages and Home show it, "2–1", once it has kicked off and
+ *  both goals are read; null before kickoff or while a goal is unread, where they show "v". */
+export const goalsWords = (score: { state: string; homeGoals: number | null; awayGoals: number | null } | null) =>
+  score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
+    ? scoreWords(score.homeGoals, score.awayGoals)
+    : null;
 /** Beside what is still being played: a live match's clock before it has a minute, a score that
  *  may still move (spec/07). */
 export const liveWords = "Live";

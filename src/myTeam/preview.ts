@@ -15,7 +15,7 @@ import { FORM_GAMEWEEKS, NEXT_MATCHES_SHOWN, SCHEDULE_GAMEWEEKS } from "../../co
 import { squadLimits } from "../../convex/squads/squadRulesView";
 import { previewLatestMail } from "../mail/preview";
 import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
-import { previewAtLimits, previewDone, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
+import { previewAtLimits, previewDone, previewGameweek, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewScored, previewTable } from "../table/preview";
 import { previewIdOf } from "../shared/previewDraw";
@@ -90,7 +90,7 @@ const PREVIEW_SQUAD_RULES = {
 /** Each of the Tactics tab's players' season, his card's (../playerCard/preview.ts) added up, so
  *  the card and this tab tell the same minutes, points and next matches (#2455); the last one has
  *  played nothing yet, and two carry FPL news. */
-const LAST_GAMEWEEK = PREVIEW_GAMEWEEK - 1;
+const LAST_GAMEWEEK = previewGameweek - 1;
 const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name, clubCode, clubShortName, positions, number, news }) => {
   const { matches, seasonPoints, pointsIn } = previewSeasonOf(code);
   return {

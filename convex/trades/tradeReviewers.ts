@@ -1,11 +1,11 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { latestBegun, type LeagueDeadlines } from "../gameweeks/deadline";
 import { fileLetter } from "../mail/letters";
 import { reviewLetter, type ReviewWords } from "../mail/tradeLetterWords";
 import { tradeRulesOf } from "../rules/firstRules";
-import type { TradeRules } from "../rules/leagueRulesShape";
+import type { LeagueRules, TradeRules } from "../rules/leagueRulesShape";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import type { tradeReviewer } from "../schema/trades";
 import { teamsOf } from "../shared/leagueAccess";
@@ -62,9 +62,37 @@ export function reviewUnder(review: TradeRules["review"], league: Doc<"leagues">
   return reviewOf(vetoerAmong(league, managersInIt));
 }
 
+/** `rules` as a league with no commissioner saves them: a commissioner veto becomes a league vote,
+ *  and stays one until a commissioner changes it (spec/01 S01.4). Pure. */
+export function savedWithoutCommissioner(league: Pick<Doc<"leagues">, "commissionerEmail">, rules: LeagueRules): LeagueRules {
+  const trades = tradeRulesOf(rules);
+  if (league.commissionerEmail !== undefined || trades.review !== "veto") return rules;
+  return { ...rules, trades: { ...trades, review: "vote" } };
+}
+
 /** Under a veto, the review its vetoer gives: he blocks it, or with nobody who may, a vote. */
 function reviewOf(by: string | undefined): ReviewWords {
   return by === undefined ? { kind: "vote" } : { kind: "veto", by };
+}
+
+/** Who reviews a trade, as a screen names them: the commissioner or the co-commissioner by veto, or
+ *  a league vote. */
+export const screenReviewer = v.union(v.literal("commissioner"), v.literal("coCommissioner"), v.literal("vote"));
+export type Reviewer = Infer<typeof screenReviewer>;
+
+/** Who reviews under `review`, as the screen names them. Pure. */
+export function namedReviewer(league: Doc<"leagues">, review: ReviewWords): Reviewer {
+  if (review.kind === "vote") return "vote";
+  return review.by === league.commissionerEmail ? "commissioner" : "coCommissioner";
+}
+
+/** A trade in review, with who reviews it: its players and picks are held until it finishes. */
+export type InReview = { offer: Doc<"tradeOffers">; reviewer: Reviewer };
+
+/** The trades in review among `offers`, each with who reviews it, so the New offer tab says by whom
+ *  a player or pick is held (Craig, 18 Nov 2026, #2654). Pure. */
+export function inReviewAmong(league: Doc<"leagues">, offers: readonly Doc<"tradeOffers">[]): InReview[] {
+  return offers.flatMap((offer) => (offer.review === undefined ? [] : [{ offer, reviewer: namedReviewer(league, offer.review.reviewer) }]));
 }
 
 /** The review as the offer keeps it: a vote starts with nobody against. */

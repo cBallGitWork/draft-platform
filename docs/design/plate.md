@@ -122,6 +122,9 @@ name (the score).
   `src/premierLeague/MatchMarks.tsx`.
 - **Your own men** on a list of everyone's (the match page's sheets): the row lit
   `--color-row-lit`, their owner in `--color-fact` 600; anyone else's owner `--color-soft`.
+- **An overridden figure** (spec/14 S14.31): a man's points on the matchup's tile the league has
+  overridden, in `--color-overridden` (lilac, 9.6:1 on the name plate) in place of the figure
+  yellow, and "overridden" in his tile's label for screen readers.
 - **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
   after the name in a row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.

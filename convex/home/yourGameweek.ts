@@ -4,7 +4,8 @@ import type { QueryCtx } from "../_generated/server";
 import { lineupInGameweek } from "../lineup/lineups";
 import { byPitchOrder, heldCell } from "../lineup/pitch";
 import { waiverRulesShape, type LeagueRules } from "../rules/leagueRulesShape";
-import { clubRecord } from "../schema";
+import { scoreOf, scoreOnly } from "../football/matchScores";
+import { clubRecord, scoreRead } from "../schema";
 import { byKickoff, gameweekFixtures } from "../shared/fixtures";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { heldOrNot, squadOf } from "../squads/squadPlace";
@@ -38,6 +39,8 @@ const premierLeagueMatch = v.object({
   /** The reader's squad's players in it, and his opponents' this gameweek. */
   you: v.array(v.string()),
   them: v.array(v.string()),
+  /** Its newest score, with the clock or full time (S12.23); null until a feed has read one. */
+  score: v.union(scoreRead.omit("fixtureCode"), v.null()),
 });
 
 export const yourGameweek = v.object({
@@ -117,13 +120,17 @@ async function premierLeagueOf(ctx: QueryCtx, current: ThisGameweek, squad: read
   const matches = byKickoff(await gameweekFixtures(ctx, current.gameweek, "league home's Premier League panel would be cut short"));
   const shown = matches.map((fixture) => ({ fixture, you: playing(squad, fixture), them: playing(theirs, fixture) })).filter(({ you, them }) => you.length > 0 || them.length > 0);
   return Promise.all(
-    shown.map(async ({ fixture, you, them }) => ({
-      fixtureCode: fixture.code,
-      kickoff: fixture.kickoff,
-      home: await clubs(fixture.homeClubCode),
-      away: await clubs(fixture.awayClubCode),
-      you,
-      them,
-    })),
+    shown.map(async ({ fixture, you, them }) => {
+      const held = await scoreOf(ctx, fixture.code);
+      return {
+        fixtureCode: fixture.code,
+        kickoff: fixture.kickoff,
+        home: await clubs(fixture.homeClubCode),
+        away: await clubs(fixture.awayClubCode),
+        you,
+        them,
+        score: held === null ? null : scoreOnly(held),
+      };
+    }),
   );
 }

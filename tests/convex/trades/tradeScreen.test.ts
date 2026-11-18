@@ -109,6 +109,9 @@ describe("the Trades screen", () => {
     expect((await viewOf(ANN)).offers[0].warnings).toEqual([]);
   });
 
+  const heldOf = async (code: number) =>
+    (await viewOf(CAT)).teams.find(({ teamId }) => teamId === w.bobsTeam)?.players.find((each) => each.code === code)?.held;
+
   test("once accepted, shows when its review ends, and holds its players", async () => {
     const { offerId } = await w.offer(
       ANN,
@@ -117,15 +120,18 @@ describe("the Trades screen", () => {
       [SAKA],
     );
     await w.accept(BOB, offerId);
-    const view = await viewOf(CAT);
-    expect(
-      view.teams
-        .find(({ teamId }) => teamId === w.bobsTeam)
-        ?.players.find(({ code }) => code === SAKA)?.held,
-    ).toBe(true);
+    expect(await heldOf(SAKA)).toBe("commissioner");
+    expect(await heldOf(PALMER)).toBeNull();
     const [offer] = (await viewOf(ANN)).offers;
     expect(offer.closes).toBeNull();
     expect(offer.reviewEndsAt).toBeGreaterThan(Date.now());
+  });
+
+  test("S08.29: a player held in a trade under a league vote is held by the vote (#2654)", async () => {
+    await w.tradesAre({ review: "vote", deadline: null });
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.accept(BOB, offerId);
+    expect(await heldOf(SAKA)).toBe("vote");
   });
 
   test("an offer made in the trade deadline's gameweek closes after its last match, not at the next deadline, on the screen and in the letter (#1492, S08.9)", async () => {

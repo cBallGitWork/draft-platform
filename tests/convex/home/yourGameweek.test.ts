@@ -16,13 +16,14 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { COMMISSIONER } from "../../support/convex/leagues.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // League home's panels on the reader's own team (#1976; Craig, 13 Nov 2026, on #1976): his squad's
 // news, his lineup's flagged starters in the pitch's order, the waiver runs and his claims, and this
 // gameweek's matches with his players or his opponent's. Ann fields Hull and Bob Everton, playing
-// each other in gameweek 6's one match. `S12.8`, `S12.9`, `S12.12`, `S12.16`
+// each other in gameweek 6's one match. `S12.8`, `S12.9`, `S12.12`, `S12.16`, `S12.23`
 
 const KNOCK = "Knock - 75% chance of playing";
 const HAMSTRING = "Hamstring injury - Expected back 29 Nov";
@@ -98,4 +99,18 @@ test("names this gameweek's match with his players and his opponent's", async ()
   expect({ fixtureCode: match.fixtureCode, home: match.home, away: match.away }).toEqual({ fixtureCode: HULL_EVERTON, home: HULL_CITY, away: EVERTON_CLUB });
   expect(match.you).toContain(await nameOf(league, HULL_SCORER));
   expect(match.them).toHaveLength(20);
+});
+
+test("S12.23: gives the match no score before a feed reads one, then its live score and clock, then full time", async () => {
+  const league = await scoresLeague();
+  const scoreNow = async () => (await homeAt(league, LEAGUE_FULL_TIME_READ))!.yours!.premierLeague[0].score;
+  expect(await scoreNow()).toBeNull();
+
+  vi.setSystemTime(LEAGUE_KICKOFF + 30 * MINUTE_MS);
+  await scoreRead(league, "live", 30);
+  expect(await scoreNow()).toEqual({ state: "live", homeGoals: 1, awayGoals: 2, minutes: 30, clockLabel: null });
+
+  vi.setSystemTime(LEAGUE_FULL_TIME_READ);
+  await scoreRead(league, "fullTime", 90);
+  expect(await scoreNow()).toEqual({ state: "fullTime", homeGoals: 1, awayGoals: 2, minutes: 90, clockLabel: null });
 });

@@ -97,10 +97,10 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| The Calendar tab | what it holds | to-grill: Home's tabs |
+| The Calendar tab | settled: a month grid, drawn through `/design` before it is built (`spec/12` S12.24) | `spec/12` S12.24 |
 | The deadline strip in the other states (after, locked, break, pre-season) | settled: the same four boxes all season, each saying what is true now (`spec/12` S12.22); the gameweek before its deadline is wired (S12.9, S12.10; #1976) | `spec/12` S12.22 |
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
-| Premier League, GW9: live scores in matchday mode | the matches with your players and your opponent's, with kickoff times, are wired (`spec/12` S12.12; #1976) | to-grill: The Premier League on Home |
+| Premier League, GW9: live scores in matchday mode | settled: live and full-time scores (`spec/12` S12.23); kickoff times wired (S12.12; #1976) | `spec/12` S12.23 |
 | Your squad news's chips | settled: each player's chip and Sportmonks' reason, the whole squad by name (`spec/12` S12.8) | `spec/05` S05.59-S05.60 |
 | Run the league | settled 16 Nov 2026: join requests waiting (a count), teams with no lineup yet (a number only), the draft order not set before the draft, trades waiting their veto, a team with no manager | #2267 |
 | The score boxes, before the deadline (empty) | lineups locked and matches scored | `spec/12`, matchday mode (#387) |
