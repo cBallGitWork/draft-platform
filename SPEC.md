@@ -89,7 +89,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
 - **League home's later ideas**, in Craig's order: fixture of the week, talking points, power
-  rankings, title race and season phases, lineups in, Manager of the Month, rivalries, records
+  rankings, title race and season phases, lineups in, a Manager of the Month panel (the award itself is spec/09), rivalries, records
   board, honours board, the season's end book, AI voices (spec/12).
 - **A trade block**: players a manager will listen to offers for, shown to the league (spec/08).
 - **Wanted ads**: a manager posts what he's after ("a defensive midfielder who starts") and other
@@ -134,7 +134,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   and the league list, the matchup's sides on their teams' colours; set on a Club tab of My team.
   The image service is his pick when it comes; Claude's research found Recraft the fit (not
   picked). A team's kit, nickname and
-  fans' name come after it; its ground goes with our own home stadiums (`docs/to-grill.md`).
+  fans' name come after it; its ground goes with *Our own home stadiums*, below.
 - **Real shirt packs and away kits**, which the admin owning club colours leaves room for
   (spec/15, 31 Oct 2026).
 - **A club page's ownership history**: who owned each of a club's players in the league, and
