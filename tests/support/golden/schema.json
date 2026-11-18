@@ -5282,6 +5282,30 @@
                     "kind": {
                       "fieldType": {
                         "type": "literal",
+                        "value": "commissionerSteppedDown"
+                      },
+                      "optional": false
+                    },
+                    "email": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "replaced": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
                         "value": "coCommissionerNamed"
                       },
                       "optional": false

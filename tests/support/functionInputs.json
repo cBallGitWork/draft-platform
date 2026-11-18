@@ -159,6 +159,7 @@
   "leagues/leagues:recordCommissionerLink": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"email":{"fieldType":{"type":"string"},"optional":false},"reply":{"fieldType":{"type":"union","value":[{"type":"literal","value":"checkYourEmail"},{"type":"literal","value":"tryLater"},{"type":"literal","value":"paused"},{"type":"literal","value":"notSent"}]},"optional":false}}},
   "leagues/leagues:sendCommissionerLink": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"email":{"fieldType":{"type":"string"},"optional":false}}},
   "leagues/leagues:setMaxTeams": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"maxTeams":{"fieldType":{"type":"number"},"optional":false}}},
+  "leagues/leagues:stepDown": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "leagues/liveCheckLeague:make": {"type":"object","value":{}},
   "leagues/liveCheckLeague:remove": {"type":"object","value":{}},
   "leagues/teams:addManager": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"email":{"fieldType":{"type":"string"},"optional":false},"teamId":{"fieldType":{"type":"id","tableName":"teams"},"optional":true}}},

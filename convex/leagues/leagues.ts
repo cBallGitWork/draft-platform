@@ -1,10 +1,13 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import type { Id } from "../_generated/dataModel";
-import { internalAction, internalMutation, mutation, type MutationCtx } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { internalAction, internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
+import type { LeagueEvent } from "../schema";
 import { admitEmail } from "../signIn/allowedEmails";
 import {
   adminOf,
+  callerEmail,
+  getLeague,
   namedEmail,
   namerOf,
   refuse,
@@ -85,8 +88,28 @@ export const setMaxTeams = mutation({
   },
 });
 
-/** Hands the league to a new commissioner. Only the commissioner or the admin may. A trade in
- *  review goes to whoever reviews it now (`passReviews`). */
+/** Makes `event.email` the league's commissioner, files `event` and lets them in. A trade in
+ *  review goes to whoever reviews it now (`passReviews`). A co-commissioner taking the role on
+ *  stops being co-commissioner. */
+async function handOver(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  by: string,
+  event: Extract<LeagueEvent, { kind: "commissionerNamed" | "commissionerSteppedDown" }>,
+): Promise<void> {
+  const { email } = event;
+  // The last commissioner's link, if it didn't go, is theirs: no longer the admin's concern.
+  await ctx.db.patch("leagues", league._id, {
+    commissionerEmail: email,
+    commissionerLink: undefined,
+    ...(email === league.coCommissionerEmail ? { coCommissionerEmail: undefined } : {}),
+  });
+  await recordEvent(ctx, league._id, by, event);
+  await admitCommissioner(ctx, email, league._id);
+  await passReviews(ctx, league._id);
+}
+
+/** Hands the league to a new commissioner. Only the commissioner or the admin may. */
 export const nameCommissioner = mutation({
   args: { leagueId: v.id("leagues"), email: v.string() },
   returns: v.null(),
@@ -95,11 +118,53 @@ export const nameCommissioner = mutation({
     const email = namedEmail(args.email);
     if (email === league.commissionerEmail) refuse(refusals.alreadyCommissioner(email));
     if (email === league.coCommissionerEmail) refuse(refusals.alreadyCoCommissioner(email));
-    // The last commissioner's link, if it didn't go, is theirs: no longer the admin's concern.
-    await ctx.db.patch("leagues", league._id, { commissionerEmail: email, commissionerLink: undefined });
-    await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail });
-    await admitCommissioner(ctx, email, league._id);
-    await passReviews(ctx, league._id);
+    await handOver(ctx, league, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail });
+    return null;
+  },
+});
+
+/** The events that put a manager on a team (teams.ts's putOnTeam): the latest of them on a team is
+ *  its manager's joining. */
+const JOINING_KINDS = ["managerAdded", "joinedByInvite", "joinRequestApproved"] as const;
+
+/** The manager other than `besides` who joined the league first, by when they took the team they
+ *  run now, or null when there is none. A team with no joining event is its first manager's since
+ *  it was made, so it counts from then. */
+async function firstToHaveJoined(ctx: QueryCtx, leagueId: Id<"leagues">, besides: string): Promise<string | null> {
+  const managed = (await teamsOf(ctx, leagueId)).flatMap(({ managerEmail: email, ...team }) =>
+    email === undefined || email === besides ? [] : [{ ...team, email }],
+  );
+  const joined = await Promise.all(
+    managed.map(async (team) => {
+      const joinings = await Promise.all(
+        JOINING_KINDS.map((kind) =>
+          ctx.db
+            .query("leagueEvents")
+            .withIndex("by_teamId_and_kind_and_at", (q) => q.eq("event.teamId", team._id).eq("event.kind", kind))
+            .order("desc")
+            .first(),
+        ),
+      );
+      const at = Math.max(team._creationTime, ...joinings.map((joining) => joining?.at ?? 0));
+      return { email: team.email, at, number: team.number };
+    }),
+  );
+  joined.sort((a, b) => a.at - b.at || a.number - b.number);
+  return joined[0]?.email ?? null;
+}
+
+/** spec/01 S01.5: the commissioner steps down, and the role passes to the co-commissioner, or with
+ *  none to the manager who joined first, who can hand it on (`nameCommissioner`). With neither
+ *  there is no one to take it, so it is refused: a league is without one only when made so. */
+export const stepDown = mutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const by = await callerEmail(ctx);
+    const league = await getLeague(ctx, leagueId);
+    if (by !== league.commissionerEmail) refuse(refusals.notCommissioner);
+    const email = league.coCommissionerEmail ?? (await firstToHaveJoined(ctx, leagueId, by)) ?? refuse(refusals.noOneToTakeOver);
+    await handOver(ctx, league, by, { kind: "commissionerSteppedDown", email, replaced: by });
     return null;
   },
 });

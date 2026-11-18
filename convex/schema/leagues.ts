@@ -97,6 +97,8 @@ const lastLeagueFields = { email: v.string(), leagueId: v.id("leagues") };
 export const leagueEvent = v.union(
   v.object({ kind: v.literal("created"), name: v.string(), maxTeams: v.number() }),
   v.object({ kind: v.literal("commissionerNamed"), email: v.string(), replaced }),
+  /** The commissioner `replaced` stepped down and `email` took the role on (spec/01 S01.5). */
+  v.object({ kind: v.literal("commissionerSteppedDown"), email: v.string(), replaced: v.string() }),
   v.object({ kind: v.literal("coCommissionerNamed"), email: v.string(), replaced }),
   v.object({ kind: v.literal("coCommissionerRemoved"), email: v.string() }),
   v.object({ kind: v.literal("managerAdded"), ...managerOfTeam }),
