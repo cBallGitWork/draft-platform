@@ -101,6 +101,7 @@ beforeEach(async () => {
       "joining/joinRequests:ask": () => caller.mutation(api.joining.joinRequests.ask, { token: NO_SUCH_LINK }),
       "joining/joinRequests:joinPage": () => caller.query(api.joining.joinRequests.joinPage, { token: NO_SUCH_LINK }),
       "joining/joinRequests:waitingMine": () => caller.query(api.joining.joinRequests.waitingMine, {}),
+      "leagues/commissionerAsks:waiting": () => caller.query(api.leagues.commissionerAsks.waiting, {}),
       "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),

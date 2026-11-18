@@ -24,6 +24,7 @@ const letter = (number: number, hoursAgo: number, { from = null, kind = "commiss
   ...made,
   link: null,
   needsYou: false,
+  askToRun: null,
 });
 
 const previewLetters: LetterSummary[] = [

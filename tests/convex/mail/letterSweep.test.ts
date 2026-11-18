@@ -61,6 +61,17 @@ async function joiningLeague() {
   return { t, leagueId, annsTeam: annsTeam._id, inviteId, requestId };
 }
 
+/** joiningLeague's, with its commissioner gone and ANN asking to be one (spec/01 S01.3): written
+ *  straight in, as a league made with none has no co-commissioner or invites to sweep. */
+async function askingLeague() {
+  const world = await joiningLeague();
+  const askId = await world.t.run(async (ctx) => {
+    await ctx.db.patch("leagues", world.leagueId, { commissionerEmail: undefined });
+    return ctx.db.insert("commissionerAsks", { leagueId: world.leagueId, email: ANN });
+  });
+  return { ...world, askId };
+}
+
 /** A league mid-season, its draft over and squads held: tradeLeague's. */
 const seasonLeague = tradeLeague;
 type Season = Awaited<ReturnType<typeof seasonLeague>>;
@@ -113,6 +124,7 @@ const SWEPT: Record<string, Sweep<World>> = {
   "joining/invites:cancel": sweep({ world: joiningLeague, change: ({ inviteId }, by) => by.mutation(api.joining.invites.cancel, { inviteId }) }),
   "joining/inviteLink:make": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.joining.inviteLink.make, { leagueId }) }),
   "joining/inviteLink:switchOff": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.joining.inviteLink.switchOff, { leagueId }) }),
+  "leagues/commissionerAsks:approve": sweep({ world: askingLeague, onlyBy: ADMIN, change: ({ askId }, by) => by.mutation(api.leagues.commissionerAsks.approve, { askId }) }),
   "joining/joinRequests:approve": sweep({ world: joiningLeague, change: ({ requestId }, by) => by.mutation(api.joining.joinRequests.approve, { requestId }) }),
   "gameweeks/leagueGameweeks:setUsed": sweep({
     world: seasonLeague,
@@ -204,6 +216,7 @@ const SWEPT: Record<string, Sweep<World>> = {
 const NO_LETTER: Record<string, string> = {
   "joining/joinRequests:refuseRequest": "Refusing a join request files none (spec/13, Joining; spec/15)",
   "draft/draftPause:resume": "Resume sends none (spec/04, Mail)",
+  "leagues/commissionerAsks:refuseAsk": "spec/01 S01.3 names no letter for a refused ask to be commissioner: the league stays as it was",
   "leagues/lastLeague:switchTo": "Not a change to the league: which league the caller's own screens open (spec/13)",
 };
 
