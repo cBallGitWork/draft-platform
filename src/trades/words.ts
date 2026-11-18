@@ -5,7 +5,7 @@ import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import { capitalised } from "../../convex/shared/moments";
-import { changeFailedWords, commissionerVetoWords, leagueVoteWords } from "../shared/words";
+import { changeFailedWords, commissionerVetoWords, inReviewWords, leagueVoteWords } from "../shared/words";
 import { afterLastMatchWords, gameweekShort } from "../shared/when/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
@@ -45,7 +45,7 @@ export const offersColumns = {
 export const groupWords = {
   toYou: "To you",
   fromYou: "From you",
-  inReview: "In review",
+  inReview: inReviewWords,
 } as const;
 export const noOffersWords = "No offers open.";
 

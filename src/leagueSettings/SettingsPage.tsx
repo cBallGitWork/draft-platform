@@ -13,7 +13,7 @@ import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { DraftPanel } from "./DraftPanel";
-import { DraftWidget, GameweeksWidget } from "./SettingsWidgets";
+import { DraftWidget, GameweeksWidget, InReviewWidget, PresetsWidget, RoundTwoWidget } from "./SettingsWidgets";
 import { FixturesPanels } from "./FixturesPanel";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { SquadPanel } from "./SquadPanel";
@@ -78,7 +78,7 @@ export function SettingsPage({ league, seam, inCurrentLeague }: { league: League
 
 /** The chosen tab's settings, its panels on the left and what they lead to on the right (the
  *  approved pictures), and the bar that saves them at the end of each tab but Draft order, whose
- *  moves save at once; the Fixtures and Draft tabs' widgets are SettingsWidgets.tsx's. Edits are kept as the tabs switch, and one Save sends them all
+ *  moves save at once; the right-hand widgets are SettingsWidgets.tsx's. Edits are kept as the tabs switch, and one Save sends them all
  *  (rulesEdits.ts says how the draft follows the latest settings, and what a save over someone
  *  else's does). A save refused for a box left without a number says so beside that box, the
  *  cursor in it. */
@@ -118,6 +118,9 @@ function Editor({
         </BoxRefusalContext>
       </div>
       {tab === "fixtures" && <GameweeksWidget leagueId={league.leagueId} seam={seam} />}
+      {tab === "squad" && <PresetsWidget presetNames={view.presetNames} />}
+      {tab === "trades" && <InReviewWidget leagueId={league.leagueId} seam={seam} inCurrentLeague={inCurrentLeague} />}
+      {tab === "draftOrder" && <RoundTwoWidget leagueId={league.leagueId} seam={seam} />}
       {tab === "draft" && <DraftWidget leagueId={league.leagueId} seam={seam} inCurrentLeague={inCurrentLeague} openDraftOrder={() => choose("draftOrder")} />}
       {tab === "waivers" && (
         <div className={PAGE_STACK}>

@@ -312,6 +312,7 @@
   "table/teamFixtures:ofMyTeam": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "table/teamOverrides:overrideTeam": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"gameweek":{"fieldType":{"type":"number"},"optional":false},"teamId":{"fieldType":{"type":"id","tableName":"teams"},"optional":false},"points":{"fieldType":{"type":"number"},"optional":false},"reason":{"fieldType":{"type":"string"},"optional":false}}},
   "table/teamOverrides:removeTeamOverride": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"gameweek":{"fieldType":{"type":"number"},"optional":false},"teamId":{"fieldType":{"type":"id","tableName":"teams"},"optional":false}}},
+  "trades/reviewScreen:inLeague": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "trades/reviewScreen:toReview": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "trades/tradeClose:closeDue": {"type":"object","value":{}},
   "trades/tradeClose:closeLeagueDue": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"now":{"fieldType":{"type":"number"},"optional":true}}},

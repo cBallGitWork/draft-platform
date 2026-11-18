@@ -1,12 +1,14 @@
 // League settings' right-hand widgets (#2503; docs/design/approved/settings/, README "Interaction
 // notes"): the Fixtures tab's Gameweeks, marking the scoring start (spec/04, After the draft), and
-// the Draft tab's The draft, its rounds the squad's most players (spec/04, The picks).
+// the Draft tab's The draft, its rounds the squad's most players (spec/04, The picks); and (#2504)
+// the Trades tab's In review, the Draft order tab's Round 2 and the Squad tab's Formation presets.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { DRAFT_PATH } from "../../../src/frame/menu";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { DRAFT_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { weeklySeason } from "../../../src/gameweeks/weeklySeason";
 import { GAMEWEEKS_SHOWN } from "../../../src/leagueSettings/SettingsWidgets";
@@ -16,12 +18,18 @@ import {
   draftWidgetTitle,
   editGameweeksWords,
   gameweeksWidgetTitle,
+  inReviewWidgetTitle,
+  noneInReviewWords,
   noScoresWords,
   notUsedWords,
+  presetsWidgetTitle,
+  roundTwoWidgetTitle,
   scoringStartsWords,
   SETTINGS_TITLE,
   teamOrderTitle,
+  tradesLinkWords,
 } from "../../../src/leagueSettings/words";
+import { TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
 import { notSetWords } from "../../../src/shared/words";
 import { openedOn, openedSettings, openTab, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { adminSeeing, league, openApp } from "../../support/src/shell.harness";
@@ -85,5 +93,54 @@ describe("The draft widget (#2503)", () => {
     await openTab("draft");
 
     expect(within(widget(draftWidgetTitle)).queryByRole("link", { name: draftRoomWords })).toBeNull();
+  });
+});
+
+const inReview = (offerId: string, opens: boolean) => ({
+  offerId: offerId as Id<"tradeOffers">,
+  fromTeamName: "Kroos Control",
+  toTeamName: "Rovers XI",
+  reviewEndsAt: Date.now() + HOUR_MS,
+  opens,
+});
+
+describe("the In review widget (#2504)", () => {
+  it("S08.30: lists every trade in review with its end, one the commissioner reviews or is in opening on Trades, and links to Trades", async () => {
+    await openedOn("trades", { tradesInReview: [inReview("offer-1", true), inReview("offer-2", false)] });
+
+    const rows = within(widget(inReviewWidgetTitle)).getAllByRole("listitem");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringMatching(/^Kroos Control ⇄ Rovers XIEnds /),
+      expect.stringMatching(/^Kroos Control ⇄ Rovers XIEnds /),
+    ]);
+    expect(within(rows[0]).getByRole("link").getAttribute("href")).toBe(`${TRADES_PATH}?offer=offer-1`);
+    expect(within(rows[1]).queryByRole("link")).toBeNull();
+    expect(within(widget(inReviewWidgetTitle)).getByRole("link", { name: tradesLinkWords }).getAttribute("href")).toBe(TRADES_PATH);
+  });
+
+  it("S08.30: with none in review, says so and still links to Trades", async () => {
+    await openedOn("trades");
+
+    expect(within(widget(inReviewWidgetTitle)).getByText(noneInReviewWords)).toBeTruthy();
+    expect(within(widget(inReviewWidgetTitle)).getByRole("link", { name: tradesLinkWords })).toBeTruthy();
+  });
+});
+
+describe("the Round 2 widget (#2504)", () => {
+  it("S04.18: lists the draft order backwards, the snake's second round", async () => {
+    await openedOn("draftOrder");
+
+    expect(within(widget(roundTwoWidgetTitle)).getAllByRole("listitem").map((row) => row.textContent)).toEqual(
+      TEAMS_IN_ORDER.toReversed().map(({ name }, place) => `${place + 1}${name}`),
+    );
+  });
+});
+
+describe("the Formation presets widget (#2504)", () => {
+  it("S03.10: lists the league's presets by name, with how many", async () => {
+    await openedOn("squad", { presetNames: ["4-4-2", "4-3-3"] });
+
+    expect(within(widget(presetsWidgetTitle)).getAllByRole("listitem").map((row) => row.textContent)).toEqual(["4-4-2", "4-3-3"]);
+    expect(within(widget(presetsWidgetTitle)).getByText("2")).toBeTruthy();
   });
 });

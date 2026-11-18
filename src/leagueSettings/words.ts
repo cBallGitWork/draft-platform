@@ -15,7 +15,7 @@ import type { TieBreak } from "../../convex/table/standings";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, inReviewWords, leagueVoteWords, menuWords, notSetWords, pointsAgainstWords, pointsForWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -201,7 +201,7 @@ export const settingsTabWords: Record<SettingsTab, string> = {
   draftOrder: teamOrderTitle,
 };
 
-/** The right-hand widgets (README, Interaction notes): what the Fixtures and Draft tabs' rules lead to. */
+/** The right-hand widgets (README, Interaction notes): what each tab's rules lead to. */
 export const gameweeksWidgetTitle = "Gameweeks";
 export const editGameweeksWords = "Edit ›";
 export const gameweeksLoadingWords = "Loading the gameweeks…"; // one-home-ok: the Gameweeks screen's own words are another feature's, which featureImports keeps out
@@ -217,3 +217,15 @@ export const draftTeamsLabel = "Teams";
 export const draftBegunWords = "Started";
 export const draftRoomWords = "Draft room ›";
 export const draftOrderLinkWords = "Draft order ›";
+/** The Trades tab's widget (S08.30). */
+export const inReviewWidgetTitle = inReviewWords;
+export const inReviewLoadingWords = "Loading the trades in review…";
+export const tradeInReviewWords = (fromTeamName: string, toTeamName: string) => `${fromTeamName} ⇄ ${toTeamName}`;
+export const reviewEndsAtWords = (when: string) => `Ends ${when}`;
+export const noneInReviewWords = "None in review";
+export const tradesLinkWords = `${menuWords.trades} ›`;
+/** The Draft order tab's widget: the snake's second round (S04.18). */
+export const roundTwoWidgetTitle = "Round 2";
+export const reversedWords = "Reversed";
+/** The Squad tab's widget, read-only (S03.10). */
+export const presetsWidgetTitle = "Formation presets";

@@ -68,3 +68,29 @@ describe("under a league vote", () => {
     expect(await w.toReview(ANN)).toEqual([]);
   });
 });
+
+describe("every trade in review, for League settings (S08.30)", () => {
+  test("S08.30: under a veto, the commissioner sees the trade, its teams and its end, and it opens, as he reviews it", async () => {
+    const offerId = await annTradesForSaka();
+
+    expect(await w.inReview(COMMISSIONER)).toEqual([
+      { offerId, fromTeamName: teamNumbered(1), toTeamName: teamNumbered(2), reviewEndsAt: Date.now() + REVIEW_MS, opens: true },
+    ]);
+  });
+
+  test("S08.30: under a vote, the commissioner with no team sees it too, though it doesn't open, as he has no vote", async () => {
+    await w.tradesAre({ review: "vote", deadline: null });
+    await noDraft(w.t, w.leagueId);
+    await addManager(w.t, w.leagueId, DAN);
+    await draftStarted(w.t, w.leagueId, w.teams);
+    const offerId = await annTradesForSaka();
+
+    expect(await w.inReview(COMMISSIONER)).toEqual([expect.objectContaining({ offerId, opens: false })]);
+  });
+
+  test("S08.30: an open offer isn't in review", async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+
+    expect(await w.inReview(COMMISSIONER)).toEqual([]);
+  });
+});

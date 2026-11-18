@@ -70,6 +70,8 @@ export async function tradeLeague() {
     takeBack: async (email: string, offerId: Id<"tradeOffers">) => (await actingAs(t, email)).mutation(api.trades.tradeReview.takeBack, { leagueId, offerId }),
     /** The trades in review `email` reviews, as the Offers tab's To review group reads them. */
     toReview: async (email: string) => (await actingAs(t, email)).query(api.trades.reviewScreen.toReview, { leagueId }),
+    /** Every trade in review in the league, as League settings' In review widget reads it for `email`. */
+    inReview: async (email: string) => (await actingAs(t, email)).query(api.trades.reviewScreen.inLeague, { leagueId }),
     /** The offers to and from `email`'s team, open or in review, as the Trades screen reads them now. */
     mine: async (email: string) => (await tradesOf(await actingAs(t, email), leagueId)).offers,
     offers,

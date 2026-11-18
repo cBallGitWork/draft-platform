@@ -22,6 +22,8 @@ const useScoringStart: LeagueSettingsSeam["useScoringStart"] = (leagueId) => use
 
 const useGameweeks: LeagueSettingsSeam["useGameweeks"] = (leagueId) => useQuery(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
 
+const useTradesInReview: LeagueSettingsSeam["useTradesInReview"] = (leagueId) => useQuery(api.trades.reviewScreen.inLeague, { leagueId });
+
 /** The draft's date while it waits; one under way or over has started. Its rounds and teams either way. */
 const useDraftStart: LeagueSettingsSeam["useDraftStart"] = (leagueId) => {
   const draft = useQuery(api.draft.draftStart.ofLeague, { leagueId });
@@ -53,6 +55,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       setDraftStart: (leagueId, startsAt) => refusalOf(() => setStart({ leagueId, startsAt }), "Setting the draft's start", draftStartFailedWords),
       useWaivers: liveClaims.useWaivers,
       usePendingClaims: liveClaims.usePendingClaims,
+      useTradesInReview,
     }),
     [changeSettings, setTeamOrder, drawTeamOrder, setScoringStart, setStart],
   );

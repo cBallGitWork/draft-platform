@@ -197,7 +197,7 @@ describe("editing them", () => {
 it("keeps the edits when someone else saves, says so, and loads the latest on asking", async () => {
   const app = await openedSettings();
   await setGames("2");
-  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, doubleGameweek: "bestMatch", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM, seasonGameweeks: PL_GAMEWEEKS };
+  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, doubleGameweek: "bestMatch", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM, seasonGameweeks: PL_GAMEWEEKS, presetNames: [] };
   app.leagueSettings.useSettings.mockReturnValue(theirs);
   app.becomes({ ...commissioner });
   await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(theirs));

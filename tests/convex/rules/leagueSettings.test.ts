@@ -51,7 +51,13 @@ const change = async (settings: LeagueSettings, email = COMMISSIONER, revision?:
 
 describe("reading them", () => {
   test("gives the settings the draw plays by, the row they're from and the next gameweek a change would take effect from", async () => {
-    expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: NEXT, seasonGameweeks: 38 });
+    expect(await read()).toEqual({
+      part: FIRST,
+      revision: await rulesRevision(t, leagueId),
+      changesFrom: NEXT,
+      seasonGameweeks: 38,
+      presetNames: HELD_FIRST_RULES.presets.map(({ name }) => name),
+    });
   });
 
   test("is refused to a manager", async () => {

@@ -8,9 +8,11 @@ import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import type { Revision, RulesView } from "../rules/rulesEdits";
 import type { Change } from "../shared/refusal";
 import type { ClaimsSeam } from "../myTeam/claims/seam";
+import type { TradeInReview } from "../../convex/trades/reviewScreen";
 
-/** The settings, and how many gameweeks the season has, the latest a trade deadline can be. */
-export type SettingsView = RulesView<LeagueSettings> & { seasonGameweeks: number };
+/** The settings, how many gameweeks the season has, the latest a trade deadline can be, and the
+ *  league's formation presets by name, which the screen shows but doesn't edit. */
+export type SettingsView = RulesView<LeagueSettings> & { seasonGameweeks: number; presetNames: string[] };
 
 export type LeagueSettingsSeam = {
   /** Live (a hook): undefined while it loads. */
@@ -45,6 +47,9 @@ export type LeagueSettingsSeam = {
   /** Every team's pending claims, as My team's Transactions tab reads them, for a commissioner
    *  with no team and so no Transactions tab (#1487). */
   usePendingClaims: ClaimsSeam["usePendingClaims"];
+  /** Live (a hook): every trade in review in the league, the soonest to end first, for the In
+   *  review widget; undefined while they load. */
+  useTradesInReview(leagueId: Id<"leagues">): readonly TradeInReview[] | undefined;
 };
 
 /** A team in the draft order (convex/draft/draftOrder.ts). */
