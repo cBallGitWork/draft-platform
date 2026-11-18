@@ -63,7 +63,7 @@ function standingOf(man: MatchMan, side: Side, men: MatchMan[]): CSSProperties {
 
 /** Both lineups on one pitch, under a head naming each side and its formation, away's left as it
  *  attacks down the pitch and home's right (the approved picture). */
-export function MatchPitch({ home, away, men }: { home: Club; away: Club; men: MatchMan[] }) {
+export function MatchPitch({ home, away, men, pick }: { home: Club; away: Club; men: MatchMan[]; pick(playerCode: number): void }) {
   const standing = onPitch(standingNow(men));
   const sides = { home: standing.filter((man) => man.side === "home"), away: standing.filter((man) => man.side === "away") };
   return (
@@ -73,7 +73,7 @@ export function MatchPitch({ home, away, men }: { home: Club; away: Club; men: M
           <PitchLines />
           <ul aria-label={matchPitchLabel(home.name, away.name)} className="absolute inset-0">
             {(["away", "home"] as const).flatMap((side) =>
-              sides[side].map((man) => <PitchMan key={man.playerCode} man={man} club={side === "home" ? home : away} style={standingOf(man, side, sides[side])} />),
+              sides[side].map((man) => <PitchMan key={man.playerCode} man={man} club={side === "home" ? home : away} style={standingOf(man, side, sides[side])} pick={pick} />),
             )}
           </ul>
         </div>
@@ -83,18 +83,21 @@ export function MatchPitch({ home, away, men }: { home: Club; away: Club; men: M
 }
 
 /** One man on the pitch: his shirt in his club's colours, a keeper's in its second, then a plate
- *  with his name, his marks and his points; the viewer's own with the cyan underline. */
-function PitchMan({ man, club, style }: { man: MatchMan; club: Club; style: CSSProperties }) {
-  const { name, marks, mine, points, formationPlace } = man;
+ *  with his name, his marks and his points; the viewer's own with the cyan underline. Shirt and
+ *  plate together open his panel (S10.9), so the tap is the tap size on the phone. */
+function PitchMan({ man, club, style, pick }: { man: MatchMan; club: Club; style: CSSProperties; pick(playerCode: number): void }) {
+  const { playerCode, name, marks, mine, points, formationPlace } = man;
   return (
-    <li style={style} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-      <Shirt number={null} clubCode={club.code} goalkeeper={formationPlace?.line === 0} />
-      <span className={`flex items-center gap-1 whitespace-nowrap bg-name-plate px-1 font-semibold text-fact ${mine ? "shadow-subtab-active" : ""}`}>
-        {name}
-        <MatchMarks marks={marks} />
-        <span className={pointsInk(man)}>{figureOrNone(points)}</span>
-        {pointsGreyed(man) && <span className="sr-only"> {notCountingLabel}</span>}
-      </span>
+    <li style={style} className="absolute -translate-x-1/2 -translate-y-1/2">
+      <button type="button" onClick={() => pick(playerCode)} className="flex min-h-tap min-w-tap flex-col items-center">
+        <Shirt number={null} clubCode={club.code} goalkeeper={formationPlace?.line === 0} />
+        <span className={`flex items-center gap-1 whitespace-nowrap bg-name-plate px-1 font-semibold text-fact ${mine ? "shadow-subtab-active" : ""}`}>
+          {name}
+          <MatchMarks marks={marks} />
+          <span className={pointsInk(man)}>{figureOrNone(points)}</span>
+          {pointsGreyed(man) && <span className="sr-only"> {notCountingLabel}</span>}
+        </span>
+      </button>
     </li>
   );
 }

@@ -10,7 +10,7 @@ import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { previewPlayers, previewRivals } from "../scouting/preview";
 import { previewDone, proLeague } from "../shared/preview";
-import { previewIdOf } from "../table/preview";
+import { previewIdOf } from "../shared/previewDraw";
 import type {
   ClosedOffer,
   ScreenOffer,
