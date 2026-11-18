@@ -25,7 +25,13 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 
 /** The deadline strip's boxes, as the picture has them (Craig, 13 Nov 2026, on #1976). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} deadline`, YOUR_LINEUP, BIDS_SETTLE_TITLE, TABLE_TITLE] as const;
+export const stripBoxes = (first: string) => [first, YOUR_LINEUP, BIDS_SETTLE_TITLE, TABLE_TITLE] as const;
+/** The first box's label all season (S12.22): this gameweek's deadline; before the draft is over,
+ *  when it starts ("Draft Sat 19:00"); once the season is over, "Season over". */
+export const locksLabel = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
+export const draftBoxLabel = "Draft";
+export const seasonBoxLabel = "Season";
+export const seasonOverWords = "Over";
 /** Your line-up's box: its first flagged starter, by FPL's chance he plays ("doubtful" at 25 to 75%,
  *  "out" at 0), and how many more are flagged; or whether it is set at all. */
 export const lineupSetWords = "Set";

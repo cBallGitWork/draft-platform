@@ -91,8 +91,8 @@ describe("a pick swap", () => {
       return new Map(view.teams.map((team) => [team.teamId, team.picks.map(({ round, teamId, held }) => ({ round, teamId, held }))]));
     };
     expect((await picksOn(ANN)).get(ann)).toEqual([
-      { round: 1, teamId: ann, held: false },
-      { round: 2, teamId: ann, held: false },
+      { round: 1, teamId: ann, held: null },
+      { round: 2, teamId: ann, held: null },
     ]);
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     // The open offer carries its picks for a counter to start with (#1471).
@@ -100,19 +100,19 @@ describe("a pick swap", () => {
     expect(open.offers[0].pickTerms).toEqual({ gives: pickOf(ann, 1), gets: pickOf(bob, 2) });
     await accept(BOB, offerId);
     const inReview = await picksOn(CAT);
-    expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: true });
-    expect(inReview.get(cat)?.every(({ held }) => !held)).toBe(true);
+    expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: "commissioner" });
+    expect(inReview.get(cat)?.every(({ held }) => held === null)).toBe(true);
 
     vi.setSystemTime(Date.now() + REVIEW_MS);
     await t.mutation(internal.trades.tradeReview.finish, { offerId });
     const after = await picksOn(ANN);
     expect(after.get(ann)).toEqual([
-      { round: 2, teamId: ann, held: false },
-      { round: 2, teamId: bob, held: false },
+      { round: 2, teamId: ann, held: null },
+      { round: 2, teamId: bob, held: null },
     ]);
     expect(after.get(bob)).toEqual([
-      { round: 1, teamId: ann, held: false },
-      { round: 1, teamId: bob, held: false },
+      { round: 1, teamId: ann, held: null },
+      { round: 1, teamId: bob, held: null },
     ]);
     const view = await tradesOf(await as(ANN), leagueId);
     expect(view.teams[0].picks[1].teamName).toBe(await teamName(bob));

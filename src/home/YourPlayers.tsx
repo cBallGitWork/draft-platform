@@ -3,6 +3,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { PREMIER_LEAGUE_PATH } from "../frame/menu";
 import { playerCardPath } from "../playerCard/paths";
 import { matchPath } from "../premierLeague/paths";
+import { hasKickedOff, PlayedState } from "../shared/match/PlayedState";
+import { goalsWords } from "../shared/match/words";
 import { PanelNote } from "../ui/Panel";
 import { FoldingPanel } from "./FoldingPanel";
 import { PanelLink } from "./PanelLink";
@@ -36,12 +38,8 @@ export function PremierLeaguePanel({ gameweek, matches }: { gameweek: number; ma
         <ul aria-label={matchListLabel(gameweek)}>
           {matches.map((match) => (
             <li key={match.fixtureCode} className="flex flex-col border-b border-panel-rule px-3 py-2">
-              <span className="flex justify-between gap-3">
-                <Link to={matchPath(match.fixtureCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
-                  {match.home.shortName} {versusWords} {match.away.shortName}
-                </Link>
-                {match.kickoff !== null && <span className="text-soft">{weekdayTimeWords(match.kickoff)}</span>}
-              </span>
+              <MatchLine match={match} />
+
               <Side label={youWords} names={match.you} />
               <Side label={themWords} names={match.them} />
             </li>
@@ -50,6 +48,24 @@ export function PremierLeaguePanel({ gameweek, matches }: { gameweek: number; ma
       )}
       <PanelLink to={PREMIER_LEAGUE_PATH}>{allFixturesLink}</PanelLink>
     </FoldingPanel>
+  );
+}
+
+/** The match's clubs and, once it kicks off, its score and where it stands: the clock, half-time
+ *  or full time (S12.23); before then "v" and its kickoff's day and time. */
+function MatchLine({ match: { fixtureCode, kickoff, home, away, score } }: { match: Yours["premierLeague"][number] }) {
+  const goals = goalsWords(score);
+  return (
+    <span className="flex justify-between gap-3">
+      <Link to={matchPath(fixtureCode)} className="inline-flex min-h-tap items-center font-semibold lg:min-h-0">
+        {home.shortName} {goals === null ? versusWords : <span className="font-bold text-figure">{goals}</span>} {away.shortName}
+      </Link>
+      {hasKickedOff(score) ? (
+        <PlayedState score={score} long={false} />
+      ) : (
+        kickoff !== null && <span className="text-soft">{weekdayTimeWords(kickoff)}</span>
+      )}
+    </span>
   );
 }
 

@@ -8,7 +8,7 @@
 // gameweek always is. One gap is left: a club with two matches of the gameweek under way still to
 // play and a double next would show one of the two.
 
-import { positionOfSlot, type Cell, type SlotPosition } from "../../../../convex/lineup/pitch";
+import { positionOfSlot, slotLabelOf, type Cell, type SlotLabel, type SlotPosition } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { starsIn } from "../../../../convex/stars/bestRole";
 import type { Stars } from "../../../../convex/stars/starsShape";
@@ -20,6 +20,8 @@ export type Opponent = SquadRow["nextFixtures"][number];
 export interface PitchChip {
   /** The position his slot stands for, whose area colours the chip. */
   position: SlotPosition;
+  /** His name plate's label: SS for the support-striker role, else the position (spec/06 `S06.10`). */
+  slotLabel: SlotLabel;
   /** The role's short code, at most three letters, and its name for the hover. */
   code: string;
   roleName: string;
@@ -47,6 +49,7 @@ export function pitchChipOf({
   const played = roleIn(cell, role);
   return {
     position: positionOfSlot(cell),
+    slotLabel: slotLabelOf(cell, played.key),
     code: played.code,
     roleName: played.name,
     stars: starsIn(cell, played.key, player.stars),

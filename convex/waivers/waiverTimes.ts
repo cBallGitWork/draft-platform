@@ -15,7 +15,7 @@ type WaiverRun = LeagueRules["waivers"]["runs"][number];
 export const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 /** The moment it is `hour`:`minute` in the UK on the UK day whose midnight, read as UTC, is `day`. */
-function ukMoment(day: number, hour: number, minute: number): number {
+export function ukMoment(day: number, hour: number, minute: number): number {
   const wall = day + hour * HOUR_MS + minute * MINUTE_MS;
   const first = wall - londonOffset(wall);
   return wall - londonOffset(first);

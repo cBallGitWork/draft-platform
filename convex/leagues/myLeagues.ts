@@ -14,7 +14,8 @@ import { noLinkReply } from "../signIn/signInReplies";
 export const leagueSummary = v.object({
   leagueId: v.id("leagues"),
   name: v.string(),
-  commissionerEmail: v.string(),
+  /** Null in a league with no commissioner (spec/01 S01.1). */
+  commissionerEmail: v.union(v.string(), v.null()),
   /** The person's parts in it; none for the admin in a league he has no part in. */
   roles: v.array(leaguePart),
   /** What the person may do in it, as the server judges every change (powersIn), so a screen
@@ -54,11 +55,12 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
   }
   const commissioned = await shown(ctx.db.query("leagues").withIndex("by_commissionerEmail", (q) => q.eq("commissionerEmail", email)));
   const coCommissioned = await shown(ctx.db.query("leagues").withIndex("by_coCommissionerEmail", (q) => q.eq("coCommissionerEmail", email)));
+  const setUp = await shown(ctx.db.query("leagues").withIndex("by_setUpBy", (q) => q.eq("setUpBy", email)));
   const managed = await shown(ctx.db.query("teams").withIndex("by_managerEmail", (q) => q.eq("managerEmail", email)));
 
   const admin = isAdmin(email);
   const leagues = new Map<Id<"leagues">, Doc<"leagues">>();
-  for (const league of [...commissioned, ...coCommissioned]) leagues.set(league._id, league);
+  for (const league of [...commissioned, ...coCommissioned, ...setUp]) leagues.set(league._id, league);
   for (const team of managed) {
     const league = await ctx.db.get("leagues", team.leagueId);
     if (!league) throw new Error(`Team ${team._id} is in league ${team.leagueId}, which doesn't exist`);
@@ -75,7 +77,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
     summaries.push({
       leagueId: league._id,
       name: league.name,
-      commissionerEmail: league.commissionerEmail,
+      commissionerEmail: league.commissionerEmail ?? null,
       roles: partsIn(league, email, team),
       powers: powersIn(league, email),
       teamName: team?.name ?? null,

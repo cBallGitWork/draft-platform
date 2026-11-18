@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
-import type { ClassicFormation } from "../../../../convex/lineup/classicFormations";
-import { presetNameOf } from "../../../../convex/lineup/presets";
+import { classicDescriptionOf, type ClassicFormation } from "../../../../convex/lineup/classicFormations";
+import { presetDescriptionOf, presetNameOf } from "../../../../convex/lineup/presets";
 import { classicFormationInUse, onClassicFormation } from "../classicFormationLineup";
 import type { EditedLineup, MoveRules, PresetShape as Shape, RatingsOf } from "../lineupEdits";
 import { backGroups } from "./formationGroups";
@@ -162,7 +162,7 @@ export function FormationWindow({
                   shape={each}
                   tag={tagOf(each)}
                   subtitle={each.subtitle}
-                  description={each.description}
+                  description={classicDescriptionOf(each)}
                   checked={each.name === picked}
                   inUse={each.name === draft.classicFormation}
                   onPick={() => setPicked(each.name)}
@@ -176,13 +176,13 @@ export function FormationWindow({
           ) : (
             <Group head={backGroupWords(group)} picking>
               {shapes.map((each) => (
-                <FormationTile key={each.name} shape={each} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
+                <FormationTile key={each.name} shape={each} description={presetDescriptionOf(each.name)} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
               ))}
             </Group>
           )}
         </div>
         <div className="flex min-w-0 flex-col">
-          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} description={presetDescriptionOf(shape.name)} />}
           {classicFormation !== undefined && (
             <FormationPreview
               shape={classicFormation}
@@ -191,7 +191,7 @@ export function FormationWindow({
               ratingsOf={ratingsOf}
               after={onClassicFormation(draft, classicFormation, rules, ratingsOf)}
               subtitle={classicFormationTitleWords(classicFormation.subtitle, tagOf(classicFormation))}
-              description={classicFormation.description}
+              description={classicDescriptionOf(classicFormation)}
               applies={classicFormationAppliesWords(tagOf(classicFormation))}
             />
           )}

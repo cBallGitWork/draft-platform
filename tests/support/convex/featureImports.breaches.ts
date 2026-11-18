@@ -116,7 +116,6 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/outbound/email",
   "convex/outbound/emailLimit",
   "convex/playerCard/cardPoints",
-  "convex/positions/lines", // main#2629, classic mode: lineup, rules and scoring all read a player's line
   "convex/positions/playerPositions",
   "convex/positions/positionSettings",
   "convex/positions/positionTables",

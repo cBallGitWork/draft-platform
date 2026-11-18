@@ -121,7 +121,7 @@ function slotAt({ code, name, area, clubCode, number }: Man, at: GameweekAt, onB
   const satOut = code === STARTING_KEEPER.code && status.kind === "finished" && previewCardMatchIn(code, at.gameweek, true) === null;
   const autoSub = satOut ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
   const breakdown: MatchBreakdown = { fixtureCode, kickoff, home: match.home.shortName, away: match.away.shortName, score, counted: true, ...scored };
-  return { playerCode: code, name, area, clubCode, number, points: scored.points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdown] };
+  return { playerCode: code, name, area, clubCode, number, points: scored.points, counts: !onBench, provisional: true, overridden: scored.override !== null, status, autoSub, breakdown: [breakdown] };
 }
 
 /** A man in `cell`, in its first role. */

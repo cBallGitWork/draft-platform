@@ -118,6 +118,7 @@ import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js
 import type * as gameweeks_matchMoves from "../gameweeks/matchMoves.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
+import type * as gameweeks_playedGameweekTimes from "../gameweeks/playedGameweekTimes.js";
 import type * as gameweeks_roundStarts from "../gameweeks/roundStarts.js";
 import type * as gameweeks_saveGameweek from "../gameweeks/saveGameweek.js";
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
@@ -125,6 +126,7 @@ import type * as gameweeks_seasonGameweeks from "../gameweeks/seasonGameweeks.js
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as heartbeats_leadWake from "../heartbeats/leadWake.js";
+import type * as home_calendar from "../home/calendar.js";
 import type * as home_glance from "../home/glance.js";
 import type * as home_homeAt from "../home/homeAt.js";
 import type * as home_homeClock from "../home/homeClock.js";
@@ -337,6 +339,7 @@ import type * as shared_feedSchedule from "../shared/feedSchedule.js";
 import type * as shared_fixtures from "../shared/fixtures.js";
 import type * as shared_groupedBy from "../shared/groupedBy.js";
 import type * as shared_leagueAccess from "../shared/leagueAccess.js";
+import type * as shared_lineNames from "../shared/lineNames.js";
 import type * as shared_liveScoreRows from "../shared/liveScoreRows.js";
 import type * as shared_matching from "../shared/matching.js";
 import type * as shared_moments from "../shared/moments.js";
@@ -402,6 +405,8 @@ import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as stats_teamCountedStats from "../stats/teamCountedStats.js";
 import type * as stats_teamSeasonStats from "../stats/teamSeasonStats.js";
 import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
+import type * as table_awardWords from "../table/awardWords.js";
+import type * as table_awards from "../table/awards.js";
 import type * as table_finalScores from "../table/finalScores.js";
 import type * as table_fixtureEdits from "../table/fixtureEdits.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
@@ -563,6 +568,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/matchMoves": typeof gameweeks_matchMoves;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
+  "gameweeks/playedGameweekTimes": typeof gameweeks_playedGameweekTimes;
   "gameweeks/roundStarts": typeof gameweeks_roundStarts;
   "gameweeks/saveGameweek": typeof gameweeks_saveGameweek;
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
@@ -570,6 +576,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
   "heartbeats/leadWake": typeof heartbeats_leadWake;
+  "home/calendar": typeof home_calendar;
   "home/glance": typeof home_glance;
   "home/homeAt": typeof home_homeAt;
   "home/homeClock": typeof home_homeClock;
@@ -782,6 +789,7 @@ declare const fullApi: ApiFromModules<{
   "shared/fixtures": typeof shared_fixtures;
   "shared/groupedBy": typeof shared_groupedBy;
   "shared/leagueAccess": typeof shared_leagueAccess;
+  "shared/lineNames": typeof shared_lineNames;
   "shared/liveScoreRows": typeof shared_liveScoreRows;
   "shared/matching": typeof shared_matching;
   "shared/moments": typeof shared_moments;
@@ -847,6 +855,8 @@ declare const fullApi: ApiFromModules<{
   "stats/teamCountedStats": typeof stats_teamCountedStats;
   "stats/teamSeasonStats": typeof stats_teamSeasonStats;
   "stats/teamSeasonTotals": typeof stats_teamSeasonTotals;
+  "table/awardWords": typeof table_awardWords;
+  "table/awards": typeof table_awards;
   "table/finalScores": typeof table_finalScores;
   "table/fixtureEdits": typeof table_fixtureEdits;
   "table/leagueTable": typeof table_leagueTable;

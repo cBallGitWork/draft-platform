@@ -24,5 +24,7 @@ export const areaShape = v.union(...AREAS.map((name) => v.literal(name)));
 export const laneShape = v.union(...LANES.map((name) => v.literal(name)));
 /** A slot's position label: pitch.ts's SlotPosition. */
 export const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
+/** A slot's label as the screens show it: pitch.ts's SlotLabel. */
+export const slotLabel = v.union(slotPosition, v.literal("SS"));
 /** One cell of the pitch: pitch.ts's Cell. */
 export const cellShape = v.object({ area: areaShape, lane: laneShape });

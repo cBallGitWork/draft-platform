@@ -44,6 +44,18 @@ export const tableTables = {
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A league's Manager of the Month (spec/09, Awards; #2677): the team with the most points over
+   *  the gameweeks that start in the month on UK time, and those points. Awarded once and never
+   *  again, so Mail tells it once. One row a league and month, written only by
+   *  convex/table/awards.ts, which says when. */
+  awards: defineTable({
+    leagueId: v.id("leagues"),
+    /** The month on UK time, as "2026-10". */
+    month: v.string(),
+    teamId: v.id("teams"),
+    points: v.number(),
+    awardedAt: v.number(),
+  }).index("by_leagueId_and_month", ["leagueId", "month"]),
   /** The live gameweek as the league's screens read it while a match is on (#2007): each team's
    *  points and the matchday Vidiprinter's lines, scored once a live tick rather than once a
    *  viewer. One row a league and gameweek, written only by convex/table/liveScores.ts, which says

@@ -7,7 +7,7 @@ import { PICK_ANOTHER } from "./instructionsWords";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_COUNT_WORDS, AREA_IN_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
-import { LINE_NAMES } from "../positions/lines";
+import { LINE_NAMES } from "../shared/lineNames";
 
 /** A player's name, by his code. */
 type NameOf = (playerCode: number) => string;

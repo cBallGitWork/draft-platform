@@ -25,6 +25,7 @@ const KEEPS_OUT: string[] = [
   refusals.notAdmin,
   refusals.notRunner,
   refusals.notNamer,
+  refusals.notCommissioner,
   refusals.notDeleter,
   refusals.notUndoer,
   refusals.notManager,

@@ -117,6 +117,9 @@ export { notCountingLabel } from "../shared/match/words";
 
 /** His role's line in the breakdown, as the player card says it: "Role points, Poacher". */
 export { roleLineLabel } from "../shared/words";
+/** Read out for a man whose points the league overrode, a colour of their own on screen (spec/14 S14.31). */
+export const overriddenLabel = "overridden";
+
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}'s points breakdown`;
 /** His tile's button: the words the tile shows first, in its order, so a voice saying what it sees

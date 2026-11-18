@@ -49,7 +49,7 @@ describe("a counter", () => {
 
   it("starts without a player held in another trade under review, greyed and unticked (#1483)", async () => {
     const [mine, theirs] = quietTrades.teams;
-    const held = { ...mine, players: mine.players.map((each) => (each.code === SAKA.code ? { ...each, held: true } : each)) };
+    const held = { ...mine, players: mine.players.map((each) => (each.code === SAKA.code ? { ...each, held: "commissioner" as const } : each)) };
     openCounter({ view: { ...quietTrades, teams: [held, theirs], offers: [screenOffer()] } });
     const saka = await box("Team 1", SAKA.name);
     expect(saka.checked).toBe(false);
@@ -74,7 +74,7 @@ describe("a counter", () => {
     // Before the draft: Team 2 offers its round 2 pick for Team 1's round 3 pick; each also holds
     // its own round 1 pick.
     const [mine, theirs] = quietTrades.teams;
-    const pick = (round: number, teamId: typeof MY_TEAM, teamName: string, held = false) => ({ round, teamId, teamName, held });
+    const pick = (round: number, teamId: typeof MY_TEAM, teamName: string, held = false) => ({ round, teamId, teamName, held: held ? ("commissioner" as const) : null });
     const beforeDraft = (held = false) => ({
       ...quietTrades,
       teams: [

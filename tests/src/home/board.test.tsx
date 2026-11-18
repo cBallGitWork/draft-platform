@@ -46,7 +46,7 @@ import {
   youWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
-import { formLabel } from "../../../src/shared/match/words";
+import { clockWords, formLabel, fullTime } from "../../../src/shared/match/words";
 import { gameweekOneRecap, homeFixture, homeRow, quietYours } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";
 import { mailLetter } from "../../support/src/mailScreen.harness";
@@ -220,7 +220,7 @@ describe("the right-hand column", () => {
   it("lists this gameweek's matches with the reader's players or his opponent's, each opening its page, and All fixtures the Premier League (#1976)", async () => {
     const kickoff = Date.now() + DAY_MS;
     const club = (code: number, shortName: string) => ({ code, name: shortName, shortName });
-    const match = { fixtureCode: 501, kickoff, home: club(3, "ARS"), away: club(54, "FUL"), you: ["Saka", "Rice"], them: ["Raya"] };
+    const match = { fixtureCode: 501, kickoff, home: club(3, "ARS"), away: club(54, "FUL"), you: ["Saka", "Rice"], them: ["Raya"], score: null };
     const app = withHome({ yours: { ...quietYours, premierLeague: [match, { ...match, fixtureCode: 502, home: club(43, "MCI"), away: club(8, "CHE"), you: [], them: ["Dias"] }] } });
     const premierLeague = await panel(premierLeagueTitle(1));
     expect(within(premierLeague).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
@@ -230,6 +230,22 @@ describe("the right-hand column", () => {
     expect(within(premierLeague).getByRole("link", { name: allFixturesLink }).getAttribute("href")).toBe(PREMIER_LEAGUE_PATH);
     await userEvent.click(within(premierLeague).getByRole("link", { name: "ARS v FUL" }));
     expect(app.path()).toBe(matchPath(501));
+  });
+
+  it("S12.23: shows a match's live score and clock once it kicks off, and its full-time score after, each still opening its page", async () => {
+    const kickoff = Date.now() - DAY_MS;
+    const club = (code: number, shortName: string) => ({ code, name: shortName, shortName });
+    const score = { homeGoals: 2, awayGoals: 1, minutes: 67, clockLabel: null };
+    const live = { fixtureCode: 501, kickoff, home: club(3, "ARS"), away: club(54, "FUL"), you: ["Saka"], them: [], score: { ...score, state: "live" as const } };
+    const fullTimeMatch = { ...live, fixtureCode: 502, home: club(43, "MCI"), away: club(8, "CHE"), score: { ...score, minutes: 90, state: "fullTime" as const } };
+    const app = withHome({ yours: { ...quietYours, premierLeague: [live, fullTimeMatch] } });
+    const premierLeague = await panel(premierLeagueTitle(1));
+    expect(within(premierLeague).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      `ARS ${scoreWords(2, 1)} FUL${clockWords("live", null, 67)}${youWords} Saka`,
+      `MCI ${scoreWords(2, 1)} CHE${fullTime.short}${youWords} Saka`,
+    ]);
+    await userEvent.click(within(premierLeague).getByRole("link", { name: `MCI ${scoreWords(2, 1)} CHE` }));
+    expect(app.path()).toBe(matchPath(502));
   });
 
   it("lists Your squad news, FPL's note word for word, each name opening his card; and says when there is none (#1976)", async () => {

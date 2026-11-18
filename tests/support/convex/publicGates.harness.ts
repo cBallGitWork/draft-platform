@@ -34,6 +34,8 @@ export const GATES = {
   runnerOrNothing: { signedOut: ANSWERS_NOTHING, outsider: ANSWERS_NOTHING },
   /** The commissioner or the admin, naming a commissioner or co-commissioner. */
   namer: { signedOut: refusals.signedOut, outsider: refusals.notNamer },
+  /** The league's own commissioner alone, stepping down. */
+  commissioner: { signedOut: refusals.signedOut, outsider: refusals.notCommissioner },
   deleter: { signedOut: refusals.signedOut, outsider: refusals.notDeleter },
   undoer: { signedOut: refusals.signedOut, outsider: refusals.notUndoer },
   /** Whoever the letter is to. */
@@ -109,6 +111,7 @@ export const gates: Record<string, Gate> = {
   "gameweeks/matchMoves:move": "admin",
   "gameweeks/scoringStart:ofLeague": "runner",
   "gameweeks/scoringStart:setScoringStart": "runner",
+  "home/calendar:ofMonth": "member",
   "home/homeClock:clockOf": "member",
   "home/leagueHome:matchdayOf": "member",
   "home/leagueHome:ofLeague": "member",
@@ -133,6 +136,7 @@ export const gates: Record<string, Gate> = {
   "leagues/leagues:create": "admin",
   "leagues/leagues:nameCoCommissioner": "namer",
   "leagues/leagues:nameCommissioner": "namer",
+  "leagues/leagues:stepDown": "commissioner",
   "leagues/leagues:setMaxTeams": "runner",
   "leagues/teams:addManager": "admin",
   "leagues/teams:leave": "manager",

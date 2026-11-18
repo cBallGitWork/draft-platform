@@ -153,8 +153,7 @@ const opponentOf = (against: Opponent, nameOf: (teamId: TeamId) => string) =>
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  /** Each man's name, for one the football sync doesn't hold the words saying so (#810, #323), and
-   *  each match's score, read once. */
+  /** Each man's name (words saying so for one the football sync lacks; #810, #323), each score, read once. */
   private readonly reads: CommentaryReads;
   private readonly name: CommentaryReads["name"];
   private readonly score: CommentaryReads["score"];
@@ -242,6 +241,7 @@ class SideScorer {
           : autoSubs.unfilled.includes(playerCode)
             ? { kind: "unreplaced" as const }
             : null;
+    const breakdown = await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? [], instructions);
     return {
       playerCode,
       name: await this.name(playerCode),
@@ -250,9 +250,10 @@ class SideScorer {
       points,
       counts,
       provisional,
+      overridden: breakdown.some((match) => match.counted && match.override !== null),
       status: await this.status(matchesOf.get(playerCode) ?? []),
       autoSub,
-      breakdown: await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? [], instructions),
+      breakdown,
     };
   }
 

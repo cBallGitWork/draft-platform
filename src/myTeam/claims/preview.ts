@@ -5,10 +5,11 @@
 
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
-import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { DAY_MS } from "../../../convex/shared/time";
 import { previewSays, previewTeamNames } from "../../shared/preview";
 import { previewLeagueTable } from "../../table/preview";
-import { previewIdOf } from "../../shared/previewDraw";
+import { previewIdOf, previewSeason } from "../../shared/previewDraw";
+import { PREVIEW_GAMEWEEK } from "../tactics/preview";
 import type { ClaimsSeam, PendingClaim, WaiversView } from "./seam";
 
 const unsavedWords = "claims aren't saved";
@@ -66,8 +67,8 @@ const waivers: WaiversView = {
   runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
   locked: false,
   windowOpen: false,
-  // Saturday 11:00, the deadline after the runs.
-  windowShuts: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
+  // The gameweek My team sets and its deadline, from the one preview season (#2697).
+  windowShuts: { gameweek: PREVIEW_GAMEWEEK, at: previewSeason.deadlineOf(PREVIEW_GAMEWEEK) },
   resetsAfter: 10,
   delayed: false,
 };

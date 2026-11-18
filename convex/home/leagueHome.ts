@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { hasBegun, liveScoresIn, SCREEN_READ } from "../gameweekScorer/gameweekScores";
 import { seasonRules } from "../rules/rulesHistory";
@@ -14,7 +14,10 @@ import { gameweekVidiprinter, matchdayOfLines } from "../table/liveScores";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
 import { gamesOf } from "../table/teamGames";
+import { draftIsOver, draftOf } from "../draft/draftRow";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { shownRows, TICKER_MOST } from "./glance";
 import { heldRecap, homeRecap, shownRecap } from "./recaps";
 import { yourGameweek, yourGameweekOf } from "./yourGameweek";
@@ -69,8 +72,18 @@ const tradeMove = v.object({
 
 const squadMove = v.union(playerMove, tradeMove);
 
+/** Where the league's season stands, for the deadline strip's first box (spec/12, S12.22): before
+ *  its draft is over, the draft and when it starts (null while no start is set); once the last
+ *  gameweek it plays is final, over; otherwise the season. */
+const homeStage = v.union(
+  v.object({ kind: v.literal("draft"), startsAt: v.union(v.number(), v.null()) }),
+  v.object({ kind: v.literal("season") }),
+  v.object({ kind: v.literal("over") }),
+);
+
 export const leagueHome = v.object({
   format: leagueRulesShape.fields.format,
+  stage: homeStage,
   /** This gameweek's head-to-heads (nextGameweek.ts's `thisGameweekOf`), each scored once the
    *  gameweek has begun, live until final; null with none, as in total points or with fewer than
    *  two teams. */
@@ -140,15 +153,11 @@ export const ofLeague = query({
     const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
     const form = formOf(gameModeOf(rules), teamIds, schedule, scores);
     const mine = team?._id ?? null;
+    const thisGameweek = current ? { gameweek: current.gameweek, fixtures: scoredFixtures(current, results, named), byes: current.byes.map(named) } : null;
     return {
       format: rules.format,
-      thisGameweek: current
-        ? {
-            gameweek: current.gameweek,
-            fixtures: scoredFixtures(current, results, named),
-            byes: current.byes.map(named),
-          }
-        : null,
+      stage: await stageOf(ctx, league, thisGameweek),
+      thisGameweek,
       deadline: current ? (await leagueDeadlineOf(ctx, leagueId))(current.gameweek) : null,
       table: shownRows(table.map(({ team, ...row }) => ({ teamId: team, ...row })), mine).map((row) => ({
         position: row.position,
@@ -170,6 +179,21 @@ export const ofLeague = query({
     };
   },
 });
+
+/** Where the league's season stands with `thisGameweek` shown: its draft until that is over; over
+ *  once `thisGameweek` is the last it plays and every head-to-head in it is final. */
+async function stageOf(ctx: QueryCtx, league: Doc<"leagues">, thisGameweek: LeagueHome["thisGameweek"]): Promise<Infer<typeof homeStage>> {
+  if (!(await draftIsOver(ctx, league._id))) {
+    const draft = await draftOf(ctx, league._id);
+    return { kind: "draft", startsAt: draft?.started?.at ?? draft?.startsAt ?? null };
+  }
+  const final =
+    thisGameweek !== null &&
+    thisGameweek.gameweek >= lastPlayedGameweek(league, await seasonGameweekCount(ctx)) &&
+    thisGameweek.fixtures.length > 0 &&
+    thisGameweek.fixtures.every(({ points }) => points !== null && !points.provisional);
+  return { kind: final ? "over" : "season" };
+}
 
 /** The teams `teamId` meets in `drawn`, each once (a league playing two a gameweek can meet one twice). */
 const opponentsIn = (drawn: Parameters<typeof scoredFixtures>[0], teamId: Id<"teams">) => [
