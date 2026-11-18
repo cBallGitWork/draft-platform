@@ -21,7 +21,7 @@ const versionNotes = v.object({
   takesEffectAt: v.number(),
   changes: v.array(v.string()),
   /** A patch's rule balance lab report, once its run on Announce is done (balanceLab/balanceLabRun.ts):
-   *  the admin's alone, as a manager sees only what changed and from when (#2653). */
+   *  the admin's alone; a manager sees what changed and from when (S14.32). */
   lab: v.optional(labReportShape),
 });
 export type VersionNotes = Infer<typeof versionNotes>;

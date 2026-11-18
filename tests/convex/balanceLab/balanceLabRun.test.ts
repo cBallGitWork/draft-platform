@@ -80,7 +80,7 @@ describe("the admin's button on the draft patch", () => {
   });
 });
 
-test("an announced patch's lab runs by itself on exactly its set, and its report reaches the admin's patch notes alone (S14.12)", async () => {
+test("an announced patch's lab runs by itself on exactly its set, and its report reaches the admin's patch notes alone (S14.12, S14.32)", async () => {
   await holdGameweeks(t, { next: 9 });
   await holdPastSeason();
   await saveDraftAs(ADMIN, withShotStopper([4, 6, 8]));
@@ -93,7 +93,7 @@ test("an announced patch's lab runs by itself on exactly its set, and its report
   // 0 and +2 over the two keepers' starts.
   expect(notes.lab).toEqual({ seasons: [2024], noPosition: NO_POSITION, starts: 2, startsSkipped: 2, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [], xis: 1, xisShort: 1 });
 
-  // A manager sees what changed and from when, never the admin's lab (#2653).
+  // A manager sees what changed and from when, never the admin's lab (S14.32).
   const [managersNotes] = await (await as(MANAGERS[0])).query(api.scoring.patchNotes.notes, {});
   expect(managersNotes).not.toHaveProperty("lab");
   expect(managersNotes.takesEffectAt).toBe(notes.takesEffectAt);
