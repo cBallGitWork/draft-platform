@@ -54,7 +54,7 @@ const team = (
   teamId: previewIdOf(teamName),
   teamName,
   onAutoTeam: false,
-  players: players.map((each) => ({ ...each, held: held.includes(each) })),
+  players: players.map((each) => ({ ...each, held: held.includes(each) ? "commissioner" : null })),
   // The pictures are mid-season, after the draft, so no picks are left to trade.
   picks: [],
 });

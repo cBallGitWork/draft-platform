@@ -3,7 +3,7 @@ import { ColumnHeads } from "../ui/ColumnHeads";
 import { PositionChip } from "../ui/PositionChip";
 import { TickBox } from "../ui/TickBox";
 import type { ScreenTeam } from "./seam";
-import { groupWords, squadColumns, squadTableLabel, tickLabel } from "./words";
+import { inReviewGroupWords, squadColumns, squadTableLabel, tickLabel } from "./words";
 
 type Column = keyof typeof squadColumns;
 const COLUMNS = Object.keys(squadColumns) as Column[];
@@ -16,7 +16,8 @@ const HEAD_CLASSES: Record<Column, string> = {
 const HELD_TICK = "opacity-50";
 
 /** A squad on the New offer tab (docs/design/approved/trades/1440-new.png), a tick on each player:
- *  one held in a trade under review is greyed with "In review" and can't be ticked. */
+ *  one held in a trade under review is greyed with its review group's words, "With the league"
+ *  under a league vote (#2654), and can't be ticked. */
 export function SquadTable({
   team,
   ticked,
@@ -48,7 +49,7 @@ export function SquadTable({
               <td className={`px-2${player.held ? ` ${HELD_TICK}` : ""}`}>
                 <TickBox
                   checked={on}
-                  disabled={player.held}
+                  disabled={player.held !== null}
                   labelHidden
                   inTableRow
                   onChange={(checked) =>
@@ -64,7 +65,7 @@ export function SquadTable({
               </td>
               <td className="pl-2">
                 {player.position === null ? null : (
-                  <PositionChip label={player.position} dimmed={player.held} />
+                  <PositionChip label={player.position} dimmed={player.held !== null} />
                 )}
               </td>
               <th scope="row" className="w-full px-2 text-left">
@@ -76,9 +77,9 @@ export function SquadTable({
                     <ClubMark code={player.club.code} />
                     <ClubShort club={player.club} />
                   </span>
-                  {player.held && (
+                  {player.held !== null && (
                     <span className="bg-head px-1 text-ground">
-                      {groupWords.inReview}
+                      {inReviewGroupWords(player.held)}
                     </span>
                   )}
                 </span>

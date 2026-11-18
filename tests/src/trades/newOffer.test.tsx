@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { TRADES_NEW_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import {
   groupWords,
+  inReviewGroupWords,
   noteLabel,
   onePickEachWords,
   partnerLabel,
@@ -112,7 +113,7 @@ describe("a new offer", () => {
         teams: [
           {
             ...screenTeam(MY_TEAM, "Team 1", [SAKA]),
-            players: [{ ...SAKA, held: true }],
+            players: [{ ...SAKA, held: "commissioner" }],
           },
           quietTrades.teams[1],
         ],
@@ -128,6 +129,16 @@ describe("a new offer", () => {
     // Its tick box is dimmed with his chip and name, as the approved picture's Murillo (#1495).
     expect(tick.closest("td")?.className).toContain("opacity-50");
     expect(within(table).getByText(groupWords.inReview)).toBeTruthy();
+  });
+
+  it("S08.29: marks a player held in a league vote With the league, one under a veto as its group does", async () => {
+    const mine = { ...screenTeam(MY_TEAM, "Team 1", []), players: [{ ...SAKA, held: "vote" as const }, { ...RICE, held: "coCommissioner" as const }] };
+    openNewOffer({ view: { ...quietTrades, teams: [mine, quietTrades.teams[1]] } });
+    const table = await screen.findByRole("table", { name: squadTableLabel("Team 1") });
+    const [saka, rice] = within(table).getAllByRole("rowheader");
+    expect(inReviewGroupWords("vote")).not.toBe(groupWords.inReview);
+    expect(saka.textContent).toContain(inReviewGroupWords("vote"));
+    expect(rice.textContent).toContain(groupWords.inReview);
   });
 
   it("offers no team on the auto team, and changing team clears their ticks", async () => {
@@ -156,13 +167,13 @@ describe("a new offer", () => {
 describe("a pick offer (#1096)", () => {
   // Before the draft: Team 1 holds its own round-1 pick and Team 2's round-2 pick, which is in a
   // trade under review; Team 2 its own round-1 pick.
-  const ONE = { round: 1, teamId: MY_TEAM, teamName: "Team 1", held: false };
-  const VIA = { round: 2, teamId: THEIR_TEAM, teamName: "Team 2", held: true };
+  const ONE = { round: 1, teamId: MY_TEAM, teamName: "Team 1", held: null };
+  const VIA = { round: 2, teamId: THEIR_TEAM, teamName: "Team 2", held: "vote" as const };
   const THEIRS = {
     round: 1,
     teamId: THEIR_TEAM,
     teamName: "Team 2",
-    held: false,
+    held: null,
   };
   const beforeDraft = {
     ...quietTrades,
@@ -182,13 +193,13 @@ describe("a pick offer (#1096)", () => {
   const send = () =>
     screen.getByRole<HTMLButtonElement>("button", { name: sendOfferWords });
 
-  it("lists each team's picks under its squad, one traded to it via its team, one in review greyed", async () => {
+  it("S08.29: lists each team's picks under its squad, one traded to it via its team, one held in a league vote greyed With the league", async () => {
     openNewOffer({ view: beforeDraft });
     const mine = await picksTable("Team 1");
     const [own, via] = mine.getAllByRole("rowheader");
     expect(own.textContent).toBe(pickRoundWords(1));
     expect(via.textContent).toBe(
-      `${pickRoundWords(2)}${viaWords("Team 2")}${groupWords.inReview}`,
+      `${pickRoundWords(2)}${viaWords("Team 2")}${inReviewGroupWords("vote")}`,
     );
     expect(
       mine.getByRole<HTMLInputElement>("checkbox", {
@@ -270,7 +281,7 @@ describe("from a player card's Offer a trade (#1027)", () => {
   });
 
   it("chooses his owner but ticks nobody when he is held in a trade under review", async () => {
-    const held = { ...third, players: [{ ...WISSA, held: true }] };
+    const held = { ...third, players: [{ ...WISSA, held: "commissioner" as const }] };
     fromCard("team-3", WISSA.code, { view: { ...quietTrades, teams: [...quietTrades.teams, held] } });
     expect((await screen.findByRole<HTMLSelectElement>("combobox", { name: partnerLabel })).value).toBe("team-3");
     expect(ticked()).toBe(false);
