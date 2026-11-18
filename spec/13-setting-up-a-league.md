@@ -116,6 +116,8 @@ From the break weeks grill (Craig, 18 Nov 2026).
 
 - A manager in several leagues switches between them from a list in the top bar, and the app
   opens the one they used last.
+- A league's name on Your leagues opens its League home and makes it the current league, so the
+  top bar follows (Craig, 18 Nov 2026: "Yes, switch too"). `S13.10`
 
 ## Deleting
 

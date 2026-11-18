@@ -47,8 +47,11 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A position the admin sets stays until he removes it; starts can still add others.
 - Support striker (SS): any forward (ST) or attacking midfielder (CAM, for now; not W) can play
   there, with its own scoring, rules and tactics (Craig, 22 Oct 2026). Nobody marks him by hand.
-  Where SS sits is to grill: just behind the forward, or as a forward (Craig: "maybe its
-  forward?").
+  He sits in both attacking midfield and attack, as `S06.6` has it (Craig, 18 Nov 2026: "Yes,
+  both"). `S06.9`
+- The slot behind the striker (as in a 4-4-1-1) is labelled by the role played there: a
+  support-striker role reads SS, a playmaker or attacking-midfield role reads CAM ("no not always,
+  different roles", 1 Nov 2026; "The role played there", 18 Nov 2026). `S06.10`
 - One admin dashboard in the beta ([15](15-admin-tools.md)): a queue (new signings, flagged and
   removed positions), search to correct any player, the thresholds, and the feeds page as a tab.
 
