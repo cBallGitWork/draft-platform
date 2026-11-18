@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { adminEmail } from "../signIn/allowedEmails";
 import { fileEvent } from "../mail/letters";
 import { playerPositionsNow, positionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
@@ -249,7 +250,7 @@ export const autoPick = internalMutation({
       timeout = timeoutEffect(draft.timeouts, timeouts, team._id);
       await ctx.db.patch("drafts", draft._id, { timeouts });
     }
-    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail, { auto: true, timeout });
+    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail ?? adminEmail(), { auto: true, timeout });
     return null;
   },
 });

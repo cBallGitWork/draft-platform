@@ -67,7 +67,7 @@ const waivers: WaiversView = {
   runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
   locked: false,
   windowOpen: false,
-  // The gameweek My team sets, at its deadline in the preview season, as its header dates it (#2697).
+  // The gameweek My team sets and its deadline, from the one preview season (#2697).
   windowShuts: { gameweek: PREVIEW_GAMEWEEK, at: previewSeason.deadlineOf(PREVIEW_GAMEWEEK) },
   resetsAfter: PREVIEW_GAMEWEEK,
   delayed: false,

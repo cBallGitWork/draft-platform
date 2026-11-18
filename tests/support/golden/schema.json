@@ -4901,6 +4901,12 @@
           "fields": [
             "coCommissionerEmail"
           ]
+        },
+        {
+          "indexDescriptor": "by_setUpBy",
+          "fields": [
+            "setUpBy"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -4927,7 +4933,13 @@
             "fieldType": {
               "type": "string"
             },
-            "optional": false
+            "optional": true
+          },
+          "setUpBy": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           },
           "coCommissionerEmail": {
             "fieldType": {
@@ -26412,6 +26424,60 @@
             "optional": false
           },
           "storedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "awards",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_month",
+          "fields": [
+            "leagueId",
+            "month"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "month": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "awardedAt": {
             "fieldType": {
               "type": "number"
             },
