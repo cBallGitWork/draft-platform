@@ -96,7 +96,7 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
         <Loading>{loadingWords}</Loading>
       ) : (
         <>
-          {gameweek !== null && <DeadlineStrip home={home} gameweek={gameweek} now={now} />}
+          <DeadlineStrip home={home} gameweek={gameweek} now={now} />
           <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-home">
             <div className="flex flex-col gap-2">
               <HomeMail mail={mail} lineup={home.yours?.lineup ?? null} />
