@@ -3,8 +3,8 @@
 Feature 22 of [SPEC.md](../SPEC.md). Only Craig's answers: the talk of 9 Nov 2026, his answers of
 15 Nov 2026 (PR #2260) and `/grill classic mode` (16 Nov 2026).
 
-A league with player and team tactics off, "essentially classic" (Craig, 9 Nov 2026). Not built
-until Craig says to: "we dont build, we keep this work as a note for when we build" (9 Nov 2026).
+A league with player and team tactics off, "essentially classic" (Craig, 9 Nov 2026). Built
+from 18 Nov 2026: "Yes, do both" (Craig, on the spec PR and the build issues).
 
 ## The switch
 
