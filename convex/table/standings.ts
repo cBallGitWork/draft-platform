@@ -129,13 +129,15 @@ function* scoredMeetings<Team>(schedule: readonly GameweekFixtures<Team>[], scor
 
 /** The head-to-head table: each fixture of a gameweek scored counts once for each team in it; the
  *  team left over plays the league's average of the gameweek's teams (`teamsInGameweek`), or, on a
- *  bye, nothing. */
+ *  bye, nothing. Ranked by the table's points, or by `rankBy`, higher first (Manager of the Month
+ *  ranks by points for: awards.ts), then by the league's tie-breaks. */
 export function headToHeadTable<Team>(
   mode: Winner,
   teams: readonly Team[],
   schedule: readonly GameweekFixtures<Team>[],
   scores: GameweekScores<Team>,
   tieBreaks: readonly TieBreak[],
+  rankBy: (row: TableRow<Team>) => number = (row) => row.points,
 ): TableRow<Team>[] {
   const rows = new Map(teams.map((team) => [team, emptyRow(team)]));
   const rowOf = (team: Team) => {
@@ -150,7 +152,7 @@ export function headToHeadTable<Team>(
     addResult(mode, rowOf(opponent), opponentScore, teamScore);
     meetings.push({ team, opponent, teamScore, opponentScore });
   }
-  const byPoints = rankedGroups([...rows.values()], (row) => row.points);
+  const byPoints = rankedGroups([...rows.values()], rankBy);
   return byPoints.flatMap((level) => brokenTies(mode, level, tieBreaks, meetings));
 }
 

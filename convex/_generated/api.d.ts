@@ -403,6 +403,8 @@ import type * as stats_statTotals from "../stats/statTotals.js";
 import type * as stats_teamCountedStats from "../stats/teamCountedStats.js";
 import type * as stats_teamSeasonStats from "../stats/teamSeasonStats.js";
 import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
+import type * as table_awardWords from "../table/awardWords.js";
+import type * as table_awards from "../table/awards.js";
 import type * as table_finalScores from "../table/finalScores.js";
 import type * as table_fixtureEdits from "../table/fixtureEdits.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
@@ -849,6 +851,8 @@ declare const fullApi: ApiFromModules<{
   "stats/teamCountedStats": typeof stats_teamCountedStats;
   "stats/teamSeasonStats": typeof stats_teamSeasonStats;
   "stats/teamSeasonTotals": typeof stats_teamSeasonTotals;
+  "table/awardWords": typeof table_awardWords;
+  "table/awards": typeof table_awards;
   "table/finalScores": typeof table_finalScores;
   "table/fixtureEdits": typeof table_fixtureEdits;
   "table/leagueTable": typeof table_leagueTable;
