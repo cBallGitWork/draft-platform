@@ -15,13 +15,14 @@ import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 import { GAMEWEEK_12_CLOCK, THURSDAYS_RUN, WEDNESDAY_NOON } from "../../support/src/waiverClock.harness";
 
-const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), clock: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
+const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), clock: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn(), state: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: {
       "playerCard/playerCard:card": convex.card,
       "playerCard/positionRank:atPosition": convex.rank,
       "waivers/waivers:cardActionOn": convex.action,
+      "waivers/waivers:stateOf": convex.state,
       "waivers/waiverClock:clockOf": convex.clock,
     },
     mutations: {
@@ -89,6 +90,24 @@ test("a claim on the card says the run that can first take him, judged at the mi
   convex.clock.mockReturnValue(GAMEWEEK_12_CLOCK);
   expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "claim", firstRun: THURSDAYS_RUN, squad: [] });
   expect(convex.clock).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, hour: WEDNESDAY_NOON });
+  vi.useRealTimers();
+});
+
+test("the card head's released line reads waivers/waivers:stateOf: nothing while loading, null when owned or a free agent, and the run that can first take him once the clock loads (S12.2)", () => {
+  vi.useFakeTimers({ now: WEDNESDAY_NOON });
+  const releasedOf = () => renderHook(() => livePlayerCard.useReleased(A_LEAGUE_ID, PLAYER_CODE)).result.current;
+  convex.clock.mockReturnValue(GAMEWEEK_12_CLOCK);
+  convex.state.mockReturnValue(undefined);
+  expect(releasedOf()).toBeUndefined();
+  expect(convex.state).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE });
+  convex.state.mockReturnValue({ kind: "owned", teamId: "t1", teamName: "Gunners" });
+  expect(releasedOf()).toBeNull();
+  convex.state.mockReturnValue({ kind: "freeAgent" });
+  expect(releasedOf()).toBeNull();
+  convex.state.mockReturnValue({ kind: "onWaivers", claimableFrom: 0 });
+  expect(releasedOf()).toEqual({ firstRun: THURSDAYS_RUN });
+  convex.clock.mockReturnValue(undefined);
+  expect(releasedOf()).toBeUndefined();
   vi.useRealTimers();
 });
 
