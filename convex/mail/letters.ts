@@ -79,6 +79,8 @@ function takenOut(event: LeagueEvent): string[] {
     case "commissionerNamed":
     case "coCommissionerNamed":
       return event.replaced === null ? [] : [event.replaced];
+    case "commissionerSteppedDown":
+      return [event.replaced];
     case "coCommissionerRemoved":
     case "managerRemoved":
     case "managerLeft":
@@ -140,6 +142,7 @@ function kindOf(event: LeagueEvent): LetterKind {
       return "league";
     case "created":
     case "commissionerNamed":
+    case "commissionerSteppedDown":
     case "coCommissionerNamed":
     case "coCommissionerRemoved":
     case "managerAdded":

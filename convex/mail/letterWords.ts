@@ -29,6 +29,11 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
         subject: `${event.email} is the commissioner`,
         body: `${who} named ${event.email} the league's commissioner${inPlaceOf(event.replaced)}.`,
       };
+    case "commissionerSteppedDown":
+      return {
+        subject: `${event.email} is the commissioner`,
+        body: `${event.replaced} stepped down as the league's commissioner, and ${event.email} takes the role on.`,
+      };
     case "coCommissionerNamed":
       return {
         subject: `${event.email} is the co-commissioner`,

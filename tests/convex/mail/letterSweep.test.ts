@@ -103,6 +103,7 @@ const SWEPT: Record<string, Sweep<World>> = {
   "leagues/leagues:setMaxTeams": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }) }),
   "leagues/leagues:nameCommissioner": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: NEWCOMER }) }),
   "leagues/leagues:nameCoCommissioner": sweep({ world: joiningLeague, change: ({ leagueId }, by) => by.mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: NEWCOMER }) }),
+  "leagues/leagues:stepDown": sweep({ world: joiningLeague, onlyBy: COMMISSIONER, change: ({ leagueId }, by) => by.mutation(api.leagues.leagues.stepDown, { leagueId }) }),
   "leagues/teams:addManager": sweep({ world: joiningLeague, onlyBy: ADMIN, change: ({ leagueId }, by) => by.mutation(api.leagues.teams.addManager, { leagueId, email: NEWCOMER }) }),
   "leagues/teams:removeManager": sweep({ world: joiningLeague, change: ({ leagueId, annsTeam }, by) => by.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam }) }),
   // A league being deleted is hidden from its managers, so only its commissioner hears (spec/13, Deleting).
