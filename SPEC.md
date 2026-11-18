@@ -134,7 +134,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   and the league list, the matchup's sides on their teams' colours; set on a Club tab of My team.
   The image service is his pick when it comes; Claude's research found Recraft the fit (not
   picked). A team's kit, nickname and
-  fans' name come after it; its ground goes with *Our own home stadiums*, below.
+  fans' name come after it; its ground goes with *Our own home stadiums*, above.
 - **Real shirt packs and away kits**, which the admin owning club colours leaves room for
   (spec/15, 31 Oct 2026).
 - **A club page's ownership history**: who owned each of a club's players in the league, and
