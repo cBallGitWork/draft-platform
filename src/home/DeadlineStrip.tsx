@@ -24,8 +24,8 @@ import {
 
 /** The deadline strip under the tabs, as the picture has it (Craig, 13 Nov 2026, on #1976): where
  *  the season stands (`firstBox`), the reader's lineup, when claims close and how many he has
- *  waiting, and his place in the table. It reads only; none of its boxes opens anything. "—" where he runs no team
- *  in the league. */
+ *  waiting, and his place in the table. It reads only; none of its boxes opens anything. "—" where
+ *  he runs no team in the league. */
 export function DeadlineStrip({ home, gameweek, now }: { home: LeagueHome; gameweek: number | null; now: number }) {
   const first = firstBox(home, gameweek, now);
   if (first === null) return null;
