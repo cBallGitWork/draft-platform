@@ -45,7 +45,12 @@ const leagueFields = {
   name: v.string(),
   /** The league's own maximum, 2 to 20 (spec/13), which its commissioner changes. */
   maxTeams: v.number(),
-  commissionerEmail: v.string(),
+  /** Absent in a league made with no commissioner (spec/01 S01.1) until someone takes the role. */
+  commissionerEmail: v.optional(v.string()),
+  /** In a league made with no commissioner, the manager who sets it up: until the draft starts he
+   *  has the commissioner's powers but naming either commissioner and deleting the league
+   *  (../shared/leagueAccess.ts `powersIn`); then this goes, and the settings lock (S01.1). */
+  setUpBy: v.optional(v.string()),
   /** Absent while the league has none. */
   coCommissionerEmail: v.optional(v.string()),
   /** What asking for the commissioner's sign-in link answered, when one was sent: a commissioner
@@ -208,7 +213,8 @@ const leagueEventFields = {
 export const leagueTables = {
   leagues: defineTable(leagueFields)
     .index("by_commissionerEmail", ["commissionerEmail"])
-    .index("by_coCommissionerEmail", ["coCommissionerEmail"]),
+    .index("by_coCommissionerEmail", ["coCommissionerEmail"])
+    .index("by_setUpBy", ["setUpBy"]),
   teams: defineTable(teamFields)
     .index("by_leagueId_and_number", ["leagueId", "number"])
     .index("by_managerEmail", ["managerEmail"]),
