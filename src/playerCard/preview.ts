@@ -14,7 +14,7 @@ import { ASSISTS, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT, SAVES, YELL
 import { previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
 import { previewDone, previewGameMode, previewGameweek, previewSays, proLeague } from "../shared/preview";
-import { previewIdOf } from "../table/preview";
+import { previewIdOf } from "../shared/previewDraw";
 import { PREVIEW_SAKA_NEWS, PREVIEW_UNPLAYED } from "../myTeam/tactics/preview";
 import { previewClubMatch, previewClubPostponed, previewClubUpcoming } from "../premierLeague/preview";
 import type { GameweekMatch } from "../premierLeague/seam";

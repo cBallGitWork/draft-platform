@@ -19,7 +19,8 @@ import { previewClubMatch, previewFullTimeGoals, previewGameweekMatches } from "
 import type { GameweekMatch } from "../premierLeague/seam";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
 import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
-import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previewSeason } from "../table/preview";
+import { previewPointsOf } from "../table/preview";
+import { previewIdOf, previewOpponent, previewOpponentOf, previewSeason } from "../shared/previewDraw";
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
 import { MY_POINTS, pointsOf, THEIR_AREAS, THEIR_POINTS, type Man, type Men } from "./previewMen";

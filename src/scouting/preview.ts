@@ -22,7 +22,7 @@ import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortli
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import { previewIdOf, previewOpponent } from "../table/preview";
+import { previewIdOf, previewOpponent } from "../shared/previewDraw";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = previewClub("ARS");
