@@ -1,6 +1,7 @@
 // The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with
-// four on the bench (fourteen at the league limits, a full 25), under the first rules, the deadline
-// a day and a half off. A save is judged by the server's own check (lineup.ts) and said in its
+// four on the bench (fourteen at the league limits, a full 25), under the first rules, set for the
+// first gameweek the preview league's season (previewDraw.ts) hasn't locked, at its deadline, so
+// My team and League home's strip read one season (#2652). A save is judged by the server's own check (lineup.ts) and said in its
 // words, so a refusal shows as it would live. Saved plans start none. A role card prices made-up last matches as the server does (roleCardShape.ts).
 
 import { useMemo, useSyncExternalStore } from "react";
@@ -16,13 +17,15 @@ import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShap
 import type { Position } from "../../../convex/positions/positionTables";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
-import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { previewAtLimits, previewGameMode, previewSaves } from "../../shared/preview";
+import { nextByDeadlines } from "../../../convex/gameweeks/nextGameweek";
+import { previewAtLimits, previewGameMode, previewGameweek, previewSaves } from "../../shared/preview";
+import { previewSeason } from "../../shared/previewDraw";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
-export const PREVIEW_GAMEWEEK = 9;
-const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
+/** The gameweek being set: the first the preview season hasn't locked, the one after Football's. */
+export const PREVIEW_GAMEWEEK = nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, Date.now())!;
+const PREVIEW_DEADLINE = previewSeason.deadlineOf(PREVIEW_GAMEWEEK);
 
 /** A club's FPL code by its short name, for its shirt's colours. */
 const clubCodeOf = (shortName: string) => Number(Object.entries(CLUB_COLOURS).find(([, club]) => club.shortName === shortName)![0]);
@@ -196,7 +199,7 @@ function previewMatches(playerCode: number) {
     const step = (playerCode * 5 + index * 3) % 7;
     const stats = { minutes: index === 4 ? 23 : 90, goals_scored: step === 6 ? 1 : 0, assists: step === 5 ? 1 : 0, accurate_pass: 20 + step * 6, fwd_pass: 8 + step * 2, ball_recovery: step, interception: step % 3, aerial_won: step % 4, won_tackle: step % 3 };
     const club = { code: clubCodeOf(shortName), name: shortName, shortName };
-    return { stats, set: ROLE_SET, gameweek: PREVIEW_GAMEWEEK - 1 - index - (index >= 2 ? 1 : 0), pastSeason: null, opponent: { club, home: index % 2 === 0 } };
+    return { stats, set: ROLE_SET, gameweek: previewGameweek - 1 - index - (index >= 2 ? 1 : 0), pastSeason: null, opponent: { club, home: index % 2 === 0 } };
   });
 }
 
