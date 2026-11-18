@@ -107,14 +107,6 @@ description, and the Guide would too.
 - Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
   pitch), and the modern sides are still to list.
 
-**Where the support striker sits**: `spec/06` has SS, and "Where SS sits is to grill: just behind
-the forward, or as a forward (Craig: "maybe its forward?")". On the formation window Craig added
-"maybe am becomes a ss (like a the 4-4-1-1)" (1 Nov 2026).
-- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) always read SS,
-  not CAM? "no not always, different roles" (Craig, 1 Nov 2026): it depends on the role played
-  there, so what decides the label is still open.
-- Does SS stay in both attacking midfield and attack (`spec/06`, Areas each position can play)?
-
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
 gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
 once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
@@ -131,12 +123,6 @@ places these; none says yet what it holds or does, and each is a placeholder unt
 - What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (`spec/13`,
   Breaks) and waivers' runs (`spec/08`).
 
-**The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
-Table).
-- Which boxes, and whether they change with the season's state (the pictures change them).
-- What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
-- Claims close needs waivers (`spec/08`).
-
 **The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
 The picture lists this gameweek's matches with your players and your opponent's in each.
 - Every match, or only those with your or your opponent's players.
@@ -151,10 +137,6 @@ when its feature is built (`docs/design/approved/home/`).
   are in SPEC.md, *Later*; next season goes with *Carrying a league into next season*.
 - The Monday after: the gameweek final, its result and the recap (#387).
 - When each state starts and ends.
-
-**A league's name on Your leagues opens its League home**: the approved Your leagues picture
-(Craig, 1 Nov 2026: "yes to all").
-- Does it switch the current league too (`spec/13`, Several leagues)?
 
 ## Suggested, not yet picked
 
