@@ -3,6 +3,9 @@
 Feature 10 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and `/grill live
 commentary` (16 Oct 2026).
 
+**Contents:** [The matchup, as a live match](#the-matchup-as-a-live-match) · [The match page](#the-match-page) ·
+[The commentary](#the-commentary)
+
 - Live scores during matches, for every league's head-to-head and table.
 
 ## The matchup, as a live match
