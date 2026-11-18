@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { scoredSinceMade } from "../../../convex/gameweekScorer/gameweekScores";
-import { formatLocked } from "../../../convex/rules/formatLock";
+import { classicLocked, formatLocked } from "../../../convex/rules/formatLock";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, REORDERED_TIE_BREAKS, rulesIn, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -66,6 +66,28 @@ describe("a format change", () => {
     gameweekOneBegins();
 
     expect(await change(leagueId)).toBe(2);
+  });
+});
+
+describe("S22.2 classic mode", () => {
+  test("S22.1 S22.2 is picked when the league is made, and no other league's rules carry it", async () => {
+    await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
+    const classic = await adminCreatesLeague(t, undefined, "Classic League", true);
+    const other = await adminCreatesLeague(t, undefined, "Other League");
+
+    expect((await latestRules(t, classic))?.rules).toEqual({ ...HELD_FIRST_RULES, classic: true });
+    expect((await latestRules(t, other))?.rules).toEqual(HELD_FIRST_RULES);
+  });
+
+  test("S22.2 is never switched, even before the league's first gameweek, while its other rules change", async () => {
+    await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
+    const classic = await adminCreatesLeague(t, undefined, "Classic League", true);
+    const other = await adminCreatesLeague(t, undefined, "Other League");
+
+    await expectRefused(change(classic, HELD_FIRST_RULES), classicLocked(true));
+    await expectRefused(change(other, { ...HELD_FIRST_RULES, classic: true }), classicLocked(false));
+    expect((await latestRules(t, other))?.rules).toEqual(HELD_FIRST_RULES);
+    expect(await change(classic, { ...TOTAL_POINTS, classic: true })).toBe(1);
   });
 });
 
