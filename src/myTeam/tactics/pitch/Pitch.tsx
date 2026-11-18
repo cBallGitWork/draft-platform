@@ -150,7 +150,7 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   const visible = [player.number, chip.shortName, chip.slotLabel, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
     .filter((bit) => bit !== null)
     .join(" ");
-  const shown = chip.roleName === chip.shortName ? visible : `${visible}, ${chip.roleName}`;
+  const shown = chip.roleName === chip.shortName ? visible : `${visible} ${chip.roleName}`;
   return (
     <button
       type="button"
@@ -200,16 +200,17 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
 export const ROLE_CHIP_MARK = "data-role-chip";
 
 /** The role's short name on his area's colour, on a line of its own so it has the lane's width, cut
- *  to fit it with its full name on hover (#2649), then his stars for it on the plate under it. */
+ *  to fit it with its full name on hover (#2649); his stars for it sit on the plate above it, over
+ *  his shirt's hem, so the extra line still fits the shortest cell (4-1-2-1-2's). */
 function RoleChip({ chip }: { chip: PitchChip }) {
   const { fill, ink } = chipColoursOf(chip.position);
   return (
-    <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer flex-col items-center leading-pitch-chip">
-      <span title={chip.roleName} className={`max-w-full truncate px-1 font-bold ${fill} ${ink}`}>
-        {chip.shortName}
-      </span>
+    <span {...{ [ROLE_CHIP_MARK]: "" }} className="-mt-2.5 flex max-w-full cursor-pointer flex-col items-center leading-pitch-chip">
       <span className="flex items-center bg-name-plate px-0.5 py-px">
         <StarRating stars={chip.stars} subject={chip.roleName} size="h-pitch-star w-pitch-stars" />
+      </span>
+      <span title={chip.roleName} className={`max-w-full truncate px-1 font-bold ${fill} ${ink}`}>
+        {chip.shortName}
       </span>
     </span>
   );
