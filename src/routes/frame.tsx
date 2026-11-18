@@ -17,7 +17,7 @@ import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
 import { MatchPage } from "../premierLeague/MatchPage";
 import { ClubPage } from "../premierLeague/ClubPage";
-import { CLUB_ROUTE, footballSearchOf, MATCH_ROUTE } from "../premierLeague/paths";
+import { CLUB_ROUTE, footballSearchOf, MATCH_ROUTE, matchSearchOf } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
@@ -125,17 +125,19 @@ const premierLeagueRoute = createRoute({
 const matchRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MATCH_ROUTE,
+  validateSearch: matchSearchOf,
   beforeLoad: ({ params }) => {
     if (!CODE_DIGITS.test(params.fixtureCode)) throw redirect({ to: PREMIER_LEAGUE_PATH });
   },
   component: function Match() {
     const { session, premierLeague } = matchRoute.useRouteContext();
     const { fixtureCode } = matchRoute.useParams();
+    const { player } = matchRoute.useSearch();
     const code = Number(fixtureCode);
     return (
       <CurrentLeague
         session={session}
-        page={(league) => <MatchPage league={league} seam={premierLeague} fixtureCode={code} isAdmin={session.signedIn && session.isAdmin} />}
+        page={(league) => <MatchPage league={league} seam={premierLeague} fixtureCode={code} picked={player} isAdmin={session.signedIn && session.isAdmin} />}
         // Keyed by the match as well as the league, so going to another match starts afresh too.
         keyOf={(league) => `${league.leagueId}/${code}`}
       />

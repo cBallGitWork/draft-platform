@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { footballLink } from "./paths";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { footballLink, matchPath } from "./paths";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
@@ -16,6 +16,7 @@ import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
 import { MatchPlayerStats, PointsCell, StatViewSwitch, ViewSwitch } from "./MatchPlayerStats";
 import { anyPlaced, MatchPitch, offPitch } from "./MatchPitch";
+import { MatchManPanel } from "./MatchManPanel";
 import { TeamStats } from "./MatchTeamStats";
 import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
@@ -64,9 +65,12 @@ import {
 /** One real Premier League match (spec/10, The match page), live: the score and clock, each club's
  *  team sheet with every man's points and the team they're for, or "Free agent", the five team
  *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
- *  player's status on the matchup. */
-export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number; isAdmin: boolean }) {
+ *  player's status on the matchup. `picked`, from the address, is the man whose panel is open (S10.9). */
+export function MatchPage({ league, seam, fixtureCode, picked, isAdmin }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number; picked?: number; isAdmin: boolean }) {
   const match = seam.useMatch(league.leagueId, useMinute(), fixtureCode);
+  const navigate = useNavigate();
+  // Into the address, replacing it, so Back from his card and a reload keep him.
+  const picking: Picking = { leagueId: league.leagueId, picked, pick: (playerCode) => void navigate({ to: matchPath(fixtureCode), search: { player: playerCode }, replace: true }) };
   return (
     <PageSection title={MATCH_TITLE} className={PAGE_STACK}>
       {match === undefined ? (
@@ -74,14 +78,17 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
       ) : match === null ? (
         <p className="text-muted">{noMatchWords}</p>
       ) : (
-        <HeldMatch match={match} mark={isAdmin ? <AbandonedMark seam={seam} fixtureCode={fixtureCode} abandoned={match.abandoned} /> : null} />
+        <HeldMatch match={match} picking={picking} mark={isAdmin ? <AbandonedMark seam={seam} fixtureCode={fixtureCode} abandoned={match.abandoned} /> : null} />
       )}
     </PageSection>
   );
 }
 
+/** The man whose panel is open on Overview (S10.9), and opening another's by his name. */
+type Picking = { leagueId: string; picked: number | undefined; pick(playerCode: number): void };
+
 /** `mark` is the admin's abandoned mark, at the scoreboard's foot; null for anyone else. */
-function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
+function HeldMatch({ match, picking, mark }: { match: MatchPageData; picking: Picking; mark: ReactNode }) {
   const { pointsProblem, gameweek, provisional } = match;
   const [tab, choose] = useState<MatchTab>("overview");
   const [view, chooseView] = useState<StatView>("stats");
@@ -102,22 +109,23 @@ function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
         )}
       </div>
       {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
-      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={pitchHeld ? lineupView : "list"} />}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={pitchHeld ? lineupView : "list"} picking={picking} />}
     </>
   );
 }
 
 /** The lineups beside the team stats and the commentary: two team sheets with List; with Pitch, both
  *  elevens on one pitch as they stand now, each side's substitutes and men who went off on its sheet
- *  beside it (S10.9). */
-function Overview({ match: { home, away, men, teamStats, commentary }, prov, view }: { match: MatchPageData; prov: ReactNode; view: LineupView }) {
+ *  beside it (S10.9). The picked man's panel tops the right column. */
+function Overview({ match: { home, away, men, teamStats, commentary }, prov, view, picking }: { match: MatchPageData; prov: ReactNode; view: LineupView; picking: Picking }) {
+  const pickedMan = men.find((man) => man.playerCode === picking.picked);
   const moved = men.filter((man) => man.side === null);
   const sideMen = { home: men.filter((man) => man.side === "home"), away: men.filter((man) => man.side === "away") };
   const beside = view === "pitch" ? offPitch : (each: MatchMan[]) => each;
   const sheets = (
     <>
-      <TeamSheet title={home.name} men={beside(sideMen.home)} aside={prov} />
-      <TeamSheet title={away.name} men={beside(sideMen.away)} aside={prov} />
+      <TeamSheet title={home.name} men={beside(sideMen.home)} aside={prov} picking={picking} />
+      <TeamSheet title={away.name} men={beside(sideMen.away)} aside={prov} picking={picking} />
     </>
   );
   return (
@@ -125,17 +133,20 @@ function Overview({ match: { home, away, men, teamStats, commentary }, prov, vie
       {view === "pitch" ? (
         <>
           <div className="grid items-start gap-2">{sheets}</div>
-          <MatchPitch home={home} away={away} men={men} />
+          <MatchPitch home={home} away={away} men={men} pick={picking.pick} />
         </>
       ) : (
         sheets
       )}
       {/* Side by side under the lineups on the desk, stacked in the third column on a wide one. */}
       <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+        {pickedMan !== undefined && (
+          <MatchManPanel man={pickedMan} clubCode={pickedMan.side === null ? null : { home, away }[pickedMan.side].code} leagueId={picking.leagueId} prov={prov} />
+        )}
         <TeamStats home={home} away={away} stats={teamStats} />
         <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
       </div>
-      {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
+      {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} picking={picking} />}
     </div>
   );
 }
@@ -217,7 +228,7 @@ function ScoreboardSide({ club, className }: { club: Club; className: string }) 
 type Club = MatchPageData["home"];
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */
-function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; aside: ReactNode }) {
+function TeamSheet({ title, men, aside, picking }: { title: string; men: MatchMan[]; aside: ReactNode; picking: Picking }) {
   const starters = men.filter((man) => man.started);
   const substitutes = men.filter((man) => !man.started);
   return (
@@ -229,7 +240,7 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
           <ColumnHeads columns={matchColumns} classOf={(column) => (column === "player" || column === "owner" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {starters.map((man) => (
-              <ManRow key={man.playerCode} man={man} />
+              <ManRow key={man.playerCode} man={man} picking={picking} />
             ))}
             {substitutes.length > 0 && (
               <tr>
@@ -239,7 +250,7 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
               </tr>
             )}
             {substitutes.map((man) => (
-              <ManRow key={man.playerCode} man={man} />
+              <ManRow key={man.playerCode} man={man} picking={picking} />
             ))}
           </tbody>
         </table>
@@ -253,15 +264,19 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
  *  for a man no lineup held at the deadline (once waivers are built, a man on waivers reads so
  *  instead), the viewer's own men lit, and his points, greyed while his team's lineup doesn't count
  *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
- *  think grey means no teams" (Craig, 31 Oct 2026). */
-function ManRow({ man }: { man: MatchMan }) {
-  const { name, position, started, played, sub, ownerTeamName, mine, marks } = man;
+ *  think grey means no teams" (Craig, 31 Oct 2026). His name opens his panel, and the picked man's
+ *  row has the cyan bar (S10.9). */
+function ManRow({ man, picking }: { man: MatchMan; picking: Picking }) {
+  const { playerCode, name, position, started, played, sub, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
+  const isPicked = picking.picked === playerCode;
   return (
-    <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
+    <tr aria-current={isPicked || undefined} className={`border-t border-panel-rule aria-current:shadow-current-edge ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
-        {name}
+        <button type="button" aria-expanded={isPicked} onClick={() => picking.pick(playerCode)} className="min-h-tap min-w-tap text-left font-semibold lg:min-h-0 lg:min-w-0">
+          {name}
+        </button>
         <MatchMarks marks={marks} />
         {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords(sub.cameOn?.minute ?? null)}</span>}
         {sub.wentOff !== null && <span className="ml-2 font-normal text-event">{wentOffWords(sub.wentOff.minute)}</span>}

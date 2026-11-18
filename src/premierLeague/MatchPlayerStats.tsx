@@ -127,10 +127,12 @@ function StatPointsCell({ points }: { points: number | null }) {
 
 /** A man's points for the match, greyed while his team's lineup doesn't count them, as the matchup
  *  greys a bench man (spec/14); a free agent's show plainly: "people don't think grey means no
- *  teams" (Craig, 31 Oct 2026). The team sheets and Player stats both end on it. */
-export function PointsCell({ man }: { man: MatchMan }) {
+ *  teams" (Craig, 31 Oct 2026). The team sheets and Player stats both end on it, and a man's panel
+ *  totals on it, `before` its "prov.". */
+export function PointsCell({ man, before }: { man: MatchMan; before?: ReactNode }) {
   return (
     <td className={`px-2 text-right ${pointsInk(man)}`}>
+      {before !== undefined && <span className="mr-1">{before}</span>}
       {figureOrNone(man.points)}
       {pointsGreyed(man) && <span className="sr-only"> {notCountingLabel}</span>}
     </td>
