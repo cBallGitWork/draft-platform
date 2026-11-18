@@ -96,6 +96,9 @@ const slot = v.object({
   /** Whether his points count: false is greyed, a bench player not on or a starter subbed off. */
   counts: v.boolean(),
   provisional: v.boolean(),
+  /** Whether the league has overridden his points in a match they count (spec/14 S14.31): the
+   *  tile's figure then takes a colour of its own. */
+  overridden: v.boolean(),
   status: slotStatus,
   autoSub,
   /** Each of his matches in the gameweek, broken down, kickoff first; none in a blank one. */
