@@ -98,7 +98,7 @@ export const setMaxTeams = mutation({
 /** Makes `event.email` the league's commissioner, files `event` and lets them in. A trade in
  *  review goes to whoever reviews it now (`passReviews`). A co-commissioner taking the role on
  *  stops being co-commissioner. */
-async function handOver(
+export async function handOver(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   by: string,

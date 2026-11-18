@@ -38,6 +38,7 @@ const leagueIndexes: { [Table in TableNames]?: IndexOf<Table> } = {
   invites: "by_leagueId",
   inviteLinks: "by_leagueId",
   joinRequests: "by_leagueId_and_decision",
+  commissionerAsks: "by_leagueId_and_decision",
   leagueRules: "by_leagueId_and_fromGameweek",
   passedDeadlines: "by_leagueId_and_gameweek",
   keptDeadlines: "by_leagueId_and_gameweek",

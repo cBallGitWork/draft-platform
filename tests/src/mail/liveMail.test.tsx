@@ -35,7 +35,7 @@ vi.mock("convex/react", async () => {
         "mail/mail:letters": noted("mail/mail:letters", () => convex.letters),
         "mail/mail:unreadCount": noted("mail/mail:unreadCount", () => convex.unread),
       },
-      mutations: { "mail/mail:open": convex.open, "mail/mail:writeToLeague": convex.write },
+      mutations: { "mail/mail:open": convex.open, "mail/mail:writeToLeague": convex.write, "leagues/commissionerAsks:ask": vi.fn() },
     }),
     useConvexAuth: () => ({ isAuthenticated: convex.signedIn }),
   };

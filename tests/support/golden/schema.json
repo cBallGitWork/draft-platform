@@ -6990,6 +6990,71 @@
       }
     },
     {
+      "tableName": "commissionerAsks",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_decision",
+          "fields": [
+            "leagueId",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_email_and_decision",
+          "fields": [
+            "leagueId",
+            "email",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_decision",
+          "fields": [
+            "decision"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "decision": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "approved"
+                },
+                {
+                  "type": "literal",
+                  "value": "refused"
+                }
+              ]
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
       "tableName": "invites",
       "indexes": [
         {
@@ -7418,6 +7483,13 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          },
+          "askToRun": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
             },
             "optional": true
           },
