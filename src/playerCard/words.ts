@@ -106,6 +106,8 @@ const pricedByWords = (pricedBy: PricedBy) => {
       return ` for ${pricedBy.position}`;
     case "formation":
       return ` for a ${pricedBy.formation}`;
+    case "line":
+      return ` for ${pricedBy.line}`;
   }
 };
 const cutWords = (cut: Cut | null) => {

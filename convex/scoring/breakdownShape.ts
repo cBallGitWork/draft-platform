@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { areaShape, slotPosition } from "../lineup/pitchShape";
+import { line } from "../schema/positions";
 import { roleName } from "../lineup/roles";
 import type { OwnStat } from "./scoringSet";
 import { categoryName } from "./categories";
@@ -24,6 +25,7 @@ const categoryWhy = v.object({
     v.object({ by: v.literal("area"), area: areaShape }),
     v.object({ by: v.literal("position"), position: slotPosition }),
     v.object({ by: v.literal("formation"), formation: v.string() }),
+    v.object({ by: v.literal("line"), line }),
   ),
   cut: v.union(
     v.null(),
