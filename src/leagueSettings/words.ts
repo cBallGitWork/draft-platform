@@ -127,7 +127,7 @@ export const waiversTitle = "Waivers";
 export const waiverOrderLabel = BID_ORDER_TITLE;
 /** Each order type explained, and when a change applies (Craig, 6 Nov 2026, on #1200). */
 export const waiverOrderHint =
-  "Reverse table order: the bottom of the table bids first. A team that wins a bid drops to the bottom until the gameweek ends, then the order resets. Rotating: whoever last won a bid drops to the bottom, and it never resets. A change applies at once, from today's order.";
+  "Reverse table order: the bottom of the table bids first. A team that wins a bid drops to the bottom until the gameweek ends, then the order resets. Rolling: a team that signs a player goes to the back, and it never resets. A change applies at once, from today's order.";
 export const runsLabel = "Bids settle, UK time";
 export const runDayLabel = (run: number) => `Settle ${run}, day`;
 export const runTimeLabel = (run: number) => `Settle ${run}, time`;

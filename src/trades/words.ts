@@ -149,7 +149,7 @@ export const closesAtWords = (gameweek: number, when: string) =>
   `At the ${gameweekShort(gameweek)} deadline, ${when}`;
 
 export const acceptWords = "Accept";
-export const counterWords = "Counter";
+export const counterWords = "Counter-offer";
 export const rejectWords = "Reject";
 export const withdrawWords = "Withdraw";
 export const rejectQuestion = (teamName: string) =>
@@ -209,6 +209,6 @@ export const onePickEachWords = "Tick a pick on the other side too.";
  *  so the label takes spec/08's own "one-line note". */
 export const noteLabel = "One-line note";
 export const sendOfferWords = "Send offer";
-export const sendCounterWords = "Send counter";
+export const sendCounterWords = "Send counter-offer";
 export const clearWords = "Clear";
 export const noPartnerWords = "No other team can trade now.";

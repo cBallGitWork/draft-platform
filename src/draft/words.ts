@@ -71,7 +71,7 @@ export const inPicksWords = (picks: number) => (picks === 1 ? "in 1 pick" : `in 
 export const BOARD_TITLE = "Board";
 export const roundsShownWords = (first: number, last: number, rounds: number) => `Rounds ${first} to ${last} of ${rounds}`;
 export const theOrderRoundsWords = (first: number, last: number, rounds: number) => `The order, rounds ${first} to ${last} of ${rounds}`;
-export const wholeBoardWords = "Whole board";
+export const wholeBoardWords = "All rounds";
 export const roundHead = { short: "Rd", long: "Round" };
 /** Which way a round runs, for screen readers: the snake turns each round. */
 export const roundWayLabel = (leftToRight: boolean) => (leftToRight ? "runs left to right" : "runs right to left");

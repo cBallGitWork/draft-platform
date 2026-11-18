@@ -93,7 +93,7 @@ export const teamGroupWords = (place: number | null, claims: number) =>
 export const teamsWithoutClaimsWords = (teams: number) => `${teams} ${teams === 1 ? "team" : "teams"} with no bids`;
 
 export const WAIVER_ORDER_TITLE = BID_ORDER_TITLE;
-export const waiverOrderWords: Record<WaiverOrderType, string> = { reverseStandings: "Reverse table order", rotating: "Rotating" };
+export const waiverOrderWords: Record<WaiverOrderType, string> = { reverseStandings: "Reverse table order", rotating: "Rolling" };
 /** A team's line in the waiver order: "8th," then its points (Craig, 10 Nov 2026: "dont need to say
  *  x in the table"). */
 export const tablePlaceWords = (place: number) => `${placeWords(place)}, `;
@@ -101,7 +101,7 @@ export const tablePlaceWords = (place: number) => `${placeWords(place)}, `;
  *  way in the lock, else the next deadline's). */
 export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | null) =>
   type === "rotating"
-    ? "Whoever last won a bid drops to the bottom, and it never resets."
+    ? "A team that signs a player goes to the back, and it never resets."
     : `The bottom of the table bids first. Win a bid and you drop to the bottom until ${resetsAfter === null ? "the gameweek" : gameweekShort(resetsAfter)} ends, then the order resets. Teams level on points go by the table's tie-breaks.`;
 export const waiverOrderLoadingWords = "Loading the bid order…";
 

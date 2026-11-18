@@ -136,12 +136,12 @@ export const newsLoadingWords = "Loading the moves…";
 export const noNewsWords = "No moves yet.";
 export const teamFilterLabel = "Team";
 export const everyTeamWords = "Every team";
-export const kindFilterLabel = "Kind";
-export const everyKindWords = "Every kind";
+export const kindFilterLabel = "Move";
+export const everyKindWords = "Every move";
 export const olderMovesWords = "Older moves ›";
 export const newsColumns = {
   when: { short: "When", long: "When" },
-  kind: { short: "Kind", long: "Kind" },
+  kind: { short: "Move", long: "Move" },
   team: { short: "Team", long: "Team" },
   joined: { short: "In", long: "In" },
   left: { short: "Out", long: "Out" },
@@ -152,16 +152,16 @@ export const newsTableLabel = "Every team's moves";
 export const newsKindWords = {
   playerAssigned: "Given by commissioner",
   playerMoved: "Moved",
-  playerReleased: "Let go",
+  playerReleased: "Removed by commissioner",
   playerDropped: "Drop",
   playerClaimed: "Bid",
   playerPickedUp: "Signed",
   tradeMade: "Trade",
 } as const satisfies Record<NewsMove["kind"], string>;
 export const fromTeamWords = (teamName: string) => `From ${teamName}`;
-/** The selected move's detail: who got whom, who let whom go, and where he went. */
+/** The selected move's detail: who got whom, who left whom, and where he went. */
 export const gotWords = (teamName: string) => `${teamName} got`;
-export const letGoWords = (teamName: string) => `${teamName} let go`;
+export const letGoWords = (teamName: string) => `Left ${teamName}`;
 export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Released" : "Back to the free agents");
 
 export const noMovesWords = "No player has joined or left a squad yet.";

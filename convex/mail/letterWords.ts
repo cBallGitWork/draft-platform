@@ -105,7 +105,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       };
     case "playerReleased":
       return {
-        subject: `${event.playerName} was let go`,
+        subject: `${event.playerName} was removed from ${event.teamName}`,
         body: letGoBody(who, event.playerName, event.teamName),
       };
     case "playerDropped":

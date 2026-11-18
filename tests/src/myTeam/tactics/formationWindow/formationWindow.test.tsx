@@ -77,9 +77,9 @@ describe("the formation window", () => {
     expect(window.getAllByText(classic.description)).toHaveLength(2);
   });
 
-  it("lists the preview's lines in the picture's order, Gains and Loses as placeholders", async () => {
+  it("lists the preview's lines in the picture's order, Plus and Minus as placeholders", async () => {
     const window = await opened();
-    expect(window.getAllByRole("term").map((term) => term.textContent)).toEqual(["Applies", "Gains", "Loses", "Instructions", "Costs"]);
+    expect(window.getAllByRole("term").map((term) => term.textContent)).toEqual(["Who", "Plus", "Minus", "Instructions", "Costs"]);
     expect(window.getByRole("img", { name: gainsPlaceholder })).toBeTruthy();
     expect(window.getByRole("img", { name: losesPlaceholder })).toBeTruthy();
   });

@@ -111,23 +111,23 @@ export const saveFailedWords = failedWords(unsavedOutcome);
  *  two tabs, the live set saved as a fix and the draft patch, announced from a gameweek. */
 export const editorTabsLabel = "Which scoring you edit";
 export const liveTabWords = "Live";
-export const draftTabWords = "Draft patch";
-export const saveDraftWords = "Save draft";
-export const draftSavedWords = "Draft saved. It changes nothing until announced.";
+export const draftTabWords = "Not announced";
+export const saveDraftWords = "Save, don't announce";
+export const draftSavedWords = "Saved. It changes nothing until announced.";
 export const announceGameweekLabel = "Takes effect from";
 /** "Gameweek 13, Sat 21 Nov, 12.30pm". */
 export const patchGameweekWords = (gameweek: number, takesEffectAt: number) => `${gameweekWords(gameweek)}, ${screenMoment(takesEffectAt)}`;
 export const announceWords = "Announce";
 export const announcedWords = (name: string, gameweek: number) => `Announced. Patch ${name} applies to every league from ${gameweekWords(gameweek)}.`;
-export const saveDraftFirstWords = "Save the draft to announce it.";
+export const saveDraftFirstWords = "Save the changes to announce them.";
 /** The server offers only gameweeks a patch's week of notice reaches (convex/scoring/siteVersions.ts). */
 export const noPatchGameweekWords = "No gameweek is far enough away for a patch's notice.";
-export const draftFailedWords = failedWords("the draft wasn't saved");
+export const draftFailedWords = failedWords("the changes weren't saved");
 export const announceFailedWords = failedWords("the patch wasn't announced");
 /** The rule balance lab on the draft patch (spec/14; #843): run on the saved draft, saving nothing. */
 export const runLabWords = "Run the lab";
 export const runningLabWords = "Running the lab on the past seasons…";
-export const saveDraftToRunLabWords = "Save the draft to run the lab on it.";
+export const saveDraftToRunLabWords = "Save the changes to run the lab on them.";
 export const labFailedWords = failedWords("the lab didn't run");
 
 /** The versions list. */
@@ -143,7 +143,7 @@ export const comingWords = "Coming";
 export const noVersionsYetWords = "No versions yet. Every league uses the first scoring set.";
 export const notesLinkWords = "Notes";
 export const withdrawWords = "Withdraw";
-export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to draft, its banner comes down and every manager gets a letter.`;
+export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to not announced, its banner comes down and every manager gets a letter.`;
 export const withdrawYesWords = "Withdraw it";
 export const withdrawNoWords = "Keep it";
 export const withdrawFailedWords = failedWords("the patch wasn't withdrawn");

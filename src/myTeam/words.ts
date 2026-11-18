@@ -71,12 +71,12 @@ export const noFixturesWords = `No matchups yet. They're drawn once the league h
 
 /** The Transactions tab (#366). */
 export const TRANSACTIONS_TITLE = menuWords.transactions;
-export const transactionsLoadingWords = "Loading your transactions…";
-export const transactionsTableLabel = (teamName: string) => `${teamName}'s transactions`;
+export const transactionsLoadingWords = "Loading your signings…";
+export const transactionsTableLabel = (teamName: string) => `${teamName}'s signings`;
 /** History's columns (the team-transactions picture): what came in and what went out, and who. */
 export const transactionColumns = {
   when: { short: "Date", long: "When it happened" },
-  kind: { short: "Kind", long: "What kind of transaction" },
+  kind: { short: "Move", long: "Move" },
   in: { short: "In", long: "Who or what joined the team" },
   out: { short: "Out", long: "Who or what left the team" },
   by: { short: "By", long: "Who made it, or the other team in a trade" },
@@ -86,7 +86,7 @@ type Transaction = TeamTransactions["transactions"][number];
  *  releases are all Assigned. */
 export const historyShows = ["all", "claims", "freeAgents", "drops", "trades", "assigned"] as const;
 export type HistoryShow = (typeof historyShows)[number];
-export const historyShowWords: Record<HistoryShow, string> = { all: "All", claims: "Bids", freeAgents: "Signings", drops: "Drops", trades: "Trades", assigned: "By commissioner" };
+export const historyShowWords: Record<HistoryShow, string> = { all: "All", claims: "Bids", freeAgents: "Free agents", drops: "Drops", trades: "Trades", assigned: "By commissioner" }; // one-home-ok: My team's own filter; a feature never imports another's words
 export const historyShowLabel = "Show";
 /** The Show key each kind is under. */
 export const showOf: Record<Transaction["kind"], Exclude<HistoryShow, "all">> = {
@@ -117,11 +117,11 @@ export function transactionByWords(transaction: Transaction): string {
       return by;
   }
 }
-export const noTransactionsWords = "No transactions yet.";
+export const noTransactionsWords = "No moves yet."; // one-home-ok: My team's own empty line; a feature never imports another's words
 /** History under a Show key holding none of the team's. */
 export const noneShownWords = "None of this kind.";
 /** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
-export const transactionsCutWords = "Showing the most recent transactions.";
+export const transactionsCutWords = "Showing the most recent moves.";
 
 /** When every gameweek the league plays has begun: Squad's eleven and Tactics say it alike. */
 export const seasonOverWords = "No line-ups left to set this season.";

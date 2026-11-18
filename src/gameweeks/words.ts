@@ -19,7 +19,7 @@ export const gameweekColumns = {
   deadline: { short: "Deadline", long: "Its deadline, when it begins" },
   plays: { short: "Plays", long: "Whether the league plays it" },
 } as const;
-export const begunWords = "Begun";
+export const begunWords = "Under way";
 export const noDeadlineWords = "Not known yet";
 export const loadingWords = "Loading the gameweeks…";
 

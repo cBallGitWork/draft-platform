@@ -15,7 +15,7 @@ export const shortlistRefusals = {
 /** To a manager whose shortlist holds a player just released to free agency, released by `who`. */
 export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
   return {
-    subject: `${playerName}, on your shortlist, was let go`,
+    subject: `${playerName}, on your shortlist, is a free agent`,
     body: letGoBody(who, playerName, teamName),
   };
 }

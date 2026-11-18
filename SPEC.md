@@ -287,6 +287,15 @@ follows it; tables and fields already saved keep their names.
 | bid | on screen, a claim: "Bid for James, dropping Watkins"; no money changes hands (Craig, 18 Nov 2026) | claim (on screen) |
 | settle | on screen, a waiver run: "Bids settle Wed 6pm" (Craig, 18 Nov 2026) | run (for bids, on screen) |
 | sign | on screen, picking up a free agent: "Sign Foden", never the bid button's word (Craig, 18 Nov 2026) | pick up (on a button) |
+| signings | My team's tab of a team's comings and goings: bids, signings, drops and trades; its filter for free agents signed reads "Free agents" (Craig, 18 Nov 2026) | transaction, transactions (on screen) |
+| rolling | the bid order where a team that signs a player through bids goes to the back: "Rolling", with "A team that signs a player goes to the back" under it (Craig, 18 Nov 2026) | rotating (on screen) |
+| counter-offer | answering a trade offer with a changed one: "Counter-offer", then "Send counter-offer" (Craig, 18 Nov 2026) | counter (alone, on a button) |
+| move | League news and Mail's column and filter for what happened: "Move", "Every move" (Craig, 18 Nov 2026) | kind (as a column or filter) |
+| removed by commissioner | League news's move when the commissioner takes a player off a team or a draft pick is taken back, beside "Given by commissioner" (Craig, 18 Nov 2026) | let go |
+| under way | a gameweek past its deadline, on the Gameweeks list (Craig, 18 Nov 2026) | begun |
+| all rounds | the draft room's button that shows every round of the board (Craig, 18 Nov 2026) | whole board |
+| not announced | scoring changes the admin has saved but not announced: the scoring editor's tab beside "Live" (Craig, 18 Nov 2026) | draft patch |
+| who, plus, minus | the formation window's heads for what a formation changes: who it is for, what it adds, what it takes (Craig, 18 Nov 2026) | applies/gains/loses (as its heads) |
 | the window | from the first waiver run after a gameweek to the next deadline, when players are free agents (spec/08) | week, break (for the window), transfer window (the real one opens in January) |
 | play-offs | the games after the season that settle the places a league plays them for | playoffs |
 | kit | the shirts, shorts and socks a club or team wears | uniform |

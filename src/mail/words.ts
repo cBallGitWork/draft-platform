@@ -61,7 +61,7 @@ export const letterKindWords = {
   patch: "Scoring",
 } as const satisfies Record<LetterKind, string>;
 /** The kind chip's placeholder, on a letter filed before letters held their kind. */
-export const kindPlaceholderLabel = notHeldLabel("Kind");
+export const kindPlaceholderLabel = notHeldLabel("Move");
 
 export const WRITE_TITLE = "Write to the league";
 export const writeHint = "Nobody can reply. There's no chat.";

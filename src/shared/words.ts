@@ -196,7 +196,7 @@ export const menuWords = {
   squad: "Squad",
   /** My team's tab of its matchups (Craig, 18 Nov 2026); its key and route keep "fixtures". */
   fixtures: "Matchups",
-  transactions: "Transactions",
+  transactions: "Signings",
   matchup: "Matchup",
   table: "Table",
   scouting: "Scouting",

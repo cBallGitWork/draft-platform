@@ -22,9 +22,9 @@ export const savePresetLine = "Saves the formation and roles in use now";
 export const MODERN = "Modern";
 export const toComeWords = "to come";
 export const applyWords = "Use this";
-export const appliesHead = "Applies";
-export const gainsHead = "Gains";
-export const losesHead = "Loses";
+export const appliesHead = "Who";
+export const gainsHead = "Plus";
+export const losesHead = "Minus";
 export const unlocksHead = "Instructions";
 export const costsHead = "Costs";
 /** What a plain formation does when used (spec/05, The pitch). */
