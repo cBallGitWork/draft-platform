@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { steppedDownBody } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   ADMIN,
@@ -32,14 +33,11 @@ beforeEach(async () => {
 const stepDown = async (email = COMMISSIONER) => (await actingAs(t, email)).mutation(api.leagues.leagues.stepDown, { leagueId });
 const nameCoCommissioner = async () =>
   (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
-const commissioner = async () => (await leagueRow(t, leagueId))?.commissionerEmail;
-const letter = (email: string) => ({
-  subject: `${email} is the commissioner`,
-  body: `${COMMISSIONER} stepped down as the league's commissioner, and ${email} takes the role on.`,
-});
+const commissionerNow = async () => (await leagueRow(t, leagueId))?.commissionerEmail;
+const letter = (email: string) => ({ subject: `${email} is the commissioner`, body: steppedDownBody(COMMISSIONER, email) });
 
 describe("the commissioner stepping down", () => {
-  test("S01.5 the co-commissioner takes the role on, is no longer co-commissioner, and the league gets the letter", async () => {
+  test("S01.5 the co-commissioner takes the role on, leaving no co-commissioner, and the league gets the letter", async () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     await nameCoCommissioner();
     await stepDown();
@@ -69,29 +67,29 @@ describe("the commissioner stepping down", () => {
     await addManager(t, leagueId, MANAGERS[2], firstTeam);
     await stepDown();
 
-    expect(await commissioner()).toBe(MANAGERS[1]);
+    expect(await commissionerNow()).toBe(MANAGERS[1]);
     expect(await lettersTo(t, MANAGERS[2])).toContainEqual(letter(MANAGERS[1]));
     await expectRefused(stepDown(), refusals.notCommissioner);
 
     await (await actingAs(t, MANAGERS[1])).mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[2] });
-    expect(await commissioner()).toBe(MANAGERS[2]);
+    expect(await commissionerNow()).toBe(MANAGERS[2]);
   });
 
   test("S01.5 a commissioner who runs a team passes it to another manager, and with no one to take it on is refused", async () => {
     await addManagers(t, leagueId, [COMMISSIONER]);
     await expectRefused(stepDown(), refusals.noOneToTakeOver);
-    expect(await commissioner()).toBe(COMMISSIONER);
+    expect(await commissionerNow()).toBe(COMMISSIONER);
 
     vi.advanceTimersByTime(1000);
     await addManagers(t, leagueId, [MANAGERS[0]]);
     await stepDown();
-    expect(await commissioner()).toBe(MANAGERS[0]);
+    expect(await commissionerNow()).toBe(MANAGERS[0]);
   });
 
   test("S01.5 only the commissioner can step down", async () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     await nameCoCommissioner();
     for (const email of [CO_COMMISSIONER, MANAGERS[0], ADMIN]) await expectRefused(stepDown(email), refusals.notCommissioner);
-    expect(await commissioner()).toBe(COMMISSIONER);
+    expect(await commissionerNow()).toBe(COMMISSIONER);
   });
 });

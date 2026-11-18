@@ -17,7 +17,10 @@ export const adminByline = "The admin";
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
 const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
-const joinedSubject = ({ email, teamName }: { email: string; teamName: string }) => `${email} joined as manager of ${teamName}`;
+/** The letter's words when commissioner `replaced` steps down and `email` takes the role on (S01.5). */
+export const steppedDownBody = (replaced: string, email: string) =>
+  `${replaced} stepped down as the league's commissioner, and ${email} takes the role on.`;
+const joinedSubject =({ email, teamName }: { email: string; teamName: string }) => `${email} joined as manager of ${teamName}`;
 
 /** The letter reporting `event`, done by `who`, telling any time with `tell`, in the reader's zone. */
 export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): Words {
@@ -32,7 +35,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "commissionerSteppedDown":
       return {
         subject: `${event.email} is the commissioner`,
-        body: `${event.replaced} stepped down as the league's commissioner, and ${event.email} takes the role on.`,
+        body: steppedDownBody(event.replaced, event.email),
       };
     case "coCommissionerNamed":
       return {
