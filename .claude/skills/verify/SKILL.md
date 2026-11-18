@@ -1,9 +1,11 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the unused-exports check, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the local gate (npm run verify) before a commit or a pull request and report each check's result and the test count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes.
 ---
 
 # Verify
+
+Adapted from epl-draft's verify (17 Oct 2026).
 
 ```bash
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, the lint step
@@ -29,9 +31,8 @@ tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
 the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
-instead of hanging the session. On a 4-core cloud box vitest alone took
-108-134s (27 Oct 2026, #467), about the Bash tool's default timeout, so give the tool call a
-timeout over the deadline or run it in the background.
+instead of hanging the session. A full run can outlast the Bash tool's default timeout: give the
+call a timeout over the deadline, or run it in the background.
 
 **Report the test count.** "3 passed" is a fact the next session can compare against;
 "tests pass" is not. If the count fell, say which file lost tests before anything else.
