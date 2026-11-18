@@ -12,7 +12,7 @@ const award = (t: TestConvex, leagueId: Id<"leagues">, teamId: Id<"teams">, mont
   t.run((ctx) => ctx.db.insert("awards", { leagueId, month, teamId, points: 100, awardedAt: 0 }));
 
 describe("a team's awards", () => {
-  test("S09.8: are the months it was Manager of the Month, oldest first, and none of another team's", async () => {
+  test("S09.8: are the months it won, oldest first, and none of another team's", async () => {
     const { t, leagueId, teams: [annTeam, bobTeam] } = await freshLeague({ managers: [ANN, BOB] });
     await award(t, leagueId, annTeam, "2026-11");
     await award(t, leagueId, bobTeam, "2026-10");

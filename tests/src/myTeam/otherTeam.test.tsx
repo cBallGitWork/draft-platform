@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { otherTeamPath } from "../../../src/myTeam/paths";
 import type { OtherSquad } from "../../../src/myTeam/seam";
-import { awardsHead } from "../../../src/myTeam/words";
+import { awardsHead, managerOfTheMonthWords } from "../../../src/myTeam/words";
 import { goneWords,otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
@@ -78,10 +78,11 @@ describe("the page", () => {
   it("S09.8: lists the awards the team has won, each month's in full on its hover", async () => {
     const app = openTeam({ otherSquad: POTATOES, awards: ["2026-09", "2026-10"] });
     const head = within((await screen.findByText(awardsHead)).nextElementSibling as HTMLElement);
-    expect(head.getAllByText(/^Manager of the Month/).map((award) => [award.textContent, award.getAttribute("title")])).toEqual([
-      ["Manager of the Month, Sept", "September 2026"],
-      ["Manager of the Month, Oct", "October 2026"],
+    expect(head.getAllByTitle(/2026$/).map((award) => [award.textContent, award.getAttribute("title")])).toEqual([
+      [managerOfTheMonthWords("2026-09"), "September 2026"],
+      [managerOfTheMonthWords("2026-10"), "October 2026"],
     ]);
+    expect(managerOfTheMonthWords("2026-10")).toMatch(/, Oct$/);
     expect(app.myTeam.useTeamAwards.mock.lastCall).toEqual([league.leagueId, SAKA_POTATOES]);
   });
 

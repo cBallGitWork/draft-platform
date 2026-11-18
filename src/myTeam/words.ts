@@ -1,7 +1,7 @@
 // What My team's tabs say, in one place for Craig to change in the pull request.
 
-import { LOCALE } from "../../convex/shared/moments";
 import { countInWords } from "../../convex/shared/numberWords";
+import { monthShort } from "../../convex/table/awardWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
 import { fewestTeamsWords, menuWords, withTeamWords } from "../shared/words";
 import { versusWords } from "../shared/match/words";
@@ -117,9 +117,5 @@ export const transactionsCutWords = "Only the most recent transactions are shown
 /** On an award's hover, its month in full: "October 2026". */
 export { monthWords } from "../../convex/table/awardWords";
 export const awardsHead = "Awards";
-const SHORT_MONTH = new Intl.DateTimeFormat(LOCALE, { timeZone: "UTC", month: "short" });
 /** A Manager of the Month award, kept as "2026-10", as a team's page lists it: "Manager of the Month, Oct". */
-export function managerOfTheMonthWords(month: string): string {
-  const [year, number] = month.split("-").map(Number);
-  return `Manager of the Month, ${SHORT_MONTH.format(Date.UTC(year, number - 1, 1))}`;
-}
+export const managerOfTheMonthWords = (month: string) => `Manager of the Month, ${monthShort(month)}`;

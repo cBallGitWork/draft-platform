@@ -4,7 +4,7 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { awardsHead, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { awardsHead, deadlineHead, managerOfTheMonthWords, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
 import { formLabel } from "../../../../src/shared/match/words";
 import { opponentTitle } from "../../../../src/myTeam/tactics/words";
 import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myTeam/words";
@@ -58,7 +58,7 @@ describe("My team's header band", () => {
 
   it("S09.8: lists the awards the team has won, asked for by its id", async () => {
     const app = openTacticsTab({ tactics: SAVED, leagueTable: TABLE, awards: ["2026-10"] });
-    expect((await screen.findByText(awardsHead)).nextElementSibling!.textContent).toBe("Manager of the Month, Oct");
+    expect((await screen.findByText(awardsHead)).nextElementSibling!.textContent).toBe(managerOfTheMonthWords("2026-10"));
     expect(app.myTeam.useTeamAwards).toHaveBeenLastCalledWith(league.leagueId, idOf(ME));
   });
 
