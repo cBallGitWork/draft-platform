@@ -4,7 +4,7 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { awardsHead, awardWords, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
 import { formLabel } from "../../../../src/shared/match/words";
 import { opponentTitle } from "../../../../src/myTeam/tactics/words";
 import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myTeam/words";
@@ -54,6 +54,20 @@ describe("My team's header band", () => {
     expect(screen.queryByText(formHead)).toBeNull();
     expect(screen.queryByText(versusWords)).toBeNull();
     expect(meter(gameweekShort(TACTICS_GAMEWEEK - 1)).textContent).toBe(pointsShort(54));
+  });
+
+  it("S09.8 lists the awards the team has won", async () => {
+    const app = openTacticsTab({ tactics: SAVED, leagueTable: TABLE, awards: ["2026-10", "2026-12"] });
+    expect(await screen.findByText(awardsHead)).toBeTruthy();
+    expect(app.myTeam.useMyAwards).toHaveBeenCalledWith(league.leagueId);
+    expect([...meter(awardsHead).firstElementChild!.children].map((award) => award.textContent)).toEqual([awardWords("2026-10"), awardWords("2026-12")]);
+  });
+
+  it("S09.8 shows no awards for a team that has won none", async () => {
+    openTacticsTab({ tactics: SAVED, leagueTable: TABLE });
+    await screen.findByRole("heading", { level: 1, name: ME });
+    expect(meter(tableHead)).toBeTruthy();
+    expect(screen.queryByText(awardsHead)).toBeNull();
   });
 });
 

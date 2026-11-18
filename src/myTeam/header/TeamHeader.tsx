@@ -14,6 +14,9 @@ import { gamesIn, standingOf, type Standing, type TeamGame } from "./teamStandin
 import {
   againstWords,
   autoTeamHead,
+  awardLong,
+  awardsHead,
+  awardWords,
   countdownWords,
   deadlineHead,
   formHead,
@@ -33,7 +36,7 @@ import {
 
 // My team's header band, one on every My team tab (the approved Tactics picture; FM's team meters
 // across the header): the team's name on the page's plate, then the next deadline and its
-// countdown, the opponent then, the last result, the form, the table place and the auto team's
+// countdown, the opponent then, the last result, the form, the table place, its awards and the auto team's
 // switch (AutoTeamSwitch.tsx, the approved auto-team picture). Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
 // While the table loads its readings wait.
@@ -74,10 +77,28 @@ function Meter({ head, children }: { head: string; children: ReactNode }) {
   );
 }
 
+/** The awards a team has won, oldest first, as a reading on its plate (S09.8): nothing until it
+ *  has one. The band's and another team's page's. */
+export function AwardsMeter({ months }: { months: readonly string[] | undefined }) {
+  if (months === undefined || months.length === 0) return null;
+  return (
+    <Meter head={awardsHead}>
+      <span className="flex flex-col">
+        {months.map((month) => (
+          <span key={month} title={awardLong(month)}>
+            {awardWords(month)}
+          </span>
+        ))}
+      </span>
+    </Meter>
+  );
+}
+
 function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam }) {
   const now = useMinute();
   const tactics = seam.useTactics(league.leagueId, now);
   const table = seam.useLeagueTable(league.leagueId);
+  const awards = seam.useMyAwards(league.leagueId);
   const open = tactics?.kind === "open" ? tactics : null;
   const standing = table ? standingOf(table, teamName) : null;
   const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
@@ -114,6 +135,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
           {placeWords(standing.place)}, <span className="text-figure">{pointsShort(standing.points)}</span>
         </Meter>
       )}
+      <AwardsMeter months={awards} />
       <Meter head={autoTeamHead}>
         <AutoTeamSwitch league={league} seam={seam} />
       </Meter>

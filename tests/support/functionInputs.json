@@ -303,6 +303,7 @@
   "stats/teamSeasonStats:rebuild": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "stats/teamSeasonStats:storeEveryLeague": {"type":"object","value":{}},
   "stats/teamSeasonStats:storeLeague": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
+  "table/awards:ofMyTeam": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
   "table/finalScores:rescore": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false},"gameweek":{"fieldType":{"type":"number"},"optional":false}}},
   "table/finalScores:storeEveryLeague": {"type":"object","value":{}},
   "table/finalScores:storeLeague": {"type":"object","value":{"leagueId":{"fieldType":{"type":"id","tableName":"leagues"},"optional":false}}},
