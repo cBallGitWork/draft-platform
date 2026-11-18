@@ -10,22 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Awards**: history, Mail.
-- Manager of the Month and Player of the Season. Team of the Week is off league home: "ditch team
-  of the week" (Craig, 1 Nov 2026; `spec/12`).
-  Where they live once Mail has filed them (see History, below).
-
-**Our own home stadiums**: the pitch view, the matchup.
-- Each team names its ground; the pitch view shows it with the team's logo.
-- Where the logo goes on the pitch: the centre circle, or boards along the touchline.
-- Room for sponsors later, on those boards and the stadium's name: shown with the team's or the
-  league's own logo until then, so the pitch needn't be redrawn. Money goes with Payments (SPEC,
-  *Later*).
-- The head-to-head fixtures have no home and away yet (`spec/09`). Is a matchup played at the
-  home team's ground?
-- A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
-  `ARCHITECTURE.md`.
-
 **Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a
 competition, not the design plate (`docs/design/plate.md`).
 - Who plays the plate: everyone knocked out of the cup, or the bottom of the table.
@@ -33,14 +17,6 @@ competition, not the design plate (`docs/design/plate.md`).
   the draft order anyway, `spec/04`).
 - Rounds, legs and ties, against the double-gameweek rule (`spec/03`). Draft Fantasy's cups and
   US consolation brackets: `docs/research/draft-competitors.md`.
-
-**A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
-- Whether a team can join at a split, in a league with splits (Craig, 22 Oct 2026; `spec/13`
-  Joining).
-- A whole redraft or a short top-up draft; at the January window or elsewhere.
-- Do keepers or some players stay; does the table reset or carry on. FPL Draft allows up to three
-  redrafts that "do not affect the current league standings"
-  (premierleague.com/en/news/4363847).
 
 **Makeshift positions, after the rest is built** (Craig, 24-25 Oct 2026; SPEC.md, Later). For now
 a player fills only his own areas, and only a keeper plays in goal, both ways (`spec/05`).
@@ -118,17 +94,6 @@ other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
 `docs/design/approved/home/`). He took FM as the model: "fm and its widgets as inspo". The picture
 places these; none says yet what it holds or does, and each is a placeholder until its grill.
 
-**Home's tabs, Overview | News | Calendar**. News was settled on 8 Nov 2026
-(`docs/design/approved/home/README.md`, The News tab).
-- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (`spec/13`,
-  Breaks) and waivers' runs (`spec/08`).
-
-**The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
-The picture lists this gameweek's matches with your players and your opponent's in each.
-- Every match, or only those with your or your opponent's players.
-- Live scores in matchday mode (the locked picture's Premier League today), or only kickoff times.
-- What it adds beyond the Vidiprinter card's live screen (above).
-
 **Home through the season**: the boards for each state, drawn as the plan for later, each grilled
 when its feature is built (`docs/design/approved/home/`).
 - Pre-season and the draft: the draft's countdown, your queue and pick, the empty table (`spec/04`).
@@ -151,7 +116,7 @@ when its feature is built (`docs/design/approved/home/`).
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | A star worked out with fewer than 3 matches (`spec/05` Roles) | Found in review of stars part 2 (#11, 1 Nov 2026); (1) and (2) answered on #971. A player with stars for one of the slot's roles and "?" (fewer than 3 matches) for another starts on the rated one. Craig expects a star to be worked out from his data rather than "?" (2 Nov 2026), which changes how stars are calculated; asked whether to grill it: "maybe later" (7 Nov 2026) |
 | Deadline stars lost to a failed keeping (`spec/05` Auto-subs) | Found in review of stars part 3 (#11, 1 Nov 2026). Each team's bench stars are kept at the deadline and asked for again until one of the gameweek's matches locks. If the keeping fails and a match locks before it succeeds, that gameweek's auto-subs play the slot's first role for good. Is that right, or should a later keeping use the stars as they stood at the deadline some other way? |
-| Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
+| Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with redrafts and split seasons (SPEC.md, *Later*) |
 | The draft's start, the gaps (`spec/04` Starting it) | Found in review of the draft's start (#1089, 4 Nov 2026). (1) Answered on #1102: the commissioner gets a letter (`spec/04`). (2) The approved draft room picture says "Random, drawn Mon 3 Aug", but nothing is drawn on its own now; it needs redrawing in a `/design` session Craig watches ("Redraw it soon", 5 Nov 2026, on #1130). (3), (4) and (5) answered on #1130: "Draw at random" stays on League settings; the rounds and the squad rules count a waiting change (`spec/04`); a vacated team can be handed over after the start |
 | Draft picks in Mail (`spec/04` The picks) | Found in review of a manager's pick (#1090, 4 Nov 2026). A pick is filed as an assignment, by the manager who made it, so Mail reads "Ann put Saka on Team 1" and the team's transactions say "assigned"; there is no "drafted" wording. What should a pick say in Mail and the transactions? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
