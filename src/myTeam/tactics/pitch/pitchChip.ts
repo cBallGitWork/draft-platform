@@ -1,6 +1,6 @@
 // What a starter's chip on the pitch carries (spec/05 What the pitch shows; #845): one read, so
 // the pitch draws from it and tests can poke it. His slot's position picks the area's colour, the
-// role he plays gives its code and his stars for it, and his club's matches in the gameweek being
+// role he plays gives its short name, never its code (#2649), and his stars for it, and his club's matches in the gameweek being
 // picked are his opponents: two in a double gameweek, none in a blank one.
 //
 // The opponents are the Squad tab's next NEXT_MATCHES_SHOWN matches (teamSquad.ts) kept to this
@@ -20,8 +20,8 @@ export type Opponent = SquadRow["nextFixtures"][number];
 export interface PitchChip {
   /** The position his slot stands for, whose area colours the chip. */
   position: SlotPosition;
-  /** The role's short code, at most three letters, and its name for the hover. */
-  code: string;
+  /** The role's short name ("No. 10"), and its full name for the hover and screen readers. */
+  shortName: string;
   roleName: string;
   stars: Stars;
   /** His club's matches in this gameweek, soonest first; undefined while they load. */
@@ -47,7 +47,7 @@ export function pitchChipOf({
   const played = roleIn(cell, role);
   return {
     position: positionOfSlot(cell),
-    code: played.code,
+    shortName: played.shortName,
     roleName: played.name,
     stars: starsIn(cell, played.key, player.stars),
     opponents: season === undefined ? undefined : (season?.nextFixtures ?? []).filter((match) => match.gameweek === gameweek),

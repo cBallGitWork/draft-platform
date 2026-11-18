@@ -131,7 +131,7 @@ export function Pitch({
 }
 
 /** A player on the pitch (spec/05 What the pitch shows): his shirt, a little bigger than a list's;
- *  his chip, the role's code in his area's colour, its name on hover, with his stars for it (#845);
+ *  his chip, the role's short name in his area's colour, its full name on hover (#2649), with his stars for it (#845);
  *  his name plate, which opens with his slot's position label ("ST Haaland": the position, never
  *  its side, so a sweeper or libero reads CB; Craig, 4 Nov 2026); his opponents this gameweek,
  *  each outlined until fixture difficulty fills it (Craig, 6 Nov 2026: "Build now, colour later").
@@ -146,8 +146,10 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
   const swapsWith = landing !== null && picked !== null;
   const slotPosition = positionOfSlot(cell);
-  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14).
-  const shown = [player.number, chip.code, slotPosition, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
+  // Every bit of text the block shows, in its order, starts its name (WCAG 2.5.3; S12.14), and the
+  // role's full name follows a shorter one, which the chip may cut (#2649).
+  const fullRole = chip.roleName === chip.shortName ? null : chip.roleName;
+  const shown = [player.number, chip.shortName, fullRole, slotPosition, player.name, ...(chip.opponents ?? []).map(matchMarkShort), swapsWith ? picked.name : null]
     .filter((bit) => bit !== null)
     .join(" ");
   return (
@@ -198,15 +200,16 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
 /** The attribute marking a starter's role chip on the pitch, which opens his role card (#848). */
 export const ROLE_CHIP_MARK = "data-role-chip";
 
-/** The role's code on his area's colour, its name on hover, then his stars for it on the plate. */
+/** The role's short name on his area's colour, cut to fit the lane with its full name on hover
+ *  (#2649), then his stars for it on the plate. */
 function RoleChip({ chip }: { chip: PitchChip }) {
   const { fill, ink } = chipColoursOf(chip.position);
   return (
     <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer items-center leading-pitch-chip">
-      <abbr title={chip.roleName} className={`px-1 font-bold no-underline ${fill} ${ink}`}>
-        {chip.code}
-      </abbr>
-      <span className="flex items-center self-stretch bg-name-plate px-0.5">
+      <span title={chip.roleName} className={`min-w-0 truncate px-1 font-bold ${fill} ${ink}`}>
+        {chip.shortName}
+      </span>
+      <span className="flex shrink-0 items-center self-stretch bg-name-plate px-0.5">
         <StarRating stars={chip.stars} subject={chip.roleName} size="h-pitch-star w-pitch-stars" />
       </span>
     </span>

@@ -1,6 +1,7 @@
 // Each slot's position label on the Tactics pitch (#857; spec/05 What the pitch shows): it names the
 // position, never its side, and a sweeper or libero is a centre-back, shown CB (Craig, 4 Nov 2026).
 
+import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../../../convex/lineup/pitch";
 import type { Position } from "../../../../../convex/positions/positionTables";
@@ -59,7 +60,7 @@ describe("the pitch's slot labels", () => {
   it.each(["sweeper", "libero"])("shows a centre-back on %s as CB, under his role's chip (#845)", async (role) => {
     await openedPitch(everySlot(role));
     expect(labelOf(MIDDLE_CB)).toBe("CB");
-    // The chip shows the role's code, its name on hover.
-    expect(blockIn(MIDDLE_CB).querySelector("abbr")?.title).toMatch(role === "sweeper" ? /Sweeper/ : /Libero/);
+    // The chip shows the role's short name, its name on hover (#2649).
+    expect(within(blockIn(MIDDLE_CB)).getByTitle(role === "sweeper" ? "Sweeper" : "Libero")).toBeTruthy();
   });
 });
