@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { LINE_NAMES } from "../positions/lines";
 import { POSITIONS } from "../positions/positionTables";
 import { areaShape } from "../lineup/pitchShape";
 import { failure, syncTrigger } from "./football";
@@ -8,6 +9,8 @@ import { failure, syncTrigger } from "./football";
 // no feed read touches the admin's say. Each row is keyed on FPL's season-stable `code`.
 
 export const position = v.union(...POSITIONS.map((each) => v.literal(each)));
+/** A classic league's line (spec/22, `S22.3`): `Line` in lines.ts. */
+export const line = v.union(...LINE_NAMES.map((each) => v.literal(each)));
 
 /** One match a player started, where he lined up: `Start` in positions.ts. */
 export const startRecord = v.object({
@@ -40,6 +43,9 @@ const playerPositionFields = {
    *  minimum until a feed places him (spec/06 `S06.1`; `minimumAreas` in areaMinimums.ts). Absent
    *  until the admin sets one. Only the minimums read it, so Scouting keeps no copy. */
   unplacedArea: v.optional(areaShape),
+  /** The line the admin set for him, which no start overrides (spec/22, `S22.7`; lines.ts). Absent
+   *  until he sets one. */
+  line: v.optional(line),
 };
 
 export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
@@ -83,12 +89,14 @@ export const positionsSyncFields = {
 
 /** A warning Mail has sent a team's manager about one of his players' positions (#23; spec/06, When
  *  positions change): flagged, then lost to a run elsewhere. Kept while it stands, so each step is
- *  told once; gone once it no longer does, or he has left the team, so it can be told again. */
+ *  told once; gone once it no longer does, or he has left the team, so it can be told again. In a
+ *  classic league, his line too (spec/22, `S22.6`): flagged to move to `position`, a line, then
+ *  moved there. */
 const positionWarningFields = {
   teamId: v.id("teams"),
   playerCode: v.number(),
-  position,
-  step: v.union(v.literal("flagged"), v.literal("lost")),
+  position: v.union(position, line),
+  step: v.union(v.literal("flagged"), v.literal("lost"), v.literal("lineFlagged"), v.literal("lineMoved")),
 };
 
 export const positionsTables = {

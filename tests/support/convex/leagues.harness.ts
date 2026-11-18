@@ -57,10 +57,11 @@ export const [TEAM_1, TEAM_2, TEAM_3, TEAM_4] = Array.from({ length: TEST_LEAGUE
 
 /** The admin makes a league of `maxTeams` run by COMMISSIONER, and its scheduled link is sent.
  *  Only what is due now runs, and the clock stays put: a held season has an alarm pending for its
- *  next deadline (deadlineRecorder.ts), which running every timer would fire. */
-export async function adminCreatesLeague(t: TestConvex, maxTeams = TEST_LEAGUE_TEAMS, name = LEAGUE_NAME): Promise<Id<"leagues">> {
+ *  next deadline (deadlineRecorder.ts), which running every timer would fire. `classic` makes it a
+ *  classic league (spec/22). */
+export async function adminCreatesLeague(t: TestConvex, maxTeams = TEST_LEAGUE_TEAMS, name = LEAGUE_NAME, classic?: boolean): Promise<Id<"leagues">> {
   const admin = await actingAs(t, ADMIN);
-  const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
+  const leagueId = await admin.mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER, classic });
   await t.finishAllScheduledFunctions(() => vi.advanceTimersByTime(0));
   return leagueId;
 }

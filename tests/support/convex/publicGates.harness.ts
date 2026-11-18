@@ -163,6 +163,7 @@ export const gates: Record<string, Gate> = {
   "positions/playerPositions:approveClub": "admin",
   "positions/playerPositions:approvePlayer": "admin",
   "positions/playerPositions:find": "admin",
+  "positions/playerLines:setLine": "admin",
   "positions/playerPositions:ofPlayer": "admin",
   "positions/playerPositions:queue": "admin",
   "positions/playerPositions:removePosition": "admin",

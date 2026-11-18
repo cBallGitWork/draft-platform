@@ -121,6 +121,7 @@ beforeEach(async () => {
       "matchup/matchupGameweek:gameweeksOf": () => caller.query(api.matchup.matchupGameweek.gameweeksOf, { leagueId }),
       "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
       "playerCard/positionRank:atPosition": () => caller.query(api.playerCard.positionRank.atPosition, { leagueId, playerCode: SOME_CODE, position: "CB" }),
+      "positions/playerLines:setLine": () => caller.mutation(api.positions.playerLines.setLine, { code: SOME_CODE, line: "DEF" }),
       "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
       "positions/playerPositions:approvePlayer": () => caller.mutation(api.positions.playerPositions.approvePlayer, { code: SOME_CODE }),
       "positions/playerPositions:find": () => caller.query(api.positions.playerPositions.find, { text: SOME_TEXT }),

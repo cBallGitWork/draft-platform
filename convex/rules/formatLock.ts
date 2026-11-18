@@ -5,6 +5,7 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { seasonGameweeks } from "../gameweeks/usedGameweeks";
 import { scoredSinceMade } from "../gameweekScorer/gameweekScores";
 import { refuse } from "../shared/leagueAccess";
+import { isClassic } from "./gameMode";
 import type { LeagueRules } from "./leagueRulesShape";
 
 // A league's format is locked once its season has begun (Craig, 6 Nov 2026; #275): one table with
@@ -43,4 +44,14 @@ export async function refuseFormatChange(
   fromGameweek: number,
 ): Promise<void> {
   if (rules.format !== latest.format && (await seasonBegun(ctx, league, fromGameweek))) refuse(formatLocked(latest.format));
+}
+
+/** Why a change of classic mode is refused: it is picked when the league is made, never switched
+ *  (spec/22, `S22.2`: "classic/non classic is set up in league creation"). */
+export const classicLocked = (classic: boolean) =>
+  `Classic mode is picked when a league is made and never changes, so this league stays ${classic ? "classic" : "not classic"}.`;
+
+/** Refuses rules that change whether the league plays classic mode from `latest`'s, at any time. */
+export function refuseClassicChange(latest: LeagueRules, rules: LeagueRules): void {
+  if (isClassic(rules) !== isClassic(latest)) refuse(classicLocked(isClassic(latest)));
 }

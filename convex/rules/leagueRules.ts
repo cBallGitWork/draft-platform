@@ -13,7 +13,7 @@ import { sortedJson } from "../shared/sortedJson";
 import { changesFromAt, changesFromTimes, deadlinesOf, type ChangesFromTimes } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, seasonGameweeks } from "../gameweeks/usedGameweeks";
-import { refuseFormatChange } from "./formatLock";
+import { refuseClassicChange, refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
@@ -120,13 +120,15 @@ async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximu
 /** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, every tie-break
  *  among them (`tieBreaksOf`), its squad maximum the site's for that many teams. Refused if that
  *  many teams can't play their games a gameweek, or if that maximum leaves the rules unsound. The
- *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
+ *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. A
+ *  classic league's rules say so (spec/22, `S22.2`); no other's carry it. */
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number, classic = false): Promise<void> {
   const row = await defaultsRow(ctx);
   const held = row === null ? undefined : heldRules(row.rules);
   const defaults = held && { ...held, tieBreaks: tieBreaksOf(held) };
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
+  const { classic: _classic, ...base } = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
+  const rules: LeagueRules = classic ? { ...base, classic } : base;
   const games = rules.gamesPerGameweek;
   if (games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
   const gameweeks = await seasonGameweekCount(ctx);
@@ -199,6 +201,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const league = await getLeague(ctx, leagueId);
   await refuseUnsound(ctx, rules, league.maxTeams);
   const fromGameweek = changesFromAt(await changesFromTimesOf(ctx, leagueId, history, rules), Date.now());
+  if (latestRow !== undefined) refuseClassicChange(latestRow.rules, rules);
   if (latestRow !== undefined) await refuseFormatChange(ctx, league, latestRow.rules, rules, fromGameweek);
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
