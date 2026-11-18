@@ -68,7 +68,7 @@ const waivers: WaiversView = {
   locked: false,
   windowOpen: false,
   windowShuts: { gameweek: PREVIEW_GAMEWEEK, at: deadline },
-  resetsAfter: 10,
+  resetsAfter: PREVIEW_GAMEWEEK,
   delayed: false,
 };
 
