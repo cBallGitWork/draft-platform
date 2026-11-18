@@ -22,6 +22,7 @@ import { switchWaiverOrder } from "../waivers/waiverOrder";
 import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { pickTimeChanging } from "../draft/draftPickTime";
+import { savedWithoutCommissioner } from "../trades/tradeReviewers";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -133,7 +134,8 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
   if (games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
   const gameweeks = await seasonGameweekCount(ctx);
   asRefusal(() => checkLeagueRules(rules, gameweeks, maxTeams), (reason) => rulesRefusals.defaultsUnsound(maxTeams, reason));
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
+  const saved = savedWithoutCommissioner(await getLeague(ctx, leagueId), rules);
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: saved });
 }
 
 /** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
@@ -193,12 +195,14 @@ export async function changesFromTimesOf(ctx: QueryCtx, leagueId: Id<"leagues">,
 /** Saves `rules` as the league's from the gameweek they can take effect, and files the letter
  *  saying what changed and from when. The same rules again change nothing and file nothing.
  *  Returns that gameweek. Refused, with the reason, if someone saved the rules since `loaded` was
- *  the latest, if unsound, or if it changes the format once the season has begun. */
-async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules, loaded: Revision): Promise<number> {
+ *  the latest, if unsound, or if it changes the format once the season has begun. A league with no
+ *  commissioner saves a veto as a vote (`savedWithoutCommissioner`). */
+async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, asked: LeagueRules, loaded: Revision): Promise<number> {
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, email, latestRow, loaded);
   const league = await getLeague(ctx, leagueId);
+  const rules = savedWithoutCommissioner(league, asked);
   await refuseUnsound(ctx, rules, league.maxTeams);
   const fromGameweek = changesFromAt(await changesFromTimesOf(ctx, leagueId, history, rules), Date.now());
   if (latestRow !== undefined) refuseClassicChange(latestRow.rules, rules);

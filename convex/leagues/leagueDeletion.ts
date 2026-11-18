@@ -5,7 +5,7 @@ import type { DataModel, Doc, Id, TableNames } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../shared/leagueAccess";
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
-import { recordEvent, wholeLeague } from "../mail/letters";
+import { commissionerOrAll, recordEvent, wholeLeague } from "../mail/letters";
 import { checkSoon } from "./leagueChecks";
 import { HOUR_MS } from "../shared/time";
 import { pauseForDeletion } from "../draft/draftPause";
@@ -124,7 +124,7 @@ export const deleteLeague = mutation({
     await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId } });
     await pauseForDeletion(ctx, leagueId);
     await pauseReviews(ctx, leagueId);
-    await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt }, { only: [league.commissionerEmail, by] });
+    await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt }, { only: [...(await commissionerOrAll(ctx, league)), by] });
     return null;
   },
 });
@@ -152,7 +152,7 @@ export const undo = mutation({
       leagueId,
       email,
       { kind: "deletionUndone", name: league.name },
-      { only: [league.commissionerEmail, deletion.by, email] },
+      { only: [...(await commissionerOrAll(ctx, league)), deletion.by, email] },
     );
     return null;
   },
