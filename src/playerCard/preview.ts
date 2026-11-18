@@ -254,6 +254,10 @@ export const previewPlayerCard: PlayerCardSeam = {
   ...previewScouts,
   usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null,
   useCardAction: (_leagueId, playerCode) => cardActionOf(playerCode),
+  useReleased: (_leagueId, playerCode) => {
+    const onWaivers = playerOf(playerCode)?.onWaivers ?? null;
+    return onWaivers === null ? null : { firstRun: onWaivers.firstRun };
+  },
   usePositionRank: (_leagueId, playerCode, position) => (position === null ? undefined : rankOf(playerCode, position)),
   useWaiverChanges: () => waiverChanges,
   useOverride: () => overrideNothing,
