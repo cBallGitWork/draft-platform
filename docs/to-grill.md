@@ -111,7 +111,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
 | Polls | A league vote on a rule change. Check it isn't the chat that's out of scope |
-| Help | How the game works, for a new manager |
 
 ## Keeping this list
 
