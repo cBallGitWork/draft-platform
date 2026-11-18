@@ -107,14 +107,7 @@ describe("someone signed in, in no league", () => {
 });
 
 describe("the regression catalogue's empty states (#2306)", () => {
-  // On main the admin sees the not-in-a-league words above Create a league, not in their place
-  // (#2306 says so): marked to fail until Craig says which spec/02's "instead" means (#2358).
-  it.fails("UI-142 (spec/02 Signed in but in no league): the admin in no league opening /leagues sees Create a league in place of the not-in-a-league words", async () => {
-    openApp(LEAGUES_PATH, admin);
-    expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
-    expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
-  });
-
+  // UI-142 is S02.4's test below, under "the admin, with no part in a league".
   it("UI-143 (spec/13 Joining): a newcomer whose invite to L1 expired is told on signing in that it expired, and to ask the commissioner for a new one", async () => {
     const app = openApp(SIGN_IN_PATH, newcomer, { joining: { endedInvite: { leagueName: "L1", ended: "expired", reason: null } } });
     expect(await screen.findByText("Your invite to L1 expired. Ask the commissioner for a new one.")).toBeTruthy();
@@ -132,7 +125,7 @@ describe("the admin, with no part in a league", () => {
   });
 
   // Craig, 15 Nov 2026, on #2358: Create a league replaces the not-in-a-league words.
-  it("S02.4: in no league, sees Create a league instead of the page saying he's in none", async () => {
+  it("S02.4, UI-142: in no league, sees Create a league instead of the page saying he's in none", async () => {
     openApp(LEAGUES_PATH, admin);
     expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
