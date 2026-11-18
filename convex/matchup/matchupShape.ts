@@ -2,7 +2,7 @@ import { v, type GenericValidator, type Infer, type Validator } from "convex/val
 import { gameModeShape } from "../rules/gameMode";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
+import { areaShape, laneShape, slotLabel } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
 import { instructionLines, namedCategories, roleLine } from "../scoring/breakdownShape";
 import { roleRunShape } from "../scoring/scoringSetShape";
@@ -109,8 +109,8 @@ const role = v.object({ key: v.string(), name: v.string() });
 
 /** The slot a man plays his role in (spec/10, The matchup, as a live match: "his slot's position
  *  label and his role's run, as on the Tactics pitch"): its lane, which with his `area` is the cell
- *  his role's run (the side's `runs`) is drawn from, and its position label (pitch.ts's positionOfSlot). */
-const place = v.object({ lane: laneShape, label: slotPosition });
+ *  his role's run (the side's `runs`) is drawn from, and its label (pitch.ts's slotLabelOf: SS for the support striker). */
+const place = v.object({ lane: laneShape, label: slotLabel });
 export type MatchupPlace = Infer<typeof place>;
 
 /** A starter: a slot, his role (the one he was given, or the slot's first) and where he plays it. */

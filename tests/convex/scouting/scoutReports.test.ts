@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { positionOfSlot } from "../../../convex/lineup/pitch";
+import { slotLabelOf } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
@@ -45,7 +45,7 @@ const formationLine = async () => {
 /** The line as the team's stored lineup gives it, every starter in his slot and role. */
 const storedFormationLine = async () => {
   const row = await t.run((ctx) => ctx.db.query("lineups").withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId).eq("teamId", teamId)).first());
-  return `Manager's formation: ${row!.starters.map((starter) => `${positionOfSlot(starter)} as ${roleIn(starter, starter.role).name}`).join(", ")}.`;
+  return `Manager's formation: ${row!.starters.map((starter) => `${slotLabelOf(starter, roleIn(starter, starter.role).key)} as ${roleIn(starter, starter.role).name}`).join(", ")}.`;
 };
 
 /** The line's slots, in pitch-free order, to compare with another's. */

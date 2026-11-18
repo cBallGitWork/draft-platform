@@ -6,7 +6,7 @@
 // role is for.
 
 import type { Position } from "../positions/positionTables";
-import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
+import { positionOfSlot, SUPPORT_STRIKER_ROLE, type Cell, type SlotPosition } from "./pitch";
 
 export interface Role {
   /** Saved with a lineup, so never renamed: a new name is a new role. */
@@ -117,7 +117,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
   ],
   CAM: [
     role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Key passes", "Big chances created", "Through balls"], ["Shots off target"]),
-    role("attackingMidfieldShadowStriker", "Shadow striker", "SSA", "Runs past the striker into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Offsides"]),
+    role(SUPPORT_STRIKER_ROLE, "Shadow striker", "SSA", "Runs past the striker into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Offsides"]),
     role("carrier", "Carrier", "CAR", "Picks it up and runs straight at them, through the middle to the edge of the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
     role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker, onto their holding midfielder and then their centre-back.", ["Tackles won", "Interceptions", "Recoveries"], ["Fouls"]),
   ],
