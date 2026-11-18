@@ -38,7 +38,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 
 ## Screens
 
-- [`team`](team/README.md): My team's Tactics tab (1 Nov 2026).
+- [`team`](team/README.md): My team's Tactics tab (A10, 18 Nov 2026; first 1 Nov 2026).
 - The formation window, opened from the Tactics tab's All formations; its pictures are in `team`
   (1 Nov 2026).
 - The role card, opened from a starter's Role ▾ on the Tactics tab; its picture is in `team`

@@ -7,9 +7,12 @@ Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
 
 ## The pictures
 
-- `1440.png`: the Tactics tab at rest, nobody tapped (Tactics A9a).
-- `1440-selected.png`: Caicedo tapped, his panel open on top of the right column, his row and his
-  pitch cell marked (Tactics A9a, selected).
+- `1440.png`: the Tactics tab at rest, nobody tapped, just after a formation change (Tactics A10,
+  source `TacticsA10.dc.html`).
+- `1440-selected.png`: Caicedo tapped, his panel open on top of the right column, Rice and Tonali lit
+  as swaps with Caicedo's stars on them (Tactics A10, source `TacticsA10-Selected.dc.html`).
+- `1440-instructions-menu.png`: the Attacking ▾ open, the three 4-2-3-1 offers, each with its
+  rewards and costs (Tactics A10, source `TacticsA10-Menu.dc.html`).
 - `1440-formations.png`: the formation window opened from All formations, on Classics, with AC Milan
   picked and previewed (Formation card A8).
 - `1440-formations-presets.png`: the same window on Your presets, with 4-3-3 press picked and
@@ -25,9 +28,14 @@ thumbnail has no labels.
 
 ## Approved
 
+18 Nov 2026, Craig, of Tactics A10 (the tidy after the fresh-eyes test, #2446): "Approve A10". On the
+way: a suspended bench player still lights as a swap, his mark showing ("Light him, flag shows");
+Instructions stay as drawn when a player is picked ("Leave as drawn"); the saved time sits under
+the toolbar ("Under the toolbar").
+
 1 Nov 2026, Craig:
 
-- Tactics: "9a better, happy with that for now". Earlier, of A8: "yes a8 looking better".
+- Tactics: "9a better, happy with that for now" (A9a, replaced by A10). Earlier, of A8: "yes a8 looking better".
 - The formation window: "ok presets much better, will do for now".
 - The role card, 9 Nov 2026: "go ahead". On the way: preview then a button; the slot's fixed
   order; a tapped match shows what earned the role's points; his season per 90 for the role's
@@ -42,15 +50,19 @@ opponent, last gameweek, form, the table). Its organisation, never its colours.
 
 ## Interaction notes
 
-- A player, on the pitch or in a row: opens his panel on top of the right column, with his roles
-  for the slot, the team tactic's line for him, and Move and Player card. The cross closes it.
-- Move: picks him up, and his legal cells light (`spec/05`, Moving players): tap a lit cell to move
-  him, or a lit player to swap them.
+- A player, on the pitch or in a row: picks him up and opens his panel on top of the right column,
+  with his roles for the slot and Player card. Each player he can swap with lights at once, with his
+  stars there in cyan, on the pitch and in the table; tap a lit player to swap them, or drag him
+  onto one (`spec/05`, Moving players). There is no Move button. The cross closes it.
+- The line under the toolbar: "Saved 14:02" and what the last change did; while a player is picked
+  up, how to swap him. Undo and Quick Pick sit at its right.
 - Up and Down, on a bench player's panel: move him one place along the bench.
 - The Role ▾, on the pitch or in a row: opens the role card (`spec/05`, Roles).
 - The Formation keys (4-4-2, 4-3-3 …): reshape the pitch to that formation.
 - All formations: opens the formation window (below).
-- The Team tactic ▾: opens the team tactics the formation unlocks.
+- Attacking ▾ and Defending ▾: each lists only the instructions the formation offers, with its
+  rewards and costs (`spec/05`, Team instructions); the right column's Instructions show only the
+  two picked.
 - A preset key (4-2-3-1 balanced …): applies its formation and each slot's role.
 - Save preset…: saves the formation and each slot's role in use now, never the players.
 - Undo: back through every move since the tab was opened (`spec/05`).
@@ -86,8 +98,7 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| Team tactic: the ▾, the pitch bar's name, the right column's "4-2-3-1 unlocks" box, the pink marks on the Anchors, the panel's team tactic line | Team tactics aren't specced: they are the second release's team instructions (SPEC.md, Second release) | to-grill: Team tactic per formation |
-| The formation window's Unlocks and Costs lines | the same | to-grill: Team tactic per formation |
+| The formation window's Unlocks and Costs lines | per-formation team tactics aren't specced (SPEC.md, Second release) | to-grill: Team tactic per formation |
 | A classic's text and its Gains and Loses lines (marked sample) | Craig's own words for each | to-grill: Formation descriptions |
 | Preset names (marked sample names) | a manager's own saved presets | `spec/05`, The pitch |
 | "Last 5 in role" | what it counts; scouts decide whose stars a manager sees (#375); Role fit and the panel's stars are built (#11) | #375 |

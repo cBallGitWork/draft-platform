@@ -109,8 +109,11 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
   view, just on row"). `S05.15`
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
-- The lineup saves itself after each valid move. A line by the deadline countdown says when it
-  last did ("Lineup saved 14:02"; Craig, 1 Nov 2026).
+- The lineup saves itself after each valid move. A line under the toolbar says when it last did
+  ("Saved 14:02") and what the last change did ("Under the toolbar", Craig, 18 Nov 2026, on #2446;
+  by the deadline countdown before, 1 Nov 2026). `S05.57`
+- A suspended bench player still lights as a swap, his suspension mark on the lit row ("Light him,
+  flag shows", Craig, 18 Nov 2026, on #2446). `S05.58`
 - With Tactics open in two tabs, a save in one never replaces moves made in the other: the older
   tab is told the lineup changed and reloads it before saving, so no move is lost ("Reload
   first"; Craig, 15 Nov 2026, on #2350). `S05.55`
