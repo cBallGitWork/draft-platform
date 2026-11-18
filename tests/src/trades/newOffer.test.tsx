@@ -131,7 +131,7 @@ describe("a new offer", () => {
     expect(within(table).getByText(groupWords.inReview)).toBeTruthy();
   });
 
-  it("S08.29: marks a player held in a league vote With the league, one under a veto as its group does", async () => {
+  it("S08.29: marks a player held in a league vote with the vote's group words, one under a veto with the veto's", async () => {
     const mine = { ...screenTeam(MY_TEAM, "Team 1", []), players: [{ ...SAKA, held: "vote" as const }, { ...RICE, held: "coCommissioner" as const }] };
     openNewOffer({ view: { ...quietTrades, teams: [mine, quietTrades.teams[1]] } });
     const table = await screen.findByRole("table", { name: squadTableLabel("Team 1") });
@@ -193,7 +193,7 @@ describe("a pick offer (#1096)", () => {
   const send = () =>
     screen.getByRole<HTMLButtonElement>("button", { name: sendOfferWords });
 
-  it("S08.29: lists each team's picks under its squad, one traded to it via its team, one held in a league vote greyed With the league", async () => {
+  it("S08.29: lists each team's picks under its squad, one traded to it via its team, one held in a league vote greyed with the vote's group words", async () => {
     openNewOffer({ view: beforeDraft });
     const mine = await picksTable("Team 1");
     const [own, via] = mine.getAllByRole("rowheader");
