@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
+import { heldChanges, heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
 
 // A league's rules history (spec/03; #25), read: its rows, and the rules in force in a gameweek.
 // leagueRules.ts saves the changes, each in the form `savedForm` gives.
@@ -49,12 +49,12 @@ export function savedForm(rules: LeagueRules, changed: readonly (keyof LeagueRul
 function rulesOfRow(
   before: LeagueRules | undefined,
   whole: Doc<"leagueRules">["rules"],
-  changes: RulesChanges | undefined,
+  changes: Doc<"leagueRules">["changes"],
   rowId: Id<"leagueRules">,
 ): LeagueRules {
   if (whole !== undefined) return heldRules(whole);
   if (changes === undefined || before === undefined) throw new Error(`Rules row ${rowId} holds changes with no rules before them`);
-  return { ...before, ...changes };
+  return { ...before, ...heldChanges(changes) };
 }
 
 /** The row in force in this gameweek: the latest to take effect at or before it, and of two from
@@ -86,23 +86,35 @@ function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gam
   return row.rules;
 }
 
-/** The league's rules in force while `begun` is the latest gameweek it has begun, or with none begun
+/** The rules in force while `begun` is the latest gameweek the league has begun, or with none begun
  *  (null), those its first gameweek starts on; a change waiting for a later gameweek isn't among
- *  them. What trades read: their review and deadline change from the next gameweek, like any rule
- *  (spec/03; #25, #1473). */
-export async function rulesSinceBegun(ctx: QueryCtx, leagueId: Id<"leagues">, begun: number | null): Promise<LeagueRules> {
-  const history = await historyOf(ctx, leagueId);
+ *  them. */
+function rulesSince(history: readonly RulesRow[], leagueId: Id<"leagues">, begun: number | null): LeagueRules {
   const first = (history[0] ?? newestRow(history, leagueId)).fromGameweek;
   return rulesInForce(history, leagueId, Math.max(begun ?? first, first));
 }
 
-/** The league's rules over the season: its latest, a waiting change's among them, and those in
- *  force in each gameweek. */
-export type SeasonRules = { latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules };
+/** The league's `rulesSince` from its history. What trades read: their review and deadline change
+ *  from the next gameweek, like any rule (spec/03; #25, #1473). */
+export async function rulesSinceBegun(ctx: QueryCtx, leagueId: Id<"leagues">, begun: number | null): Promise<LeagueRules> {
+  return rulesSince(await historyOf(ctx, leagueId), leagueId, begun);
+}
+
+/** The league's rules over the season: its latest, a waiting change's among them, those in force in
+ *  each gameweek, and those in force while a gameweek is the latest begun (`rulesSince`). */
+export type SeasonRules = {
+  latest: LeagueRules;
+  inGameweek: (gameweek: number) => LeagueRules;
+  sinceBegun: (begun: number | null) => LeagueRules;
+};
 
 /** The league's SeasonRules from one read of its history, as the fixtures read them (#266). */
 export async function seasonRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<SeasonRules> {
   const history = await historyOf(ctx, leagueId);
   const latest = newestRow(history, leagueId);
-  return { latest: latest.rules, inGameweek: (gameweek) => rulesInForce(history, leagueId, gameweek) };
+  return {
+    latest: latest.rules,
+    inGameweek: (gameweek) => rulesInForce(history, leagueId, gameweek),
+    sinceBegun: (begun) => rulesSince(history, leagueId, begun),
+  };
 }

@@ -17,8 +17,15 @@ Among them:
   has begun, and League settings says why: one table with one meaning all season (Craig, 6 Nov
   2026: "Locked once the season starts"; #275). With a scoring start (`spec/04`, After the
   draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW"). `S03.1`
-- Play-offs: how many teams, how many legs.
+- Play-offs: how many teams, how many legs. `S03.6`
 - Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down"). `S03.2`
+- Every league has all three tie-breaks, Points for, Head-to-head and Points against, in its own
+  order, starting in that order. A league saved with fewer keeps its own first and gets the rest
+  after them from the next gameweek, so a table already played doesn't change (Craig, 15 Nov 2026,
+  on #1034). `S03.8`
+- A change of the tie-breaks counts from the next gameweek, so a table already played doesn't
+  change: two teams level on points and points for keep their places until that gameweek begins
+  (Craig, 15 Nov 2026, on #1034 and #2279). `S03.9`
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
@@ -36,11 +43,14 @@ Among them:
 - The deadline: when it falls, as a time before the gameweek's first kickoff, starting at 15
   minutes before: "i have said multiple times we dont use fpls time, its 15 minutes" (Craig,
   9 Nov 2026, on #1196; see [5. Tactics](05-tactics.md)). `S03.3`
-- Each area's minimum and maximum on the pitch, and the formation presets.
+- Across a clock change, the deadline keeps the same real-time gap before the first kickoff: a
+  24-hour deadline before a 14:00 UK kickoff on the Sunday the clocks go back falls at 15:00 UK on
+  the Saturday (Craig, 15 Nov 2026, on #2168: "Same gap"). `S03.7`
+- Each area's minimum and maximum on the pitch, and the formation presets. `S03.10`
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
   at 18:00 UK time by default. The waiver order: reverse table order (the default), or rotating,
-  which never resets (`spec/08`).
+  which never resets (`spec/08`). `S03.5`
 - The draft clock (see [4. The draft](04-the-draft.md)).
 - Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).

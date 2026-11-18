@@ -79,7 +79,7 @@ export const STILL_IMPORTING_SCHEMA: string[] = [
 /** Files three or more other features import (rule 5), without the extension. Each goes when it
  *  moves to shared/ or ui/, or its users drop to two. */
 export const STILL_USED_BY_THREE: string[] = [
-  "convex/admin/feedFailureEmails",
+  "convex/admin/feedStatuses",  // feedFailureEmails' users, which log runs through its afterRunLogged since #2500
   "convex/admin/platformSettings",
   "convex/admin/sideRuns",  // matchup/thresholdSteps reads its SideMatchOutcome type since #2068
   "convex/draft/draftRow",

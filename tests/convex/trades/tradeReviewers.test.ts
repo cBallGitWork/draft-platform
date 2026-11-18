@@ -3,15 +3,18 @@ import { api } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { reviewRefusals } from "../../../convex/trades/tradeReview";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, ADMIN, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
+import { nameOf } from "../../support/convex/lineupSquad.harness";
+import { tradesOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade in review under a commissioner veto follows the role, not the person (#1472; Craig,
 // 11 Nov 2026; S08.12): when the commissioner or co-commissioner changes, whoever reviews it now gets the
 // review letter, sees it in To review and may Block it; the one who left may not; the 24 hours
-// don't restart. With nobody left who may block it, it goes to a league vote.
+// don't restart. With nobody left who may block it, it goes to a league vote. The admin may
+// always Block it too (spec/15, The admin; S08.28).
 
 const NEW_COMMISSIONER = "newcommissioner@example.com";
 const BLOCK_IT = `Block the trade between ${TEAM_1} and ${TEAM_2}?`;
@@ -27,7 +30,7 @@ const nameCommissioner = async (email: string) =>
 const nameCoCommissioner = async (email: string | null, by = COMMISSIONER) =>
   (await actingAs(w.t, by)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId: w.leagueId, email });
 const offersTab = async (email: string) =>
-  (await (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, now: Date.now() })).offers;
+  (await tradesOf(await actingAs(w.t, email), w.leagueId)).offers;
 
 describe("when the league is handed to a new commissioner during a review", () => {
   test("the new commissioner gets the review letter, sees it in To review, and may Block it; the 24 hours don't restart", async () => {
@@ -113,4 +116,17 @@ test("a change that leaves the reviewer as he was files no new letter", async ()
 
   expect((await w.subjectsTo(COMMISSIONER)).filter((subject) => subject === BLOCK_IT)).toHaveLength(1);
   expect(await w.subjectsTo(CO_COMMISSIONER)).not.toContain(BLOCK_IT);
+});
+
+test("S08.28: the admin sees a vetoed trade in To review and blocks it as its reviewer can, and the letter names the admin", async () => {
+  const offerId = await w.annTradesForSaka();
+  expect(await w.toReview(ADMIN)).toEqual([expect.objectContaining({ offerId, yours: "block" })]);
+  await w.block(ADMIN, offerId);
+
+  expect(await w.squadCodes(w.bobsTeam)).toContain(SAKA);
+  expect(await w.offers()).toEqual([]);
+  expect(await w.lettersTo(CAT)).toContainEqual({
+    subject: `The trade between ${TEAM_1} and ${TEAM_2} was blocked`,
+    body: `${ADMIN} blocked it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
+  });
 });

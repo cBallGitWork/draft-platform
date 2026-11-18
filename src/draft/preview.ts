@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import { previewListedPlayer, previewPlayers, previewPlayersListOf } from "../scouting/preview";
+import { ARSENAL, CHELSEA, LIVERPOOL, previewListedPlayer, previewPlayersListOf } from "../scouting/preview";
 import { previewDone } from "../shared/preview";
 import { previewLists, previewListsPlayers, setPreviewPlayers, usePreviewAutoPick } from "./previewLists";
 import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
@@ -56,11 +56,22 @@ const TRADED = [{ round: 5, teamId: order[2].teamId, ownerId: order[1].teamId }]
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
-/** The room's players: Scouting's preview players and the ones its queue and do-not-draft list
- *  start with, so every player on a list is in the list (#1969). His panel's Add to queue finds
- *  any of them. */
+/** The room's own seven, by Scouting's preview codes: the draft is its own moment, before the Pro
+ *  League's season (#2450), so Saka Potatoes holds only Saka. */
+const UNDRAFTED = [
+  previewListedPlayer(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
+  previewListedPlayer(2, "Rice", "Declan Rice", ARSENAL, ["CDM", "CM"]),
+  previewListedPlayer(3, "Raya", "David Raya Martín", ARSENAL, ["GK"]),
+  previewListedPlayer(4, "Palmer", "Cole Palmer", CHELSEA, ["CAM", "W"], "Kroos Control"),
+  previewListedPlayer(5, "James", "Reece James", CHELSEA, ["FB", "WB"]),
+  previewListedPlayer(6, "Salah", "Mohamed Salah", LIVERPOOL, ["W", "ST"]),
+  previewListedPlayer(7, "Van Dijk", "Virgil van Dijk", LIVERPOOL, ["CB"]),
+];
+
+/** The room's players: its seven and the ones its queue and do-not-draft list start with, so every
+ *  player on a list is in the list (#1969). His panel's Add to queue finds any of them. */
 const ROOM_PLAYERS = [
-  ...previewPlayers,
+  ...UNDRAFTED,
   ...previewListsPlayers.map(({ code, name, fullName, club, position }) => previewListedPlayer(code, name, fullName, club, position === null ? [] : [position])),
 ];
 setPreviewPlayers(ROOM_PLAYERS);

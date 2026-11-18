@@ -34,9 +34,10 @@ export const sideName = (side: { kind: "team"; teamName: string } | { kind: Excl
 export { provisionalWords } from "../shared/match/words";
 export const finalWords = "Final";
 
-/** A fixture's link to its matchup, from the table's fixtures and league home's head-to-heads. */
-export const matchupLinkLabel = (team: string, opponent: string | null, gameweek: number) =>
-  `${team} ${versusWords} ${opponent ?? leagueAverageWords}, ${gameweekWords(gameweek)}: the matchup`;
+/** A fixture's link to its matchup, from the table's fixtures and league home's head-to-heads: what
+ *  it shows first, its score or "v" (WCAG 2.5.3; S12.14). */
+export const matchupLinkLabel = (shown: string, team: string, opponent: string | null, gameweek: number) =>
+  `${shown}, ${team} ${versusWords} ${opponent ?? leagueAverageWords}, ${gameweekWords(gameweek)}: the matchup`;
 
 /** The switch between a team's games in a gameweek, in a league playing more than one (#521):
  *  "Game 1 v Dave", or "Game 2 bye". */
@@ -116,6 +117,9 @@ export { notCountingLabel } from "../shared/match/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
+/** His tile's button: the words the tile shows first, in its order, so a voice saying what it sees
+ *  reaches him (WCAG 2.5.3; S12.14), then what it opens: "67' 9 6 Palmer ST Poacher, Palmer: why his points". */
+export const tileButtonLabel = (shown: string, name: string) => `${shown}, ${openBreakdownLabel(name)}`;
 export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved

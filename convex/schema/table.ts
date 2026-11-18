@@ -5,7 +5,7 @@ import { LEAGUE_AVERAGE } from "../table/roundRobin";
 /** A gameweek's head-to-head fixtures, and the teams left over with a bye. */
 const gameweekGames = {
   fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
-  /** The teams left over with a bye, in a league whose odd team out has one. */
+  /** The teams left over with a bye: only in a gameweek stored before Craig dropped the bye (S03.4). */
   byes: v.array(v.id("teams")),
 };
 
@@ -40,10 +40,6 @@ export const tableTables = {
     gameweek: v.number(),
     teamId: v.id("teams"),
     points: v.number(),
-    /** No longer written or read: it marked a team that held no lineup in a gameweek begun before
-     *  #637, so scored 0. The #1040 backfill (migrations/firstLineupBackfill.ts) takes it off every
-     *  row, and once it has run on each deployment this field can go. */
-    noLineup: v.optional(v.boolean()),
     /** The gameweek's matches it was scored from: a match moved in or out since reopens it. */
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),

@@ -1,6 +1,6 @@
 // League settings' Fixtures tab (#1034, docs/design/approved/settings/1440.png): the format (S03.1),
 // double gameweeks, the deadline (S03.3) and the table's tie-breaks, moved Up and Down (S03.2),
-// saved with the rest of the settings. The
+// saved with the rest of the settings, and the play-offs' placeholders (S03.6). The
 // odd team out and games a gameweek are leagueSettings.test.tsx's; the scoring start,
 // leagueSettings.scoringStart.test.tsx's.
 
@@ -17,6 +17,9 @@ import {
   formatWords,
   moveDownLabel,
   moveUpLabel,
+  playOffLegsLabel,
+  playOffTeamsLabel,
+  tableTitle,
   tieBreaksLabel,
   tieBreakWords,
 } from "../../../src/leagueSettings/words";
@@ -95,5 +98,19 @@ describe("the tie-breaks", () => {
     await save();
 
     expect(savedSettings(app).tieBreaks).toEqual(moved);
+  });
+});
+
+describe("the play-offs, which no rule holds yet (S03.6)", () => {
+  it("LG-192 S03.6: Play-off teams and Play-off legs sit in the Table panel as greyed, empty placeholders", async () => {
+    await openedSettings();
+    const table = within(screen.getByRole("region", { name: tableTitle }));
+
+    for (const label of [playOffTeamsLabel, playOffLegsLabel]) {
+      const placeholder = table.getByRole("textbox", { name: label }) as HTMLInputElement;
+      expect(placeholder.disabled).toBe(true);
+      expect(placeholder.value).toBe("");
+      expect(table.getByText(label).className).toContain("text-muted");
+    }
   });
 });

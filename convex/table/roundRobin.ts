@@ -11,14 +11,9 @@
 
 import { shuffle } from "../shared/shuffle";
 
-/** With an odd number of teams, what the team left over plays each gameweek: no one, or the
- *  league's average score that gameweek (spec/09). A league's rule (spec/03), stored as data. */
-export const ODD_TEAM_OUTS = ["bye", "leagueAverage"] as const;
-export type OddTeamOut = (typeof ODD_TEAM_OUTS)[number];
-
-/** A league's rules for its round robin, in one gameweek. */
+/** A league's rules for its round robin, in one gameweek. With an odd number of teams, the team
+ *  left over plays the league's average: there is no bye (S03.4, S09.4), so that is no rule. */
 export type DrawRules = {
-  oddTeamOut: OddTeamOut;
   /** How many games each team plays a gameweek (spec/09): a league's rule, 1 or more. */
   gamesPerGameweek: number;
 };
@@ -26,7 +21,7 @@ export type DrawRules = {
 /** The fewest teams a round robin is drawn for: a fixture needs two. */
 export const FEWEST_TO_DRAW = 2;
 
-/** The opponent of the team left over, in a league whose odd team out plays the average. */
+/** The opponent of the team left over: the league's average score that gameweek (spec/09). */
 export const LEAGUE_AVERAGE = "leagueAverage";
 
 export type Fixture<Team> = { team: Team; opponent: Team | typeof LEAGUE_AVERAGE };
@@ -39,7 +34,8 @@ export const namedFixture = <Team>({ team, opponent }: Fixture<Team>, named: (te
 export type GameweekFixtures<Team> = {
   gameweek: number;
   fixtures: Fixture<Team>[];
-  /** The teams left over, in a league whose odd team out has a bye: one a game. */
+  /** The teams left over with no one to play: only in a gameweek stored before the bye was dropped
+   *  (S03.4), as the draw gives none. */
   byes: Team[];
 };
 
@@ -67,7 +63,7 @@ export function roundsOf<Team>(teams: readonly Team[]): Round<Team>[] {
 
 /** How many rounds one round robin of `teamCount` teams has (`roundsOf`), so the most games a team
  *  can play in a gameweek: one against each other team, and with an odd number, one more for the
- *  team left over, against the league's average or a bye. */
+ *  team left over, against the league's average. */
 export const roundsInARoundRobin = (teamCount: number) => (teamCount % 2 === 0 ? teamCount - 1 : teamCount);
 
 /** The games each team plays a gameweek: the league's number, but never more than one round
@@ -93,16 +89,10 @@ export function drawFixtures<Team>(
     seed,
   );
   return gameweeks.map((gameweek, index) => {
-    const fixtures: Fixture<Team>[] = [];
-    const leftOver: Team[] = [];
-    for (const round of order[index]) {
-      for (const [team, opponent] of rounds[round]) {
-        if (opponent !== null) fixtures.push({ team, opponent });
-        else if (rules[index].oddTeamOut === "leagueAverage") fixtures.push({ team, opponent: LEAGUE_AVERAGE });
-        else leftOver.push(team);
-      }
-    }
-    return { gameweek, fixtures, byes: leftOver };
+    const fixtures = order[index].flatMap((round) =>
+      rounds[round].map(([team, opponent]): Fixture<Team> => ({ team, opponent: opponent ?? LEAGUE_AVERAGE })),
+    );
+    return { gameweek, fixtures, byes: [] };
   });
 }
 

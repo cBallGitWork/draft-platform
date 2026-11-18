@@ -6,7 +6,7 @@ import { isMatchComplete, isWhole, lockTime, statChanges, withCutOffHeld, type P
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
-import { emailIfFailed } from "../admin/feedFailureEmails";
+import { afterRunLogged } from "../admin/feedStatuses";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
@@ -14,7 +14,7 @@ import { playerByCode } from "../shared/players";
 import { datedCodes, fixtureByCode, gameweekFixtures } from "../shared/fixtures";
 import { isAbandoned, matchRecordsOf } from "./matchRecordReads";
 import { rescoreEveryLive } from "../table/liveRescore";
-import { livePrintsOf, sameRecord, undelayPoints } from "./livePrints";
+import { delayPoints, livePrintsOf, sameRecord, undelayPoints } from "./livePrints";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -64,10 +64,11 @@ export const upsertMatch = internalMutation({
     // A match read live until now is counted nowhere yet (#2006): its compact row goes, so a
     // totals rebuild from here counts it, and every record it holds is counted below.
     if (prints !== null) await ctx.db.delete("liveMatchPrints", prints._id);
-    await undelayPoints(ctx, fixtureCode);
     const counted = prints === null ? held : new Map<number, Doc<"playerMatchStats">>();
-    // A read cut off for a man keeps his held record, and the match provisional (`S10.12`).
+    // A read cut off for a man keeps his held record, the match provisional and its points delayed (`S10.12`).
     const { records, cutOff } = withCutOffHeld(sent, held);
+    if (cutOff) await delayPoints(ctx, fixtureCode, readAt);
+    else await undelayPoints(ctx, fixtureCode);
     const complete = !cutOff && isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
     const fullTimeAt = status?.fullTimeAt ?? readAt;
@@ -160,7 +161,7 @@ export const record = internalMutation({
   handler: async (ctx, { unseenFrom, ...row }) => {
     await ctx.db.insert("matchStatsSyncs", row);
     if (unseenFrom !== undefined) await storeUnseenFrom(ctx, unseenFrom);
-    await emailIfFailed(ctx, "matchStats", row);
+    await afterRunLogged(ctx, "matchStats", row);
     if (!row.outcome.ok) return null;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
       const tried = await triedOf(ctx, fixtureCode);

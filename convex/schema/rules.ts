@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { rulesChangesShape, storedLeagueRulesShape } from "../rules/leagueRulesShape";
+import { storedLeagueRulesShape, storedRulesChangesShape } from "../rules/leagueRulesShape";
 import { squadMaximumBandShape } from "../rules/squadMaximums";
 
 // A league's rules (#25, spec/03). Each change is a new row from the gameweek it takes effect, so
@@ -12,7 +12,7 @@ export const leagueRulesTables = {
     leagueId: v.id("leagues"),
     fromGameweek: v.number(),
     rules: v.optional(storedLeagueRulesShape),
-    changes: v.optional(rulesChangesShape),
+    changes: v.optional(storedRulesChangesShape),
   }).index("by_leagueId_and_fromGameweek", ["leagueId", "fromGameweek"]),
   /** One row: the rules the admin gives each new league. */
   defaultLeagueRules: defineTable({ rules: storedLeagueRulesShape }),

@@ -8,17 +8,23 @@ import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 const HASH = "sha256";
 
+/** A checkout with no kit files whose pin is `pin`: an object written as JSON, a string as given. */
+function checkoutPinnedAs(pin) {
+  const root = scratchDir("studio-kit-");
+  mkdirSync(dirname(join(root, PIN_PATH)), { recursive: true });
+  writeFileSync(join(root, PIN_PATH), typeof pin === "string" ? pin : JSON.stringify(pin));
+  return root;
+}
+
 /** A checkout holding `files` ({path: text}), pinned to those texts. */
 function pinnedCheckout(files) {
-  const root = scratchDir("studio-kit-");
   const pinned = {};
+  for (const [path, text] of Object.entries(files)) pinned[path] = createHash(HASH).update(text).digest("hex");
+  const root = checkoutPinnedAs({ studio: "abc1234", hash: HASH, files: pinned });
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), text);
-    pinned[path] = createHash(HASH).update(text).digest("hex");
   }
-  mkdirSync(dirname(join(root, PIN_PATH)), { recursive: true });
-  writeFileSync(join(root, PIN_PATH), JSON.stringify({ studio: "abc1234", hash: HASH, files: pinned }));
   return root;
 }
 
@@ -56,4 +62,23 @@ test("the helpers Forge's copy-kit shares: line-ending-blind hash, safe paths, a
   expect(readPin(root).pin.studio).toBe("abc1234");
   writeFileSync(join(root, PIN_PATH), "{ broken");
   expect(readPin(root).problem).toMatch(/not valid JSON/);
+});
+
+test.each([
+  ["invalid JSON", "{ broken", `${PIN_PATH} is not valid JSON (`],
+  ["JSON null", "null", `${PIN_PATH} has no "files" list: copy the kit in again`],
+  ["no files", { studio: "abc1234", hash: HASH }, `${PIN_PATH} has no "files" list: copy the kit in again`],
+  ["files as a list", { studio: "abc1234", hash: HASH, files: ["a.py"] }, `${PIN_PATH} has no "files" list: copy the kit in again`],
+  ["files null", { studio: "abc1234", hash: HASH, files: null }, `${PIN_PATH} has no "files" list: copy the kit in again`],
+  ["an unknown hash", { studio: "abc1234", hash: "sha999", files: {} }, `${PIN_PATH} names an unknown hash "sha999": copy the kit in again`],
+  [
+    "paths outside the project",
+    { studio: "abc1234", hash: HASH, files: { "a.py": "x", "../up.py": "x", "/etc/x": "x" } },
+    `${PIN_PATH} lists paths outside the project (../up.py, /etc/x): copy the kit in again`,
+  ],
+])("a pin with %s gives one problem line instead of throwing", (_, pin, line) => {
+  const root = checkoutPinnedAs(pin);
+  expect(() => readPin(root)).not.toThrow();
+  expect(readPin(root).problem.startsWith(line)).toBe(true);
+  expect(kitProblems(root)).toEqual([readPin(root).problem]);
 });

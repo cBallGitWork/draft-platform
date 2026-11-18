@@ -5,7 +5,7 @@ import { internalMutation, type MutationCtx } from "../_generated/server";
 import { GAMEWEEKS_MOST } from "../gameweeks/usedGameweeks";
 import { fileLetter } from "../mail/letters";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
-import { heldRules, type LeagueRules, type RulesChanges } from "../rules/leagueRulesShape";
+import { heldChanges, heldRules, type LeagueRules, type RulesChanges } from "../rules/leagueRulesShape";
 import { historyOf, RULES_CHANGES_MOST } from "../rules/rulesHistory";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { getLeague, teamsOf } from "../shared/leagueAccess";
@@ -124,7 +124,7 @@ async function redrawRulesRows(ctx: MutationCtx, leagueId: Id<"leagues">): Promi
     if (row.rules !== undefined) {
       if (!sameValue(redrawn, heldRules(row.rules))) await ctx.db.patch("leagueRules", row._id, { rules: redrawn });
     } else if (row.changes !== undefined) {
-      const changes = Object.fromEntries(Object.keys(row.changes).map((part) => [part, redrawn[part as keyof LeagueRules]])) as RulesChanges;
+      const changes = Object.fromEntries(Object.keys(heldChanges(row.changes)).map((part) => [part, redrawn[part as keyof LeagueRules]])) as RulesChanges;
       if (!sameValue(changes, row.changes)) await ctx.db.patch("leagueRules", row._id, { changes });
     }
   }

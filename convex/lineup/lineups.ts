@@ -17,14 +17,14 @@ import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { gameModeOf } from "../rules/gameMode";
 import { starsLookupIn } from "../stars/playerStars";
 import { heldCell } from "./pitch";
-import { roleIn } from "./roles";
+import { onCutRole, withCutRolesDropped } from "../stars/bestRole";
 import { inClassicFormationShape } from "./classicFormations";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
 import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";
-import { rowInForce, writeRowFor } from "./lineupRows";
+import { basedOnShape, changedSince, rowInForce, writeRowFor } from "./lineupRows";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
 // whose league deadline hasn't passed, and the lineup in a gameweek is the newest row from it or
@@ -163,7 +163,7 @@ async function checkedSquad(ctx: QueryCtx, teamId: Id<"teams">, lineup: SentLine
 
 /** Refused, with every reason, if the lineup can't stand under the rules, short of a starter who
  *  lost a position and is left where he stood: he doesn't stop the rest saving (#1589), and is
- *  returned as kept. */
+ *  returned as kept. Returns the starters' positions with them. */
 async function checkedPositions(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
@@ -172,11 +172,11 @@ async function checkedPositions(
   existing: Doc<"lineups"> | null,
   fromGameweek: number,
   nameOf: NameOf,
-): Promise<number[]> {
+): Promise<{ kept: number[]; positions: PlayerPositions }> {
   const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
   const { problems, kept } = withUnmovedSetAside(lineupProblems(lineup, positions, rules), lineup.starters, existing, fromGameweek);
   if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
-  return kept;
+  return { kept, positions };
 }
 
 /** Refused if the team instructions sent can't be picked in the starters' cells. None sent is
@@ -190,18 +190,18 @@ function checkInstructions(lineup: SentLineup, rules: LeagueRules): void {
   if (refusal !== null) refuse(pairRefusalWords(refusal, set));
 }
 
-/** The starters as saved. lineupProblems refused any role another slot offers; a role removed
- *  from the set is saved as the one he plays (#841). */
-function withRolesFixed(starters: SentLineup["starters"]) {
-  return starters.map(({ role, ...starter }) => {
-    const cell = heldCell(starter);
-    return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
-  });
+/** The starters as saved. lineupProblems refused any role another slot offers; a starter on a role
+ *  removed from the set is saved on the role he'd get dropped into his slot on, his best-star one
+ *  (spec/05 `S05.53`; #841, #2299). */
+async function withRolesFixed(ctx: QueryCtx, starters: SentLineup["starters"], positions: PlayerPositions, rules: LeagueRules) {
+  const placed = starters.map(({ playerCode, role, ...cell }) => ({ playerCode, ...heldCell(cell), ...(role !== undefined && { role }) }));
+  const onCut = placed.filter(onCutRole).map(({ playerCode }) => playerCode);
+  return withCutRolesDropped(placed, positions, await starsLookupIn(ctx, onCut, gameModeOf(rules)));
 }
 
 /** Refused if the classic formation picked isn't the league's, or the starters don't stand in its
  *  cells: a classic formation's shape never changes (spec/05; #991). */
-function checkClassic(classic: string | undefined, starters: ReturnType<typeof withRolesFixed>, rules: LeagueRules): void {
+function checkClassic(classic: string | undefined, starters: Awaited<ReturnType<typeof withRolesFixed>>, rules: LeagueRules): void {
   if (classic === undefined) return;
   const held = classicFormationsOf(rules).find(({ name }) => name === classic);
   if (held === undefined) refuse(lineupRefusals.noSuchClassicFormation(classic));
@@ -212,29 +212,30 @@ function checkClassic(classic: string | undefined, starters: ReturnType<typeof w
  *  over from there; a second save before the same deadline replaces the first. Returns that
  *  gameweek. Refused, with every reason, if a player isn't in the squad, a squad player is left
  *  out, or the lineup can't stand under the league's rules in force in that gameweek, short of a
- *  starter who lost a position left where he stood (lineup.ts `withUnmovedSetAside`). */
+ *  starter who lost a position left where he stood, or made from a lineup another Tactics tab has
+ *  saved over since (`basedOn`; spec/05 `S05.55`, #2350). */
 export const save = mutation({
-  args: { leagueId: v.id("leagues"), lineup: sentLineup },
+  args: { leagueId: v.id("leagues"), lineup: sentLineup, basedOn: v.optional(basedOnShape) },
   returns: v.number(),
-  handler: async (ctx, { leagueId, lineup }) => {
+  handler: async (ctx, { leagueId, lineup, basedOn }) => {
     const { league, team } = await managerOf(ctx, leagueId);
     const { fromGameweek, rules } = await openSaveGameweek(ctx, league, Date.now());
-    const nameOf = await checkedSquad(ctx, team._id, lineup);
     const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
-    const keptOutOfPosition = await checkedPositions(ctx, leagueId, lineup, rules, existing, fromGameweek, nameOf);
+    if (basedOn !== undefined && changedSince(existing, basedOn)) refuse(lineupRefusals.changedElsewhere);
+    const nameOf = await checkedSquad(ctx, team._id, lineup);
+    const { kept: keptOutOfPosition, positions } = await checkedPositions(ctx, leagueId, lineup, rules, existing, fromGameweek, nameOf);
     checkInstructions(lineup, rules);
-    const starters = withRolesFixed(lineup.starters);
-    const { classic, instructions } = lineup;
-    checkClassic(classic, starters, rules);
+    const starters = await withRolesFixed(ctx, lineup.starters, positions, rules);
+    checkClassic(lineup.classic, starters, rules);
     // The manager's own from here: no squad change picks it again.
     await writeRowFor(ctx, leagueId, team._id, fromGameweek, existing, () => ({
       starters,
       bench: lineup.bench,
-      classic,
-      instructions,
+      classic: lineup.classic,
+      instructions: lineup.instructions,
       keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined,
       firstLineup: undefined,
-    }));
+    }), basedOn?.tab);
     return fromGameweek;
   },
 });

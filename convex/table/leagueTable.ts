@@ -58,7 +58,8 @@ const gameweekFixtures = v.object({
   /** Each with its opponent's own id too, null for the league's average: a commissioner's fixture
    *  swap names both sides of each game (spec/09, Fixture edits). */
   fixtures: v.array(v.object({ ...scoredFixture.fields, opponentId: v.union(v.id("teams"), v.null()) })),
-  /** The teams with a bye, in a league whose odd team out has one: one a game. */
+  /** The teams with a bye, one a game: only in a gameweek played before Craig dropped the bye
+   *  (S03.4). */
   byes: v.array(v.string()),
 });
 
@@ -96,10 +97,11 @@ export type LeagueTable = Infer<typeof leagueTable>;
 
 /** What a league's table and fixtures are drawn from, as `ofLeague` and league home read them:
  *  the latest rules, the teams, the head-to-head schedule (none in total points), each team's points
- *  in each gameweek begun and those that couldn't be scored (gameweekScores.ts), and the table they
- *  make. */
+ *  in each gameweek begun and those that couldn't be scored (gameweekScores.ts), the tie-breaks the
+ *  table ranks by, and the table they make. */
 export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, read: Parameters<typeof leagueScores>[4] = {}) {
-  // The format and tie-breaks are the latest rules'; the draw is each gameweek's own.
+  // The format is the latest rules' (locked once the first gameweek begins, S03.1); the draw is each
+  // gameweek's own.
   const rules = season.latest;
   const teams = await teamsOf(ctx, league._id);
   const teamIds = teams.map((team) => team._id);
@@ -110,9 +112,13 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds, read);
   const scores = pointsOf(results);
-  const table = tableOf(rules.format, teamIds, schedule, scores, rules.tieBreaks);
+  // The tie-breaks in force in the latest gameweek begun: a change of them, saved from the next
+  // gameweek, shows once that gameweek begins, so a table already played doesn't change (S03.9).
+  const begun = [...results.keys(), ...unscored.map(({ gameweek }) => gameweek)];
+  const { tieBreaks } = season.sinceBegun(begun.length === 0 ? null : Math.max(...begun));
+  const table = tableOf(rules.format, teamIds, schedule, scores, tieBreaks);
   const autoTeams = new Set(teams.filter(onAutoTeam).map((team) => team._id));
-  return { rules, teamIds, schedule, results, unscored, scores, table, named, autoTeams };
+  return { rules, teamIds, schedule, results, unscored, scores, tieBreaks, table, named, autoTeams };
 }
 
 /** The league's fixtures by gameweek and its table. */

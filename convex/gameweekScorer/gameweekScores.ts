@@ -151,12 +151,15 @@ export async function leagueScores(
       result.scores.set(gameweek, scores);
       if (toStore !== null) result.finalUnstored.push({ gameweek, ...toStore });
     } catch (error) {
-      const reason = logFailure(`${leagueLabel(league)} can't score gameweek ${gameweek}`, error);
+      const reason = logFailure(cantScoreGameweek(league, gameweek), error);
       result.unscored.push({ gameweek, reason });
     }
   }
   return result;
 }
+
+/** Why a league's gameweek has no score, as the table and its live row both say it. */
+export const cantScoreGameweek = (league: Doc<"leagues">, gameweek: number) => `${leagueLabel(league)} can't score gameweek ${gameweek}`;
 
 /** One gameweek of the league scored (spec/07). */
 export interface ScoredGameweek {

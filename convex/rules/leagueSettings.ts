@@ -17,14 +17,20 @@ export const settingsRefusals = {
 
 /** The league's settings as League settings edits them, as `editorView` reads them, with how many
  *  gameweeks the season has, the latest a trade deadline can be (#1618). It takes no minute: the
- *  screen judges the gameweek a change takes effect from at its own (#2008). */
+ *  screen judges the gameweek a change takes effect from at its own (#2008). And the league's
+ *  formation presets by name, which it shows but doesn't edit (#2504). */
 export const settings = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.object({ ...editorViewOf(leagueSettingsShape).fields, seasonGameweeks: v.number() }),
-  handler: async (ctx, { leagueId }) => ({
-    ...(await editorView(ctx, leagueId, leagueSettingsOf)),
-    seasonGameweeks: await seasonGameweekCount(ctx),
-  }),
+  returns: v.object({ ...editorViewOf(leagueSettingsShape).fields, seasonGameweeks: v.number(), presetNames: v.array(v.string()) }),
+  handler: async (ctx, { leagueId }) => {
+    const { part: rules, ...view } = await editorView(ctx, leagueId, (latest) => latest);
+    return {
+      ...view,
+      part: leagueSettingsOf(rules),
+      seasonGameweeks: await seasonGameweekCount(ctx),
+      presetNames: rules.presets.map(({ name }) => name),
+    };
+  },
 });
 
 /** League settings' change: the latest rules with these settings, as `changeLatest` saves them.
@@ -33,7 +39,7 @@ export const settings = query({
  *  Premier League squad, and the minimums by area adding up to no more than it; the pick clock and
  *  the timeouts before auto-pick within ../draft/draftLimits.ts's; a trade deadline a gameweek of
  *  the season; waivers run at least once a week, never twice at one time; the deadline's minutes a
- *  whole number, 0 or more; no tie-break listed twice. A format change is refused once the league's
+ *  whole number, 0 or more; every tie-break listed, once. A format change is refused once the league's
  *  first scored gameweek has begun (formatLock.ts). */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },
@@ -53,7 +59,6 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     deadline: settings.deadline,
     doubleGameweek: settings.doubleGameweek,
     tieBreaks: settings.tieBreaks,
-    oddTeamOut: settings.oddTeamOut,
     gamesPerGameweek: settings.gamesPerGameweek,
     draft: settings.draft,
     trades: settings.trades,

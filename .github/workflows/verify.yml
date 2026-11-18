@@ -98,7 +98,7 @@ jobs:
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs
       - run: node scripts/contents-lists.mjs
-      # the studio kit's copies match .studio/kit.json (change them in the studio repo)
+      # the studio kit's copies match .studio/kit.json (change them in Forge, cBallGitWork/forge)
       - run: node scripts/studio-kit.mjs
       - run: .claude/hooks/test.sh
       # the tests that read a doc (spec/07's example tables, SPEC.md's Avoid column, plate.md, flow.md, the ui rules):
@@ -182,7 +182,7 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20  # 204 tests on 2 workers took about 10 minutes, so two failures' retries cancelled five pull requests (17 Nov 2026)
     container:
       image: mcr.microsoft.com/playwright:v${{ needs.changes.outputs.playwright_version }}-noble
     steps:

@@ -62,7 +62,7 @@ describe("the commissioner's fixture swap", () => {
   });
 
   it("swaps the league's average like a team, and shows the server's refusal", async () => {
-    const drawn = leagueTableOf(FOUR.slice(0, 3), { deadlineOf, oddTeamOut: "leagueAverage" });
+    const drawn = leagueTableOf(FOUR.slice(0, 3), { deadlineOf });
     const refusal = "That swap would have a side play itself.";
     const app = openAs(commissioner, { leagueTable: drawn, swapAnswer: refusal });
     await screen.findByRole("heading", { level: 3, name: gameweekWords(3) });

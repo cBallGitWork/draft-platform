@@ -49,7 +49,7 @@ export function fakeMyTeam({
   squad = { teamName: MY_TEAM_NAME, lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
   otherSquad = { teamName: THEIR_TEAM_NAME, players: [] },
   numberAnswer = null,
-  mail = { letters: [], unread: 0 },
+  mail = { letters: [], unread: 0, needsYou: [] },
   leagueTable = undefined,
   claims = [],
   waivers = NO_WAIVERS,

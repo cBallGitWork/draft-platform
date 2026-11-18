@@ -4,13 +4,20 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
-import type { LetterKind } from "../../../convex/mail/letterShape";
+import type { LetterKind, LetterLink } from "../../../convex/mail/letterShape";
 import { LETTERS_TITLE, WRITE_TITLE } from "../../../src/mail/words";
 import { league } from "./shell.harness";
 
-/** A letter in `league`, of `kind` (null: filed before letters held one). Noon UTC, so its day is
- *  the same in London, where vitest.config.ts pins every test's zone. */
-export const mailLetter = (number: number, read: boolean, from: string | null = null, kind: LetterKind | null = null): LetterSummary => ({
+/** A letter in `league`, of `kind` (null: filed before letters held one), ending in `link` if
+ *  given. Noon UTC, so its day is the same in London, where vitest.config.ts pins every test's
+ *  zone. */
+export const mailLetter = (
+  number: number,
+  read: boolean,
+  from: string | null = null,
+  kind: LetterKind | null = null,
+  link: LetterLink | null = null,
+): LetterSummary => ({
   letterId: `letter-${number}` as Id<"letters">,
   leagueName: league.name,
   at: Date.UTC(2026, 9, 10 + number, 12),
@@ -19,6 +26,8 @@ export const mailLetter = (number: number, read: boolean, from: string | null = 
   subject: `Letter ${number}`,
   body: `The text of letter ${number}.`,
   read,
+  link,
+  needsYou: false,
 });
 export const mailLetters = [mailLetter(3, false, "commish@example.com", "commissioner"), mailLetter(2, false, null, "trade"), mailLetter(1, true)];
 export const twoUnread = { unreadMail: 2, next: null };

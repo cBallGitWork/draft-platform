@@ -8,7 +8,7 @@
 
 session=test-session-$$
 said() { printf '%s' "$("$jq" -nc --arg s "$session" --arg p "$1" '{session_id:$s,prompt:$p}')" | "$hooks/last_prompt.py" || fail "last_prompt.py failed on: $1"; }
-call() { "$jq" -nc --arg s "$session" --arg t "$1" --argjson i "$2" '{session_id:$s,tool_name:$t,tool_input:$i}'; }
+call() { tool_call "$1" "$2" "$session"; }
 bash_call() { call Bash "$("$jq" -nc --arg c "$1" '{command:$c}')"; }
 edit() { call Edit "$("$jq" -nc --arg f "$1" '{file_path:$f,old_string:"a",new_string:"b"}')"; }
 
@@ -73,7 +73,7 @@ for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" 
   "1a 2b" "1 a
 2 a
 3 a" "1. a" "3 a" "1) b, 2) c" \
-  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more"; do
+  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more" "Post it" "post them"; do
   said "$go"
   check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
   check allow guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
@@ -82,7 +82,7 @@ done
 for talk in "file naming is odd" "go figure, the cameo rule again" "what if we run the draft live" \
   "merge conflicts again" "i think one team tactic might be better?" "or shall i answer more qs first?" \
   "the file looks wrong" "yesterday was slow" "2 things bother me" "1 a but what about cameos" \
-  "is the draft done yet" "the fix was odd"; do
+  "is the draft done yet" "the fix was odd" "post-match stats look off"; do
   said "$talk"
   check deny guard_mode.py "$(bash_call 'gh issue create --title t')"
 done
@@ -133,7 +133,4 @@ other=$("$jq" -nc --arg s "other-$$" --arg t Bash '{session_id:$s,tool_name:$t,t
 check allow guard_mode.py "$other"  # no record for it
 
 denies_unreadable guard_mode.py
-for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" last_prompt.py "${bad_payloads[i]}"
-done
-rm -f "$tmp/draft-last-prompt/$session"
+rejects_bad_payloads last_prompt.py

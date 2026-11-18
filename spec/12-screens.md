@@ -18,6 +18,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - A release goes out while a manager has a tab open, and the tab's code can't work with the new
   server: she sees a bar, "A new version is out. Reload". A save that fails because of it shows
   the same bar, and nothing she typed is saved wrongly (Craig, 14 Nov 2026, #2203). `S12.13`
+- Every screen meets the whole of WCAG 2.1 AA, not only the plate's contrast and link rules
+  (Craig, 15 Nov 2026, #2176: "Full WCAG 2.1 AA"). `S12.14`
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
@@ -30,11 +32,22 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   the sign-in link). No league is visible without signing in.
 - Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
   to all").
+- The commissioner and co-commissioner see a to-do list on Home that no one else sees. It lists
+  only what needs them now, each line opening where it's done: join requests waiting (a count),
+  teams with no lineup yet (a number only, never whose: neither sees a lineup before the deadline,
+  `spec/10`), the draft order not set before the draft, trades waiting their veto, and a team with
+  no manager (Craig, 16 Nov 2026, #2267). `S12.17`
+- The commissioner's screens move off Your leagues' rows into a **Commissioner** item in the top
+  menu, shown only to the commissioner and co-commissioner, with the tabs Gameweeks | Invites |
+  Squads | Settings; deleting the league is under Settings, for the commissioner alone
+  (`spec/13`, Who runs it; Craig, 16 Nov 2026, #2267). `S12.18`
+- Player scoring becomes a Scoring tab on the Table page, for every manager (Craig, 16 Nov 2026,
+  #2267). `S12.19`
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
   free agents, waivers, stats), player card, trades, draft room (with the queue before it), Mail,
-  league settings (commissioner), admin (Craig).
+  Commissioner (Gameweeks, Invites, Squads, Settings), admin (Craig). `S12.20`
 
 ## The look: Plate
 
@@ -67,6 +80,8 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     - The deadline strip's Your lineup box names the first flagged starter in the pitch's order,
       "doubtful" when FPL gives him 25 to 75% and "out" at 0%, with "and 1 more" when there are
       others; with none flagged it says Set, and with no lineup yet Not set. `S12.9`
+      - Craig, 17 Nov 2026, on #2466: from his match's kickoff, Your lineup leaves him out ("Leave
+        him out from his match's kickoff"), while Your squad news still shows his note. `S12.16`
     - The strip's other three boxes are built as pictured and open nothing: GW9 locks shows its
       day, time and how long is left ("Tue 11:00 in 1d 17h"); Claims close the next waiver run
       and how many claims you have waiting ("Mon 20:00, 2 claims"); Table your place, points and
@@ -79,6 +94,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
       only the matches where one of the two of you has a player; All fixtures opens the Premier
       League. `S12.12`
+  - Craig, 16 Nov 2026, on #2443, how Home shows what needs a manager: no new panel. The
+    deadline strip and Mail's Needs you are the to-do: Mail's panel sits at the top of the left
+    column, under the strip, and opens on Needs you. Nothing more says what happens if he does
+    nothing: the strip's Your lineup box keeps "Saka doubtful". Claims waiting stay in the
+    strip's Claims box, never a Needs you letter. `S12.15`
 - **My team** shows the tactics pitch, the squad and Mail side by side.
   - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
     with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,
@@ -113,7 +133,7 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     great but lets see"), and his three latest news notes (`spec/21`); `S12.2`
   - his owner's name opens "a read-only page of that team, its Squad table (players, positions,
     club, season points), with nothing changeable and no tactics shown" (Craig, 9 Nov 2026, on
-    #1027, his answer to its Open rules question 1); `S12.14`
+    #1027, his answer to its Open rules question 1); `S12.20`
   - this season's matches, each broken down by category (`spec/14`), at his base points: "The
     player card should be showing their base points as squad/live could be showing their
     role/tactics adjustment" (Craig, 31 Oct 2026). Every match shows the site's scoring for what he

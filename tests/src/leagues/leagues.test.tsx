@@ -115,6 +115,15 @@ describe("the admin, with no part in a league", () => {
     expect(app.path()).toBe(NEW_LEAGUE_PATH);
   });
 
+  // Craig, 15 Nov 2026, on #2358: Create a league replaces the not-in-a-league words.
+  it("S02.4: in no league, sees Create a league instead of the page saying he's in none", async () => {
+    openApp(LEAGUES_PATH, admin);
+    expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
+    expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
+    expect(screen.queryAllByRole("rowheader")).toEqual([]);
+    expectColumnHeads(screen.getByRole("table"), Object.values(leagueColumns));
+  });
+
   it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
     const unsentCommissionerLink = { email: league.commissionerEmail, reply: "paused" } as const;
     openApp(LEAGUES_PATH, adminSeeing({ ...withNoPart(league), unsentCommissionerLink }));

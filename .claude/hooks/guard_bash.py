@@ -30,7 +30,7 @@ from hook_payload import field, project_dir
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from read_only import agent_type_note, read_only_problem
-from where import MAIN, REMOTE_MAIN, current_branch, git_call, git_dir, options, previous_branch, runners
+from where import BRANCH_PREFIXES, MAIN, REMOTE_MAIN, current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
 MAIN_NAMES = {MAIN, REMOTE_MAIN}  # git switch main, git checkout origin/main
@@ -56,7 +56,7 @@ UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take 
                   "by ssh, su, watch, script or fish). Run it plainly: cd <folder> && git commit, "
                   "or git -C <folder> commit.")
 CUT_A_BRANCH = ("Cut a branch first: git switch -c <type>/<thing> origin/main. "
-                "Prefixes: feat/ fix/ refactor/ docs/ chore/.")
+                "Prefixes: " + " ".join(BRANCH_PREFIXES) + ".")
 ON_MAIN = "You are on main. " + CUT_A_BRANCH
 # a build (claude-build.yml, in GitHub Actions) may not delete or move these, as its --disallowedTools keeps it from
 # editing them (Craig, 15 Nov 2026, #2240: "Block it")

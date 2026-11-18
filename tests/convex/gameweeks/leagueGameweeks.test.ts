@@ -22,6 +22,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { isGameweekUsed } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { LONDON_ZONE, momentIn } from "../../../convex/shared/moments";
 
 // The gameweeks a league plays (#74; spec/13, Gameweeks), against #21's gameweeks and matches. Each
 // begins at the league's own deadline, never FPL's (#138).
@@ -185,6 +186,25 @@ describe("the league's own deadline decides, never FPL's (Craig: \"ours, we aren
 
     expect(await deadlineShown(19)).toBe(deadlineOf(19));
     expect(await deadlineShown(20)).toBe(kickoffOf(20) - THREE_HOURS * MINUTE_MS);
+  });
+
+  test("LG-135 S03.3: on the Sunday the clocks go back, a 14:00 GMT first kickoff's deadline is 13:45 UK time, and the gameweek can be unticked until then", async () => {
+    // Sun 25 Oct 2026: the clocks went back at 01:00 UTC, so UK time is UTC by the kickoff.
+    const kickoff = Date.parse("2026-10-25T14:00:00Z");
+    const deadline = Date.parse("2026-10-25T13:45:00Z");
+    await holdGameweeks();
+    await t.run(async (ctx) => {
+      const fixture = (await ctx.db.query("fixtures").collect()).find((each) => each.gameweek === NEXT + 1)!;
+      await ctx.db.patch("fixtures", fixture._id, { kickoff });
+    });
+
+    expect(await deadlineShown(NEXT + 1)).toBe(deadline);
+    expect(momentIn(deadline, LONDON_ZONE)).toContain("13:45 GMT");
+    vi.setSystemTime(deadline - MINUTE_MS);
+    await setUsedBy(COMMISSIONER, NEXT + 1, false);
+    expect(await used(NEXT + 1)).toBe(false);
+    vi.setSystemTime(deadline);
+    await expectRefused(setUsedBy(COMMISSIONER, NEXT + 1, true), gameweekRefusals.begun(NEXT + 1));
   });
 });
 

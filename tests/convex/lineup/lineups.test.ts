@@ -3,7 +3,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
-import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
@@ -75,8 +74,21 @@ describe("a saved lineup", () => {
     const [keeper, ...rest] = FOUR_FOUR_TWO.starters;
     const removed: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: REMOVED_ROLE }, ...rest] };
     await ann.save(removed);
-    const onFirst: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: DEFAULT_ROLES.GK[0].key }, ...rest] };
+    // With no stars, the slot's first: saved as no role, as a dropped starter is (stars/bestRole.ts).
+    const onFirst: Lineup = { ...FOUR_FOUR_TWO, starters: [keeper, ...rest] };
     expect(await ann.mine(NEXT)).toEqual(saved(onFirst, NEXT));
+  });
+
+  test("S05.53 saves a starter on a removed role on the role he'd get dropped into that slot: his best-star one", async () => {
+    const ann = await as(ANN);
+    const [keeper, ...rest] = FOUR_FOUR_TWO.starters;
+    const ratings = [
+      { area: "goalkeeper" as const, role: "shotStopper", perMatch: 2, stars: 2 },
+      { area: "goalkeeper" as const, role: "distributor", perMatch: 3, stars: 4.5 },
+    ];
+    await t.run((ctx) => ctx.db.insert("playerRoleStars", { playerCode: keeper.playerCode, matches: 3, ratings }));
+    await ann.save({ ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: REMOVED_ROLE }, ...rest] });
+    expect(await ann.mine(NEXT)).toEqual(saved({ ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: "distributor" }, ...rest] }, NEXT));
   });
 
   test("saved again before the same deadline replaces the first, one row for the gameweek", async () => {
@@ -85,20 +97,6 @@ describe("a saved lineup", () => {
     expect(await ann.save(REVERSED_BENCH)).toBe(NEXT);
 
     expect(await ann.mine(NEXT)).toEqual(saved(REVERSED_BENCH, NEXT));
-    expect(await lineupRows()).toHaveLength(1);
-  });
-
-  test("TC-058 (S05.53): saved from two tabs, the later save, made from the lineup before the earlier, replaces it, naming every squad player once", async () => {
-    const ann = await as(ANN);
-    // Tab A reorders the bench; tab B, not reloaded, still holds the 4-4-2 and moves its second sub up.
-    await ann.save(REVERSED_BENCH);
-    const [first, second, ...rest] = FOUR_FOUR_TWO.bench;
-    const fromTabB: Lineup = { ...FOUR_FOUR_TWO, bench: [second, first, ...rest] };
-    expect(await ann.save(fromTabB)).toBe(NEXT);
-
-    const final = await ann.mine(NEXT);
-    expect(final).toEqual(saved(fromTabB, NEXT));
-    expect([...final.starters.map((starter) => starter.playerCode), ...final.bench].toSorted()).toEqual(SQUAD.toSorted());
     expect(await lineupRows()).toHaveLength(1);
   });
 

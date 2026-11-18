@@ -43,7 +43,7 @@ describe("games a gameweek, no more than the league's teams can play", () => {
     const leagueId = await adminCreatesLeague(t, 5);
     await expectRefused(
       change(leagueId, rulesWith({ gamesPerGameweek: 6 })),
-      "With 5 teams, a team can play at most 5 games a gameweek, not 6: one against each of the other 4, and one left over, against the league's average or a bye.",
+      "With 5 teams, a team can play at most 5 games a gameweek, not 6: one against each of the other 4, and one left over, against the league's average.",
     );
   });
 

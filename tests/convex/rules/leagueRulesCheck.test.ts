@@ -4,7 +4,6 @@ import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
-import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
@@ -32,19 +31,22 @@ test("the first rules are sound", () => {
   expect(() => check(FIRST_RULES)).not.toThrow();
 });
 
-test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
+test("no squad limits, no club limit and no presets are all sound", () => {
   // With no presets, no classic formation has one to stand in, so there are none.
-  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
+  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [] });
   expect(() => check(free)).not.toThrow();
+});
+
+test("S03.8 every league has all three tie-breaks, in any order, and leaving one out is unsound", () => {
+  expect(FIRST_RULES.tieBreaks).toEqual(["pointsFor", "headToHead", "pointsAgainst"]);
+  expect(() => check(rulesWith({ tieBreaks: ["pointsAgainst", "headToHead", "pointsFor"] }))).not.toThrow();
+  expect(() => check(rulesWith({ tieBreaks: ["pointsFor"] }))).toThrow(new Error("The tie-break headToHead is missing: every league has all 3."));
+  expect(() => check(rulesWith({ tieBreaks: [] }))).toThrow(new Error("The tie-break pointsFor is missing: every league has all 3."));
 });
 
 test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {
   const oneEach = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 20 }, maxPerClub: 1 } });
   expect(() => check(oneEach)).not.toThrow();
-});
-
-test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
-  expect(() => check(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
 test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
@@ -247,7 +249,7 @@ test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => 
 
 describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
   // One against each other team, and with an odd number, one more for the team left over.
-  const LEFT_OVER = ", and one left over, against the league's average or a bye";
+  const LEFT_OVER = ", and one left over, against the league's average";
   test.each([
     [2, "at most 1 game a gameweek, not 2: one against the other team."],
     [4, "at most 3 games a gameweek, not 4: one against each of the other 3."],

@@ -26,7 +26,7 @@ from hook_payload import BadPayload, field, read_payload, report
 STEPS = (300_000, 500_000)  # context tokens at which the note is said, once each
 TAIL_BYTES = 400_000  # the end of the transcript read: far more than the last assistant turn
 USAGE_FIELDS = ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
-STATE_DIR = Path(tempfile.gettempdir()) / "draft-context-size"
+STATE_DIR = Path(tempfile.gettempdir()) / "claude-context-size"  # one per session id, so projects can share it
 
 
 def context_tokens(transcript):

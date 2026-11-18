@@ -12,6 +12,8 @@ export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const
 /** Sportmonks' reads run for each competition on its list that is on (#1414), each its own row on
  *  the feeds page, beside FPL's until a later slice switches the site over (football/sportmonks/). */
 export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive"] as const;
+export type SportmonksFeed = (typeof SPORTMONKS_FEEDS)[number];
+export const isSportmonksFeed = (feed: Feed): feed is SportmonksFeed => (SPORTMONKS_FEEDS as readonly Feed[]).includes(feed);
 
 /** The feeds, each a sync or tick with its own run table. Sportmonks' positions read (#1419) is
  *  for the Scottish Premiership alone, so it is one row, as FPL's are. */

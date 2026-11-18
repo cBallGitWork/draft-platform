@@ -17,14 +17,14 @@ import {
   figureWords,
   noFigureWords,
   notCountingLabel,
-  openBreakdownLabel,
   pitchPlayerLabel,
   sidePitchLabel,
   statusLabels,
   statusWords,
 } from "../../../src/matchup/words";
 import { finished as FINISHED, headToHead, poacher as POACHER, roleOf, slot, subbed, teamSide } from "../../support/src/matchup.harness";
-import { openMatchup } from "../../support/src/matchupScreen.harness";
+import { openMatchup, tileOf } from "../../support/src/matchupScreen.harness";
+import { shownNotInName } from "../../support/src/labelInName";
 
 /** A finished man's match, as his tile reads it out. */
 const FINISHED_WORDS = `${statusLabels.finished} ${statusWords.finished}`;
@@ -121,7 +121,16 @@ describe("each side's pitch", () => {
 
   it("marks the man whose breakdown is open", async () => {
     const pitch = await opened();
-    await userEvent.click(within(screen.getByRole("region", { name: "Team 1" })).getByRole("button", { name: openBreakdownLabel("Delap") }));
+    await userEvent.click(within(screen.getByRole("region", { name: "Team 1" })).getByRole("button", { name: tileOf("Delap") }));
     expect(within(pitch).getByRole("listitem", { current: true }).getAttribute("aria-label")).toBe(`${pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5))}, ${FINISHED_WORDS}`);
+  });
+
+  it("S12.14 each tile's button, on the pitch and the bench, is named first by the words it shows, in its order (WCAG 2.5.3)", async () => {
+    // A shirt number, a man yet to play with no points, one who went off, one on from the bench and one left on it.
+    const starters = [keeper, centre, { ...striker, number: 9 }, off, slot("Wood", { area: "defence", number: 11 })];
+    await opened(teamSide("Team 1", starters, [sub, benched]));
+    const side = within(screen.getByRole("region", { name: "Team 1" }));
+    const tiles = [...starters, sub, benched].map(({ name }) => side.getByRole("button", { name: tileOf(name) }));
+    expect(tiles.map(shownNotInName)).toEqual(tiles.map(() => null));
   });
 });

@@ -49,8 +49,7 @@ export const LEAGUE_SKIPPED = "was skipped by the football feed, and the other l
 /** Records each gameweek's first kickoff once passed, every league's deadlines that have passed
  *  and aren't yet recorded, and stores the fixtures of the gameweeks they began; returns how many
  *  deadlines it recorded. */
-export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
-  const now = Date.now();
+export async function recordPassedDeadlines(ctx: MutationCtx, now = Date.now()): Promise<number> {
   // Read once for every league: each gameweek's first and last kickoff (gameweekKickoffs.ts, #2009).
   const matches = await scheduledMatches(ctx);
   await recordGameweekStarts(ctx, matches, now);
@@ -141,10 +140,11 @@ async function skipBrokenLeague(ctx: MutationCtx, league: Doc<"leagues">, error:
 /** The alarm `recordPassedDeadlines` sets for the soonest deadline to come: it records again, and
  *  that recording sets the next one. */
 export const recordDueDeadlines = internalMutation({
-  args: {},
+  // `now` is passed only by an e2e test, to record as if it were then (../e2e/runJobNow.ts).
+  args: { now: v.optional(v.number()) },
   returns: v.null(),
-  handler: async (ctx) => {
-    await recordPassedDeadlines(ctx);
+  handler: async (ctx, { now }) => {
+    await recordPassedDeadlines(ctx, now);
     return null;
   },
 });

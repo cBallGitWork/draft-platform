@@ -8,13 +8,13 @@ import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { momentIn } from "../../../convex/shared/moments";
 import { letterAsRead } from "../../../convex/mail/letterMoments";
 import { UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/draftLetterWords";
-import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, type TestConvex, ANN, BOB, TEAM_1, TEAM_2, freshLeague } from "../../support/convex/leagues.harness";
-import { spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
-import { silenceConsoleWarn } from "../../support/convex/test.harness";
+import { fakeResend, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
+import { silenceConsoleError, silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -29,7 +29,7 @@ let sent: SentEmail[];
 const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
 
-const { as, start, pick, pause, resume, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
+const { as, start, pick, pause, resume, pass, read, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const letters = () =>
   t.run(async (ctx) =>
     (await ctx.db.query("letters").collect()).map((row) => ({ to: row.to, ...letterAsRead(row, undefined), read: row.readAt !== undefined })),
@@ -161,6 +161,18 @@ describe("the email", () => {
     expect(upNextEmails()).toEqual([]);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(`${ANN} wasn't emailed that they're up next`));
     expect((await letters()).filter(({ subject }) => subject === UP_NEXT)).toHaveLength(1);
+  });
+
+  test("spec/11: refused by the email provider, is logged, and the draft carries on with the letter filed", async () => {
+    await setPickSeconds(HOUR_MS / SECOND_MS);
+    fakeResend(500);
+    const logged = silenceConsoleError();
+    await start();
+    await pass(0);
+
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The email saying ${ANN} is up next in the draft wasn't sent`), expect.any(Error));
+    expect(await read()).toMatchObject({ status: "live", onTheClock: { pick: 1, teamId: teams[0] } });
+    expect((await letters()).filter(({ subject }) => subject === UP_NEXT)).toMatchObject([{ to: ANN }]);
   });
 });
 

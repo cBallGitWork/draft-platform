@@ -23,6 +23,8 @@ import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 export type ScoutingData = {
   clubs?: PlayersList["clubs"];
   ownStats?: PlayersList["ownStats"];
+  /** The stats the site's set scores, in its order (none by default). */
+  scored?: PlayersList["scored"];
   players?: readonly ListedPlayer[];
   totals?: Record<number, Stats>;
   /** The season the points are from while they are last season's; null (the default) for this season's. */
@@ -47,7 +49,7 @@ export type ScoutingData = {
 /** The gameweeks the fake server says each short period counts: 9 have finished. */
 export const PERIOD_GAMEWEEKS_SHOWN = { last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, race, actions, claims = [], yours = null }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], scored = [], players = [], totals = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, race, actions, claims = [], yours = null }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   const playerOf = (playerCode: number) => players.find(({ code }) => code === playerCode)!;
   const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: totals[player.code] ?? {} });
@@ -69,6 +71,7 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
       return {
         clubs,
         ownStats,
+        scored,
         players: listOf(rows, filters, sort),
         pointsSeason,
         periodGameweeks: period === undefined || period === "season" ? [] : PERIOD_GAMEWEEKS_SHOWN[period],

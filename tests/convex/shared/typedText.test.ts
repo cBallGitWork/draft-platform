@@ -2,7 +2,7 @@ import { ConvexError } from "convex/values";
 import { describe, expect, test } from "vitest";
 import { TEAM_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { typedName, typedText } from "../../../convex/shared/typedText";
-import { fuzzedTexts } from "../../support/convex/fuzz.harness";
+import { LOOKS_LIKE_ONE, fuzzedTexts } from "../../support/convex/fuzz.harness";
 import { EMOJI } from "../../support/convex/test.harness";
 
 // Every typed text the server keeps (a league's or team's name, a letter, feedback, an override's
@@ -45,8 +45,7 @@ test("an emoji counts as one character, though it is two UTF-16 units", () => {
 });
 
 test("S13.2: in a name, an emoji counts as one character as it looks, flags, skin tones and families too", () => {
-  const looksLikeOne = ["\u{1F1EC}\u{1F1E7}", "\u{1F44D}\u{1F3FD}", "\u{1F468}‍\u{1F469}‍\u{1F467}"];
-  for (const emoji of looksLikeOne) {
+  for (const emoji of LOOKS_LIKE_ONE) {
     expect(typedName(emoji.repeat(MOST), MOST, REFUSALS)).toBe(emoji.repeat(MOST));
     expect(() => typedName(emoji.repeat(MOST + 1), MOST, REFUSALS)).toThrow(ConvexError);
   }
@@ -57,10 +56,15 @@ test("a name is kept on one line: line breaks, tabs and runs of spaces inside it
   expect(() => typedName(" \n ", MOST, REFUSALS)).toThrow(ConvexError);
 });
 
-// Fuzzed (#2129): random typed texts against a name's most, 30 characters (spec/13, Creating a
-// league). Only that most applies: any other text is kept, and a refusal never crashes.
+// Fuzzed (#2129, #2141): random typed texts, emoji among them, against a name's most, 30 characters
+// (spec/13, Creating a league). Only that most applies: any other text is kept, and a refusal never
+// crashes. A typed text counts code points; a name counts characters as they look (S13.2).
 describe("fuzzed: only the 30-character most applies", () => {
   const texts = fuzzedTexts("typed-text", 2 * TEAM_NAME_MAX);
+
+  /** Characters as they look, so a flag or a family is one. */
+  const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+  const asItLooks = (text: string) => [...graphemes.segment(text)].length;
 
   /** What `keep` gives back, or the refusal it threw: anything else thrown fails the test. */
   const outcome = (keep: typeof typedText, typed: string): { kept?: string; refused?: string } => {
@@ -75,7 +79,7 @@ describe("fuzzed: only the 30-character most applies", () => {
   test("a text is refused as blank or too long, or else kept trimmed", () => {
     for (const typed of texts) {
       const trimmed = typed.trim();
-      const filled = trimmed.length > TEAM_NAME_MAX ? { refused: REFUSALS.tooLong } : { kept: trimmed };
+      const filled = [...trimmed].length > TEAM_NAME_MAX ? { refused: REFUSALS.tooLong } : { kept: trimmed };
       expect(outcome(typedText, typed), JSON.stringify(typed)).toEqual(trimmed === "" ? { refused: REFUSALS.blank } : filled);
     }
   });
@@ -88,8 +92,17 @@ describe("fuzzed: only the 30-character most applies", () => {
         continue;
       }
       expect(kept, JSON.stringify(typed)).toBe(typed.replace(/\s+/g, " ").trim());
-      expect(kept.length).toBeLessThanOrEqual(TEAM_NAME_MAX);
+      expect(asItLooks(kept)).toBeLessThanOrEqual(TEAM_NAME_MAX);
       expect(kept).not.toMatch(/\s\s|[\t\r\n]/);
+    }
+  });
+
+  test("S13.2: a name is refused as too long only past 30 characters as they look, an emoji one each", () => {
+    for (const typed of texts) {
+      const name = typed.replace(/\s+/g, " ").trim();
+      if (name === "") continue;
+      const { refused } = outcome(typedName, typed);
+      expect(refused === REFUSALS.tooLong, JSON.stringify(typed)).toBe(asItLooks(name) > TEAM_NAME_MAX);
     }
   });
 });

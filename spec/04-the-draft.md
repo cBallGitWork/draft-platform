@@ -60,6 +60,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
+- A player already drafted counts at the positions he had when he was drafted, for the rest of the
+  draft; a position he gains or loses meanwhile shows only after the draft, so a team is never left
+  with no legal pick (Craig, 11 Nov 2026, on #1484: "Accept all"). `S04.27`
 - A pick counts only for the turn it was made on. Ann's clock runs out and auto-pick takes Saka for
   her; a second later her own pick (Palmer) arrives: it is refused, and she sees "Too late:
   auto-pick took Saka for you". Palmer stays in her queue. A pick her app re-sends on reconnecting,
@@ -133,6 +136,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A manager on auto-pick gets his full clock for his first auto-pick: "run for the first time incase
   they forgot to switch off". After that his pick is made at once, and the next team's clock waits
   10 seconds (Craig, 4 Nov 2026, on #1091).
+- A manager can turn auto-pick on himself, before the draft or during it. Then the pick on his
+  clock and every later one are made at once, and his timeout count stays as it is (Craig, 5 Nov
+  2026, on #1100: "Build all, take recs"). `S04.28`
+- An auto-pick shows "auto" in its cell on the board for the whole league, and his panel says "On
+  auto-pick: your last pick, 4.03, was made for you" with a Take control back button (Craig, 5 Nov
+  2026, on #1100). `S04.29`
 - A team with no manager, which the commissioner hasn't taken on, is auto-picked at once, and the
   next team's clock starts after the 10-second gap (Craig, 4 Nov 2026, on #1091).
 - When a manager leaves or is removed while his team's pick is on the clock, the pick is made for
@@ -146,7 +155,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   (Craig, 14 Nov 2026, grill batch 2, on #2204). The site counts as down when a pick runs 1 minute
   or more late; a team with no manager whose clock ran out in the outage is auto-picked for at once
   when the site comes back. Only the web host down while the draft's server runs is no outage: the
-  commissioner can pause and undo (Craig, 15 Nov 2026, on #2241). `S04.22`
+  commissioner can pause and undo (Craig, 15 Nov 2026, on #2241). The restart after an outage sends
+  no up-next letter, the same as a resume (`S04.14`) (Craig, 16 Nov 2026, on #2398: "Yes to your
+  recs"). `S04.22`
 - Players the ranking leaves out come after every ranked player, ordered by last season's points,
   then newcomers by name ("rec"). A manager who takes control back has his timeout count reset to
   0 ("ok"). A new manager taking over an empty team mid-draft starts off auto-pick ("ok") (Craig,
@@ -230,6 +241,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - An undo or pick-for while the draft is paused sends the next manager's "you're up next" at
     once, with no deadline: "You're up next. The draft is paused; your clock starts when it
     resumes." Resume still sends none (Craig, 11 Nov 2026, on #1461: "Accept all"). `S04.14`
+- The commissioner putting the teams in draft order, drawing it at random (each draw), setting or
+  clearing the start date, and marking or unmarking a team "I'll pick for this one" each send a
+  letter to the whole league, as every commissioner action does (`spec/15`; Craig, 15 Nov 2026,
+  on #2149: "All four actions file a letter"). `S04.31`
 
 ## The commissioner
 
@@ -238,6 +253,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - While the draft is paused, he can change the pick time; the new time applies when it resumes.
   The pick on the clock restarts on the full new time (Craig, 4 Nov 2026, on #1135: "90s with 30s
   left, changed to 60s: it resumes on 60s").
+- A draft starts on the newest pick time, timeout limit and undrafted-players setting, those last
+  typed in League settings, even a change waiting for the next gameweek: "Last typed" (Craig, 10
+  Nov 2026, on #1439). `S04.30`
 - The commissioner's undo is a plain button, with no confirm (Craig, 4 Nov 2026, "ok" to Claude's
   recommendation).
 - Undo takes back the last pick only, and can be repeated to go back further. The pick put back

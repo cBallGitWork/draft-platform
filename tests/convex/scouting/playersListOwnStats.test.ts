@@ -33,11 +33,12 @@ beforeEach(async () => {
 const listAs = async (stat: string | null = null) => playersListed(await actingAs(t, ANN), leagueId, { sort: stat === null ? BY_NAME : MOST_FIRST, stat });
 
 /** The site's latest set: the first one with goals less half the xG, and half the xG alone. */
-const holdOwnStats = () =>
+const holdOwnStats = (rules = FIRST_SCORING.rules) =>
   t.run((ctx) =>
     holdSiteScoring(ctx, {
       scoring: {
         ...structuredClone(FIRST_SCORING),
+        rules: structuredClone(rules),
         ownStats: [
           { ...INVOLVEMENTS, parts: [{ stat: "goals_scored", weight: 1 }, { stat: "expected_goals", weight: -0.5 }] },
           { ...HALF_XG, parts: [{ stat: "expected_goals", weight: 0.5 }] },
@@ -67,6 +68,13 @@ test("one shown is each player's season total, worked out from his totals, and s
     ["Rice", 0],
     ["Palmer", -0.25],
   ]);
+});
+
+test("the list names the stats the site's latest set scores, an own stat among them, once each in its order (S19.5)", async () => {
+  await holdOwnStats([{ shape: "perAction", stat: HALF_XG.stat, values: { all: 1 } }, ...FIRST_SCORING.rules]);
+  const firstSets = FIRST_SCORING.rules.map((rule) => rule.stat);
+  expect((await listAs()).scored).toEqual([HALF_XG.stat, ...firstSets]);
+  expect(firstSets.slice(0, 3)).toEqual(["minutes", "goals_scored", "assists"]);
 });
 
 test("an own stat the site's set doesn't hold is refused", async () => {

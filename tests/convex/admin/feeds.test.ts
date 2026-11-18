@@ -4,7 +4,7 @@
 import { expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { lateAfterMs, FEED_SCHEDULES, FEEDS } from "../../../convex/shared/feedSchedule";
-import { RUNS_READ } from "../../../convex/admin/feeds";
+import { RUNS_READ } from "../../../convex/admin/feedStatuses";
 import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, JULY, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
@@ -24,7 +24,8 @@ test("the page is the admin's alone", async () => {
   const t = freshConvex();
   vi.stubEnv("ADMIN_EMAIL", ADMIN);
   const commissioner = await actingAs(t, COMMISSIONER);
-  await expectRefused(commissioner.query(api.admin.feeds.feeds, { now: T0 }), refusals.notAdmin);
+  await expectRefused(commissioner.query(api.admin.feeds.feeds, {}), refusals.notAdmin);
+  await expectRefused(commissioner.query(api.admin.feeds.owed, { now: T0 }), refusals.notAdmin);
 });
 
 test("with no run on record, every feed is not running yet", async () => {

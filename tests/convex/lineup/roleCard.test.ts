@@ -8,7 +8,7 @@ import { categoryName } from "../../../convex/scoring/categories";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { DAY_MS } from "../../../convex/shared/time";
+import { DAY_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { OUTSIDER, actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
@@ -59,8 +59,12 @@ const hold = (...records: (Omit<ReturnType<typeof completeRecord>, "state"> & { 
     for (const record of records) await ctx.db.insert("playerMatchStats", record);
   });
 
-const cardAs = async (email: string, cell = ATTACK, formation = BACK_FOUR) =>
-  (await actingAs(t, email)).query(api.lineup.roleCard.forSlot, { leagueId, playerCode: FORWARD.code, cell, formation, now: NOW });
+/** The hour's cards: one from its start, then one from each scoring version taking effect in it. */
+const hourAs = async (email: string, cell = ATTACK, formation = BACK_FOUR) =>
+  (await actingAs(t, email)).query(api.lineup.roleCard.forSlot, { leagueId, playerCode: FORWARD.code, cell, formation, hour: NOW });
+
+/** The card from the hour's start. */
+const cardAs = async (email: string, cell = ATTACK, formation = BACK_FOUR) => (await hourAs(email, cell, formation))[0].card;
 
 test("the card lists exactly the slot's roles, in its order, with their descriptions", async () => {
   const { roles } = await cardAs(ANN);
@@ -141,6 +145,18 @@ test("last season's matches played fill in behind this season's", async () => {
     { gameweek: null, pastSeason: 2025, minutes: 90 },
   ]);
   expect(matches[2]).toMatchObject({ opponent: null, base: scoreMatch({ minutes: 90, goals_scored: 2 }, SET, ATTACK).total });
+});
+
+test("S14.1: a patch taking effect inside the hour turns the card's roles from its moment, and the hour's start keeps the set before it", async () => {
+  const patchAt = NOW + 20 * MINUTE_MS;
+  const patched = { ...structuredClone(SET), roles: [pricedRole("poacher", "assists", 3)] } as StoredScoringSet;
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: patched, kind: "patch", number: 2, at: patchAt }));
+  const [before, after, ...rest] = await hourAs(ANN);
+  const poacher = ({ card }: typeof before) => card.roles.find(({ key }) => key === "poacher")!;
+
+  expect(rest).toEqual([]);
+  expect({ from: before.from, rewards: poacher(before).rewards }).toEqual({ from: NOW, rewards: [categoryName("goals_scored")] });
+  expect({ from: after.from, rewards: poacher(after).rewards }).toEqual({ from: patchAt, rewards: [categoryName("assists")] });
 });
 
 test("someone with no team in the league is refused", async () => {

@@ -84,6 +84,12 @@ export interface ScoringSet {
   runs?: readonly RoleRun[];
 }
 
+/** The stats a set scores, by key, once each in the order its rules first name them: the
+ *  categories the stat race races and Scouting's stat box leads with (spec/19, `S19.5`). */
+export function scoredStats(set: Pick<ScoringSet, "rules">): string[] {
+  return [...new Set(set.rules.map((rule) => rule.stat))];
+}
+
 /** A point of a run, in metres from the player's place: forward toward the goal he attacks (back
  *  is negative), and across toward the middle of the pitch (out wide is negative; in the centre
  *  lane, toward his right), so one run serves a role on either side. */

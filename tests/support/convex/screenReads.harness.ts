@@ -1,14 +1,17 @@
-// League home, the matchup, League settings, the pending claims and the card's action read as their screens read them (#1550): the small query that tells
+// League home, the matchup, League settings, the waivers, Trades, My team's squad and Tactics, the pending claims and the card's action read as their screens read them (#1550): the small query that tells
 // the time (each sends its times, judged at the minute: #2005, #2008), then the clock-free ones it
 // points at, put together at the minute as the live seams put them (src/home/liveHome.ts,
 // src/matchup/liveMatchup.ts).
 
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { answerAt } from "../../../convex/gameweeks/hourAnswers";
 import { changesFromAt, thisGameweekAt } from "../../../convex/gameweeks/nextGameweek";
+import { teamSquadAt } from "../../../convex/squads/teamSquadAt";
 import { clockAt, clockHourOf, leagueHomeAt } from "../../../convex/home/homeAt";
 import { matchupAt } from "../../../convex/matchup/commentaryAt";
-import { cardActionAt, firstRunsAt, pendingClaimsAt } from "../../../convex/waivers/runsAhead";
+import { tradesInHourAt } from "../../../convex/trades/tradesAt";
+import { cardActionAt, firstRunsAt, pendingClaimsAt, waiversAt } from "../../../convex/waivers/runsAhead";
 import type { actingAs } from "./leagues.harness";
 
 type Caller = Awaited<ReturnType<typeof actingAs>>;
@@ -33,6 +36,36 @@ export async function leagueSettingsOf(caller: Caller, leagueId: Id<"leagues">, 
  *  reads it (src/shared/useFirstRuns.ts, #2008). */
 export async function firstRunsOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
   return firstRunsAt(await caller.query(api.waivers.waiverClock.clockOf, { leagueId, hour: clockHourOf(now) }), now);
+}
+
+/** The league's waivers at `now`, judged from the hour's read, as `caller` reads them
+ *  (src/myTeam/claims/liveClaims.ts, #2008). */
+export async function waiversOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
+  return waiversAt(await caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, hour: clockHourOf(now) }), now);
+}
+
+/** The Trades screen at `now`, judged from the hour's read, as `caller` reads it
+ *  (src/trades/liveTrades.ts, #2008). */
+export async function tradesOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
+  return tradesInHourAt(await caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, hour: clockHourOf(now) }), now);
+}
+
+/** A read's answer at `now` from its own hour's, which always holds one. */
+function ofItsHour<Shown>(shown: Shown | undefined, read: string, now: number): Shown {
+  if (shown === undefined) throw new Error(`${read} sent nothing for ${new Date(now).toISOString()}, in its own hour`);
+  return shown;
+}
+
+/** My team's squad at `now`, kept to the minute from the hour's read, as `caller` reads it
+ *  (src/myTeam/liveMyTeam.ts, #2008). */
+export async function teamSquadOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
+  return ofItsHour(teamSquadAt(await caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, hour: clockHourOf(now) }), now), "squads/teamSquad:ofMyTeam", now);
+}
+
+/** The Tactics tab at `now`, picked from the hour's read, as `caller` reads it
+ *  (src/myTeam/tactics/liveTactics.ts, #2008). */
+export async function tacticsOf(caller: Caller, leagueId: Id<"leagues">, now = Date.now()) {
+  return ofItsHour(answerAt(await caller.query(api.lineup.tactics.ofMyTeam, { leagueId, hour: clockHourOf(now) }), now)?.tactics, "lineup/tactics:ofMyTeam", now);
 }
 
 /** The pending claims at `now`, as `caller` reads them (src/myTeam/claims/liveClaims.ts). */

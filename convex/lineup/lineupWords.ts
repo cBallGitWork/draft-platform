@@ -1,7 +1,9 @@
 // What a manager is told when a lineup they save is refused (#8): each of lineup.ts's problems in
-// words, and the refusals of saving one.
+// words, and the refusals of saving one; and the Mail when a removed role moves his starters.
 
+import type { Words } from "../mail/letterShape";
 import { andListWords } from "../shared/moments";
+import { PICK_ANOTHER } from "./instructionsWords";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
@@ -20,6 +22,8 @@ export const lineupRefusals = {
     `${andListWords(names)} ${isNot(names)} in the line-up: every player in your squad starts or sits on the bench.`,
   noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your line-up.`,
   notInClassicFormationShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
+  /** Another Tactics tab saved since this one loaded (spec/05 `S05.55`): the tab reloads on it. */
+  changedElsewhere: "Line-up changed in another tab: reloaded here, make your move again.",
 };
 
 /** How many plans a manager keeps, and how long a plan's name may be (spec/05, Saved plans;
@@ -63,4 +67,28 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
     case "roleNotHis":
       return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't play ${roleName(problem.role)}.`;
   }
+}
+
+/** A role no slot offers any more, as a manager reads it: its key in words ("lateRunner": "Late
+ *  runner"), as roleName has no name left for it. */
+function cutRoleWords(key: string): string {
+  const words = key.replace(/([A-Z])/g, " $1").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** A starter moved off a role removed from the set: his name, the removed role's key and the key
+ *  of the role he plays now. */
+export type RoleChange = { name: string; from: string; to: string };
+
+/** The Mail to a manager whose starters moved off a role removed from the set: which of them
+ *  changed role, from what to what (spec/05 `S05.53`: "Saka: shadow striker → poacher"). */
+export function changedRolesLetter(changes: readonly RoleChange[]): Words {
+  return {
+    subject: "Your starters' roles changed",
+    body: [
+      "A role left the game, so each of your starters who held it moved to the role he'd get dropped into his slot on:",
+      ...changes.map(({ name, from, to }) => `- ${name}: ${cutRoleWords(from)} → ${roleName(to)}`),
+      PICK_ANOTHER,
+    ].join("\n"),
+  };
 }

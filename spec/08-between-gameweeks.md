@@ -34,6 +34,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   - Changed run times count only from the next one still ahead, so a new time already gone this
     week never runs at once: runs only happen at times managers were shown (Craig, 11 Nov 2026,
     #1468). `S08.10`
+- The commissioner can press **Run waivers now**, which runs the waiver claims at once instead of
+  waiting for the next scheduled run (Craig, 16 Nov 2026, #2267: "A yes"; Fantrax has the same).
+  `S08.31`
 - Both runs work alike: every player whose 24 hours are up is claimed in order. A drop on Tuesday
   at 10:00 makes Wednesday's run; one after 18:00 on Tuesday makes Thursday's.
 - The window: from the first waiver run after a gameweek to the next deadline, when players are free
@@ -97,10 +100,16 @@ From `/grill trades` (25 Oct 2026).
 - Review: under a commissioner veto, the commissioner has 24 hours to block an accepted trade, or
   it goes through. Under a league vote, the other managers have 24 hours, and it is blocked only if
   most of them vote against.
+- While a league is frozen for deletion, a trade's review clock stops; after an undo it carries on
+  with the time that was left (Craig, 11 Nov 2026, on #1493: "The clock stops"). `S08.27`
 - A trade under a league vote with no other manager able to vote, such as a two-team league or one
   whose other teams are all on the auto team, goes through at once (Craig, 11 Nov 2026, #1607). `S08.15`
 - Once a trade is through, its players move at once. A gameweek already under way keeps their
   points with the old team.
+- Players in a trade under review are held: they can't be dropped or used in another accepted
+  trade. Once it goes through, any other open offer with one of its players closes, with a letter
+  to both managers (Craig, 6 Nov 2026, #383, "Hold players during review"). Waivers' "Dropping is
+  never restricted" is said of the churn rule only. `S08.29`
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
   commissioner picks.
 - An offer made during the trade deadline's gameweek closes once that gameweek's last match is
@@ -121,6 +130,9 @@ From `/grill trades` (25 Oct 2026).
 - When the commissioner or co-commissioner changes during a review, whoever holds the role now
   reviews the trade: he gets the review letter with Block in it and sees it in To review, the one
   who left can't block it, and the 24 hours don't restart (Craig, 11 Nov 2026, #1472). `S08.12`
+- Under a veto, the admin can block a trade in review in any league, as its reviewer can, and the
+  blocked letter names the admin as who blocked it (spec/15, The admin; Craig, 15 Nov 2026,
+  #2148). `S08.28`
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).
@@ -135,3 +147,6 @@ From `/grill trades` (25 Oct 2026).
   to "Take back" (Craig, 10 Nov 2026, #383). `S08.3`
 - Nobody sees how a vote stands until the review ends: the blocked or made letter is the result,
   and each voter sees only his own vote (Craig, 10 Nov 2026, #383). `S08.4`
+- League settings' Trades tab lists every trade in review in the league, those its commissioner
+  can't review included, each with its end; with none, it says "None in review", with a Trades ›
+  link (Craig, 17 Nov 2026, on #2504). `S08.30`

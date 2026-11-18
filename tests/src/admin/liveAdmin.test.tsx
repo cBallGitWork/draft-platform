@@ -8,12 +8,13 @@ import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { useLiveAdmin } from "../../../src/admin/liveAdmin";
 import { changeFailedWords } from "../../../src/shared/words";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
 const convex = vi.hoisted(() => ({
   find: vi.fn(),
   feeds: vi.fn(),
+  owed: vi.fn(),
   setPosition: vi.fn(),
   setUnplacedArea: vi.fn(),
   approvePlayer: vi.fn(),
@@ -33,6 +34,7 @@ vi.mock("convex/react", async () =>
     queries: {
       "positions/playerPositions:find": convex.find,
       "admin/feeds:feeds": convex.feeds,
+      "admin/feeds:owed": convex.owed,
       "availability/availability:forAdmin": convex.forAdmin,
       "admin/platformSettings:settings": convex.platformSettings,
       "gameweeks/matchMoves:gameweekMatches": convex.gameweekMatches,
@@ -66,18 +68,34 @@ test("a search asks positions/playerPositions:find, and blank text asks nothing 
   expect(convex.find).toHaveBeenLastCalledWith("skip");
 });
 
-test("the feeds are asked of admin/feeds:feeds at the start of the minute, and asked again when the next begins", () => {
+// #2500: the runs' statuses are asked with no time, so Convex reads them again only when a run is
+// logged; only what each feed owes, a few small reads, is asked again each minute.
+test("S15.2: the feeds' statuses are asked of admin/feeds:feeds with no time, and what each owes of admin/feeds:owed at the start of each minute", () => {
   const minute = Date.parse("2026-10-17T12:00:00Z");
   vi.useFakeTimers({ now: minute + 40_000 });
   renderHook(() => useLiveAdmin().useFeeds());
-  expect(convex.feeds).toHaveBeenLastCalledWith({ now: minute });
+  expect(convex.owed).toHaveBeenLastCalledWith({ now: minute });
 
   act(() => vi.advanceTimersByTime(19_999));
-  expect(convex.feeds).toHaveBeenLastCalledWith({ now: minute });
+  expect(convex.owed).toHaveBeenLastCalledWith({ now: minute });
   act(() => vi.advanceTimersByTime(1));
-  expect(convex.feeds).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
+  expect(convex.owed).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
   act(() => vi.advanceTimersByTime(MINUTE_MS));
-  expect(convex.feeds).toHaveBeenLastCalledWith({ now: minute + 2 * MINUTE_MS });
+  expect(convex.owed).toHaveBeenLastCalledWith({ now: minute + 2 * MINUTE_MS });
+  expect(new Set(convex.feeds.mock.calls.map(([args]) => JSON.stringify(args)))).toEqual(new Set(["{}"]));
+});
+
+test("S15.2: the feeds are judged at the minute's time from the two reads together", () => {
+  const minute = Date.parse("2026-10-17T12:00:00Z");
+  vi.useFakeTimers({ now: minute });
+  const lastRun = { ranAt: minute - HOUR_MS, failure: null };
+  convex.feeds.mockReturnValue({ feeds: [{ feed: "liveStats", lastRun, lastSuccessAt: lastRun.ranAt, lastError: null }], corrections: [], moreCorrections: false });
+  const owed = { owedSince: { matchStats: null, liveStats: minute - 30 * MINUTE_MS, teamSheets: null }, liveKickoffs: [], behind: [], moreBehind: false };
+  convex.owed.mockReturnValue({ now: minute, ...owed });
+
+  expect(renderHook(() => useLiveAdmin().useFeeds()).result.current?.feeds).toEqual([
+    { feed: "liveStats", state: "late", lastRunAt: lastRun.ranAt, lastSuccessAt: lastRun.ranAt, lastError: null },
+  ]);
 });
 
 test("a change positions/playerPositions:setPosition makes resolves with no problem", async () => {

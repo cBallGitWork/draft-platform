@@ -1,4 +1,5 @@
-// Scouting in the preview (src/app/preview.ts): a few players at three clubs, two of them owned and one on waivers, a few
+// Scouting in the preview (src/app/preview.ts): the Pro League's players, the manager's own My team's squad, his
+// opponent's fifteen, a few of three more teams' and free agents, one on waivers, a few
 // stats added up for each over the season and over the last 6 and 4 gameweeks, filtered and sorted
 // by the server's own rule (listOf).
 
@@ -7,10 +8,13 @@ import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/sc
 import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { previewClub, previewGameMode, previewSaves, previewTeamNames, proLeague } from "../shared/preview";
+import { previewClub, previewClubs, previewGameMode, previewSaves, previewTeamNames, proLeague } from "../shared/preview";
+import { previewSquad } from "../myTeam/tactics/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
+import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import { withOwnStats } from "../../convex/scoring/ownStats";
+import { scoredStats } from "../../convex/scoring/scoringSet";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
@@ -18,7 +22,7 @@ import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortli
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import { previewIdOf } from "../table/preview";
+import { previewIdOf, previewOpponent } from "../table/preview";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = previewClub("ARS");
@@ -45,17 +49,93 @@ export const previewListedPlayer = (code: number, name: string, fullName: string
 const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRun: { at: Date.now() + 2 * DAY_MS, skippedIf: null } } });
 const player = previewListedPlayer;
 
-export const previewPlayers: readonly ListedPlayer[] = [
-  player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
-  player(2, "Rice", "Declan Rice", ARSENAL, ["CDM", "CM"]),
-  player(3, "Raya", "David Raya Martín", ARSENAL, ["GK"]),
-  player(4, "Palmer", "Cole Palmer", CHELSEA, ["CAM", "W"], "Kroos Control"),
-  onWaivers(player(5, "James", "Reece James", CHELSEA, ["FB", "WB"])),
-  player(6, "Salah", "Mohamed Salah", LIVERPOOL, ["W", "ST"]),
-  player(7, "Van Dijk", "Virgil van Dijk", LIVERPOOL, ["CB"]),
+/** A preview club by its three letters, any the preview's twenty hold. */
+const clubOf = (shortName: string) => previewClubs.find((club) => club.shortName === shortName)!;
+
+/** The full names the list and the card give the preview manager's men; one not here goes by his name. */
+const FULL_NAMES: Record<string, string> = {
+  Saka: "Bukayo Saka",
+  Rice: "Declan Rice",
+  Palmer: "Cole Palmer",
+  "Van Dijk": "Virgil van Dijk",
+  Haaland: "Erling Haaland",
+  Watkins: "Ollie Watkins",
+};
+
+/** The preview manager's men: My team's squad (../myTeam/tactics/preview.ts), his own team's, by
+ *  code, so Saka is his first winger (#2450). */
+const MINE = previewSquad
+  .map(({ playerCode, name, clubShortName, positions }) => player(playerCode, name, FULL_NAMES[name] ?? name, clubOf(clubShortName), positions, proLeague.teamName))
+  .toSorted((one, other) => one.code - other.code);
+
+type Man = readonly [number, string, string, ListedPlayer["positions"]];
+/** The preview manager's opponent this gameweek (previewOpponent): the matchup plays these fifteen,
+ *  eleven starters, then the bench. */
+const OPPONENT_MEN: readonly Man[] = [
+  [30, "Sánchez", "CHE", ["GK"]],
+  [31, "Konaté", "LIV", ["CB"]],
+  [32, "Cucurella", "CHE", ["FB", "WB"]],
+  [33, "Saliba", "ARS", ["CB"]],
+  [34, "Mac Allister", "LIV", ["CDM", "CM"]],
+  [35, "Enzo Fernández", "CHE", ["CM"]],
+  [36, "Bruno Fernandes", "MUN", ["CAM", "CM"]],
+  [37, "Ødegaard", "ARS", ["CAM"]],
+  [38, "Ekitiké", "LIV", ["ST"]],
+  [39, "Mateta", "CRY", ["ST"]],
+  [40, "Bowen", "WHU", ["W", "ST"]],
+  [41, "Pope", "NEW", ["GK"]],
+  [42, "Timber", "ARS", ["FB", "CB"]],
+  [43, "Kluivert", "BOU", ["CAM", "W"]],
+  [44, "Thiago", "BRE", ["ST"]],
+];
+/** A few men of three more teams, the ones Trades' offers name. */
+const RIVAL_MEN: readonly (readonly Man[])[] = [
+  [
+    [45, "Gyökeres", "ARS", ["ST"]],
+    [46, "Reijnders", "MCI", ["CM", "CAM"]],
+    [47, "Wan-Bissaka", "WHU", ["FB"]],
+    [48, "Kerkez", "LIV", ["FB", "WB"]],
+    [49, "Martínez", "AVL", ["GK"]],
+  ],
+  [
+    [50, "Tonali", "NEW", ["CDM", "CM"]],
+    [51, "Doku", "MCI", ["W"]],
+    [52, "Mitoma", "BHA", ["W"]],
+  ],
+  [
+    [55, "Welbeck", "BHA", ["ST"]],
+    [56, "Andersen", "FUL", ["CB"]],
+  ],
+];
+/** The teams holding those men, the first after the manager's and his opponent's: Trades' teams. */
+export const previewRivals = previewTeamNames.filter((team) => team !== proLeague.teamName && team !== previewOpponent).slice(0, RIVAL_MEN.length);
+const owned = (men: readonly Man[], team: string) => men.map(([code, name, club, positions]) => player(code, name, name, clubOf(club), positions, team));
+
+/** More free agents, so the list opens on more than a handful. */
+const FREE_MEN: readonly Man[] = [
+  [60, "Wirtz", "LIV", ["CAM"]],
+  [61, "Foden", "MCI", ["CAM", "W"]],
+  [62, "Gordon", "NEW", ["W"]],
+  [63, "Pedro Porro", "TOT", ["FB", "WB"]],
+  [64, "Sarr", "CRY", ["W"]],
+  [65, "Vicario", "TOT", ["GK"]],
+  [66, "Cunha", "MUN", ["W", "ST"]],
 ];
 
-/** A few of each player's season totals, by his code; a stat left out is 0. */
+/** The Pro League's players: the manager's own, his opponent's, three more teams' and the free
+ *  agents, one list every preview screen reads, so a man is owned by the same team on each (#2450). */
+export const previewPlayers: readonly ListedPlayer[] = [
+  ...MINE,
+  player(3, "Raya", "David Raya Martín", ARSENAL, ["GK"]),
+  onWaivers(player(5, "James", "Reece James", CHELSEA, ["FB", "WB"])),
+  player(6, "Salah", "Mohamed Salah", LIVERPOOL, ["W", "ST"]),
+  ...owned(OPPONENT_MEN, previewOpponent),
+  ...RIVAL_MEN.flatMap((men, index) => owned(men, previewRivals[index])),
+  ...FREE_MEN.map(([code, name, club, positions]) => player(code, name, name, clubOf(club), positions)),
+];
+
+/** A few of each player's season totals, by his code; a stat left out is 0. One not here has
+ *  totals made up from his code (madeUpTotals). */
 const previewTotals: Record<number, Stats> = {
   1: { goals_scored: 4, assists: 3, minutes: 720, expected_goals: 3.41 },
   2: { goals_scored: 1, assists: 2, minutes: 810, expected_goals: 0.92 },
@@ -65,6 +145,15 @@ const previewTotals: Record<number, Stats> = {
   6: { goals_scored: 7, assists: 4, minutes: 800, expected_goals: 6.12 },
   7: { goals_scored: 1, clean_sheets: 4, minutes: 810, expected_goals: 0.65 },
 };
+/** A player's made-up totals over `weeks` of the season's 9 gameweeks, from his code: a keeper
+ *  saves, the rest score and set up by their code. */
+function madeUpTotals(code: number, keeper: boolean, weeks: number): Stats {
+  const share = (value: number) => Math.round((value * weeks) / 9);
+  const minutes = share(500 + ((code * 37) % 310));
+  if (keeper) return { saves: share(12 + (code % 11)), clean_sheets: share(code % 4), minutes };
+  const goals = share((code * 3) % 7);
+  return { goals_scored: goals, assists: share((code * 2) % 5), minutes, expected_goals: Math.round(goals * 90 + (code % 9) * 10) / 100 };
+}
 /** Their totals over the last 6 and the last 4 gameweeks, for the Period picker; Raya missed two. */
 const previewRecentTotals: Record<Exclude<Period, "season">, Record<number, Stats>> = {
   last6: {
@@ -86,8 +175,11 @@ const previewRecentTotals: Record<Exclude<Period, "season">, Record<number, Stat
     7: { clean_sheets: 1, minutes: 360 },
   },
 };
-/** The preview's totals over `period`. */
-const totalsOver = (period: Period = DEFAULT_PERIOD) => (period === "season" ? previewTotals : previewRecentTotals[period]);
+/** How many gameweeks each period adds up. */
+const PERIOD_WEEKS: Record<Period, number> = { season: 9, last6: 6, last4: 4 };
+/** A player's totals over `period` in the preview: his own above, else made up. */
+const totalsOf = (period: Period, { code, positions }: Pick<ListedPlayer, "code" | "positions">): Stats =>
+  (period === "season" ? previewTotals : previewRecentTotals[period])[code] ?? madeUpTotals(code, positions.includes("GK"), PERIOD_WEEKS[period]);
 /** The gameweeks each period counts in the preview: 9 have finished. */
 const PREVIEW_PERIOD_GAMEWEEKS: Record<Period, number[]> = { season: [], last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
 
@@ -99,10 +191,11 @@ const PREVIEW_SET = {
 };
 const previewPlayer = (playerCode: number) => previewPlayers.find(({ code }) => code === playerCode)!;
 /** A preview player as the per-90 figures weigh him over `period` (per90Figures.ts). */
-const weigher = (period: Period) => (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(totalsOver(period)[player.code] ?? {}, PREVIEW_SET) });
+const weigher = (period: Period) => (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(totalsOf(period, player), PREVIEW_SET) });
 
-/** Rice and Salah are on the preview manager's shortlist to begin with, and feed his draft queue. */
-const SHORTLISTED = [2, 6];
+/** Raya and Salah, free agents, are on the preview manager's shortlist to begin with, and feed his
+ *  draft queue. */
+const SHORTLISTED = [3, 6];
 export const previewShortlist = previewShortlistOf(previewPlayers, SHORTLISTED);
 setPreviewShortlisted(previewPlayers.filter(({ code }) => SHORTLISTED.includes(code)));
 setPreviewPlayers(previewPlayers);
@@ -136,12 +229,13 @@ export const previewPlayersListOf =
   (players: readonly ListedPlayer[]): ScoutingSeam["usePlayersList"] =>
   (_leagueId, filters, sort, stat, period = DEFAULT_PERIOD, keep) => {
     const rows = players.map((player) => {
-      const totals = totalsOver(period)[player.code];
-      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
+      const totals = totalsOf(period, player);
+      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals, PREVIEW_SET), stat) };
     });
     return {
       clubs: [...new Map(players.map(({ club }) => [club.code, club])).values()],
       ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
+      scored: scoredStats(FIRST_SCORING),
       players: listOf(rows, filters, sort),
       pointsSeason: null,
       periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],

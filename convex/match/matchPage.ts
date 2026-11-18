@@ -1,23 +1,22 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { delayedFrom, heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
-import { heldCommentary, type HeldCommentary, type MatchupCommentary } from "../matchup/matchupShape";
+import { heldCommentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { vidiprinterTeam } from "../matchup/instructionLines";
-import { shownLine, storedLineKey, vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
+import type { VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
-import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
+import { clubRecord, formationPlace, position, scoreRead, sideTeamStats } from "../schema";
+import type { CategoryPoints } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { leagueLabel, logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
-import { thresholdStepsOf } from "../matchup/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { isAbandoned, matchRecordsOf } from "../stats/matchRecordReads";
 import { livePointsDelayOf } from "../stats/livePrints";
@@ -25,6 +24,10 @@ import { isGameweekFinal } from "../stats/matchStats";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { marksOf, matchMarks } from "./matchMarks";
+import { matchStatLine, statLineOf, statPointsOf } from "./matchStatLine";
+import { commentaryOf } from "./matchPageCommentary";
+import { matchScorers, scorersOf } from "./matchScorers";
+import { matchSub, NO_SUB, subsOf } from "./matchSubs";
 import { bySheetOrder } from "./sheetOrder";
 import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 
@@ -55,14 +58,25 @@ const matchMan = v.object({
   /** The club he played the match for, by the match's sides (#502); null when it is neither. */
   side: v.union(side, v.null()),
   started: v.boolean(),
+  /** Where a starter stood in his side's formation by the held sheets, for Overview's pitch (S10.9);
+   *  null for a substitute, or while no sheet drawing it is held. */
+  formationPlace: v.union(formationPlace, v.null()),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
   played: v.union(v.boolean(), v.null()),
+  /** When he came on and for whom, and when he went off, by the commentary, for Overview's pitch
+   *  (S10.9; matchSubs.ts). */
+  sub: matchSub,
   /** The league's team his points are for (matchOwners.ts); null for a man no team holds. */
   ownerTeamName: v.union(v.string(), v.null()),
   /** Whether that team is the viewer's own, whose men the sheets light (spec/10 S10.9). */
   mine: v.boolean(),
   /** His goals, assists and cards in this match so far, by his record; all 0 before it. */
   marks: matchMarks,
+  /** His stats for the match, the Player stats tab's (S10.8); null before his record arrives. */
+  statLine: v.union(matchStatLine, v.null()),
+  /** What each of those stats earned him, the Stats | Points switch's Points (S10.8); null while his
+   *  points can't be told by stat. */
+  statPoints: v.union(matchStatLine, v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
    *  and for every man before the league's gameweek begins, as his card opens on him (basePoints).
@@ -74,6 +88,7 @@ const matchMan = v.object({
   counts: v.boolean(),
 });
 export type MatchMan = Infer<typeof matchMan>;
+type FormationPlace = Infer<typeof formationPlace>;
 
 const heldMatchPage = v.object({
   fixtureCode: v.number(),
@@ -87,6 +102,8 @@ const heldMatchPage = v.object({
   men: v.array(matchMan),
   /** Why the league's points can't be worked out, while the rest still shows; null when they can. */
   pointsProblem: v.union(v.string(), v.null()),
+  /** Each side's goals, oldest first, for the line under the scoreboard (S10.7). */
+  scorers: matchScorers,
   /** Shots, shots on target, possession, corners and cards, each side's; null until a read has
    *  given any. */
   teamStats: v.union(v.object({ home: sideTeamStats, away: sideTeamStats }), v.null()),
@@ -112,7 +129,9 @@ export const ofMatch = query({
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
     const records = await matchRecordsOf(ctx, fixtureCode, "its men");
-    const named = records.length > 0 ? records : await sheetMenOf(ctx, fixtureCode);
+    const sheetMen = (await heldTeamSheetsOf(ctx, fixtureCode))?.men ?? [];
+    const named = records.length > 0 ? records : sheetMen.map(({ playerCode, started }) => ({ playerCode, started, played: null }));
+    const places = new Map(sheetMen.flatMap(({ playerCode, formationPlace }) => (formationPlace === undefined ? [] : [[playerCode, formationPlace] as const])));
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
     const deadlineLineups = begunGameweek === null ? null : await deadlineLineupsOf(ctx, leagueId, begunGameweek);
     const owners = await matchOwnersOf(ctx, leagueId, deadlineLineups, named.map(({ playerCode }) => playerCode));
@@ -122,7 +141,9 @@ export const ofMatch = query({
     const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, lineupOwners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null }, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners, viewerTeam: team?._id ?? null, places }, priced, unownedPoints);
+    const { commentary, lines } = await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held);
+    const subs = subsOf(lines, `Match ${fixture.code}`);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -130,22 +151,17 @@ export const ofMatch = query({
       home: clubOf(await clubByCode(ctx, fixture.homeClubCode)),
       away: clubOf(await clubByCode(ctx, fixture.awayClubCode)),
       score: held === null ? null : scoreOnly(held),
-      men,
+      men: men.map((man) => ({ ...man, sub: subs.get(man.playerCode) ?? NO_SUB })),
       pointsProblem: priced.problem,
+      scorers: scorersOf(lines, new Map(men.map((man) => [man.playerCode, man])), `Match ${fixture.code}`),
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
-      commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), held),
+      commentary,
       abandoned: await isAbandoned(ctx, fixtureCode),
       pointsDelayed: (await livePointsDelayOf(ctx, fixtureCode)) !== null,
       provisional: held !== null && fixture.gameweek !== null && !(await isGameweekFinal(ctx, fixture.gameweek, "its points can't be told final")),
     };
   },
 });
-
-/** The men the held sheets name, before kickoff; none before a read has named any. */
-async function sheetMenOf(ctx: QueryCtx, fixtureCode: number): Promise<NamedMan[]> {
-  const sheets = await heldTeamSheetsOf(ctx, fixtureCode);
-  return (sheets?.men ?? []).map(({ playerCode, started }) => ({ playerCode, started, played: null }));
-}
 
 /** The match's gameweek once the league has begun it, as the matchup shows lineups only then; null
  *  before, or for a match no gameweek holds. */
@@ -158,7 +174,7 @@ async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek
  *  set is the site's that gameweek, which every man's card prices him under; no set for a match no
  *  gameweek holds. */
 interface Priced {
-  slots: Map<PlayerCode, { points: number | null; counts: boolean }>;
+  slots: Map<PlayerCode, { points: number | null; categories: CategoryPoints[]; counts: boolean }>;
   players: Map<PlayerCode, VidiprinterPlayer>;
   set: ScoringSet | null;
   problem: string | null;
@@ -214,7 +230,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (!inThisMatch.has(slot.playerCode)) continue;
       const inMatch = pointsInMatch(scored, slot.playerCode, fixture.code);
       if (inMatch === null) continue;
-      result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
+      result.slots.set(slot.playerCode, { points: inMatch.points, categories: inMatch.categories, counts: slot.counts });
       const name = nameOf(await playerByCode(ctx, slot.playerCode), slot.playerCode);
       result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []), team: vidiprinterTeam(scored) });
     }
@@ -232,10 +248,15 @@ async function menOf(
   leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
-  { owners, lineupOwners, viewerTeam }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null },
+  {
+    owners,
+    lineupOwners,
+    viewerTeam,
+    places,
+  }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">>; viewerTeam: Id<"teams"> | null; places: Map<PlayerCode, FormationPlace> },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
-): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
+): Promise<{ men: Omit<MatchMan, "sub">[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
@@ -246,7 +267,7 @@ async function menOf(
       const inLineup = lineupOwners.has(playerCode);
       const unownedMan = inLineup ? null : unownedPoints(playerCode, positions);
       if (unownedMan?.lines) unowned.set(playerCode, { name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
-      const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
+      const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, categories: unownedMan.categories, counts: false };
       const playedFor = clubCode ?? player?.clubCode;
       const owner = owners.get(playerCode);
       return {
@@ -255,10 +276,13 @@ async function menOf(
         position: positions[0] ?? null,
         side: playedFor === undefined ? null : sideOf(fixture, playedFor),
         started,
+        formationPlace: started ? (places.get(playerCode) ?? null) : null,
         played,
         ownerTeamName: owner?.name ?? null,
         mine: owner !== undefined && owner._id === viewerTeam,
         marks: marksOf(stats),
+        statLine: statLineOf(stats),
+        statPoints: statPointsOf(slot?.categories ?? []),
         points: slot?.points ?? null,
         counts: slot?.counts ?? true,
       };
@@ -274,26 +298,3 @@ const sideOf = ({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: numbe
 /** A man the match names, by name; or, for one the football data has lost, whose saved record stays
  *  (spec/14 S14.5), the error words every screen gives his row, so the rest of the page still shows. */
 const nameOf = (player: Doc<"players"> | null, playerCode: PlayerCode): string => (player === null ? unheldPlayerWords(playerCode) : player.name);
-
-/** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
- *  or why they can't be read, while the rest still shows. Delayed from the moment the match's held
- *  `score` gives (`delayedFrom`). */
-async function commentaryOf(
-  ctx: QueryCtx,
-  fixture: Doc<"fixtures">,
-  set: ScoringSet | null,
-  players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
-  score: Doc<"matchScores"> | null,
-): Promise<HeldCommentary> {
-  try {
-    const row = await heldOf(ctx, fixture.code);
-    if (row === null) return { kind: "read", lines: [], delayedFrom: null };
-    const lines =
-      set === null
-        ? row.lines.map((line) => ({ key: storedLineKey(fixture.code, line.sourceId), text: line.text, points: null }))
-        : vidiprinter([{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps: await thresholdStepsOf(ctx, fixture.code) }], players, set).map(shownLine);
-    return { kind: "read", lines, delayedFrom: delayedFrom(row, score) };
-  } catch (error) {
-    return { kind: "unread", reason: logFailure(`Match ${fixture.code}'s commentary can't be read`, error) };
-  }
-}

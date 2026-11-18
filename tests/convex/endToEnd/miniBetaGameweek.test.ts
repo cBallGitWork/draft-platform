@@ -111,7 +111,7 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
   expect((await heldMatch(t)).status?.state).toBe("locked");
   const stored = await t.run((ctx) => ctx.db.query("finalScores").collect());
   expect(new Map(stored.map((row) => [emailOf.get(row.teamId)!, row.points]))).toEqual(expected);
-  expect(stored.every((row) => row.gameweek === GAMEWEEK && !row.noLineup)).toBe(true);
+  expect(stored.every((row) => row.gameweek === GAMEWEEK)).toBe(true);
 
   const table = (await tableOf(league))!;
   const final = table.results.find((result) => result.gameweek === GAMEWEEK)!.teams;

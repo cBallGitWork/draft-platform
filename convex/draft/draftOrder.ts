@@ -3,6 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
 import { refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { shuffle } from "../shared/shuffle";
+import { tellDraftOrder } from "./draftLetters";
 import { draftHasStarted } from "./draftRow";
 
 // The draft order (spec/04, Starting it; #1087, #1089). It starts as the order the teams joined
@@ -11,7 +12,8 @@ import { draftHasStarted } from "./draftRow";
 // after goes straight to the bottom, and nothing redraws it on its own (Craig, 4 Nov 2026, on #1087
 // and #1089). The league row holds the order (`draftOrder`); a team it doesn't name, as one that
 // joined since, follows the named in the order they joined, so a team joining needs no write here.
-// If he never sets it, the draft runs in the order the teams joined.
+// If he never sets it, the draft runs in the order the teams joined. Each order he saves, and each
+// draw, tells the whole league (S04.31; #2149).
 
 /** Why a new order is refused, in the words the commissioner is shown. */
 export const draftOrderRefusals = {
@@ -50,9 +52,17 @@ export const teamOrder = query({
 /** The league, its teams and whoever runs it, if the draft order may still change; otherwise a
  *  refusal. */
 async function orderChanger(ctx: MutationCtx, leagueId: Id<"leagues">) {
-  const { league } = await runnerOf(ctx, leagueId);
+  const { email, league } = await runnerOf(ctx, leagueId);
   if (await draftHasStarted(ctx, leagueId)) refuse(draftOrderRefusals.started);
-  return { league, teams: await teamsOf(ctx, leagueId) };
+  return { email, league, teams: await teamsOf(ctx, leagueId) };
+}
+
+/** Saves `teamIds`, the league's `teams` in a new order, as its draft order and tells the whole
+ *  league, `by` the one who set it, drawn at random when `drawn` (S04.31). */
+async function saveOrder(ctx: MutationCtx, league: Doc<"leagues">, teams: Doc<"teams">[], teamIds: Id<"teams">[], by: string, drawn: boolean) {
+  await ctx.db.patch("leagues", league._id, { draftOrder: teamIds });
+  const names = new Map(teams.map((team) => [team._id, team.name]));
+  await tellDraftOrder(ctx, league, by, teamIds.map((teamId) => names.get(teamId)!), drawn);
 }
 
 /** Saves `teamIds` as the draft order, first pick first. Refused once the draft has started, and
@@ -62,12 +72,12 @@ export const setTeamOrder = mutation({
   args: { leagueId: v.id("leagues"), teamIds: v.array(v.id("teams")) },
   returns: v.null(),
   handler: async (ctx, { leagueId, teamIds }) => {
-    const { league, teams } = await orderChanger(ctx, leagueId);
+    const { email, league, teams } = await orderChanger(ctx, leagueId);
     const given = new Set(teamIds);
     if (given.size !== teamIds.length || teamIds.length !== teams.length || teams.some((team) => !given.has(team._id))) {
       refuse(draftOrderRefusals.teamsChanged);
     }
-    await ctx.db.patch("leagues", league._id, { draftOrder: teamIds });
+    await saveOrder(ctx, league, teams, teamIds, email, false);
     return null;
   },
 });
@@ -78,8 +88,8 @@ export const drawTeamOrder = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
-    const { league, teams } = await orderChanger(ctx, leagueId);
-    await ctx.db.patch("leagues", league._id, { draftOrder: shuffle(teams.map((team) => team._id), Math.random) });
+    const { email, league, teams } = await orderChanger(ctx, leagueId);
+    await saveOrder(ctx, league, teams, shuffle(teams.map((team) => team._id), Math.random), email, true);
     return null;
   },
 });

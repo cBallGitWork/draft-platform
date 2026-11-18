@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { footballLink } from "./paths";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
@@ -14,40 +14,49 @@ import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import { MatchMarks } from "./MatchMarks";
+import { MatchPlayerStats, PointsCell, StatViewSwitch, ViewSwitch } from "./MatchPlayerStats";
+import { anyPlaced, MatchPitch, offPitch } from "./MatchPitch";
+import { TeamStats } from "./MatchTeamStats";
+import { PlateTabs } from "../ui/PlateTabs";
 import { MatchState } from "./MatchState";
 import { AbandonedMark } from "./AbandonedMark";
 import {
   backLabel,
   backWords,
   cameOnWords,
+  wentOffWords,
   COMMENTARY_TITLE,
-  figureWords,
   goalsWords,
+  highlightsNotHeldLabel,
   inGameweekWords,
+  LINEUP_VIEWS,
+  lineupViewLabel,
+  lineupViewWords,
+  type LineupView,
   livePointsDelayedWords,
   loadingMatchWords,
   MATCH_TITLE,
+  MATCH_TABS,
   matchColumns,
+  type MatchTab,
+  type StatView,
+  matchTabsLabel,
+  matchTabWords,
   matchWhereWords,
   MOVED_TITLE,
   noFigureWords,
   noLinesWords,
   noMatchWords,
   noMenWords,
-  notCountingLabel,
-  noTeamStatsWords,
   pointsProblemWords,
-  possessionWords,
   previousGlyph,
   provisionalWords,
   provWords,
   SCORE_LABEL,
+  scorersLabel,
+  scorersWords,
   sheetLabel,
-  STAT_COLUMN,
   SUBSTITUTES_TITLE,
-  TEAM_STATS_TITLE,
-  teamStatRows,
-  teamStatsLabel,
   unusedLabel,
   versusWords,
 } from "./words";
@@ -73,25 +82,61 @@ export function MatchPage({ league, seam, fixtureCode, isAdmin }: { league: Leag
 
 /** `mark` is the admin's abandoned mark, at the scoreboard's foot; null for anyone else. */
 function HeldMatch({ match, mark }: { match: MatchPageData; mark: ReactNode }) {
-  const { home, away, men, pointsProblem, teamStats, commentary, gameweek, provisional } = match;
-  const moved = men.filter((man) => man.side === null);
+  const { pointsProblem, gameweek, provisional } = match;
+  const [tab, choose] = useState<MatchTab>("overview");
+  const [view, chooseView] = useState<StatView>("stats");
+  const [lineupView, chooseLineupView] = useState<LineupView>("list");
   const prov = provisional ? <ProvTag /> : undefined;
+  // No pitch until a sheet has placed the men (S10.13): no switch, and the list.
+  const pitchHeld = anyPlaced(match.men);
   return (
     <>
       <BackRow gameweek={gameweek} />
       <Scoreboard match={match}>{mark}</Scoreboard>
-      {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
-      <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
-        <TeamSheet title={home.name} men={men.filter((man) => man.side === "home")} aside={prov} />
-        <TeamSheet title={away.name} men={men.filter((man) => man.side === "away")} aside={prov} />
-        {/* Side by side under the sheets on the desk, stacked in the third column on a wide one. */}
-        <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
-          <TeamStats home={home} away={away} stats={teamStats} />
-          <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
-        </div>
-        {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
+      {/* Overview | Player stats | Highlights under the scoreboard (S10.8, S10.11); Highlights greyed until it is built. */}
+      <div className="flex min-h-tap bg-plate text-lead shadow-bevel-plate">
+        <PlateTabs label={matchTabsLabel} tabs={MATCH_TABS} words={matchTabWords} chosen={tab} choose={choose} greyed={{ highlights: highlightsNotHeldLabel }} alone />
+        {tab === "playerStats" && <StatViewSwitch view={view} choose={chooseView} />}
+        {tab === "overview" && pitchHeld && (
+          <ViewSwitch label={lineupViewLabel} name="match-lineup-view" views={LINEUP_VIEWS} words={lineupViewWords} view={lineupView} choose={chooseLineupView} />
+        )}
       </div>
+      {pointsProblem !== null && <Notice>{pointsProblemWords(pointsProblem)}</Notice>}
+      {tab === "playerStats" ? <MatchPlayerStats match={match} aside={prov} view={view} /> : <Overview match={match} prov={prov} view={pitchHeld ? lineupView : "list"} />}
     </>
+  );
+}
+
+/** The lineups beside the team stats and the commentary: two team sheets with List; with Pitch, both
+ *  elevens on one pitch as they stand now, each side's substitutes and men who went off on its sheet
+ *  beside it (S10.9). */
+function Overview({ match: { home, away, men, teamStats, commentary }, prov, view }: { match: MatchPageData; prov: ReactNode; view: LineupView }) {
+  const moved = men.filter((man) => man.side === null);
+  const sideMen = { home: men.filter((man) => man.side === "home"), away: men.filter((man) => man.side === "away") };
+  const beside = view === "pitch" ? offPitch : (each: MatchMan[]) => each;
+  const sheets = (
+    <>
+      <TeamSheet title={home.name} men={beside(sideMen.home)} aside={prov} />
+      <TeamSheet title={away.name} men={beside(sideMen.away)} aside={prov} />
+    </>
+  );
+  return (
+    <div className="grid items-start gap-2 lg:grid-cols-2 xl:grid-cols-3">
+      {view === "pitch" ? (
+        <>
+          <div className="grid items-start gap-2">{sheets}</div>
+          <MatchPitch home={home} away={away} men={men} />
+        </>
+      ) : (
+        sheets
+      )}
+      {/* Side by side under the lineups on the desk, stacked in the third column on a wide one. */}
+      <div className="grid items-start gap-2 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+        <TeamStats home={home} away={away} stats={teamStats} />
+        <Vidiprinter commentary={commentary} title={COMMENTARY_TITLE} noLinesWords={noLinesWords} />
+      </div>
+      {moved.length > 0 && <TeamSheet title={MOVED_TITLE} men={moved} aside={prov} />}
+    </div>
   );
 }
 
@@ -119,7 +164,7 @@ function ProvTag() {
 }
 
 /** The clubs with the score between them, or "v" before kickoff, and where the match stands. */
-function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed }, children }: { match: MatchPageData; children: ReactNode }) {
+function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelayed, scorers }, children }: { match: MatchPageData; children: ReactNode }) {
   const goals = goalsWords(score);
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -128,13 +173,27 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek, pointsDelay
         {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
         <ScoreboardSide club={away} className="justify-self-start" />
       </p>
-      <p aria-live="polite" className="px-3 pb-2 text-center">
-        <MatchState score={score} kickoff={kickoff} long />
-        {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
-      </p>
+      <div className="grid grid-cols-sides items-baseline gap-3 px-3 pb-2">
+        <Scorers club={home} goals={scorers.home} className="text-left" />
+        <p aria-live="polite" className="text-center">
+          <MatchState score={score} kickoff={kickoff} long />
+          {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
+        </p>
+        <Scorers club={away} goals={scorers.away} className="text-right" />
+      </div>
       <Status words={pointsDelayed ? livePointsDelayedWords : null} className="alert-strip" />
       {children}
     </section>
+  );
+}
+
+/** A side's scorers under its name (S10.7; the approved picture: home's left, away's right); an
+ *  empty cell before its first goal, keeping the clock in the middle. */
+function Scorers({ club, goals, className }: { club: Club; goals: MatchPageData["scorers"]["home"]; className: string }) {
+  return (
+    <p aria-label={scorersLabel(club.name)} className={`text-soft ${className}`}>
+      {scorersWords(goals)}
+    </p>
   );
 }
 
@@ -155,45 +214,7 @@ function ScoreboardSide({ club, className }: { club: Club; className: string }) 
   );
 }
 
-type SideStats = NonNullable<MatchPageData["teamStats"]>["home"];
 type Club = MatchPageData["home"];
-/** The team stats' heads and cells: home's figures read right, toward the stat between them, which
- *  takes half the width. */
-const TEAM_STAT_CELLS = { home: "px-2 text-right", stat: "w-1/2 px-2 text-center", away: "px-2 text-left" } as const;
-
-/** Each side's five, home's figure left of the stat and away's right, as a scoreboard reads. */
-function TeamStats({ home, away, stats }: { home: Club; away: Club; stats: MatchPageData["teamStats"] }) {
-  return (
-    <Panel title={TEAM_STATS_TITLE}>
-      {stats === null ? (
-        <PanelNote>{noTeamStatsWords}</PanelNote>
-      ) : (
-        <table aria-label={teamStatsLabel(home.shortName, away.shortName)} className="w-full table-fixed border-collapse">
-          <ColumnHeads
-            columns={{ home: { short: home.shortName, long: home.name }, stat: STAT_COLUMN, away: { short: away.shortName, long: away.name } }}
-            unseen={["stat"]}
-            classOf={(column) => TEAM_STAT_CELLS[column]}
-          />
-          <tbody>
-            {(Object.keys(teamStatRows) as (keyof typeof teamStatRows)[]).map((stat) => (
-              <tr key={stat} className="border-t border-panel-rule">
-                <td className={`${TEAM_STAT_CELLS.home} font-bold`}>{statWords(stats.home, stat)}</td>
-                <th scope="row" className={`${TEAM_STAT_CELLS.stat} font-normal text-muted`}>{teamStatRows[stat]}</th>
-                <td className={`${TEAM_STAT_CELLS.away} font-bold`}>{statWords(stats.away, stat)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </Panel>
-  );
-}
-
-function statWords(side: SideStats, stat: keyof SideStats): string {
-  const value = side[stat];
-  if (value === null) return noFigureWords;
-  return stat === "possession" ? possessionWords(value) : String(value);
-}
 
 /** A club's men as the sheet named them: the starters, then a Substitutes plate and the bench. */
 function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; aside: ReactNode }) {
@@ -233,25 +254,23 @@ function TeamSheet({ title, men, aside }: { title: string; men: MatchMan[]; asid
  *  instead), the viewer's own men lit, and his points, greyed while his team's lineup doesn't count
  *  them, as the matchup greys a bench man (spec/14). A free agent's show plainly: "people don't
  *  think grey means no teams" (Craig, 31 Oct 2026). */
-function ManRow({ man: { name, position, started, played, ownerTeamName, mine, marks, points, counts } }: { man: MatchMan }) {
+function ManRow({ man }: { man: MatchMan }) {
+  const { name, position, started, played, sub, ownerTeamName, mine, marks } = man;
   const unused = !started && played === false;
-  const greyed = !counts && ownerTeamName !== null;
   return (
     <tr className={`border-t border-panel-rule ${unused ? "text-muted" : ""} ${mine ? "bg-row-lit" : ""}`}>
       <td className="px-2 text-right">{position === null ? noFigureWords : <PositionCode position={position} />}</td>
       <th scope="row" className={`px-2 text-left font-semibold ${unused ? "" : "text-lead"}`}>
         {name}
         <MatchMarks marks={marks} />
-        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords}</span>}
+        {!started && played === true && <span className="ml-2 font-normal text-event">{cameOnWords(sub.cameOn?.minute ?? null)}</span>}
+        {sub.wentOff !== null && <span className="ml-2 font-normal text-event">{wentOffWords(sub.wentOff.minute)}</span>}
         {unused && <span className="sr-only"> {unusedLabel}</span>}
       </th>
       <td className={`px-2 text-left ${mine ? "font-semibold text-fact" : ownerTeamName === null ? "" : "text-soft"}`}>
         <OwnerName teamName={ownerTeamName} />
       </td>
-      <td className={`px-2 text-right ${!greyed && points !== null ? "font-bold text-figure" : "text-muted"}`}>
-        {points === null ? noFigureWords : figureWords(points)}
-        {greyed && <span className="sr-only"> {notCountingLabel}</span>}
-      </td>
+      <PointsCell man={man} />
     </tr>
   );
 }

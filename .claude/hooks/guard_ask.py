@@ -125,25 +125,28 @@ def record_answered(payload):
     if field(payload, "tool_name", str, "") != ASK_TOOL:
         return
     response = payload.get("tool_response")
-    if not isinstance(response, dict):
-        return  # Craig met the questions with a message instead of answers: nothing was answered
-    answers = response.get(ANSWERS)
+    asked = field(payload, "tool_input", dict, {})
+    # the desktop app puts the picked answers in the call's input, not its result (#2388, 15 Nov 2026)
+    answers = response.get(ANSWERS) if isinstance(response, dict) else None
     if not isinstance(answers, dict):
-        print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
-              "so no question was recorded as asked.", file=sys.stderr)
+        answers = asked.get(ANSWERS)
+    if not isinstance(answers, dict):
+        if not isinstance(response, dict):
+            return  # Craig met the questions with a message instead of answers: nothing was answered
+        report(f"AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)})",
+               "no question was recorded as asked")
         return
     picked = {str(q): str(a).strip() for q, a in answers.items() if str(a or "").strip()}
     # what he picked is his latest message, so guard_mode.py reads "Yes, build them all" as a go (#1228)
     remember(field(payload, "session_id", str, ""), "\n".join(picked.values()))
     answered = {normal(q) for q in picked}
-    for text in ask_texts(field(payload, "tool_input", dict, {})):
+    for text in ask_texts(asked):
         if normal(text) in answered:
             try:
                 ASKED_DIR.mkdir(exist_ok=True)
                 mark_of(text).write_text(text, encoding="utf-8")
             except OSError as error:
-                print(f"guard_ask.py: couldn't record an answered question ({error}), so it can be asked again.",
-                      file=sys.stderr)
+                report(f"couldn't record an answered question ({error})", "it can be asked again")
 
 
 def decide(payload):

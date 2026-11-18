@@ -10,19 +10,20 @@ import { drawn, teamsOf } from "../../support/convex/roundRobin.harness";
 // (docs/REFACTORING.md, "What is never a refactor"): it needs its own fix pull request, with its
 // reason, and Craig's nod.
 
-/** A gameweek as one line: "gameweek: team v opponent, ... | bye team, ...", teams by number. */
+/** A gameweek as one line: "gameweek: team v opponent, ...", teams by number. The draw gives no
+ *  byes (S03.4). */
 const NUMBER_OF = new Map(teamsOf(6).map((team, index) => [team, String(index + 1)]));
 const short = (team: string) => NUMBER_OF.get(team)!;
-const lineOf = ({ gameweek, fixtures, byes }: GameweekFixtures<string>) => {
+const lineOf = ({ gameweek, fixtures }: GameweekFixtures<string>) => {
   const games = fixtures.map(({ team, opponent }) => `${short(team)} v ${opponent === LEAGUE_AVERAGE ? "average" : short(opponent)}`);
-  return `${gameweek}: ${games.join(", ")}${byes.length > 0 ? ` | bye ${byes.map(short).join(", ")}` : ""}`;
+  return `${gameweek}: ${games.join(", ")}`;
 };
 
 const EIGHT_GAMEWEEKS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 describe("the draw a seed deals is pinned", () => {
   test("4 teams, a game a gameweek, seed league-a", () => {
-    expect(drawn(teamsOf(4), EIGHT_GAMEWEEKS, { oddTeamOut: "bye", gamesPerGameweek: 1, seed: "league-a" }).map(lineOf)).toEqual([
+    expect(drawn(teamsOf(4), EIGHT_GAMEWEEKS, { gamesPerGameweek: 1, seed: "league-a" }).map(lineOf)).toEqual([
       "1: 1 v 3, 4 v 2",
       "2: 1 v 4, 2 v 3",
       "3: 1 v 2, 3 v 4",
@@ -34,21 +35,8 @@ describe("the draw a seed deals is pinned", () => {
     ]);
   });
 
-  test("5 teams, the odd team out on a bye, seed league-b", () => {
-    expect(drawn(teamsOf(5), EIGHT_GAMEWEEKS, { oddTeamOut: "bye", gamesPerGameweek: 1, seed: "league-b" }).map(lineOf)).toEqual([
-      "1: 2 v 5, 3 v 4 | bye 1",
-      "2: 1 v 3, 4 v 2 | bye 5",
-      "3: 1 v 5, 2 v 3 | bye 4",
-      "4: 1 v 4, 5 v 3 | bye 2",
-      "5: 1 v 2, 4 v 5 | bye 3",
-      "6: 1 v 2, 4 v 5 | bye 3",
-      "7: 2 v 5, 3 v 4 | bye 1",
-      "8: 1 v 3, 4 v 2 | bye 5",
-    ]);
-  });
-
   test("5 teams, the odd team out against the league's average, seed k57abc123", () => {
-    expect(drawn(teamsOf(5), EIGHT_GAMEWEEKS, { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "k57abc123" }).map(lineOf)).toEqual([
+    expect(drawn(teamsOf(5), EIGHT_GAMEWEEKS, { gamesPerGameweek: 1, seed: "k57abc123" }).map(lineOf)).toEqual([
       "1: 1 v average, 2 v 5, 3 v 4",
       "2: 1 v 2, 3 v average, 4 v 5",
       "3: 1 v 3, 4 v 2, 5 v average",
@@ -61,7 +49,7 @@ describe("the draw a seed deals is pinned", () => {
   });
 
   test("6 teams, two games a gameweek, seed league-a: gameweek 3 straddles two round robins", () => {
-    expect(drawn(teamsOf(6), EIGHT_GAMEWEEKS.slice(0, 6), { oddTeamOut: "bye", gamesPerGameweek: 2, seed: "league-a" }).map(lineOf)).toEqual([
+    expect(drawn(teamsOf(6), EIGHT_GAMEWEEKS.slice(0, 6), { gamesPerGameweek: 2, seed: "league-a" }).map(lineOf)).toEqual([
       "1: 1 v 2, 3 v 6, 4 v 5, 1 v 6, 2 v 5, 3 v 4",
       "2: 1 v 4, 5 v 3, 6 v 2, 1 v 5, 6 v 4, 2 v 3",
       "3: 1 v 3, 4 v 2, 5 v 6, 1 v 5, 6 v 4, 2 v 3",

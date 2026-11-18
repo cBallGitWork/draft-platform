@@ -7,6 +7,7 @@ import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
 import { previewChristmasBreak, previewGameweek, previewSays, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TableScreenSeam } from "./seam";
+import { gamesOf } from "../../convex/table/teamGames";
 import { drawnSchedule, leagueTableOf, type Drawn } from "./drawnTable";
 import { swapUnsavedOutcome } from "./words";
 
@@ -37,6 +38,18 @@ export const previewScored = { ...previewSeason, scores, provisional: previewTea
 export const previewLeagueTable = leagueTableOf(previewTeamNames, { ...previewScored, autoTeams: [previewAutoTeam] });
 /** The same draw as the table's, by team name: League home plays its fixtures. */
 export const previewSchedule = drawnSchedule(previewTeamNames, previewScored);
+
+/** The preview manager's opponent in `gameweek`, as the draw has it: null against the league's
+ *  average or on a bye. */
+export function previewOpponentOf(gameweek: number): string | null {
+  const game = gamesOf(previewSchedule, previewTeamNames[0]).find((each) => each.gameweek === gameweek);
+  return game?.against.kind === "team" ? game.against.team : null;
+}
+/** Whom the preview manager plays in the preview's gameweek: League home's, the matchup's and
+ *  Scouting's owner of his men alike (#2450). */
+export const previewOpponent = previewOpponentOf(BEGUN) ?? previewTeamNames[1];
+/** A team's made-up points in a gameweek begun, as the table has them: null in one to come. */
+export const previewPointsOf = (gameweek: number, team: string) => scores.get(gameweek)?.get(team) ?? null;
 
 const previewSwap = { swap: previewSays(swapUnsavedOutcome) };
 
