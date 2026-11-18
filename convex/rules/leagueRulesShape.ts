@@ -121,6 +121,9 @@ export const leagueRulesShape = v.object({
    *  `draft` is, only from rules saved before #990, which play the first rules' (firstRules.ts,
    *  `instructionsOf`). */
   instructions: v.optional(v.array(instructionShape)),
+  /** Whether the league plays classic mode (spec/22, `S22.1`): picked when it is made, never
+   *  changed (`S22.2`). Absent from every league that doesn't, so their rules are as before. */
+  classic: v.optional(v.boolean()),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;

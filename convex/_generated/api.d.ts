@@ -232,6 +232,8 @@ import type * as playerCard_cardLimits from "../playerCard/cardLimits.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
 import type * as playerCard_positionRank from "../playerCard/positionRank.js";
+import type * as positions_lines from "../positions/lines.js";
+import type * as positions_playerLines from "../positions/playerLines.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
 import type * as positions_positionChanges from "../positions/positionChanges.js";
 import type * as positions_positionSettings from "../positions/positionSettings.js";
@@ -674,6 +676,8 @@ declare const fullApi: ApiFromModules<{
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
   "playerCard/positionRank": typeof playerCard_positionRank;
+  "positions/lines": typeof positions_lines;
+  "positions/playerLines": typeof positions_playerLines;
   "positions/playerPositions": typeof positions_playerPositions;
   "positions/positionChanges": typeof positions_positionChanges;
   "positions/positionSettings": typeof positions_positionSettings;

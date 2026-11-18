@@ -12,6 +12,10 @@ import { everyLeague, scheduleEveryLeague, takeAllOrThrow } from "../shared/capp
 import { teamsOf } from "../shared/leagueAccess";
 import { lostPlayerName, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
+import { isClassic } from "../rules/gameMode";
+import { latestRules } from "../rules/rulesHistory";
+import type { Line } from "./lines";
+import { lineNow } from "./playerLines";
 import { workedOutNow } from "./playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
 import { POSITIONS, type Position } from "./positionTables";
@@ -23,7 +27,8 @@ import { position as positionArg } from "../schema";
 // naming the position and the gameweek it counts from; the admin taking one away by hand sends the
 // same letter. Losing one never moves him: he stays where he stands until his manager moves him.
 // Positions are worked out on every read, so `positionWarnings` keeps which steps each team was
-// told, to tell each once.
+// told, to tell each once. A classic league's manager is told of his players' lines the same way
+// (spec/22, `S22.6`).
 
 /** One of a manager's players' positions changing: flagged by a run of starts elsewhere, lost to
  *  a longer one, or taken away by the admin. */
@@ -60,9 +65,38 @@ export function positionLetter(news: PositionNews): { subject: string; body: str
   }
 }
 
+/** A classic league's player's line changing (spec/22, `S22.6`): flagged by a run of starts in
+ *  another line, then moved there. */
+type LineNews = { playerName: string; line: Line; from: Line; fromGameweek: number; removeAfter: number } & (
+  | { step: "lineFlagged"; startsThere: number }
+  | { step: "lineMoved" }
+);
+
+/** The letter warning a classic league's manager of `news`, in one place for Craig to change. */
+export function lineLetter(news: LineNews): { subject: string; body: string } {
+  const { playerName, line, from, fromGameweek, removeAfter } = news;
+  if (news.step === "lineFlagged") {
+    return {
+      subject: `${playerName} may move to ${line}`,
+      body:
+        `From gameweek ${fromGameweek}, ${playerName} is flagged to move from ${from} to ${line}: his last ${news.startsThere} starts ` +
+        `in a row were at ${line}. After ${removeAfter} in a row he moves there; a start at ${from} keeps him at ${from}.`,
+    };
+  }
+  return {
+    subject: `${playerName} has moved to ${line}`,
+    body: `From gameweek ${fromGameweek}, ${playerName} plays ${line}, not ${from}: he has started ${removeAfter} matches in a row there. He stays where he stands in your line-up until you move him.`,
+  };
+}
+
 type Step = Doc<"positionWarnings">["step"];
-/** A step a run of starts elsewhere has taken one of a player's positions to. */
-type PositionChange = { position: Position; step: "flagged"; startsElsewhere: number } | { position: Position; step: "lost" };
+/** A step a run of starts elsewhere has taken one of a player's positions to, or in a classic
+ *  league his line (`position` the line he is moving to, `from` the one he leaves). */
+type PositionChange =
+  | { position: Position; step: "flagged"; startsElsewhere: number }
+  | { position: Position; step: "lost" }
+  | { position: Line; from: Line; step: "lineFlagged"; startsThere: number }
+  | { position: Line; from: Line; step: "lineMoved" };
 
 /** Why a read of every league that stops short matters here. */
 const UNWARNED = "so some managers would go unwarned of a position change";
@@ -120,11 +154,12 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
   const next = await saveGameweekOf(ctx, league._id, Date.now(), matches);
   if (next.kind !== "open") return;
   const how = await howPositionsCount(ctx, league._id, matches);
+  const classic = await playsClassic(ctx, league._id);
   for (const team of await teamsOf(ctx, league._id)) {
     const told = await toldTo(ctx, team._id);
     const standing = new Set<string>();
     for (const { playerCode } of await squadOf(ctx, team._id)) {
-      for (const change of await changesOf(ctx, playerCode, how)) {
+      for (const change of await changesOf(ctx, playerCode, how, classic)) {
         const { position, step } = change;
         standing.add(key(playerCode, position, step));
         if (isTold(told, playerCode, position, step)) continue;
@@ -132,7 +167,11 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
         if (team.managerEmail === undefined) continue;
         await ctx.db.insert("positionWarnings", { teamId: team._id, playerCode, position, step });
         const news = { playerName: await nameOf(ctx, playerCode), fromGameweek: next.gameweek, removeAfter: how.thresholds.removeAfter };
-        await fileLetter(ctx, league, "positions", [team.managerEmail], positionLetter({ ...news, ...change }));
+        const letter =
+          change.step === "lineFlagged" || change.step === "lineMoved"
+            ? lineLetter({ ...news, ...change, line: change.position })
+            : positionLetter({ ...news, ...change });
+        await fileLetter(ctx, league, "positions", [team.managerEmail], letter);
       }
     }
     for (const each of told) {
@@ -141,15 +180,29 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
   }
 }
 
-/** The steps a run of starts elsewhere has taken his positions to, as `how` judges them. */
-async function changesOf(ctx: QueryCtx, playerCode: number, how: HowPositionsCount): Promise<PositionChange[]> {
+/** The steps a run of starts elsewhere has taken his positions to, as `how` judges them, and in a
+ *  `classic` league his line (spec/22, `S22.6`). */
+async function changesOf(ctx: QueryCtx, playerCode: number, how: HowPositionsCount, classic: boolean): Promise<PositionChange[]> {
   const worked = await workedOutNow(ctx, playerCode, how);
-  return [
+  const positionChanges: PositionChange[] = [
     ...worked.positions.flatMap(({ position, flaggedElsewhere }) =>
       flaggedElsewhere === null ? [] : [{ position, step: "flagged" as const, startsElsewhere: flaggedElsewhere }],
     ),
     ...worked.removed.map((position) => ({ position, step: "lost" as const })),
   ];
+  if (!classic) return positionChanges;
+  const { line, movedFrom, flagged } = await lineNow(ctx, playerCode, how);
+  if (line === null) return positionChanges;
+  return [
+    ...positionChanges,
+    ...(flagged === null ? [] : [{ position: flagged.line, from: line, step: "lineFlagged" as const, startsThere: flagged.startsThere }]),
+    ...(movedFrom === null ? [] : [{ position: line, from: movedFrom, step: "lineMoved" as const }]),
+  ];
+}
+
+/** Whether the league plays classic mode, which is never switched (spec/22, `S22.2`). */
+async function playsClassic(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
+  return isClassic(await latestRules(ctx, leagueId));
 }
 
 /** A player joining `teamId` (drafted, assigned, moved, picked up, claimed or traded): the steps
@@ -158,7 +211,8 @@ async function changesOf(ctx: QueryCtx, playerCode: number, how: HowPositionsCou
  *  step that comes after is told as ever. */
 export async function knownOnJoining(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, playerCode: number): Promise<void> {
   const told = await toldTo(ctx, teamId);
-  for (const { position, step } of await changesOf(ctx, playerCode, await howPositionsCount(ctx, leagueId))) {
+  const how = await howPositionsCount(ctx, leagueId);
+  for (const { position, step } of await changesOf(ctx, playerCode, how, await playsClassic(ctx, leagueId))) {
     if (!isTold(told, playerCode, position, step)) await ctx.db.insert("positionWarnings", { teamId, playerCode, position, step });
   }
 }
@@ -184,14 +238,16 @@ async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position
   }
 }
 
-/** The steps a team is told of and keeps (`positionWarnings`), each once. */
+/** The steps a team is told of and keeps (`positionWarnings`), each once: at each of a player's
+ *  positions, and of his one line. */
 const STEPS_TOLD: readonly Step[] = ["flagged", "lost"];
+const LINE_STEPS_TOLD: readonly Step[] = ["lineFlagged", "lineMoved"];
 
-/** Every step at every position for a squad at its largest: no team can hold more, as each pass
- *  forgets what no longer stands. */
-export const MOST_WARNINGS_A_TEAM = MOST_IN_SQUAD * POSITIONS.length * STEPS_TOLD.length;
+/** Every step at every position, and of his line, for a squad at its largest: no team can hold
+ *  more, as each pass forgets what no longer stands. */
+export const MOST_WARNINGS_A_TEAM = MOST_IN_SQUAD * (POSITIONS.length * STEPS_TOLD.length + LINE_STEPS_TOLD.length);
 
-const key = (playerCode: number, position: Position, step: Step) => `${playerCode} ${position} ${step}`;
+const key = (playerCode: number, position: Position | Line, step: Step) => `${playerCode} ${position} ${step}`;
 
 /** The steps the team has been told of. Past MOST_WARNINGS_A_TEAM it throws: a step left unread
  *  would count as untold, and its manager be sent the same letter again (#1761). */
@@ -203,7 +259,7 @@ function toldTo(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"positionWarnin
   );
 }
 
-const isTold = (told: Doc<"positionWarnings">[], playerCode: number, position: Position, step: Step) =>
+const isTold = (told: Doc<"positionWarnings">[], playerCode: number, position: Position | Line, step: Step) =>
   told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step));
 
 async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
