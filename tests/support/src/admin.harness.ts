@@ -12,8 +12,8 @@ import type {
   MatchMoveLogRow,
   PlatformSettings,
   PositionsQueue,
-  WaitingAsk,
 } from "../../../src/admin/seam";
+import type { WaitingAsk } from "../../../convex/leagues/commissionerAsks";
 
 /** What the fake server holds: the queue, who a search finds, the feeds page's report
  *  (undefined: still loading), and players' availability: `setByHand` lists those set by hand

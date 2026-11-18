@@ -16,7 +16,7 @@ import type { Change } from "../shared/refusal";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { WaitingAsk } from "../../convex/leagues/commissionerAsks";
 
-export type { WaitingAsk,Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, GameweekMatch, MatchMoveLogRow, PlatformSettings, PositionsQueue };
+export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, GameweekMatch, MatchMoveLogRow, PlatformSettings, PositionsQueue };
 
 export type AdminSeam = {
   /** The queue, the clubs and the approve mode, live (a hook): undefined while they load. */

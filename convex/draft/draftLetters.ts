@@ -65,7 +65,7 @@ export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, pi
 
 /** Tells the commissioner (with none, everyone: `fileCommissionerLetter`) the draft's end moved the league's scoring start (scoringStart.ts). */
 export async function tellScoringStartMoved(ctx: MutationCtx, league: Doc<"leagues">, moved: MovedStart): Promise<void> {
-  await fileCommissionerLetter(ctx, league, "draft",scoringStartMovedLetter(moved));
+  await fileCommissionerLetter(ctx, league, "draft", scoringStartMovedLetter(moved));
 }
 
 /** Tells the whole league `by`, the commissioner, paused the draft. */
@@ -103,7 +103,7 @@ export async function tellPicker(ctx: MutationCtx, league: Doc<"leagues">, by: s
 
 /** Tells the commissioner (with none, everyone) the draft didn't start at its date, `startsAt`, for `refusal`. */
 export async function tellNotStarted(ctx: MutationCtx, league: Doc<"leagues">, startsAt: number, refusal: string): Promise<void> {
-  await fileCommissionerLetter(ctx, league, "draft",(tell) => draftNotStartedLetter(startsAt, refusal, tell));
+  await fileCommissionerLetter(ctx, league, "draft", (tell) => draftNotStartedLetter(startsAt, refusal, tell));
 }
 
 /** Sends the "you're up next" email, already counted; a refusal is logged. */
