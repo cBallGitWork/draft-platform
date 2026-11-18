@@ -59,7 +59,7 @@ describe("the page", () => {
     expect(page.queryByRole("combobox")).toBeNull();
   });
 
-  it("TC-061 (S12.20): shows no tactics, and no move, preset or plan control", async () => {
+  it("TC-061 (S12.21): shows no tactics, and no move, preset or plan control", async () => {
     openTeam();
     await table();
     const page = within(screen.getByRole("main"));
