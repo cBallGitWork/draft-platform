@@ -44,50 +44,11 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
-**Two colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
-(31 Oct 2026: "Your call on cards"). The design research page behind them:
-https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. The palette, club colours and crests were
-grilled on 31 Oct 2026 (`spec/12`; crests in SPEC.md, *Later*); these two are low priority until
-the site works (Craig, 31 Oct 2026).
-
-**Colour that means something** (https://trello.com/c/kt83WyFm).
-- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
-  colour per position line, points shaded by band.
-- Where a band's edges come from, if points are shaded by band.
-
-**Vidiprinter strip, score box, every matchup on one live screen**
-(https://trello.com/c/Ep5eR42z).
-- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
-  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
-  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
-
-**Team colours on the page** (Craig, 1 Nov 2026: "i notice on fm that they plates change colour
-depeding on team… go on my draft team and ive got primary colour of purple, or go to see
-liverpools team, and it goes red and white"; then "put on to do list").
-- Which surfaces take a team's colours: the page's team header and a stripe only, or the title
-  plates too. Today `spec/12` says the player card's title plate stays the plate's colour, and
-  plate.md's contrast figures are all measured on indigo.
-- The meaning colours (yellow figures, cyan readings, orange events, the difficulty fills) never
-  sit on a team colour? Text on one is white or black by contrast, falling back to indigo below
-  4.5:1?
-- A matchup shows two teams: a split header, and what happens when their colours are close.
-- Managers' own team colours: who picks them (the manager, the commissioner), when (with crests,
-  SPEC.md *Later*), and stored on the team. Once managers have picked, it can't simply be taken
-  back.
-- Premier League clubs' colours come from the admin's club colours (`spec/15`).
-
-**Formation descriptions**: the formation window shows each formation's and each classic side's
-description, and the Guide would too.
-- Where a formation's description lives: held with the formation, shown in the formation window
-  and the Guide.
-- Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
-  pitch), and the modern sides are still to list.
-
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
 gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
 once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
 apges as in the code/structure im happy to then go back and look at designs again").
-- Which screens it would suit, when the look pass comes.
+- Which screens it would suit, at the UI reskin (Craig, 18 Nov 2026: "Yes, at the reskin").
 
 **League home's panels, from its approved picture**: Craig approved the main Home board, and the
 other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
@@ -102,6 +63,7 @@ when its feature is built (`docs/design/approved/home/`).
   are in SPEC.md, *Later*; next season goes with *Carrying a league into next season*.
 - The Monday after: the gameweek final, its result and the recap (#387).
 - When each state starts and ends.
+- Each board is grilled when its feature is built (Craig, 18 Nov 2026: "Yes, as each is built").
 
 ## Suggested, not yet picked
 

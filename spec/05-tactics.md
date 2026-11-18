@@ -70,6 +70,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.
+- Each formation's and classic side's description is held with it and shows in the formation
+  window and the Guide. Claude drafts each from the formation's or side's real history, and
+  Craig's edits win (Craig, 18 Nov 2026: "Claude drafts, you edit"). `S05.61`
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,

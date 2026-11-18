@@ -189,8 +189,8 @@ From `/grill club colours` (31 Oct 2026).
 - A club mark, a small square in the club's two colours, stands before a club code wherever the
   code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
   like"). Never inside a fixture-difficulty cell.
-- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
-  waits for managers' crests (SPEC.md, Later).
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup's
+  header takes the two teams' own colours (S12.27); their crests stay Later. `S12.31`
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
 - Who keeps the colours: `spec/15`, The admin.
@@ -200,6 +200,28 @@ From `/grill club colours` (31 Oct 2026).
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
   look's generic-AI tells, a strip of position slots, and the pitch-first layout.
+
+### Team colours
+
+From the look grill (Craig, 18 Nov 2026).
+
+- A team's colour shows on its page's header and a stripe only; title plates stay the plate's
+  indigo, so the contrast and meaning colours keep working ("Header + stripe only"). `S12.25`
+- The manager picks his team's primary and second colour from a set palette on his team's
+  settings, from the beta; it is stored on the team, and crests stay Later ("Manager, from the
+  beta"). `S12.26`
+- A matchup's header splits into both teams' colours. When the two are too close to tell apart,
+  the second team listed shows its second colour, as with a kit clash ("Away uses its second
+  colour"). `S12.27`
+
+### Colour that means something
+
+- Each team's last five results show as W/D/L squares, green, grey and red, in the table and on
+  League home (Craig, 18 Nov 2026). `S12.28`
+- Wherever a squad is listed, each player's position line takes his area's colour (goalkeeper,
+  defence, midfield, attack), as the pitch's chips do (Craig, 18 Nov 2026). `S12.29`
+- A player with several positions shows each code in its own area's colour ("DM CM") (Craig,
+  18 Nov 2026: "Each code its own colour"). `S12.30`
 
 ## Data in mock-ups
 
