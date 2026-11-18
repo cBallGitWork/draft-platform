@@ -32,6 +32,9 @@ export type ScoutingData = {
   loading?: boolean;
   comparing?: boolean;
   shortlist?: ShortlistData;
+  /** Whether the league's draft is over (S04.32), so the shortlist's "Add to queue" goes; null while
+   *  that loads. Not over by default. */
+  draftOver?: boolean | null;
   scouts?: ScoutsData;
   /** The stat race's categories, teams and start (#800); its teams are ranked here by the stat
    *  asked, by the server's own rule (raceOrder). None held reads as loading. */
@@ -49,7 +52,7 @@ export type ScoutingData = {
 /** The gameweeks the fake server says each short period counts: 9 have finished. */
 export const PERIOD_GAMEWEEKS_SHOWN = { last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
 
-export function fakeScouting({ clubs = [], ownStats = [], scored = [], players = [], totals = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, race, actions, claims = [], yours = null }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], scored = [], players = [], totals = {}, pointsSeason = null, loading = false, comparing = false, shortlist, draftOver = false, scouts, race, actions, claims = [], yours = null }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   const playerOf = (playerCode: number) => players.find(({ code }) => code === playerCode)!;
   const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: totals[player.code] ?? {} });
@@ -62,6 +65,7 @@ export function fakeScouting({ clubs = [], ownStats = [], scored = [], players =
     ...fakeShortlist(shortlist),
     ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,
+    useDraftNotOver: vi.fn<ScoutingSeam["useDraftNotOver"]>(() => (draftOver === null ? undefined : !draftOver)),
     addToQueue,
     // The totals are the same over every period; a test of the period reads what the screen asks.
     // With a `keep` code, his row whatever the filters keep, as the server answers it.

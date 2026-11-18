@@ -10,22 +10,6 @@ Craig hasn't picked says so.
 
 Each with the questions its grill starts from. The questions are Claude's.
 
-**Awards**: history, Mail.
-- Manager of the Month and Player of the Season. Team of the Week is off league home: "ditch team
-  of the week" (Craig, 1 Nov 2026; `spec/12`).
-  Where they live once Mail has filed them (see History, below).
-
-**Our own home stadiums**: the pitch view, the matchup.
-- Each team names its ground; the pitch view shows it with the team's logo.
-- Where the logo goes on the pitch: the centre circle, or boards along the touchline.
-- Room for sponsors later, on those boards and the stadium's name: shown with the team's or the
-  league's own logo until then, so the pitch needn't be redrawn. Money goes with Payments (SPEC,
-  *Later*).
-- The head-to-head fixtures have no home and away yet (`spec/09`). Is a matchup played at the
-  home team's ground?
-- A team's own logo: nothing covers one. Uploading it means storing files, a stack question for
-  `ARCHITECTURE.md`.
-
 **Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a
 competition, not the design plate (`docs/design/plate.md`).
 - Who plays the plate: everyone knocked out of the cup, or the bottom of the table.
@@ -33,14 +17,6 @@ competition, not the design plate (`docs/design/plate.md`).
   the draft order anyway, `spec/04`).
 - Rounds, legs and ties, against the double-gameweek rule (`spec/03`). Draft Fantasy's cups and
   US consolation brackets: `docs/research/draft-competitors.md`.
-
-**A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
-- Whether a team can join at a split, in a league with splits (Craig, 22 Oct 2026; `spec/13`
-  Joining).
-- A whole redraft or a short top-up draft; at the January window or elsewhere.
-- Do keepers or some players stay; does the table reset or carry on. FPL Draft allows up to three
-  redrafts that "do not affect the current league standings"
-  (premierleague.com/en/news/4363847).
 
 **Makeshift positions, after the rest is built** (Craig, 24-25 Oct 2026; SPEC.md, Later). For now
 a player fills only his own areas, and only a keeper plays in goal, both ways (`spec/05`).
@@ -68,66 +44,16 @@ to get you there"). It lives in this repo; the rest is open.
 - What auditing checks first: the spec against the tests (#454), work beyond what's been
   grilled, the hard rules, or a readable log of what each agent session did and why.
 
-**Two colour and live-screen cards, from the ideas board**: Craig left the pick to Claude
-(31 Oct 2026: "Your call on cards"). The design research page behind them:
-https://claude.ai/artifact/UJC3f6ixFg3ZUQzBuEPiVq. The palette, club colours and crests were
-grilled on 31 Oct 2026 (`spec/12`; crests in SPEC.md, *Later*); these two are low priority until
-the site works (Craig, 31 Oct 2026).
-
-**Colour that means something** (https://trello.com/c/kt83WyFm).
-- Which of these: W/D/L form squares (league home shows each team's form already, `spec/12`), a
-  colour per position line, points shaded by band.
-- Where a band's edges come from, if points are shaded by band.
-
-**Vidiprinter strip, score box, every matchup on one live screen**
-(https://trello.com/c/Ep5eR42z).
-- League home's matchday mode already has every head-to-head moving and a league-wide vidiprinter
-  (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
-  move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
-
-**Team colours on the page** (Craig, 1 Nov 2026: "i notice on fm that they plates change colour
-depeding on team… go on my draft team and ive got primary colour of purple, or go to see
-liverpools team, and it goes red and white"; then "put on to do list").
-- Which surfaces take a team's colours: the page's team header and a stripe only, or the title
-  plates too. Today `spec/12` says the player card's title plate stays the plate's colour, and
-  plate.md's contrast figures are all measured on indigo.
-- The meaning colours (yellow figures, cyan readings, orange events, the difficulty fills) never
-  sit on a team colour? Text on one is white or black by contrast, falling back to indigo below
-  4.5:1?
-- A matchup shows two teams: a split header, and what happens when their colours are close.
-- Managers' own team colours: who picks them (the manager, the commissioner), when (with crests,
-  SPEC.md *Later*), and stored on the team. Once managers have picked, it can't simply be taken
-  back.
-- Premier League clubs' colours come from the admin's club colours (`spec/15`).
-
-**Formation descriptions**: the formation window shows each formation's and each classic side's
-description, and the Guide would too.
-- Where a formation's description lives: held with the formation, shown in the formation window
-  and the Guide.
-- Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
-  pitch), and the modern sides are still to list.
-
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
 gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
 once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
 apges as in the code/structure im happy to then go back and look at designs again").
-- Which screens it would suit, when the look pass comes.
+- Which screens it would suit, at the UI reskin (Craig, 18 Nov 2026: "Yes, at the reskin").
 
 **League home's panels, from its approved picture**: Craig approved the main Home board, and the
 other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
 `docs/design/approved/home/`). He took FM as the model: "fm and its widgets as inspo". The picture
 places these; none says yet what it holds or does, and each is a placeholder until its grill.
-
-**Home's tabs, Overview | News | Calendar**. News was settled on 8 Nov 2026
-(`docs/design/approved/home/README.md`, The News tab).
-- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (`spec/13`,
-  Breaks) and waivers' runs (`spec/08`).
-
-**The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
-The picture lists this gameweek's matches with your players and your opponent's in each.
-- Every match, or only those with your or your opponent's players.
-- Live scores in matchday mode (the locked picture's Premier League today), or only kickoff times.
-- What it adds beyond the Vidiprinter card's live screen (above).
 
 **Home through the season**: the boards for each state, drawn as the plan for later, each grilled
 when its feature is built (`docs/design/approved/home/`).
@@ -137,6 +63,7 @@ when its feature is built (`docs/design/approved/home/`).
   are in SPEC.md, *Later*; next season goes with *Carrying a league into next season*.
 - The Monday after: the gameweek final, its result and the recap (#387).
 - When each state starts and ends.
+- Each board is grilled when its feature is built (Craig, 18 Nov 2026: "Yes, as each is built").
 
 ## Suggested, not yet picked
 
@@ -151,7 +78,7 @@ when its feature is built (`docs/design/approved/home/`).
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | A star worked out with fewer than 3 matches (`spec/05` Roles) | Found in review of stars part 2 (#11, 1 Nov 2026); (1) and (2) answered on #971. A player with stars for one of the slot's roles and "?" (fewer than 3 matches) for another starts on the rated one. Craig expects a star to be worked out from his data rather than "?" (2 Nov 2026), which changes how stars are calculated; asked whether to grill it: "maybe later" (7 Nov 2026) |
 | Deadline stars lost to a failed keeping (`spec/05` Auto-subs) | Found in review of stars part 3 (#11, 1 Nov 2026). Each team's bench stars are kept at the deadline and asked for again until one of the gameweek's matches locks. If the keeping fails and a match locks before it succeeds, that gameweek's auto-subs play the slot's first role for good. Is that right, or should a later keeping use the stars as they stood at the deadline some other way? |
-| Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
+| Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with redrafts and split seasons (SPEC.md, *Later*) |
 | The draft's start, the gaps (`spec/04` Starting it) | Found in review of the draft's start (#1089, 4 Nov 2026). (1) Answered on #1102: the commissioner gets a letter (`spec/04`). (2) The approved draft room picture says "Random, drawn Mon 3 Aug", but nothing is drawn on its own now; it needs redrawing in a `/design` session Craig watches ("Redraw it soon", 5 Nov 2026, on #1130). (3), (4) and (5) answered on #1130: "Draw at random" stays on League settings; the rounds and the squad rules count a waiting change (`spec/04`); a vacated team can be handed over after the start |
 | Draft picks in Mail (`spec/04` The picks) | Found in review of a manager's pick (#1090, 4 Nov 2026). A pick is filed as an assignment, by the manager who made it, so Mail reads "Ann put Saka on Team 1" and the team's transactions say "assigned"; there is no "drafted" wording. What should a pick say in Mail and the transactions? |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |

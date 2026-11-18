@@ -102,6 +102,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
       only the matches where one of the two of you has a player; All fixtures opens the Premier
       League. `S12.12`
+    - Once a match kicks off, the panel shows its live score, and the full-time score after; the
+      live screen keeps the detail (Craig, 18 Nov 2026: "Yes, live scores"). `S12.23`
+  - Home's Calendar tab is a month grid, as FM's is: each day holds the league's gameweeks and
+    deadlines, the draft, breaks (`spec/13`) and waiver runs (`spec/08`). It is drawn and approved
+    through `/design` before it is built (Craig, 18 Nov 2026: "Month grid, like FM"). `S12.24`
   - Craig, 16 Nov 2026, on #2443, how Home shows what needs a manager: no new panel. The
     deadline strip and Mail's Needs you are the to-do: Mail's panel sits at the top of the left
     column, under the strip, and opens on Needs you. Nothing more says what happens if he does
@@ -184,8 +189,8 @@ From `/grill club colours` (31 Oct 2026).
 - A club mark, a small square in the club's two colours, stands before a club code wherever the
   code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
   like"). Never inside a fixture-difficulty cell.
-- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
-  waits for managers' crests (SPEC.md, Later).
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup's
+  header takes the two teams' own colours (S12.27); their crests stay Later. `S12.31`
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
 - Who keeps the colours: `spec/15`, The admin.
@@ -195,6 +200,28 @@ From `/grill club colours` (31 Oct 2026).
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
   look's generic-AI tells, a strip of position slots, and the pitch-first layout.
+
+### Team colours
+
+From the look grill (Craig, 18 Nov 2026).
+
+- A team's colour shows on its page's header and a stripe only; title plates stay the plate's
+  indigo, so the contrast and meaning colours keep working ("Header + stripe only"). `S12.25`
+- The manager picks his team's primary and second colour from a set palette on his team's
+  settings, from the beta; it is stored on the team, and crests stay Later ("Manager, from the
+  beta"). `S12.26`
+- A matchup's header splits into both teams' colours. When the two are too close to tell apart,
+  the second team listed shows its second colour, as with a kit clash ("Away uses its second
+  colour"). `S12.27`
+
+### Colour that means something
+
+- Each team's last five results show as W/D/L squares, green, grey and red, in the table and on
+  League home (Craig, 18 Nov 2026). `S12.28`
+- Wherever a squad is listed, each player's position line takes his area's colour (goalkeeper,
+  defence, midfield, attack), as the pitch's chips do (Craig, 18 Nov 2026). `S12.29`
+- A player with several positions shows each code in its own area's colour ("DM CM") (Craig,
+  18 Nov 2026: "Each code its own colour"). `S12.30`
 
 ## Data in mock-ups
 
