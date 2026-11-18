@@ -222,4 +222,4 @@ change is good".
   (`spec/05`). The player card shows every match at his base points, the bench's included
   (`spec/12`; Craig, 31 Oct 2026).
 - Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles
-  won) with the full name on hover; the rules editor uses full names.
+  won) with the full name on hover; the rules editor uses full names. `S14.30`
