@@ -45,13 +45,16 @@ export function scoreAt(match: ReplayMatch, played: number, clock: Clock): Match
 /** What a made-up man's goal is worth on its Vidiprinter line. */
 export const GOAL_POINTS = 1;
 
-/** His record `played` minutes into a match of the replay, from his card's at full time (#2478): his
+/** His record `played` minutes into a match of the replay, from his card's at full time: his
  *  minutes so far, no clean sheet before full time, and the rest of his figures coming in step with
  *  the clock. */
 export function recordAt(fullTime: MatchStats, played: number): MatchStats {
   const soFar = (stat: string, count: number) => (stat === MINUTES_STAT ? Math.min(count, played) : stat === CLEAN_SHEETS ? 0 : Math.round((count * played) / MATCH_MINUTES));
   return Object.fromEntries(Object.entries(fullTime).map(([stat, count]) => [stat, soFar(stat, count)]));
 }
+
+/** The record of a man who sits his match out. */
+export const SAT_OUT: MatchStats = { [MINUTES_STAT]: 0 };
 
 /** A match's lines, by its minute: kickoff, each goal, named for one of `men` at the scoring club
  *  where it has one (forwards first), half-time and full time. */

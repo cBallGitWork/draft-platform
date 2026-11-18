@@ -189,9 +189,15 @@ export function previewCardMatchIn(playerCode: number, gameweek: number, atFullT
   return record === null ? null : playedOf(player, gameweek, over, record);
 }
 
-/** A record's base points at a preview player's first position, as his card prices it: the
- *  matchup's replay prices his record so far with it (#2478). */
-export const previewCardPriced = (playerCode: number, record: MatchStats | null) => pricedAt(playerOf(playerCode)!, record)[0];
+/** A match's points and categories on his card at his first position, an override in, as the
+ *  matchup's breakdown takes them (#2478). */
+export const previewCardScore = (match: PlayedMatch) => ({ points: pointsOf(match, 0), categories: match.points[0].categories, override: match.override });
+/** A record's base points at a preview player's first position, as his card prices it, with no
+ *  override: the matchup's replay prices his record so far with it (#2478). */
+export function previewCardPriced(playerCode: number, record: MatchStats | null) {
+  const { total, categories } = pricedAt(playerOf(playerCode)!, record)[0];
+  return { points: total, categories, override: null };
+}
 
 /** His rank at a position among the preview's players holding it, by their cards' base points
  *  there, placed by the server's own rule (positionRank.ts). */

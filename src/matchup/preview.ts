@@ -2,13 +2,14 @@
 // opponent for the gameweek, his men Scouting's. Each man plays his club's match in Football's
 // gameweek, so its clubs, score and clock are Football's and his fixture opens its page (#2455), and
 // scores his player card's points in it (#2478); each side's total is the table's score, so League
-// home, the table and the matchup agree (#2450). It opens as Football
-// stands: a match over, one live, one at half-time, the rest to come, the result provisional.
-// `?minute=replay` replays the gameweek: its matches kick off half an hour apart by Football's
-// kickoff order and play out a minute every half second, so every man moves from yet to play,
-// through his minute, his card's record coming in, to finished on his card's points; the bench
-// keeper comes on where the manager's keeper's card has him sitting his match out; then the result is final, and the replay starts again. `?minute=N` holds
-// it at minute N of the replay, `?minute=final` at the end, for screenshots.
+// home, the table and the matchup agree (#2450). It opens as Football stands: a match over, one
+// live, one at half-time, the rest to come, the result provisional. `?minute=replay` replays the
+// gameweek: its matches kick off half an hour apart by Football's kickoff order and play out a
+// minute every half second, so every man moves from yet to play, through his minute, his card's
+// record coming in, to finished on his card's points; the bench keeper comes on where the
+// manager's keeper's card has him sitting his match out; then the result is final, and the replay
+// starts again. `?minute=N` holds it at minute N of the replay, `?minute=final` at the end, for
+// screenshots.
 
 import { useEffect, useMemo, useState } from "react";
 import { areasOf, positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
@@ -23,12 +24,9 @@ import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from 
 import { previewIdOf, previewOpponent, previewOpponentOf, previewSeason } from "../shared/previewDraw";
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
-import { previewCardMatchIn, previewCardPriced } from "../playerCard/preview";
-import { pointsOf } from "../playerCard/gameLog";
-import type { MatchStats } from "../../convex/scoring/values";
-import { MINUTES_STAT } from "../../convex/stats/matchRecords";
+import { previewCardMatchIn, previewCardPriced, previewCardScore } from "../playerCard/preview";
 import { THEIR_AREAS, type Man, type Men } from "./previewMen";
-import { GOAL_POINTS, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, recordAt, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
+import { GOAL_POINTS, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, recordAt, SAT_OUT, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** The replay's last minute of play, then a minute at full time before the result is final. */
@@ -91,22 +89,16 @@ function gameweekAt(gameweek: number, clock: Clock) {
 }
 type GameweekAt = ReturnType<typeof gameweekAt>;
 
-/** The record of a man who sits his match out. */
-const SAT_OUT: MatchStats = { [MINUTES_STAT]: 0 };
-
-/** His points and breakdown `played` minutes into his match at `at`, his player card's (#2478): none
- *  before kickoff; his card's match as Football stands now, or at the replay's full time, nothing
- *  where he sits it out; and in the replay before then, his card's full-time record so far. */
-function scoredAt(code: number, gameweek: number, played: number, at: GameweekAt): Pick<MatchBreakdown, "points" | "categories" | "override"> {
-  const priced = (record: MatchStats | null) => {
-    const { total, categories } = previewCardPriced(code, record);
-    return { points: total, categories, override: null };
-  };
-  if (played < 0) return priced(null);
-  const card = previewCardMatchIn(code, gameweek, at.clock.kind === "replay");
-  if (at.clock.kind === "now" || played > MATCH_MINUTES) return card === null ? priced(SAT_OUT) : { points: pointsOf(card, 0), categories: card.points[0].categories, override: card.override };
-  return priced(recordAt(card?.stats ?? SAT_OUT, played));
+/** A man's points and breakdown `played` minutes into his match at `at`, his player card's (#2478):
+ *  none before kickoff; his card's match as Football stands now, or at the replay's full time,
+ *  nothing where he sits it out; in the replay before then, his card's full-time record so far. */
+function cardScoreAt(code: number, played: number, at: GameweekAt): Pick<MatchBreakdown, "points" | "categories" | "override"> {
+  if (played < 0) return previewCardPriced(code, null);
+  const card = previewCardMatchIn(code, at.gameweek, at.clock.kind === "replay");
+  if (at.clock.kind === "now" || played > MATCH_MINUTES) return card === null ? previewCardPriced(code, SAT_OUT) : previewCardScore(card);
+  return previewCardPriced(code, recordAt(card?.stats ?? SAT_OUT, played));
 }
+
 /** A man in his club's match at `at`. */
 function slotAt({ code, name, area, clubCode, number }: Man, at: GameweekAt, onBench: boolean): MatchupSlot {
   const match = at.matchOf(clubCode);
@@ -119,7 +111,7 @@ function slotAt({ code, name, area, clubCode, number }: Man, at: GameweekAt, onB
       : played <= MATCH_MINUTES
         ? { kind: "playing", fixtureCode, state: score?.state === "halfTime" ? "halfTime" : "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: score?.clockLabel ?? null }
         : { kind: "finished", fixtureCode };
-  const scored = scoredAt(code, at.gameweek, played, at);
+  const scored = cardScoreAt(code, played, at);
   const satOut = code === STARTING_KEEPER.code && status.kind === "finished" && previewCardMatchIn(code, at.gameweek, true) === null;
   const autoSub = satOut ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
   const breakdown: MatchBreakdown = { fixtureCode, kickoff, home: match.home.shortName, away: match.away.shortName, score, counted: true, ...scored };
