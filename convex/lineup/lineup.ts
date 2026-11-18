@@ -8,7 +8,7 @@
 
 import { AREAS, cellKey, cellOf, playsCell, sameCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
-import { LINE_NAMES, type Line } from "../positions/lines";
+import { LINE_NAMES, type Line } from "../shared/lineNames";
 import type { Position } from "../positions/positionTables";
 import type { PlayerCode } from "../shared/players";
 

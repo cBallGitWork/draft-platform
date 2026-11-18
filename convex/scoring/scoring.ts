@@ -4,7 +4,7 @@
 import { MINUTES_STAT, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "./statKeys";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
-import { LINE_NAMES, type Line } from "../positions/lines";
+import { LINE_NAMES, type Line } from "../shared/lineNames";
 import { LINE_CELL } from "./classicScoring";
 import { priceFor, pricingOf, type Priced } from "./priced";
 import { checkedOnce, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";

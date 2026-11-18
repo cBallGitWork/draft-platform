@@ -1,5 +1,5 @@
 import type { Area, Cell } from "../lineup/pitch";
-import type { Line } from "../positions/lines";
+import type { Line } from "../shared/lineNames";
 import type { StoredScoringSet } from "./scoringSetShape";
 import {
   ASSISTS,

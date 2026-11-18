@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { autoSubs } from "../../../convex/lineup/autoSubs";
 import { lineupProblems, type ClassicLineup, type Lineup, type LineupMode } from "../../../convex/lineup/lineup";
-import type { Line } from "../../../convex/positions/lines";
+import type { Line } from "../../../convex/shared/lineNames";
 import { FIRST_RULES, lineLimitsOf } from "../../../convex/rules/firstRules";
 import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import { rulesWith } from "../../support/convex/leagueRules.harness";
