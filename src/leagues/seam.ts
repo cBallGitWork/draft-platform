@@ -4,7 +4,8 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Change } from "../shared/refusal";
 
-export type NewLeague = { name: string; maxTeams: number; commissionerEmail: string };
+/** With `noCommissioner`, `commissionerEmail` names the league's set-up manager (spec/01 S01.1). */
+export type NewLeague = { name: string; maxTeams: number; commissionerEmail: string; noCommissioner: boolean };
 
 export type LeaguesSeam = {
   /** Creates a league (the admin only). */
