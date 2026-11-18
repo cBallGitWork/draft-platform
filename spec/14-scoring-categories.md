@@ -221,5 +221,6 @@ change is good".
 - Bench players' points show greyed on the matchup, and count only if the player is subbed on
   (`spec/05`). The player card shows every match at his base points, the bench's included
   (`spec/12`; Craig, 31 Oct 2026).
-- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles
-  won) with the full name on hover; the rules editor uses full names. `S14.30`
+- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, Tkl tackles
+  won) with the full name on hover; the rules editor uses full names. Tackles won is Tkl, not TW,
+  which is the Touchline winger role's initials (18 Nov 2026, the matchup's Stats picture). `S14.30`
