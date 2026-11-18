@@ -28,6 +28,9 @@ go; they don't bind until that grill settles what they hold:
 - `1440-season-over.png`: the season over, with the champions and the final table (Home E, Over).
 
 - `1440-news.png`: the News tab, every team's moves (approved 8 Nov 2026, below).
+- `1440-commissioner.png`: the main board as the commissioner sees it: a Commissioner item in the
+  top menu, and Run the league at the top of the right column (`spec/12` S12.17, S12.18). Its
+  source is `Home-Commissioner.dc.html`.
 
 ## Approved
 
@@ -43,6 +46,12 @@ With it: "ditch team of the week", so Team of the Week is off Home (`spec/12`, L
 week): no new panel; Mail moves to the top of the left column, under the deadline strip, and
 opens on Needs you; a doubtful or out starter is a Needs you letter ("Saka is doubtful and
 starts"), opening Tactics; claims waiting stay in the strip (`spec/12` S12.15, `spec/16` S16.7).
+
+18 Nov 2026, Craig, "Approve all four", on the commissioner's board (with Commissioner's
+Invites and Squads tabs and Table's Scoring tab): Run the league lists join requests, teams with
+no lineup yet (a number only), trades waiting the veto and a team with no manager, each line
+opening where it's done, and the draft order line only before the draft (S12.17). Its rows are
+the only way in: the panel has no link of its own, as the top menu has Commissioner.
 
 ## The News tab
 

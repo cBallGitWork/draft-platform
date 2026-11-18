@@ -15,6 +15,10 @@ Route: `/table`, checked on `/table?preview=manager`.
 - `1440-cup.png`: the Cup tab, a placeholder 8-team bracket: quarter-finals GW8, semi-finals GW9,
   final GW10. The final's scores are outlined until it is played.
 
+- `1440-scoring.png`: the Scoring tab, Player scoring for every manager: the site's set by area,
+  the picked rule's values on the right, and the set's patch (`spec/12` S12.19). Its source is
+  `Table-Scoring.dc.html`.
+
 ## Approved
 
 8 Nov 2026: Craig, "Yes to all". On the way there, Craig answered these:
@@ -31,6 +35,10 @@ Route: `/table`, checked on `/table?preview=manager`.
 The cup's rules stay open for the cups grill (SPEC.md, Later; `docs/to-grill.md`, Cups and a
 plate): seeding, legs, a level tie, and who plays the plate. The picture draws one leg a round and
 no seeding rule. Its sample teams and scores are the picture's, never the build's.
+
+18 Nov 2026: Craig, "Approve all four", on the Scoring tab (with Home's Run the league panel and
+Commissioner's Invites and Squads tabs). It reads only: the admin changes the set in the rules
+editor (`spec/14`).
 
 ## The Football Manager idea
 
