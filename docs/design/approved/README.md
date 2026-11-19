@@ -79,3 +79,4 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`mail`](mail/README.md): Mail, a trade offer open (9 Nov 2026).
 - [`commissioner-gameweeks`](commissioner-gameweeks/README.md): Commissioner › Gameweeks, mid-season
   (17 Nov 2026).
+- [`guide`](guide/README.md): the Guide, Roles open and a search (18 Nov 2026).
