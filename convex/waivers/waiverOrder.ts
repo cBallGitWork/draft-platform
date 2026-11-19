@@ -87,7 +87,7 @@ type HeldWinners = { winners: readonly Id<"teams">[]; gameweek: number | null };
 /** The league's waiver order as it stands at a moment, before the latest gameweek ended is read:
  *  the order type in force, the start a switch of type left and the winners that may still count.
  *  `switched` says a switch since the last run, made or skipped, worked `start` out afresh. */
-type OrderState ={ type: OrderType; start: OrderStart | null; held: HeldWinners | null; switched: boolean };
+type OrderState = { type: OrderType; start: OrderStart | null; held: HeldWinners | null; switched: boolean };
 
 /** Each gameweek whose deadline passed after `since` (any, if null) and by `until` with a different
  *  order type in force from the gameweek begun before it, oldest first: the type before it, and the
