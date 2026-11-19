@@ -59,7 +59,8 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
     await said(previewWaiverOutcomes.drop);
 
     await card(JAMES);
-    await expect(page.getByText(/^On waivers: first run /)).toBeVisible();
+    // Beside Bid, when bids on him settle and who bids first (#2648).
+    await expect(page.getByText(/^Bids settle .+\. Bottom of the table bids first\.$/)).toBeVisible();
     await page.getByLabel(whoGoesLabel).selectOption({ label: "Saka" });
     await page.getByRole("button", { name: claimWords }).click();
     await said(previewWaiverOutcomes.claim);
