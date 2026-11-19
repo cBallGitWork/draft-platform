@@ -1,4 +1,4 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
@@ -26,7 +26,6 @@ export const guideRefusals = {
 
 const guideEntry = v.object({ entryId: v.id("guideEntries"), title: v.string(), text: v.string() });
 const guideSection = v.object({ sectionId: v.id("guideSections"), title: v.string(), entries: v.array(guideEntry) });
-export type GuideSection = Infer<typeof guideSection>;
 
 /** The Guide's sections, in order. */
 function sectionsOf(ctx: QueryCtx) {
@@ -187,9 +186,8 @@ export const moveEntry = mutation({
       await ctx.db.patch("guideEntries", entryId, { sectionId });
     }
     await renumber(ctx, placed(others, entry, place));
-    if (entry.sectionId !== sectionId) {
-      await renumber(ctx, (await entriesOf(ctx, entry.sectionId)).filter((row) => row._id !== entryId));
-    }
+    // The section it left closes up.
+    if (entry.sectionId !== sectionId) await renumber(ctx, await entriesOf(ctx, entry.sectionId));
     return null;
   },
 });
