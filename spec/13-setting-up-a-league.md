@@ -55,6 +55,8 @@ comes to exist, fills, changes and ends.
 - The commissioner approves or refuses each join request. A person has at most one request
   waiting, sees that it is waiting for the commissioner, and gets an email once approved.
   Refusing files no Mail letter.
+- Approving a join request, the commissioner gives the person a new team or a team with no
+  manager (Craig, 18 Nov 2026: "Pick: new or empty team"). `S13.11`
 - In the beta, a sign-in link goes only to emails on the allowed list; the admin adds emails, and
   so do an invite, the live invite link and naming a team's manager (Craig, 22 Oct 2026). The
   invite link lets anyone who opens it sign in to ask to join (`/grill sign-in`): it's a beta,

@@ -49,7 +49,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`team-transactions`](team-transactions/README.md): My team's Transactions tab, trades in
   History, its Show keys and the claim panel's In and Out (10 Nov 2026).
 - [`home`](home/README.md): League home's Overview, with the season's other states as the plan for
-  later (1 Nov 2026); its Calendar tab (18 Nov 2026).
+  later (1 Nov 2026); the commissioner's Run the league and its Calendar tab (18 Nov 2026).
 - [`sign-in`](sign-in/README.md): Sign in (1 Nov 2026).
 - [`leagues`](leagues/README.md): Your leagues, and the page for someone in none (1 Nov 2026).
 - [`leagues-new`](leagues-new/README.md): Create a league, the admin's (1 Nov 2026).
@@ -62,7 +62,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   gameweek (8 Nov 2026).
 - [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
 - [`table`](table/README.md): Table and fixtures, live, a total-points league and a placeholder cup
-  (8 Nov 2026).
+  (8 Nov 2026), and the Scoring tab (18 Nov 2026).
 - [`premier-league`](premier-league/README.md): Football's fixtures and table, live, with a tab per
   competition (10 Nov 2026).
 - [`premier-league-match`](premier-league-match/README.md): The match page, live: Overview as a list
@@ -79,4 +79,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`mail`](mail/README.md): Mail, a trade offer open (9 Nov 2026).
 - [`commissioner-gameweeks`](commissioner-gameweeks/README.md): Commissioner › Gameweeks, mid-season
   (17 Nov 2026).
+- [`commissioner-invites`](commissioner-invites/README.md): Commissioner › Invites, join requests,
+  emailed invites and the invite link (18 Nov 2026).
+- [`commissioner-squads`](commissioner-squads/README.md): Commissioner › Squads, a team's squad and
+  the picked player's moves (18 Nov 2026).
 - [`guide`](guide/README.md): the Guide, Roles open and a search (18 Nov 2026).
