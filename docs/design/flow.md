@@ -74,6 +74,7 @@ flowchart TD
     HOME["Home<br/>/home<br/>manager"]
     RECAP["Recap<br/>/home/recap<br/>manager"]
     NEWS["League home, tab News<br/>/home/news<br/>manager"]
+    CAL["League home, tab Calendar<br/>/home/calendar<br/>manager"]
     DRAFT["Draft room<br/>/draft<br/>manager, commissioner"]
     TEAM["My team, tab Tactics<br/>/team<br/>manager"]
     TSQ["Squad<br/>/team/squad<br/>manager"]
@@ -118,6 +119,8 @@ flowchart TD
   RECAP -- "Back to League home" --> HOME
   HOME -- "More, on News" --> NEWS
   NEWS -- "the pinned letter" --> MAIL
+  HOME & NEWS -- "Calendar (tab)" --> CAL
+  CAL -- "Overview / News (tabs)" --> HOME & NEWS
   TRADES -- "New offer / Counter" --> NEWOFFER
   NEWOFFER -- "Send offer" --> TRADES
   RECAP -.->|"no gameweek named"| HOME
@@ -166,6 +169,7 @@ and File columns means no route yet. Whether a screen is spec'd or to grill, and
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
 | Recap, Read the recap's page | `/home/recap` | src/home/Recap.tsx | spec/12 League home | built |
 | News, a tab of League home | `/home/news` | src/home/NewsPage.tsx | spec/12 League home | built |
+| Calendar, a tab of League home | `/home/calendar` | src/home/CalendarPage.tsx | spec/12 League home | built |
 | Draft room | `/draft` | src/draft/DraftPage.tsx | spec/04, spec/12 The frame | built |
 | My team (Tactics) | `/team` | src/myTeam/tactics/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |

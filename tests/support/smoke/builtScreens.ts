@@ -8,8 +8,10 @@ import type { PreviewName } from "../../../src/app/preview";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { FEEDBACK_TITLE } from "../../../src/feedback/words";
 import { DRAFT_TITLE, stateWords } from "../../../src/draft/words";
+import { FIXED_NOW } from "../../../scripts/fixedClock.mjs";
 import {
   DRAFT_PATH,
+  HOME_CALENDAR_PATH,
   HOME_NEWS_PATH,
   HOME_PATH,
   MAIL_PATH,
@@ -28,7 +30,7 @@ import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { RECAP_PATH } from "../../../src/home/paths";
 import { PREVIEW_RECAP_GAMEWEEK } from "../../../src/home/preview";
-import { NEWS_TITLE, recapTitle } from "../../../src/home/words";
+import { monthWords, NEWS_TITLE, recapTitle } from "../../../src/home/words";
 import { invitesPath } from "../../../src/joining/paths";
 import { INVITES_TITLE, joinPageWords } from "../../../src/joining/words";
 import { settingsPath } from "../../../src/leagueSettings/paths";
@@ -71,6 +73,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   // League home is titled with the league's name, its gameweek beside it read once in the strip.
   ["manager", HOME_PATH, proLeague.name],
   ["manager", HOME_NEWS_PATH, NEWS_TITLE],
+  // The Calendar is titled with the month it opens on: the smoke run's fixed clock's.
+  ["manager", HOME_CALENDAR_PATH, monthWords(Date.UTC(new Date(FIXED_NOW).getUTCFullYear(), new Date(FIXED_NOW).getUTCMonth(), 1))],
   // Read the recap's page names its gameweek in the address's search: the preview's recap.
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
   // Its address with no gameweek, shared or bookmarked, opens the latest recap, the preview's (#1967).

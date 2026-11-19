@@ -13,6 +13,7 @@ import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_P
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import {
   DRAFT_PATH,
+  HOME_CALENDAR_PATH,
   HOME_NEWS_PATH,
   HOME_PATH,
   MAIL_PATH,
@@ -187,6 +188,7 @@ const screensThatRead: [string, string, Session, Failing][] = [
   ["the admin's Availability", ADMIN_AVAILABILITY_PATH, admin, { fail: (app, error) => app.admin.useSetByHand.mockImplementation(failing(error)) }],
   ["League home", HOME_PATH, manager, { fail: (app, error) => app.home.useLeagueHome.mockImplementation(failing(error)) }],
   ["League home's News", HOME_NEWS_PATH, manager, { fail: (app, error) => app.home.useLeagueNews.mockImplementation(failing(error)) }],
+  ["League home's Calendar", HOME_CALENDAR_PATH, manager, { fail: (app, error) => app.home.useCalendarMonth.mockImplementation(failing(error)) }],
   ["the recap", RECAP_PATH, manager, { fail: (app, error) => app.home.useRecap.mockImplementation(failing(error)) }],
   ["Scouting", SCOUTING_PATH, manager, { fail: (app, error) => app.scouting.usePlayersList.mockImplementation(failing(error)) }],
   ["the draft room", DRAFT_PATH, manager, { fail: (app, error) => app.draft.useDraft.mockImplementation(failing(error)) }],
