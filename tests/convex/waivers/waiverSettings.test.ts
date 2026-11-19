@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -8,12 +8,13 @@ import { actingAs, COMMISSIONER, eventsIn, ANN, BOB } from "../../support/convex
 import { expectRefused } from "../../support/convex/test.harness";
 import { passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { waiversOf } from "../../support/convex/screenReads.harness";
-import { NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // League settings' Waivers tab (#1200; spec/03, spec/08): the waiver order's type and the runs,
-// saved as the rest of the settings are; a change of type applies at once, from today's order
-// (Craig, 6 Nov 2026: "At once, from today's order"), so nobody jumps the queue by the switch. And
-// the waiver order everyone sees (Craig: "Everyone sees the whole order").
+// saved as the rest of the settings are; a change of type counts from the next deadline (S03.11;
+// Craig, 19 Nov 2026, on #2706: "Both wait for the next gameweek"), from the order as it stood then
+// (Craig, 6 Nov 2026, on #1200), so nobody jumps the queue by the switch. And the waiver order
+// everyone sees (Craig: "Everyone sees the whole order").
 
 let w: WaiverLeague;
 beforeEach(async () => {
@@ -128,7 +129,41 @@ describe("the waiver order", () => {
     expect(await order()).toEqual([w.catsTeam, ...w.teams.toReversed().filter((team) => team !== w.catsTeam)]);
   });
 
-  test("a change of type applies at once, from today's order, and under reverse table order the table orders it again once a gameweek ends", async () => {
+  test("S03.11 a change of type saved mid-gameweek keeps the old type until the next deadline, then switches from the order as it stood", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await w.runWaivers();
+    const bobLast = [...w.teams.toReversed().filter((team) => team !== w.bobsTeam), w.bobsTeam];
+    await passNextDeadline(w.t);
+    await changeWaivers({ ...HELD_FIRST_RULES.waivers, order: "rotating" });
+
+    // Gameweek NEXT ends under reverse table order: every score 0, so the reverse of the draft
+    // order again, Bob back above Ann, where rotating would keep him at the bottom.
+    await w.matchIs(NEXT, "fullTime");
+    expect(await waiversOf(await actingAs(w.t, BOB), w.leagueId)).toMatchObject({ type: "reverseStandings" });
+    expect(await order()).toEqual(w.teams.toReversed());
+    // The run keeps the old type too: Bob, above Ann, wins the player both claim.
+    await w.onWaivers([PALMER]);
+    await w.claim(ANN, PALMER);
+    await w.claim(BOB, PALMER);
+    await w.runWaivers();
+    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
+
+    // From NEXT + 1's deadline, rotating starts from the order as it stood, Bob at the bottom, and
+    // keeps it once that gameweek ends, where reverse table order would put Bob above Ann again.
+    // Claims reads the order by the hour, so it shows the switch an hour on, in the lock.
+    await w.gameweekEnds(NEXT + 1);
+    vi.advanceTimersByTime(HOUR_MS);
+    expect(await waiversOf(await actingAs(w.t, BOB), w.leagueId)).toMatchObject({ type: "rotating" });
+    expect(await order()).toEqual(bobLast);
+    await w.onWaivers([RICE]);
+    await w.claim(BOB, RICE);
+    await w.claim(ANN, RICE);
+    await w.runWaivers();
+    expect(await w.stateOf(RICE)).toMatchObject({ kind: "owned", teamId: w.annsTeam });
+  });
+
+  test("S03.11 a change to reverse table order keeps rotating's order until the next deadline, and the table orders it again once a gameweek ends", async () => {
     await changeEveryRules(w.t, w.leagueId, (rules) => ({ ...rules, waivers: { ...rules.waivers, order: "rotating" } }));
     await w.onWaivers([SAKA]);
     await w.claim(BOB, SAKA);

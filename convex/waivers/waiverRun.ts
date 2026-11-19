@@ -26,7 +26,7 @@ import { limitsReader, type LimitsBroken } from "../squads/squads";
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
-import { waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
+import { orderStateKept, waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropAndTell, waiverRowsIn } from "./waiverPlayers";
 import { latestRunAt, nextWaiverCheck, wasRunTime } from "./waiverTimes";
 
@@ -35,14 +35,14 @@ import { latestRunAt, nextWaiverCheck, wasRunTime } from "./waiverTimes";
 // (waiverOrder.ts): the team at the top has its first claim still standing tried; one that
 // succeeds sends the team to the bottom for the rest of the run and after, and one that fails is
 // gone, its manager told why, and the team's next is tried. A claim fails if another team got the
-// player first, if the player has left the Premier League (#1327), if the player he named to drop is no longer his or is held in a trade under review
-// (../trades/, Craig, 6 Nov 2026), or if it would break the squad's
-// limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
-// holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
+// player first, if he has left the Premier League (#1327), if the player named to drop is no longer
+// the team's or is held in a trade under review (../trades/, Craig, 6 Nov 2026), or if it would
+// break the squad's limits. A player nobody claims is a free agent straight after, and each manager
+// whose shortlist holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
-// function, `run`, makes a run, every claim or none; the cron here retries it (waiverRunRetries.ts). At each deadline, as
-// the free agent window shuts, every free agent goes back on waivers, so the next run hands him out
-// by the waiver order (`putBackOnWaivers`; Craig, 11 Nov 2026, #1478).
+// function, `run`, makes a run, every claim or none; the cron here retries it (waiverRunRetries.ts).
+// At each deadline, as the free agent window shuts, every free agent goes back on waivers, so the
+// next run hands him out by the waiver order (`putBackOnWaivers`; Craig, 11 Nov 2026, #1478).
 
 /** How often the cron looks for a league whose run time has come: Claude's choice, so a run is at
  *  most this late. */
@@ -166,7 +166,8 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   const deadlines = await leagueDeadlines(ctx, leagueId);
   // A run skipped in the lock keeps the winners: they stay at the bottom until the gameweek ends.
   const gameweek = await latestEnded(ctx, deadlines, now);
-  let winners = winnersNow(season.latest.waivers.order, held, gameweek);
+  const state = await orderStateKept(ctx, league, season, deadlines, at);
+  let winners = winnersNow(state.type, state.held, gameweek);
   // A skipped run keeps the last made one's moment: the window opens only with a made run.
   const save = (madeAt = held?.madeAt) =>
     held === null
@@ -202,7 +203,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     if (!waiting.has(claim.playerCode)) queues.set(claim.teamId, [...(queues.get(claim.teamId) ?? []), claim]);
   }
 
-  let order = await waiverOrderOf(ctx, league, season, winners, gameweek);
+  let order = await waiverOrderOf(ctx, league, season, state.type, state.start, winners, gameweek);
   const wonNow = new Set<Id<"teams">>();
   for (;;) {
     const team = order.find((teamId) => (queues.get(teamId)?.length ?? 0) > 0);

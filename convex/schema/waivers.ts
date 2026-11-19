@@ -48,9 +48,10 @@ export const waiverTables = {
     delayedRun: v.optional(v.number()),
   }).index("by_leagueId", ["leagueId"]),
   /** The order a league's waivers start from after its commissioner changed the order type, one row
-   *  at most (#1200; Craig, 6 Nov 2026: "At once, from today's order"): the order that day, first
-   *  first, so nobody jumps the queue by the switch. Rotating starts from it for good; reverse table
-   *  order only until the next gameweek begins, when the table orders it again. */
+   *  at most (#1200; Craig, 6 Nov 2026: "from today's order"): the order at the deadline the change
+   *  counts from (S03.11), first first, so nobody jumps the queue by the switch; a run saves it.
+   *  Rotating starts from it for good; reverse table order only until a later gameweek ends, when
+   *  the table orders it again. */
   waiverStarts: defineTable({
     leagueId: v.id("leagues"),
     teams: v.array(v.id("teams")),
