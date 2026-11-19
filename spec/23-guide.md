@@ -38,3 +38,7 @@ Feature 23 of [SPEC.md](../SPEC.md). Only Craig's answers: `/grill guide`, four 
 - Claude drafts every entry, and Craig's edits win, as for the formation descriptions. `S23.12`
 - The admin edits the Guide on the admin dashboard: an entry's text, and adding, removing and
   reordering entries. `S23.13`
+- A section can be removed only once it holds no entries; the refusal says to move or remove its
+  entries first: "Only once it's empty" (Craig, 19 Nov 2026, on #2745). `S23.14`
+- An edit shows to managers at once, with no drafts or Publish: "At once" (Craig, 19 Nov 2026, on
+  #2745). `S23.15`
