@@ -20,7 +20,12 @@ const view = {
   seasonGameweeks: previewSeasonGameweeks,
   presetNames: FIRST_RULES.presets.map(({ name }) => name),
 };
-const teamOrder = { teams: previewTeamNames.map((name) => ({ teamId: previewIdOf(name), name })), started: false };
+/** The teams have no manager yet, and the commissioner picks for one, as the picture draws it. */
+const PREVIEW_PICKED_FOR = 6;
+const teamOrder = {
+  teams: previewTeamNames.map((name, place) => ({ teamId: previewIdOf(name), name, commissionerPicks: place === PREVIEW_PICKED_FOR })),
+  started: false,
+};
 /** The gameweeks screen's made-up season, scoring from just after its Christmas break. */
 const scoringStart = {
   start: Math.max(...previewChristmasBreak) + 1,
@@ -48,6 +53,7 @@ export const previewLeagueSettings: LeagueSettingsSeam = {
   useTeamOrder: () => teamOrder,
   saveTeamOrder: previewSays(unmovedOutcome),
   drawTeamOrder: previewSays(unmovedOutcome),
+  markForCommissioner: previewSays(unmovedOutcome),
   useScoringStart: () => scoringStart,
   setScoringStart: previewSays(unchangedStartOutcome),
   useGameweeks: () => previewSeason,

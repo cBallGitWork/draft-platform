@@ -38,14 +38,23 @@ export function draftOrderOf<Team extends { _id: Id<"teams"> }>(teams: readonly 
 export const teamOrderOf = (teams: Doc<"teams">[], league: Doc<"leagues">) =>
   draftOrderOf(teams, league.draftOrder).map(({ _id, name }) => ({ teamId: _id, name }));
 
+/** A team in the draft order as League settings shows it: whether the commissioner picks for it
+ *  ("I'll pick for this one", spec/04), or null for a team with a manager, which he can't mark. */
+const settingsTeam = v.object({ teamId: v.id("teams"), name: v.string(), commissionerPicks: v.union(v.boolean(), v.null()) });
+
 /** The draft order as League settings shows it, first pick first, and whether the draft has
  *  started, which fixes it. For whoever runs the league. */
 export const teamOrder = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.object({ teams: v.array(teamInOrder), started: v.boolean() }),
+  returns: v.object({ teams: v.array(settingsTeam), started: v.boolean() }),
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    return { teams: teamOrderOf(await teamsOf(ctx, leagueId), league), started: await draftHasStarted(ctx, leagueId) };
+    const teams = draftOrderOf(await teamsOf(ctx, leagueId), league.draftOrder).map(({ _id, name, managerEmail, commissionerPicks }) => ({
+      teamId: _id,
+      name,
+      commissionerPicks: managerEmail === undefined ? commissionerPicks === true : null,
+    }));
+    return { teams, started: await draftHasStarted(ctx, leagueId) };
   },
 });
 

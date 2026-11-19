@@ -26,10 +26,20 @@ const set = async (teamIds: Id<"teams">[], email = COMMISSIONER) =>
 describe("the commissioner's draft order", () => {
   test("starts as the order the teams joined in, with their names", async () => {
     expect(await read()).toEqual([
-      { teamId: teams[0], name: teamNumbered(1) },
-      { teamId: teams[1], name: teamNumbered(2) },
-      { teamId: teams[2], name: teamNumbered(3) },
+      { teamId: teams[0], name: teamNumbered(1), commissionerPicks: null },
+      { teamId: teams[1], name: teamNumbered(2), commissionerPicks: null },
+      { teamId: teams[2], name: teamNumbered(3), commissionerPicks: null },
     ]);
+  });
+
+  test("S04.31 says which teams with no manager the commissioner picks for, and none for a managed team", async () => {
+    await t.run(async (ctx) => {
+      await ctx.db.patch("teams", teams[1], { managerEmail: undefined });
+      await ctx.db.patch("teams", teams[2], { managerEmail: undefined });
+    });
+    await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: teams[2], marked: true });
+
+    expect((await read()).map(({ commissionerPicks }) => commissionerPicks)).toEqual([null, false, true]);
   });
 
   test("is saved as he orders it", async () => {

@@ -18,9 +18,11 @@ import {
   draftStartSavedWords,
   draftStartedWords,
   drawOrderWords,
+  iPickLabel,
   moveDownLabel,
   moveUpLabel,
   neverAutoPickWords,
+  orderSavedWords,
   pickClockLabel,
   pickClockUnitWords,
   savedWords,
@@ -220,13 +222,31 @@ describe("the draft's start date (#1476)", () => {
 describe("the commissioner's draft order (#1087)", () => {
   const [saka, kroos, pique] = TEAMS_IN_ORDER;
 
+  const bodyRows = () => within(orderPanel()!).getAllByRole("row").slice(1);
+
   it("lists the teams first pick first, offering no Up for the first and no Down for the last", async () => {
     await openedOn("draftOrder");
-    const rows = within(orderPanel()!).getAllByRole("listitem");
 
-    expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}UpDown`, `2${kroos.name}UpDown`, `3${pique.name}UpDown`]);
-    expect(screen.queryByRole("button", { name: moveUpLabel(saka.name) })).toBeNull();
-    expect(screen.queryByRole("button", { name: moveDownLabel(pique.name) })).toBeNull();
+    expect(bodyRows().map((row) => row.textContent)).toEqual([`1${saka.name}UpDown`, `2${kroos.name}UpDown`, `3${pique.name}${iPickLabel(pique.name)}UpDown`]);
+    expect((screen.getByRole("button", { name: moveUpLabel(saka.name) }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: moveDownLabel(pique.name) }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("S04.31 offers an I'll pick tick only on a team with no manager, and saves a tick at once, without the settings' Save", async () => {
+    const app = await openedOn("draftOrder");
+    expect(within(orderPanel()!).getAllByRole("checkbox")).toHaveLength(1);
+    await userEvent.click(screen.getByRole("checkbox", { name: iPickLabel(pique.name) }));
+
+    expect(app.leagueSettings.markForCommissioner).toHaveBeenCalledExactlyOnceWith(expect.anything(), pique.teamId, true);
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+    expect(await within(orderPanel()!).findByText(orderSavedWords)).toBeTruthy();
+  });
+
+  it("S04.31 unticks a team the commissioner picks for", async () => {
+    const app = await openedOn("draftOrder", { teamOrder: [saka, { ...pique, commissionerPicks: true }] });
+    await userEvent.click(screen.getByRole("checkbox", { name: iPickLabel(pique.name) }));
+
+    expect(app.leagueSettings.markForCommissioner).toHaveBeenCalledExactlyOnceWith(expect.anything(), pique.teamId, false);
   });
 
   it("saves a move at once, without the settings' Save", async () => {
@@ -261,13 +281,13 @@ describe("the commissioner's draft order (#1087)", () => {
     expect((await within(orderPanel()!).findByRole("alert")).textContent).toBe(draftOrderRefusals.started);
   });
 
-  it("once the draft has started, shows the order fixed, with no moves and no draw", async () => {
+  it("once the draft has started, shows the order fixed, with no moves, no draw and the ticks fixed", async () => {
     await openedOn("draftOrder", { draftStarted: true });
-    const rows = within(orderPanel()!).getAllByRole("listitem");
 
-    expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}`, `2${kroos.name}`, `3${pique.name}`]);
+    expect(bodyRows().map((row) => row.textContent)).toEqual([`1${saka.name}`, `2${kroos.name}`, `3${pique.name}${iPickLabel(pique.name)}`]);
     expect(within(orderPanel()!).getByText(draftStartedWords)).toBeTruthy();
     expect(within(orderPanel()!).queryByRole("button")).toBeNull();
+    expect((screen.getByRole("checkbox", { name: iPickLabel(pique.name) }) as HTMLInputElement).disabled).toBe(true);
   });
 
   it("offers no draw with one team or none", async () => {

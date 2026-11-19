@@ -38,6 +38,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
   const changeSettings = useMutation(api.rules.leagueSettings.changeSettings);
   const setTeamOrder = useMutation(api.draft.draftOrder.setTeamOrder);
   const drawTeamOrder = useMutation(api.draft.draftOrder.drawTeamOrder);
+  const mark = useMutation(api.draft.draftCommissioner.markForCommissioner);
   const setScoringStart = useMutation(api.gameweeks.scoringStart.setScoringStart);
   const setStart = useMutation(api.draft.draftStart.setStart);
   return useMemo(
@@ -47,6 +48,8 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       useTeamOrder,
       saveTeamOrder: (leagueId, teamIds) => refusalOf(() => setTeamOrder({ leagueId, teamIds }), "Saving the draft order", teamOrderFailedWords),
       drawTeamOrder: (leagueId) => refusalOf(() => drawTeamOrder({ leagueId }), "Drawing the draft order", teamOrderFailedWords),
+      markForCommissioner: (leagueId, teamId, marked) =>
+        refusalOf(() => mark({ leagueId, teamId, marked }), "Marking a team to pick for", teamOrderFailedWords),
       useScoringStart,
       useGameweeks,
       setScoringStart: (leagueId, gameweek) =>
@@ -57,6 +60,6 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       usePendingClaims: liveClaims.usePendingClaims,
       useTradesInReview,
     }),
-    [changeSettings, setTeamOrder, drawTeamOrder, setScoringStart, setStart],
+    [changeSettings, setTeamOrder, drawTeamOrder, mark, setScoringStart, setStart],
   );
 }
