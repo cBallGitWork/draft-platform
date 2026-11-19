@@ -1,7 +1,7 @@
 # League home
 
 Route: `/home`, the Overview tab, checked on `/home?preview=manager`, and on
-`/home?preview=commissioner` for Run the league; the Calendar tab at `/home/calendar`.
+`/home?preview=commissioner` for Run the league. The Calendar tab has no route yet: it is built in #2683.
 
 **Contents:** [The pictures](#the-pictures) · [Approved](#approved) · [The News tab](#the-news-tab) ·
 [The Calendar tab](#the-calendar-tab) · [The Football Manager idea](#the-football-manager-idea) · [Interaction notes](#interaction-notes) ·
