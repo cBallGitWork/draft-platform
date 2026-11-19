@@ -156,7 +156,7 @@ export const snakeWords = "Snake";
 export const teamOrderColumns = {
   place: { short: "Pick", long: "Pick" },
   team: { short: "Team", long: "Team" },
-  iPick: { short: "I'll pick", long: "I'll pick for this one" },
+  iPick: { short: "I'll pick", long: "You pick for this team" },
   moves: { short: "Move", long: "Move" },
 };
 /** Each "I'll pick" tick, for screen readers. */

@@ -58,7 +58,7 @@ export function TeamOrderPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
           <p className="grow text-muted">{started ? draftStartedWords : teamOrderHint}</p>
           {!started && <Status words={saving.busy || saving.problem !== null ? null : orderSavedWords} className="text-soft" />}
           {!started && teams.length > 1 && (
-            <button type="button" disabled={saving.busy} onClick={() => void saving.run(() => seam.drawTeamOrder(leagueId))} className="secondary-action">
+            <button type="button" disabled={saving.busy} onClick={() => void saving.run(() => seam.drawTeamOrder(leagueId))} className={MOVE_ACTION}>
               {drawOrderWords}
             </button>
           )}
@@ -84,7 +84,7 @@ const COLUMNS = Object.keys(teamOrderColumns) as Column[];
 /** Each column's cells, as the picture spaces them: the names on one line in a wide column, the
  *  tick a column of its own, and the moves taking what is left. */
 const CELLS: Record<Column, string> = {
-  place: `${cellClassOf(true)} w-10 text-figure tabular-nums`,
+  place: `${cellClassOf(true)} w-10 tabular-nums`,
   team: `${cellClassOf(true)} w-56 whitespace-nowrap font-bold`,
   iPick: `${cellClassOf(true)} w-28 whitespace-nowrap`,
   moves: cellClassOf(true),
