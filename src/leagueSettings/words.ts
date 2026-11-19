@@ -123,9 +123,9 @@ export const blankTradeDeadlineWords = "The trade deadline has no gameweek. Choo
 /** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */
 export const waiversTitle = "Waivers";
 export const waiverOrderLabel = "Waiver order";
-/** Each order type explained, and when a change applies (Craig, 6 Nov 2026, on #1200). */
+/** Each order type explained, and when a change applies (Craig, 6 Nov 2026, on #1200; S03.11). */
 export const waiverOrderHint =
-  "Reverse table order: the bottom of the table claims first; a team that wins a claim drops to the bottom until the gameweek ends, when the order is worked out again. Rotating: whoever last won a claim drops to the bottom, and it never resets. A change applies at once, from today's order.";
+  "Reverse table order: the bottom of the table claims first; a team that wins a claim drops to the bottom until the gameweek ends, when the order is worked out again. Rotating: whoever last won a claim drops to the bottom, and it never resets. A change counts from the next deadline, from the order as it stands then.";
 export const runsLabel = "Runs, UK time";
 export const runDayLabel = (run: number) => `Run ${run}'s day`;
 export const runTimeLabel = (run: number) => `Run ${run}'s time`;

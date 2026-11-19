@@ -20,7 +20,6 @@ import { SquadPanel } from "./SquadPanel";
 import { TeamOrderPanel } from "./TeamOrderPanel";
 import { TradesPanel } from "./TradesPanel";
 import { runTwice, WaiversPanel } from "./WaiversPanel";
-import type { WaiverOrderType } from "../../convex/rules/leagueRulesShape";
 import { RunsPanel, WaiverOrderPanel } from "../myTeam/claims/WaiverOrderPanel";
 import { EveryTeamTable } from "../myTeam/claims/EveryTeamTable";
 import type { WaiversView } from "../myTeam/claims/seam";
@@ -124,7 +123,7 @@ function Editor({
       {tab === "draft" && <DraftWidget leagueId={league.leagueId} seam={seam} inCurrentLeague={inCurrentLeague} openDraftOrder={() => choose("draftOrder")} />}
       {tab === "waivers" && (
         <div className={PAGE_STACK}>
-          <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
+          <WaiverOrderBeside league={league} seam={seam} />
         </div>
       )}
     </div>
@@ -154,18 +153,18 @@ function withDraftStart(rulesEdits: RulesEdits<LeagueSettings>, start: DraftStar
   };
 }
 
-/** The league's waiver order and its next runs, the order's note following the type about to be
- *  saved: a change starts from today's order, so the order itself stays as it is (#1200). A
- *  commissioner with no team, and so no Transactions tab, sees every team's pending claims with
+/** The league's waiver order and its next runs, under the order type in force: a change of type
+ *  counts from the next deadline (S03.11), so until then the order and its note are the old type's.
+ *  A commissioner with no team, and so no Transactions tab, sees every team's pending claims with
  *  them (Craig, 11 Nov 2026, on #1487). */
-function WaiverOrderBeside({ league, seam, type }: { league: LeagueSummary; seam: LeagueSettingsSeam; type: WaiverOrderType }) {
+function WaiverOrderBeside({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const waivers = seam.useWaivers(league.leagueId);
   if (waivers === undefined) return <Loading>{waiverOrderLoadingWords}</Loading>;
   if (waivers === null) return null;
   return (
     <>
       {league.teamName === null && <EveryTeamClaims leagueId={league.leagueId} seam={seam} waivers={waivers} />}
-      <WaiverOrderPanel waivers={waivers} type={type} />
+      <WaiverOrderPanel waivers={waivers} />
       <RunsPanel waivers={waivers} />
     </>
   );

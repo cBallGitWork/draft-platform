@@ -21,7 +21,7 @@ import {
 // How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab): Reverse table order
 // or Rotating, each explained, and the runs as day and time rows, with Remove and Add a run: at
 // least one run, and no time twice. Saved with the rest of the settings; a change of order type
-// applies at once, from today's order (Craig, 6 Nov 2026).
+// counts from the next deadline, from the order as it stands then (S03.11; Craig, 6 Nov 2026).
 
 const WAIVER_ORDER_CHOICE = "waiver-order";
 type Run = WaiverRules["runs"][number];

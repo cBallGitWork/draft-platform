@@ -87,13 +87,13 @@ type HeldWinners = { winners: readonly Id<"teams">[]; gameweek: number | null };
 /** The league's waiver order as it stands at a moment, before the latest gameweek ended is read:
  *  the order type in force, the start a switch of type left and the winners that may still count.
  *  `switched` says a switch since the last run, made or skipped, worked `start` out afresh. */
-export type OrderState = { type: OrderType; start: OrderStart | null; held: HeldWinners | null; switched: boolean };
+type OrderState ={ type: OrderType; start: OrderStart | null; held: HeldWinners | null; switched: boolean };
 
 /** Each gameweek whose deadline passed after `since` (any, if null) and by `until` with a different
  *  order type in force from the gameweek begun before it, oldest first: the type before it, and the
  *  latest gameweek ended at that deadline, the one begun before it, as the new one is under way.
  *  Pure. */
-export function typeSwitches(season: SeasonRules, deadlines: LeagueDeadlines, since: number | null, until: number): { before: OrderType; ended: number | null }[] {
+function typeSwitches(season: SeasonRules, deadlines: LeagueDeadlines, since: number | null, until: number): { before: OrderType; ended: number | null }[] {
   const typeSince = (begun: number | null) => season.sinceBegun(begun).waivers.order;
   const begun = [...deadlines]
     .filter((entry): entry is [number, number] => entry[1] !== null && entry[1] <= until)
@@ -155,7 +155,7 @@ function orderNow(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, st
  *  each switch of type whose deadline passed since the last run worked in turn. The order as it
  *  stood at that deadline, under the type before, becomes the start, and its winners go into it, so
  *  none count again. A run saves what it worked out (`orderStateKept`). */
-export async function orderStateAt(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, deadlines: LeagueDeadlines, at: number): Promise<OrderState> {
+async function orderStateAt(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, deadlines: LeagueDeadlines, at: number): Promise<OrderState> {
   const held = await waiverOrderRow(ctx, league._id);
   const type = season.sinceBegun(latestBegun(deadlines, at)).waivers.order;
   let state: OrderState = { type, start: await waiverStartRow(ctx, league._id), held, switched: false };

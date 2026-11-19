@@ -111,7 +111,7 @@ describe("the waiver settings (#1200)", () => {
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
   });
 
-  it("shows the waiver order beside them, its note following the type chosen", async () => {
+  it("S03.11 shows the waiver order beside them under the type in force, not the type chosen, which counts from the next deadline", async () => {
     await openedOn("waivers", { waivers: NO_WAIVERS });
     const order = () =>
       screen.getByRole("region", { name: WAIVER_ORDER_TITLE });
@@ -121,7 +121,7 @@ describe("the waiver settings (#1200)", () => {
 
     await userEvent.click(radio(waiverOrderWords.rotating));
     expect(
-      within(order()).getByText(waiverOrderNote("rotating", null)),
+      within(order()).getByText(waiverOrderNote("reverseStandings", null)),
     ).toBeTruthy();
   });
 });
