@@ -5,7 +5,7 @@ import { DAY_MS } from "../../convex/shared/time";
 import { nextGlyph, previousGlyph } from "../shared/controls/words";
 import { ukTimeOfDayWords } from "../shared/when/words";
 import { useMinute } from "../shared/useMinute";
-import { Loading, PageSection } from "../ui/Panel";
+import { Loading, Panel } from "../ui/Panel";
 import type { CalendarEvent, CalendarMonth, HomeSeam } from "./seam";
 import { calendarEventWords, calendarLoadingWords, dayNameWords, monthWords, todayWords, ukTimeWords, weekdayHeadWords } from "./words";
 
@@ -21,6 +21,8 @@ const firstDayOf = ({ year, month }: CalendarMonth) => Date.UTC(year, month - 1,
 const monthOf = (day: number): CalendarMonth => ({ year: new Date(day).getUTCFullYear(), month: new Date(day).getUTCMonth() + 1 });
 const monthAfter = (month: CalendarMonth, by: number) => monthOf(Date.UTC(month.year, month.month - 1 + by, 1));
 const WEEKS = 6;
+/** ◄ and ►: CM's stepper squares (plate.md, Colour roles: stepper). */
+const STEP = "min-h-tap min-w-tap bg-stepper text-lead font-bold hover:bg-plate lg:min-h-0";
 
 /** The grid's days: from the Monday on or before the month's first, six weeks of them. */
 function daysOf(month: CalendarMonth): number[] {
@@ -47,19 +49,20 @@ export function CalendarPage({ league, seam }: { league: LeagueSummary; seam: Ho
   const days = daysOf(shown);
   const step = (by: number) => monthWords(firstDayOf(monthAfter(shown, by)));
   return (
-    <PageSection
+    <Panel
+      pageTitle
       title={monthWords(firstDayOf(shown))}
       aside={
         <div className="flex grow items-center gap-2 pl-2">
           <span className="text-soft">{ukTimeWords}</span>
           <div className="ml-auto flex items-stretch">
-            <button type="button" aria-label={step(-1)} onClick={() => show(monthAfter(shown, -1))} className="min-h-tap min-w-tap bg-stepper lg:min-h-0">
+            <button type="button" aria-label={step(-1)} onClick={() => show(monthAfter(shown, -1))} className={STEP}>
               <span aria-hidden="true">{previousGlyph}</span>
             </button>
             <button type="button" onClick={() => show(monthOf(today))} className="min-h-tap px-3 lg:min-h-0">
               {todayWords}
             </button>
-            <button type="button" aria-label={step(1)} onClick={() => show(monthAfter(shown, 1))} className="min-h-tap min-w-tap bg-stepper lg:min-h-0">
+            <button type="button" aria-label={step(1)} onClick={() => show(monthAfter(shown, 1))} className={STEP}>
               <span aria-hidden="true">{nextGlyph}</span>
             </button>
           </div>
@@ -78,7 +81,7 @@ export function CalendarPage({ league, seam }: { league: LeagueSummary; seam: Ho
             ))}
           </div>
           {Array.from({ length: WEEKS }, (_, week) => (
-            <div key={week} role="row" className="mt-px grid min-w-max grid-cols-7 gap-px lg:min-w-0">
+            <div key={week} role="row" className="mt-px grid min-w-max grid-cols-7 gap-px bg-ground lg:min-w-0">
               {days.slice(week * 7, week * 7 + 7).map((day) => (
                 <Day key={day} day={day} today={today} inMonth={monthOf(day).month === shown.month} events={byDay.get(day) ?? []} />
               ))}
@@ -86,7 +89,7 @@ export function CalendarPage({ league, seam }: { league: LeagueSummary; seam: Ho
           ))}
         </div>
       )}
-    </PageSection>
+    </Panel>
   );
 }
 
