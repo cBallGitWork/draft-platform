@@ -142,9 +142,13 @@ export function pendingClaimsAt(held: readonly HeldPendingClaim[], firstRunOf: F
   return held.map(({ claimableFrom, ...claim }) => ({ ...claim, run: claimableFrom === null ? null : firstRunOf(claimableFrom) }));
 }
 
-/** The player card's action as the screens show it: a claim with the run that can first take him. */
-export function cardActionAt(held: HeldCardAction, firstRunOf: FirstRunOf): CardAction {
+/** The player card's action as the screens show it: a claim with the run that can first take him,
+ *  and whether a bid the caller's team won still holds it at the back at `now`, judged from
+ *  `clockOf`'s times: under rotating for good, under reverse table order until a gameweek ends, as
+ *  waiverOrder.ts's `winnersNow` counts winners (#2648). */
+export function cardActionAt(held: HeldCardAction, clock: HeldWaiverClock, now: number): CardAction {
   if (held.kind !== "claim") return held;
-  const { claimableFrom, ...claim } = held;
-  return { ...claim, firstRun: firstRunOf(claimableFrom) };
+  const { claimableFrom, won, ...claim } = held;
+  const wonBid = won !== null && (claim.order === "rotating" || won.gameweek === endedAt(deadlinesOf(clock.gameweeks), clock.underWay, now));
+  return { ...claim, firstRun: firstRunsAt(clock, now)(claimableFrom), wonBid };
 }

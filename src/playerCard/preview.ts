@@ -227,11 +227,13 @@ const overrideNothing = previewDone;
 export const previewWaiverOutcomes = {
   drop: "nobody was dropped",
   claim: "no claim was put in",
+  withdraw: "no claim was withdrawn",
   pickUp: "nobody was picked up",
 } as const;
 const waiverChanges: WaiverChanges = {
   drop: previewSays(previewWaiverOutcomes.drop),
   claim: previewSays(previewWaiverOutcomes.claim),
+  withdraw: previewSays(previewWaiverOutcomes.withdraw),
   pickUp: previewSays(previewWaiverOutcomes.pickUp),
 };
 
@@ -246,7 +248,7 @@ function cardActionOf(playerCode: number): CardAction {
   const player = playerOf(playerCode);
   if (player === undefined) return { kind: "none" };
   if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
-  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD };
+  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD, order: "reverseStandings", wonBid: false };
 }
 
 export const previewPlayerCard: PlayerCardSeam = {

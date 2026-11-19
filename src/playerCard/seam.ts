@@ -17,10 +17,12 @@ export type { CardAction, PlayedMatch, PlayerCard, PositionRank };
 export type PointsOverride = { fixtureCode: number; playerCode: number; points: number; reason: string };
 
 /** The card's waiver changes (#1200, spec/08): `dropCode` is who goes with a claim or a pickup, or
- *  null for nobody. */
+ *  null for nobody. A claim resolves with its id once put in, so the card can withdraw it (#2648),
+ *  or the words why not. */
 export type WaiverChanges = {
   drop(leagueId: Id<"leagues">, playerCode: number): Change;
-  claim(leagueId: Id<"leagues">, playerCode: number, dropCode: number | null): Change;
+  claim(leagueId: Id<"leagues">, playerCode: number, dropCode: number | null): Promise<{ claimId: Id<"waiverClaims"> } | string>;
+  withdraw(leagueId: Id<"leagues">, claimId: Id<"waiverClaims">): Change;
   pickUp(leagueId: Id<"leagues">, playerCode: number, dropCode: number | null): Change;
 };
 

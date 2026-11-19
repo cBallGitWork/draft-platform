@@ -4,15 +4,16 @@ import { Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { CardAction, PlayerCard, PlayerCardSeam } from "./seam";
 import {
-  claimedDoneWords,
+  bidInWords,
+  bidOrderWords,
   claimWords,
   confirmDropWords,
   dropNobodyWords,
   dropWords,
   keepWords,
-  onWaiversUntilWords,
   pickUpWords,
   whoGoesLabel,
+  withdrawWords,
 } from "./words";
 
 const WHO_GOES_ID = "waiver-who-goes";
@@ -43,7 +44,8 @@ export function WaiverAction({
   const change = useChange();
   const [confirming, setConfirming] = useState(false);
   const [choice, setChoice] = useState<{ kind: CardAction["kind"]; code: number | null }>({ kind: "none", code: null });
-  const [claimed, setClaimed] = useState(false);
+  // The claim just put in, which Withdraw takes back (#2648).
+  const [claimed, setClaimed] = useState<Id<"waiverClaims"> | null>(null);
   // Once he has gone (or left by a trade), Drop asks again the next time he is in the squad (#1437).
   if (confirming && action?.kind !== "drop") setConfirming(false);
   if (action === undefined || action.kind === "none" || (fixed !== undefined && action.kind === "drop")) return null;
@@ -59,11 +61,22 @@ export function WaiverAction({
   }
 
   async function claimOrPickUp(kind: "claim" | "pickUp") {
-    setClaimed(false);
-    const made = await change.run(() => changes[kind](leagueId, card.code, whoGoes));
+    setClaimed(null);
+    let claimId: Id<"waiverClaims"> | null = null;
+    const made = await change.run(async () => {
+      if (kind === "pickUp") return changes.pickUp(leagueId, card.code, whoGoes);
+      const answer = await changes.claim(leagueId, card.code, whoGoes);
+      if (typeof answer === "string") return answer;
+      claimId = answer.claimId;
+      return null;
+    });
     if (!made) return;
     setWhoGoes(null);
-    setClaimed(kind === "claim");
+    setClaimed(claimId);
+  }
+
+  async function withdraw(claimId: Id<"waiverClaims">) {
+    if (await change.run(() => changes.withdraw(leagueId, claimId))) setClaimed(null);
   }
 
   return (
@@ -89,11 +102,18 @@ export function WaiverAction({
         </div>
       ) : (
         <>
-          <Status words={claimed ? claimedDoneWords : null} className="text-derived" />
+          {claimed !== null && action.kind === "claim" && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Status words={bidInWords(action.firstRun)} className="text-derived" />
+              <button type="button" disabled={change.busy} onClick={() => void withdraw(claimed)} className="secondary-action">
+                {withdrawWords}
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             {fixed === undefined && (
               <>
-                {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRun)}</span>}
+                {action.kind === "claim" && <span className="text-soft">{bidOrderWords(action.firstRun, action.order, action.wonBid)}</span>}
                 <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
               </>
             )}

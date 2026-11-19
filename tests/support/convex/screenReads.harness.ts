@@ -75,7 +75,8 @@ export async function pendingClaimsOf(caller: Caller, leagueId: Id<"leagues">, n
 
 /** The player card's action at `now`, as `caller` reads it (src/playerCard/livePlayerCard.ts). */
 export async function cardActionOf(caller: Caller, leagueId: Id<"leagues">, playerCode: number, now = Date.now()) {
-  return cardActionAt(await caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode }), await firstRunsOf(caller, leagueId, now));
+  const clock = await caller.query(api.waivers.waiverClock.clockOf, { leagueId, hour: clockHourOf(now) });
+  return cardActionAt(await caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode }), clock, now);
 }
 
 /** The matchup at `now`, as `caller` reads it: their own team's unless `asked` names one, in the

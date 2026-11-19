@@ -9,15 +9,17 @@ import { describe, expect, it } from "vitest";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import type { CardAction } from "../../../src/playerCard/seam";
 import {
-  claimedDoneWords,
+  bidInWords,
+  bidOrderWords,
   claimWords,
   confirmDropWords,
   dropWords,
   keepWords,
-  onWaiversUntilWords,
   pickUpWords,
   whoGoesLabel,
+  withdrawWords,
 } from "../../../src/playerCard/words";
+import { A_CLAIM_ID } from "../../support/src/playerCard.harness";
 import { HELD, openCard, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
 import { league, manager } from "../../support/src/shell.harness";
 
@@ -26,6 +28,8 @@ const SQUAD = [
   { playerCode: 2001, playerName: "Mbeumo" },
   { playerCode: 2002, playerName: "Wissa" },
 ];
+/** Reverse table order, the caller's team with no win holding it at the back. */
+const REVERSE = { order: "reverseStandings", wonBid: false } as const;
 const withAction = (playerCode: number, action: CardAction, waiverRefusal: string | null = null) => ({ ...HELD, actions: new Map([[playerCode, action]]), waiverRefusal });
 
 describe("a player in the manager's squad", () => {
@@ -65,26 +69,54 @@ describe("a player in the manager's squad", () => {
 
 describe("a player on waivers", () => {
   it("says the run that can first take him, and claims him naming who goes", async () => {
-    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD }));
-    expect(await screen.findByText(onWaiversUntilWords(FIRST_RUN))).toBeTruthy();
+    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD, ...REVERSE }));
+    expect(await screen.findByText(bidOrderWords(FIRST_RUN, "reverseStandings", false))).toBeTruthy();
     await userEvent.selectOptions(screen.getByLabelText(whoGoesLabel), "Wissa");
     await userEvent.click(screen.getByRole("button", { name: claimWords }));
 
     expect(app.playerCard.waiverChanges.claim).toHaveBeenCalledWith(league.leagueId, RICE.code, 2002);
-    expect(await screen.findByText(claimedDoneWords)).toBeTruthy();
+    expect(await screen.findByText(bidInWords(FIRST_RUN))).toBeTruthy();
   });
 
   it("claims him naming nobody, with no squad to name from", async () => {
-    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: null, squad: [] }));
-    expect(await screen.findByText(onWaiversUntilWords(null))).toBeTruthy();
+    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: null, squad: [], ...REVERSE }));
+    expect(await screen.findByText(bidOrderWords(null, "reverseStandings", false))).toBeTruthy();
     expect(screen.queryByLabelText(whoGoesLabel)).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: claimWords }));
     expect(app.playerCard.waiverChanges.claim).toHaveBeenCalledWith(league.leagueId, RICE.code, null);
   });
 
   it("whose first run may fall in a gameweek's lock says it comes after that gameweek's last match (#1467)", async () => {
-    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: { at: FIRST_RUN.at, skippedIf: 12 }, squad: [] }));
-    expect(await screen.findByText("On waivers: first run after GW12's last match")).toBeTruthy();
+    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: { at: FIRST_RUN.at, skippedIf: 12 }, squad: [], ...REVERSE }));
+    expect(await screen.findByText("Bids settle after GW12's last match. Bottom of the table bids first.")).toBeTruthy();
+  });
+});
+
+describe("S08.32: beside the bid, when bids settle and who bids first (#2648)", () => {
+  it("under reverse table order, the bottom of the table bids first", async () => {
+    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: [], ...REVERSE }));
+    expect(await screen.findByText(/^Bids settle .+\. Bottom of the table bids first\.$/)).toBeTruthy();
+  });
+
+  it("under rotating, the last team to win a bid goes to the back", async () => {
+    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: [], order: "rotating", wonBid: true }));
+    expect(await screen.findByText(/^Bids settle .+\. Bid order rotates: the last team to win a bid goes to the back\.$/)).toBeTruthy();
+  });
+
+  it("a team that has won one this gameweek under reverse table order is told it goes to the back", async () => {
+    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: [], order: "reverseStandings", wonBid: true }));
+    expect(await screen.findByText(/^Bids settle .+\. Bottom of the table bids first\. A team that wins a bid goes to the back until the gameweek ends\.$/)).toBeTruthy();
+  });
+
+  it("once the bid is in, says when he'll hear, in Mail, and Withdraw takes it back", async () => {
+    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: [], ...REVERSE }));
+    await userEvent.click(await screen.findByRole("button", { name: claimWords }));
+    expect(await screen.findByText(/^Bid in\. You'll hear after .+, in Mail\.$/)).toBeTruthy();
+
+    await userEvent.click(screen.getByRole("button", { name: withdrawWords }));
+    expect(app.playerCard.waiverChanges.withdraw).toHaveBeenCalledWith(league.leagueId, A_CLAIM_ID);
+    expect(screen.queryByText(bidInWords(FIRST_RUN))).toBeNull();
+    expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
   });
 });
 
@@ -100,7 +132,7 @@ describe("a free agent", () => {
   });
 
   it("drops a choice made for a claim once he leaves waivers", async () => {
-    const actions = new Map<number, CardAction>([[RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD }]]);
+    const actions = new Map<number, CardAction>([[RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD, ...REVERSE }]]);
     const app = openCard(RICE, { ...HELD, actions });
     await userEvent.selectOptions(await screen.findByLabelText(whoGoesLabel), "Wissa");
 

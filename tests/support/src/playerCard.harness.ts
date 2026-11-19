@@ -2,9 +2,13 @@
 // player code, so a test sees what a card shows and what was asked for, an override among it.
 
 import { vi } from "vitest";
+import type { Id } from "../../../convex/_generated/dataModel";
 import type { CardAction, PlayerCard, PlayerCardSeam, PositionRank, Released, WaiverChanges } from "../../../src/playerCard/seam";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
+
+/** The id the fake server gives a claim it puts in. */
+export const A_CLAIM_ID = "claim-1" as Id<"waiverClaims">;
 
 /** What the fake server holds: each player's card, or nothing yet while it loads. */
 export type PlayerCardData = {
@@ -27,7 +31,12 @@ export type PlayerCardData = {
 export function fakePlayerCard({ cards = [], loading = false, shortlist, scouts, overrideRefusal = null, actions = new Map(), waiverRefusal = null, released = new Map(), ranks = new Map() }: PlayerCardData = {}) {
   const override = vi.fn<ReturnType<PlayerCardSeam["useOverride"]>>(() => Promise.resolve(overrideRefusal));
   const answer = () => Promise.resolve(waiverRefusal);
-  const waiverChanges = { drop: vi.fn<WaiverChanges["drop"]>(answer), claim: vi.fn<WaiverChanges["claim"]>(answer), pickUp: vi.fn<WaiverChanges["pickUp"]>(answer) };
+  const waiverChanges = {
+    drop: vi.fn<WaiverChanges["drop"]>(answer),
+    claim: vi.fn<WaiverChanges["claim"]>(() => Promise.resolve(waiverRefusal ?? { claimId: A_CLAIM_ID })),
+    withdraw: vi.fn<WaiverChanges["withdraw"]>(answer),
+    pickUp: vi.fn<WaiverChanges["pickUp"]>(answer),
+  };
   const removeOverride = vi.fn<ReturnType<PlayerCardSeam["useRemoveOverride"]>>(() => Promise.resolve(overrideRefusal));
   return {
     override,
