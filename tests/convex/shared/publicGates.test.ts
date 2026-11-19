@@ -46,6 +46,11 @@ beforeEach(async () => {
   const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
   // Marking feedback read and deleting it need a message.
   const feedbackId = await t.run((ctx) => ctx.db.insert("feedback", { from: ANN, at: Date.now(), message: "Love it" }));
+  // Changing the Guide needs a section with an entry in it.
+  const { sectionId, entryId } = await t.run(async (ctx) => {
+    const sectionId = await ctx.db.insert("guideSections", { title: "Basics", order: 0 });
+    return { sectionId, entryId: await ctx.db.insert("guideEntries", { sectionId, title: "Stars", text: "A star is…", order: 0 }) };
+  });
 
   calls = (caller) => {
     const now = Date.now();
@@ -90,6 +95,15 @@ beforeEach(async () => {
       "gameweeks/matchMoves:log": () => caller.query(api.gameweeks.matchMoves.log, {}),
       "gameweeks/matchMoves:move": () => caller.mutation(api.gameweeks.matchMoves.move, { fixtureCode: SOME_CODE, gameweek: null }),
       "gameweeks/scoringStart:ofLeague": () => caller.query(api.gameweeks.scoringStart.ofLeague, { leagueId }),
+      "guide/guide:addEntry": () => caller.mutation(api.guide.guide.addEntry, { sectionId, title: "Runs", text: "A run is…" }),
+      "guide/guide:addSection": () => caller.mutation(api.guide.guide.addSection, { title: "Tactics" }),
+      "guide/guide:editEntry": () => caller.mutation(api.guide.guide.editEntry, { entryId, title: "Stars", text: "A star is…" }),
+      "guide/guide:list": () => caller.query(api.guide.guide.list, {}),
+      "guide/guide:moveEntry": () => caller.mutation(api.guide.guide.moveEntry, { entryId, sectionId, place: 0 }),
+      "guide/guide:moveSection": () => caller.mutation(api.guide.guide.moveSection, { sectionId, place: 0 }),
+      "guide/guide:removeEntry": () => caller.mutation(api.guide.guide.removeEntry, { entryId }),
+      "guide/guide:removeSection": () => caller.mutation(api.guide.guide.removeSection, { sectionId }),
+      "guide/guide:renameSection": () => caller.mutation(api.guide.guide.renameSection, { sectionId, title: "Basics" }),
       "home/calendar:ofMonth": () => caller.query(api.home.calendar.ofMonth, { leagueId, year: 2026, month: 10 }),
       "home/homeClock:clockOf": () => caller.query(api.home.homeClock.clockOf, { leagueId, hour: now }),
       "home/leagueHome:matchdayOf": () => caller.query(api.home.leagueHome.matchdayOf, { leagueId, gameweek: 1, fixtureCodes: [] }),

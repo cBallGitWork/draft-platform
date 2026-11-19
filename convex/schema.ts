@@ -12,6 +12,7 @@ import { joiningTables } from "./schema/joining";
 import { squadTables, shortlistTables } from "./schema/squads";
 import { mailTables } from "./schema/mail";
 import { feedbackTables } from "./schema/feedback";
+import { guideTables } from "./schema/guide";
 import { outboundTables } from "./schema/outbound";
 import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
 import { siteScoringTables } from "./schema/scoring";
@@ -73,6 +74,7 @@ export default defineSchema({
   ...joiningTables,
   ...mailTables,
   ...feedbackTables,
+  ...guideTables,
   ...leagueRulesTables,
   ...siteScoringTables,
   ...squadMaximumTables,
