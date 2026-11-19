@@ -95,6 +95,7 @@ const yours: LeagueHome["yours"] = {
 
 const home: LeagueHome = {
   format: "headToHead",
+  stage: { kind: "season" },
   thisGameweek: {
     gameweek: current.gameweek,
     fixtures: current.fixtures.map((each, index) => {

@@ -96,6 +96,9 @@ it("S12.10: dates League home's strip and My team's deadline from the one season
   expect(tactics.gameweek).toBe(nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, now));
   // The last matches and the last-played gameweek hang off previewGameweek: the one being set follows it.
   expect(tactics.gameweek).toBe(previewGameweek + 1);
+  // The Transactions tab's waiver window shuts at that same gameweek's deadline (#2697), after its runs (#2733).
+  expect(previewClaims.useWaivers(leagueId)?.windowShuts).toEqual({ gameweek: tactics.gameweek, at: tactics.deadline });
+  expect(previewClaims.useWaivers(leagueId)!.runs.every(({ at }) => at > now && at < tactics.deadline!)).toBe(true);
 });
 
 /** The matchup preview's head-to-head as it opens, with no minute asked, and its commentary. */

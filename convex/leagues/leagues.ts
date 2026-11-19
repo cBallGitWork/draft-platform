@@ -47,25 +47,32 @@ async function admitCommissioner(ctx: MutationCtx, email: string, leagueId: Id<"
 export async function createLeague(
   ctx: MutationCtx,
   by: string,
-  args: { name: string; maxTeams: number; commissionerEmail: string; classic?: boolean },
+  args: { name: string; maxTeams: number; commissionerEmail: string; classic?: boolean; noCommissioner?: boolean },
 ): Promise<Id<"leagues">> {
   const name = typedName(args.name, LEAGUE_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.leagueNameTooLong });
   checkMaxTeams(args.maxTeams);
-  const commissionerEmail = namedEmail(args.commissionerEmail);
+  const email = namedEmail(args.commissionerEmail);
 
-  const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, commissionerEmail });
+  const leagueId = await ctx.db.insert("leagues", { name, maxTeams: args.maxTeams, ...(args.noCommissioner ? { setUpBy: email } : { commissionerEmail: email }) });
   await recordEvent(ctx, leagueId, by, { kind: "created", name, maxTeams: args.maxTeams });
-  await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email: commissionerEmail, replaced: null });
+  if (!args.noCommissioner) await recordEvent(ctx, leagueId, by, { kind: "commissionerNamed", email, replaced: null });
   await giveDefaultRules(ctx, leagueId, args.maxTeams, args.classic);
   await checkSoon(ctx, leagueId);
-  await admitCommissioner(ctx, commissionerEmail, leagueId);
+  await admitCommissioner(ctx, email, leagueId);
   return leagueId;
 }
 
 /** For the admin alone, refusing as `createLeague` says. `classic` makes it a classic league
- *  (spec/22, `S22.2`), for good; absent, it isn't. */
+ *  (spec/22, `S22.2`), for good; absent, it isn't. `noCommissioner` makes it with none, the email
+ *  named its set-up manager (spec/01 S01.1). */
 export const create = mutation({
-  args: { name: v.string(), maxTeams: v.number(), commissionerEmail: v.string(), classic: v.optional(v.boolean()) },
+  args: {
+    name: v.string(),
+    maxTeams: v.number(),
+    commissionerEmail: v.string(),
+    classic: v.optional(v.boolean()),
+    noCommissioner: v.optional(v.boolean()),
+  },
   returns: v.id("leagues"),
   handler: async (ctx, args) => createLeague(ctx, await adminOf(ctx), args),
 });
@@ -91,7 +98,7 @@ export const setMaxTeams = mutation({
 /** Makes `event.email` the league's commissioner, files `event` and lets them in. A trade in
  *  review goes to whoever reviews it now (`passReviews`). A co-commissioner taking the role on
  *  stops being co-commissioner. */
-async function handOver(
+export async function handOver(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   by: string,
@@ -102,6 +109,8 @@ async function handOver(
   await ctx.db.patch("leagues", league._id, {
     commissionerEmail: email,
     commissionerLink: undefined,
+    // A commissioner ends the set-up manager's time running the league (spec/01 S01.1).
+    setUpBy: undefined,
     ...(email === league.coCommissionerEmail ? { coCommissionerEmail: undefined } : {}),
   });
   await recordEvent(ctx, league._id, by, event);
@@ -118,7 +127,7 @@ export const nameCommissioner = mutation({
     const email = namedEmail(args.email);
     if (email === league.commissionerEmail) refuse(refusals.alreadyCommissioner(email));
     if (email === league.coCommissionerEmail) refuse(refusals.alreadyCoCommissioner(email));
-    await handOver(ctx, league, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail });
+    await handOver(ctx, league, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail ?? null });
     return null;
   },
 });
@@ -212,7 +221,7 @@ export const recordCommissionerLink = internalMutation({
     const league = await ctx.db.get("leagues", leagueId);
     if (!league) throw new Error(`League ${leagueId} doesn't exist, so ${email}'s sign-in link can't be kept on it`);
     // An answer that comes back after another commissioner was named is no longer the league's.
-    if (league.commissionerEmail !== email) return null;
+    if (league.commissionerEmail !== email && league.setUpBy !== email) return null;
     await ctx.db.patch("leagues", leagueId, { commissionerLink: { email, reply } });
     return null;
   },

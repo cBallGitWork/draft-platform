@@ -63,6 +63,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; Craig's setup run in docs/setup.md done (#511, #512, #514), the site live, the after-release check passing on it; the staging site on the development deployment and the once-a-day move up to live built (S20.19 to S20.21, #2472), dark until Convex's deployments are back on | a merge to `main` is on staging with its server code, live on `fantasydraftmanager.net` moves up to it once a day, and the check after each live release signs in there |
 | 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
 | 22 | [Classic mode](spec/22-classic-mode.md) | not built; waits for Craig's go to build (9 Nov 2026) | a classic league refuses an eleven outside a line's limits, and a player scores by his line's row |
+| 23 | [The Guide](spec/23-guide.md) | not built | a hover help's text and its Guide entry are the same held text, and the hover opens that entry |
 
 ## Second release
 
@@ -144,6 +145,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   League home's matchday mode carries the beta (Craig, 18 Nov 2026: "Yes, later").
 - **A colour-blind setting**: "lets not focus on colour blind, we can have a colour blind setting
   later" (Craig, 31 Oct 2026).
+- **Intro steps on a first visit**, FM-style, for a new manager (Craig, 18 Nov 2026; spec/23).
+- **Pictures and diagrams in Guide entries** (Craig, 18 Nov 2026; spec/23).
 
 ## Out of scope
 
@@ -274,6 +277,7 @@ follows it; tables and fields already saved keep their names.
 | table | a league's teams, or the Premier League's clubs, ranked by points | standings |
 | waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent | waiver wire |
 | the window | from the first waiver run after a gameweek to the next deadline, when players are free agents (spec/08) | week, break (for the window), transfer window (the real one opens in January) |
+| Guide | the one page saying how the game works, the basics and our own mechanics (spec/23) | Help |
 | play-offs | the games after the season that settle the places a league plays them for | playoffs |
 | kit | the shirts, shorts and socks a club or team wears | uniform |
 | boots | what a player wears on his feet | cleats |

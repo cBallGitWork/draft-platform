@@ -17,4 +17,6 @@ export type MailSeam = {
   open(letterId: Id<"letters">): Promise<void>;
   /** Sends the commissioner's letter to the whole league. */
   writeToLeague(letter: LeagueLetter): Change;
+  /** Asks the admin to make the reader the commissioner of a league with none (spec/01 S01.3). */
+  askToBeCommissioner(leagueId: Id<"leagues">): Change;
 };

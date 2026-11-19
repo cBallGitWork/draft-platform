@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { UNDRAFTED_GO_TO } from "../draft/draftRules";
 import { instructionPairShape, instructionShape } from "../lineup/instructionsShape";
 import { byArea, cellShape, objectOf } from "../lineup/pitchShape";
-import { LINE_NAMES } from "../positions/lines";
+import { LINE_NAMES } from "../shared/lineNames";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
 import { TIE_BREAKS } from "../table/standings";

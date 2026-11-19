@@ -1,6 +1,8 @@
 // What My team's tabs say, in one place for Craig to change in the pull request.
 
+import { LOCALE } from "../../convex/shared/moments";
 import { countInWords } from "../../convex/shared/numberWords";
+import { monthStart, monthWords } from "../../convex/table/awardWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
 import { fewestTeamsWords, menuWords, withTeamWords } from "../shared/words";
 import { versusWords } from "../shared/match/words";
@@ -11,6 +13,16 @@ export { figureOrNone, figureWords, noFigureWords, noTeamWords, placeWords, trad
 export { shortThenLongName } from "../shared/controls/words";
 export { liveWords, versusWords } from "../shared/match/words";
 export { dateWords, whenWords } from "../shared/when/words";
+
+// A team's awards, on its page and My team's header band (spec/09, Awards, S09.8).
+
+/** The reading's head over a team's awards. */
+export const awardsHead = "Awards";
+const awardMonthFormat = new Intl.DateTimeFormat(LOCALE, { timeZone: "UTC", month: "short" });
+/** An award, as the spec says it: "Manager of the Month, Oct", from its month kept as "2026-10". */
+export const awardWords = (month: string) => `Manager of the Month, ${awardMonthFormat.format(monthStart(month))}`;
+/** Its hover, with the year: "Manager of the Month, October 2026". */
+export const awardLong = (month: string) => `Manager of the Month, ${monthWords(month)}`;
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 

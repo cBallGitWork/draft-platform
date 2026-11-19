@@ -126,12 +126,13 @@ describe("the admin, with no part in a league", () => {
   });
 
   it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
-    const unsentCommissionerLink = { email: league.commissionerEmail, reply: "paused" } as const;
+    const email = "unreached@example.com";
+    const unsentCommissionerLink = { email, reply: "paused" } as const;
     openApp(LEAGUES_PATH, adminSeeing({ ...withNoPart(league), unsentCommissionerLink }));
 
     const row = await rowOf(league.name);
     expect(cellsOf(row)).toEqual([adminWords, noTeamCellWords, teamsOfMost(3, 4)]);
-    expect(screen.getByText(unsentLink(league.commissionerEmail, unsentLinkWords.paused))).toBeTruthy();
+    expect(screen.getByText(unsentLink(email, unsentLinkWords.paused))).toBeTruthy();
     expect(screen.getByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(leaguesCutWords)).toBeNull();
   });

@@ -1,6 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-import { LINE_NAMES } from "../positions/lines";
+import { LINE_NAMES } from "../shared/lineNames";
 import { POSITIONS } from "../positions/positionTables";
 import { areaShape } from "../lineup/pitchShape";
 import { failure, syncTrigger } from "./football";

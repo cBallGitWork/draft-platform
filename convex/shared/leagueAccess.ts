@@ -109,7 +109,8 @@ export function powersIn(league: Doc<"leagues">, email: string): LeaguePowers {
   const isCommissioner = email === league.commissionerEmail;
   return {
     names: admin || isCommissioner,
-    runs: admin || isCommissioner || email === league.coCommissionerEmail,
+    // The set-up manager of a league with no commissioner runs it until its draft starts (S01.1).
+    runs: admin || isCommissioner || email === league.coCommissionerEmail || email === league.setUpBy,
   };
 }
 

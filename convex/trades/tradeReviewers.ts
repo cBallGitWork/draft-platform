@@ -5,7 +5,7 @@ import { latestBegun, type LeagueDeadlines } from "../gameweeks/deadline";
 import { fileLetter } from "../mail/letters";
 import { reviewLetter, type ReviewWords } from "../mail/tradeLetterWords";
 import { tradeRulesOf } from "../rules/firstRules";
-import type { TradeRules } from "../rules/leagueRulesShape";
+import type { LeagueRules, TradeRules } from "../rules/leagueRulesShape";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import type { tradeReviewer } from "../schema/trades";
 import { teamsOf } from "../shared/leagueAccess";
@@ -60,6 +60,14 @@ export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: D
 export function reviewUnder(review: TradeRules["review"], league: Doc<"leagues">, managersInIt: readonly string[]): ReviewWords | null {
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
   return reviewOf(vetoerAmong(league, managersInIt));
+}
+
+/** `rules` as a league with no commissioner saves them: a commissioner veto becomes a league vote,
+ *  and stays one until a commissioner changes it (spec/01 S01.4). Pure. */
+export function savedWithoutCommissioner(league: Pick<Doc<"leagues">, "commissionerEmail">, rules: LeagueRules): LeagueRules {
+  const trades = tradeRulesOf(rules);
+  if (league.commissionerEmail !== undefined || trades.review !== "veto") return rules;
+  return { ...rules, trades: { ...trades, review: "vote" } };
 }
 
 /** Under a veto, the review its vetoer gives: he blocks it, or with nobody who may, a vote. */

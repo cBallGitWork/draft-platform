@@ -2,6 +2,7 @@ import { Loading, PAGE_STACK, PANEL_COLUMNS } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { AdminHeader } from "./AdminHeader";
 import { ClubColours, Uncoloured } from "./ClubColoursPanels";
+import { CommissionerAsks } from "./CommissionerAsksPanel";
 import { FindPlayer } from "./FindPositions";
 import { MoveLog, MoveMatch } from "./MatchMovePanels";
 import { NewSignings, PositionChanges, Waiting } from "./QueuePanels";
@@ -9,7 +10,8 @@ import type { AdminSeam } from "./seam";
 import { ApproveClub, ApproveMode, SiteSettings, Thresholds } from "./SettingsPanels";
 import { loadingWords } from "./words";
 /** The admin's dashboard (spec/06 The admin oversees them; spec/15 The admin): the queue of new
- *  signings, starts waiting for him, positions flagged or removed and clubs with no colours;
+ *  signings, starts waiting for him, positions flagged or removed, clubs with no colours and
+ *  managers asking to be commissioner (spec/01 S01.3);
  *  approving a club whole, setting its colours, how starts count and when positions change; the
  *  site's own settings; correcting any player's positions; and moving a match to another gameweek,
  *  with his log of moves (#1417). Its first tab. */
@@ -28,6 +30,7 @@ export function AdminPage({ seam }: { seam: AdminSeam }) {
             <Waiting queue={queue} seam={seam} change={change} />
             <PositionChanges queue={queue} />
             <Uncoloured queue={queue} />
+            <CommissionerAsks seam={seam} change={change} />
           </div>
           <div className="flex flex-col gap-2">
             <ApproveClub queue={queue} seam={seam} change={change} />

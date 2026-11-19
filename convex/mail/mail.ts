@@ -9,6 +9,8 @@ import { letterAsRead } from "./letterMoments";
 import type { Doc, Id } from "../_generated/dataModel";
 import { letterKind, letterLink } from "./letterShape";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
+import { askStanding } from "../leagues/commissionerAsks";
+import { leagueOpens } from "../leagues/leagueOpens";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
 // and the commissioner's one-way letter to the whole league.
@@ -38,6 +40,9 @@ const letterSummary = v.object({
   /** Whether it waits on its reader (S16.3): a trade offer to his team still to answer, or, under a
    *  commissioner's veto, a trade in review he blocks or lets through. */
   needsYou: v.boolean(),
+  /** On a commissioner's letter in a league that still has none, to a manager there: its league
+   *  and whether their ask to be commissioner waits (spec/01 S01.2, S01.3); otherwise null. */
+  askToRun: v.union(v.null(), v.object({ leagueId: v.id("leagues"), asked: v.boolean() })),
 });
 export type LetterSummary = Infer<typeof letterSummary>;
 
@@ -76,9 +81,23 @@ export const letters = query({
     const zone = await zoneOf(ctx, email);
     const rows = leagueId === undefined ? await listedLetters(ctx, email) : await leagueLetters(ctx, email, leagueId);
     const waiting = await waitingOn(ctx, email, rows);
-    return rows.map((row) => summaryOf(row, zone, waiting));
+    const asks = await asksOn(ctx, email, rows);
+    return rows.map((row) => summaryOf(row, zone, waiting, asks));
   },
 });
+
+/** For each league with one of `rows` offering to ask to be commissioner (S01.3), where `email`
+ *  stands on asking (`askStanding`): null once it has a commissioner or they no longer manage there. */
+async function asksOn(ctx: QueryCtx, email: string, rows: readonly Doc<"letters">[]): Promise<AskStandings> {
+  const asks: AskStandings = new Map();
+  for (const row of rows) {
+    if (!row.askToRun || row.leagueId === undefined || asks.has(row.leagueId)) continue;
+    const league = await ctx.db.get("leagues", row.leagueId);
+    asks.set(row.leagueId, league && leagueOpens(league) ? await askStanding(ctx, league, email) : null);
+  }
+  return asks;
+}
+type AskStandings = Map<Id<"leagues">, { asked: boolean } | null>;
 
 /** Which of `rows`, someone's letters newest first, wait on them (S16.3; Craig, 14 Nov 2026, on
  *  #1030: a letter leaves Needs you once nothing waits on him, and stays in All): the newest letter
@@ -103,8 +122,9 @@ async function waitingOn(ctx: QueryCtx, email: string, rows: readonly Doc<"lette
 }
 
 /** A letter as the screens list it, its times told in `zone`, the reader's as they read it (#912),
- *  and whether it is among those `waiting` on them. */
-const summaryOf = (row: Doc<"letters">, zone: string | undefined, waiting: ReadonlySet<Id<"letters">>): LetterSummary => ({
+ *  whether it is among those `waiting` on them, and where they stand on asking to be commissioner
+ *  (`asksOn`). */
+const summaryOf = (row: Doc<"letters">, zone: string | undefined, waiting: ReadonlySet<Id<"letters">>, asks: AskStandings): LetterSummary => ({
   letterId: row._id,
   leagueName: row.leagueName ?? PRODUCT_NAME,
   at: row.at,
@@ -114,7 +134,10 @@ const summaryOf = (row: Doc<"letters">, zone: string | undefined, waiting: Reado
   read: row.readAt !== undefined,
   link: row.link ?? null,
   needsYou: waiting.has(row._id),
+  askToRun: row.askToRun && row.leagueId !== undefined ? askOf(row.leagueId, asks.get(row.leagueId)) : null,
 });
+
+const askOf = (leagueId: Id<"leagues">, standing: { asked: boolean } | null | undefined) => (standing ? { leagueId, ...standing } : null);
 
 /** The signed-in person's newest LATEST_LETTERS letters, how many of `letters`' are unread, and
  *  every one of those waiting on them (S16.3): what a screen's Mail widget shows (My team's Squad
@@ -128,7 +151,8 @@ export const latest = query({
     const rows = await listedLetters(ctx, email);
     const zone = await zoneOf(ctx, email);
     const waiting = await waitingOn(ctx, email, rows);
-    const summaries = rows.map((row) => summaryOf(row, zone, waiting));
+    const asks = await asksOn(ctx, email, rows);
+    const summaries = rows.map((row) => summaryOf(row, zone, waiting, asks));
     return { letters: summaries.slice(0, LATEST_LETTERS), unread: rows.filter((row) => row.readAt === undefined).length, needsYou: summaries.filter((letter) => letter.needsYou) };
   },
 });

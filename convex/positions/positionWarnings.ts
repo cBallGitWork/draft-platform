@@ -14,7 +14,7 @@ import { lostPlayerName, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { isClassic } from "../rules/gameMode";
 import { latestRules } from "../rules/rulesHistory";
-import type { Line } from "./lines";
+import type { Line } from "../shared/lineNames";
 import { lineNow } from "./playerLines";
 import { workedOutNow } from "./playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";

@@ -32,9 +32,20 @@ describe("creating a league", () => {
     const app = openApp(NEW_LEAGUE_PATH, admin);
     await fillIn();
 
-    expect(app.leagues.createLeague).toHaveBeenCalledWith({ name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com" });
+    expect(app.leagues.createLeague).toHaveBeenCalledWith({ name: "Mini beta", maxTeams: 4, commissionerEmail: "commish@example.com", noCommissioner: false });
     expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
+  });
+
+  it("S01.1: ticking No commissioner makes the email its set-up manager's", async () => {
+    const app = openApp(NEW_LEAGUE_PATH, admin);
+    await userEvent.click(await screen.findByRole("checkbox", { name: newLeagueLabels.noCommissioner }));
+    await userEvent.type(screen.getByRole("textbox", { name: newLeagueLabels.name }), "Mini beta");
+    await userEvent.type(screen.getByRole("spinbutton", { name: newLeagueLabels.maxTeams }), "4");
+    await userEvent.type(screen.getByRole("textbox", { name: newLeagueLabels.setUpEmail }), "setup@example.com");
+    await userEvent.click(screen.getByRole("button", { name: newLeagueLabels.create }));
+
+    expect(app.leagues.createLeague).toHaveBeenCalledWith({ name: "Mini beta", maxTeams: 4, commissionerEmail: "setup@example.com", noCommissioner: true });
   });
 
   it("says why a league wasn't made, and stays on the form with what was typed", async () => {

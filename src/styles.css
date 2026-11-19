@@ -54,6 +54,11 @@
   --color-area-midfield: #41c3ae;
   --color-area-attacking-midfield: #9a3db8;
   --color-area-attack: #f28c8c;
+  /* a form chip's fill by its result, W, D or L, each under the ground's ink (plate.md, Marks: form;
+     spec/12 S12.28): 7.4, 7.6 and 5.6:1 */
+  --color-form-won: #3fb950;
+  --color-form-drawn: #a1a5ab;
+  --color-form-lost: #f05a50;
   --color-overridden: #c9a0ff; /* a figure the league overrode (plate.md, Marks: an overridden figure) */
   --color-card-red: #e5332a; /* a red card's mark (plate.md, Marks: match events) */
   --color-row-lit: rgb(255 255 255 / 0.05); /* your own men lit on everyone's list (plate.md, Marks) */

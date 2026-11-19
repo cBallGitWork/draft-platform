@@ -26,6 +26,10 @@ export const senderWords = (leagueName: string, from: string | null) => from ?? 
 export const fromWords = (sender: string) => `From ${sender}`;
 /** The open letter's one link, its last line (S16.2; approved/mail, The one link). */
 export const openOfferWords = "Open the offer in Trades";
+/** A commissioner's letter in a league with none ends offering to take the role (spec/01 S01.2,
+ *  S01.3), and once asked says it waits. */
+export const askToRunWords = "Ask to be commissioner";
+export const askedToRunWords = "Asked to be commissioner";
 
 /** When a letter was filed, in the reader's own time: "20 Oct" and "09:00"; the day its group in
  *  the list stands under, "Tue 10 Nov"; and when the open letter came, "Tue 10 Nov, 08:12". */

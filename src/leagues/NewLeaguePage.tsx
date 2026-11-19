@@ -4,6 +4,7 @@ import { FEWEST_TEAMS, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
 import { Panel, PANEL_BODY, Problem } from "../ui/Panel";
+import { TickBox } from "../ui/TickBox";
 import { useChange } from "../shared/useChange";
 import type { LeaguesSeam } from "./seam";
 import { BackToLeagues, LEAGUE_DESK, LEAGUE_DESK_MAIN, SIDE_PANEL_LINK } from "./LeagueLinks";
@@ -21,17 +22,18 @@ const TEXT_FIELD = "text-box max-w-xl";
 
 /** The admin's "Create a league" (spec/13, Creating a league), built to its approved picture
  *  (docs/design/approved/leagues-new): its name, its maximum teams and its commissioner's email in
- *  the main column, and the Admin panel beside it. Once made, it is on the admin's leagues page. */
+ *  the main column (with no commissioner, its set-up manager's: spec/01 S01.1), and the Admin panel beside it. Once made, it is on the admin's leagues page. */
 export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["createLeague"] }) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [maxTeams, setMaxTeams] = useState("");
   const [commissionerEmail, setCommissionerEmail] = useState("");
+  const [noCommissioner, setNoCommissioner] = useState(false);
   const { busy: creating, problem, run } = useChange();
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (await run(() => createLeague({ name, maxTeams: Number(maxTeams), commissionerEmail }))) void navigate({ to: LEAGUES_PATH });
+    if (await run(() => createLeague({ name, maxTeams: Number(maxTeams), commissionerEmail, noCommissioner }))) void navigate({ to: LEAGUES_PATH });
   }
 
   return (
@@ -74,7 +76,7 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
           </p>
 
           <label htmlFor={COMMISSIONER_ID} className="font-semibold">
-            {newLeagueLabels.commissionerEmail}
+            {noCommissioner ? newLeagueLabels.setUpEmail : newLeagueLabels.commissionerEmail}
           </label>
           <input
             id={COMMISSIONER_ID}
@@ -84,6 +86,9 @@ export function NewLeaguePage({ createLeague }: { createLeague: LeaguesSeam["cre
             onChange={(event) => setCommissionerEmail(event.target.value)}
             className={TEXT_FIELD}
           />
+          <TickBox checked={noCommissioner} onChange={setNoCommissioner}>
+            {newLeagueLabels.noCommissioner}
+          </TickBox>
 
           <div className="flex flex-wrap items-center gap-4">
             <button type="submit" disabled={creating} className="action">

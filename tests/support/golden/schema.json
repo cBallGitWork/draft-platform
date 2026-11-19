@@ -4901,6 +4901,12 @@
           "fields": [
             "coCommissionerEmail"
           ]
+        },
+        {
+          "indexDescriptor": "by_setUpBy",
+          "fields": [
+            "setUpBy"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -4927,7 +4933,13 @@
             "fieldType": {
               "type": "string"
             },
-            "optional": false
+            "optional": true
+          },
+          "setUpBy": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           },
           "coCommissionerEmail": {
             "fieldType": {
@@ -6978,6 +6990,71 @@
       }
     },
     {
+      "tableName": "commissionerAsks",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_decision",
+          "fields": [
+            "leagueId",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_email_and_decision",
+          "fields": [
+            "leagueId",
+            "email",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_decision",
+          "fields": [
+            "decision"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "decision": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "approved"
+                },
+                {
+                  "type": "literal",
+                  "value": "refused"
+                }
+              ]
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
       "tableName": "invites",
       "indexes": [
         {
@@ -7406,6 +7483,13 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          },
+          "askToRun": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
             },
             "optional": true
           },
@@ -26412,6 +26496,67 @@
             "optional": false
           },
           "storedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "awards",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_month",
+          "fields": [
+            "leagueId",
+            "month"
+          ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_month",
+          "fields": [
+            "teamId",
+            "month"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "month": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "awardedAt": {
             "fieldType": {
               "type": "number"
             },
