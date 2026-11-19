@@ -4,10 +4,10 @@ import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
 import { lastSeasonPointsColumn, listSeparator, menuWords, noFigureWords, signedWords, STAT_WORD, statColumns, statNames } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
-import { awayWords, homeWords, scoreWords, versusWords } from "../shared/match/words";
+import { awayWords, homeWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
-export { clockWords, fullTime, halfTime, liveWords, scoreWords, versusWords } from "../shared/match/words";
+export { goalsWords, liveWords, scoreWords, versusWords } from "../shared/match/words";
 export { gameweekWords } from "../shared/when/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { signedWords as goalDifferenceWords } from "../shared/words";
@@ -36,12 +36,6 @@ export const kickoffWords = timeOfDayWords;
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
 export const noDateWords = "Date to be confirmed";
 
-/** A match's score as the Premier League pages show it, "2–1", once it has kicked off and both
- *  goals are read; null before kickoff or while a goal is unread, where they show "v". */
-export const goalsWords = (score: { state: string; homeGoals: number | null; awayGoals: number | null } | null) =>
-  score !== null && score.state !== "upcoming" && score.homeGoals !== null && score.awayGoals !== null
-    ? scoreWords(score.homeGoals, score.awayGoals)
-    : null;
 
 export const TABLE_TITLE = "Table";
 export const loadingTableWords = "Loading the Premier League table…";
@@ -218,6 +212,10 @@ export const lineupViewLabel = "Show the lineups as team sheets or on a pitch";
  *  no sheet drawing it is held. */
 export const sideFormationWords = (club: string, formation: string | null) => (formation === null ? club : `${club}, ${formation}`);
 export const matchPitchLabel = (home: string, away: string) => `${home} and ${away} on the pitch`;
+/** A man's panel atop Overview's right column, opened by his name (S10.9): this match's points by stat, then his card. */
+export const manPanelLabel = (name: string) => `${name}'s points in this match`;
+export const manPanelColumns = { stat: { short: "This match", long: "What he did in this match" }, count: { short: "No.", long: "How many" }, points: { short: "Pts", long: "The points it earned him" } } as const;
+export const manPanelWords = { total: "Total", hisCard: "His card" } as const;
 export const SHOTS_TITLE = "Shots";
 /** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
 export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";

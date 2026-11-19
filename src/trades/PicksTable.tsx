@@ -2,7 +2,7 @@ import { samePick } from "../../convex/draft/snakeOrder";
 import { TickBox } from "../ui/TickBox";
 import type { ScreenTeam, TradePick } from "./seam";
 import {
-  groupWords,
+  inReviewGroupWords,
   pickRoundWords,
   pickTickLabel,
   PICKS_TITLE,
@@ -47,7 +47,7 @@ export function PicksTable({
               <td className="w-tap px-2">
                 <TickBox
                   checked={on}
-                  disabled={pick.held}
+                  disabled={pick.held !== null}
                   labelHidden
                   inTableRow
                   onChange={(checked) =>
@@ -71,9 +71,9 @@ export function PicksTable({
                   {pick.teamId !== team.teamId && (
                     <span className="text-soft">{viaWords(pick.teamName)}</span>
                   )}
-                  {pick.held && (
+                  {pick.held !== null && (
                     <span className="bg-head px-1 text-ground">
-                      {groupWords.inReview}
+                      {inReviewGroupWords(pick.held)}
                     </span>
                   )}
                 </span>

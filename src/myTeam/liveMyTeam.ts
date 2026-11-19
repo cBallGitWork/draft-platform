@@ -50,6 +50,7 @@ export const liveMyTeam: MyTeamSeam = {
       [set],
     );
   },
+  useMyAwards: (leagueId) => useQuery(api.table.awards.ofMyTeam, { leagueId }),
   useMyAutoTeam: (leagueId) => useQuery(api.lineup.autoTeam.ofMyTeam, { leagueId }),
   useAutoTeamChanges: useLiveAutoTeamChanges,
 };

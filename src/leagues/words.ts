@@ -44,7 +44,7 @@ export const leagueColumns = {
   team: { short: "Your team", long: "The team you run" },
   teams: { short: "Teams", long: "Teams in the league, of the most it takes" },
 } as const;
-export const commissionerLine = (email: string) => `Commissioner: ${email}`;
+export const commissionerLine = (email: string | null) => (email === null ? "No commissioner" : `Commissioner: ${email}`);
 export const noTeamCellWords = "None";
 /** Between a league's teams and its most, each its own figure: "6 of 8". */
 export const teamsOfMostWords = " of ";
@@ -54,6 +54,9 @@ export const newLeagueLabels = {
   name: "League name",
   maxTeams: "Maximum teams",
   commissionerEmail: "Commissioner's email",
+  /** With no commissioner (spec/01 S01.1), the email field names the set-up manager. */
+  setUpEmail: "Set-up manager's email",
+  noCommissioner: "No commissioner: the set-up manager runs the league until the draft starts, then the settings lock",
   create: "Create the league",
 } as const;
 

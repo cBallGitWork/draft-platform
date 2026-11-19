@@ -1,13 +1,15 @@
 // The matchup in the preview (src/app/preview.ts): My team's first lineup against the draw's
-// opponent for the gameweek, his men Scouting's, each side on the table's score, so League home and
-// the matchup agree (#2450). Each man plays his club's match in Football's gameweek, so its clubs,
-// score and clock are Football's and his fixture opens its page (#2455). It opens as Football
-// stands: a match over, one live, one at half-time, the rest to come, the result provisional.
-// `?minute=replay` replays the gameweek: its matches kick off half an hour apart by Football's
-// kickoff order and play out a minute every half second, so every man moves from yet to play,
-// through his minute, to finished; the manager's keeper doesn't play and the bench keeper comes on
-// once his match is over; then the result is final, and the replay starts again. `?minute=N` holds
-// it at minute N of the replay, `?minute=final` at the end, for screenshots.
+// opponent for the gameweek, his men Scouting's. Each man plays his club's match in Football's
+// gameweek, so its clubs, score and clock are Football's and his fixture opens its page (#2455), and
+// scores his player card's points in it (#2478); each side's total is the table's score, so League
+// home, the table and the matchup agree (#2450). It opens as Football stands: a match over, one
+// live, one at half-time, the rest to come, the result provisional. `?minute=replay` replays the
+// gameweek: its matches kick off half an hour apart by Football's kickoff order and play out a
+// minute every half second, so every man moves from yet to play, through his minute, his card's
+// record coming in, to finished on his card's points; the bench keeper comes on where the
+// manager's keeper's card has him sitting his match out; then the result is final, and the replay
+// starts again. `?minute=N` holds it at minute N of the replay, `?minute=final` at the end, for
+// screenshots.
 
 import { useEffect, useMemo, useState } from "react";
 import { areasOf, positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
@@ -19,11 +21,13 @@ import { previewClubMatch, previewFullTimeGoals, previewGameweekMatches } from "
 import type { GameweekMatch } from "../premierLeague/seam";
 import { FIRST_RUNS } from "../../convex/scoring/draftedRoleRuns";
 import { previewDone, previewGameMode, previewGameweek, previewTeamNames } from "../shared/preview";
-import { previewIdOf, previewOpponent, previewOpponentOf, previewPointsOf, previewSeason } from "../table/preview";
+import { previewIdOf, previewOpponent, previewOpponentOf, previewSeason } from "../shared/previewDraw";
 import { previewFirstLineup, previewSquad } from "../myTeam/tactics/preview";
 import { previewPlayers } from "../scouting/preview";
-import { MY_POINTS, pointsOf, THEIR_AREAS, THEIR_POINTS, type Man, type Men } from "./previewMen";
-import { categoriesOf, GOAL_POINTS, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
+import { GOALS } from "../../convex/stats/matchRecords";
+import { previewCardGoalWorth, previewCardMatchIn, previewCardPriced, previewCardScore } from "../playerCard/preview";
+import { THEIR_AREAS, type Man, type Men } from "./previewMen";
+import { goalsOf, kickoffsOf, KICKOFF_GAP, linesOf, MATCH_MINUTES, recordAt, SAT_OUT, scoreAt, type Clock, type ReplayMatch } from "./previewMatches";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** The replay's last minute of play, then a minute at full time before the result is final. */
@@ -36,7 +40,7 @@ const [MINE] = previewTeamNames;
 /** The manager's men: My team's first lineup (../myTeam/tactics/preview.ts), each in his cell. */
 function myMan(playerCode: number, cell: Cell | null): Man {
   const { name, clubCode, number, positions } = previewSquad.find((each) => each.playerCode === playerCode)!;
-  return { code: playerCode, name, clubCode, number, area: cell?.area ?? areasOf(positions)[0], cell, points: pointsOf(MY_POINTS, name) };
+  return { code: playerCode, name, clubCode, number, area: cell?.area ?? areasOf(positions)[0], cell };
 }
 const MY_MEN: Men = {
   starters: previewFirstLineup.starters.map(({ playerCode, area, lane }) => myMan(playerCode, { area, lane })),
@@ -53,14 +57,14 @@ const THEIR_MEN: Men = (() => {
       number: index + 1,
       area: THEIR_AREAS[index] ?? areasOf(positions)[0],
       cell: null,
-      points: pointsOf(THEIR_POINTS, name),
     }));
   return { starters: men.slice(0, THEIR_AREAS.length), bench: men.slice(THEIR_AREAS.length) };
 })();
 const EVERY_MAN = [...MY_MEN.starters, ...MY_MEN.bench, ...THEIR_MEN.starters, ...THEIR_MEN.bench];
 
-/** The manager's keeper, who doesn't play, and the bench keeper who comes on for him. */
-const UNUSED_KEEPER = MY_MEN.starters.find(({ area }) => area === "goalkeeper")!;
+/** The manager's keeper, and the bench keeper who comes on for him where his card has him sitting
+ *  his match out. */
+const STARTING_KEEPER = MY_MEN.starters.find(({ area }) => area === "goalkeeper")!;
 const BENCH_KEEPER = MY_MEN.bench.find(({ area }) => area === "goalkeeper")!;
 
 /** The gameweek's matches the men play, and each one's minutes played at `clock`: Football's
@@ -82,12 +86,27 @@ function gameweekAt(gameweek: number, clock: Clock) {
   const when = (match: GameweekMatch, minute: number) =>
     clock.kind === "replay" ? kickoffs.indexOf(match.kickoff) * KICKOFF_GAP + minute : (match.kickoff ?? 0) + minute * MINUTE_MS;
   const played = new Map(EVERY_MAN.map(({ clubCode }) => matchOf(clubCode)).map((match) => [match.fixtureCode, match]));
-  return { clock, matchOf, playedIn, when, played: [...played.values()] };
+  /** Each match's goals, worked out once from the men's cards at full time (#2478). */
+  const goalsBy = (man: Man) => previewCardMatchIn(man.code, gameweek, true)?.stats?.[GOALS] ?? 0;
+  const goals = new Map([...played.values()].map((match) => [match.fixtureCode, goalsOf(match, EVERY_MAN, goalsBy)]));
+  const goalsIn = (match: GameweekMatch) => goals.get(match.fixtureCode)!;
+  return { gameweek, clock, matchOf, playedIn, when, goalsIn, played: [...played.values()] };
 }
 type GameweekAt = ReturnType<typeof gameweekAt>;
 
+/** A man's points and breakdown `played` minutes into his match at `at`, his player card's (#2478):
+ *  none before kickoff; his card's match as Football stands now, or at the replay's full time,
+ *  nothing where he sits it out; in the replay before then, his card's full-time record so far,
+ *  his goals at their lines' minutes. */
+function cardScoreAt(code: number, match: GameweekMatch, played: number, at: GameweekAt): Pick<MatchBreakdown, "points" | "categories" | "override"> {
+  if (played < 0) return previewCardPriced(code, null);
+  const card = previewCardMatchIn(code, at.gameweek, at.clock.kind === "replay");
+  if (at.clock.kind === "now" || played > MATCH_MINUTES) return card === null ? previewCardPriced(code, SAT_OUT) : previewCardScore(card);
+  return previewCardPriced(code, recordAt(card?.stats ?? SAT_OUT, played, at.goalsIn(match), code));
+}
+
 /** A man in his club's match at `at`. */
-function slotAt({ code, name, area, clubCode, number, points: finalPoints }: Man, at: GameweekAt, onBench: boolean): MatchupSlot {
+function slotAt({ code, name, area, clubCode, number }: Man, at: GameweekAt, onBench: boolean): MatchupSlot {
   const match = at.matchOf(clubCode);
   const { fixtureCode, kickoff } = match;
   const played = at.playedIn(match);
@@ -98,24 +117,11 @@ function slotAt({ code, name, area, clubCode, number, points: finalPoints }: Man
       : played <= MATCH_MINUTES
         ? { kind: "playing", fixtureCode, state: score?.state === "halfTime" ? "halfTime" : "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: score?.clockLabel ?? null }
         : { kind: "finished", fixtureCode };
-  const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
-  const autoSub = code === UNUSED_KEEPER.code && status.kind === "finished" ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
-  const breakdown: MatchBreakdown = { fixtureCode, kickoff, home: match.home.shortName, away: match.away.shortName, score, points, counted: true, categories: categoriesOf(points), override: null };
-  return { playerCode: code, name, area, clubCode, number, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdown] };
-}
-
-/** The counting men who have played moved a point at a time, in turn, until they add up to
- *  `total`, the table's for the gameweek: none goes below nothing. */
-function balanced(counting: MatchupSlot[], total: number) {
-  const played = counting.filter((slot) => slot.points !== null);
-  let short = total - counting.reduce((sum, slot) => sum + (slot.points ?? 0), 0);
-  for (let turn = 0; short !== 0 && played.some((slot) => short > 0 || slot.points! > 0); turn++) {
-    const slot = played[turn % played.length];
-    if (short < 0 && slot.points === 0) continue;
-    slot.points! += Math.sign(short);
-    short -= Math.sign(short);
-  }
-  for (const slot of played) slot.breakdown = [{ ...slot.breakdown[0], points: slot.points, categories: categoriesOf(slot.points) }];
+  const scored = cardScoreAt(code, match, played, at);
+  const satOut = code === STARTING_KEEPER.code && status.kind === "finished" && previewCardMatchIn(code, at.gameweek, true) === null;
+  const autoSub = satOut ? { kind: "off" as const, playerCode: BENCH_KEEPER.code, playerName: BENCH_KEEPER.name } : null;
+  const breakdown: MatchBreakdown = { fixtureCode, kickoff, home: match.home.shortName, away: match.away.shortName, score, counted: true, ...scored };
+  return { playerCode: code, name, area, clubCode, number, points: scored.points, counts: !onBench, provisional: true, overridden: scored.override !== null, status, autoSub, breakdown: [breakdown] };
 }
 
 /** A man in `cell`, in its first role. */
@@ -145,9 +151,9 @@ function startersAt(men: Man[], at: GameweekAt): MatchupStarter[] {
   });
 }
 
-/** A side at `at`: the keeper's auto-sub once his match is over, in his slot, then the total, the
- *  table's for the gameweek now and once the replay's matches are over. */
-function sideAt(teamName: string, men: Men, at: GameweekAt, gameweek: number): MatchupSide {
+/** A side at `at`: the keeper's auto-sub once his match is over, in his slot, then the total, its
+ *  counting men's points, the table's score for it (#2450, #2478). */
+function sideAt(teamName: string, men: Men, at: GameweekAt): MatchupSide {
   const starters = startersAt(men.starters, at);
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, at, true), role: null, place: null }));
   const slots = [...starters, ...bench];
@@ -158,8 +164,6 @@ function sideAt(teamName: string, men: Men, at: GameweekAt, gameweek: number): M
     Object.assign(on, { counts: true, autoSub: { kind: "on", playerCode: off.playerCode, playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const counting = slots.filter((slot) => slot.counts);
-  const total = previewPointsOf(gameweek, teamName);
-  if (total !== null && (at.clock.kind === "now" || at.clock.minute > LAST_MINUTE)) balanced(counting, total);
   const final = at.clock.kind === "replay" && at.clock.minute >= FINAL_MINUTE;
   for (const slot of slots) slot.provisional = !final;
   return {
@@ -180,19 +184,19 @@ function sideAt(teamName: string, men: Men, at: GameweekAt, gameweek: number): M
 const DELAYED_FROM = 70;
 const DELAYED_UNTIL = 75;
 
-/** The lines of the men's matches so far at `at`, newest first. A goal line is worth GOAL_POINTS to
- *  its scorer, and moves the column of the side he counts for, team then opponent, as the
- *  server's (readCommentary.ts): a bench man not on moves none (#2466). */
+/** The lines of the men's matches so far at `at`, newest first. A goal line is worth to its scorer
+ *  what a goal is on his card (#2478), and moves the column of the side he counts for, team then
+ *  opponent, as the server's (readCommentary.ts): a bench man not on moves none (#2466). */
 function commentaryAt(at: GameweekAt, sides: readonly MatchupSide[]): TeamsCommentary {
   const counting = sides.map((side) => (side.kind === "team" ? new Set([...side.lineup.starters, ...side.lineup.bench].filter((slot) => slot.counts).map((slot) => slot.playerCode)) : new Set<number>()));
-  const worth = signedWords(GOAL_POINTS);
-  const priced = (about: readonly number[]) => ({
-    points: about.length === 0 ? null : worth,
-    columns: counting.map((counts) => (about.some((code) => counts.has(code)) ? worth : null)),
-  });
+  const priced = (about: readonly number[]) => {
+    const goalWorth = about.length === 0 ? null : previewCardGoalWorth(previewCardMatchIn(about[0], at.gameweek, true));
+    const worth = goalWorth === null ? null : signedWords(goalWorth);
+    return { points: worth, columns: counting.map((counts) => (about.some((code) => counts.has(code)) ? worth : null)) };
+  };
   const lines = at.played
     .flatMap((match) =>
-      linesOf(match, EVERY_MAN)
+      linesOf(match, at.goalsIn(match))
         .map(({ minute, text, about }, index) => ({ minute, when: at.when(match, minute), line: { key: `${match.fixtureCode}-${index}`, text, about, ...priced(about) } }))
         .filter(({ minute }) => minute <= at.playedIn(match)),
     )
@@ -207,8 +211,17 @@ function commentaryAt(at: GameweekAt, sides: readonly MatchupSide[]): TeamsComme
 function gameAt(clock: Clock, gameweek: number) {
   const opponent = previewOpponentOf(gameweek) ?? previewOpponent;
   const at = gameweekAt(gameweek, clock);
-  const sides = [sideAt(MINE, MY_MEN, at, gameweek), sideAt(opponent, THEIR_MEN, at, gameweek)] as const;
+  const sides = [sideAt(MINE, MY_MEN, at), sideAt(opponent, THEIR_MEN, at)] as const;
   return { opponent, sides, commentary: commentaryAt(at, sides) };
+}
+
+/** The manager's and his opponent's points in a gameweek as Football stands, the table's scores
+ *  for them (../table/preview.ts), so League home, the table and the matchup agree (#2450, #2478):
+ *  only the manager's in a gameweek the draw gives him no team to play. */
+export function previewGamePoints(gameweek: number): { teamName: string; points: number }[] {
+  const drawn = previewOpponentOf(gameweek);
+  const [mine, theirs] = gameAt({ kind: "now" }, gameweek).sides.map((side) => (side.kind === "team" ? side.points : 0));
+  return [{ teamName: MINE, points: mine }, ...(drawn === null ? [] : [{ teamName: drawn, points: theirs }])];
 }
 
 /** The gameweek's matchup at `clock`: the manager against the draw's opponent, each side's total

@@ -1,10 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import type { Id } from "../../convex/_generated/dataModel";
 import { leagueOpens } from "../../convex/leagues/leagueOpens";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { ADMIN_PATH } from "../admin/paths";
 import { ADMIN_TITLE } from "../admin/words";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { Notice, Panel, PANEL_BODY } from "../ui/Panel";
+import { Notice, Panel, PANEL_BODY, Problem } from "../ui/Panel";
+import { HOME_PATH } from "../frame/menu";
+import { useChange } from "../shared/useChange";
 import { gameweeksPath } from "../gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../gameweeks/words";
 import { invitesPath } from "../joining/paths";
@@ -19,6 +22,7 @@ import { SQUADS_TITLE } from "../squads/words";
 import { DeletedLeagueStrip, DeleteLeagueRow, type DeletionActions } from "./LeagueDeletion";
 import { LEAGUE_DESK, LEAGUE_DESK_MAIN, leagueColumnCount, SIDE_PANEL_LINK } from "./LeagueLinks";
 import { NEW_LEAGUE_PATH } from "./paths";
+import type { LeaguesSeam } from "./seam";
 import { deletes, runs } from "./access";
 import {
   adminWords,
@@ -55,13 +59,15 @@ const managerLinks = (leagueId: string) => [{ to: scoringPath(leagueId), title: 
  *  strip under them; with none, a page saying so (spec/02), or the admin's empty table, and what
  *  became of their newest invite if it ended without them joining (spec/13, Joining). Beside it, their waiting join requests,
  *  how joining goes when they're in none, and the admin's panel offering "Create a league", as only
- *  the admin creates leagues in the beta. Switching between leagues is the top bar's
- *  (frame/topBar/LeagueSwitcher.tsx). */
+ *  the admin creates leagues in the beta. A league's name opens its League home and makes it the
+ *  current league (spec/13, S13.10), as the top bar's switcher (frame/topBar/LeagueSwitcher.tsx) does. */
 export function LeaguesPage({
   email,
   isAdmin,
   leagues,
   leaguesCut,
+  switchableLeagueIds,
+  currentLeagueId,
   actions,
   joining,
 }: {
@@ -70,7 +76,10 @@ export function LeaguesPage({
   leagues: readonly LeagueSummary[];
   /** More leagues exist than `leagues` holds. */
   leaguesCut: boolean;
-  actions: DeletionActions;
+  /** The leagues the person can make current, the server's list (#207): only these names link. */
+  switchableLeagueIds: readonly Id<"leagues">[];
+  currentLeagueId: Id<"leagues"> | null;
+  actions: LeagueActions;
   joining: Pick<JoiningSeam, "useEndedInvite" | "useWaitingRequests">;
 }) {
   const listed = leagues.filter(leagueOpens);
@@ -81,7 +90,7 @@ export function LeaguesPage({
           {leaguesCut && <Notice>{leaguesCutWords}</Notice>}
           {/* The admin in no league sees his leagues, none yet, and Create a league instead of the
               words (spec/02, S02.4). */}
-          {(listed.length > 0 || isAdmin) && <LeagueTable leagues={listed} actions={actions} />}
+          {(listed.length > 0 || isAdmin) && <LeagueTable leagues={listed} switchableLeagueIds={switchableLeagueIds} currentLeagueId={currentLeagueId} actions={actions} />}
           {leagues.length === 0 && (
             <div className={PANEL_BODY}>
               {!isAdmin && <p className="text-lead">{notInALeagueWords(email)}</p>}
@@ -140,7 +149,54 @@ function WaitingRequests({ useWaitingRequests }: { useWaitingRequests: JoiningSe
   );
 }
 
-function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; actions: DeletionActions }) {
+type LeagueActions = DeletionActions & Pick<LeaguesSeam, "switchLeague">;
+
+/** A league's name, opening its League home once the app is in it (S13.10); plain words when it
+ *  isn't the person's to switch to. A refused switch is said under it, and the page stays. */
+function LeagueName({
+  league,
+  switchable,
+  isCurrent,
+  switchLeague,
+}: {
+  league: LeagueSummary;
+  switchable: boolean;
+  isCurrent: boolean;
+  switchLeague: LeaguesSeam["switchLeague"];
+}) {
+  const { busy, problem, run } = useChange();
+  const navigate = useNavigate();
+  if (!switchable) return <span className="block text-lead">{league.name}</span>;
+  return (
+    <>
+      <Link
+        to={HOME_PATH}
+        disabled={busy}
+        onClick={async (event) => {
+          if (isCurrent) return;
+          event.preventDefault();
+          if (await run(() => switchLeague(league.leagueId))) await navigate({ to: HOME_PATH });
+        }}
+        className="flex min-h-tap items-center text-lead lg:min-h-0"
+      >
+        {league.name}
+      </Link>
+      <Problem problem={problem} />
+    </>
+  );
+}
+
+function LeagueTable({
+  leagues,
+  switchableLeagueIds,
+  currentLeagueId,
+  actions,
+}: {
+  leagues: readonly LeagueSummary[];
+  switchableLeagueIds: readonly Id<"leagues">[];
+  currentLeagueId: Id<"leagues"> | null;
+  actions: LeagueActions;
+}) {
   return (
     <table className="w-full border-collapse">
       <ColumnHeads columns={leagueColumns} classOf={(column) => (column === "teams" ? `${cellClasses} text-right` : cellClasses)} />
@@ -148,7 +204,12 @@ function LeagueTable({ leagues, actions }: { leagues: readonly LeagueSummary[]; 
         <tbody key={league.leagueId} className="border-t border-panel-rule">
           <tr>
             <th scope="row" className={`${cellClasses} font-semibold`}>
-              <span className="block text-lead">{league.name}</span>
+              <LeagueName
+                league={league}
+                switchable={switchableLeagueIds.includes(league.leagueId)}
+                isCurrent={league.leagueId === currentLeagueId}
+                switchLeague={actions.switchLeague}
+              />
               <span className="block font-normal text-muted wrap-anywhere">{commissionerLine(league.commissionerEmail)}</span>
               {/* A way into one of the league's pages: a full tap on a phone, a plain line on a desktop. */}
               {(runs(league) ? runnerLinks : managerLinks)(league.leagueId).map(({ to, title }) => (

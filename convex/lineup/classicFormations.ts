@@ -2,8 +2,8 @@
 // formations, each a league rule like a preset, which the ready-made rules carry. A classic
 // formation sets its shape, which is
 // always one of the league's presets (Craig, 6 Nov 2026: "Yes, one of ours"), every slot's role and
-// its two team instructions, each one its shape offers (instructions.ts; #990). Eight to start,
-// their text sample until Craig rewrites it (Craig, 6 Nov 2026: "Eight to start"). A league's copy
+// its two team instructions, each one its shape offers (instructions.ts; #990). Eight to start
+// (Craig, 6 Nov 2026: "Eight to start"), their text Claude's draft, Craig's edits winning (S05.61). A league's copy
 // is held with its rules (leagueRulesShape.ts), and its rules check says a classic formation is sound
 // (leagueRulesCheck.ts).
 
@@ -43,8 +43,8 @@ function classicFormation(
   return { name, subtitle, description, cells: preset.cells.map((cell, index) => ({ ...cell, role: roles[index] })), instructions };
 }
 
-/** Sample text throughout, for Craig to rewrite (spec/05, The pitch). Hungary's MM stands on 4-2-4,
- *  Hidegkuti a false 9 (Craig, 6 Nov 2026). */
+/** Each description drafted by Claude from the side's real history, Craig's edits winning (spec/05
+ *  S05.61). Hungary's MM stands on 4-2-4, Hidegkuti a false 9 (Craig, 6 Nov 2026). */
 export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
   classicFormation(
     "Keegan's Newcastle",
@@ -114,6 +114,11 @@ export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
     { attacking: "getItWide", defensive: "getStuckIn" },
   ),
 ];
+
+/** A classic formation's description (spec/05 S05.61): the site's for its name, so an edit here
+ *  reaches a league's copy, or the copy's own for a classic the site doesn't list. */
+export const classicDescriptionOf = ({ name, description }: Pick<ClassicFormation, "name" | "description">): string =>
+  FIRST_CLASSIC_FORMATIONS.find((each) => each.name === name)?.description ?? description;
 
 /** Whether these starters stand as the classic formation sets them: one in each of its slots, on
  *  its role there. `roleOf` is the role a starter plays (roles.ts `roleIn`). Once a manager changes

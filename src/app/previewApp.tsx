@@ -13,7 +13,7 @@ import { previewLeagueSettings } from "../leagueSettings/preview";
 import { previewMail, previewTopBar } from "../mail/preview";
 import { previewMatchup } from "../matchup/preview";
 import { previewMyTeam } from "../myTeam/preview";
-import { previewPendingClaims } from "../myTeam/claims/preview";
+import { previewClaims, previewPendingClaims } from "../myTeam/claims/preview";
 import { previewPatches } from "../patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { previewScoringFor } from "../scoring/preview";
@@ -45,7 +45,7 @@ export function previewApp(): ReactNode | null {
         scoring={previewScoringFor(session)}
         leagueSettings={previewLeagueSettings}
         table={previewTable}
-        scouting={{ ...previewScouting, useCardAction: previewPlayerCard.useCardAction, useWaiverChanges: previewPlayerCard.useWaiverChanges }}
+        scouting={{ ...previewScouting, usePendingClaims: previewClaims.usePendingClaims, useCardAction: previewPlayerCard.useCardAction, useWaiverChanges: previewPlayerCard.useWaiverChanges }}
         playerCard={previewPlayerCard}
         home={previewHome}
         myTeam={previewMyTeam}

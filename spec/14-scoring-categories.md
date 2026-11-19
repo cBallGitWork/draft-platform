@@ -133,6 +133,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   row: "we can always admin update later" (Craig, 31 Oct 2026, #810). `S14.5`
 - The team override is on the matchup, for the commissioner, the co-commissioner and the admin;
   the player override stays on the player card: "matchup" (Craig, 7 Nov 2026, on #903). `S14.6`
+- The player override is made only on his card. His row on the matchup shows the overridden
+  points in a colour of their own: "card only, 'marked' could be just a colour change" (Craig,
+  18 Nov 2026). `S14.31`
 
 ## The rule balance lab
 
@@ -160,6 +163,9 @@ change is good".
 - Its numbers go in the patch notes.
 - On Announce the lab runs once more by itself, on exactly the announced draft, and those numbers
   go in the patch notes: "5 a" (Craig, 6 Nov 2026, on #843). `S14.12`
+- Only the admin sees the lab's numbers in the patch notes; a manager sees what changed and from
+  when: "Show the lab only to the admin; a manager sees what changed and from when" (Craig, 18 Nov
+  2026, #2653). `S14.32`
 - Past seasons: "not much data this season, might need last". The five seasons 2021/22 to 2025/26
   from ai-carling-premiership, copied once into our own data by a script, stay, each player matched
   to his Sportmonks player through his FPL `code`: "sure" (Craig, 9 Nov 2026, on #1196). They hold
@@ -221,5 +227,6 @@ change is good".
 - Bench players' points show greyed on the matchup, and count only if the player is subbed on
   (`spec/05`). The player card shows every match at his base points, the bench's included
   (`spec/12`; Craig, 31 Oct 2026).
-- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, TW tackles
-  won) with the full name on hover; the rules editor uses full names.
+- Dense tables use short codes (G goals, A assists, CS clean sheet, KP key passes, Tkl tackles
+  won) with the full name on hover; the rules editor uses full names. Tackles won is Tkl, not TW,
+  which is the Touchline winger role's initials (18 Nov 2026, the matchup's Stats picture). `S14.30`

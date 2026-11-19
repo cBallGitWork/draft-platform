@@ -53,7 +53,7 @@ export const joinPage = query({
     const league = link && (await ctx.db.get("leagues", link.leagueId));
     if (!league || !leagueOpens(league)) return null;
     const teams = await teamsOf(ctx, league._id);
-    const shown = { leagueName: league.name, commissionerEmail: league.commissionerEmail, teams: teams.length, maxTeams: league.maxTeams };
+    const shown = { leagueName: league.name, commissionerEmail: league.commissionerEmail ?? null, teams: teams.length, maxTeams: league.maxTeams };
     const email = await signedInEmail(ctx);
     if (email === null) return { ...shown, commissionerEmail: null, standing: "mayAsk" as const };
     const team = teams.find((each) => each.managerEmail === email);

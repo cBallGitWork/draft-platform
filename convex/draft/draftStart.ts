@@ -82,6 +82,8 @@ export async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
+  // A league with no commissioner: its set-up manager's role ends, and its settings lock (spec/01 S01.1).
+  if (league.setUpBy !== undefined) await ctx.db.patch("leagues", league._id, { setUpBy: undefined });
   // Free agents waiting on the draft go back on waivers once it is over: the waiver cron looks (#1998).
   await checkSoon(ctx, league._id, ["waivers"]);
   await closePickTrades(ctx, league._id);

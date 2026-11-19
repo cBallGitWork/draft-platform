@@ -17,6 +17,7 @@ import {
   figureWords,
   noFigureWords,
   notCountingLabel,
+  overriddenLabel,
   pitchPlayerLabel,
   sidePitchLabel,
   statusLabels,
@@ -123,6 +124,16 @@ describe("each side's pitch", () => {
     const pitch = await opened();
     await userEvent.click(within(screen.getByRole("region", { name: "Team 1" })).getByRole("button", { name: tileOf("Delap") }));
     expect(within(pitch).getByRole("listitem", { current: true }).getAttribute("aria-label")).toBe(`${pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5))}, ${FINISHED_WORDS}`);
+  });
+
+  it("S14.31 a man whose points the league overrode shows his figure in a colour of its own, and is read out as overridden", async () => {
+    const overridden = { ...striker, points: 12, overridden: true };
+    const pitch = await opened(teamSide("Team 1", [centre, overridden], []));
+    const side = within(screen.getByRole("region", { name: "Team 1" }));
+    const figureOf = (name: string, points: number) => within(side.getByRole("button", { name: tileOf(name) })).getByText(figureWords(points));
+    expect(figureOf("Delap", 12).className).toContain("text-overridden");
+    expect(figureOf("Coyle", 2).className).toContain("text-figure");
+    expect(tilesOn(pitch)).toContain(`${pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(12))}, ${FINISHED_WORDS}, ${overriddenLabel}`);
   });
 
   it("S12.14 each tile's button, on the pitch and the bench, is named first by the words it shows, in its order (WCAG 2.5.3)", async () => {

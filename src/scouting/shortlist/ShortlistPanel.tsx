@@ -23,12 +23,14 @@ import {
 
 /** The manager's own shortlist (spec/19, The shortlist), on Scouting: each player by name, opening
  *  his card, with his club and who owns him, a button putting him at the bottom of the draft queue
- *  (spec/04; Craig, 5 Nov 2026, on #1100), and one taking him off. A player is added from his card.
+ *  (spec/04; Craig, 5 Nov 2026, on #1100) until the draft is over (S04.32), and one taking him off. A player is added from his card.
  *  Nothing shows for someone in the league who runs no team, who has none. */
 export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; seam: ShortlistSeam & QueueFromShortlist }) {
   const players = seam.useShortlist(leagueId);
   const changes = seam.useShortlistChanges();
   const addToQueue = seam.useAddToQueue();
+  // Not while it loads either, so the button never shows for a moment after the draft (S04.32).
+  const draftNotOver = seam.useDraftNotOver(leagueId) === true;
   const change = useChange();
   const [done, setDone] = useState<string | null>(null);
   if (players === null) return null;
@@ -63,15 +65,17 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
                 )}
               </span>
               <span className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={change.busy}
-                  onClick={() => void run(() => addToQueue(leagueId, player.code), queuedWords(player.name))}
-                  className="secondary-action"
-                  aria-label={addToQueueNamedLabel(player.name)}
-                >
-                  {addToQueueWords}
-                </button>
+                {draftNotOver && (
+                  <button
+                    type="button"
+                    disabled={change.busy}
+                    onClick={() => void run(() => addToQueue(leagueId, player.code), queuedWords(player.name))}
+                    className="secondary-action"
+                    aria-label={addToQueueNamedLabel(player.name)}
+                  >
+                    {addToQueueWords}
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={change.busy}

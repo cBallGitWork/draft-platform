@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FIRST_PRESETS, presetNameOf, type Preset } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS, presetDescriptionOf, presetNameOf, type Preset } from "../../../convex/lineup/presets";
 
 // presetNameOf names the preset a side stands in, so the matchup can show its formation by its
 // preset until its manager edits it (spec/10, The matchup, as a live match; #878).
@@ -33,4 +33,12 @@ test("it reads the league's own presets: one it renamed by its new name, one it 
 
   expect(presetNameOf(cells, league)).toBe("The flat four");
   expect(presetNameOf(cells, FIRST_PRESETS.filter((preset) => preset.name !== "4-4-2"))).toBeNull();
+});
+
+test.each(FIRST_PRESETS)("$name has a description, read by its name (S05.61)", (preset) => {
+  expect(presetDescriptionOf(preset.name)).toMatch(/\S/);
+});
+
+test("a preset a league named itself has no description (S05.61)", () => {
+  expect(presetDescriptionOf("The flat four")).toBeUndefined();
 });

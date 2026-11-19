@@ -1859,6 +1859,34 @@
               ]
             },
             "optional": true
+          },
+          "line": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "GK"
+                },
+                {
+                  "type": "literal",
+                  "value": "DEF"
+                },
+                {
+                  "type": "literal",
+                  "value": "CM"
+                },
+                {
+                  "type": "literal",
+                  "value": "AM"
+                },
+                {
+                  "type": "literal",
+                  "value": "FWD"
+                }
+              ]
+            },
+            "optional": true
           }
         }
       }
@@ -2111,48 +2139,78 @@
               "type": "union",
               "value": [
                 {
-                  "type": "literal",
-                  "value": "GK"
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "GK"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "CB"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "FB"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "WB"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "CDM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "CM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "WM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "CAM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "W"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "SS"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "ST"
+                    }
+                  ]
                 },
                 {
-                  "type": "literal",
-                  "value": "CB"
-                },
-                {
-                  "type": "literal",
-                  "value": "FB"
-                },
-                {
-                  "type": "literal",
-                  "value": "WB"
-                },
-                {
-                  "type": "literal",
-                  "value": "CDM"
-                },
-                {
-                  "type": "literal",
-                  "value": "CM"
-                },
-                {
-                  "type": "literal",
-                  "value": "WM"
-                },
-                {
-                  "type": "literal",
-                  "value": "CAM"
-                },
-                {
-                  "type": "literal",
-                  "value": "W"
-                },
-                {
-                  "type": "literal",
-                  "value": "SS"
-                },
-                {
-                  "type": "literal",
-                  "value": "ST"
+                  "type": "union",
+                  "value": [
+                    {
+                      "type": "literal",
+                      "value": "GK"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "DEF"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "CM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "AM"
+                    },
+                    {
+                      "type": "literal",
+                      "value": "FWD"
+                    }
+                  ]
                 }
               ]
             },
@@ -2169,6 +2227,14 @@
                 {
                   "type": "literal",
                   "value": "lost"
+                },
+                {
+                  "type": "literal",
+                  "value": "lineFlagged"
+                },
+                {
+                  "type": "literal",
+                  "value": "lineMoved"
                 }
               ]
             },
@@ -4835,6 +4901,12 @@
           "fields": [
             "coCommissionerEmail"
           ]
+        },
+        {
+          "indexDescriptor": "by_setUpBy",
+          "fields": [
+            "setUpBy"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -4861,7 +4933,13 @@
             "fieldType": {
               "type": "string"
             },
-            "optional": false
+            "optional": true
+          },
+          "setUpBy": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
           },
           "coCommissionerEmail": {
             "fieldType": {
@@ -5205,6 +5283,30 @@
                             "type": "null"
                           }
                         ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "commissionerSteppedDown"
+                      },
+                      "optional": false
+                    },
+                    "email": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "replaced": {
+                      "fieldType": {
+                        "type": "string"
                       },
                       "optional": false
                     }
@@ -6888,6 +6990,71 @@
       }
     },
     {
+      "tableName": "commissionerAsks",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_decision",
+          "fields": [
+            "leagueId",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_leagueId_and_email_and_decision",
+          "fields": [
+            "leagueId",
+            "email",
+            "decision"
+          ]
+        },
+        {
+          "indexDescriptor": "by_decision",
+          "fields": [
+            "decision"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "decision": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "approved"
+                },
+                {
+                  "type": "literal",
+                  "value": "refused"
+                }
+              ]
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
       "tableName": "invites",
       "indexes": [
         {
@@ -7316,6 +7483,13 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          },
+          "askToRun": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
             },
             "optional": true
           },
@@ -8254,6 +8428,120 @@
                           },
                           "optional": false
                         }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "classic": {
+                  "fieldType": {
+                    "type": "boolean"
+                  },
+                  "optional": true
+                },
+                "lineLimits": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "GK": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "DEF": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "CM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "AM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "FWD": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
                       }
                     }
                   },
@@ -12830,6 +13118,120 @@
                   },
                   "optional": true
                 },
+                "classic": {
+                  "fieldType": {
+                    "type": "boolean"
+                  },
+                  "optional": true
+                },
+                "lineLimits": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "GK": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "DEF": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "CM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "AM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "FWD": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
+                },
                 "oddTeamOut": {
                   "fieldType": {
                     "type": "union",
@@ -13706,6 +14108,120 @@
                           },
                           "optional": false
                         }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "classic": {
+                  "fieldType": {
+                    "type": "boolean"
+                  },
+                  "optional": true
+                },
+                "lineLimits": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "GK": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "DEF": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "CM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "AM": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      },
+                      "FWD": {
+                        "fieldType": {
+                          "type": "object",
+                          "value": {
+                            "minimum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "maximum": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
                       }
                     }
                   },
@@ -25980,6 +26496,67 @@
             "optional": false
           },
           "storedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "awards",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_month",
+          "fields": [
+            "leagueId",
+            "month"
+          ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_month",
+          "fields": [
+            "teamId",
+            "month"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "month": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "awardedAt": {
             "fieldType": {
               "type": "number"
             },

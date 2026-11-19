@@ -21,6 +21,8 @@ export const refusals = {
   notAdmin: "Only the admin can do that.",
   notRunner: "Only the league's commissioner, its co-commissioner or the admin can do that.",
   notNamer: "Only the league's commissioner or the admin can name or remove a commissioner or co-commissioner.",
+  notCommissioner: "Only the league's commissioner can step down as its commissioner.",
+  noOneToTakeOver: "There's no co-commissioner or other manager in the league to take the role on.",
   notDeleter: "Only the league's commissioner or the admin can delete it.",
   beingDeleted: "This league is being deleted, so nothing in it can change unless that is undone.",
   notBeingDeleted: "This league isn't being deleted.",
@@ -107,7 +109,8 @@ export function powersIn(league: Doc<"leagues">, email: string): LeaguePowers {
   const isCommissioner = email === league.commissionerEmail;
   return {
     names: admin || isCommissioner,
-    runs: admin || isCommissioner || email === league.coCommissionerEmail,
+    // The set-up manager of a league with no commissioner runs it until its draft starts (S01.1).
+    runs: admin || isCommissioner || email === league.coCommissionerEmail || email === league.setUpBy,
   };
 }
 

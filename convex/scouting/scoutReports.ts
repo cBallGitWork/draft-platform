@@ -6,7 +6,7 @@ import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { lineupInGameweek } from "../lineup/lineups";
-import { positionOfSlot } from "../lineup/pitch";
+import { slotLabelOf } from "../lineup/pitch";
 import { roleIn, roleName } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";
 import { CLAUDE_RETRY_MS, failedTry, tryWriting, writeWithClaude } from "../outbound/claude";
@@ -60,7 +60,10 @@ export const brief = internalQuery({
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       stars: stars.map(({ area, role, stars }) => ({ area, role: roleName(role), stars })),
       // A slot whose starter left is still the formation's: the bench fills it (spec/05).
-      shape: [...lineup.starters, ...lineup.vacated].map((starter) => ({ position: positionOfSlot(starter), role: roleIn(starter, starter.role).name })),
+      shape: [...lineup.starters, ...lineup.vacated].map((starter) => {
+        const played = roleIn(starter, starter.role);
+        return { position: slotLabelOf(starter, played.key), role: played.name };
+      }),
       matches: (await seasonMatches(ctx, league, player, positions, clubs)).map((match) => ({
         ...opponentOf(match),
         minutes: match.minutes,

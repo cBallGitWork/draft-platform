@@ -3,6 +3,9 @@
 Feature 10 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and `/grill live
 commentary` (16 Oct 2026).
 
+**Contents:** [The matchup, as a live match](#the-matchup-as-a-live-match) · [The match page](#the-match-page) ·
+[The commentary](#the-commentary)
+
 - Live scores during matches, for every league's head-to-head and table.
 
 ## The matchup, as a live match
@@ -34,6 +37,14 @@ commentary` (16 Oct 2026).
   involves either team's players.
 - No line for an auto-sub: whether a player played is known only after his match.
 - The commentary is kept with the matchup after the gameweek.
+- Beside the vidiprinter, a Stats view: a dense table of both teams' players (`spec/14`, On
+  screen), starters then the bench greyed and not counted, each with his minutes, a column for each
+  stat the league scores, his role's points and his total ("League's scoring stats"; Craig, 18 Nov
+  2026, #2334). `S10.14`
+- The vidiprinter opens first while any of the matchup's players is still to finish; the Stats
+  view once the gameweek is over ("Vidiprinter while live", Craig, 18 Nov 2026, #2334). `S10.15`
+- Tapping a player's row in the Stats view opens his breakdown, as tapping his tile does ("Yes,
+  same as the tile", Craig, 18 Nov 2026, #2334). `S10.16`
 
 ## The match page
 
@@ -44,8 +55,10 @@ commentary` (16 Oct 2026).
   the column naming a player's team is headed "Owner" (Craig, 10 Nov 2026, on #1032). `S10.7`
 - Two tabs: Overview, and Player stats, each player's stats for the match: "A match needs a ten for
   detailed stats Tab" (Craig, 10 Nov 2026, on #1032). Player stats has a Stats | Points switch,
-  Points showing what each stat earned him, and a shot map with each shot's xG (Craig, 10 Nov 2026,
-  on #1032). `S10.8`
+  Points showing what each stat earned him (Craig, 10 Nov 2026, on #1032). In place of a shot map,
+  each player's shots, on target, blocked, woodwork and big chances missed show as numbers in the
+  table: Sportmonks sends no shot's time or position, and no xG ("Keep, no xG"; "Shot counts
+  instead", Craig, 17 Nov 2026). `S10.8`
 - Overview shows the lineups as a list or on a pitch; clicking a player opens his panel; your own
   players are highlighted; a goal, an assist and a card each have a mark after the player's name:
   "We probably need an assist icon somewhere too" (Craig, 10 Nov 2026, on #1032). `S10.9`

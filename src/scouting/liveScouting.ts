@@ -27,6 +27,9 @@ export const liveScouting: ScoutingSeam = {
       [add],
     );
   },
+  // The menu's own question (src/routes/root.tsx), asked with the same arguments, so Convex shares
+  // its one subscription and Scouting reads nothing more.
+  useDraftNotOver: (leagueId) => useQuery(api.draft.draftBoard.inMenu, { leagueId }),
   useComparison: (leagueId, codes, stat, period) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes], stat, period }),
   // Held across the minute's turn, so Compare doesn't vanish while the next answer loads (#1747).
   useYourPlayer: (leagueId, playerCode, now) =>

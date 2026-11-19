@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, overMostInSquad } from "../leagues/leagueLimits";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { refuse, teamIn } from "../shared/leagueAccess";
 import { squadCodes } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
@@ -28,7 +28,7 @@ export async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">,
  *  newly or further, which warn but don't stop it (spec/08, as an assignment's, spec/15). Refused
  *  past the platform's most in a squad. */
 export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offer: Parameters<typeof squadsAfter>[1]) {
-  const squad = (await latestRules(ctx, leagueId)).squad;
+  const squad = (await rulesInForceNow(ctx, leagueId)).squad;
   return Promise.all(
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
       if (overMostInSquad(codes)) refuse(squadFullRefusal);

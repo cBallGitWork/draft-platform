@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { positionOfSlot } from "../lineup/pitch";
+import { slotLabelOf } from "../lineup/pitch";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { shirtNumber } from "../squads/squadNumbers";
@@ -17,8 +17,9 @@ export function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "
   return namedRole(roleIn(cell, role));
 }
 
-/** The slot he plays in: its lane and its position label, as the Tactics pitch labels it. */
-export const placeOf = ({ cell }: SlotPoints): MatchupPlace => ({ lane: cell.lane, label: positionOfSlot(cell) });
+/** The slot he plays in: its lane and its label by the role he plays there, as the Tactics pitch
+ *  labels it (spec/06 `S06.10`). */
+export const placeOf = ({ cell, role }: SlotPoints): MatchupPlace => ({ lane: cell.lane, label: slotLabelOf(cell, roleIn(cell, role).key) });
 
 /** His shirt on the matchup's pitch (#1026): his club, whose colours it wears, and the number his
  *  manager gave him while the side's team still holds him, else his club's (squadNumbers.ts).

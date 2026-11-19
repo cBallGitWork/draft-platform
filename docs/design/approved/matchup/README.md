@@ -6,6 +6,9 @@ Route: `/matchup`, checked on `/matchup?preview=manager`.
 
 - `1440.png`: a live Saturday in GW9 as Saka Potatoes' manager sees it, with the opponent's Wood
   tapped so his breakdown shows at the top of the centre column.
+- `1440-stats.png`: the same live Saturday with the centre column on Stats and nobody tapped: both
+  teams' players in a dense table, starters then the bench greyed, each code's full name on hover
+  (source `Matchup-Stats.dc.html`; #2334).
 - `1440-states.png`: the same matchup as the commissioner sees it, in a league with two games a
   gameweek: Override total under each team, the game switch under the score, Kroos Control on the
   auto team, the vidiprinter's "Commentary delayed", and nobody tapped, so the vidiprinter takes the
@@ -23,6 +26,10 @@ Route: `/matchup`, checked on `/matchup?preview=manager`.
 - "lots of text and rows": each label was cut to two rows.
 - "Look at how FPL and draft and sleeper have the player tiles on pitch, much easier to read": the
   tiles became FPL's, a card with a big shirt, a white name plate and one strip.
+
+18 Nov 2026: Craig, of the Stats view, "Approve it". On the way: "Vidiprinter while live" (which
+view opens first), "League's scoring stats" (where the columns come from) and "Yes, same as the
+tile" (a row opens his breakdown).
 
 ## The Football Manager idea
 
@@ -47,6 +54,14 @@ and are still to play. Their organisation, never their colours.
   sets the team's total for the gameweek, with a reason that goes to the league in Mail, and becomes
   "Remove override" once set (`spec/14`, S14.3 to S14.6). Managers never see it.
 - The vidiprinter scrolls inside its panel, newest first.
+- Vidiprinter | Stats, the centre column's tabs: the vidiprinter opens first while anyone is still
+  to finish, Stats once the gameweek is over (`spec/10`, S10.15).
+- The Stats view: per team, its name and total, then Pos, Player with his club, Min (a live
+  player's minute in cyan), one column for each stat the league scores (the picture's are a
+  sample), Role + and Pts; then "Bench, not counted", greyed. A player yet to play shows his day and
+  "–". Each code's full name shows on hover and to screen readers (`spec/14`, S14.30). It scrolls
+  inside its panel. A row opens his breakdown at the top of the centre column, as his tile does
+  (S10.16).
 
 ## What each tile says
 

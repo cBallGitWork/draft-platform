@@ -27,6 +27,12 @@ describe("gameModeOf", () => {
     expect(gameModeOf({ format: "headToHead" }).hasMatchups).toBe(true);
     expect(gameModeOf({ format: "totalPoints" }).hasMatchups).toBe(false);
   });
+
+  test("S22.1 a league plays classic only when its rules say so, every other answer as before", () => {
+    expect(gameModeOf({ format: "headToHead" }).classic).toBe(false);
+    expect(gameModeOf({ format: "headToHead", classic: false }).classic).toBe(false);
+    expect(gameModeOf({ format: "totalPoints", classic: true })).toEqual({ ...gameModeOf({ format: "totalPoints" }), classic: true });
+  });
 });
 
 describe("playedSet", () => {

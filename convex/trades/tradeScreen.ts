@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { squadMaximumOf } from "../rules/squadMaximums";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode, type Clubs } from "../shared/players";
@@ -25,7 +25,7 @@ import { newlyBroken } from "../squads/limitsCompare";
 import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
-import { managersAmong, reviewUnder } from "./tradeReviewers";
+import { inReviewAmong, managersAmong, namedReviewer, reviewUnder, screenReviewer, type Reviewer } from "./tradeReviewers";
 import { onAutoTeam } from "../lineup/autoTeamSwitch";
 import { offerCloses, tradeRulesOnceBegun, tradesShutOnceBegun } from "./tradeShut";
 import type { TradesShut } from "./tradeShutWords";
@@ -40,13 +40,7 @@ import { tradePick } from "../schema";
 
 export type { ClosedOffer, TradedPlayer };
 
-/** Who reviews a trade: the commissioner or the co-commissioner by veto, or a league vote. */
-const reviewer = v.union(
-  v.literal("commissioner"),
-  v.literal("coCommissioner"),
-  v.literal("vote"),
-);
-export type Reviewer = Infer<typeof reviewer>;
+export type { Reviewer };
 
 /** An offer's part that moves with the clock, through the latest gameweek begun (tradesAt.ts). */
 const offerAtMinute = v.object({
@@ -58,7 +52,7 @@ const offerAtMinute = v.object({
     v.null(),
   ),
   /** Who would review it once accepted, or reviews it now; null for nobody. */
-  reviewer: v.union(reviewer, v.null()),
+  reviewer: v.union(screenReviewer, v.null()),
 });
 
 const heldOffer = v.object({
@@ -89,11 +83,12 @@ const screenTeam = v.object({
   teamName: v.string(),
   /** On the auto team: no offer goes to or from it (spec/09). */
   onAutoTeam: v.boolean(),
-  /** Its squad by position, then name; `held` marks a player in a trade under review. */
-  players: v.array(v.object({ ...tradedPlayer.fields, held: v.boolean() })),
+  /** Its squad by position, then name; `held` is who reviews the trade a player is in while it is
+   *  under review, null while he is free. */
+  players: v.array(v.object({ ...tradedPlayer.fields, held: v.union(screenReviewer, v.null()) })),
   /** The draft picks it holds now, round by round, to trade before the draft starts (spec/04, The
    *  picks; #1096): `teamId`'s pick in `round`, `teamName` its team, its own or one traded to it;
-   *  `held` marks one in a trade under review. Empty once the draft starts, or with no rounds. */
+   *  `held` as a player's. Empty once the draft starts, or with no rounds. */
   picks: v.array(tradablePick),
 });
 export type ScreenTeam = Infer<typeof screenTeam>;
@@ -164,11 +159,7 @@ function reviewerNamed(
   league: Doc<"leagues">,
   review: ReviewWords | null,
 ): Reviewer | null {
-  if (review === null) return null;
-  if (review.kind === "vote") return "vote";
-  return review.by === league.commissionerEmail
-    ? "commissioner"
-    : "coCommissioner";
+  return review === null ? null : namedReviewer(league, review);
 }
 
 /** The Trades screen for the manager's team for any minute of the hour starting at `hour`, judged at
@@ -179,18 +170,19 @@ export const ofMyTeam = query({
   returns: heldTrades,
   handler: async (ctx, { leagueId, hour }): Promise<HeldTrades> => {
     const { league, team: mine } = await managerOf(ctx, leagueId);
-    const rules = await latestRules(ctx, leagueId);
+    const rules = await rulesInForceNow(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
-    const held = new Set(
-      offers.flatMap((offer) =>
-        offer.review === undefined ? [] : [...offer.gives, ...offer.gets],
+    const inReview = inReviewAmong(league, offers);
+    const heldBy = new Map(
+      inReview.flatMap(({ offer, reviewer }) =>
+        [...offer.gives, ...offer.gets].map((code) => [code, reviewer] as const),
       ),
     );
     const teams = await teamsOf(ctx, leagueId);
-    const picksOf = await pickHolders(ctx, leagueId, teams, offers);
+    const picksOf = await pickHolders(ctx, leagueId, teams, inReview);
     const squads = new Map<Id<"teams">, number[]>();
     for (const team of teams) squads.set(team._id, await squadCodes(ctx, team._id));
     const myCodes = squads.get(mine._id) ?? [];
@@ -211,7 +203,7 @@ export const ofMyTeam = query({
                 console.warn(missingPlayerLog(team.name, code));
                 return null;
               }
-              return { ...shown, held: held.has(code) };
+              return { ...shown, held: heldBy.get(code) ?? null };
             }),
           );
           const sorted = players

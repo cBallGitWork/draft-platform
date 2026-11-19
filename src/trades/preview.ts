@@ -10,7 +10,7 @@ import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { previewPlayers, previewRivals } from "../scouting/preview";
 import { previewDone, proLeague } from "../shared/preview";
-import { previewIdOf } from "../table/preview";
+import { previewIdOf } from "../shared/previewDraw";
 import type {
   ClosedOffer,
   ScreenOffer,
@@ -54,7 +54,7 @@ const team = (
   teamId: previewIdOf(teamName),
   teamName,
   onAutoTeam: false,
-  players: players.map((each) => ({ ...each, held: held.includes(each) })),
+  players: players.map((each) => ({ ...each, held: held.includes(each) ? "commissioner" : null })),
   // The pictures are mid-season, after the draft, so no picks are left to trade.
   picks: [],
 });

@@ -5,6 +5,8 @@ import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { DAY_MS } from "../../../convex/shared/time";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { annsScoredGame, GAMEWEEK, giveAnnsStarterRole, HULL_SCORER, HULL_STARTERS, HULL_STRIKER, PHILLIPS, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
+import { CAT } from "../../support/convex/leagues.harness";
+import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 
@@ -34,6 +36,18 @@ test("a starter with a role, scored in a recorded gameweek, gets breakdown lines
   expect(lines).toBe(match.points);
   expect(match.points).toBe(scorer.points);
   expect(game.version).not.toBeNull();
+});
+
+test("S14.31 a man the league overrode is marked overridden on the matchup, his points the override's; one it didn't, not", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await league.t.run((ctx) =>
+    ctx.db.insert("pointsOverrides", { leagueId: league.leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, points: 20, reason: "A goal the feed gave someone else", by: CAT, at: 0 }),
+  );
+
+  const { team } = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(team, HULL_SCORER)).toMatchObject({ overridden: true, points: 20 });
+  expect(slotOf(team, HULL_STRIKER).overridden).toBe(false);
 });
 
 // spec/05, Team instructions (#990): "It shows as its own line under his role's line on the matchup

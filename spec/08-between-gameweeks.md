@@ -34,6 +34,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   - Changed run times count only from the next one still ahead, so a new time already gone this
     week never runs at once: runs only happen at times managers were shown (Craig, 11 Nov 2026,
     #1468). `S08.10`
+- The commissioner can press **Run waivers now**, which runs the waiver claims at once instead of
+  waiting for the next scheduled run (Craig, 16 Nov 2026, #2267: "A yes"; Fantrax has the same).
+  `S08.31`
 - Both runs work alike: every player whose 24 hours are up is claimed in order. A drop on Tuesday
   at 10:00 makes Wednesday's run; one after 18:00 on Tuesday makes Thursday's.
 - The window: from the first waiver run after a gameweek to the next deadline, when players are free

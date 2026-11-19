@@ -28,15 +28,28 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   Continue takes him to his Tactics tab, whether or not anything is wrong with his lineup, until
   he opens Tactics that gameweek. A manager with no team in the league has no lineup step (Craig,
   1 Nov 2026).
+- Continue walks the same list as Mail's Needs you (`spec/16`), then unread letters, then "nothing
+  to do": one to-do list (Craig, 18 Nov 2026: "Yes, all four"). `S12.21`
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
 - Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
   to all").
+- The commissioner and co-commissioner see a to-do list on Home that no one else sees. It lists
+  only what needs them now, each line opening where it's done: join requests waiting (a count),
+  teams with no lineup yet (a number only, never whose: neither sees a lineup before the deadline,
+  `spec/10`), the draft order not set before the draft, trades waiting their veto, and a team with
+  no manager (Craig, 16 Nov 2026, #2267). `S12.17`
+- The commissioner's screens move off Your leagues' rows into a **Commissioner** item in the top
+  menu, shown only to the commissioner and co-commissioner, with the tabs Gameweeks | Invites |
+  Squads | Settings; deleting the league is under Settings, for the commissioner alone
+  (`spec/13`, Who runs it; Craig, 16 Nov 2026, #2267). `S12.18`
+- Player scoring becomes a Scoring tab on the Table page, for every manager (Craig, 16 Nov 2026,
+  #2267). `S12.19`
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
   free agents, waivers, stats), player card, trades, draft room (with the queue before it), Mail,
-  league settings (commissioner), admin (Craig).
+  Commissioner (Gameweeks, Invites, Squads, Settings), admin (Craig). `S12.20`
 
 ## The look: Plate
 
@@ -63,12 +76,14 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   all").
   - Craig, 13 Nov 2026, on #1976, "yes to all five" of Claude's recommendations, wiring the
     panels the picture draws:
-    - Flagged means any player FPL gives a news note, the note shown word for word, with no chip:
-      the status chips stay placeholders until they are settled. Your squad news lists the whole
-      squad's; Tactics' Lineup check lists only the starters'. `S12.8`
+    - Flagged means any player with a mark from `spec/05` (S05.57, S05.59, S05.60): his chip, and
+      Sportmonks' reason when it sends one ("Hamstring"), in place of FPL's news note (Craig,
+      18 Nov 2026: "Mark + Sportmonks reason"). Your squad news lists the whole squad's, by name
+      ("sorry whole squad"); Tactics' Lineup check lists only the starters'. `S12.8`
     - The deadline strip's Your lineup box names the first flagged starter in the pitch's order,
-      "doubtful" when FPL gives him 25 to 75% and "out" at 0%, with "and 1 more" when there are
-      others; with none flagged it says Set, and with no lineup yet Not set. `S12.9`
+      "out" or "doubtful" by Tactics' marks from Sportmonks (`spec/05`, S05.57; Craig, 18 Nov
+      2026: "Same marks"), with "and 1 more" when there are others; with none flagged it says Set,
+      and with no lineup yet Not set. `S12.9`
       - Craig, 17 Nov 2026, on #2466: from his match's kickoff, Your lineup leaves him out ("Leave
         him out from his match's kickoff"), while Your squad news still shows his note. `S12.16`
     - The strip's other three boxes are built as pictured and open nothing: GW9 locks shows its
@@ -76,6 +91,10 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       and how many claims you have waiting ("Mon 20:00, 2 claims"); Table your place, points and
       the gap ("2nd, 18 pts, 1 behind 1st", or "N ahead of 2nd" on top), in total points only
       place and points. `S12.10`
+    - The strip keeps its four boxes all season, each saying what is true now: before the draft
+      the first reads "Draft Sat 19:00", in a break "Break · reopens Wed" (`spec/13`, S13.9), and
+      once the season is over "Season over" (Craig, 18 Nov 2026: "Same 4 boxes, say what's
+      true"). `S12.22`
     - A placeholder keeps its outline, with its label written inside in muted words ("Role fit:
       not rated yet"); a tiny one, a status chip or stars, stays an empty outline
       (`docs/design/plate.md`, Marks). `S12.11`
@@ -83,6 +102,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
       matches with kickoff times, under each your players ("You") and your opponent's ("Them"),
       only the matches where one of the two of you has a player; All fixtures opens the Premier
       League. `S12.12`
+    - Once a match kicks off, the panel shows its live score, and the full-time score after; the
+      live screen keeps the detail (Craig, 18 Nov 2026: "Yes, live scores"). `S12.23`
+  - Home's Calendar tab is a month grid, as FM's is: each day holds the league's gameweeks and
+    deadlines, the draft, breaks (`spec/13`) and waiver runs (`spec/08`). It is drawn and approved
+    through `/design` before it is built (Craig, 18 Nov 2026: "Month grid, like FM"). `S12.24`
   - Craig, 16 Nov 2026, on #2443, how Home shows what needs a manager: no new panel. The
     deadline strip and Mail's Needs you are the to-do: Mail's panel sits at the top of the left
     column, under the strip, and opens on Needs you. Nothing more says what happens if he does
@@ -165,8 +189,8 @@ From `/grill club colours` (31 Oct 2026).
 - A club mark, a small square in the club's two colours, stands before a club code wherever the
   code stands alone: Squad, Scouting, the player card, the Premier League table ("thats very CM 99
   like"). Never inside a fixture-difficulty cell.
-- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup
-  waits for managers' crests (SPEC.md, Later).
+- A Premier League match's scoreboard puts each club on its own colour (`spec/10`). The matchup's
+  header takes the two teams' own colours (S12.27); their crests stay Later. `S12.31`
 - The player card's title plate stays the plate's colour; his club shows by its mark and his shirt
   (Craig left this to Claude).
 - Who keeps the colours: `spec/15`, The admin.
@@ -176,6 +200,28 @@ From `/grill club colours` (31 Oct 2026).
   difficulty, shown as a coloured cell). (Craig left this to Claude.)
 - Not liked, so not used: no pitch view (Terminal, Kit room), a terminal look, the first broadcast
   look's generic-AI tells, a strip of position slots, and the pitch-first layout.
+
+### Team colours
+
+From the look grill (Craig, 18 Nov 2026).
+
+- A team's colour shows on its page's header and a stripe only; title plates stay the plate's
+  indigo, so the contrast and meaning colours keep working ("Header + stripe only"). `S12.25`
+- The manager picks his team's primary and second colour from a set palette on his team's
+  settings, from the beta; it is stored on the team, and crests stay Later ("Manager, from the
+  beta"). `S12.26`
+- A matchup's header splits into both teams' colours. When the two are too close to tell apart,
+  the second team listed shows its second colour, as with a kit clash ("Away uses its second
+  colour"). `S12.27`
+
+### Colour that means something
+
+- Each team's last five results show as W/D/L squares, green, grey and red, in the table and on
+  League home (Craig, 18 Nov 2026). `S12.28`
+- Wherever a squad is listed, each player's position line takes his area's colour (goalkeeper,
+  defence, midfield, attack), as the pitch's chips do (Craig, 18 Nov 2026). `S12.29`
+- A player with several positions shows each code in its own area's colour ("DM CM") (Craig,
+  18 Nov 2026: "Each code its own colour"). `S12.30`
 
 ## Data in mock-ups
 

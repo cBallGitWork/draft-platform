@@ -13,6 +13,7 @@ import {
   sameCell,
   sameShape,
   SLOT_POSITIONS,
+  slotLabelOf,
   type Area,
   type Cell,
 } from "../../../convex/lineup/pitch";
@@ -80,6 +81,23 @@ test.each([
   ["attack", "ST", "ST"],
 ] as const)("a slot in %s is %s in the wide lanes and %s in the three centre ones", (area, wide, centre) => {
   expect(LANES.map((lane) => positionOfSlot({ area, lane }))).toEqual([wide, centre, centre, centre, wide]);
+});
+
+// The slot behind the striker is labelled by the role played there (spec/06 `S06.10`), while
+// scoring still prices it as CAM (spec/14).
+test("S06.10: the centre attacking-midfield slot reads SS on the shadow striker and CAM on its other roles", () => {
+  const centres = (["leftCentre", "centre", "rightCentre"] as const).map((lane): Cell => ({ area: "attackingMidfield", lane }));
+  for (const cell of centres) {
+    expect(slotLabelOf(cell, "attackingMidfieldShadowStriker")).toBe("SS");
+    for (const role of ["numberTen", "carrier", "pressingTen"]) expect(slotLabelOf(cell, role)).toBe("CAM");
+    expect(positionOfSlot(cell)).toBe("CAM");
+  }
+});
+
+test("S06.10: every other slot reads its position, whatever the role", () => {
+  for (const cell of ALL_CELLS.filter((each) => positionOfSlot(each) !== "CAM")) {
+    expect(slotLabelOf(cell, "attackingMidfieldShadowStriker")).toBe(positionOfSlot(cell));
+  }
 });
 
 test("every slot position is a position label, and SS is none of them", () => {
