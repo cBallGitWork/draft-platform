@@ -4,7 +4,7 @@ import { query, type QueryCtx } from "../_generated/server";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { gameweekUnderWay } from "../gameweeks/gameweekEnd";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { memberOf } from "../shared/leagueAccess";
 import { heldWaiverClock, lockCandidates, type HeldWaiverClock } from "./runsAhead";
 
@@ -16,7 +16,7 @@ import { heldWaiverClock, lockCandidates, type HeldWaiverClock } from "./runsAhe
 // score changes, as before.
 
 /** The waiver runs' times for any minute of the hour starting at `hour`: the league's runs under
- *  its latest rules, its deadlines, and which gameweeks that can be the latest begun in the hour
+ *  the rules in force, as the run reads them (S03.11), its deadlines, and which gameweeks that can be the latest begun in the hour
  *  are under way. For anyone with a part in the league. */
 export const clockOf = query({
   args: { leagueId: v.id("leagues"), hour: v.number() },
@@ -29,7 +29,7 @@ export const clockOf = query({
 
 /** `clockOf`'s times for the hour starting at `hour`, with the league's `deadlines` read. */
 export async function waiverClockOf(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, hour: number): Promise<HeldWaiverClock> {
-  const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+  const runs = (await rulesInForceNow(ctx, leagueId)).waivers.runs;
   const candidates = lockCandidates(deadlines, hour);
   const underWay = await Promise.all(candidates.map(async (gameweek) => ((await gameweekUnderWay(ctx, gameweek)) ? [gameweek] : [])));
   return { runs, gameweeks: [...deadlines].map(([gameweek, deadline]) => ({ gameweek, deadline })), underWay: underWay.flat() };

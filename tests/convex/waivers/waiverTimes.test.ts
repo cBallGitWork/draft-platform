@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { firstRunFrom, latestRunAt } from "../../../convex/waivers/waiverTimes";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { RulesRow } from "../../../convex/rules/rulesHistory";
+import { firstRunFrom, latestRunAt, wasRunTime } from "../../../convex/waivers/waiverTimes";
 
 // When waivers run (#1198; spec/03, spec/08): Wednesday and Thursday at 18:00 UK time by default,
 // whatever the clocks say, winter or summer.
@@ -68,5 +70,35 @@ describe("the first run that can take a player (#1200)", () => {
 
   test("none with no runs", () => {
     expect(firstRunFrom([], Date.UTC(2027, 0, 12))).toBeNull();
+  });
+});
+
+describe("whether a moment was a run time", () => {
+  // Gameweek 9's deadline is Saturday 9 January 2027, 11:00, and gameweek 10's a week on. On
+  // Monday of gameweek 9 the commissioner moves the runs to Friday 10:00, from gameweek 10.
+  const leagueId = "league" as Id<"leagues">;
+  const deadlines = new Map([
+    [9, Date.UTC(2027, 0, 9, 11, 0)],
+    [10, Date.UTC(2027, 0, 16, 11, 0)],
+  ]);
+  const row = (at: number, fromGameweek: number, runs: typeof RUNS): RulesRow => ({
+    _id: `rules${at}` as Id<"leagueRules">,
+    _creationTime: at,
+    leagueId,
+    fromGameweek,
+    rules: { ...FIRST_RULES, waivers: { ...FIRST_RULES.waivers, runs } },
+  });
+  const history = [row(Date.UTC(2027, 0, 1), 1, RUNS), row(Date.UTC(2027, 0, 11, 12, 0), 10, [{ day: "friday", hour: 10, minute: 0 }])];
+  const wasRun = (at: number) => wasRunTime(history, leagueId, deadlines, at);
+
+  test("S03.11 a run time saved mid-gameweek runs only from the next deadline, the old ones until it", () => {
+    expect(wasRun(Date.UTC(2027, 0, 13, 18, 0))).toBe(true);
+    expect(wasRun(Date.UTC(2027, 0, 15, 10, 0))).toBe(false);
+    expect(wasRun(Date.UTC(2027, 0, 20, 18, 0))).toBe(false);
+    expect(wasRun(Date.UTC(2027, 0, 22, 10, 0))).toBe(true);
+  });
+
+  test("S08.10 none before the league's rules were saved", () => {
+    expect(wasRun(Date.UTC(2026, 11, 30, 18, 0))).toBe(false);
   });
 });

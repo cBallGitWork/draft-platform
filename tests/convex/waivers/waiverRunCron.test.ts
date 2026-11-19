@@ -45,7 +45,7 @@ describe("the cron", () => {
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
   });
 
-  test("a run time the commissioner adds once it has gone never runs; one still ahead does (#1468, S08.10)", async () => {
+  test("S03.11 S08.10 a run time the commissioner adds mid-gameweek never runs before the next deadline, gone or still ahead", async () => {
     vi.setSystemTime(runTime + 2 * MINUTE_MS);
     await runDue();
     expect(await ranAt()).toBe(runTime);
@@ -62,10 +62,12 @@ describe("the cron", () => {
     expect(await ranAt()).toBe(runTime);
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
 
+    // 21:00 was still ahead, but the change waits for the next gameweek (waiverTimes.test.ts has
+    // it running from that deadline).
     vi.setSystemTime(runTime + 3 * HOUR_MS + 2 * MINUTE_MS);
     await runDue();
-    expect(await ranAt()).toBe(runTime + 3 * HOUR_MS);
-    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
+    expect(await ranAt()).toBe(runTime);
+    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
   });
 
   test("each league is checked in its own transaction, so one league's fault stops no other's run (#1762)", async () => {

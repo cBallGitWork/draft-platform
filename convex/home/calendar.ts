@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { query } from "../_generated/server";
 import { draftOf } from "../draft/draftRow";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
@@ -10,7 +11,7 @@ import { firstRunFrom, ukMoment, wasRunTime } from "../waivers/waiverTimes";
 
 // Home's Calendar tab (spec/12, S12.24): a month's league events, for FM's month grid. Each gameweek
 // the league plays, when its matches start and its deadline; the draft; and the waiver runs, each
-// under the rules saved by then (waiverTimes.ts's `wasRunTime`), the latest for runs still to come.
+// under the rules in force then (waiverTimes.ts's `wasRunTime`), a waiting change's from its deadline.
 // Breaks (spec/13) join once a break's window is held (#2663, #2665). A month is the UK's, as the
 // runs' times are. Takes no clock, so the same month is read once and cached.
 
@@ -37,11 +38,12 @@ export const ofMonth = query({
     const { league } = await memberOf(ctx, leagueId);
     const [from, to] = [ukMonthStart(year, month), ukMonthStart(year, month + 1)];
     const matches = await scheduledMatches(ctx);
-    const gameweeks = await playedGameweekTimes(ctx, league, matches, await leagueDeadlinesIn(ctx, leagueId, matches));
+    const deadlines = await leagueDeadlinesIn(ctx, leagueId, matches);
+    const gameweeks = await playedGameweekTimes(ctx, league, matches, deadlines);
     const events: CalendarEvent[] = [
       ...gameweeks.flatMap(gameweekEvents),
       ...draftEvent(await draftOf(ctx, leagueId)),
-      ...runsBetween(await historyOf(ctx, leagueId), from, to).map((at) => ({ kind: "waiverRun" as const, at })),
+      ...runsBetween(await historyOf(ctx, leagueId), leagueId, deadlines, from, to).map((at) => ({ kind: "waiverRun" as const, at })),
     ];
     return events.filter(({ at }) => at >= from && at < to).sort((one, other) => one.at - other.at);
   },
@@ -60,11 +62,11 @@ function draftEvent(draft: Doc<"drafts"> | null): CalendarEvent[] {
 }
 
 /** The league's waiver runs from `from` up to `to`: each time one of its saved rules had a run, kept
- *  where it was a run time under the rules saved by then. */
-function runsBetween(history: readonly RulesRow[], from: number, to: number): number[] {
+ *  where it was a run time under the rules in force then. */
+function runsBetween(history: readonly RulesRow[], leagueId: Id<"leagues">, deadlines: LeagueDeadlines, from: number, to: number): number[] {
   const times = new Set<number>();
   for (const { rules } of history) {
     for (let at = firstRunFrom(rules.waivers.runs, from); at !== null && at < to; at = firstRunFrom(rules.waivers.runs, at + 1)) times.add(at);
   }
-  return [...times].filter((at) => wasRunTime(history, at));
+  return [...times].filter((at) => wasRunTime(history, leagueId, deadlines, at));
 }

@@ -3,7 +3,8 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { lineupInGameweek } from "../lineup/lineups";
 import { byPitchOrder, heldCell } from "../lineup/pitch";
-import { waiverRulesShape, type LeagueRules } from "../rules/leagueRulesShape";
+import { waiverRulesShape } from "../rules/leagueRulesShape";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { scoreOf, scoreOnly } from "../football/matchScores";
 import { clubRecord, scoreRead } from "../schema";
 import { byKickoff, gameweekFixtures } from "../shared/fixtures";
@@ -73,7 +74,6 @@ async function heldSquad(ctx: QueryCtx, teamId: Id<"teams">): Promise<HeldPlayer
 export async function yourGameweekOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  rules: LeagueRules,
   team: Doc<"teams">,
   current: ThisGameweek | undefined,
 ): Promise<YourGameweek> {
@@ -81,7 +81,8 @@ export async function yourGameweekOf(
   return {
     squadNews: squad.flatMap(flagged),
     lineup: current === undefined ? null : await lineupOf(ctx, leagueId, team._id, current.gameweek, squad),
-    waiverRuns: rules.waivers.runs,
+    // The run times in force, as the run reads them: a change saved mid-gameweek shows from its deadline (S03.11).
+    waiverRuns: (await rulesInForceNow(ctx, leagueId)).waivers.runs,
     claims: (await claimsOf(ctx, leagueId, team._id)).length,
     premierLeague: current === undefined ? [] : await premierLeagueOf(ctx, current, squad),
   };

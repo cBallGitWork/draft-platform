@@ -41,7 +41,7 @@ export function firstRunTaking(runs: LeagueRules["waivers"]["runs"], deadlines: 
   return at === null ? null : { at, skippedIf: mayFallInLock(deadlines, underWay, now, at) };
 }
 
-/** What `clockOf` sends for any minute of its hour: the league's runs under its latest rules, its
+/** What `clockOf` sends for any minute of its hour: the league's runs under the rules in force, its
  *  deadlines (null where none is known), and which of the gameweeks that can be the latest begun in
  *  that hour (`lockCandidates`) have a match not yet over (waiverLock.ts's `inWaiverLock`). */
 export const heldWaiverClock = v.object({
