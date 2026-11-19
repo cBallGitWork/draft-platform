@@ -33,6 +33,6 @@ describe("a run in the manager's own zone", () => {
 
   it("the runs panel names no zone", async () => {
     openApp(MY_TEAM_TRANSACTIONS_PATH, manager, { myTeam: { waivers: { ...NO_WAIVERS, runs: [{ at: WED, skippedIf: null }], windowShuts: { gameweek: 12, at: WED + DAY_MS } } } });
-    expect((await screen.findByRole("region", { name: RUNS_TITLE })).textContent).not.toContain("UK time");
+    expect((await screen.findByRole("region", { name: RUNS_TITLE })).textContent).not.toContain("UK time"); // one-home-ok: any zone's name, not Home's Calendar plate
   });
 });

@@ -11,8 +11,8 @@ import type { CalendarEvent } from "../../../src/home/seam";
 import type { HomeData } from "../../support/src/home.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
-const TODAY = Date.parse("2026-11-18T12:00:00Z");
-beforeEach(() => vi.useFakeTimers({ now: TODAY, toFake: ["Date"] }));
+const NOV_18_NOON = Date.parse("2026-11-18T12:00:00Z");
+beforeEach(() => vi.useFakeTimers({ now: NOV_18_NOON, toFake: ["Date"] }));
 afterEach(() => vi.useRealTimers());
 
 const events: CalendarEvent[] = [
