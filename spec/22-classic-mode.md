@@ -3,8 +3,8 @@
 Feature 22 of [SPEC.md](../SPEC.md). Only Craig's answers: the talk of 9 Nov 2026, his answers of
 15 Nov 2026 (PR #2260) and `/grill classic mode` (16 Nov 2026).
 
-A league with player and team tactics off, "essentially classic" (Craig, 9 Nov 2026). Not built
-until Craig says to: "we dont build, we keep this work as a note for when we build" (9 Nov 2026).
+A league with player and team tactics off, "essentially classic" (Craig, 9 Nov 2026). Built
+from 18 Nov 2026: "Yes, do both" (Craig, on the spec PR and the build issues).
 
 ## The switch
 
@@ -69,8 +69,9 @@ until Craig says to: "we dont build, we keep this work as a note for when we bui
   2026). `S22.18`
 - A player scores by his line's row, whatever slot he fills. `S22.19`
 
-## Later
+## Sportmonks' stats
 
-- The rates checked again against Sportmonks' stats once the paid API is back, including whether
-  it sends recoveries and blocked shots in every league's competition. The 9 Nov numbers came from
-  five Premier League seasons (21-22 to 25-26) of FotMob and Sofascore counts. `S22.20`
+- The rates stand on Sportmonks' stats: "we got the api back and it seemed fine" (Craig, 18 Nov
+  2026). It sends the stats the midfield and defender stats are made of (tackles, interceptions,
+  blocked shots, recoveries, clearances). The 9 Nov numbers came from five Premier League seasons
+  (21-22 to 25-26) of FotMob and Sofascore counts. `S22.20`

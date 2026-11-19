@@ -62,7 +62,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club, season points or any catalogue or own stat (#910), and two players compared side by side, built (#373); the Players tab to its approved picture: free agents first, the selected player's panel with his area's stats per 90 and percentile bars, Compare with yours, and a Period picker for the last 4 or 6 gameweeks (#1028), built; season points, each player's card total in the league at his main position with the league's overrides (#525), and last season's under today's scoring before the new season's first match (#956), built; Role fit stars, hidden outside the squad until a player is scouted (#11, #375); the shortlist (#374), Mail telling a manager when one is dropped or clears waivers, and feeding the draft queue (#1137), built; who is on waivers (#1200); scouts, three a team, sent from the player card, each report written 24 hours on, and Scouting's Scouts panel opening the reports (#375), built; the stat race's team season totals (#808), and its Stat race tab ranking every team's season totals by a category (#800), built | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; Craig's setup run in docs/setup.md done (#511, #512, #514), the site live, the after-release check passing on it; the staging site on the development deployment and the once-a-day move up to live built (S20.19 to S20.21, #2472), dark until Convex's deployments are back on | a merge to `main` is on staging with its server code, live on `fantasydraftmanager.net` moves up to it once a day, and the check after each live release signs in there |
 | 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
-| 22 | [Classic mode](spec/22-classic-mode.md) | not built; waits for Craig's go to build (9 Nov 2026) | a classic league refuses an eleven outside a line's limits, and a player scores by his line's row |
+| 22 | [Classic mode](spec/22-classic-mode.md) | not built; Craig's go 18 Nov 2026, building in #2623, #2624, #2625, #2626 | a classic league refuses an eleven outside a line's limits, and a player scores by his line's row |
 | 23 | [The Guide](spec/23-guide.md) | not built | a hover help's text and its Guide entry are the same held text, and the hover opens that entry |
 
 ## Second release
@@ -120,7 +120,6 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   with the player-by-player detail marked unavailable, in place of "can't be scored" (Craig,
   29 Oct 2026; spec/07).
 - **Player news**: a note on every player, from his matches and from real news (spec/21).
-- **Classic mode's rates checked on Sportmonks' stats**, once the paid API is back (spec/22).
 - **Preview sites** for unmerged changes (spec/20).
 - **A team's total explained** on the matchup: who started, and who came off the bench for whom
   (spec/10).
@@ -244,7 +243,7 @@ follows it; tables and fields already saved keep their names.
 | formation | how a lineup stands on the pitch's grid: a preset, a classic formation, or custom | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
 | classic formation | a famous side's formation, with its roles and team instructions, such as Keegan's Newcastle | classic alone ("classic is the game mode, classic isint a formation", Craig, 11 Nov 2026) |
-| classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are to grill (`docs/to-grill.md`) | classic alone |
+| classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are spec/22 | classic alone |
 | custom | a classic formation the manager has changed | |
 | team instruction | how the whole team plays, one attacking and one defensive, adjusting everyone's scoring | team tactic |
 | plan | a saved formation, its roles and team instructions, never players | saved tactics, saved preset |
