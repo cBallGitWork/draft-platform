@@ -16,7 +16,7 @@ The Commissioner item's Settings tab is League settings, drawn in `settings/`, i
 
 18 Nov 2026: Craig, "Approve all four" (this tab, Squads, Home's Run the league panel and Table's
 Scoring tab). With it: "Pick: new or empty team", so approving a join request gives the person a
-new team or one with no manager (`spec/13` S13.5).
+new team or one with no manager (`spec/13` S13.11).
 
 ## The Football Manager idea
 

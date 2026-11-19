@@ -38,7 +38,7 @@ no seeding rule. Its sample teams and scores are the picture's, never the build'
 
 18 Nov 2026: Craig, "Approve all four", on the Scoring tab (with Home's Run the league panel and
 Commissioner's Invites and Squads tabs). It reads only: the admin changes the set in the rules
-editor (`spec/14`).
+editor (`spec/14`, The rules editor: only the admin changes the set).
 
 ## The Football Manager idea
 
