@@ -66,7 +66,7 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`premier-league`](premier-league/README.md): Football's fixtures and table, live, with a tab per
   competition (10 Nov 2026).
 - [`premier-league-match`](premier-league-match/README.md): The match page, live: Overview as a list
-  or a pitch, Player stats with its shot map, and Highlights (10 Nov 2026).
+  or a pitch, Player stats with shot counts in place of its shot map, and Highlights (10 Nov 2026).
 - [`club`](club/README.md): A club's page, its Squad and Fixtures tabs (16 Nov 2026).
 - [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
   every team, and League settings' Waivers tab (8 Nov 2026).
