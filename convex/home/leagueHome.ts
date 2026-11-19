@@ -175,7 +175,7 @@ export const ofLeague = query({
       squadMoves: await latestSquadMoves(ctx, leagueId),
       pinnedLetter: league.pinnedLetter ?? null,
       recap: await homeRecap(ctx, leagueId, results),
-      yours: team ? await yourGameweekOf(ctx, leagueId, rules, team, current && { gameweek: current.gameweek, opponents: opponentsIn(current, team._id) }) : null,
+      yours: team ? await yourGameweekOf(ctx, leagueId, team, current && { gameweek: current.gameweek, opponents: opponentsIn(current, team._id) }) : null,
     };
   },
 });

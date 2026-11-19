@@ -1,7 +1,8 @@
+import type { Id } from "../_generated/dataModel";
 import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { NEVER_DUE } from "../leagues/leagueChecks";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import type { RulesRow } from "../rules/rulesHistory";
+import { rulesInForceAt, type RulesRow } from "../rules/rulesHistory";
 import { londonOffset } from "../shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS, WEEK_MS } from "../shared/time";
 
@@ -39,12 +40,13 @@ export function latestRunAt(runs: readonly WaiverRun[], now: number): number | n
   return latest;
 }
 
-/** Whether `at` was one of the league's run times when it came, under the rules saved by then: a
- *  run time the commissioner adds or moves to once it has gone never runs, as runs only happen at
- *  times managers were shown (Craig, 11 Nov 2026, #1468; spec/08). */
-export function wasRunTime(history: readonly RulesRow[], at: number): boolean {
-  const runs = history.findLast((row) => row._creationTime <= at)?.rules.waivers.runs;
-  return runs !== undefined && latestRunAt(runs, at) === at;
+/** Whether `at` was one of the league's run times when it came, under the rules in force then
+ *  (`rulesInForceAt`): a run time the commissioner adds or moves to once it has gone never runs, as
+ *  runs only happen at times managers were shown (Craig, 11 Nov 2026, #1468; spec/08), and one
+ *  saved mid-gameweek runs only from the next deadline (S03.11; Craig, 19 Nov 2026, on #2706). */
+export function wasRunTime(history: readonly RulesRow[], leagueId: Id<"leagues">, deadlines: LeagueDeadlines, at: number): boolean {
+  const first = history[0];
+  return first !== undefined && first._creationTime <= at && latestRunAt(rulesInForceAt(history, leagueId, deadlines, at).waivers.runs, at) === at;
 }
 
 /** The first of the league's waiver runs at or after `from`, or null with no runs: for a player a
@@ -57,7 +59,7 @@ export function firstRunFrom(runs: readonly WaiverRun[], from: number): number |
 }
 
 /** When a league with nothing waiting is next worth the waiver cron's look at `now` (#1998): its
- *  next run time under its latest rules, or its next deadline, when its window shuts and its free
+ *  next run time under the rules in force, or its next deadline, when its window shuts and its free
  *  agents go back on waivers, whichever comes first; `NEVER_DUE` with neither. A rules save or a
  *  moved kickoff wakes the league sooner (../leagues/leagueChecks.ts). */
 export function nextWaiverCheck(runs: readonly WaiverRun[], deadlines: LeagueDeadlines, now: number): number {

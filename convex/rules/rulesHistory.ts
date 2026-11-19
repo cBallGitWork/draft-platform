@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { latestOf } from "../gameweeks/deadline";
+import { latestBegun, latestOf, type LeagueDeadlines } from "../gameweeks/deadline";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { heldChanges, heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
 
@@ -75,8 +75,8 @@ export function newestRow(history: readonly RulesRow[], leagueId: Id<"leagues">)
 }
 
 /** The league's latest rules, a waiting change's among them: what the draft and position warnings
- *  read, and the waiver runs. Squads, trades, free agents and plans read `rulesInForceNow` or
- *  `rulesSinceBegun` instead. */
+ *  read. Squads, trades, free agents, plans and the waiver runs read `rulesInForceNow`,
+ *  `rulesSinceBegun` or `rulesInForceAt` instead. */
 export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules> {
   return newestRow(await historyOf(ctx, leagueId), leagueId).rules;
 }
@@ -101,6 +101,16 @@ function rulesSince(history: readonly RulesRow[], leagueId: Id<"leagues">, begun
  *  from the next gameweek, like any rule (spec/03; #25, #1473). */
 export async function rulesSinceBegun(ctx: QueryCtx, leagueId: Id<"leagues">, begun: number | null): Promise<LeagueRules> {
   return rulesSince(await historyOf(ctx, leagueId), leagueId, begun);
+}
+
+/** The rules in force at the moment `at`, `deadlines` saying which gameweek had begun by then: of
+ *  those saved by then, so a waiver run time saved once its moment had gone never ran (#1468), a
+ *  change saved mid-gameweek only from the next deadline (S03.11). Throws for a moment before the
+ *  league had rules. Pure. */
+export function rulesInForceAt(history: readonly RulesRow[], leagueId: Id<"leagues">, deadlines: LeagueDeadlines, at: number): LeagueRules {
+  const saved = history.filter((row) => row._creationTime <= at);
+  if (saved.length === 0) throw new Error(`League ${leagueId} has no rules saved by ${at}`);
+  return rulesSince(saved, leagueId, latestBegun(deadlines, at));
 }
 
 /** The league's `rulesSinceBegun` for the latest gameweek its recorded deadlines say has begun

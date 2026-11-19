@@ -7,7 +7,8 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { changesFromAt } from "../../../convex/gameweeks/nextGameweek";
 import { actingAs, adminCreatesLeague, ANN, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { leagueSettingsOf, teamSquadOf, tradesOf } from "../../support/convex/screenReads.harness";
+import { leagueHomeOf, leagueSettingsOf, teamSquadOf, tradesOf } from "../../support/convex/screenReads.harness";
+import { clockHourOf } from "../../../convex/home/homeAt";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { squadMaximumOf, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
@@ -137,9 +138,11 @@ describe("a change saved mid-gameweek acts only from the next deadline (S03.11)"
     expect(await annsWarnings()).toContainEqual(overMaximum);
   });
 
+  /** holdGameweeks' away club, which My team's and League home's next fixtures name. */
+  const holdAwayClub = () => w.t.run((ctx) => ctx.db.insert("clubs", { code: 2, name: "Chelsea", shortName: "CHE" }));
+
   test("S03.11 My team's squad maximum", async () => {
-    // holdGameweeks' away club, which My team's next fixtures name.
-    await w.t.run((ctx) => ctx.db.insert("clubs", { code: 2, name: "Chelsea", shortName: "CHE" }));
+    await holdAwayClub();
     await saveNow();
     expect((await teamSquadOf(await asAnn(), w.leagueId)).squadMaximum).toBe(OLD_MAXIMUM);
 
@@ -175,6 +178,20 @@ describe("a change saved mid-gameweek acts only from the next deadline (S03.11)"
 
     await passNextDeadline(w.t);
     expect(await annsOfferWarnings()).not.toEqual([]);
+  });
+
+  test("S03.11 the waiver run times the waiver clock and League home show, as the run reads them", async () => {
+    const friday = [{ day: "friday" as const, hour: 10, minute: 0 }];
+    const clockRuns = async () => (await (await asAnn()).query(api.waivers.waiverClock.clockOf, { leagueId: w.leagueId, hour: clockHourOf(Date.now()) })).runs;
+    const homeRuns = async () => (await leagueHomeOf(await asAnn(), w.leagueId, Date.now())).yours?.waiverRuns;
+    await holdAwayClub();
+    await saveNow({ ...HELD_FIRST_RULES, waivers: { ...HELD_FIRST_RULES.waivers, runs: friday } });
+    expect(await clockRuns()).toEqual(HELD_FIRST_RULES.waivers.runs);
+    expect(await homeRuns()).toEqual(HELD_FIRST_RULES.waivers.runs);
+
+    await passNextDeadline(w.t);
+    expect(await clockRuns()).toEqual(friday);
+    expect(await homeRuns()).toEqual(friday);
   });
 
   test("S03.11 the instructions a saved plan may hold", async () => {
