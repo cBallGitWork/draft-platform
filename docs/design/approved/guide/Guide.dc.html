@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&amp;family=Archivo:wdth,wght@125,800&amp;display=swap">
+<style>
+body{margin:0;background:#111214}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button,input{font-family:inherit;font-size:13px;border-radius:0}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.disp{font-family:'Archivo','Archivo Narrow',sans-serif;font-weight:800;font-stretch:125%}
+ol,ul{list-style:none;margin:0;padding:0}
+.row a{display:flex;align-items:center;gap:8px;height:28px;padding:0 12px;box-shadow:inset 0 -1px 0 #111214}
+.row .chev{width:10px;color:#caced4;flex:none}
+.sec a{background:rgba(255,255,255,0.05);color:#caced4;font-weight:600}
+.ent a{padding-left:30px}
+.grp a{padding-left:30px;color:#caced4}
+.cur a{padding-left:30px;box-shadow:inset 3px 0 0 #6bfdfa,inset 0 -1px 0 #111214;font-weight:600}
+.hit a{display:block;height:auto;padding:4px 12px 4px 30px}
+.hit .where{display:block;color:#a1a5ab;font-size:12px;line-height:16px}
+.body p{margin:0 0 12px;max-width:720px}
+.role{display:grid;grid-template-columns:180px 1fr;column-gap:12px;padding:4px 0;box-shadow:inset 0 -1px 0 #111214;max-width:720px}
+</style>
+</helmet>
+<div style="width: 1440px; box-sizing: border-box; background-color: #111214; background-image: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(70, 96, 84, 0.22), rgba(70, 96, 84, 0) 70%); font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums; padding-bottom: 16px">
+<header style="background: #173a94; box-shadow: inset 0 2px 0 #4a6cc8, inset 0 -2px 0 #001a5e; display: flex; align-items: stretch; min-height: 44px; padding: 0 16px"><div class="disp" style="display: flex; align-items: center; font-size: 15px; padding-right: 16px">Draft Manager</div><button style="display: flex; align-items: center; gap: 8px; background: none; border: 0; border-left: 1px solid #001a5e; border-right: 1px solid #001a5e; color: #ffffff; font-size: 13px; padding: 0 12px"><span style="color: #caced4">League:</span><span style="font-weight: 600">Tim Hortons Pro League</span><span aria-hidden="true">▾</span></button><nav aria-label="Main" style="display: flex; align-items: stretch"><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Home</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">My team</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Matchup</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Table</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Scouting</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Trades</a><a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Premier League</a><a href="#" aria-label="Mail, 4 unread" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Mail <span style="margin-left: 6px; background: #ff9b3d; color: #111214; font-weight: 700; padding: 0 5px; line-height: 18px">4</span></a></nav><div style="margin-left: auto; display: flex; align-items: stretch; gap: 12px"><button style="align-self: center; height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-size: 15px; font-weight: 600">Continue: set your lineup</button><a href="#" aria-current="page" style="display: flex; align-items: center; padding: 0 8px; font-weight: 600; box-shadow: inset 0 -3px 0 #6bfdfa">Guide</a><a href="#" style="display: flex; align-items: center">Feedback</a><button style="background: none; border: 0; color: #ffffff; font-size: 13px">Sign out</button></div></header>
+<main style="padding: 8px 16px 0">
+<div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; min-height: 52px; padding: 0 16px"><h1 class="disp" style="margin: 0; font-size: 26px; line-height: 32px">Guide</h1></div>
+<div style="display: grid; grid-template-columns: 340px 1060px; column-gap: 8px; align-items: stretch; margin-top: 8px">
+<nav aria-label="Guide sections" style="background: rgba(26, 27, 31, 0.84); box-shadow: inset 0 1px 0 #34363c">
+<div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; height: 36px; display: flex; align-items: center; padding: 0 12px"><h2 style="margin: 0; font-size: 15px; font-weight: 700">Sections</h2></div>
+<div style="padding: 8px 12px"><label for="guide-search" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search the Guide</label><input id="guide-search" type="search" value="{{ query }}" placeholder="Search the Guide" style="width: 100%; height: 36px; box-sizing: border-box; padding: 0 10px; background: #111214; color: #ffffff; font-size: 15px; border: 1px solid #caced4; box-shadow: inset 0 2px 0 #0b0c0e"></div>
+<sc-if value="{{ searching }}" hint-placeholder-val="{{ false }}"><div style="padding: 0 12px 4px; color: #caced4">{{ hitCount }}</div></sc-if>
+<ul>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="12"><li class="row {{ r.kind }}"><a href="#" aria-current="{{ r.current }}"><span class="chev" aria-hidden="true">{{ r.chev }}</span><span><span class="where">{{ r.where }}</span>{{ r.text }}</span></a></li></sc-for>
+</ul>
+</nav>
+<article aria-labelledby="entry-title" style="background: rgba(26, 27, 31, 0.84); box-shadow: inset 0 1px 0 #34363c">
+<div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 12px"><span style="color: #caced4; font-size: 15px">{{ section }}</span><span aria-hidden="true" style="color: #caced4">›</span><h2 id="entry-title" style="margin: 0; font-size: 15px; font-weight: 700">{{ title }}</h2></div>
+<div class="body" style="padding: 12px 16px 16px">
+<sc-for list="{{ paras }}" as="p" hint-placeholder-count="3"><p>{{ p }}</p></sc-for>
+<sc-if value="{{ hasRoles }}" hint-placeholder-val="{{ true }}">
+<h3 style="margin: 16px 0 4px; font-size: 13px; font-weight: 700">At centre-back</h3>
+<sc-for list="{{ roles }}" as="x" hint-placeholder-count="3"><div class="role"><span style="font-weight: 600">{{ x.name }}</span><span>{{ x.text }}</span></div></sc-for>
+</sc-if>
+<sc-if value="{{ hasLeague }}" hint-placeholder-val="{{ true }}"><p style="margin-top: 16px; color: #caced4">{{ leaguePre }} <a href="#" style="color: #ffffff; text-decoration: underline; text-decoration-color: #ffffff">{{ leagueLink }}</a>.</p></sc-if>
+</div>
+</article>
+</div></main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sec = (text, open) => ({ kind: "sec", text, chev: open ? "▾" : "▸", where: "", current: "false" });
+    const ent = (text) => ({ kind: "ent", text, chev: "", where: "", current: "false" });
+    const grp = (text) => ({ kind: "grp", text, chev: "▸", where: "", current: "false" });
+    return {
+      query: "",
+      searching: false,
+      hitCount: "",
+      rows: [
+        sec("The basics", false),
+        sec("Tactics", true),
+        { kind: "cur", text: "Roles", chev: "", where: "", current: "page" },
+        ent("Runs"), ent("Stars"), ent("Team instructions"), ent("Quick Pick"),
+        grp("Formations (24)"), grp("Classic sides (7)"),
+        sec("Matchday", false),
+        sec("Between gameweeks", false)
+      ],
+      section: "Tactics",
+      title: "Roles",
+      paras: [
+        "A role is what you tell a starter to do in his slot. It moves his points on top of his base points: +1 at each of up to three bars of the role's bonus stats, and −1 at each of up to three bars of its one bad action, so 3 points either way at most, a match. A role never costs points for doing something good.",
+        "Each slot offers only the roles that fit it, and a player dropped into a slot starts on the role he has the most stars for. Change a starter's role on his role card: tap his role on the pitch or in the squad list.",
+        "Every role has a run, where he goes on the pitch. A run never changes points."
+      ],
+      hasRoles: true,
+      roles: [
+        { name: "Stopper", text: "Steps out of the line into midfield to meet his man before he can turn, and win the ball. Earns for tackles won, blocks and aerials won; loses for being dribbled past." },
+        { name: "Ball-playing centre-back", text: "Brings the ball out from the back and passes it forward. Earns for accurate long balls and passes; loses for failed long balls." },
+        { name: "Attacking centre-back", text: "Carries it out of defence through midfield and keeps going into their box, as Keegan's Newcastle played. Earns for shots and goals; loses for being dispossessed." }
+      ],
+      hasLeague: true,
+      leaguePre: "Whether your league plays roles is in its",
+      leagueLink: "Rules"
+    };
+  }
+}
+</script>
+</body>
+</html>

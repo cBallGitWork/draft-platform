@@ -1,10 +1,10 @@
 # League home
 
 Route: `/home`, the Overview tab, checked on `/home?preview=manager`, and on
-`/home?preview=commissioner` for Run the league.
+`/home?preview=commissioner` for Run the league. The Calendar tab has no route yet: it is built in #2683.
 
 **Contents:** [The pictures](#the-pictures) · [Approved](#approved) · [The News tab](#the-news-tab) ·
-[The Football Manager idea](#the-football-manager-idea) · [Interaction notes](#interaction-notes) ·
+[The Calendar tab](#the-calendar-tab) · [The Football Manager idea](#the-football-manager-idea) · [Interaction notes](#interaction-notes) ·
 [Placeholders](#placeholders) · [Canvas](#canvas)
 
 ## The pictures
@@ -53,6 +53,23 @@ no lineup yet (a number only), trades waiting the veto and a team with no manage
 opening where it's done, and the draft order line only before the draft (S12.17). Its rows are
 the only way in: the panel has no link of its own, as the top menu has Commissioner.
 
+## The Calendar tab
+
+`1440-calendar.png`, source `HomeCalendar.dc.html` (#2681): November, Monday first, six weeks, in
+UK time. Each day holds what `spec/12` S12.24 lists: a gameweek's deadline (white, bold), the
+waiver runs (muted), a break (`spec/13` S13.5-S13.9) as the alert fill with "Break" on its first
+day and each Monday, "Break starts" at its edge and "Reopens, waivers" on the reopening; the draft
+shows on its day (none in November). Today has the current-of-a-list cyan edge and
+`aria-current="date"`; days gone and other months' days are dimmed.
+
+18 Nov 2026, Craig, "Yes, approve it", with: the break keeps the orange ("Keep orange"),
+gameweeks show only as deadlines ("Deadlines only"), and a day opens nothing for now ("Nothing
+for now"). The review panel's changes before it: waiver runs quieter, past days dimmed, the break
+labelled once per week with no sentence, the reopening and its waiver run one line, "UK time" in
+the month's plate, the "Today" word white.
+
+FM's idea borrowed: its Calendar's month of days, each day's events in its cell.
+
 ## The News tab
 
 8 Nov 2026: Craig, "approve", after a grill the same day. He asked for a league-wide feed like
@@ -81,7 +98,8 @@ colours.
 
 ## Interaction notes
 
-- Overview | News | Calendar: Home's own tabs. Overview and News are drawn; Calendar is not.
+- Overview | News | Calendar: Home's own tabs, all three drawn.
+- Calendar's ◄ and ►: the month before and after; Today: back to this month. A day opens nothing.
 - The patch banner's Read the patch notes: opens Patch notes. The cross hides the banner.
 - The deadline strip: reads only; none of its boxes opens anything (`spec/12` S12.10).
 - Mail's Needs you | All: opens on Needs you; switches the panel between letters waiting on him
@@ -106,7 +124,7 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| The Calendar tab | settled: a month grid, drawn through `/design` before it is built (`spec/12` S12.24) | `spec/12` S12.24 |
+| The Calendar tab's events | drawn (`1440-calendar.png`); the month's events read and the tab built by #2682 and #2683, breaks once #2663 and #2665 land | #2682, #2683 |
 | The deadline strip in the other states (after, locked, break, pre-season) | settled: the same four boxes all season, each saying what is true now (`spec/12` S12.22); the gameweek before its deadline is wired (S12.9, S12.10; #1976) | `spec/12` S12.22 |
 | Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`), and 16 Nov a doubtful or out starter (S16.7); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: live scores in matchday mode | settled: live and full-time scores (`spec/12` S12.23); kickoff times wired (S12.12; #1976) | `spec/12` S12.23 |
