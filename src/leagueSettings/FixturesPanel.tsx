@@ -37,9 +37,9 @@ import {
 const GAMES_HINT_ID = "settings-games-hint";
 const DEADLINE_HINT_ID = "settings-deadline-hint";
 const TIE_BREAKS_LABEL_ID = "settings-tie-breaks-label";
-/** Up and Down: the secondary action, desk-sized, greyed where a tie-break can't move that way (the
- *  approved picture). */
-const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
+/** Up and Down: the secondary action, desk-sized, greyed where a tie-break or a team can't move that
+ *  way (the approved pictures). */
+export const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
 const FORMATS = ["headToHead", "totalPoints"] as const satisfies readonly LeagueSettings["format"][];
 
 type Edit = { draft: LeagueSettings; edit: (settings: LeagueSettings) => void };

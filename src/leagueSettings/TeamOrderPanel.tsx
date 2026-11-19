@@ -3,6 +3,7 @@ import { useChange } from "../shared/useChange";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PANEL_BODY, Panel, Problem, Status } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
+import { MOVE_ACTION } from "./FixturesPanel";
 import type { LeagueSettingsSeam, TeamInOrder } from "./seam";
 import {
   draftStartedWords,
@@ -68,18 +69,26 @@ export function TeamOrderPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
   );
 }
 
-/** A move, muted where there is nowhere to move (the first team's Up), as the picture draws it, so
+/** A move, greyed where there is nowhere to move (the first team's Up), as the picture draws it, so
  *  the buttons stay in line; disabled while a change saves. */
 function MoveButton({ label, shown, busy, onClick, children }: { label: string; shown: boolean; busy: boolean; onClick: () => void; children: string }) {
   return (
-    <button type="button" aria-label={label} disabled={busy || !shown} onClick={onClick} className="secondary-action">
+    <button type="button" aria-label={label} disabled={busy || !shown} onClick={onClick} className={MOVE_ACTION}>
       {children}
     </button>
   );
 }
 
-const COLUMNS = Object.keys(teamOrderColumns) as (keyof typeof teamOrderColumns)[];
-const CELL = cellClassOf(true);
+type Column = keyof typeof teamOrderColumns;
+const COLUMNS = Object.keys(teamOrderColumns) as Column[];
+/** Each column's cells, as the picture spaces them: the names on one line in a wide column, the
+ *  tick a column of its own, and the moves taking what is left. */
+const CELLS: Record<Column, string> = {
+  place: `${cellClassOf(true)} w-10 text-figure tabular-nums`,
+  team: `${cellClassOf(true)} w-56 whitespace-nowrap font-bold`,
+  iPick: `${cellClassOf(true)} w-28 whitespace-nowrap`,
+  moves: cellClassOf(true),
+};
 
 /** The teams first pick first, each with its "I'll pick" tick where it has no manager, and its
  *  moves; none where `move` is null, and the ticks fixed where `mark` is: a fixed order. */
@@ -96,22 +105,22 @@ function TeamTable({
 }) {
   return (
     <table className="w-full border-collapse">
-      <ColumnHeads columns={teamOrderColumns} shown={COLUMNS} unseen={["place", "moves"]} classOf={() => `${CELL} h-row`} />
+      <ColumnHeads columns={teamOrderColumns} shown={COLUMNS} unseen={["place", "moves"]} classOf={(column) => `${CELLS[column]} h-row`} />
       <tbody>
         {teams.map(({ teamId, name, commissionerPicks }, place) => (
           <tr key={teamId} className="h-tap border-b border-panel-rule">
-            <td className={`${CELL} w-6 text-figure tabular-nums`}>{place + 1}</td>
-            <th scope="row" className={`${CELL} font-bold`}>
+            <td className={CELLS.place}>{place + 1}</td>
+            <th scope="row" className={CELLS.team}>
               {name}
             </th>
-            <td className={CELL}>
+            <td className={CELLS.iPick}>
               {commissionerPicks !== null && (
                 <TickBox checked={commissionerPicks} disabled={busy || mark === null} labelHidden inTableRow onChange={(marked) => mark?.(teamId, marked)}>
                   {iPickLabel(name)}
                 </TickBox>
               )}
             </td>
-            <td className={`${CELL} w-full`}>
+            <td className={CELLS.moves}>
               {move !== null && (
                 <span className="flex gap-2">
                   <MoveButton label={moveUpLabel(name)} shown={place > 0} busy={busy} onClick={() => move(place, place - 1)}>
