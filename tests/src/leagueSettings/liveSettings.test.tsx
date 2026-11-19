@@ -24,6 +24,7 @@ const convex = vi.hoisted(() => ({
   teamOrder: vi.fn(),
   setTeamOrder: vi.fn(),
   drawTeamOrder: vi.fn(),
+  markForCommissioner: vi.fn(),
   scoringStart: vi.fn(),
   gameweeks: vi.fn(),
   setScoringStart: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock("convex/react", async () =>
       "rules/leagueSettings:changeSettings": convex.changeSettings,
       "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
       "draft/draftOrder:drawTeamOrder": convex.drawTeamOrder,
+      "draft/draftCommissioner:markForCommissioner": convex.markForCommissioner,
       "gameweeks/scoringStart:setScoringStart": convex.setScoringStart,
       "draft/draftStart:setStart": convex.setStart,
     },
@@ -121,6 +123,16 @@ test("drawing the draft order calls draft/draftOrder:drawTeamOrder, and resolves
   const logged = silenceConsoleError();
   expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(teamOrderFailedWords);
   expect(logged).toHaveBeenCalledWith("Drawing the draft order failed:", failure);
+});
+
+test("S04.31 an I'll pick tick calls draft/draftCommissioner:markForCommissioner, and resolves with null or the server's refusal", async () => {
+  const teamId = "team-3" as Id<"teams">;
+  convex.markForCommissioner.mockResolvedValueOnce(null);
+  expect(await seam().markForCommissioner(A_LEAGUE_ID, teamId, true)).toBeNull();
+  expect(convex.markForCommissioner).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, teamId, marked: true });
+
+  convex.markForCommissioner.mockRejectedValueOnce(new ConvexError(draftOrderRefusals.started));
+  expect(await seam().markForCommissioner(A_LEAGUE_ID, teamId, false)).toBe(draftOrderRefusals.started);
 });
 
 test("the scoring start is read from gameweeks/scoringStart:ofLeague", () => {

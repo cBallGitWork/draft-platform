@@ -149,7 +149,20 @@ export const runTimeWords = (hour: number, minute: number) => `${String(hour).pa
 /** The draft order, which the commissioner sets or draws at random (Craig, 4 Nov 2026, on #1087
  *  and #1089). */
 export const teamOrderTitle = "Draft order";
-export const teamOrderHint = "Teams start in the order they joined, and a team that joins later goes to the bottom. A move or a draw saves at once.";
+export const teamOrderHint = "A team that joins later goes to the bottom.";
+/** At the title plate's far end: the order turns each round (S04.18). */
+export const snakeWords = "Snake";
+/** The table's heads; the place and the moves are read out only. */
+export const teamOrderColumns = {
+  place: { short: "Pick", long: "Pick" },
+  team: { short: "Team", long: "Team" },
+  iPick: { short: "I'll pick", long: "You pick for this team" },
+  moves: { short: "Move", long: "Move" },
+};
+/** Each "I'll pick" tick, for screen readers. */
+export const iPickLabel = (team: string) => `I'll pick for ${team}`; // one-home-ok: the draft room's own words are another feature's, which featureImports keeps out
+/** Beside Draw at random once the last move, draw or tick has saved: there is no Save bar. */
+export const orderSavedWords = "Saved";
 export const drawOrderWords = "Draw at random";
 export const draftStartedWords = "The draft has started, so this order is fixed.";
 export const teamOrderLoadingWords = "Loading the draft order…";

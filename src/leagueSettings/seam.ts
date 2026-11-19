@@ -28,6 +28,9 @@ export type LeagueSettingsSeam = {
   /** Draws the draft order at random from the league's teams now and saves it: resolves with null
    *  once saved, or the words saying why not. It never rejects. */
   drawTeamOrder(leagueId: Id<"leagues">): Change;
+  /** Marks a team with no manager "I'll pick for this one", or with `marked` false takes it off
+   *  (spec/04): resolves with null once saved, or the words saying why not. It never rejects. */
+  markForCommissioner(leagueId: Id<"leagues">, teamId: Id<"teams">, marked: boolean): Change;
   /** Live (a hook): the league's scoring start and its ticked gameweeks; undefined while it loads. */
   useScoringStart(leagueId: Id<"leagues">): ScoringStartView | undefined;
   /** Sets the gameweek scoring starts in: resolves with null once saved, or the words saying why
@@ -52,8 +55,9 @@ export type LeagueSettingsSeam = {
   useTradesInReview(leagueId: Id<"leagues">): readonly TradeInReview[] | undefined;
 };
 
-/** A team in the draft order (convex/draft/draftOrder.ts). */
-export type TeamInOrder = { teamId: Id<"teams">; name: string };
+/** A team in the draft order (convex/draft/draftOrder.ts): whether the commissioner picks for it,
+ *  or null for a team with a manager, which he can't mark. */
+export type TeamInOrder = { teamId: Id<"teams">; name: string; commissionerPicks: boolean | null };
 
 /** The draft order, first pick first, and whether the draft has started, which fixes it. */
 export type TeamOrder = { teams: TeamInOrder[]; started: boolean };

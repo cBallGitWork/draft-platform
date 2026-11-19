@@ -17,10 +17,12 @@ import type { TradeInReview } from "../../../convex/trades/reviewScreen";
 /** The rules row the fake server's settings are from. */
 export const REVISION = "rules-1" as Revision;
 
-/** Three teams, in the order they joined: the draft order unless a test says. */
+/** Three teams, in the order they joined: the draft order unless a test says. The last has no
+ *  manager, and the commissioner doesn't pick for it. */
 export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", "Pique Blinders"].map((name, index) => ({
   teamId: `team-${index + 1}` as Id<"teams">,
   name,
+  commissionerPicks: index === 2 ? false : null,
 }));
 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; `loading`
@@ -70,6 +72,7 @@ export function fakeLeagueSettings({
     useTeamOrder: vi.fn<LeagueSettingsSeam["useTeamOrder"]>(() => ({ teams: teamOrder, started: draftStarted })),
     saveTeamOrder: vi.fn<LeagueSettingsSeam["saveTeamOrder"]>(async () => null),
     drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
+    markForCommissioner: vi.fn<LeagueSettingsSeam["markForCommissioner"]>(async () => null),
     useScoringStart: vi.fn<LeagueSettingsSeam["useScoringStart"]>(() => scoringStart),
     setScoringStart: vi.fn<LeagueSettingsSeam["setScoringStart"]>(async () => null),
     useGameweeks: vi.fn<LeagueSettingsSeam["useGameweeks"]>(() => gameweeks),
