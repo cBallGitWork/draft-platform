@@ -29,6 +29,12 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   - There is always a table ("theres always a table"), everyone on 0 at the start. Teams level in it
     go by its own tie-breaks, then by the reverse of the draft order, which is also rotating's
     starting order. `S08.18`
+- Beside the player card's bid, one line says when bids on him settle, at the first run that can
+  take him, and who bids first: "Bids settle Wed 6pm. Bottom of the table bids first." under reverse
+  table order; "Bids settle Wed 6pm. Bid order rotates: the last team to win a bid goes to the back."
+  under rotating. A team that has won one this gameweek under reverse table order also reads "A team
+  that wins a bid goes to the back until the gameweek ends." Once his bid is in: "Bid in. You'll hear
+  after Wed 6pm, in Mail.", with Withdraw beside it (Craig, 18 and 19 Nov 2026, #2648). `S08.32`
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
   commissioner can change it (`spec/03`). `S08.22`
   - Changed run times count only from the next one still ahead, so a new time already gone this

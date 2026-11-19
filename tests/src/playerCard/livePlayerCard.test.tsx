@@ -3,6 +3,7 @@
 // server takes it, refuses it, or can't be reached, and that the shortlist part is the shortlist's.
 
 import { renderHook } from "@testing-library/react";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
@@ -15,7 +16,7 @@ import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 import { GAMEWEEK_12_CLOCK, THURSDAYS_RUN, WEDNESDAY_NOON } from "../../support/src/waiverClock.harness";
 
-const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), clock: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn(), state: vi.fn() }));
+const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), clock: vi.fn(), drop: vi.fn(), putIn: vi.fn(), withdraw: vi.fn(), pickUp: vi.fn(), state: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: {
@@ -30,6 +31,7 @@ vi.mock("convex/react", async () =>
       "table/pointsOverrides:removeOverride": convex.removeOverride,
       "waivers/waivers:drop": convex.drop,
       "waivers/waiverClaims:putIn": convex.putIn,
+      "waivers/waiverClaims:withdraw": convex.withdraw,
       "waivers/freeAgents:pickUp": convex.pickUp,
     },
   }),
@@ -84,13 +86,41 @@ test("the waiver action is read from waivers/waivers:cardActionOn with the leagu
 
 test("a claim on the card says the run that can first take him, judged at the minute from the hour's waiver clock, and waits for the clock to load (S08.14)", () => {
   vi.useFakeTimers({ now: WEDNESDAY_NOON });
-  convex.action.mockReturnValue({ kind: "claim", claimableFrom: 0, squad: [] });
+  convex.action.mockReturnValue({ kind: "claim", claimableFrom: 0, squad: [], order: "reverseStandings", won: null });
   convex.clock.mockReturnValue(undefined);
   expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toBeUndefined();
   convex.clock.mockReturnValue(GAMEWEEK_12_CLOCK);
-  expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "claim", firstRun: THURSDAYS_RUN, squad: [] });
+  expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({
+    kind: "claim",
+    firstRun: THURSDAYS_RUN,
+    squad: [],
+    order: "reverseStandings",
+    wonBid: false,
+  });
   expect(convex.clock).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, hour: WEDNESDAY_NOON });
   vi.useRealTimers();
+});
+
+// At Wednesday noon no gameweek has ended yet, so a win with none ended still holds his team at the
+// back, and one from after gameweek 11 ended is from a gameweek since reset; under rotating a win
+// holds it for good.
+test.each([
+  { order: "reverseStandings", won: { gameweek: null }, wonBid: true },
+  { order: "reverseStandings", won: { gameweek: 11 }, wonBid: false },
+  { order: "rotating", won: { gameweek: 11 }, wonBid: true },
+] as const)("S08.32: under $order, a bid won with $won.gameweek the latest gameweek ended holds his team at the back: $wonBid", ({ order, won, wonBid }) => {
+  vi.useFakeTimers({ now: WEDNESDAY_NOON });
+  convex.action.mockReturnValue({ kind: "claim", claimableFrom: 0, squad: [], order, won });
+  convex.clock.mockReturnValue(GAMEWEEK_12_CLOCK);
+  expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toMatchObject({ order, wonBid });
+  vi.useRealTimers();
+});
+
+test("S08.32: Withdraw beside a bid put in asks waivers/waiverClaims:withdraw with its claim's id", async () => {
+  const changes = renderHook(() => livePlayerCard.useWaiverChanges()).result.current;
+  convex.withdraw.mockResolvedValue(null);
+  expect(await changes.withdraw(A_LEAGUE_ID, "claim-1" as Id<"waiverClaims">)).toBeNull();
+  expect(convex.withdraw).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, claimId: "claim-1" });
 });
 
 test("the card head's released line reads waivers/waivers:stateOf: nothing while loading, null when owned or a free agent, and the run that can first take him once the clock loads (S12.2)", () => {
@@ -127,7 +157,7 @@ test("a drop, a claim and a pickup ask their own mutations, and a refusal comes 
 
   expect(await changes.drop(A_LEAGUE_ID, PLAYER_CODE)).toBeNull();
   expect(convex.drop).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE });
-  expect(await changes.claim(A_LEAGUE_ID, PLAYER_CODE, 8)).toBeNull();
+  expect(await changes.claim(A_LEAGUE_ID, PLAYER_CODE, 8)).toEqual({ claimId: "claim-id" });
   expect(convex.putIn).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, dropCode: 8 });
   expect(await changes.pickUp(A_LEAGUE_ID, PLAYER_CODE, null)).toBe(dropRefusals.locked);
   expect(convex.pickUp).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, dropCode: null });

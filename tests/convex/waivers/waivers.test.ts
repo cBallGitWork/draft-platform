@@ -198,13 +198,24 @@ describe("the player card's action (#1200)", () => {
     await w.drop(ANN, DROPPED);
     const action = await actionOn(BOB, DROPPED);
     const { claimableFrom } = (await w.stateOf(DROPPED)) as { claimableFrom: number };
-    expect(action).toEqual({ kind: "claim", firstRun: expect.objectContaining({ at: expect.any(Number) }), squad: [] });
+    expect(action).toEqual({ kind: "claim", firstRun: expect.objectContaining({ at: expect.any(Number) }), squad: [], order: "reverseStandings", wonBid: false });
     const firstRunAt = (action as { firstRun: { at: number } }).firstRun.at;
     expect(firstRunAt).toBeGreaterThanOrEqual(claimableFrom);
     expect(firstRunAt).toBeLessThan(claimableFrom + 7 * DAY_MS);
     // Once that run has gone by without taking him, the card names the next (#1467).
     const later = (await actionOn(BOB, DROPPED, firstRunAt + 1)) as { firstRun: { at: number } };
     expect(later.firstRun.at).toBeGreaterThan(firstRunAt);
+  });
+
+  test("S08.32: a claim says the league's bid order, and whether a bid his team won still holds it at the back", async () => {
+    await w.drop(ANN, DROPPED);
+    // Bob's team won a claim at a run after gameweek 4 ended, and none has since.
+    await t.run((ctx) => ctx.db.insert("waiverOrders", { leagueId, winners: [bobsTeam], gameweek: NEXT - 1, ranAt: Date.now() - DAY_MS }));
+    expect(await actionOn(BOB, DROPPED)).toMatchObject({ kind: "claim", order: "reverseStandings", wonBid: true });
+    expect(await actionOn(ANN, DROPPED)).toMatchObject({ kind: "claim", order: "reverseStandings", wonBid: false });
+    // Under reverse table order the win counts only until the next gameweek ends.
+    await w.gameweekEnds(NEXT);
+    expect(await actionOn(BOB, DROPPED)).toMatchObject({ kind: "claim", wonBid: false });
   });
 
   test("is nothing for the commissioner, who runs no team", async () => {

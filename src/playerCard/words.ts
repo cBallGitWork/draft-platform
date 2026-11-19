@@ -1,6 +1,7 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
+import type { WaiverOrderType } from "../../convex/rules/leagueRulesShape";
 import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { AREA_WORDS, figureWords, signedWords, thousandsWords, underSiteScoringWords } from "../shared/words";
@@ -21,8 +22,9 @@ export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
 /** A released player, on waivers, and when the bids on him settle, the run that can first take him;
  *  just "Released" with no run times (Craig, 18 Nov 2026, #2650). */
-export const releasedWords = (firstRun: FirstRun) =>
-  firstRun === null ? "Released" : `Released: bids settle ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
+export const releasedWords = (firstRun: FirstRun) => (firstRun === null ? "Released" : `Released: bids settle ${settleWords(firstRun)}`);
+/** When the run that can first take him settles bids: "Wed 6pm", or "after GW12's last match". */
+const settleWords = (run: NonNullable<FirstRun>) => (run.skippedIf !== null ? afterLastMatchWords(run.skippedIf) : whenWords(run.at));
 /** On his shirt in the head, so it is plain the number is his club's, never his owner's squad
  *  number (Craig, 12 Nov 2026, on #1496). */
 export const clubNumberLabel = (number: number) => `Club number ${figureWords(number)}`;
@@ -165,10 +167,20 @@ export const pickUpWords = "Pick up";
 /** With a claim or a pickup, who he names to go (spec/08). */
 export const whoGoesLabel = "Who goes";
 export const dropNobodyWords = "Nobody";
-/** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
-export const onWaiversUntilWords = (firstRun: FirstRun) =>
-  firstRun === null ? "On waivers" : `On waivers: first run ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
-export const claimedDoneWords = "Claim put in, last of your claims.";
+/** Beside the bid, when bids on him settle, at the first run that can take him, and who bids first
+ *  under the league's bid order; a team whose win holds it at the back under reverse table order is
+ *  told so (Craig, 18 and 19 Nov 2026, on #2648). With no run times, only who bids first. */
+export const bidOrderWords = (firstRun: FirstRun, order: WaiverOrderType, wonBid: boolean) =>
+  [
+    firstRun === null ? null : `Bids settle ${settleWords(firstRun)}.`,
+    order === "rotating" ? "Bid order rotates: the last team to win a bid goes to the back." : "Bottom of the table bids first.",
+    order === "reverseStandings" && wonBid ? "A team that wins a bid goes to the back until the gameweek ends." : null,
+  ]
+    .filter((line) => line !== null)
+    .join(" ");
+/** Once his bid is in, with Withdraw beside it (#2648). */
+export const bidInWords = (firstRun: FirstRun) => (firstRun === null ? "Bid in. You'll hear in Mail." : `Bid in. You'll hear ${firstRun.skippedIf !== null ? settleWords(firstRun) : `after ${settleWords(firstRun)}`}, in Mail.`);
+export { withdrawWords } from "../shared/controls/words";
 export const waiverFailedWords = "That couldn't be done. Try again.";
 
 /** A role's adjustment, signed: "+2", "−1", "0". */

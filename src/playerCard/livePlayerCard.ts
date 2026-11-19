@@ -2,8 +2,8 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { cardActionAt } from "../../convex/waivers/runsAhead";
-import { refusalOf } from "../shared/refusal";
-import { useFirstRuns } from "../shared/useFirstRuns";
+import { answerOf, refusalOf } from "../shared/refusal";
+import { useFirstRuns, useWaiverClock } from "../shared/useFirstRuns";
 import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
@@ -20,12 +20,12 @@ export const livePlayerCard: PlayerCardSeam = {
   // (useFirstRuns.ts, #2008), so it is read again only when it changes.
   useCardAction: function useCardAction(leagueId, playerCode) {
     const held = useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode });
-    const firstRunOf = useFirstRuns(leagueId);
+    const at = useWaiverClock(leagueId);
     // Anything but a claim is shown at once; a claim waits for the runs' times.
     return useMemo(() => {
       if (held === undefined || held.kind !== "claim") return held;
-      return firstRunOf === undefined ? undefined : cardActionAt(held, firstRunOf);
-    }, [held, firstRunOf]);
+      return at === undefined ? undefined : cardActionAt(held, at.clock, at.minute);
+    }, [held, at]);
   },
   useReleased: function useReleased(leagueId, playerCode) {
     const state = useQuery(api.waivers.waivers.stateOf, { leagueId, playerCode });
@@ -41,14 +41,17 @@ export const livePlayerCard: PlayerCardSeam = {
   useWaiverChanges: function useWaiverChanges() {
     const drop = useMutation(api.waivers.waivers.drop);
     const putIn = useMutation(api.waivers.waiverClaims.putIn);
+    const withdraw = useMutation(api.waivers.waiverClaims.withdraw);
     const pickUp = useMutation(api.waivers.freeAgents.pickUp);
     return useMemo<WaiverChanges>(
       () => ({
         drop: (leagueId, playerCode) => refusalOf(() => drop({ leagueId, playerCode }), "Dropping a player", waiverFailedWords),
-        claim: (leagueId, playerCode, dropCode) => refusalOf(() => putIn({ leagueId, playerCode, dropCode }), "Claiming a player", waiverFailedWords),
+        claim: (leagueId, playerCode, dropCode) =>
+          answerOf(async () => ({ claimId: await putIn({ leagueId, playerCode, dropCode }) }), "Claiming a player", waiverFailedWords),
+        withdraw: (leagueId, claimId) => refusalOf(() => withdraw({ leagueId, claimId }), "Withdrawing a claim", waiverFailedWords),
         pickUp: (leagueId, playerCode, dropCode) => refusalOf(() => pickUp({ leagueId, playerCode, dropCode }), "Picking up a free agent", waiverFailedWords),
       }),
-      [drop, putIn, pickUp],
+      [drop, putIn, withdraw, pickUp],
     );
   },
   useOverride: () => {

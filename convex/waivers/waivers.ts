@@ -3,12 +3,15 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { managerOf, memberOf, playerOrRefuse, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { WAIVER_ORDERS } from "../rules/leagueRulesShape";
+import { seasonRules } from "../rules/rulesHistory";
 import { playerByCode } from "../shared/players";
 import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
 import { heldInReview } from "../trades/tradeClose";
 import type { RunAhead } from "./runsAhead";
 import { waiversOpenFor } from "./waiverLock";
+import { waiverOrderRow } from "./waiverOrder";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
@@ -84,17 +87,26 @@ const cardAction = v.union(
   v.object({ kind: v.literal("drop") }),
   /** On waivers, from when a run may take him. The run that can first take him moves with the
    *  clock, which this query doesn't take, so the browser works it out at its minute from
-   *  waiverClock.ts's `clockOf` and adds it (`CardAction`, #2008). */
-  v.object({ kind: v.literal("claim"), claimableFrom: v.number(), squad: v.array(namedPlayer) }),
+   *  waiverClock.ts's `clockOf` and adds it (`CardAction`, #2008). With it the league's bid order
+   *  and, where the caller's team won a bid at a run, the latest gameweek ended when it did, as the
+   *  order's winners hold it (waiverOrder.ts), so the browser can say whether it bids last (#2648). */
+  v.object({
+    kind: v.literal("claim"),
+    claimableFrom: v.number(),
+    squad: v.array(namedPlayer),
+    order: v.union(...WAIVER_ORDERS.map((each) => v.literal(each))),
+    won: v.union(v.object({ gameweek: v.union(v.number(), v.null()) }), v.null()),
+  }),
   v.object({ kind: v.literal("pickUp"), squad: v.array(namedPlayer) }),
 );
 export type HeldCardAction = Infer<typeof cardAction>;
 /** The card's action as the screens show it: on waivers, `firstRun` is the run that can first take
  *  him, still to come, and the gameweek whose lock it may fall in (runsAhead.ts `firstRunTaking`),
- *  or null with no run times set. */
+ *  or null with no run times set; `wonBid`, whether a bid the caller's team won still holds it at
+ *  the back of the order. */
 export type CardAction =
   | Exclude<HeldCardAction, { kind: "claim" }>
-  | (Omit<Extract<HeldCardAction, { kind: "claim" }>, "claimableFrom"> & { firstRun: RunAhead | null });
+  | (Omit<Extract<HeldCardAction, { kind: "claim" }>, "claimableFrom" | "won"> & { firstRun: RunAhead | null; wonBid: boolean });
 
 /** What the player card offers the caller on this player (spec/12, the player card's actions;
  *  spec/08): drop him from his own squad, claim him off waivers or pick him up as a free agent,
@@ -114,6 +126,9 @@ export const cardActionOn = query({
     const onWaivers = await waiverRowOf(ctx, leagueId, playerCode);
     // One who has left the Premier League is no free agent: nothing to pick up (#1469).
     if (onWaivers === null) return player.droppedAt === undefined ? { kind: "pickUp", squad } : { kind: "none" };
-    return { kind: "claim", claimableFrom: onWaivers.claimableFrom, squad };
+    const order = (await seasonRules(ctx, leagueId)).latest.waivers.order;
+    const orderRow = await waiverOrderRow(ctx, leagueId);
+    const won = orderRow !== null && orderRow.winners.includes(team._id) ? { gameweek: orderRow.gameweek } : null;
+    return { kind: "claim", claimableFrom: onWaivers.claimableFrom, squad, order, won };
   },
 });
