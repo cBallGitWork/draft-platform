@@ -11,6 +11,8 @@ export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
+/** Takes back what the manager put in: a claim, an offer, a patch. */
+export const withdrawWords = "Withdraw";
 /** Back to where a page was opened from: the player card's, the match page's (S10.9's picture). */
 export const backWords = "Back";
 /** A panel's or a window's cross, decoration, as its button carries its label. */

@@ -180,7 +180,7 @@ export const bidOrderWords = (firstRun: FirstRun, order: WaiverOrderType, wonBid
     .join(" ");
 /** Once his bid is in, with Withdraw beside it (#2648). */
 export const bidInWords = (firstRun: FirstRun) => (firstRun === null ? "Bid in. You'll hear in Mail." : `Bid in. You'll hear ${firstRun.skippedIf !== null ? settleWords(firstRun) : `after ${settleWords(firstRun)}`}, in Mail.`);
-export { withdrawWords } from "../myTeam/claims/words";
+export { withdrawWords } from "../shared/controls/words";
 export const waiverFailedWords = "That couldn't be done. Try again.";
 
 /** A role's adjustment, signed: "+2", "−1", "0". */

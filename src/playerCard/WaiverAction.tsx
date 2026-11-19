@@ -102,14 +102,14 @@ export function WaiverAction({
         </div>
       ) : (
         <>
-          {claimed !== null && action.kind === "claim" && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Status words={bidInWords(action.firstRun)} className="text-derived" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Status words={claimed !== null && action.kind === "claim" ? bidInWords(action.firstRun) : null} className="text-derived" />
+            {claimed !== null && action.kind === "claim" && (
               <button type="button" disabled={change.busy} onClick={() => void withdraw(claimed)} className="secondary-action">
                 {withdrawWords}
               </button>
-            </div>
-          )}
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {fixed === undefined && (
               <>
