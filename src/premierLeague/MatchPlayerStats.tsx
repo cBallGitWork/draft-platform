@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type { MatchStat } from "../../convex/match/matchStatLine";
 import { ColumnHeads, cellClassOf } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
-import { Placeholder } from "../ui/Placeholder";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData } from "./seam";
 import { Choice } from "../ui/Choice";
@@ -14,8 +13,6 @@ import {
   noMenWords,
   notCountingLabel,
   playerStatsLabel,
-  SHOTS_TITLE,
-  shotsNotHeldLabel,
   statPointsWords,
   STAT_VIEWS,
   statViewLabel,
@@ -25,8 +22,8 @@ import {
 
 // The match page's Player stats tab (#2490, #2491; spec/10 S10.8; the approved pictures
 // `1440-player-stats.png` and `1440-player-stats-points.png`): one table a club, each man who
-// played's stats for the match, or with Points the points each earned him, then the Shots panel
-// greyed until Sportmonks' xG add-on is bought (#1196).
+// played's stats for the match, or with Points the points each earned him. His shot counts stand
+// in for a shot map: Sportmonks sends no shot's position or xG ("Shot counts instead", Craig, 17 Nov 2026).
 
 type Column = keyof typeof matchStatColumns;
 const STAT_COLUMNS = Object.keys(matchStatColumns).filter((column) => column !== "position" && column !== "player" && column !== "points") as MatchStat[];
@@ -60,8 +57,7 @@ export function StatViewSwitch({ view, choose }: { view: StatView; choose: (view
   return <ViewSwitch label={statViewLabel} name="match-stat-view" views={STAT_VIEWS} words={statViewWords} view={view} choose={choose} />;
 }
 
-/** Each club's table side by side, any man since gone from both clubs in his own, and the Shots
- *  panel under them. `aside` is "prov." while the points are live (S10.10). */
+/** Each club's table side by side, and any man since gone from both clubs in his own. `aside` is "prov." while the points are live (S10.10). */
 export function MatchPlayerStats({ match: { home, away, men }, aside, view }: { match: MatchPageData; aside: ReactNode; view: StatView }) {
   const moved = men.filter((man) => man.side === null);
   return (
@@ -71,11 +67,6 @@ export function MatchPlayerStats({ match: { home, away, men }, aside, view }: { 
         <ClubStats title={away.name} men={men.filter((man) => man.side === "away")} aside={aside} view={view} />
         {moved.length > 0 && <ClubStats title={MOVED_TITLE} men={moved} aside={aside} view={view} />}
       </div>
-      <Panel title={SHOTS_TITLE}>
-        <div className="p-3">
-          <Placeholder label={shotsNotHeldLabel} className="h-shot-map w-full justify-center" written />
-        </div>
-      </Panel>
     </>
   );
 }

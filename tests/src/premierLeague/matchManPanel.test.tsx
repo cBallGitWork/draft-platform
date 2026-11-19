@@ -10,7 +10,7 @@ import { FIXTURE, man, matchOf, MEN, openMatch } from "../../support/src/matchPa
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
 import { THEIR_TEAM_NAME } from "../../support/src/teams.harness";
 
-const NONE = { minutes: 0, goals: 0, assists: 0, shots: 0, shotsOnTarget: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0, yellowCards: 0, redCards: 0 };
+const NONE = { minutes: 0, goals: 0, assists: 0, shots: 0, shotsOnTarget: 0, shotsBlocked: 0, hitWoodwork: 0, bigChancesMissed: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0, yellowCards: 0, redCards: 0 };
 
 /** Saka, as the approved picture has him: 67 minutes, a goal and an assist. */
 const PICKED = man(2, "Saka", "home", {
