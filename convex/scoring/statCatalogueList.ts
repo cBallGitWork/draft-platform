@@ -13,9 +13,9 @@ import {
   ACCURATE_CROSSES, ACCURATE_LAUNCHES, ACCURATE_LONG_BALLS, ACCURATE_PASSES, AERIALS_LOST, AERIALS_WON, ASSISTS,
   BIG_CHANCES_CREATED, BIG_CHANCES_MISSED, BLOCKS, CLEAN_SHEETS, CLEARANCES, CROSSES, DISPOSSESSED,
   DRIBBLED_PAST, DRIBBLES_WON, DUELS_WON, ERRORS_TO_A_GOAL, ERRORS_TO_A_SHOT, FOULS, FOULS_DRAWN, GOALS,
-  GOALS_CONCEDED, HIGH_CLAIMS, INTERCEPTIONS, KEY_PASSES, LAST_MAN_TACKLES, LAUNCHES, LONG_BALLS, OFFSIDES,
+  GOALS_CONCEDED, HIGH_CLAIMS, HIT_WOODWORK, INTERCEPTIONS, KEY_PASSES, LAST_MAN_TACKLES, LAUNCHES, LONG_BALLS, OFFSIDES,
   OWN_GOALS, PASSES, PENALTIES_MISSED, PENALTIES_SAVED, POSSESSION_LOST, PUNCHES, RECOVERIES, RED_CARDS, SAVES,
-  SAVES_INSIDE_THE_BOX, SECOND_YELLOWS, SHOTS, SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
+  SAVES_INSIDE_THE_BOX, SECOND_YELLOWS, SHOTS, SHOTS_BLOCKED, SHOTS_OFF_TARGET, SHOTS_ON_TARGET, TACKLES, TACKLES_WON, THROUGH_BALLS, YELLOW_CARDS,
 } from "./statKeys";
 
 export interface CatalogueStat {
@@ -142,7 +142,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "big_chance_scored", name: "Big chance scored", shortCode: "BCSC" },
   { stat: "blocked_cross", name: "Blocked cross", shortCode: "BC" },
   { stat: "blocked_pass", name: "Blocked pass", shortCode: "BPA" },
-  { stat: "blocked_scoring_att", name: "Blocked scoring att", shortCode: "BSA" },
+  { stat: SHOTS_BLOCKED, name: "Blocked scoring att", shortCode: "BSA" },
   { stat: "carries", name: "Carries", shortCode: "C" },
   { stat: DRIBBLED_PAST, name: "Challenge lost", shortCode: "CL" },
   // Worked out from the half-time score, a starter's only (plMatch.ts's HALF_TIME_STATS; #990).
@@ -198,7 +198,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "hand_ball", name: "Hand ball", shortCode: "HB" },
   { stat: "head_clearance", name: "Head clearance", shortCode: "HC" },
   { stat: "head_pass", name: "Head pass", shortCode: "HP" },
-  { stat: "hit_woodwork", name: "Hit woodwork", shortCode: "HW" },
+  { stat: HIT_WOODWORK, name: "Hit woodwork", shortCode: "HW" },
   { stat: "ict_index", name: "Ict index", shortCode: "II" },
   { stat: "influence", name: "Influence", shortCode: "I" },
   { stat: INTERCEPTIONS, name: "Interception", shortCode: "IN" },

@@ -106,7 +106,7 @@ export const NOT_TESTED: readonly string[] = [
   "att_post_high", "att_post_left", "att_post_right", "att_rf_goal", "att_rf_target", "att_rf_total", "att_setpiece",
   "att_sv_high_centre", "att_sv_high_left", "att_sv_high_right", "att_sv_low_centre", "att_sv_low_left", "att_sv_low_right",
   "attempted_tackle_foul", "attempts_conceded_ibox", "attempts_conceded_obox", "attempts_ibox", "attempts_obox",
-  "backward_pass", "big_chance_saves", "big_chance_scored", "blocked_cross", "blocked_pass", "blocked_scoring_att",
+  "backward_pass", "big_chance_saves", "big_chance_scored", "blocked_cross", "blocked_pass", "blocked_scoring_att", // literal-ok: pure, so plain Node reads it (above)
   "carries", "clearances_blocks_interceptions", "corner_taken", "creativity", "cross_not_claimed",
   "crosses_18yard", "crosses_18yardplus", "dangerous_play", "dive_catch", "dive_save", "diving_save", "draws", "duel_lost",
   "effective_blocked_cross", "effective_head_clearance", "error_lead_to_goal", "expected_assists", // literal-ok: pure, so plain Node reads it (above)
@@ -114,7 +114,7 @@ export const NOT_TESTED: readonly string[] = [
   "final_third_entries_open_play", "foul_throw_in", "fouled_final_third", "freekick_cross", "fwd_pass", "game_started",
   "gk_smother", "goal_assist_deadball", "goal_assist_intentional", "goal_assist_openplay", "goal_assist_setplay",
   "goal_fastbreak", "goal_kicks", "goals_conceded_ibox", "goals_conceded_obox", "goals_openplay", "hand_ball",
-  "head_clearance", "head_pass", "hit_woodwork", "ict_index", "influence", "interception_won", "interceptions_in_box",
+  "head_clearance", "head_pass", "hit_woodwork", "ict_index", "influence", "interception_won", "interceptions_in_box", // literal-ok: pure, so plain Node reads it (above)
   "keeper_pick_up", "keeper_throws", "last_man_tackle", "leftside_pass", "long_pass_own_to_opp", // literal-ok: pure, so plain Node reads it (above)
   "long_pass_own_to_opp_success", "losses", "lost_corners", "offside_provoked", "offtarget_att_assist",
   "ontarget_att_assist", "open_play_pass", "overrun", "own_goals_conceded", "passes_left", "passes_right",
