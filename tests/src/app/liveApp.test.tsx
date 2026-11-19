@@ -60,7 +60,8 @@ vi.mock("convex/react", async () => {
         ...Object.fromEntries(
           [
             ["leagues/leagues:create", "leagues/leagueDeletion:deleteLeague", "leagues/leagueDeletion:undo", "leagues/lastLeague:switchTo", "leagues/teams:leave"],
-            ["mail/mail:open", "mail/mail:writeToLeague"],
+            ["mail/mail:open", "mail/mail:writeToLeague", "leagues/commissionerAsks:ask"],
+            ["leagues/commissionerAsks:approve", "leagues/commissionerAsks:refuseAsk"],
             ["joining/invites:send", "joining/invites:resend", "joining/invites:cancel", "leagues/teams:removeManager", "joining/inviteLink:make"],
             ["joining/inviteLink:switchOff", "joining/joinRequests:approve", "joining/joinRequests:refuseRequest", "joining/joinRequests:ask"],
             ["positions/playerPositions:approvePlayer", "positions/playerPositions:approveClub", "positions/playerPositions:setPosition"],

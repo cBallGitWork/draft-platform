@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { instructionsOf } from "../rules/firstRules";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesInForceNow } from "../rules/rulesHistory";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { planSlotShape } from "../schema";
 import { pairRefusal } from "./instructions";
@@ -45,7 +45,7 @@ export const mine = query({
 
 /** Saves the slots as the caller's plan `name` (its spaces trimmed), replacing the one he has by
  *  that name. Refused for a name outside 1 to 30 characters, slots that aren't eleven cells of the
- *  pitch, a pair of instructions the league's latest rules don't offer on those cells, or a sixth
+ *  pitch, a pair of instructions the league's rules in force don't offer on those cells, or a sixth
  *  plan. A role the slot's position doesn't hold is saved as the one it plays. */
 export const save = mutation({
   args: { leagueId: v.id("leagues"), name: v.string(), slots: sentSlots, instructions: v.optional(instructionPairShape) },
@@ -59,7 +59,7 @@ export const save = mutation({
     if (!eleven || cells.length !== sent.length) refuse(planRefusals.notEleven);
     const slots = cells.map((cell, index) => ({ ...cell, role: roleIn(cell, sent[index].role).key }));
     if (instructions !== undefined) {
-      const set = instructionsOf(await latestRules(ctx, leagueId));
+      const set = instructionsOf(await rulesInForceNow(ctx, leagueId));
       const refusal = pairRefusal(instructions, cells, set);
       if (refusal !== null) refuse(pairRefusalWords(refusal, set));
     }

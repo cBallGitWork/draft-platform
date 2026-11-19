@@ -22,6 +22,8 @@ import {
   YOUR_PRESETS,
   yourPresetsLine,
 } from "../../../../../src/myTeam/tactics/formationWindow/words";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../../../convex/lineup/classicFormations";
+import { presetDescriptionOf } from "../../../../../convex/lineup/presets";
 import { allFormationsWords } from "../../../../../src/myTeam/tactics/words";
 import { IN_A_442, openedPitch } from "../../../../support/src/tacticsScreen.harness";
 
@@ -50,14 +52,29 @@ describe("the formation window", () => {
     expect(screen.getByRole("button", { name: `${savePresetWords}${savePresetLine}` })).toBeTruthy();
   });
 
-  it("gives each tile its name, its formation's tag, a subtitle and a description waiting on Craig's words, and In use", async () => {
+  it("gives each tile its name, its formation's tag, a subtitle waiting on Craig's words, its description and In use (S05.61)", async () => {
     const window = await opened(true);
     const tile = within(window.getByRole("radio", { name: "4-4-2" }));
     expect(tile.getAllByText("4-4-2")).toHaveLength(2);
     expect(tile.getByRole("img", { name: subtitlePlaceholder("4-4-2") })).toBeTruthy();
-    expect(tile.getByRole("img", { name: descriptionPlaceholder("4-4-2") })).toBeTruthy();
+    expect(tile.getByText(presetDescriptionOf("4-4-2")!)).toBeTruthy();
+    expect(tile.queryByRole("img", { name: descriptionPlaceholder("4-4-2") })).toBeNull();
     expect(tile.getByText(inUseWords)).toBeTruthy();
     expect(within(window.getByRole("radio", { name: "4-3-3" })).queryByText(inUseWords)).toBeNull();
+  });
+
+  it("shows the picked preset's description on its preview (S05.61)", async () => {
+    const window = await opened(true);
+    expect(window.getAllByText(presetDescriptionOf("4-4-2")!)).toHaveLength(2);
+  });
+
+  it("shows a classic formation's description on its tile and its preview (S05.61)", async () => {
+    const window = await opened();
+    await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSIC_FORMATIONS}`) }));
+    const [classic] = FIRST_CLASSIC_FORMATIONS;
+    await userEvent.click(window.getByRole("radio", { name: classic.name }));
+    expect(within(window.getByRole("radio", { name: classic.name })).getByText(classic.description)).toBeTruthy();
+    expect(window.getAllByText(classic.description)).toHaveLength(2);
   });
 
   it("lists the preview's lines in the picture's order, Gains and Loses as placeholders", async () => {

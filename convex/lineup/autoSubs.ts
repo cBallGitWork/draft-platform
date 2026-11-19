@@ -5,10 +5,12 @@
 
 import type { Position } from "../positions/positionTables";
 import {
+  NOT_CLASSIC,
   OUT_OF_POSITION,
   STARTER_COUNT,
   lineupProblems,
   type Lineup,
+  type LineupMode,
   type LineupProblem,
   type LineupRules,
   type Placement,
@@ -72,7 +74,7 @@ export interface AutoSubs {
  *  isn't checked against it. Auto-subs work around both and never add a starter beyond the slots
  *  `vacated`, though a sub coming on in his own area may stand in an empty cell. Any other problem
  *  is data gone wrong, and is thrown. */
-const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarterCount", "belowMinimum", "aboveMaximum"]);
+const CARRIED_KINDS: ReadonlySet<LineupProblem["kind"]> = new Set(["wrongStarterCount", "belowMinimum", "aboveMaximum", "lineBelowMinimum", "lineAboveMaximum"]);
 
 /** A starter who left the squad plays nowhere now: only the slot he left counts. */
 const NO_POSITIONS: readonly Position[] = [];
@@ -94,13 +96,15 @@ export function autoSubs(
   rules: LineupRules,
   vacated: readonly Placement[],
   ratingsOf: DeadlineRatings = NO_DEADLINE_STARS,
+  /** In classic mode the bench's lines as well as the starters' and each who left's. */
+  mode: LineupMode = NOT_CLASSIC,
 ): AutoSubs {
   // Each who left stands in his slot again, on 0 minutes, so it is filled and the limits weighed
   // just as if he hadn't played (spec/05, Auto-subs); he is taken out of what is handed back.
   const departed = new Set(vacated.map(({ playerCode }) => playerCode));
   const asSaved: Lineup = { starters: [...lineup.starters, ...vacated], bench: lineup.bench };
   const weighed: PlayerPositions = new Map([...positions, ...vacated.map(({ playerCode }) => [playerCode, NO_POSITIONS] as const)]);
-  const corrupt = standingProblems(asSaved, weighed, rules).filter(
+  const corrupt = standingProblems(asSaved, weighed, rules, mode).filter(
     (problem) => !CARRIED_KINDS.has(problem.kind) || (problem.kind === "wrongStarterCount" && problem.starterCount > STARTER_COUNT),
   );
   if (corrupt.length > 0) {
@@ -117,7 +121,8 @@ export function autoSubs(
   for (const starter of asSaved.starters) playOf(starter.playerCode);
   for (const playerCode of asSaved.bench) {
     playOf(playerCode);
-    positionsOf(weighed, playerCode);
+    if (!mode.classic) positionsOf(weighed, playerCode);
+    else if (!mode.lines.has(playerCode)) throw new Error(`Auto-subs need player ${playerCode}'s line`);
   }
 
   const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(heldCell(one), heldCell(other)));
@@ -127,7 +132,9 @@ export function autoSubs(
   for (const absentee of absentees) {
     // A sub who hasn't played yet may still: he comes on provisionally, and keeps the bench's order.
     const available = current.bench.filter((playerCode) => playOf(playerCode) !== "didNotPlay");
-    const sub = firstLegalSub(current, absentee, available, weighed, rules, ratingsOf);
+    const sub = mode.classic
+      ? firstValidSub(current, absentee, available, weighed, rules, mode)
+      : firstLegalSub(current, absentee, available, weighed, rules, ratingsOf);
     if (sub === undefined) unfilled.push(absentee.playerCode);
     else {
       substitutions.push(sub.substitution);
@@ -138,7 +145,19 @@ export function autoSubs(
     starters: current.starters.filter(({ playerCode }) => !departed.has(playerCode)),
     bench: current.bench.filter((playerCode) => !departed.has(playerCode)),
   };
-  return { substitutions, unfilled, lineup: stillInSquad, carriedProblems: standingProblems(stillInSquad, positions, rules) };
+  return { substitutions, unfilled, lineup: stillInSquad, carriedProblems: standingProblems(stillInSquad, positions, rules, mode) };
+}
+
+/** Classic mode's (spec/22): the first on the bench, in bench order, who keeps the lineup valid
+ *  takes the slot (`S22.11`), whatever his line; if none does, it stays empty (`S22.12`). There is
+ *  no slot to play, role or own area: only each line's limits. */
+function firstValidSub(lineup: Lineup, absentee: Placement, available: readonly PlayerCode[], positions: PlayerPositions, rules: LineupRules, mode: LineupMode) {
+  const slot = heldCell(absentee);
+  for (const playerCode of available) {
+    const tried = legalSubstitution(lineup, absentee, { playerCode, ...slot }, "theSlot", positions, rules, mode);
+    if (tried) return tried;
+  }
+  return undefined;
 }
 
 /** The first on the bench who can play the slot takes it. If none can, the first who keeps the
@@ -191,12 +210,13 @@ function legalSubstitution(
   into: AutoSub["into"],
   positions: PlayerPositions,
   rules: LineupRules,
+  mode: LineupMode = NOT_CLASSIC,
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
   const after: Lineup = {
     starters: lineup.starters.map((starter) => (starter === absentee ? sub : starter)),
     bench: lineup.bench.map((benched) => (benched === sub.playerCode ? absentee.playerCode : benched)),
   };
-  if (isWorse(standingProblems(after, positions, rules), standingProblems(lineup, positions, rules))) return undefined;
+  if (isWorse(standingProblems(after, positions, rules, mode), standingProblems(lineup, positions, rules, mode))) return undefined;
   return { substitution: { off: absentee.playerCode, on: sub.playerCode, area: sub.area, lane: sub.lane, into }, lineup: after };
 }
 
@@ -228,15 +248,18 @@ function isWorse(after: LineupProblem[], before: LineupProblem[]): boolean {
   return after.some((problem) => shortfall(problem) > (shortfalls.get(problemKey(problem)) ?? 0));
 }
 
-/** The same problem before and after a sub: per area for a limit. */
-const problemKey = (problem: LineupProblem): string => ("area" in problem ? `${problem.kind}/${problem.area}` : problem.kind);
+/** The same problem before and after a sub: per area, or line, for a limit. */
+const problemKey = (problem: LineupProblem): string =>
+  "area" in problem ? `${problem.kind}/${problem.area}` : "line" in problem ? `${problem.kind}/${problem.line}` : problem.kind;
 
 /** How many players a problem is from legal. */
 function shortfall(problem: LineupProblem): number {
   switch (problem.kind) {
     case "belowMinimum":
+    case "lineBelowMinimum":
       return problem.minimum - problem.starterCount;
     case "aboveMaximum":
+    case "lineAboveMaximum":
       return problem.starterCount - problem.maximum;
     case "wrongStarterCount":
       return Math.abs(STARTER_COUNT - problem.starterCount);
@@ -259,8 +282,8 @@ const STANDING_KINDS: readonly LineupProblem["kind"][] = [...OUT_OF_POSITION, NO
  *  ever put where he plays, on a role he takes. A sweeper or libero left with
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
-export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => !STANDING_KINDS.includes(problem.kind));
+export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules, mode: LineupMode = NOT_CLASSIC) {
+  return lineupProblems(lineup, positions, rules, mode).filter((problem) => !STANDING_KINDS.includes(problem.kind));
 }
 
 function positionsOf(positions: PlayerPositions, playerCode: PlayerCode) {

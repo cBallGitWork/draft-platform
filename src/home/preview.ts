@@ -74,13 +74,14 @@ const flaggedStarters = previewSquad.flatMap(({ playerCode, clubCode }) => {
 });
 const theirs = previewPlayers.filter(({ ownerTeamName }) => ownerTeamName === previewOpponent);
 const premierLeague = previewGameweekMatches(current.gameweek)
-  .map(({ fixtureCode, kickoff, home, away }) => ({
+  .map(({ fixtureCode, kickoff, home, away, score }) => ({
     fixtureCode,
     kickoff,
     home,
     away,
     you: previewSquad.filter(({ clubCode }) => playsIn(clubCode, { home, away })).map(({ name }) => name),
     them: theirs.filter(({ club }) => playsIn(club.code, { home, away })).map(({ name }) => name),
+    score,
   }))
   .filter(({ you, them }) => you.length > 0 || them.length > 0)
   .toSorted((one, other) => (one.kickoff ?? 0) - (other.kickoff ?? 0));
@@ -94,6 +95,7 @@ const yours: LeagueHome["yours"] = {
 
 const home: LeagueHome = {
   format: "headToHead",
+  stage: { kind: "season" },
   thisGameweek: {
     gameweek: current.gameweek,
     fixtures: current.fixtures.map((each, index) => {

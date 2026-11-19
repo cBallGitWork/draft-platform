@@ -4,6 +4,8 @@
 import { MINUTES_STAT, RED_CARDS, SECOND_YELLOWS, YELLOW_CARDS } from "./statKeys";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
+import { LINE_NAMES, type Line } from "../shared/lineNames";
+import { LINE_CELL } from "./classicScoring";
 import { priceFor, pricingOf, type Priced } from "./priced";
 import { checkedOnce, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { backLineAt, instructionPoints, withBackLine, type InstructionPoints, type TeamScoring } from "./teamScoring";
@@ -33,8 +35,14 @@ export type SlotValue =
   | { shape: "bands"; earned: Band[] };
 
 /** How finely the rule sets its value (spec/14): the same for all, by his slot's area, or by its
- *  position; or his team's formation set it, as two at the back's back line does (#990). */
-export type PricedBy = { by: "all" } | { by: "area"; area: Area } | { by: "position"; position: SlotPosition } | { by: "formation"; formation: string };
+ *  position; or his team's formation set it, as two at the back's back line does (#990); or, in a
+ *  classic league, his line (spec/22 `S22.19`). */
+export type PricedBy =
+  | { by: "all" }
+  | { by: "area"; area: Area }
+  | { by: "position"; position: SlotPosition }
+  | { by: "formation"; formation: string }
+  | { by: "line"; line: Line };
 
 /** What changed his points from the value's: he played fewer minutes than the rule needs, so it
  *  gave nothing; or its points limit held them to its most or its least. Or, though it changed
@@ -80,13 +88,18 @@ interface Slot {
 
 /**
  * A player's points for one match, by the slot he starts in, whatever his own positions: a
- * centre-back played at full-back scores as a full-back. `record` is null while his whole record
+ * centre-back played at full-back scores as a full-back. In a classic league `at` is his line
+ * instead, and he scores by its row whatever slot he fills, with no back line (spec/22 `S22.19`,
+ * `S22.8`). `record` is null while his whole record
  * for the match hasn't arrived: every category is then "—" and so is the total, never a guess.
  * Once it has arrived, a stat it leaves out is 0 (spec/14). A bad set, cell or stat throws.
  * Points are kept in tenths, so 0.1 three times is 0.3, never 0.30000000000000004.
  */
-export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell, role?: string, team?: TeamScoring): MatchPoints {
+export function scoreMatch(record: MatchStats | null, set: ScoringSet, at: Cell | Line, role?: string, team?: TeamScoring): MatchPoints {
   checkedOnce(set);
+  const line = typeof at === "string" ? at : null;
+  if (line !== null && !LINE_NAMES.includes(line)) throw new Error(`${showValue(line)} is not one of the five lines`);
+  const cell = line === null ? (at as Cell) : LINE_CELL[line];
   if (!AREAS.includes(cell.area)) throw new Error(`${showValue(cell.area)} is not one of the pitch's six areas`);
   if (!LANES.includes(cell.lane)) throw new Error(`${showValue(cell.lane)} is not one of the pitch's five lanes`);
   if (record === null) {
@@ -95,12 +108,12 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   const slot = { area: cell.area, position: positionOfSlot(cell) };
   record = scoredRecord(record, set);
   const minutes = statIn(record, MINUTES_STAT);
-  const backLine = backLineAt(team, slot.area);
+  const backLine = line === null ? backLineAt(team, slot.area) : null;
   const rules = backLine === null ? set.rules : withBackLine(set.rules, backLine.scoring);
   const categories = rules.map((rule, index) => {
     const actions = statIn(record, rule.stat);
     const { points, value, cut } = ruleScore(rule, slot, actions, minutes);
-    const by = rule === set.rules[index] ? pricedBy(rule.values, slot) : { by: "formation" as const, formation: backLine!.formation };
+    const by = rule === set.rules[index] ? pricedBy(rule.values, slot, line) : { by: "formation" as const, formation: backLine!.formation };
     return { stat: rule.stat, points, why: { actions, value, pricedBy: by, cut } };
   });
   const base = sum(categories.map((category) => category.points));
@@ -190,8 +203,10 @@ export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, min
 /** A rule's setting for the slot being scored. */
 type Price = <Value>(priced: Priced<Value>) => Value;
 
-function pricedBy(values: Priced<unknown>, slot: Slot): PricedBy {
-  switch (pricingOf(values)) {
+function pricedBy(values: Priced<unknown>, slot: Slot, line: Line | null): PricedBy {
+  const pricing = pricingOf(values);
+  if (pricing !== "all" && line !== null) return { by: "line", line };
+  switch (pricing) {
     case "all":
       return { by: "all" };
     case "byArea":

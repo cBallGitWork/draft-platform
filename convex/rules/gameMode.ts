@@ -4,8 +4,8 @@ import type { LeagueRules } from "./leagueRulesShape";
 
 // What a league plays, asked in one place (#1582; Craig, 11 Nov 2026: "dont build classic mode yet
 // but these flags will be handy"). Every league plays roles, team instructions and stars, and the
-// higher score wins; whether it has matchups is its format. No rule picks a mode yet: that is the
-// modes' grill's, so the answers other than `hasMatchups` are the same for every league today.
+// higher score wins; whether it has matchups is its format, and whether it is classic (spec/22) is
+// picked when it is made. Classic changes no other answer yet: its own slices of #2442 will.
 // Pure: no I/O, so the screens read it too.
 
 /** What a league plays in a gameweek, by its rules then, as the queries behind its role parts send
@@ -21,17 +21,23 @@ export const gameModeShape = v.object({
   hasMatchups: v.boolean(),
   /** The higher score wins a matchup and tops the table. */
   higherWins: v.boolean(),
+  /** It plays classic mode (spec/22, `S22.1`): its players each play one line (../positions/lines.ts). */
+  classic: v.boolean(),
 });
 export type GameMode = Infer<typeof gameModeShape>;
 
+/** Whether a league with these rules plays classic mode: only one made so (`S22.2`). */
+export const isClassic = (rules: Pick<LeagueRules, "classic">): boolean => rules.classic === true;
+
 /** What a league with these rules plays. */
-export function gameModeOf(rules: Pick<LeagueRules, "format">): GameMode {
+export function gameModeOf(rules: Pick<LeagueRules, "format" | "classic">): GameMode {
   return {
     scoresRoles: true,
     scoresInstructions: true,
     showsStars: true,
     hasMatchups: rules.format === "headToHead",
     higherWins: true,
+    classic: isClassic(rules),
   };
 }
 

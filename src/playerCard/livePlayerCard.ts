@@ -27,6 +27,15 @@ export const livePlayerCard: PlayerCardSeam = {
       return firstRunOf === undefined ? undefined : cardActionAt(held, firstRunOf);
     }, [held, firstRunOf]);
   },
+  useReleased: function useReleased(leagueId, playerCode) {
+    const state = useQuery(api.waivers.waivers.stateOf, { leagueId, playerCode });
+    const firstRunOf = useFirstRuns(leagueId);
+    return useMemo(() => {
+      if (state === undefined) return undefined;
+      if (state.kind !== "onWaivers") return null;
+      return firstRunOf === undefined ? undefined : { firstRun: firstRunOf(state.claimableFrom) };
+    }, [state, firstRunOf]);
+  },
   usePositionRank: (leagueId, playerCode, position) =>
     useQuery(api.playerCard.positionRank.atPosition, position === null ? "skip" : { leagueId, playerCode, position }),
   useWaiverChanges: function useWaiverChanges() {

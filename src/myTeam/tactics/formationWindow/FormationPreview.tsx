@@ -28,9 +28,8 @@ import {
 
 /** The lineup reshaped to `shape`, as Use this would leave it (spec/05, The pitch): `after`, or the
  *  lineup reshaped to it as a plain formation. A saved plan or a classic formation says the
- *  formation it stands in under its name (`subtitle`) and what using it applies; a classic
- *  formation, what it did
- *  (`description`). */
+ *  formation it stands in under its name (`subtitle`) and what using it applies; a formation or
+ *  classic formation, its description (`description`, spec/05 S05.61). */
 export function FormationPreview({
   shape,
   draft,

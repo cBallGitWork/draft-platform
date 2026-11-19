@@ -1,16 +1,17 @@
 // "Your leagues" (spec/12): a person's leagues, the page saying they're in none (spec/02), and
 // the admin's "Create a league".
 
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { MY_TEAM_PATH } from "../../../src/frame/menu";
+import { refusals } from "../../../convex/shared/leagueAccess";
+import { HOME_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
-import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
+import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, miniBeta, newcomer, openApp, visitor, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { scoringPath } from "../../../src/scoring/paths";
@@ -125,12 +126,13 @@ describe("the admin, with no part in a league", () => {
   });
 
   it("sees every league, as the admin where he has no other part, and a commissioner's link that didn't go", async () => {
-    const unsentCommissionerLink = { email: league.commissionerEmail, reply: "paused" } as const;
+    const email = "unreached@example.com";
+    const unsentCommissionerLink = { email, reply: "paused" } as const;
     openApp(LEAGUES_PATH, adminSeeing({ ...withNoPart(league), unsentCommissionerLink }));
 
     const row = await rowOf(league.name);
     expect(cellsOf(row)).toEqual([adminWords, noTeamCellWords, teamsOfMost(3, 4)]);
-    expect(screen.getByText(unsentLink(league.commissionerEmail, unsentLinkWords.paused))).toBeTruthy();
+    expect(screen.getByText(unsentLink(email, unsentLinkWords.paused))).toBeTruthy();
     expect(screen.getByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(leaguesCutWords)).toBeNull();
   });
@@ -210,6 +212,42 @@ describe("a manager in a league", () => {
     openApp(LEAGUES_PATH, manager);
     await rowOf(league.name);
     expectColumnHeads(screen.getByRole("table"), Object.values(leagueColumns));
+  });
+
+  describe("clicking a league's name (S13.10)", () => {
+    const inTwo = managerIn(league, miniBeta);
+    const nameLink = (name: string) => screen.findByRole("link", { name });
+
+    it("S13.10 switches to that league and opens its League home", async () => {
+      const app = openApp(LEAGUES_PATH, inTwo);
+      await userEvent.click(await nameLink(miniBeta.name));
+
+      expect(app.leagues.switchLeague).toHaveBeenCalledWith(miniBeta.leagueId);
+      await waitFor(() => expect(app.path()).toBe(HOME_PATH));
+    });
+
+    it("S13.10 on the league they're in opens its League home without asking the server", async () => {
+      const app = openApp(LEAGUES_PATH, inTwo);
+      await userEvent.click(await nameLink(league.name));
+
+      await waitFor(() => expect(app.path()).toBe(HOME_PATH));
+      expect(app.leagues.switchLeague).not.toHaveBeenCalled();
+    });
+
+    it("S13.10 is told why a switch was refused, staying on Your leagues", async () => {
+      const app = openApp(LEAGUES_PATH, inTwo);
+      app.leagues.switchLeague.mockResolvedValue(refusals.notInLeague);
+      await userEvent.click(await nameLink(miniBeta.name));
+
+      expect((await screen.findByRole("alert")).textContent).toBe(refusals.notInLeague);
+      expect(app.path()).toBe(LEAGUES_PATH);
+    });
+
+    it("S13.10 the admin's league he has no part in is named with no link", async () => {
+      openApp(LEAGUES_PATH, adminSeeing(withNoPart(league)));
+      await rowOf(league.name);
+      expect(screen.queryByRole("link", { name: league.name })).toBeNull();
+    });
   });
 
   it("opening the app still lands on My team", async () => {

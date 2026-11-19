@@ -52,6 +52,8 @@ vi.mock("convex/react", async () =>
       "availability/availability:set": convex.setAvailability,
       "admin/platformSettings:save": convex.savePlatformSettings,
       "gameweeks/matchMoves:move": convex.moveMatch,
+      "leagues/commissionerAsks:approve": vi.fn(),
+      "leagues/commissionerAsks:refuseAsk": vi.fn(),
     },
   }),
 );

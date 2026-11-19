@@ -86,6 +86,7 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   points: null,
   counts: true,
   provisional: true,
+  overridden: false,
   status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: null },
   autoSub: null,
   breakdown: [],

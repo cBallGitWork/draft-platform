@@ -267,7 +267,7 @@ export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
   return (await ctx.db.get("playerPositions", id))!;
 }
 
-function findRow(ctx: QueryCtx, code: number): Promise<Row | null> {
+export function findRow(ctx: QueryCtx, code: number): Promise<Row | null> {
   return ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
 }
 

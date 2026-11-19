@@ -6,7 +6,8 @@ import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
 import { leagueOpens } from "../../convex/leagues/leagueOpens";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
-import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, Panel, PanelNote, Problem } from "../ui/Panel";
+import { useChange } from "../shared/useChange";
 import { PlateTabs } from "../ui/PlateTabs";
 import { KindChip } from "../ui/KindChip";
 import { Placeholder } from "../ui/Placeholder";
@@ -17,6 +18,8 @@ import { WriteToLeague } from "./WriteToLeague";
 import {
   LETTERS_TITLE,
   MAIL_TABS,
+  askToRunWords,
+  askedToRunWords,
   MAIL_TITLE,
   WRITE_TITLE,
   fromWords,
@@ -107,7 +110,7 @@ export function MailPage({
         {reading === "writing" ? (
           <WriteToLeague leagues={writableLeagues} cut={leaguesCut} writeToLeague={mail.writeToLeague} />
         ) : openLetter ? (
-          <OpenLetter letter={openLetter} />
+          <OpenLetter letter={openLetter} ask={mail.askToBeCommissioner} />
         ) : (
           <div className="bg-panel">
             <PanelNote>{noLetterOpenWords}</PanelNote>
@@ -195,8 +198,9 @@ function LetterRow({ letter, isOpen, open }: { letter: LetterSummary; isOpen: bo
 }
 
 /** The open letter: its kind, who it's from and when on the plate, then its subject over its text,
- *  and last its one link to where you act on it, when it has one (S16.2). */
-function OpenLetter({ letter }: { letter: LetterSummary }) {
+ *  and last its one link to where you act on it, when it has one (S16.2), or the ask to be
+ *  commissioner (`AskToRun`). */
+function OpenLetter({ letter, ask }: { letter: LetterSummary; ask: MailSeam["askToBeCommissioner"] }) {
   const from = fromWords(senderWords(letter.leagueName, letter.from));
   const title = letter.kind === null ? from : (
     <span className="flex items-center gap-2">
@@ -214,7 +218,23 @@ function OpenLetter({ letter }: { letter: LetterSummary }) {
             {openOfferWords}
           </Link>
         )}
+        {letter.askToRun !== null && <AskToRun {...letter.askToRun} ask={ask} />}
       </article>
     </Panel>
+  );
+}
+
+/** A commissioner's letter in a league with none ends in asking to be its commissioner (spec/01
+ *  S01.2, S01.3), or once asked, saying so. */
+function AskToRun({ leagueId, asked, ask }: { leagueId: Id<"leagues">; asked: boolean; ask: MailSeam["askToBeCommissioner"] }) {
+  const { busy, problem, run } = useChange();
+  if (asked) return <p className="text-muted">{askedToRunWords}</p>;
+  return (
+    <>
+      <button type="button" disabled={busy} onClick={() => void run(() => ask(leagueId))} className="secondary-action self-start">
+        {askToRunWords}
+      </button>
+      <Problem problem={problem} />
+    </>
   );
 }

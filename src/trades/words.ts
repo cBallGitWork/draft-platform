@@ -47,6 +47,8 @@ export const groupWords = {
   fromYou: "From you",
   inReview: inReviewWords,
 } as const;
+/** The review group's head by who reviews it: "With the league" where a league vote does (Craig, 18 Nov 2026). */
+export const inReviewGroupWords = (reviewer: Reviewer | null) => (reviewer === "vote" ? "With the league" : groupWords.inReview);
 export const noOffersWords = "No offers open.";
 
 /** Who an offer waits on: you, the other team, or whoever reviews it. */

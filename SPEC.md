@@ -63,6 +63,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; Craig's setup run in docs/setup.md done (#511, #512, #514), the site live, the after-release check passing on it; the staging site on the development deployment and the once-a-day move up to live built (S20.19 to S20.21, #2472), dark until Convex's deployments are back on | a merge to `main` is on staging with its server code, live on `fantasydraftmanager.net` moves up to it once a day, and the check after each live release signs in there |
 | 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
 | 22 | [Classic mode](spec/22-classic-mode.md) | not built; Craig's go 18 Nov 2026, building in #2623, #2624, #2625, #2626 | a classic league refuses an eleven outside a line's limits, and a player scores by his line's row |
+| 23 | [The Guide](spec/23-guide.md) | not built | a hover help's text and its Guide entry are the same held text, and the hover opens that entry |
 
 ## Second release
 
@@ -72,7 +73,14 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 ## Later
 
 - **Mock drafts**: managers practising before the real draft (Craig, 2 Nov 2026).
+- **Redrafts and split seasons**: a whole or top-up redraft mid-season, and teams joining at a
+  split; after the beta (Craig, 18 Nov 2026). FPL Draft allows up to three that leave the table
+  alone.
+- **Our own home stadiums**: each team names its ground, its logo on the pitch; after the beta
+  (Craig, 18 Nov 2026).
 - **Undoing a waiver run**, for the commissioner (Craig, 5 Nov 2026; spec/08).
+- **Contesting a rule change**: every change already sends the league a letter (Craig, 18 Nov 2026;
+  spec/03).
 - **Commissioner fixes**, as Fantrax has them: block one team from trading or claiming, adjust the
   standings (Craig, 16 Nov 2026, #2267: "later").
 - **The salary cap**, the first thing cut if scope must shrink.
@@ -82,7 +90,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   transfer market. Auction drafts and bidding waivers go with it.
 - **Payments**, its own feature.
 - **League home's later ideas**, in Craig's order: fixture of the week, talking points, power
-  rankings, title race and season phases, lineups in, Manager of the Month, rivalries, records
+  rankings, title race and season phases, lineups in, a Manager of the Month panel (the award itself is spec/09), rivalries, records
   board, honours board, the season's end book, AI voices (spec/12).
 - **A trade block**: players a manager will listen to offers for, shown to the league (spec/08).
 - **Wanted ads**: a manager posts what he's after ("a defensive midfielder who starts") and other
@@ -126,17 +134,23 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   and the league list, the matchup's sides on their teams' colours; set on a Club tab of My team.
   The image service is his pick when it comes; Claude's research found Recraft the fit (not
   picked). A team's kit, nickname and
-  fans' name come after it; its ground goes with our own home stadiums (`docs/to-grill.md`).
+  fans' name come after it; its ground goes with *Our own home stadiums*, above.
 - **Real shirt packs and away kits**, which the admin owning club colours leaves room for
   (spec/15, 31 Oct 2026).
 - **A club page's ownership history**: who owned each of a club's players in the league, and
   when ("Saka: Dave GW1-9, you since GW10"); and **past seasons** on a club page (Craig, 12 Nov
   2026; spec/18).
+- **A live screen of its own**: every matchup, a vidiprinter strip of every match and a score box;
+  League home's matchday mode carries the beta (Craig, 18 Nov 2026: "Yes, later").
 - **A colour-blind setting**: "lets not focus on colour blind, we can have a colour blind setting
   later" (Craig, 31 Oct 2026).
+- **Intro steps on a first visit**, FM-style, for a new manager (Craig, 18 Nov 2026; spec/23).
+- **Pictures and diagrams in Guide entries** (Craig, 18 Nov 2026; spec/23).
 
 ## Out of scope
 
+- Points shaded by band: not picked when colour that means something was grilled (Craig, 18 Nov
+  2026).
 - Set-piece lists and set-piece takers: "we didthced set piece taker (unless its a role)" (Craig,
   9 Nov 2026, on #1196). A set-piece duty can only come back as a role (spec/17).
 - A sleep timer that pauses the pick clock overnight: the commissioner pauses and resumes by hand (spec/04).
@@ -211,6 +225,7 @@ follows it; tables and fields already saved keep their names.
 | manager | the person who runs a team | player (for a person) |
 | admin | Craig, running the whole platform | |
 | commissioner | the person who runs one league, with or without a team in it | |
+| break | a stretch a league is locked: a FIFA window, its competition's own break, or an unticked gameweek | rest week |
 | co-commissioner | a league's second person, named by the commissioner or the admin, with the commissioner's powers except naming or removing either and deleting the league | |
 | invite | the email a commissioner sends one person, carrying their sign-in link and the team it's for | |
 | invite link | a league's one shareable link; opening it only asks to join | |
@@ -261,6 +276,7 @@ follows it; tables and fields already saved keep their names.
 | table | a league's teams, or the Premier League's clubs, ranked by points | standings |
 | waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent | waiver wire |
 | the window | from the first waiver run after a gameweek to the next deadline, when players are free agents (spec/08) | week, break (for the window), transfer window (the real one opens in January) |
+| Guide | the one page saying how the game works, the basics and our own mechanics (spec/23) | Help |
 | play-offs | the games after the season that settle the places a league plays them for | playoffs |
 | kit | the shirts, shorts and socks a club or team wears | uniform |
 | boots | what a player wears on his feet | cleats |

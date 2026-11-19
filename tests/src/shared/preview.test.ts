@@ -12,10 +12,12 @@ import { previewGameweek, previewTeamNames, proLeague } from "../../../src/share
 import { previewTable } from "../../../src/table/preview";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { previewMail } from "../../../src/mail/preview";
-import { previewFirstLineup, previewSquad } from "../../../src/myTeam/tactics/preview";
+import { previewFirstLineup, previewSquad, previewTactics } from "../../../src/myTeam/tactics/preview";
+import { previewSeason } from "../../../src/shared/previewDraw";
+import { nextByDeadlines } from "../../../convex/gameweeks/nextGameweek";
 import { previewTrades } from "../../../src/trades/preview";
 import { previewMyTeam } from "../../../src/myTeam/preview";
-import { seasonFigures } from "../../../src/playerCard/gameLog";
+import { pointsOf, seasonFigures } from "../../../src/playerCard/gameLog";
 
 // The preview's one made-up league (#1779): every preview screen of it shows the same teams and is
 // on the same gameweek, so a man playing on one screen isn't at full time on the next.
@@ -82,6 +84,21 @@ it("puts League home, the table, the matchup, the Premier League and the player 
   expect(openingGameweek(previewPremierLeague.useGameweeks()!.firstKickoffs, now)).toBe(previewGameweek);
   // The card's newest match is the one still being played.
   expect(card.matches[0].gameweek).toBe(previewGameweek);
+});
+
+it("S12.10: dates League home's strip and My team's deadline from the one season, My team's the next it hasn't locked (#2652)", () => {
+  const home = previewHome.useLeagueHome(leagueId, now)!;
+  const tactics = renderHook(() => previewTactics.useTactics(leagueId, now)).result.current;
+  if (tactics?.kind !== "open") throw new Error("the tactics preview is open");
+
+  expect(home.deadline).toBe(previewSeason.deadlineOf(home.thisGameweek!.gameweek));
+  expect(tactics.deadline).toBe(previewSeason.deadlineOf(tactics.gameweek));
+  expect(tactics.gameweek).toBe(nextByDeadlines(previewSeason.gameweeks, previewSeason.deadlineOf, now));
+  // The last matches and the last-played gameweek hang off previewGameweek: the one being set follows it.
+  expect(tactics.gameweek).toBe(previewGameweek + 1);
+  // The Transactions tab's waiver window shuts at that same gameweek's deadline (#2697), after its runs (#2733).
+  expect(previewClaims.useWaivers(leagueId)?.windowShuts).toEqual({ gameweek: tactics.gameweek, at: tactics.deadline });
+  expect(previewClaims.useWaivers(leagueId)!.runs.every(({ at }) => at > now && at < tactics.deadline!)).toBe(true);
 });
 
 /** The matchup preview's head-to-head as it opens, with no minute asked, and its commentary. */
@@ -220,6 +237,51 @@ it("puts each card's postponed match among Football's own, held with no kickoff,
       ]);
     }
   }
+});
+
+/** The matchup preview's two sides in `gameweek` as Football stands, with no minute asked. */
+function sidesIn(gameweek: number) {
+  window.history.replaceState(null, "", "/?preview=manager");
+  const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, { gameweek })).result.current;
+  if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored") throw new Error("the matchup preview is a scored head-to-head");
+  const { team, opponent } = matchup.game;
+  if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+  return [team, opponent];
+}
+
+it("scores each matchup man his player card's points in the last two gameweeks, and the manager's total is the table's (#2478)", () => {
+  const results = previewTable.useLeagueTable(leagueId)!.results;
+  for (const gameweek of [previewGameweek - 1, previewGameweek]) {
+    const sides = sidesIn(gameweek);
+    for (const { playerCode, points, status } of sides.flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench])) {
+      const onCard = previewPlayerCard.usePlayerCard(leagueId, playerCode, now)!.matches.find((match) => match.gameweek === gameweek);
+      // A man yet to play has no points; one who sat his match out scores nothing.
+      expect(points).toBe(onCard === undefined ? (status.kind === "yetToPlay" ? null : 0) : pointsOf(onCard, 0));
+    }
+    const mine = results.find((each) => each.gameweek === gameweek)!.teams.find(({ teamName }) => teamName === proLeague.teamName)!;
+    expect(mine.points).toBe(sides[0].points);
+  }
+});
+
+it("names each matchup goal line for a man whose card has that goal, and gives every card goal of a man in the matchup its line (#2478)", () => {
+  window.history.replaceState(null, "", "/?preview=manager");
+  let named = 0;
+  for (const gameweek of [previewGameweek - 1, previewGameweek]) {
+    const matchup = renderHook(() => previewMatchup.useMatchup(leagueId, now, { gameweek })).result.current;
+    if (matchup?.kind !== "headToHead" || matchup.game.kind !== "scored" || matchup.game.commentary.kind !== "read") throw new Error("the matchup preview is a scored head-to-head");
+    const { team, opponent, commentary } = matchup.game;
+    if (team.kind !== "team" || opponent.kind !== "team") throw new Error("the matchup preview plays two teams");
+    const goalLines = commentary.lines.filter(({ text }) => text.includes(" GOAL "));
+    const men = [team, opponent].flatMap(({ lineup }) => [...lineup.starters, ...lineup.bench]);
+    for (const { about } of goalLines) expect(about.every((code) => men.some(({ playerCode }) => playerCode === code))).toBe(true);
+    for (const { playerCode, name } of men) {
+      const onCard = previewPlayerCard.usePlayerCard(leagueId, playerCode, now)!.matches.find((match) => match.gameweek === gameweek);
+      const lines = goalLines.filter(({ about }) => about.includes(playerCode));
+      named += lines.length;
+      expect({ name, gameweek, goals: lines.length }).toEqual({ name, gameweek, goals: onCard?.stats?.goals_scored ?? 0 });
+    }
+  }
+  expect(named).toBeGreaterThan(0);
 });
 
 /** A man's status in the matchup while his club's match is in each of Football's states. */

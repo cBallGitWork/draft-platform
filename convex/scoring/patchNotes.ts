@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { labReportShape } from "../balanceLab/labReportShape";
 import { siteScoringKind } from "../schema";
-import { callerEmail, refuse, signedInEmail } from "../shared/leagueAccess";
+import { callerEmail, isAdmin, refuse, signedInEmail } from "../shared/leagueAccess";
 import { scoringChanges } from "./patchChanges";
 import { setOf, siteVersions, versionName, versionsWaitingAt } from "./siteVersions";
 
@@ -20,18 +20,22 @@ const versionNotes = v.object({
   announcedAt: v.number(),
   takesEffectAt: v.number(),
   changes: v.array(v.string()),
-  /** A patch's rule balance lab report, once its run on Announce is done (balanceLab/balanceLabRun.ts). */
+  /** A patch's rule balance lab report, once its run on Announce is done (balanceLab/balanceLabRun.ts):
+   *  the admin's alone; a manager sees what changed and from when (S14.32). */
   lab: v.optional(labReportShape),
 });
 export type VersionNotes = Infer<typeof versionNotes>;
 
 /** Every version of the site's scoring, newest first, each with what it changed from the one
- *  before it (the first set, for the first). None when signed out. */
+ *  before it (the first set, for the first), and for the admin each patch's lab report. None when
+ *  signed out. */
 export const notes = query({
   args: {},
   returns: v.array(versionNotes),
   handler: async (ctx) => {
-    if ((await signedInEmail(ctx)) === null) return [];
+    const email = await signedInEmail(ctx);
+    if (email === null) return [];
+    const admin = isAdmin(email);
     const history = await siteVersions(ctx);
     return history
       .map((row, index) => ({
@@ -40,7 +44,7 @@ export const notes = query({
         announcedAt: row.announcedAt,
         takesEffectAt: row.takesEffectAt,
         changes: scoringChanges(setOf(history[index - 1]), row.scoring),
-        ...(row.lab && { lab: row.lab }),
+        ...(admin && row.lab && { lab: row.lab }),
       }))
       .reverse();
   },

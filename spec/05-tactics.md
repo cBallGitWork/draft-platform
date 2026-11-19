@@ -70,6 +70,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.
+- Each formation's and classic side's description is held with it and shows in the formation
+  window and the Guide. Claude drafts each from the formation's or side's real history, and
+  Craig's edits win (Craig, 18 Nov 2026: "Claude drafts, you edit"). `S05.61`
 - Any player who plays in an area can fill any slot in it: the game should not get in the way of
   managers. A centre-back can fill a full-back's cell.
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
@@ -133,6 +136,19 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   labels. "We don't need side specific, that's the game getting in the
   way."
 - The team's next head-to-head opponent shows on the Tactics tab.
+- A player carries one of three marks: out (red) or doubtful (orange), from Sportmonks' injuries
+  and suspensions, and no game (grey) when his club has no match in the gameweek. Which Sportmonks
+  levels make out and which doubtful is set after the trial (Craig, 18 Nov 2026: "Both", "Three
+  marks"; "has to be sportsmonks for other leagues"). `S05.57`
+- The mark shows on the pitch's starters, the bench and the squad list (Craig, 18 Nov 2026:
+  "Everywhere"). `S05.58`
+- The mark is a chip after his name, split by reason as CM has it: a red cross injured, a red card
+  suspended, an orange knock for doubtful, grey no game, as `docs/design/plate.md` draws them (Craig, 18 Nov 2026: "Split by reason"; 1 Nov
+  2026: "i like a CM like red/yellow cross/card for suspension etc"). `S05.59`
+- A player one booking from a ban carries a yellow card chip wherever the other chips show, and
+  his card says how many bookings he has and where the ban falls ("4 bookings, ban at 5 before
+  GW19"). Each competition's booking limits are held as data, which the admin can edit; built for
+  the beta (Craig, 18 Nov 2026: "Now, for the beta"; "Yes, all four"). `S05.60`
 - Everything settled here is built on the desk first, then cut from the real page: "show ALL
   info first and then refactor from there... I need the context of our full pages built so we can
   then see what's needed".

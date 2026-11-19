@@ -1,6 +1,7 @@
 // Each slot's position label on the Tactics pitch (#857; spec/05 What the pitch shows): it names the
 // position, never its side, and a sweeper or libero is a centre-back, shown CB (Craig, 4 Nov 2026).
 
+import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../../../convex/lineup/pitch";
 import type { Position } from "../../../../../convex/positions/positionTables";
@@ -27,16 +28,18 @@ const SLOTS: { player: Member; cell: Cell; label: string }[] = (
 
 /** The back three's middle man, who plays sweeper or libero when given `role`. */
 const MIDDLE_CB = SLOTS[3]!;
+/** The man behind the striker, whose label follows his role (spec/06 `S06.10`). */
+const BEHIND_STRIKER = SLOTS[SLOTS.length - 2]!;
 const STRIKER = SLOTS[SLOTS.length - 1]!;
 
-/** Every slot filled, the middle centre-back on `role` when one is given. */
-const everySlot = (role?: string) => ({
+/** Every slot filled, `given`'s man on `role` when one is given. */
+const everySlot = (role?: string, given = MIDDLE_CB) => ({
   tactics: {
     ...SAVED,
     squad: SLOTS.map(({ player }) => player),
     lineup: {
       ...SAVED.lineup,
-      starters: SLOTS.map(({ player, cell }) => ({ playerCode: player.playerCode, ...cell, ...(player === MIDDLE_CB.player && role !== undefined ? { role } : {}) })),
+      starters: SLOTS.map(({ player, cell }) => ({ playerCode: player.playerCode, ...cell, ...(player === given.player && role !== undefined ? { role } : {}) })),
       bench: [],
     },
   },
@@ -59,7 +62,17 @@ describe("the pitch's slot labels", () => {
   it.each(["sweeper", "libero"])("shows a centre-back on %s as CB, under his role's chip (#845)", async (role) => {
     await openedPitch(everySlot(role));
     expect(labelOf(MIDDLE_CB)).toBe("CB");
-    // The chip shows the role's code, its name on hover.
-    expect(blockIn(MIDDLE_CB).querySelector("abbr")?.title).toMatch(role === "sweeper" ? /Sweeper/ : /Libero/);
+    // The chip shows the role's short name, its name on hover (#2649).
+    expect(within(blockIn(MIDDLE_CB)).getByTitle(role === "sweeper" ? "Sweeper" : "Libero")).toBeTruthy();
+  });
+
+  it.each([
+    ["attackingMidfieldShadowStriker", "SS"],
+    ["numberTen", "CAM"],
+    ["carrier", "CAM"],
+  ])("S06.10: labels the slot behind the striker by its role, %s reading %s", async (role, label) => {
+    await openedPitch(everySlot(role, BEHIND_STRIKER));
+    expect(labelOf(BEHIND_STRIKER)).toBe(label);
+    expect(blockIn(BEHIND_STRIKER).textContent).toContain(`${label} ${BEHIND_STRIKER.player.name}`);
   });
 });

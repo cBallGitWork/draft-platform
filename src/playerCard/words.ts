@@ -19,6 +19,10 @@ export { noLongerInLeagueWords as goneWords } from "../shared/words";
 export const PLAYER_TITLE = "Player";
 export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
+/** A released player, on waivers, and when the bids on him settle, the run that can first take him;
+ *  just "Released" with no run times (Craig, 18 Nov 2026, #2650). */
+export const releasedWords = (firstRun: FirstRun) =>
+  firstRun === null ? "Released" : `Released: bids settle ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
 /** On his shirt in the head, so it is plain the number is his club's, never his owner's squad
  *  number (Craig, 12 Nov 2026, on #1496). */
 export const clubNumberLabel = (number: number) => `Club number ${figureWords(number)}`;
@@ -106,6 +110,9 @@ const pricedByWords = (pricedBy: PricedBy) => {
       return ` for ${pricedBy.position}`;
     case "formation":
       return ` for a ${pricedBy.formation}`;
+    default:
+      // A classic league's: "for CM" (spec/22 `S22.19`).
+      return ` for ${pricedBy.line}`;
   }
 };
 const cutWords = (cut: Cut | null) => {

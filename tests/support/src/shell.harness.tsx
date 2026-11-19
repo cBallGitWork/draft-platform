@@ -145,6 +145,7 @@ const fakeMail = (letters: readonly LetterSummary[], loading: boolean) => ({
   useLetters: vi.fn<MailSeam["useLetters"]>(() => (loading ? undefined : letters)),
   open: vi.fn<MailSeam["open"]>(async () => {}),
   writeToLeague: vi.fn<MailSeam["writeToLeague"]>(async () => null),
+  askToBeCommissioner: vi.fn<MailSeam["askToBeCommissioner"]>(async () => null),
 });
 
 /** The seams faked straight from a test's data, by the name both the set-up and ShellApp give

@@ -13,7 +13,7 @@ import { sortedJson } from "../shared/sortedJson";
 import { changesFromAt, changesFromTimes, deadlinesOf, type ChangesFromTimes } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK, seasonGameweeks } from "../gameweeks/usedGameweeks";
-import { refuseFormatChange } from "./formatLock";
+import { refuseClassicChange, refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
@@ -22,6 +22,7 @@ import { switchWaiverOrder } from "../waivers/waiverOrder";
 import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { pickTimeChanging } from "../draft/draftPickTime";
+import { savedWithoutCommissioner } from "../trades/tradeReviewers";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -120,18 +121,21 @@ async function squadMaximumBands(ctx: MutationCtx): Promise<readonly SquadMaximu
 /** Gives a new league of `maxTeams` the admin's default rules from gameweek 1, every tie-break
  *  among them (`tieBreaksOf`), its squad maximum the site's for that many teams. Refused if that
  *  many teams can't play their games a gameweek, or if that maximum leaves the rules unsound. The
- *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. */
-export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number): Promise<void> {
+ *  first league a deployment makes writes the first rules (firstRules.ts) as those defaults. A
+ *  classic league's rules say so (spec/22, `S22.2`); no other's carry it. */
+export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">, maxTeams: number, classic = false): Promise<void> {
   const row = await defaultsRow(ctx);
   const held = row === null ? undefined : heldRules(row.rules);
   const defaults = held && { ...held, tieBreaks: tieBreaksOf(held) };
   if (defaults === undefined) await writeDefaults(ctx, FIRST_RULES);
-  const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
+  const { classic: _classic, ...base } = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
+  const rules: LeagueRules = classic ? { ...base, classic } : base;
   const games = rules.gamesPerGameweek;
   if (games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
   const gameweeks = await seasonGameweekCount(ctx);
   asRefusal(() => checkLeagueRules(rules, gameweeks, maxTeams), (reason) => rulesRefusals.defaultsUnsound(maxTeams, reason));
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
+  const saved = savedWithoutCommissioner(await getLeague(ctx, leagueId), rules);
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules: saved });
 }
 
 /** Refuses `maxTeams` for a league whose `rules` play more games a gameweek than that many teams
@@ -191,14 +195,17 @@ export async function changesFromTimesOf(ctx: QueryCtx, leagueId: Id<"leagues">,
 /** Saves `rules` as the league's from the gameweek they can take effect, and files the letter
  *  saying what changed and from when. The same rules again change nothing and file nothing.
  *  Returns that gameweek. Refused, with the reason, if someone saved the rules since `loaded` was
- *  the latest, if unsound, or if it changes the format once the season has begun. */
-async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules, loaded: Revision): Promise<number> {
+ *  the latest, if unsound, or if it changes the format once the season has begun. A league with no
+ *  commissioner saves a veto as a vote (`savedWithoutCommissioner`). */
+async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, asked: LeagueRules, loaded: Revision): Promise<number> {
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, email, latestRow, loaded);
   const league = await getLeague(ctx, leagueId);
+  const rules = savedWithoutCommissioner(league, asked);
   await refuseUnsound(ctx, rules, league.maxTeams);
   const fromGameweek = changesFromAt(await changesFromTimesOf(ctx, leagueId, history, rules), Date.now());
+  if (latestRow !== undefined) refuseClassicChange(latestRow.rules, rules);
   if (latestRow !== undefined) await refuseFormatChange(ctx, league, latestRow.rules, rules, fromGameweek);
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;

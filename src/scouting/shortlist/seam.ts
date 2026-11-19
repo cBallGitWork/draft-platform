@@ -19,6 +19,9 @@ export type ShortlistChanges = {
 export type QueueFromShortlist = {
   /** The change (a hook). */
   useAddToQueue(): (leagueId: Id<"leagues">, playerCode: number) => Change;
+  /** Whether the league's draft is to come or live, the only time "Add to queue" shows (S04.32;
+   *  Craig, 18 Nov 2026, on #2651), live (a hook): undefined while it loads. */
+  useDraftNotOver(leagueId: Id<"leagues">): boolean | undefined;
 };
 
 export type ShortlistSeam = {

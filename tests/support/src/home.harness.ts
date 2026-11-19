@@ -47,6 +47,7 @@ export const quietYours: NonNullable<LeagueHome["yours"]> = { squadNews: [], lin
  *  what league home holds by default. */
 export const quietHome: LeagueHome = {
   format: "headToHead",
+  stage: { kind: "season" },
   thisGameweek: { gameweek: 1, fixtures: [homeFixture(MY_TEAM_NAME, THEIR_TEAM_NAME)], byes: [] },
   deadline: null,
   yours: quietYours,

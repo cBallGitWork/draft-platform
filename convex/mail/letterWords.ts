@@ -17,6 +17,9 @@ export const adminByline = "The admin";
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
 const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
+/** The letter's words when commissioner `replaced` steps down and `email` takes the role on (S01.5). */
+export const steppedDownBody = (replaced: string, email: string) =>
+  `${replaced} stepped down as the league's commissioner, and ${email} takes the role on.`;
 const joinedSubject = ({ email, teamName }: { email: string; teamName: string }) => `${email} joined as manager of ${teamName}`;
 
 /** The letter reporting `event`, done by `who`, telling any time with `tell`, in the reader's zone. */
@@ -28,6 +31,11 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       return {
         subject: `${event.email} is the commissioner`,
         body: `${who} named ${event.email} the league's commissioner${inPlaceOf(event.replaced)}.`,
+      };
+    case "commissionerSteppedDown":
+      return {
+        subject: `${event.email} is the commissioner`,
+        body: steppedDownBody(event.replaced, event.email),
       };
     case "coCommissionerNamed":
       return {
@@ -199,6 +207,8 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring" | "oddTeamOut", str
   draft: "draft settings",
   trades: "trade settings",
   instructions: "team instructions",
+  classic: "classic mode",
+  lineLimits: "classic mode's limits on the pitch",
   scoring: "scoring",
 };
 

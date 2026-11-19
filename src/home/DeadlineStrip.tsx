@@ -4,31 +4,35 @@ import type { LeagueHome } from "./seam";
 import {
   claimsWaitingWords,
   countdownWords,
+  draftBoxLabel,
   figureWords,
   flaggedStarterWords,
   gapWords,
   lineupNotSetWords,
   lineupSetWords,
+  locksLabel,
   moreFlaggedWords,
   noFigureWords,
   placeWords,
   pointsShortWords,
+  seasonBoxLabel,
+  seasonOverWords,
   stripBoxes,
   stripLabel,
   weekdayTimeWords,
 } from "./words";
 
-/** The deadline strip under the tabs, as the picture has it (Craig, 13 Nov 2026, on #1976): when
- *  this gameweek locks, the reader's lineup, when claims close and how many he has waiting, and his
- *  place in the table. It reads only; none of its boxes opens anything. "—" where he runs no team
- *  in the league. */
-export function DeadlineStrip({ home, gameweek, now }: { home: LeagueHome; gameweek: number; now: number }) {
-  const [locks, lineup, claims, table] = stripBoxes(gameweek);
+/** The deadline strip under the tabs, as the picture has it (Craig, 13 Nov 2026, on #1976): where
+ *  the season stands (`firstBox`), the reader's lineup, when claims close and how many he has
+ *  waiting, and his place in the table. It reads only; none of its boxes opens anything. "—" where
+ *  he runs no team in the league. */
+export function DeadlineStrip({ home, gameweek, now }: { home: LeagueHome; gameweek: number | null; now: number }) {
+  const first = firstBox(home, gameweek, now);
+  if (first === null) return null;
+  const [, lineup, claims, table] = stripBoxes(first.label);
   return (
     <ul aria-label={stripLabel} className="flex flex-wrap bg-panel">
-      <Box label={locks}>
-        <Locks deadline={home.deadline} now={now} />
-      </Box>
+      <Box label={first.label}>{first.value}</Box>
       <Box label={lineup}>
         <Lineup lineup={home.yours?.lineup ?? null} />
       </Box>
@@ -51,12 +55,23 @@ function Box({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Locks({ deadline, now }: { deadline: number | null; now: number }) {
-  if (deadline === null) return noFigureWords;
+/** The first box, saying where the season stands (S12.22): the draft and when it starts until it is
+ *  over, then when this gameweek locks, and "Season over" once the last is final. Null with no
+ *  gameweek once the draft is over, as in total points: no strip. */
+function firstBox({ stage, deadline }: LeagueHome, gameweek: number | null, now: number): { label: string; value: ReactNode } | null {
+  if (stage.kind === "draft") return { label: draftBoxLabel, value: <When at={stage.startsAt} now={now} /> };
+  if (gameweek === null) return null;
+  if (stage.kind === "over") return { label: seasonBoxLabel, value: seasonOverWords };
+  return { label: locksLabel(gameweek), value: <When at={deadline} now={now} /> };
+}
+
+/** A day and time, with how long is left while it is to come; "—" with none. */
+function When({ at, now }: { at: number | null; now: number }) {
+  if (at === null) return noFigureWords;
   return (
     <>
-      {weekdayTimeWords(deadline)}
-      {deadline > now && <span className="text-derived"> {countdownWords(deadline - now)}</span>}
+      {weekdayTimeWords(at)}
+      {at > now && <span className="text-derived"> {countdownWords(at - now)}</span>}
     </>
   );
 }

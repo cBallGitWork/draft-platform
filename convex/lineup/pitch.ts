@@ -125,6 +125,21 @@ export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }
 
+/** The support-striker role's key (roles.ts's shadow striker in the centre attacking midfield):
+ *  saved with a lineup, so never renamed. */
+export const SUPPORT_STRIKER_ROLE = "attackingMidfieldShadowStriker";
+
+/** What a slot's label reads: its position, or SS for the support striker. */
+export type SlotLabel = SlotPosition | "SS";
+
+/** The label the screens show on the slot at this cell, played in the role with this key (spec/06
+ *  `S06.10`): SS for the support-striker role behind the striker, its position otherwise. Display
+ *  only: scoring prices the slot's position (`positionOfSlot`), never this. */
+export function slotLabelOf(cell: Cell, role: string): SlotLabel {
+  const position = positionOfSlot(cell);
+  return position === "CAM" && role === SUPPORT_STRIKER_ROLE ? "SS" : position;
+}
+
 /** The area each slot position plays in: each is in exactly one (spec/14's table). */
 export const AREA_OF_POSITION: Readonly<Record<SlotPosition, Area>> = Object.fromEntries(
   AREAS.flatMap((area) => Object.values(SLOT_POSITION_BY_AREA[area]).map((position) => [position, area])),

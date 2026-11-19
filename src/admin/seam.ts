@@ -13,6 +13,8 @@ import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../shared/refusal";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { WaitingAsk } from "../../convex/leagues/commissionerAsks";
 
 export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, GameweekMatch, MatchMoveLogRow, PlatformSettings, PositionsQueue };
 
@@ -56,4 +58,10 @@ export type AdminSeam = {
   /** Moves the match to `gameweek`, or with null clears his move (spec/07 `S07.9`): resolves with
    *  the warnings about the deadline it moved, or with the words saying why it was refused. */
   moveMatch(fixtureCode: number, gameweek: number | null): Promise<{ warnings: string[] } | string>;
+  /** Managers' asks to be commissioner of a league with none, oldest first, live (a hook):
+   *  undefined while they load (spec/01 S01.3). */
+  useCommissionerAsks(): { asks: readonly WaitingAsk[]; more: boolean } | undefined;
+  /** Approves the ask: its manager is the league's commissioner at once. */
+  approveAsk(askId: Id<"commissionerAsks">): Change;
+  refuseAsk(askId: Id<"commissionerAsks">): Change;
 };
