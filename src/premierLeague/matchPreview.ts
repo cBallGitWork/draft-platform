@@ -66,7 +66,7 @@ const PLACES: Record<string, [number, number]> = {
 /** What his stats earned him, for the Points switch: made up as his points are, at FPL's values
  *  for a midfielder. */
 function statPointsOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
-  const zero = { shots: 0, shotsOnTarget: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  const zero = { shots: 0, shotsOnTarget: 0, shotsBlocked: 0, hitWoodwork: 0, bigChancesMissed: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
   return { ...zero, minutes: started ? 2 : 1, goals: goals * 5, assists: assists * 3, yellowCards: -yellowCards, redCards: redCards * -3 };
 }
 
@@ -74,7 +74,7 @@ function statPointsOf(started: boolean, { goals, assists, yellowCards, redCards 
  *  goal a shot on target; his minutes (a starter's 90, a substitute's 20) made up, as the points
  *  are, and the rest 0. */
 function statLineOf(started: boolean, { goals, assists, yellowCards, redCards }: MatchMarks): MatchStatLine {
-  const zero = { keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
+  const zero = { shotsBlocked: 0, hitWoodwork: 0, bigChancesMissed: 0, keyPasses: 0, tackles: 0, cleanSheets: 0, goalsConceded: 0, saves: 0 };
   return { ...zero, minutes: started ? 90 : 20, goals, assists, shots: goals, shotsOnTarget: goals, yellowCards, redCards };
 }
 

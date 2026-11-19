@@ -184,6 +184,9 @@ export const matchStatColumns = {
   assists: statColumns.assists,
   shots: { short: "Sh", long: teamStatRows.shots },
   shotsOnTarget: { short: "SoT", long: teamStatRows.shotsOnTarget },
+  shotsBlocked: { short: "ShB", long: "Shots blocked" },
+  hitWoodwork: { short: "HW", long: "Hit woodwork" },
+  bigChancesMissed: { short: "BCM", long: "Big chances missed" },
   keyPasses: { short: "KP", long: statNames.keyPasses },
   tackles: { short: "Tkl", long: "Tackles" },
   cleanSheets: statColumns.cleanSheets,
@@ -216,9 +219,6 @@ export const matchPitchLabel = (home: string, away: string) => `${home} and ${aw
 export const manPanelLabel = (name: string) => `${name}'s points in this match`;
 export const manPanelColumns = { stat: { short: "This match", long: "What he did in this match" }, count: { short: "No.", long: "How many" }, points: { short: "Pts", long: "The points it earned him" } } as const;
 export const manPanelWords = { total: "Total", hisCard: "His card" } as const;
-export const SHOTS_TITLE = "Shots";
-/** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
-export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";
 
 // A club's page (#1936; spec/18, Club pages).
 

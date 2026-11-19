@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
+import { SPORTMONKS_STAT_IDS } from "../../../convex/football/sportmonks/sportmonksStats";
 import { MATCH_STAT_KEYS, statLineOf, statPointsOf } from "../../../convex/match/matchStatLine";
 import { HULL_SCORER } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
@@ -23,6 +24,19 @@ test("S10.8 each man carries his stats for the match from his record, 0 where it
 test("S10.8 a stat his record leaves out counts 0, and none is made up before his record", () => {
   expect(statLineOf({ [MATCH_STAT_KEYS.minutes]: 67, [MATCH_STAT_KEYS.shots]: 4 })).toMatchObject({ minutes: 67, shots: 4, tackles: 0, saves: 0 });
   expect(statLineOf(undefined)).toBeNull();
+});
+
+test("S10.8 shot counts in place of a shot map: shots blocked, woodwork and big chances missed from Sportmonks' stats", () => {
+  const line = statLineOf({ blocked_scoring_att: 2, hit_woodwork: 1, big_chance_missed: 3 });
+  expect(line).toMatchObject({ shotsBlocked: 2, hitWoodwork: 1, bigChancesMissed: 3 });
+  expect(SPORTMONKS_STAT_IDS[MATCH_STAT_KEYS.shotsBlocked]).toBe(58);
+  expect(SPORTMONKS_STAT_IDS[MATCH_STAT_KEYS.hitWoodwork]).toBe(64);
+  expect(SPORTMONKS_STAT_IDS[MATCH_STAT_KEYS.bigChancesMissed]).toBe(581);
+});
+
+test("S10.8 with Points, a scored shot count shows what it earned him", () => {
+  const why = { actions: 1, value: { shape: "perAction", points: -1 }, pricedBy: { by: "all" }, cut: null } as const;
+  expect(statPointsOf([{ stat: MATCH_STAT_KEYS.bigChancesMissed, points: -2, why }])).toMatchObject({ bigChancesMissed: -2, shotsBlocked: 0, hitWoodwork: 0 });
 });
 
 test("S10.8 before kickoff, from the sheets, no man has a stat line", async () => {

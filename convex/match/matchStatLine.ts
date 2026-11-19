@@ -2,14 +2,17 @@ import { v, type Infer } from "convex/values";
 import type { CategoryPoints } from "../scoring/scoring";
 import {
   ASSISTS,
+  BIG_CHANCES_MISSED,
   CLEAN_SHEETS,
   GOALS,
   GOALS_CONCEDED,
+  HIT_WOODWORK,
   KEY_PASSES,
   MINUTES_STAT,
   RED_CARDS,
   SAVES,
   SHOTS,
+  SHOTS_BLOCKED,
   SHOTS_ON_TARGET,
   TACKLES,
   YELLOW_CARDS,
@@ -17,7 +20,8 @@ import {
 
 // Each man's stats for the match on the match page's Player stats tab (#1032; spec/10 S10.8: "A
 // match needs a tab for detailed stats"), in the approved picture's columns, counted from his record
-// as the scoring reads it.
+// as the scoring reads it. His shots blocked, woodwork and big chances missed stand in for a shot
+// map ("Shot counts instead", Craig, 17 Nov 2026).
 
 /** The record's stat behind each column, under the name it is kept by. */
 export const MATCH_STAT_KEYS = {
@@ -26,6 +30,9 @@ export const MATCH_STAT_KEYS = {
   assists: ASSISTS,
   shots: SHOTS,
   shotsOnTarget: SHOTS_ON_TARGET,
+  shotsBlocked: SHOTS_BLOCKED,
+  hitWoodwork: HIT_WOODWORK,
+  bigChancesMissed: BIG_CHANCES_MISSED,
   keyPasses: KEY_PASSES,
   tackles: TACKLES,
   cleanSheets: CLEAN_SHEETS,
@@ -42,6 +49,9 @@ export const matchStatLine = v.object({
   assists: v.number(),
   shots: v.number(),
   shotsOnTarget: v.number(),
+  shotsBlocked: v.number(),
+  hitWoodwork: v.number(),
+  bigChancesMissed: v.number(),
   keyPasses: v.number(),
   tackles: v.number(),
   cleanSheets: v.number(),
