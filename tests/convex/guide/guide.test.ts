@@ -4,7 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { guideRefusals } from "../../../convex/guide/guide";
 import { GUIDE_TITLE_MAX } from "../../../convex/guide/guideLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
+import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -16,13 +17,12 @@ beforeEach(async () => {
   t = await signInDeployment();
 });
 
-const admin = () => actingAs(t, ADMIN);
 /** The Guide as Ann, a manager, reads it: each section's title and its entries' titles. */
 const outline = async () =>
   (await (await actingAs(t, ANN)).query(api.guide.guide.list, {})).map((section) => [section.title, section.entries.map((entry) => entry.title)]);
-const addSection = async (title: string) => (await admin()).mutation(api.guide.guide.addSection, { title });
+const addSection = async (title: string) => (await asAdmin(t)).mutation(api.guide.guide.addSection, { title });
 const addEntry = async (sectionId: Id<"guideSections">, title: string) =>
-  (await admin()).mutation(api.guide.guide.addEntry, { sectionId, title, text: `${title}, explained.` });
+  (await asAdmin(t)).mutation(api.guide.guide.addEntry, { sectionId, title, text: `${title}, explained.` });
 
 /** Basics (Stars, Runs) then Tactics (Formations). */
 async function aGuide() {
@@ -51,7 +51,7 @@ describe("reading the Guide", () => {
 describe("the admin changes it, and managers see it at once", () => {
   test("S23.13 S23.15: an entry's edit shows to managers at once", async () => {
     const { stars } = await aGuide();
-    await (await admin()).mutation(api.guide.guide.editEntry, { entryId: stars, title: " Stars ", text: "  A star is a player picked.\nFor a gameweek. " });
+    await (await asAdmin(t)).mutation(api.guide.guide.editEntry, { entryId: stars, title: " Stars ", text: "  A star is a player picked.\nFor a gameweek. " });
     const [basics] = await (await actingAs(t, ANN)).query(api.guide.guide.list, {});
     expect(basics.entries[0]).toMatchObject({ title: "Stars", text: "A star is a player picked.\nFor a gameweek." });
   });
@@ -69,7 +69,7 @@ describe("the admin changes it, and managers see it at once", () => {
 
   test("S23.13: a removed entry leaves the list, and the rest close up", async () => {
     const { stars, basics } = await aGuide();
-    await (await admin()).mutation(api.guide.guide.removeEntry, { entryId: stars });
+    await (await asAdmin(t)).mutation(api.guide.guide.removeEntry, { entryId: stars });
     await addEntry(basics, "Prov.");
     expect(await outline()).toEqual([
       ["Basics", ["Runs", "Prov."]],
@@ -79,13 +79,13 @@ describe("the admin changes it, and managers see it at once", () => {
 
   test("S23.13: entries reorder within a section and move to another", async () => {
     const { runs, stars, tactics } = await aGuide();
-    await (await admin()).mutation(api.guide.guide.moveEntry, { entryId: runs, sectionId: tactics, place: 0 });
+    await (await asAdmin(t)).mutation(api.guide.guide.moveEntry, { entryId: runs, sectionId: tactics, place: 0 });
     expect(await outline()).toEqual([
       ["Basics", ["Stars"]],
       ["Tactics", ["Runs", "Formations"]],
     ]);
-    await (await admin()).mutation(api.guide.guide.moveEntry, { entryId: runs, sectionId: tactics, place: 1 });
-    await (await admin()).mutation(api.guide.guide.moveEntry, { entryId: stars, sectionId: tactics, place: 2 });
+    await (await asAdmin(t)).mutation(api.guide.guide.moveEntry, { entryId: runs, sectionId: tactics, place: 1 });
+    await (await asAdmin(t)).mutation(api.guide.guide.moveEntry, { entryId: stars, sectionId: tactics, place: 2 });
     expect(await outline()).toEqual([
       ["Basics", []],
       ["Tactics", ["Formations", "Runs", "Stars"]],
@@ -94,8 +94,8 @@ describe("the admin changes it, and managers see it at once", () => {
 
   test("S23.13: sections rename and reorder", async () => {
     const { tactics, basics } = await aGuide();
-    await (await admin()).mutation(api.guide.guide.moveSection, { sectionId: tactics, place: 0 });
-    await (await admin()).mutation(api.guide.guide.renameSection, { sectionId: basics, title: "The basics" });
+    await (await asAdmin(t)).mutation(api.guide.guide.moveSection, { sectionId: tactics, place: 0 });
+    await (await asAdmin(t)).mutation(api.guide.guide.renameSection, { sectionId: basics, title: "The basics" });
     expect(await outline()).toEqual([
       ["Tactics", ["Formations"]],
       ["The basics", ["Stars", "Runs"]],
@@ -104,7 +104,7 @@ describe("the admin changes it, and managers see it at once", () => {
 
   test("S23.13: a place past the end of the list is refused", async () => {
     const { tactics } = await aGuide();
-    await expectRefused((await admin()).mutation(api.guide.guide.moveSection, { sectionId: tactics, place: 2 }), guideRefusals.noPlace);
+    await expectRefused((await asAdmin(t)).mutation(api.guide.guide.moveSection, { sectionId: tactics, place: 2 }), guideRefusals.noPlace);
   });
 
   test(`S23.13: a blank title, or one past ${GUIDE_TITLE_MAX} characters, is refused`, async () => {
@@ -116,9 +116,9 @@ describe("the admin changes it, and managers see it at once", () => {
 describe("removing a section", () => {
   test("S23.14: a section with entries can't be removed; once empty, it can", async () => {
     const { tactics, formations } = await aGuide();
-    await expectRefused((await admin()).mutation(api.guide.guide.removeSection, { sectionId: tactics }), guideRefusals.notEmpty);
-    await (await admin()).mutation(api.guide.guide.removeEntry, { entryId: formations });
-    await (await admin()).mutation(api.guide.guide.removeSection, { sectionId: tactics });
+    await expectRefused((await asAdmin(t)).mutation(api.guide.guide.removeSection, { sectionId: tactics }), guideRefusals.notEmpty);
+    await (await asAdmin(t)).mutation(api.guide.guide.removeEntry, { entryId: formations });
+    await (await asAdmin(t)).mutation(api.guide.guide.removeSection, { sectionId: tactics });
     expect(await outline()).toEqual([["Basics", ["Stars", "Runs"]]]);
   });
 });
