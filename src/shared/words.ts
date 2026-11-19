@@ -169,6 +169,7 @@ export const menuWords = {
   home: "Home",
   overview: "Overview",
   news: "News",
+  calendar: "Calendar",
   myTeam: "My team",
   tactics: "Tactics",
   squad: "Squad",

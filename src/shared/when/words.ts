@@ -1,7 +1,7 @@
 // When things happen, as every screen says it alike: times and days in the viewer's own zone,
 // countdowns, gameweeks and seasons.
 
-import { LOCALE } from "../../../convex/shared/moments";
+import { LOCALE, LONDON_ZONE } from "../../../convex/shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
 /** A gameweek by name, as its tick box and the fixtures' stepper say it. */
@@ -42,6 +42,9 @@ export const dateWords = (at: number) => dateFormat.format(at);
 const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
 export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
+const ukTimeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit", timeZone: LONDON_ZONE });
+/** The time of day in the UK, whoever reads it: "18:00", on Home's Calendar, a UK month. */
+export const ukTimeOfDayWords = (at: number) => ukTimeOfDayFormat.format(at);
 const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 /** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
 export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);

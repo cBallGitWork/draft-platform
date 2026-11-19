@@ -17,7 +17,7 @@ import { previewLatestMail } from "../mail/preview";
 import { previewChanceOf, previewSquad, previewStarterCodes } from "../myTeam/tactics/preview";
 import { previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewLeagueTable, previewScored } from "../table/preview";
-import { previewIdOf, previewOpponent, previewOpponentOf, previewSchedule } from "../shared/previewDraw";
+import { previewIdOf, previewOpponent, previewOpponentOf, previewSchedule, previewSeason } from "../shared/previewDraw";
 import { previewMatchdayLines } from "../matchup/preview";
 import { previewSeasonOf } from "../playerCard/preview";
 import { RECAP_PLAYERS } from "../../convex/home/recapWords";
@@ -25,7 +25,8 @@ import { previewPlayers, previewRivals } from "../scouting/preview";
 import { playsIn, previewClubMatch, previewGameweekMatches } from "../premierLeague/preview";
 import { flaggedStartersAt } from "../../convex/home/homeAt";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
+import { firstRunFrom, ukMoment } from "../../convex/waivers/waiverTimes";
+import type { CalendarEvent, CalendarMonth, HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
 /** A trade that went through (#1491): Lingard Franca's Strand Larsen for Expected Toulouse's Neto
  *  and Ouattara, none of them a man another screen places, made up. */
@@ -208,7 +209,17 @@ const news = (before: NewsAsked["before"]): LeagueNews => {
   };
 };
 
+/** The Calendar's month: each used gameweek's deadline and the first rules' waiver runs. */
+function calendarMonth({ year, month }: CalendarMonth): CalendarEvent[] {
+  const [from, to] = [ukMoment(Date.UTC(year, month - 1, 1), 0, 0), ukMoment(Date.UTC(year, month, 1), 0, 0)];
+  const deadlines = previewSeason.gameweeks.map((gameweek) => ({ kind: "deadline" as const, at: previewSeason.deadlineOf(gameweek), gameweek }));
+  const runs: CalendarEvent[] = [];
+  for (let at = firstRunFrom(FIRST_RULES.waivers.runs, from); at !== null && at < to; at = firstRunFrom(FIRST_RULES.waivers.runs, at + 1)) runs.push({ kind: "waiverRun", at });
+  return [...deadlines.filter(({ at }) => at >= from && at < to), ...runs].sort((one, other) => one.at - other.at);
+}
+
 export const previewHome: HomeSeam = {
+  useCalendarMonth: (_, month) => calendarMonth(month),
   useLeagueHome: () => home,
   useLatestMail: () => previewLatestMail,
   useRecap: (_, gameweek) => (gameweek === undefined || gameweek === SCORED ? home.recap : null),

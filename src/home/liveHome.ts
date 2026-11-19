@@ -31,5 +31,6 @@ export const liveHome: HomeSeam = {
   },
   useRecap: (leagueId, gameweek) => useQuery(api.home.recaps.ofGameweek, gameweek === undefined ? { leagueId } : { leagueId, gameweek }),
   useLeagueNews: (leagueId, asked) => useQuery(api.home.leagueNews.ofLeague, { leagueId, ...asked }),
+  useCalendarMonth: (leagueId, month) => useQuery(api.home.calendar.ofMonth, { leagueId, ...month }),
   useLatestMail: () => useQuery(api.mail.mail.latest, {}),
 };

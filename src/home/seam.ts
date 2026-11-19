@@ -4,9 +4,12 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueHome } from "../../convex/home/leagueHome";
 import type { LeagueNews, NewsMove } from "../../convex/home/leagueNews";
+import type { CalendarEvent } from "../../convex/home/calendar";
 import type { SquadSeam } from "../myTeam/squad/seam";
 
-export type { LeagueHome, LeagueNews, NewsMove };
+export type { CalendarEvent, LeagueHome, LeagueNews, NewsMove };
+/** A UK month, `month` 1 for January: the one the Calendar tab shows. */
+export type CalendarMonth = { year: number; month: number };
 export type Recap = NonNullable<LeagueHome["recap"]>;
 
 /** What a page of the News tab asks for: the moves below `before` (null for the newest), of one
@@ -23,4 +26,7 @@ export type HomeSeam = Pick<SquadSeam, "useLatestMail"> & {
   useRecap(leagueId: Id<"leagues">, gameweek: number | undefined): Recap | null | undefined;
   /** A page of the News tab's moves (#1356), live (a hook): undefined while it loads. */
   useLeagueNews(leagueId: Id<"leagues">, asked: NewsAsked): LeagueNews | undefined;
+  /** The league's events in a UK month, in time order (#2683), live (a hook): undefined while it
+   *  loads. */
+  useCalendarMonth(leagueId: Id<"leagues">, month: CalendarMonth): CalendarEvent[] | undefined;
 };

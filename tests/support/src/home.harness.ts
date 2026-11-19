@@ -2,7 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
+import type { CalendarEvent, HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
@@ -88,10 +88,21 @@ export const quietNews: LeagueNews = {
 /** What the fake server holds: league home, null for a league with no rules, or nothing yet while
  *  it loads; its recaps, by gameweek; the News tab's pages, by what each asks; and the newest
  *  letters, none unless `mail` says. */
-export type HomeData = { leagueHome?: LeagueHome; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews; mail?: LatestMail | null };
+export type HomeData = {
+  leagueHome?: LeagueHome;
+  loading?: boolean;
+  recaps?: readonly Recap[];
+  news?: (asked: NewsAsked) => LeagueNews;
+  mail?: LatestMail | null;
+  /** The Calendar's events, every month's: each month is handed its own. */
+  calendar?: readonly CalendarEvent[];
+};
 
-export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0, needsYou: [] } }: HomeData = {}) {
+export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0, needsYou: [] }, calendar = [] }: HomeData = {}) {
   return {
+    useCalendarMonth: vi.fn<HomeSeam["useCalendarMonth"]>((_, { year, month }) =>
+      loading ? undefined : calendar.filter(({ at }) => new Date(at).getUTCFullYear() === year && new Date(at).getUTCMonth() + 1 === month),
+    ),
     useLatestMail: vi.fn<HomeSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),
     useRecap: vi.fn<HomeSeam["useRecap"]>((_, gameweek) =>

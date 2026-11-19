@@ -2,8 +2,8 @@
 
 import { TOP_ROWS } from "../../convex/home/glance";
 import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
-import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, TABLE_TITLE, tradedNames } from "../shared/words";
+import { andListWords, LOCALE } from "../../convex/shared/moments";
+import { DRAFT_TITLE, fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, TABLE_TITLE, tradedNames } from "../shared/words";
 import { foldedGlyph } from "../shared/controls/words";
 import { gameweekShort } from "../shared/when/words";
 import { columns as tableColumns } from "../table/words";
@@ -162,6 +162,28 @@ export const fromTeamWords = (teamName: string) => `From ${teamName}`;
 export const gotWords = (teamName: string) => `${teamName} got`;
 export const letGoWords = (teamName: string) => `${teamName} let go`;
 export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" : "Back to the free agents");
+
+/** League home's Calendar tab (#2683; docs/design/approved/home/, The Calendar tab): a UK month,
+ *  Monday first, each day's events in its cell. Days and months are named as UTC reads the UK day
+ *  each stands for. */
+export const calendarLoadingWords = "Loading the month…";
+export const ukTimeWords = "UK time";
+export const todayWords = "Today";
+const monthFormat = new Intl.DateTimeFormat(LOCALE, { month: "long", year: "numeric", timeZone: "UTC" });
+/** "November 2026": the month's plate, and the label of the arrow stepping to it. */
+export const monthWords = (firstDay: number) => monthFormat.format(firstDay);
+const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", timeZone: "UTC" });
+/** A column's head: "Mon". */
+export const weekdayHeadWords = (day: number) => weekdayFormat.format(day);
+const dayNameFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+/** A day's cell, to a screen reader: "Monday 26 October". */
+export const dayNameWords = (day: number) => dayNameFormat.format(day);
+/** Each event's words: a gameweek shows only as its deadline (Craig, 18 Nov 2026: "Deadlines only"). */
+export const calendarEventWords = {
+  deadline: (gameweek: number) => `${gameweekShort(gameweek)} deadline`,
+  draft: DRAFT_TITLE,
+  waiverRun: "Waivers",
+} as const;
 
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
