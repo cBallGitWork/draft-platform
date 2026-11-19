@@ -16,23 +16,23 @@ const IN_JANUARY = Date.parse("2027-01-15T12:00:00Z");
 
 const LETTERS: [LeagueEvent, string, string][] = [
   [{ kind: "deletionStarted", name: "Sunday League", deletesAt: IN_JANUARY }, "Sunday League is being deleted", "Friday 15 January"],
-  [{ kind: "deletionUndone", name: "Sunday League" }, "Sunday League is no longer being deleted", "undid deleting"],
+  [{ kind: "deletionUndone", name: "Sunday League" }, "Sunday League is no longer being deleted", "stopped the league being deleted"],
   [{ kind: "gameweekUsed", gameweek: 12, used: false }, "Gameweek 12 won't count", "took gameweek 12 out"],
   [{ kind: "gameweekUsed", gameweek: 12, used: true }, "Gameweek 12 counts again", "count for the league again"],
   [
     { kind: "gameweekUsed", gameweek: 9, used: false, startMovedTo: 10 },
     "Gameweek 9 won't count",
-    "out of the league's season. Scoring starts in gameweek 10, not 9: squads and line-ups count from its deadline, and the gameweeks before it score nothing.",
+    "out of the league's season. Scoring starts in gameweek 10, not 9. Squads and line-ups count from its deadline, and earlier gameweeks score nothing.",
   ],
-  [{ kind: "scoringStartSet", from: 9, to: 12 }, "Scoring starts in gameweek 12", "Scoring starts in gameweek 12, not 9: squads and line-ups count"],
-  [{ kind: "scoringStartSet", from: null, to: 5 }, "Scoring starts in gameweek 5", "Scoring starts in gameweek 5: squads"],
+  [{ kind: "scoringStartSet", from: 9, to: 12 }, "Scoring starts in gameweek 12", "Scoring starts in gameweek 12, not 9. Squads and line-ups count"],
+  [{ kind: "scoringStartSet", from: null, to: 5 }, "Scoring starts in gameweek 5", "Scoring starts in gameweek 5. Squads"],
   [{ kind: "invited", email: ANN, teamId: null, teamName: null }, `${ANN} was invited`, "to manage a new team"],
   [{ kind: "inviteResent", email: ANN, teamId: TEAM, teamName: "Saka Potatoes" }, `${ANN}'s invite was sent again`, "Saka Potatoes"],
   [{ kind: "inviteCancelled", email: ANN, teamId: null, teamName: null }, `${ANN}'s invite was cancelled`, "cancelled"],
   [
     { kind: "joinedByInvite", email: ANN, teamId: TEAM, teamName: "Saka Potatoes", invitedBy: WHO },
     `${ANN} joined as manager of Saka Potatoes`,
-    `took up ${WHO}'s invite`,
+    `accepted ${WHO}'s invite`,
   ],
   [{ kind: "joinRequestApproved", email: ANN, teamId: TEAM, teamName: "Saka Potatoes" }, `${ANN} joined as manager of Saka Potatoes`, "approved"],
   [{ kind: "inviteLinkMade", replacedOne: true }, "The league has a new invite link", "the old one no longer works"],
@@ -40,12 +40,12 @@ const LETTERS: [LeagueEvent, string, string][] = [
   [
     { kind: "pointsOverrideRemoved", playerCode: 1, playerName: "Saka", fixtureCode: 1, matchName: "Arsenal v Chelsea", gameweek: 6, from: 8, to: null, teams: [] },
     "Saka's override in Arsenal v Chelsea was removed",
-    "gameweek 6: 8 no longer stands.\n\nNo team's total moved: no line-up counted him.",
+    "gameweek 6. The 8 no longer stands.\n\nNo team's total changed, as no line-up counted him.", // one-home-ok: pins the exact words a manager reads
   ],
   [
     { kind: "teamPointsOverridden", teamId: TEAM, teamName: "Lions", gameweek: 6, from: 54, to: 60, reason: "two subs missed" },
     "Lions's total in gameweek 6 was overridden",
-    "total in gameweek 6: 54 to 60. Why: two subs missed",
+    "total in gameweek 6, from 54 to 60. Why: two subs missed",
   ],
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring", "deadline"] },
@@ -55,12 +55,12 @@ const LETTERS: [LeagueEvent, string, string][] = [
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["oddTeamOut", "gamesPerGameweek", "tieBreaks"] },
     "The league's rules change from gameweek 9",
-    "changed the league's odd team out, games a gameweek and tie-breaks, from gameweek 9.",
+    "changed the league's odd team out, games each gameweek and tie-breaks, from gameweek 9.",
   ],
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring"], categories: ["Goals scored", "Assists"], wholePointsOnly: true },
     "The league's rules change from gameweek 9",
-    "changed the league's scoring, from gameweek 9. The scoring changed for Goals scored and Assists, and points are now whole only.",
+    "changed the league's scoring, from gameweek 9. The scoring changed for Goals scored and Assists, and points are now whole numbers only.", // one-home-ok: pins the exact words a manager reads
   ],
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring"], wholePointsOnly: false },
@@ -93,7 +93,7 @@ test("an override letter writes points below 0 with the true minus, never a hyph
     WHO,
     LONDON,
   );
-  expect(letter.body).toContain("gameweek 6: 2 to −1.");
+  expect(letter.body).toContain("gameweek 6, from 2 to −1.");
   expect(letter.body).toContain("Lions now have −0.5 in gameweek 6, not 3.");
   expect(letter.body).not.toMatch(/-\d/);
 });

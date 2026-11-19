@@ -56,7 +56,7 @@ describe("League settings' waivers", () => {
         { day: "friday", hour: 12, minute: 0 },
         { day: "friday", hour: 12, minute: 0 },
       ],
-      "Waivers run on friday at 12:00 twice.",
+      "Bids already settle on Friday at noon.",
     ],
   ] as const)("refuses %s with the reason, and saves nothing", async (_, runs, reason) => {
     await expectRefused(changeWaivers({ ...HELD_FIRST_RULES.waivers, runs: [...runs] }), reason);

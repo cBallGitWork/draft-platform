@@ -31,6 +31,7 @@ import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openOnAll, openScouting, RICE, rowOf, table } from "../../support/src/scoutingScreen.harness";
 import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
+import { TWELVE_HOUR } from "../../support/src/twelveHour";
 
 describe("reaching it", () => {
   it.each([
@@ -169,9 +170,9 @@ describe("the filters ask the server", () => {
     expect(namesShown()).toEqual(["James"]);
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.all }));
     expect(rowOf("James").textContent).toContain(onWaiversWords(firstRun));
-    expect(onWaiversWords(firstRun)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+    expect(onWaiversWords(firstRun)).toMatch(new RegExp(`^Released, Thu ${TWELVE_HOUR}$`));
     // One that may fall in a gameweek's lock waits on its last match (#1467).
-    expect(onWaiversWords({ ...firstRun, skippedIf: 12 })).toBe("Waivers, after GW12's last match");
+    expect(onWaiversWords({ ...firstRun, skippedIf: 12 })).toBe("Released, after GW12's last match");
 
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.freeAgents }));
     expect(namesShown()).toEqual(["Rice"]);
@@ -184,8 +185,8 @@ describe("the filters ask the server", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 
-  it("a player on waivers with no run times set says just Waivers", () => {
-    expect(onWaiversWords(null)).toBe("Waivers");
+  it("a player on waivers with no run times set says just Released", () => {
+    expect(onWaiversWords(null)).toBe("Released");
   });
 
   it("by position", async () => {

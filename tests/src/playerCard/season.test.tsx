@@ -140,7 +140,7 @@ describe("this season", () => {
     };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [{ ...AT_W, role }] }] });
     expect((await screen.findByLabelText(roleLineLabel("Poacher"))).textContent).toBe(
-      "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)",
+      "Role points, Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)",
     );
     expect(cellsOf(within(screen.getByRole("region", { name: SEASON_TITLE })))).toEqual(["2", "2–1", "90", "1", "1", "0", "11"]);
   });
@@ -154,7 +154,7 @@ describe("this season", () => {
 
     expect(cellsOf(season).at(-1)).toBe("−2");
     expect(breakdownLines(2).slice(0, 2)).toEqual(["Minutes 1 at 1 each 1", "Yellow cards 3 at −1 each −3"]);
-    expect(screen.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward: −1 (−1: 1 big chance missed)");
+    expect(screen.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Role points, Inside forward: −1 (−1: 1 big chance missed)");
   });
 
   it("a match whose points may still move is marked live, and the card says why (#577)", async () => {

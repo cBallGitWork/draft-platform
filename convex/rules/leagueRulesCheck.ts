@@ -11,6 +11,7 @@ import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
+import { capitalised, twelveHourWords } from "../shared/moments";
 import { TIE_BREAKS, type TieBreak } from "../table/standings";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
@@ -232,8 +233,8 @@ function checkWaivers({ runs }: LeagueRules["waivers"]): void {
     checkWholeNumberWithin(minute, "A waiver run's minute", 0, LAST_MINUTE);
   }
   checkNoneTwice(
-    runs.map(({ day, hour, minute }) => `${day} at ${hour}:${String(minute).padStart(2, "0")}`),
-    (run) => `Waivers run on ${run} twice.`,
+    runs.map(({ day, hour, minute }) => `${capitalised(day)} at ${twelveHourWords(hour, minute)}`),
+    (run) => `Bids already settle on ${run}.`,
   );
 }
 

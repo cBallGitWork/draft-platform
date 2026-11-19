@@ -33,6 +33,7 @@ import { TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
 import { notSetWords } from "../../../src/shared/words";
 import { openedOn, openedSettings, openTab, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { adminSeeing, league, openApp } from "../../support/src/shell.harness";
+import { TWELVE_HOUR } from "../../support/src/twelveHour";
 
 const widget = (title: string) => screen.getByRole("region", { name: title });
 const gameweekRows = () => within(widget(gameweeksWidgetTitle)).getAllByRole("listitem");
@@ -48,7 +49,7 @@ describe("the Gameweeks widget (#2503)", () => {
     expect(gameweekRows().map((row) => row.textContent)).toEqual([
       expect.stringMatching(new RegExp(`^GW10.*${noScoresWords}$`)),
       expect.stringMatching(new RegExp(`^GW11.*${scoringStartsWords}$`)),
-      expect.stringMatching(/^GW12[^A-Za-z]*[A-Za-z]{3} \d+ [A-Za-z]{3}, \d\d:\d\d$/),
+      expect.stringMatching(new RegExp(`^GW12[^A-Za-z]*[A-Za-z]{3} \\d+ [A-Za-z]{3}, ${TWELVE_HOUR}$`)),
       expect.stringMatching(/^GW13/),
       expect.stringMatching(new RegExp(`^GW14.*${notUsedWords}$`)),
       expect.stringMatching(/^GW15/),

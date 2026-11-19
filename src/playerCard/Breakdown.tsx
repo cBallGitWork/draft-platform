@@ -1,5 +1,5 @@
 import type { NamedCategories, RoleLine } from "../../convex/scoring/breakdownShape";
-import { adjustmentWords, figureWords, nothingEarnedWords, roleMadeOfWords, scoredUnderWords, whyWords } from "./words";
+import { adjustmentWords, figureWords, nothingEarnedWords, roleMadeOfWords, scoredUnderWords, totalWords, whyWords } from "./words";
 
 // A match's points by category, each line saying why, and his role's line (spec/14, On screen;
 // spec/05 Roles): the player card's (#797) and the matchup's (#798), drawn once.
@@ -34,12 +34,22 @@ export function CategoryLines({ categories, version }: { categories: NamedCatego
   );
 }
 
-/** What his role did to his points: "Poacher: +1", and what made it, each side apart. */
-export function RoleWords({ role }: { role: RoleLine }) {
+/** What his role or an instruction did to his points: "Role points, Poacher: +1" (`label`, the role's
+ *  name by default), and what made it, each side apart. */
+export function RoleWords({ role, label = role.name }: { role: RoleLine; label?: string }) {
   return (
     <>
-      {role.name}: <span className="text-figure">{adjustmentWords(role.points)}</span>
+      {label}: <span className="text-figure">{adjustmentWords(role.points)}</span>
       {role.sides.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.sides)})</span>}
     </>
+  );
+}
+
+/** A breakdown's last line: his stat points and role points together in the match. */
+export function TotalLine({ points, className = "" }: { points: number; className?: string }) {
+  return (
+    <p className={`flex items-baseline justify-between gap-3 ${className}`}>
+      <span>{totalWords}</span> <span className="font-bold text-figure">{figureWords(points)}</span>
+    </p>
   );
 }

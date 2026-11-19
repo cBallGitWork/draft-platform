@@ -42,7 +42,7 @@ const previewLetters: LetterSummary[] = [
   letter(3, 26, { subject: `Team 4 is now ${previewTeamNames[3]}`, body: `ann@example.com renamed Team 4 to ${previewTeamNames[3]}.`, kind: "league", read: false }),
   letter(4, 49, {
     subject: "The league now holds up to 12 teams",
-    body: `${commissioner} changed the most teams the league holds from 10 to 12.`,
+    body: `${commissioner} changed the league's team limit from 10 to 12.`,
     read: true,
   }),
   letter(5, 72, {

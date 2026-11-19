@@ -72,7 +72,7 @@ describe("a league being deleted", () => {
   it("shows when it goes on London's clock, and Undo undoes it", async () => {
     const app = openApp(LEAGUES_PATH, deleter);
 
-    expect((await screen.findByText(beingDeletedLine(DELETES_AT))).textContent).toContain("Wednesday 21 October at 10:00 BST");
+    expect((await screen.findByText(beingDeletedLine(DELETES_AT))).textContent).toContain("Wednesday 21 October at 10am BST");
     expect(deleteButton()).toBeNull();
     // Frozen, it offers nothing to change: no gameweeks, no invites, no squads.
     expect(screen.queryByRole("link", { name: GAMEWEEKS_TITLE })).toBeNull();

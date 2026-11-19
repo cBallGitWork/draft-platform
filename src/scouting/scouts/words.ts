@@ -6,11 +6,11 @@ import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { hoursLeftWords } from "../../draft/words";
 import { dayWords, whenWords } from "../../shared/when/words";
 
-/** The card's action, and how many of the team's scouts are free (the approved card: "Send a scout
- *  2 of 3 free"). */
-export const sendScoutWords = "Send a scout";
-export const freeScoutsWords = (free: number, scouts: number) => `${free} of ${scouts} free`;
-export const sendScoutFailedWords = "The scout couldn't be sent. Try again.";
+/** The card's action, and how many of the team's scouts are free (SPEC.md Glossary, Craig, 18 Nov
+ *  2026: "Get a scout report", "2 of 3 left"). */
+export const sendScoutWords = "Get a scout report";
+export const freeScoutsWords = (free: number, scouts: number) => `${free} of ${scouts} left`;
+export const sendScoutFailedWords = "Couldn't get a scout report. Try again.";
 
 /** The card's report panel (spec/19, The report; Craig, 6 Nov 2026, on #375): his newest report,
  *  dated, and the older ones under it. */
@@ -37,7 +37,7 @@ export function minutesLeftWords(left: number): string {
   return hoursLeftWords(ms);
 }
 export const reportInOnWords = (name: string) => `Report in on ${name}`;
-export const freeScoutWords = "Free: send him from a player's panel";
+export const freeScoutWords = "Free: get a report from a player's panel";
 export const readWords = "Read ›";
 export const readNamedLabel = (name: string, writtenAt: number) => `Read the report on ${name}, ${dayWords(writtenAt)}`;
 export const earlierReportWords = (name: string, writtenAt: number) => `Report on ${name}, ${dayWords(writtenAt)}`;

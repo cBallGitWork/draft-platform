@@ -15,19 +15,19 @@ export const INVITES_TITLE = "Invites and join requests";
 
 /** The team an invite or an approval is for, when it isn't a vacated one. */
 export const newTeamWords = capitalised(aNewTeamWords);
-export const noTeamWords = "The league is full, with no vacated team to hand on.";
+export const noTeamWords = "The league is full, and no team is free to hand on.";
 export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNewTeamWords}`;
 
 export const inviteHint = `No approval needed. An invite lasts ${INVITE_DAYS} days.`;
 
 /** Why an invite waits for tomorrow (spec/13). */
-const dayIsSpent = "today's emails have all gone";
+const dayIsSpent = "Today's emails have all gone.";
 
 /** Where a live invite's email stands. */
 export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
   sending: () => "Sending…",
   sent: (expiresAt) => `Sent. It lasts until ${dateWords(expiresAt)}.`,
-  waiting: () => `Waits for tomorrow: ${dayIsSpent}. It goes by itself.`,
+  waiting: () => `${dayIsSpent} It goes out tomorrow.`,
   tryLater: () => `Not sent: ${unsentLinkWords.tryLater}. Resend it later.`,
   notSent: () => `Not sent: ${unsentLinkWords.notSent}. Resend it.`,
 };
@@ -40,7 +40,7 @@ export const couldNotJoinWords = (reason: string | null) => `Signed in, but coul
 
 /** "Your leagues" for someone in none, when their newest invite is live but a sign-in's fault kept
  *  them from joining (Craig, 12 Nov 2026, on #1437). */
-export const joinFailedWords = "We couldn't add you to the league just now; open your invite link again.";
+export const joinFailedWords = "Couldn't add you to the league. Open your invite link again.";
 
 /** "Your leagues" for someone in none, when their newest invite ended without them joining, or a
  *  fault kept them from joining by it. */
@@ -52,11 +52,11 @@ export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): st
 
 /** The strip telling the commissioner that invites wait for tomorrow (spec/13). */
 export const waitingStrip = (waiting: number) =>
-  `${waiting === 1 ? "1 invite waits" : `${waiting} invites wait`} for tomorrow: ${dayIsSpent}. They go by themselves.`;
+  `${dayIsSpent} ${waiting === 1 ? "1 invite goes" : `${waiting} invites go`} out tomorrow.`;
 
 /** The strips saying the page lists only the newest ROWS_SHOWN of each (#410). */
-export const invitesCutWords = `More live invites exist than this page lists (it shows the newest ${ROWS_SHOWN}), so older ones are missing from it.`;
-export const requestsCutWords = `More join requests wait than this page lists (it shows the newest ${ROWS_SHOWN}), so older ones are missing from it.`;
+export const invitesCutWords = `Showing the newest ${ROWS_SHOWN} live invites. Older ones aren't listed.`;
+export const requestsCutWords = `Showing the newest ${ROWS_SHOWN} join requests. Older ones aren't listed.`;
 
 export const loadingWords = "Loading…";
 export const notYoursWords = "You don't run this league, or it doesn't exist.";
@@ -82,7 +82,7 @@ export const inviteLinkWords = {
   replace: "Replace the link",
   switchOff: "Switch it off",
 } as const;
-export const linkHint = "Opening it only asks to join: you approve each request.";
+export const linkHint = "Opening it only asks to join. You approve each request.";
 
 /** The join requests the link made, each approved to a team or refused. */
 export const requestsWords = {
@@ -103,7 +103,7 @@ export const teamsWords = {
   remove: "Remove",
   removeLabel: (email: string, teamName: string) => `Remove ${email} from ${teamName}`,
   confirm: (email: string, teamName: string) =>
-    `Remove ${email} from ${teamName}? They lose the league at once. ${teamName} keeps its name, for you to hand on with an invite or a request.`,
+    `Remove ${email} from ${teamName}? They leave the league at once. ${teamName} keeps its name, and you can hand it on with an invite or a request.`,
   yes: "Remove them",
   no: "Keep them",
 } as const;
@@ -135,5 +135,5 @@ export const yourJoinRequestWords = {
 } as const;
 export const joiningALeagueWords = {
   title: "Joining a league",
-  how: "A commissioner's emailed invite, or their league's invite link, brings you in.",
+  how: "You join from a commissioner's emailed invite, or their league's invite link.",
 } as const;

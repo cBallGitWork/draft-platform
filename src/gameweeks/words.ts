@@ -8,18 +8,18 @@ import { gameweekColumn } from "../shared/when/words";
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
 export const howTickingWorks =
-  "An unticked gameweek scores nothing and has no head-to-head, and line-ups, waivers, free agency " +
-  "and trades are locked through it until its last match is over. A gameweek can't be changed from its deadline.";
+  "An unticked gameweek has no scores or head-to-heads. Line-ups, bids, signings and trades " +
+  "stay locked until its last match ends. A gameweek can't be changed once its deadline passes.";
 
 /** "… plays N of M gameweeks.", M being however many the season has (#1618). */
 export const playsWords = (name: string, seasonGameweeks: number) => ({ before: `${name} plays `, after: ` of ${seasonGameweeks} gameweeks.` });
 
 export const gameweekColumns = {
   gameweek: gameweekColumn,
-  deadline: { short: "Deadline", long: "When it begins: its deadline" },
+  deadline: { short: "Deadline", long: "Its deadline, when it begins" },
   plays: { short: "Plays", long: "Whether the league plays it" },
 } as const;
-export const begunWords = "Begun";
+export const begunWords = "Under way";
 export const noDeadlineWords = "Not known yet";
 export const loadingWords = "Loading the gameweeks…";
 

@@ -1,4 +1,4 @@
-// The top bar's live wiring (#526), with Convex faked by name: Continue in spec/12's order, an
+// The top bar's live wiring (#526), with Convex faked by name: the next job in spec/12's order, an
 // unread letter first, then a lineup the server says is due, then a trade offer waiting for his
 // answer, else nowhere; and the minute it is
 // asked at held by its watch alone, so the shell doesn't re-render each minute.
@@ -10,6 +10,7 @@ import { HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../../../../src/frame/menu";
 import { useLiveTopBar } from "../../../../src/frame/topBar/liveTopBar";
 import type { TopBarState } from "../../../../src/frame/topBar/topBarState";
+import { answerOffersJob, setLineupJob } from "../../../../src/frame/words";
 import { menuWords } from "../../../../src/shared/words";
 import { unreadCount } from "../../../../src/mail/words";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
@@ -36,8 +37,8 @@ beforeEach(() => {
 const dueNow = () => ({ deadlines: [{ gameweek: 1, deadline: Date.now() + HOUR_MS }], lastGameweek: 1, openedIn: null });
 
 const UNREAD = 3;
-const TO_MAIL = { path: MAIL_PATH, reason: unreadCount(UNREAD) };
-const TO_TACTICS = { path: MY_TEAM_PATH, reason: menuWords.tactics };
+const TO_MAIL = { path: MAIL_PATH, job: unreadCount(UNREAD), place: menuWords.mail };
+const TO_TACTICS = { path: MY_TEAM_PATH, job: setLineupJob, place: menuWords.tactics };
 
 /** The hook in a shell of its own, rendering its watch as liveApp.tsx does: the latest top bar,
  *  and how many times the shell rendered. */
@@ -138,7 +139,7 @@ test("the manager's pending claims in the league the app is in are the Transacti
 });
 
 test("a trade offer waiting for his answer is Continue's after a letter and a lineup: the Offers tab (#1553)", () => {
-  const TO_OFFERS = { path: TRADES_PATH, reason: menuWords.offers };
+  const TO_OFFERS = { path: TRADES_PATH, job: answerOffersJob(1), place: menuWords.offers };
   convex.offersWaiting.mockReturnValue(1);
   expect(live(0)?.next).toEqual(TO_OFFERS);
   expect(convex.offersWaiting).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });

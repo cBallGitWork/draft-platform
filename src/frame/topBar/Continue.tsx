@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { NextStep } from "./topBarState";
-import { continueLabel, continueWords, nothingNeedsYouWords } from "../words";
+import { continueLabel, nothingNeedsYouWords } from "../words";
 
-/** The top bar's button: to the next thing that needs the manager, or a plain "Nothing needs you". */
+/** The top bar's button: the next job that needs the manager, named ("3 unread", "Set line-up"),
+ *  and going to it; or a plain "Nothing to do". */
 export function Continue({ next }: { next: NextStep | null }) {
   if (!next) {
     return (
@@ -14,10 +15,10 @@ export function Continue({ next }: { next: NextStep | null }) {
   return (
     <Link
       to={next.path}
-      aria-label={continueLabel(next.reason)}
+      aria-label={continueLabel(next.job, next.place)}
       className="action"
     >
-      {continueWords}
+      {next.job}
     </Link>
   );
 }

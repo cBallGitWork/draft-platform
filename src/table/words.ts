@@ -1,9 +1,9 @@
-// What the table and fixtures screen says, in one place for Craig to change in the pull request.
+// What the table and matchups screen says, in one place for Craig to change in the pull request.
 
 import { andListWords } from "../../convex/shared/moments";
 import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
-import { failedWords, fewestTeamsWords, pointsAgainstWords, pointsForWords, signedWords, TABLE_TITLE } from "../shared/words";
+import { failedWords, fewestTeamsWords, menuWords, pointsAgainstWords, pointsForWords, signedWords, TABLE_TITLE } from "../shared/words";
 import { gameweekShort, gameweekWords } from "../shared/when/words";
 
 export { figureWords } from "../shared/words";
@@ -16,13 +16,16 @@ export { leagueAverageWords, noResultsWords, TABLE_TITLE, unscoredWords, yourTea
 /** Beside points a live match still moves (spec/07). */
 export { provisionalWords } from "../shared/match/words";
 
-export const TABLE_PAGE_TITLE = "Table and fixtures";
-export const FIXTURES_TITLE = "Fixtures";
-export const loadingWords = "Loading the table and fixtures…";
+export const TABLE_PAGE_TITLE = "Table and matchups";
+/** The league's matchups panel, named as My team's tab is (Glossary: a fixture is a Premier League
+ *  match only; Craig, 18 Nov 2026). */
+export const FIXTURES_TITLE = menuWords.fixtures;
+export const loadingWords = "Loading the table and matchups…";
 
 /** The table's columns: a short head, and what it stands for. */
 export const columns = {
-  position: { short: "Pos", long: "Position" },
+  /** No heading, as the BBC's and Sky's tables have none (Craig, 18 Nov 2026); read out in full. */
+  position: { short: "", long: "Position in the table" },
   team: { short: "Team", long: "Team" },
   played: { short: "P", long: "Played" },
   won: { short: "W", long: "Won" },
@@ -30,7 +33,7 @@ export const columns = {
   lost: { short: "L", long: "Lost" },
   pointsFor: { short: "F", long: pointsForWords },
   pointsAgainst: { short: "A", long: pointsAgainstWords },
-  difference: { short: "+/-", long: "Points for less points against" },
+  difference: { short: "+/-", long: "Points difference" },
   points: { short: "Pts", long: "Points" },
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
@@ -40,7 +43,7 @@ export const columns = {
 export const TOTAL_POINTS_COLUMNS = ["position", "team", "played", "points"] as const satisfies readonly (keyof typeof columns)[];
 
 /** The page's title plate: the head-to-head page's tabs, and a total-points league's title, which
- *  has no fixtures (the approved total-points picture). */
+ *  has no matchups (the approved total-points picture). */
 export const COMPETITIONS = ["league", "cup"] as const;
 export type Competition = (typeof COMPETITIONS)[number];
 export const competitionWords: Record<Competition, string> = { league: "League", cup: "Cup" };
@@ -58,7 +61,7 @@ export const seasonLineWords = (seasonStartYear: number, latest: { gameweek: num
     ? seasonName(seasonStartYear)
     : `${seasonName(seasonStartYear)}, ${latest.live ? gameweekShort(latest.gameweek) : `after ${gameweekShort(latest.gameweek)}`}`;
 
-/** Over a gameweek's league games in Fixtures (the approved picture); a cup's games follow under
+/** Over a gameweek's league games in Matchups (the approved picture); a cup's games follow under
  *  their own head once cups are built. */
 export const leagueGamesHead = competitionWords.league;
 
@@ -71,10 +74,10 @@ export const cupTieLabel = (round: string, tie: number) => `${round}, tie ${tie}
 
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
 export const byeWords = (teamNames: readonly string[]) => `${andListWords(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
-export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
+export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s matchups`;
 
-export const tooFewTeamsWords = `Fixtures are drawn once the league has ${fewestTeamsWords}.`;
-export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
+export const tooFewTeamsWords = `No matchups until the league has ${fewestTeamsWords}.`;
+export const noGameweeksWords = "The league plays no gameweeks, so it has no matchups.";
 
 /** A commissioner's fixture swap (spec/09, Fixture edits; the approved auto-team picture): the
  *  plate's state once a side is picked, the hint, the buttons, and each side's button for screen
@@ -85,7 +88,7 @@ export const saveSwapWords = "Save swap";
 export { cancelWords } from "../shared/controls/words";
 export const pickSideLabel = (side: string) => `Swap ${side}`;
 /** What a failed swap leaves, live or in the preview. */
-export const swapUnsavedOutcome = "the fixtures didn't change";
+export const swapUnsavedOutcome = "the matchups didn't change";
 export const swapFailedWords = failedWords(swapUnsavedOutcome);
 
 /** Points for less against, signed: "+4.5", "−3", "0". */

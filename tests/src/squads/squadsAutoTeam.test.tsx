@@ -30,7 +30,7 @@ describe("Squads' auto team", () => {
     const app = open([team("Team 1", { autoTeam: { on: true, endsAfter: 12, byManager: true } })]);
     const keys = await switchIn("Team 1");
     expect(within(screen.getByRole("region", { name: "Team 1" })).getByText(managersSwitchWords(12))).toBeTruthy();
-    expect(managersSwitchWords(12)).toBe("Its manager's, until GW12");
+    expect(managersSwitchWords(12)).toBe("Set by its manager until GW12");
 
     await userEvent.click(keys.getByRole("radio", { name: autoTeamStateWords.off }));
     expect(app.squads.switchAutoTeam).toHaveBeenCalledExactlyOnceWith(league.leagueId, "id-Team 1" as Id<"teams">, false);

@@ -18,7 +18,7 @@ import {
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
 import { runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, statNames, underSiteScoringWords } from "../shared/words";
+import { AREA_PLAYER_WORDS, lastSeasonPointsColumn, PLAYERS_TITLE, STAT_WORD, statNames, underSiteScoringWords } from "../shared/words";
 import { afterLastMatchWords, gameweekShort, seasonShortWords, weekdayTimeWords } from "../shared/when/words";
 import type { HeldByFilter, Period } from "./seam";
 
@@ -30,16 +30,16 @@ export { PLAYERS_TITLE };
 /** Scouting's tabs on its title plate (the approved picture). */
 export const SCOUTING_TABS = ["players", "statRace"] as const;
 export type ScoutingTab = (typeof SCOUTING_TABS)[number];
-export const scoutingTabWords: Record<ScoutingTab, string> = { players: PLAYERS_TITLE, statRace: "Stat race" };
+export const scoutingTabWords: Record<ScoutingTab, string> = { players: PLAYERS_TITLE, statRace: "Leaders" };
 export const scoutingTabsLabel = "Scouting's views";
 
-/** The stat race (#800, spec/19 The stat race; the approved picture). */
+/** Leaders, once the stat race (#800, spec/19 The stat race; SPEC.md Glossary, Craig, 18 Nov 2026). */
 export const STAT_RACE_TITLE = scoutingTabWords.statRace;
 export const rankByLabel = "Rank by";
-export const countsWhatCountedWords = "Counts what counted: each team's starters, and bench players only in matches they came on.";
+export const countsWhatCountedWords = "Counts players who started, and bench players only in matches they came on.";
 /** Where a league drafted mid-season's totals start (Craig, 6 Nov 2026, on #800). */
 export const sinceWords = (gameweek: number) => `Since ${gameweekShort(gameweek)}`;
-export const raceLoadingWords = "Loading the stat race…";
+export const raceLoadingWords = "Loading the leaders…";
 export const raceColumns = {
   rank: { short: "#", long: "Rank" },
   team: { short: "Team", long: "Team" },
@@ -63,7 +63,7 @@ export const availabilityLabel = "Show";
 export const availabilityWords: Record<HeldByFilter, string> = {
   all: "All",
   freeAgents: "Free agents",
-  onWaivers: "On waivers",
+  onWaivers: "Released",
   owned: "Owned",
 };
 export const positionLabel = "Position";
@@ -74,8 +74,8 @@ export const everyClubWords = "Every club";
 export const statLabel = STAT_WORD;
 export const noStatWords = "None";
 /** What the list's figures, his panel's per 90 and Compare are over (the approved picture's
- *  Period; #1028, story 3). Shown as "Over": SPEC.md's Glossary avoids "period" for a gameweek. */
-export const periodLabel = "Over";
+ *  Period; #1028, story 3): "Period: Season" (SPEC.md Glossary, Craig, 18 Nov 2026). */
+export const periodLabel = "Period";
 export const periodWords: Record<Period, string> = {
   season: "Season",
   last4: `Last ${PERIOD_GAMEWEEKS.last4} gameweeks`,
@@ -90,10 +90,10 @@ const overWords = (period: Period) => (period === "season" ? "this season" : `ov
 export { playersCount as countWords } from "../shared/words";
 export const noneMatchWords = "No player matches these filters.";
 
-/** In the owner column, a player on waivers and the run that can first take him, in the viewer's
- *  own zone (Craig, 6 Nov 2026, on #1200): "Waivers, Thu 18:00"; just "Waivers" with no run times. */
+/** In the owner column, a player on waivers and when bids on him first settle, in the viewer's
+ *  own zone (Craig, 6 Nov 2026, on #1200): "Released, Thu 6pm"; just "Released" with no run times. */
 export const onWaiversWords = (firstRun: FirstRun) =>
-  firstRun === null ? "Waivers" : `Waivers, ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : weekdayTimeWords(firstRun.at)}`;
+  firstRun === null ? "Released" : `Released, ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : weekdayTimeWords(firstRun.at)}`;
 
 /** The figures by name, from which each one's hover is built ("Goals this season", "Goals over
  *  gameweeks 4 to 9", "Goals in 25/26"). */
@@ -106,7 +106,7 @@ export const columns = {
   name: { short: "Player", long: "Player" },
   club: { short: "Club", long: "Club" },
   positions: { short: "Pos", long: "Positions" },
-  owner: { short: "Status", long: "The team that owns him in this league, or when he clears waivers" },
+  owner: { short: "Status", long: "The team that owns him in this league, or when bids on him settle" },
   minutes: { short: "Mins", long: `${FIGURE_NAMES.minutes} this season` },
   seasonPoints: { short: "Pts", long: `Season points ${underSiteScoringWords}` },
   goals: { short: "G", long: `${FIGURE_NAMES.goals} this season` },
@@ -137,22 +137,14 @@ export const shortlistedLabel = "On your shortlist";
 export const selectPlayerLabel = (name: string, chip: string | null) => `${chip === null ? "" : `${chip}: `}Show ${name}'s panel`;
 
 /** The selected player's panel at the top of the right column (the approved picture). */
-export const panelSeasonPointsWords = "Season points";
+export { SEASON_POINTS_WORDS as panelSeasonPointsWords } from "../shared/words";
 /** His minutes over the period (the approved picture: "Minutes, last 6"). */
 export const panelMinutesWords = (period: Period, lastSeason: number | null) =>
   period !== "season" ? `Minutes, last ${PERIOD_GAMEWEEKS[period]}` : lastSeason === null ? columns.minutes.long : `Minutes in ${seasonShortWords(lastSeason)}`;
 export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
- *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
+ *  picture: "Per 90, last 6 gameweeks", "vs attacking midfielders"). */
 export const per90Words = (period: Period) => `Per 90, ${periodInLine(period)}`;
-const AREA_PLAYERS: Record<Area, string> = {
-  goalkeeper: "goalkeepers",
-  defence: "defenders",
-  defensiveMidfield: "defensive mids",
-  midfield: "midfielders",
-  attackingMidfield: "attacking mids",
-  attack: "attackers",
-};
 /** The panel's own names for the stats it lists per 90, as the picture names them; a stat not here
  *  goes by its catalogue name. */
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
@@ -169,16 +161,18 @@ export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
   [INTERCEPTIONS]: "Interceptions",
   [CLEARANCES]: "Clearances",
 };
-export const versusWords = (area: Area) => `vs ${AREA_PLAYERS[area]}`;
+export const versusWords = (area: Area) => `vs ${AREA_PLAYER_WORDS[area]}`;
 /** A percentile bar's hover and name: the figure it draws. */
 export const percentileLabel = (percentile: number, area: Area) => `${percentile} percentile ${versusWords(area)}`;
 /** Why a player has no percentile: too few minutes to be ranked. */
-export const notRankedWords = `Ranked from ${RANKED_MINUTES} minutes`;
+export const notRankedWords = `Not ranked until ${RANKED_MINUTES} minutes`;
 export const loadingPer90Words = "Loading his figures per 90…";
-/** His panel, while the manager's claim on him is pending (Craig, 8 Nov 2026, the waivers
- *  README): "Your claim 2, Wed run", linking to My team's Transactions. */
-export const yourClaimWords = (rank: number, run: FirstRun) =>
-  `Your claim ${rank}, ${run !== null && run.skippedIf !== null ? `run ${afterLastMatchWords(run.skippedIf)}` : runNameWords(run)}`;
+/** His panel, while the manager's bid on him is waiting (Craig, 8 Nov 2026, the waivers
+ *  README): "Your bid 2, settles Wed", linking to My team's Transactions. */
+export const yourClaimWords = (rank: number, run: FirstRun) => {
+  const settles = runNameWords(run);
+  return `Your bid ${rank}, ${settles[0].toLowerCase()}${settles.slice(1)}`;
+};
 export const compareWithAnotherWords = "Compare with another…";
 /** The manager's own player at his main position (Craig, 9 Nov 2026, on #1028, answer 1). */
 export const compareWithYourWords = (position: string, name: string) => `Compare with your ${position}, ${name}`;
@@ -208,7 +202,7 @@ export function seasonColumns(lastSeason: number | null) {
  *  (spec/19, Role stars). */
 export { noSeasonPointsWords } from "../shared/words";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
-export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
+export const noRoleFitYetWords = "No role fit until stars and scouts are in.";
 
 /** Two players side by side (spec/19, The players list); "with your player" when the second is the
  *  manager's own at the first's position (the approved picture). */
@@ -216,14 +210,14 @@ export const COMPARE_TITLE = "Compare";
 export const COMPARE_YOURS_TITLE = "Compare with your player";
 /** After a player's name in Compare's head: the manager's own. */
 export const yoursWords = "yours";
-export const totalWords = "Total";
+export { TOTAL_WORDS as totalWords } from "../shared/words";
 export const perNinetyWords = "Per 90";
 /** Under Compare's figures: what they are over, and whom the bars rank them against. */
 export const compareNoteWords = (area: Area, period: Period) =>
-  `Totals and per 90 over the ${periodInLine(period)}; bars rank each against ${AREA_PLAYERS[area]} with ${RANKED_MINUTES}+ minutes.`;
-/** Compare's pickup or claim of the first player, naming the second when he goes (Craig, 9 Nov
- *  2026, on #1028, answer 4: only with the squad full). */
+  `Totals and per 90 over the ${periodInLine(period)}. Bars rank each against ${AREA_PLAYER_WORDS[area]} with ${RANKED_MINUTES}+ minutes.`;
+/** Compare's signing of or bid for the first player, naming the second when he goes (Craig, 9 Nov
+ *  2026, on #1028, answer 4: only with the squad full): "Bid for James, dropping Watkins". */
 export const compareTakeWords = (kind: "pickUp" | "claim", name: string, dropName: string | null) =>
-  `${kind === "claim" ? "Claim" : "Pick up"} ${name}${dropName === null ? "" : `, drop ${dropName}`}`;
+  `${kind === "claim" ? "Bid for" : "Sign"} ${name}${dropName === null ? "" : `, dropping ${dropName}`}`;
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";

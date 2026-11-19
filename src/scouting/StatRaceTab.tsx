@@ -29,7 +29,7 @@ import {
 const OPENING_STAT = GOALS;
 const RANK_BY_ID = "stat-race-rank-by";
 
-/** Scouting's Stat race tab (#800, spec/19 The stat race; docs/design/approved/scouting/
+/** Scouting's Leaders tab, once the stat race (#800, spec/19 The stat race; docs/design/approved/scouting/
  *  1440-stat-race.png): every team's season total in each scoring category, as raw counts, ranked
  *  by the one picked in Rank by or by a category's head; on the right, the selected team's every
  *  category with its rank, opening on the manager's own team. */

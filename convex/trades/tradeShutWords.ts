@@ -14,5 +14,5 @@ export type TradesShut = Infer<typeof tradesShutReason>;
 export const shutWords: Record<NonNullable<TradesShut>, string> = {
   draftLive: "Trades are shut while the draft is live.",
   tradeDeadline: "The league's trade deadline has passed.",
-  unusedGameweek: "Trades are locked through a gameweek the league doesn't play.",
+  unusedGameweek: "The league doesn't play this gameweek, so trades are locked.",
 };

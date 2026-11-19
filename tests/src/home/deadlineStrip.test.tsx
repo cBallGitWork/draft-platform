@@ -31,7 +31,7 @@ describe("the title plate and the deadline strip", () => {
     expect(await boxes()).toEqual([
       `${locks}${weekdayTimeWords(deadline)} in 1d 17h`,
       `${lineup}Saka doubtful and 1 more`,
-      `${claims}${weekdayTimeWords(firstRunFrom([...MONDAY_EIGHT], Date.now())!)}, 2 claims`,
+      `${claims}${weekdayTimeWords(firstRunFrom([...MONDAY_EIGHT], Date.now())!)}, 2 bids`,
       `${table}2nd, 18 pts, 1 behind 1st`,
     ]);
     // No outline left in it, and nothing to open.

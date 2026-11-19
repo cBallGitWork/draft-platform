@@ -32,7 +32,7 @@ export function playerLeftLetter(playerName: string): Words {
 export function notFiledLetter(playerName: string): Words {
   return {
     subject: `Your scout couldn't file a report on ${playerName}`,
-    body: `Your scout couldn't file a report on ${playerName}; send a scout again.`,
+    body: `Your scout couldn't file a report on ${playerName}. Send one again.`,
   };
 }
 

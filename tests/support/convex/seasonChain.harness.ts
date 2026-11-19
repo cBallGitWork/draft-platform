@@ -171,7 +171,7 @@ export async function chainToGameweekSeven() {
   expect(await heldSquad(t, bobsTeam)).toContain(bobsDrop.playerCode);
   expect(await heldSquad(t, bobsTeam)).not.toContain(BELLOUMI);
   expect(await heldSquad(t, catsTeam)).not.toContain(BELLOUMI);
-  expect((await lettersTo(t, BOB)).map(({ subject }) => subject)).toContain("Your claim for Belloumi failed");
+  expect((await lettersTo(t, BOB)).map(({ subject }) => subject)).toContain("Your bid for Belloumi failed");
 
   // Ann puts Belloumi in her dropped man's place from gameweek 7, the next not yet begun.
   const annsSeven = ELEVENS[ANN].map((starter) => (starter.playerCode === annsDrop.playerCode ? { ...starter, playerCode: BELLOUMI } : starter));

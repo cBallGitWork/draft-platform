@@ -5,14 +5,14 @@
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import type { LetterKind } from "../../convex/mail/letterShape";
-import { failedWords } from "../shared/words";
+import { failedWords, notHeldLabel } from "../shared/words";
 import { dateWords, dayWords, timeOfDayWords } from "../shared/when/words";
 
 export { MAIL_TITLE } from "../shared/words";
 export const noLettersWords = "No letters yet.";
 export const loadingWords = "Fetching your Mail…";
 export const unreadWords = "Unread";
-export const onlyLatestWords = `Only your latest ${LETTERS_SHOWN} letters are shown.`;
+export const onlyLatestWords = `Showing your latest ${LETTERS_SHOWN} letters.`;
 
 /** The menu's and the plate's count: past UNREAD_COUNTED, that number and a "+". */
 export const unreadFigure = (unread: number) => (unread > UNREAD_COUNTED ? `${UNREAD_COUNTED}+` : `${unread}`);
@@ -31,8 +31,8 @@ export const openOfferWords = "Open the offer in Trades";
 export const askToRunWords = "Ask to be commissioner";
 export const askedToRunWords = "Asked to be commissioner";
 
-/** When a letter was filed, in the reader's own time: "20 Oct" and "09:00"; the day its group in
- *  the list stands under, "Tue 10 Nov"; and when the open letter came, "Tue 10 Nov, 08:12". */
+/** When a letter was filed, in the reader's own time: "20 Oct" and "9am"; the day its group in
+ *  the list stands under, "Tue 10 Nov"; and when the open letter came, "Tue 10 Nov, 8.12am". */
 export const letterDay = dayWords;
 export const letterTime = timeOfDayWords;
 export const letterDate = dateWords;
@@ -49,26 +49,26 @@ export const noLetterOpenWords = "No letter open.";
 /** A letter's kind chip (the approved picture's Trade, Waivers, Commissioner). */
 export const letterKindWords = {
   trade: "Trade",
-  waivers: "Waivers",
+  waivers: "Moves", // bids, signings and drops alike
   assigned: "Assigned",
   commissioner: "Commissioner",
   league: "League",
   draft: "Draft",
-  lineup: "Lineup",
+  lineup: "Line-up", // literal-ok: a Mail kind, not the matchup panel's title
   positions: "Positions",
   scout: "Scout",
   recap: "Recap",
-  patch: "Patch",
+  patch: "Scoring",
 } as const satisfies Record<LetterKind, string>;
 /** The kind chip's placeholder, on a letter filed before letters held their kind. */
-export const kindPlaceholderLabel = "Kind: not held yet";
+export const kindPlaceholderLabel = notHeldLabel("Move");
 
 export const WRITE_TITLE = "Write to the league";
-export const writeHint = "No one can reply: there is no chat.";
+export const writeHint = "Nobody can reply. There's no chat.";
 export const writeLabels = { league: "League", subject: "Subject", body: "Letter" } as const;
 export const sendToWords = (leagueName: string) => `Send to ${leagueName}`;
 /** When the person's leagues stop short (#297), so one they run may be missing from the letter's. */
-export const leaguesCutFromWords = `Only the first ${LEAGUES_SHOWN} of your leagues can be written from here.`;
+export const leaguesCutFromWords = `You can write to your first ${LEAGUES_SHOWN} leagues from here.`;
 export const sentWords = (leagueName: string) => `Sent to everyone in ${leagueName}.`;
 /** When sending failed before the server could say why: the connection, or the server itself. */
 export const sendFailedWords = failedWords("the letter wasn't sent");

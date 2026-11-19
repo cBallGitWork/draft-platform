@@ -68,7 +68,7 @@ describe("saving", () => {
     expect(statusesBefore).toContain(saved);
   });
 
-  it("says when the save landed, by the manager's own clock: \"Lineup saved 14:02\" (spec/05, Moving players)", async () => {
+  it("says when the save landed, by the manager's own clock: \"Line-up saved 2.02pm\" (spec/05, Moving players)", async () => {
     await openedPitch({ tactics: SAVED });
     const before = Date.now();
     await whiteForSaliba();

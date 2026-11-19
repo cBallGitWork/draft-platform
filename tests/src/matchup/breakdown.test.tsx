@@ -13,6 +13,7 @@ import { breakdownMatchWords, breakdownRoleWords, closeBreakdownLabel, notCounte
 import { tileOf } from "../../support/src/matchupScreen.harness";
 import { headToHead, roleOf, slot, teamSide } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
+import { TWELVE_HOUR } from "../../support/src/twelveHour";
 
 const ALL = { by: "all" } as const;
 
@@ -45,8 +46,10 @@ describe("a player's breakdown", () => {
 
     const panel = screen.getByRole("region", { name: BREAKDOWN_NAME });
     expect(within(panel).getAllByText(/Goals scored/).map((line) => line.closest("li")!.textContent)).toEqual(["Goals scored 2 at 4 each 8", "Goals scored 1 at 4 each 4"]);
-    expect(within(panel).getAllByText(/^Poacher:/).map((line) => line.textContent)).toEqual(["Poacher: +1 (+1: 2 goals scored)", "Poacher: +1 (+1: 1 goals scored)"]);
-    expect(within(panel).getByText("9")).toBeTruthy();
+    expect(within(panel).getAllByText(/^Role points, Poacher:/).map((line) => line.textContent)).toEqual(["Role points, Poacher: +1 (+1: 2 goals scored)", "Role points, Poacher: +1 (+1: 1 goals scored)"]);
+    // His points in the match's head, and again on its Total line (Craig, 18 Nov 2026).
+    expect(within(panel).getAllByText("9")).toHaveLength(2);
+    expect(within(panel).getAllByText("Total")[0].parentElement!.textContent).toBe("Total 9");
     expect(within(panel).getAllByText(notCountedWords)).toHaveLength(1);
     expect(within(panel).getAllByText("Scored under version 26_27.1")).toHaveLength(2);
     expect(within(panel).getByRole("link", { name: playerCardWords }).getAttribute("href")).toBe(playerCardPath(league.leagueId, DELAP.playerCode));
@@ -62,7 +65,7 @@ describe("a player's breakdown", () => {
 
     expect(screen.getByRole("link", { name: "NFO 1–0 BRE 67'" }).getAttribute("href")).toBe(matchPath(201));
     expect(screen.getByRole("link", { name: "BRE 2–2 NFO FT" }).getAttribute("href")).toBe(matchPath(202));
-    expect(screen.getByRole("link", { name: breakdownMatchWords(toCome) }).textContent).toMatch(/^NFO v BRE \S+ \d\d:\d\d$/);
+    expect(screen.getByRole("link", { name: breakdownMatchWords(toCome) }).textContent).toMatch(new RegExp(`^NFO v BRE \\S+ ${TWELVE_HOUR}$`));
   });
 
   it("closes from its cross, or on tapping him again", async () => {

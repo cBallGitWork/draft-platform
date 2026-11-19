@@ -45,5 +45,5 @@ export const previewSquads: SquadsSeam = {
   assign: previewSays("no player was assigned"),
   move: previewSays("no player was moved"),
   release: previewSays("no player was released"),
-  switchAutoTeam: previewSays("no auto team was switched"),
+  switchAutoTeam: previewSays("Away mode wasn't switched"),
 };

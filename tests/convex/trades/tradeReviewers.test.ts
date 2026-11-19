@@ -17,7 +17,7 @@ import { noDraft } from "../../support/convex/waivers.harness";
 // always Block it too (spec/15, The admin; S08.28).
 
 const NEW_COMMISSIONER = "newcommissioner@example.com";
-const BLOCK_IT = `Block the trade between ${TEAM_1} and ${TEAM_2}?`;
+const BLOCK_IT = `Stop the trade between ${TEAM_1} and ${TEAM_2}?`;
 const TRADED = `${TEAM_1} and ${TEAM_2} traded`;
 
 let w: TradeLeague;
@@ -126,7 +126,7 @@ test("S08.28: the admin sees a vetoed trade in To review and blocks it as its re
   expect(await w.squadCodes(w.bobsTeam)).toContain(SAKA);
   expect(await w.offers()).toEqual([]);
   expect(await w.lettersTo(CAT)).toContainEqual({
-    subject: `The trade between ${TEAM_1} and ${TEAM_2} was blocked`,
-    body: `${ADMIN} blocked it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
+    subject: `The trade between ${TEAM_1} and ${TEAM_2} was stopped`,
+    body: `${ADMIN} stopped it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
   });
 });

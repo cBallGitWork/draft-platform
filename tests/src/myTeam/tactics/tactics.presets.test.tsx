@@ -79,7 +79,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   it("marks the shape's empty slots while the lineup can't stand and isn't saved", async () => {
     await openedPitch({ tactics: SAVED, saveAnswer: REFUSAL });
     await pickFormation("4-4-2");
-    const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
+    const slots = within(pitch()).getAllByRole("img", { name: /^Empty position/ }).map((slot) => slot.getAttribute("aria-label"));
     // White, off the bench, fills its left back (Craig, 1 Nov 2026; #1025); the rest stay empty.
     expect(slots).toHaveLength(11 - STARTERS.length - 1);
     expect(slots).toContain(emptySlotLabel("defence", "right"));
@@ -99,10 +99,10 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     await pickFormation("4-4-2");
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode] }));
     await screen.findByText(SAVED_LINE);
-    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty position/ })).toEqual([]);
     await pickFormation("5-4-1");
     await userEvent.click(undo());
-    expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
+    expect(within(pitch()).queryAllByRole("img", { name: /^Empty position/ })).toEqual([]);
   });
 });
 

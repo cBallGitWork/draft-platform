@@ -2,8 +2,9 @@
 
 import { TOP_ROWS } from "../../convex/home/glance";
 import { YOUR_LINEUP } from "../../convex/lineup/instructionsWords";
+import { wonBidWords } from "../../convex/mail/waiverLetterWords";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, TABLE_TITLE, tradedNames } from "../shared/words";
+import { BIDS_SETTLE_TITLE, fewestTeamsWords, noHeadToHeadsTotalPointsWords, notSetWords, placeWords, TABLE_TITLE, tradedNames } from "../shared/words";
 import { foldedGlyph } from "../shared/controls/words";
 import { gameweekShort } from "../shared/when/words";
 import { columns as tableColumns } from "../table/words";
@@ -24,10 +25,10 @@ export const toComeLabel = (what: string) => `${what}: still to come`;
 
 /** The deadline strip's boxes, as the picture has them (Craig, 13 Nov 2026, on #1976). */
 export const stripLabel = "This gameweek at a glance";
-export const stripBoxes = (first: string) => [first, YOUR_LINEUP, "Claims close", TABLE_TITLE] as const;
-/** The first box's label all season (S12.22): when this gameweek locks; before the draft is over,
+export const stripBoxes = (first: string) => [first, YOUR_LINEUP, BIDS_SETTLE_TITLE, TABLE_TITLE] as const;
+/** The first box's label all season (S12.22): this gameweek's deadline; before the draft is over,
  *  when it starts ("Draft Sat 19:00"); once the season is over, "Season over". */
-export const locksLabel = (gameweek: number) => `${gameweekShort(gameweek)} locks`;
+export const locksLabel = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
 export const draftBoxLabel = "Draft";
 export const seasonBoxLabel = "Season";
 export const seasonOverWords = "Over";
@@ -42,8 +43,8 @@ export const flaggedStarterWords = (name: string, chanceOfPlaying: number | null
   return flag === null ? name : `${name} ${flag}`;
 };
 export const moreFlaggedWords = (more: number) => ` and ${more} more`;
-/** Claims close's box: the next waiver run, then the claims waiting on it. */
-export const claimsWaitingWords = (claims: number) => (claims === 1 ? "claim" : "claims");
+/** Bids settle's box: when bids next settle, then the bids waiting on it. */
+export const claimsWaitingWords = (claims: number) => (claims === 1 ? "bid" : "bids");
 /** The Table box: "2nd, 18 pts", then the gap: "1 behind 1st", or "3 ahead of 2nd" on top. */
 export const gapWords = (gap: number, onTop: boolean) => (onTop ? `${gap} ahead of 2nd` : `${gap} behind 1st`);
 export { listSeparator, noFigureWords, placeWords } from "../shared/words";
@@ -56,14 +57,14 @@ export { MAIL_TITLE } from "../shared/words";
 export const mailViewLabel = "Show";
 export const mailViews = { needsYou: "Needs you", all: "All" } as const;
 export const needsYouCountWords = (count: number) => `${mailViews.needsYou} (${count})`;
-export const nothingNeedsYouWords = "Nothing waits on you.";
+export const nothingNeedsYouWords = "Nothing to do.";
 /** A doubtful or out starter, a Needs you item opening Tactics (S16.7). */
 export const starterNeedsYouWords = (name: string, flag: "doubtful" | "out") => `${name} is ${flag} and starts`;
 
 /** Your matchup: the reader's head-to-head this gameweek. */
 export const MATCHUP_PANEL_TITLE = "Your matchup";
 export const openMatchupLink = "Open the matchup";
-export const setLineupLink = "Set line-up";
+export { setLineupLink } from "../shared/words";
 export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} ${pointsShortWords}`;
 export const scoreToComeLabel = toComeLabel("The score");
 
@@ -74,7 +75,7 @@ export const NEWS_PANEL_TITLE = "News";
 
 /** The right-hand column: the Premier League's gameweek, with whose players are in each match. */
 export const premierLeagueTitle = (gameweek: number) => `Premier League, ${gameweekShort(gameweek)}`;
-export const matchListLabel = (gameweek: number) => `${premierLeagueTitle(gameweek)}: the matches with your players or your opponent's`;
+export const matchListLabel = (gameweek: number) => `${premierLeagueTitle(gameweek)}, matches with your players or your opponent's`;
 export const youWords = "You";
 export const themWords = "Them";
 export const noMatchesWords = "Neither your players nor your opponent's play this gameweek.";
@@ -86,9 +87,9 @@ export const RUN_LEAGUE_TITLE = "Run the league";
 export const runLeagueAside = "commissioner";
 export const runLeagueLink = `${RUN_LEAGUE_TITLE} ${foldedGlyph}`;
 /** The recap's panel before the gameweek is final. */
-export const recapToComeWords = (gameweek: number) => `Lands once every ${gameweekShort(gameweek)} match is final.`;
+export const recapToComeWords = (gameweek: number) => `Ready once every ${gameweekShort(gameweek)} match is final.`;
 /** The ▾ on a right-hand panel: it folds the panel away, and opens it again. */
-export const foldLabel = (title: string) => `Fold ${title}`;
+export const foldLabel = (title: string) => `Hide ${title}`;
 export const unfoldLabel = (title: string) => `Open ${title}`;
 
 export const headToHeadsLabel = (gameweekName: string) => `${gameweekName}'s head-to-heads`;
@@ -135,12 +136,12 @@ export const newsLoadingWords = "Loading the moves…";
 export const noNewsWords = "No moves yet.";
 export const teamFilterLabel = "Team";
 export const everyTeamWords = "Every team";
-export const kindFilterLabel = "Kind";
-export const everyKindWords = "Every kind";
+export const kindFilterLabel = "Move";
+export const everyKindWords = "Every move";
 export const olderMovesWords = "Older moves ›";
 export const newsColumns = {
   when: { short: "When", long: "When" },
-  kind: { short: "Kind", long: "Kind" },
+  kind: { short: "Move", long: "Move" },
   team: { short: "Team", long: "Team" },
   joined: { short: "In", long: "In" },
   left: { short: "Out", long: "Out" },
@@ -149,19 +150,19 @@ export const newsColumns = {
 export const newsTableLabel = "Every team's moves";
 /** Each kind of move, in the Kind column and filter. */
 export const newsKindWords = {
-  playerAssigned: "Assigned",
+  playerAssigned: "Given by commissioner",
   playerMoved: "Moved",
-  playerReleased: "Released",
+  playerReleased: "Removed by commissioner",
   playerDropped: "Drop",
-  playerClaimed: "Claim",
-  playerPickedUp: "Free agent",
+  playerClaimed: "Bid",
+  playerPickedUp: "Signed",
   tradeMade: "Trade",
 } as const satisfies Record<NewsMove["kind"], string>;
 export const fromTeamWords = (teamName: string) => `From ${teamName}`;
-/** The selected move's detail: who got whom, who let whom go, and where he went. */
+/** The selected move's detail: who got whom, who left whom, and where he went. */
 export const gotWords = (teamName: string) => `${teamName} got`;
-export const letGoWords = (teamName: string) => `${teamName} let go`;
-export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" : "Back to the free agents");
+export const letGoWords = (teamName: string) => `Left ${teamName}`;
+export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Released" : "Back to the free agents");
 
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
@@ -178,12 +179,12 @@ export function moveWords(move: SquadMove): string {
     case "playerMoved":
       return `${playerName} moved from ${fromTeamName} to ${teamName}`;
     case "playerReleased":
-      return `${playerName} was released by ${teamName}`;
+      return `${teamName} let ${playerName} go`;
     case "playerDropped":
-      return `${playerName} was dropped by ${teamName}`;
+      return `${teamName} dropped ${playerName}`;
     case "playerClaimed":
-      return `${playerName} was claimed by ${teamName}`;
+      return wonBidWords(teamName, playerName);
     case "playerPickedUp":
-      return `${playerName} was picked up by ${teamName}`;
+      return `${teamName} signed ${playerName}`;
   }
 }

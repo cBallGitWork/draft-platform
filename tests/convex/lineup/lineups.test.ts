@@ -66,7 +66,7 @@ describe("a saved lineup", () => {
     await ann.save(sweeper);
     expect(await ann.mine(NEXT)).toEqual(saved(sweeper, NEXT));
     const misplaced: Lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, role: "poacher" }, ...rest] };
-    await expectRefused(ann.save(misplaced), `The centre cell in Goalkeeper doesn't offer the role "poacher" ${nameOf(keeper.playerCode)} was given.`);
+    await expectRefused(ann.save(misplaced), `"poacher" isn't a role for centre in goal, so ${nameOf(keeper.playerCode)} can't play it.`);
   });
 
   test("saves a role removed from the set as the slot's first, never refused for it (#841)", async () => {
@@ -238,9 +238,9 @@ describe("a lineup refused, with the reason", () => {
     const lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, area: "attack", lane: "left" }, { ...firstBack, lane: "leftCentre" }, ...rest] };
     await expectRefused(
       (await as(ANN)).save(lineup),
-      `${nameOf(keeper.playerCode)} plays GK, so he can't stand in the left cell in Attack. ` +
-        `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} share the left-centre cell in Defence: one player a cell. ` +
-        "The league starts at least 1 in Goalkeeper; this line-up starts 0 there.",
+      `${nameOf(keeper.playerCode)} plays GK, so he can't play left in attack. ` +
+        `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} are in the same spot, left-centre in defence. Only one player fits there. ` + // one-home-ok: pins the exact words a manager reads
+        "The league needs at least 1 in goal. You have 0.", // one-home-ok: pins the exact words a manager reads
     );
     expect(await lineupRows()).toEqual(before);
   });
@@ -251,6 +251,6 @@ describe("a lineup refused, with the reason", () => {
       rules.areaLimits.attack = { minimum: 3, maximum: 5 };
       await ctx.db.insert("leagueRules", { leagueId, fromGameweek: NEXT, rules });
     });
-    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league starts at least 3 in Attack; this line-up starts 2 there.");
+    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league needs at least 3 forwards. You have 2."); // one-home-ok: pins the exact words a manager reads
   });
 });

@@ -4,7 +4,7 @@ import type { LeagueRules } from "../rules/leagueRulesShape";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { LeagueEvent } from "../schema";
 import { overrideLetterWords } from "./overrideLetterWords";
-import { claimedBody, onWaiversWords, pickedUpBody } from "./waiverLetterWords";
+import { claimedBody, letGoBody, onWaiversWords, pickedUpBody, wonBidWords } from "./waiverLetterWords";
 import type { TellMoment } from "./letterMoments";
 import type { Words } from "./letterShape";
 
@@ -58,15 +58,15 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "maxTeamsChanged":
       return {
         subject: `The league now holds up to ${event.to} teams`,
-        body: `${who} changed the most teams the league holds from ${event.from} to ${event.to}.`,
+        body: `${who} changed the league's team limit from ${event.from} to ${event.to}.`,
       };
     case "deletionStarted":
       return {
         subject: `${event.name} is being deleted`,
-        body: `${who} deleted the league. It goes for good on ${tell(event.deletesAt)}, unless that is undone.`,
+        body: `${who} deleted the league. It goes for good on ${tell(event.deletesAt)} unless someone undoes it.`,
       };
     case "deletionUndone":
-      return { subject: `${event.name} is no longer being deleted`, body: `${who} undid deleting the league. It is as it was.` };
+      return { subject: `${event.name} is no longer being deleted`, body: `${who} stopped the league being deleted. It stays as it was.` };
     case "gameweekUsed":
       return event.used
         ? { subject: `Gameweek ${event.gameweek} counts again`, body: `${who} made gameweek ${event.gameweek} count for the league again.` }
@@ -77,7 +77,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "scoringStartSet":
       return {
         subject: `Scoring starts in gameweek ${event.to}`,
-        body: `${who} set the gameweek the league's scoring starts in. ${startsInWords(event.to, event.from)}`,
+        body: `${who} changed when the league's scoring starts. ${startsInWords(event.to, event.from)}`,
       };
     case "invited":
       return { subject: `${event.email} was invited`, body: `${who} invited ${event.email} to manage ${forTeam(event.teamName)}.` };
@@ -86,7 +86,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "inviteCancelled":
       return { subject: `${event.email}'s invite was cancelled`, body: `${who} cancelled ${event.email}'s invite to manage ${forTeam(event.teamName)}.` };
     case "joinedByInvite":
-      return { subject: joinedSubject(event), body: `${event.email} took up ${event.invitedBy}'s invite and manages ${event.teamName}.` };
+      return { subject: joinedSubject(event), body: `${event.email} accepted ${event.invitedBy}'s invite and now manages ${event.teamName}.` };
     case "joinRequestApproved":
       return { subject: joinedSubject(event), body: `${who} approved ${event.email}'s request to join. They manage ${event.teamName}.` };
     case "inviteLinkMade":
@@ -105,20 +105,20 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       };
     case "playerReleased":
       return {
-        subject: `${event.playerName} was released`,
-        body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
+        subject: `${event.playerName} was removed from ${event.teamName}`,
+        body: letGoBody(who, event.playerName, event.teamName),
       };
     case "playerDropped":
       return {
         subject: `${event.teamName} dropped ${event.playerName}`,
         body: event.toWaivers
-          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for ${onWaiversWords}.`
-          : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He's released, and bids on him settle in ${onWaiversWords}.`
+          : `${who} dropped ${event.playerName} from ${event.teamName}. He was signed since the last deadline, so he's a free agent again.`,
       };
     case "playerClaimed":
-      return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
+      return { subject: wonBidWords(event.teamName, event.playerName), body: claimedBody(event, who) };
     case "playerPickedUp":
-      return { subject: `${event.teamName} picked up ${event.playerName}`, body: pickedUpBody(event, who) };
+      return { subject: `${event.teamName} signed ${event.playerName}`, body: pickedUpBody(event, who) };
     case "playerTraded":
     case "tradeMade":
       // A trade's letters are its own (tradeLetterWords.ts), so its events are filed with none.
@@ -147,31 +147,31 @@ function abandonedWords({ matchName, gameweek, abandoned, overridesRemoved }: Ex
   if (!abandoned) {
     return {
       subject: unabandonedSubject(matchName),
-      body: `${tookBackWords(who, matchName, gameweek)} Its players' points come back from the feed's next read of it. Overrides removed with the mark stay removed.`,
+      body: `${tookBackWords(who, matchName, gameweek)} Its players' points come back when its scores next refresh. Overrides removed with the mark stay removed.`,
     };
   }
   const removed = overridesRemoved.length === 0 ? "" : `\n\n${overridesWentWords(overridesRemoved)}`;
   return {
     subject: `${matchName} was abandoned`,
     body:
-      `${who} marked ${matchName}, gameweek ${gameweek}, abandoned. It counts as never played: its players' points there are ` +
-      `gone, and each one in a line-up is auto-subbed as if he hadn't played. Only its replay counts.${removed}`,
+      `${who} marked ${matchName}, gameweek ${gameweek}, abandoned. It counts as never played. Its players lose their points ` +
+      `from it, and any in a line-up are auto-subbed as if they hadn't played. Only the replay counts.${removed}`,
   };
 }
 
 /** The subject, and the opening, of the letter when the abandoned mark is taken back. */
 export const unabandonedSubject = (matchName: string) => `${matchName} is no longer abandoned`;
 export const tookBackWords = (who: string, matchName: string, gameweek: number) =>
-  `${who} took back the abandoned mark on ${matchName}, gameweek ${gameweek}.`;
+  `${who} removed the abandoned mark from ${matchName}, gameweek ${gameweek}.`;
 
 /** The abandoned letter's line naming the men whose overrides in the match were deleted with it. */
-export const overridesWentWords = (names: readonly string[]) => `The league's overrides in it went with it: ${andListWords(names)}.`;
+export const overridesWentWords = (names: readonly string[]) => `The league's overrides for ${andListWords(names)} in it were removed too.`;
 
 /** What a scoring start set or moved means for the league: scoring starts in `to`, not `from` (null
  *  while none was set, when every ticked gameweek scored), and the gameweeks before it score nothing. */
 function startsInWords(to: number, from: number | null): string {
   const instead = from === null ? "" : `, not ${from}`;
-  return `Scoring starts in gameweek ${to}${instead}: squads and line-ups count from its deadline, and the gameweeks before it score nothing.`;
+  return `Scoring starts in gameweek ${to}${instead}. Squads and line-ups count from its deadline, and earlier gameweeks score nothing.`;
 }
 
 /** The league's average, as a letter about the fixtures names it. */
@@ -179,11 +179,11 @@ export const leagueAverageWords = "the league's average";
 const sideWords = (name: string | null) => name ?? leagueAverageWords;
 
 /** "Ann swapped Lions and Tigers in gameweek 6. The two games are now Tigers v Wolves and Lions v
- *  Bears; every other game is as drawn." */
+ *  Bears. Every other game stays as drawn." */
 function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, who: string): string {
   const [one, other] = event.swapped.map(sideWords);
   const games = event.games.map((game) => matchWords(sideWords(game.team), sideWords(game.opponent)));
-  return `${who} swapped ${one} and ${other} in gameweek ${event.gameweek}. The two games are now ${andListWords(games)}; every other game is as drawn.`;
+  return `${who} swapped ${one} and ${other} in gameweek ${event.gameweek}. The two games are now ${andListWords(games)}. Every other game stays as drawn.`;
 }
 
 /** A match as a letter names it: "Arsenal v Chelsea". */
@@ -202,7 +202,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring" | "oddTeamOut", str
   doubleGameweek: "double gameweek rule",
   tieBreaks: "tie-breaks",
   oddTeamOut: "odd team out",
-  gamesPerGameweek: "games a gameweek",
+  gamesPerGameweek: "games each gameweek",
   waivers: "waivers",
   draft: "draft settings",
   trades: "trade settings",
@@ -215,12 +215,12 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring" | "oddTeamOut", str
 const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof typeof RULES_PART_WORDS] : part);
 
 /** "Ann changed the league's scoring and deadline, from gameweek 9. The scoring changed for Goals
- *  scored and Assists, and points are now whole only." */
+ *  scored and Assists, and points are now whole numbers only." */
 function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>, who: string): string {
   const changed = `${who} changed the league's ${andListWords(event.changed.map(partWords))}, from gameweek ${event.fromGameweek}.`;
   const details = [
     ...(event.categories ? [`the scoring changed for ${andListWords(event.categories)}`] : []),
-    ...(event.wholePointsOnly === undefined ? [] : [event.wholePointsOnly ? "points are now whole only" : "points can now be fractions"]),
+    ...(event.wholePointsOnly === undefined ? [] : [event.wholePointsOnly ? "points are now whole numbers only" : "points can now be fractions"]),
   ];
   return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
 }

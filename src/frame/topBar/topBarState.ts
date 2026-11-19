@@ -1,13 +1,15 @@
 import { unreadCount } from "../../mail/words";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../menu";
 import { menuWords } from "../../shared/words";
+import { answerOffersJob, setLineupJob } from "../words";
 
-// What the top bar tells a signed-in manager: Mail's unread count, and where Continue goes.
+// What the top bar tells a signed-in manager: Mail's unread count, and the next job and where it is.
 // Mail (#26) feeds the count (src/mail/liveMail.ts); the server says whether his lineup is due
 // (convex/lineup/lineupDue.ts, #526) and how many trade offers wait for his answer
 // (convex/trades/tradeOffers.ts, #1553); liveTopBar.tsx puts them together.
 
-export type NextStep = { path: string; reason: string };
+/** The next job: where it is (`path`, the screen `place`), and what it is (`job`, the button's words). */
+export type NextStep = { path: string; job: string; place: string };
 export type TopBarState = {
   unreadMail: number;
   next: NextStep | null;
@@ -16,12 +18,12 @@ export type TopBarState = {
   pendingClaims?: number;
 };
 
-/** Where Continue goes, in spec/12's order: an unread letter, then a lineup before the deadline
+/** The next job, in spec/12's order: an unread letter, then a lineup before the deadline
  *  (his Tactics tab, My team's own page), then a trade offer waiting for his answer (the Offers
  *  tab); with none, nowhere. */
 export function nextStep({ unreadMail, lineupDue, offersWaiting }: { unreadMail: number; lineupDue: boolean; offersWaiting: number }): NextStep | null {
-  if (unreadMail > 0) return { path: MAIL_PATH, reason: unreadCount(unreadMail) };
-  if (lineupDue) return { path: MY_TEAM_PATH, reason: menuWords.tactics };
-  if (offersWaiting > 0) return { path: TRADES_PATH, reason: menuWords.offers };
+  if (unreadMail > 0) return { path: MAIL_PATH, job: unreadCount(unreadMail), place: menuWords.mail };
+  if (lineupDue) return { path: MY_TEAM_PATH, job: setLineupJob, place: menuWords.tactics };
+  if (offersWaiting > 0) return { path: TRADES_PATH, job: answerOffersJob(offersWaiting), place: menuWords.offers };
   return null;
 }

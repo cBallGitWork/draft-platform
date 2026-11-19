@@ -85,8 +85,8 @@ describe("under a commissioner veto, a new league's", () => {
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
     expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
-    expect(await w.subjectsTo(COMMISSIONER)).toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
-    expect(await w.subjectsTo(CAT)).not.toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(COMMISSIONER)).toContain(`Stop the trade between ${TEAM_1} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(CAT)).not.toContain(`Stop the trade between ${TEAM_1} and ${TEAM_2}?`);
     expect(await w.subjectsTo(ANN)).toContain(`${TEAM_2} accepted ${TEAM_1}'s trade`);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toHaveLength(1);
 
@@ -104,8 +104,8 @@ describe("under a commissioner veto, a new league's", () => {
     expect(await w.offers()).toEqual([]);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
     expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: `The trade between ${TEAM_1} and ${TEAM_2} was blocked`,
-      body: `${COMMISSIONER} blocked it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
+      subject: `The trade between ${TEAM_1} and ${TEAM_2} was stopped`,
+      body: `${COMMISSIONER} stopped it, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
     });
     await w.reviewEnds(offerId);
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
@@ -117,7 +117,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain(`Block the trade between ${TEAM_4} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain(`Stop the trade between ${TEAM_4} and ${TEAM_2}?`);
     await expectRefused(w.block(COMMISSIONER, offerId), reviewRefusals.notYourBlock);
     await w.block(CO_COMMISSIONER, offerId);
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
@@ -266,7 +266,7 @@ describe("open offers close", () => {
     await (await actingAs(w.t, BOB)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.bobsTeam, on: true });
 
     expect((await w.offers()).map(({ _id }) => _id)).toEqual([inReview]);
-    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_2} went on the auto team`)) }));
+    expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_2} is now in Away mode`)) }));
     await w.reviewEnds(inReview);
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
   });

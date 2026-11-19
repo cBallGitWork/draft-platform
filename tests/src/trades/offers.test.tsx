@@ -137,7 +137,7 @@ describe("an offer to you", () => {
     expect(text).toContain("Saka");
     expect(text).toContain("“Fancy it?”");
     expect(text).toContain("2 of 20 after it");
-    expect(text).toContain("Commissioner veto: 24 hours once you accept");
+    expect(text).toContain("Commissioner can stop trades: 24 hours once you accept"); // one-home-ok: pins the Review fact word for word
     expect(text).toContain(
       `At the GW10 deadline, ${whenWords(Date.parse("2026-11-14T11:00:00Z"))}`,
     );
@@ -223,7 +223,7 @@ describe("an offer to you", () => {
       ),
     );
     expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
-      "After it: 21 players, over the league's most of 20.",
+      "After it: 21 players. The league allows 20 at most.",
     );
     expect(screen.getByRole("button", { name: acceptWords })).toBeTruthy();
   });

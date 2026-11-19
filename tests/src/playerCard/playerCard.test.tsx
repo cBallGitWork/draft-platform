@@ -20,7 +20,7 @@ import {
   CAPTAIN_TITLE,
   captainLabel,
   chanceWords,
-  hintNotHeldLabel,
+  hintNotHeldShown,
   clubNumberLabel,
   dropWords,
   figureLabels,
@@ -30,6 +30,7 @@ import {
   loadingWords,
   NEWS_TITLE,
   newsNotesLabel,
+  newsNotesShown,
   nextFixturesTitle,
   noFigureWords,
   noNewsWords,
@@ -39,6 +40,7 @@ import {
   portraitLabel,
   ROLE_FIT_TITLE,
   roleFitLabel,
+  roleFitShown,
   offerTradeWords,
   rankLabel,
   SEASON_TITLE,
@@ -287,11 +289,11 @@ describe("the card's head (#1027)", () => {
   it("keeps the portrait, a news note, role fit and the club captain hint (S17.7) in their places as placeholders", async () => {
     openCard();
     expect((await headOf()).getByRole("img", { name: portraitLabel })).toBeTruthy();
-    expect(within(screen.getByRole("region", { name: NEWS_TITLE })).getByRole("img", { name: newsNotesLabel }).textContent).toBe(newsNotesLabel);
-    expect(within(screen.getByRole("region", { name: ROLE_FIT_TITLE })).getByRole("img", { name: roleFitLabel }).textContent).toBe(roleFitLabel);
+    expect(within(screen.getByRole("region", { name: NEWS_TITLE })).getByRole("img", { name: newsNotesLabel }).textContent).toBe(newsNotesShown);
+    expect(within(screen.getByRole("region", { name: ROLE_FIT_TITLE })).getByRole("img", { name: roleFitLabel }).textContent).toBe(roleFitShown);
     const captain = within(screen.getByRole("region", { name: CAPTAIN_TITLE }));
     expect(captain.getByText(captainLabel)).toBeTruthy();
-    expect(captain.getAllByRole("img").map((img) => img.textContent)).toEqual([hintNotHeldLabel(captainLabel)]);
+    expect(captain.getAllByRole("img").map((img) => img.textContent)).toEqual([hintNotHeldShown(captainLabel)]);
   });
 
   it("shows no set-piece hint: set-piece duties come back only as roles (S05.24)", async () => {

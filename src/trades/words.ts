@@ -5,7 +5,7 @@ import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import { capitalised } from "../../convex/shared/moments";
-import { changeFailedWords, commissionerVetoWords, inReviewWords, leagueVoteWords } from "../shared/words";
+import { changeFailedWords, commissionerVetoWords, leagueVoteWords } from "../shared/words";
 import { afterLastMatchWords, gameweekShort } from "../shared/when/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
@@ -40,12 +40,12 @@ export const offersColumns = {
   waiting: { short: waitingOnWords, long: "Who the offer is waiting on" },
   closes: { short: closesWords, long: "When it closes, or its review ends" },
 } as const;
-/** The Offers table's groups; "In review" also marks a squad's player or pick held in a trade
+/** The Offers table's groups (Glossary, trade groups); "With the commissioner" also marks a squad's player or pick held in a trade
  *  under review, on the New offer tab. */
 export const groupWords = {
-  toYou: "To you",
-  fromYou: "From you",
-  inReview: inReviewWords,
+  toYou: "Your reply",
+  fromYou: "Sent",
+  inReview: "With the commissioner",
 } as const;
 /** The review group's head by who reviews it: "With the league" where a league vote does (Craig, 18 Nov 2026). */
 export const inReviewGroupWords = (reviewer: Reviewer | null) => (reviewer === "vote" ? "With the league" : groupWords.inReview);
@@ -88,19 +88,19 @@ export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
     case "tradeDeadline":
       return "Trade deadline passed";
     case "unusedGameweek":
-      return "Trades locked through an unplayed gameweek";
+      return "No league games this gameweek, so no trades";
     case "draftStarted":
       return "The draft started";
     case "pickTraded":
       return "Its pick was traded";
     case "autoTeam":
-      return "A team went on the auto team";
+      return "A team went into Away mode";
     case "playerLeft":
       return "A player left his squad";
     case "leftPremierLeague":
       return "A player left the Premier League";
     case "blocked":
-      return "Blocked in review";
+      return "Stopped in review";
     case "failed":
       return "Couldn't go through";
   }
@@ -132,7 +132,7 @@ export function reviewRuleWords(
   if (reviewer === null) return `None: it goes through ${once}`;
   const who = {
     commissioner: commissionerVetoWords,
-    coCommissioner: "Co-commissioner veto",
+    coCommissioner: "Co-commissioner can stop trades",
     vote: leagueVoteWords,
   }[reviewer];
   return `${who}: ${reviewHours} hours ${once}`;
@@ -149,7 +149,7 @@ export const closesAtWords = (gameweek: number, when: string) =>
   `At the ${gameweekShort(gameweek)} deadline, ${when}`;
 
 export const acceptWords = "Accept";
-export const counterWords = "Counter";
+export const counterWords = "Counter-offer";
 export const rejectWords = "Reject";
 export const withdrawWords = "Withdraw";
 export const rejectQuestion = (teamName: string) =>
@@ -157,9 +157,9 @@ export const rejectQuestion = (teamName: string) =>
 export const rejectYesWords = "Reject it";
 export const rejectNoWords = "Keep it";
 
-// A trade the manager reviews (Craig, 10 Nov 2026): its To review group at the top of Offers, and
-// its panel with Block, Against or Take back. Only his own vote shows, never the count.
-export const toReviewWords = "To review";
+// A trade the manager reviews (Craig, 10 Nov 2026): its Others' trades to check group at the top of
+// Offers, and its panel with Vote to stop this trade, Against or Take back (Glossary, trade groups). Only his own vote shows, never the count.
+export const toReviewWords = "Others' trades to check";
 export const betweenWords = (fromTeamName: string, toTeamName: string) =>
   `${fromTeamName} and ${toTeamName}`;
 export const teamGetsWords = (teamName: string) => `${teamName} get`;
@@ -167,14 +167,16 @@ export const tradeBetweenTitle = (fromTeamName: string, toTeamName: string) =>
   `The trade between ${fromTeamName} and ${toTeamName}`;
 /** How the trade is reviewed, from the reviewer's side. */
 export const yourReviewWords = {
-  block: "Your veto",
+  block: "You can stop it",
   against: leagueVoteWords,
   takeBack: leagueVoteWords,
 } as const;
-export const blockWords = "Block";
+export const blockWords = "Vote to stop this trade";
+/** Beside it: why another team's trade is his to stop (Craig, 18 Nov 2026). */
+export const leagueChecksWords = "The league checks trades before they go through.";
 export const blockQuestion = (fromTeamName: string, toTeamName: string) =>
-  `Block the trade between ${fromTeamName} and ${toTeamName}?`;
-export const blockYesWords = "Block it";
+  `Stop the trade between ${fromTeamName} and ${toTeamName}?`;
+export const blockYesWords = "Stop it";
 export const blockNoWords = "Let it stand";
 export const againstWords = "Against";
 export const votedAgainstWords = "You voted against";
@@ -207,6 +209,6 @@ export const onePickEachWords = "Tick a pick on the other side too.";
  *  so the label takes spec/08's own "one-line note". */
 export const noteLabel = "One-line note";
 export const sendOfferWords = "Send offer";
-export const sendCounterWords = "Send counter";
+export const sendCounterWords = "Send counter-offer";
 export const clearWords = "Clear";
 export const noPartnerWords = "No other team can trade now.";

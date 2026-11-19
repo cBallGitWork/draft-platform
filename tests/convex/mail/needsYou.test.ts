@@ -60,7 +60,7 @@ describe("each letter ends with one link (S16.2)", () => {
     expect((await letterAbout(BOB, /offered .* a trade$/)).link).toEqual({ offer: offerId });
 
     await w.accept(BOB, offerId);
-    expect((await letterAbout(COMMISSIONER, /^Block the trade/)).link).toEqual({ offer: offerId });
+    expect((await letterAbout(COMMISSIONER, /^Stop the trade/)).link).toEqual({ offer: offerId });
   });
 
   // A link to the squad isn't built (#1030), so a claim letter has none yet.
@@ -70,7 +70,7 @@ describe("each letter ends with one link (S16.2)", () => {
     await w.claim(ANN, 9100);
     await w.runWaivers();
 
-    expect((await letterAbout(ANN, /claimed Player 9100$/)).link).toBeNull();
+    expect((await letterAbout(ANN, /won the bid for Player 9100$/)).link).toBeNull();
   });
 });
 
@@ -86,7 +86,7 @@ describe("Needs you and Unread (S16.3)", () => {
     expect(needs).toHaveLength(2);
     expect(needs).toContain((await letterAbout(BOB, /offered .* a trade$/)).subject);
     expect(needs).toContain((await deadlineLetterOf(BOB)).subject);
-    expect(await unreadOf(BOB)).toContain((await letterAbout(BOB, /claimed Player 9100$/)).subject);
+    expect(await unreadOf(BOB)).toContain((await letterAbout(BOB, /won the bid for Player 9100$/)).subject);
   });
 
   test("BG-208 S16.3: the offer letter leaves Needs you once it is answered, and stays in All (#1030)", async () => {
@@ -115,10 +115,10 @@ describe("Needs you and Unread (S16.3)", () => {
 
   test("BG-210 S16.3: under a veto the trade to review is in the commissioner's Needs you, never the manager's", async () => {
     await w.accept(BOB, await annOffersForSaka());
-    const review = await letterAbout(COMMISSIONER, /^Block the trade/);
+    const review = await letterAbout(COMMISSIONER, /^Stop the trade/);
 
     expect(await needsYouOf(COMMISSIONER)).toContain(review.subject);
-    expect((await needsYouOf(ANN)).filter((subject) => /^Block the trade/.test(subject))).toEqual([]);
+    expect((await needsYouOf(ANN)).filter((subject) => /^Stop the trade/.test(subject))).toEqual([]);
   });
 });
 

@@ -29,15 +29,15 @@ export const feedbackTabWords = FEEDBACK_TITLE;
 export const availabilityTabWords = "Availability";
 
 export const newSigningsTitle = "New signings";
-export const newSigningsHint = "No starts to go on yet, so each plays on the Premier League's label for him until you confirm it.";
-export const noNewSigningsWords = "No new signings wait for you.";
+export const newSigningsHint = "No starts yet. Each plays at his Premier League label until you confirm it.";
+export const noNewSigningsWords = "No new signings.";
 export const labelWords = (label: string) => `Label: ${label}`;
 export const confirmWords = "Confirm";
 export const confirmLabel = (name: string) => `Confirm ${name}'s label`;
 
 export const waitingTitle = "Starts waiting for you";
-export const waitingHint = `Positions his starts give him, ${countInWords(STARTS_FOR_A_POSITION)} at a place, which count once you approve them.`;
-export const noWaitingWords = "No starts wait for you.";
+export const waitingHint = `A position needs ${countInWords(STARTS_FOR_A_POSITION)} starts there. It counts once you approve it.`;
+export const noWaitingWords = "Nothing to approve.";
 export const proposalsWords = (positions: readonly string[]) => `From his starts: ${positions.join(", ")}`;
 export const approveWords = "Approve";
 export const approveLabel = (name: string) => `Approve ${name}'s starts`;
@@ -47,8 +47,8 @@ const IN_A_ROW_ELSEWHERE = "starts in a row elsewhere";
 
 export const changesTitle = "Position changes";
 export const changesHint = ({ flagAfter, removeAfter }: ChangeThresholds) =>
-  `A position from his starts is flagged after ${flagAfter} ${IN_A_ROW_ELSEWHERE}, and removed after ${removeAfter}, judged between gameweeks. To keep one, set it on him.`;
-export const noChangesWords = "No position is flagged or removed.";
+  `A position from his starts is flagged after ${flagAfter} ${IN_A_ROW_ELSEWHERE} and removed after ${removeAfter}, checked between gameweeks. To keep one, set it by hand.`;
+export const noChangesWords = "Nothing flagged or removed.";
 export const flaggedTitle = "Flagged";
 export const flaggedWords = (position: string, startsElsewhere: number) => `${position}: ${startsElsewhere} ${IN_A_ROW_ELSEWHERE}`;
 export const removedTitle = "Removed";
@@ -76,8 +76,8 @@ export const modeWords: Record<ApproveMode, string> = {
   countAtOnce: "They count at once, unconfirmed until you approve them.",
 };
 export const switchModeWords: Record<ApproveMode, string> = {
-  proposals: "Make them wait for me",
-  countAtOnce: "Let them count at once",
+  proposals: "Hold for my approval",
+  countAtOnce: "Count straight away",
 };
 
 export const thresholdsTitle = "When positions change";
@@ -87,20 +87,20 @@ export const saveThresholdsWords = "Save";
 
 export const siteSettingsTitle = "Site settings";
 export const siteSettingLabels: Record<keyof PlatformSettings, string> = {
-  statCorrectionWindowMinutes: "Minutes after full time a match's stats take corrections",
+  statCorrectionWindowMinutes: "Minutes after full time that stats can be corrected",
   scoutsPerTeam: "Scouts each team has",
-  matchdayHoursBefore: "Hours matchday mode starts before the first kickoff",
-  matchdayHoursAfter: "Hours it runs on after the last final whistle",
+  matchdayHoursBefore: "Hours matchday mode starts before the first kick-off",
+  matchdayHoursAfter: "Hours matchday mode runs after the last match",
 };
 export const saveSiteSettingsWords = "Save the settings";
 export const siteSettingsLoadingWords = "Loading the settings…";
 
-export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
+export const findHint = "Set or remove any player's positions. A position you set stays, and one you remove stays off, whatever his starts say.";
 export const noPositionsWords = "No positions yet.";
 /** A player with no positions counts towards one area's squad minimum, the admin's choice, until a
  *  feed places him (spec/06 `S06.1`). */
-export const unplacedAreaLabel = (name: string) => `${name}'s area for the squad minimums until a feed places him`;
-export const noAreaWords = "No area";
+export const unplacedAreaLabel = (name: string) => `Where ${name} counts for the squad minimums until a feed places him`;
+export const noAreaWords = "Nowhere";
 export const sourceWords: Record<PositionSource, string> = { starts: "from his starts", label: "from his label", admin: "set by you" };
 /** What follows where a held position came from: that it is unconfirmed, or flagged. */
 export const unconfirmedNote = ", unconfirmed";
@@ -122,7 +122,7 @@ export const readingLinks = (fullName: string) => [
 
 export const feedsLoadingWords = "Loading the feeds…";
 export const feedsTitle = "Feeds";
-export const feedsHint = "When each feed last brought data. One late or failing needs you: a feed that stops is otherwise silent.";
+export const feedsHint = "A late or failing feed needs you. Nothing else warns you when one stops.";
 export const feedColumns = {
   feed: { short: "Feed", long: "Feed, and where it comes from" },
   arrived: { short: "Last arrived", long: "When it last brought data" },
@@ -160,17 +160,17 @@ export const matchWords = (match: MatchName, fixtureCode: number) =>
   match === null ? `Match ${fixtureCode}` : `${match.home} ${versusWords} ${match.away}`;
 
 export const behindTitle = "Scoring behind";
-export const noneBehindWords = "No match is behind: each one at full time had every player's stats within its correction window.";
+export const noneBehindWords = "No match is behind. Every one had all its stats in time.";
 export const behindWords = (count: number, more: boolean) => ({
   figure: more ? `${count}+` : `${count}`,
-  after: ` ${count === 1 && !more ? "match is" : "matches are"} still provisional past the correction window: a feed hasn't sent a player's stats, so the points can't lock.`,
+  after: ` ${count === 1 && !more ? "match is" : "matches are"} still not final after the correction window. A feed is missing a player's stats, so the points can't lock.`,
 });
 export const fullTimeWords = (at: number) => `Full time ${whenWords(at)}`;
 
 export const correctionsTitle = "Corrections after the lock";
 export const correctionsHint = "A feed changed a stat after the match's points locked. The points didn't change.";
 export const noCorrectionsWords = "No stat has changed after a lock.";
-export const moreCorrectionsWords = (shown: number) => `More came than these: only the newest ${shown} are shown.`;
+export const moreCorrectionsWords = (shown: number) => `Showing the newest ${shown}.`;
 const playerWords = (player: string | null, playerCode: number) => player ?? `Player ${playerCode}`;
 /** A correction's heading: whose stat, in which match. */
 export const correctionOfWords = (player: string | null, playerCode: number, match: MatchName, fixtureCode: number) =>
@@ -214,7 +214,7 @@ export const FEED_CHOICE = "feed";
 export const availabilityChoiceLabel = "Availability";
 export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOICE) => (choice === FEED_CHOICE ? "The feed" : AVAILABILITY_WORDS[choice]);
 /** What it changes (spec/06, spec/09): our own availability, the same in every league. */
-export const autoTeamReadsWords = "The auto team reads this in every league.";
+export const autoTeamReadsWords = "Away mode reads this in every league.";
 /** A player's row button: his name and club, as it shows them (WCAG 2.5.3; S12.14), then what it does. */
 export const pickPlayerLabel = (name: string, club: string) => `${name} ${club}: open his availability`;
 
@@ -222,7 +222,7 @@ export const pickPlayerLabel = (name: string, club: string) => `${name} ${club}:
 export const moveMatchTitle = "Move a match";
 export const moveGameweekLabel = "Gameweek";
 export const gameweekMatchesLoadingWords = "Loading the gameweek's matches…";
-export const noGameweekMatchesWords = "No match is in this gameweek.";
+export const noGameweekMatchesWords = "No matches this gameweek.";
 export const noKickoffWords = "No kick-off time";
 /** A match he moved in, and where the window rule would put it. */
 export const movedFromWords = (unmoved: number | null) => `Moved here from ${gameweekWords(unmoved)}`;
@@ -232,7 +232,7 @@ export const clearMoveWords = "Clear move";
 export const clearMoveLabel = (match: string) => `Clear the move of ${match}`;
 export const moveLogTitle = "Matches moved";
 export const moveLogLoadingWords = "Loading the matches moved…";
-export const noMovesWords = "No match has been moved.";
+export const noMovesWords = "No matches moved yet.";
 /** Past the newest the log shows, said as the late corrections say it. */
 export const moreMovesWords = moreCorrectionsWords;
 function gameweekWords(gameweek: number | null) {
@@ -250,4 +250,4 @@ export const moreAsksWords = "More are waiting than these: the rest show as you 
 
 /** One row of his log: a move, or a clear, which sends the match back where the window rule puts it. */
 export const moveLogWords = ({ from, to }: { from: number | null; to: number | null }) =>
-  to === null ? `Move cleared, out of ${gameweekWords(from)}` : `From ${gameweekWords(from)} to ${gameweekWords(to)}`;
+  to === null ? `Move cleared from ${gameweekWords(from)}` : `From ${gameweekWords(from)} to ${gameweekWords(to)}`;

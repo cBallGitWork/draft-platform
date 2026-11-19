@@ -5,13 +5,14 @@ import type { ReactNode } from "react";
 // that inside, in muted words (Craig, 13 Nov 2026, on #1976), while a small one, a chip or stars,
 // stays empty. Never a made-up figure (Craig, 1 Nov 2026: "placeholders, always placeholders").
 
-/** `label` says what will show there ("Role fit: not rated yet"); `className` gives its size and
- *  its place in the caller's layout; `written` writes `label` inside; `children`, where given, is
- *  what is held already (a fixture whose difficulty colour isn't), which `label` then names too. */
-export function Placeholder({ label, className, written = false, children }: { label: string; className: string; written?: boolean; children?: ReactNode }) {
+/** `label` says what will show there ("Role fit: not yet available"); `className` gives its size
+ *  and its place in the caller's layout; `written`, where given, is what it writes inside ("Role fit
+ *  —"); `children`, where given, is what is held already (a fixture whose difficulty colour isn't),
+ *  which `label` then names too. */
+export function Placeholder({ label, className, written, children }: { label: string; className: string; written?: string; children?: ReactNode }) {
   return (
-    <span role="img" aria-label={label} title={label} className={`border border-muted ${written ? "flex items-center px-3 py-2 text-muted" : "inline-block"} ${className}`}>
-      {written ? <span aria-hidden="true">{label}</span> : children}
+    <span role="img" aria-label={label} title={label} className={`border border-muted ${written !== undefined ? "flex items-center px-3 py-2 text-muted" : "inline-block"} ${className}`}>
+      {written !== undefined ? <span aria-hidden="true">{written}</span> : children}
     </span>
   );
 }

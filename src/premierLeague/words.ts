@@ -2,7 +2,7 @@
 
 import { DAY_MS } from "../../convex/shared/time";
 import type { TableLine } from "../../convex/football/tableLines";
-import { lastSeasonPointsColumn, listSeparator, menuWords, noFigureWords, signedWords, STAT_WORD, statColumns, statNames } from "../shared/words";
+import { lastSeasonPointsColumn, listSeparator, menuWords, noFigureWords, notHeldLabel, notHeldShown, signedWords, STAT_WORD, statColumns, statNames } from "../shared/words";
 import { ascendingGlyph, backWords, descendingGlyph } from "../shared/controls/words";
 import { awayWords, homeWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
@@ -26,12 +26,12 @@ export const competitionsLabel = "Competitions";
 export const FIXTURES_TITLE = "Fixtures";
 export const loadingWords = "Loading the Premier League's fixtures…";
 export const loadingGameweekWords = (gameweek: number) => `Loading ${gameweekWords(gameweek)}'s matches…`;
-export const noMatchesWords = (gameweek: number) => `No matches are held for ${gameweekWords(gameweek)} yet.`;
+export const noMatchesWords = (gameweek: number) => `No matches for ${gameweekWords(gameweek)} yet.`;
 export const matchesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s matches`;
 
 /** A day's heading over its matches, in the viewer's own zone: "Sat 21 Nov" (the approved picture). */
 export const dayWords = dateWords;
-/** A match's kickoff, in the viewer's own zone: "15:00". */
+/** A match's kickoff, in the viewer's own zone: "3pm". */
 export const kickoffWords = timeOfDayWords;
 /** The heading over matches with no kickoff time: postponed, waiting for a new date. */
 export const noDateWords = "Date to be confirmed";
@@ -40,7 +40,7 @@ export const noDateWords = "Date to be confirmed";
 export const TABLE_TITLE = "Table";
 export const loadingTableWords = "Loading the Premier League table…";
 /** Said before the football sync has held the season's clubs. */
-export const noClubsWords = "No clubs are held yet, so there is no table to show.";
+export const noClubsWords = "No clubs yet, so no table.";
 /** Said while a match in the table is being played: its result counts as it stands (spec/18). */
 export { provisionalWords } from "../shared/match/words";
 
@@ -94,7 +94,7 @@ export const backLabel = (gameweek: number | null) => `${backWords} to ${PREMIER
 export const matchWhereWords = (gameweek: number | null) => (gameweek === null ? PREMIER_LEAGUE_TITLE : `${PREMIER_LEAGUE_TITLE}, ${gameweekShort(gameweek)}`);
 /** Beside the sheets' points while they are live, until the gameweek's are final (spec/10 S10.10);
  *  "Provisional" on hovering it. */
-export const provWords = "prov.";
+export const provWords = "not final";
 /** Under the scoreboard, a side's scorers in the order they scored, a man's goals after his name
  *  once: "Saka 23', 58', Gyökeres 67'"; an own goal counts for the other side and says so (S10.7). */
 export const ownGoalWords = "(og)";
@@ -109,7 +109,7 @@ export const scorersWords = (goals: readonly { name: string; minute: string; own
 };
 export const scorersLabel = (club: string) => `${club}'s scorers`;
 export const loadingMatchWords = "Loading the match…";
-export const noMatchWords = "No match with this code is held.";
+export const noMatchWords = "Match not found.";
 /** After where the match stands, the gameweek it is in. */
 export const inGameweekWords = (gameweek: number) => ` (${gameweekWords(gameweek)})`;
 /** Before kickoff, the day and time it kicks off, in the viewer's own zone. */
@@ -117,15 +117,15 @@ export const kickoffDayWords = (at: number) => `${dayWords(at)}, ${kickoffWords(
 /** The admin's mark on a match (#904; spec/05 S05.46): his button, its confirm, and taking it back. */
 export const markAbandonedWords = "Mark abandoned";
 export const markAbandonedQuestion =
-  "Mark this match abandoned? Its players' stats and every league's overrides in it are deleted, its men are auto-subbed, and each league with a player in it gets a letter.";
+  "Mark this match abandoned? Its stats and every league's overrides for it are deleted. Its players are auto-subbed, and every league with one gets a letter.";
 export const abandonedWords = "Abandoned";
-export const unmarkAbandonedWords = "Take back the mark";
+export const unmarkAbandonedWords = "Unmark as abandoned";
 /** When the league's points can't be worked out, while the rest still shows. */
 export const pointsProblemWords = (reason: string) => `The league's points can't be worked out for this match: ${reason}.`;
 
 export const sheetLabel = (club: string) => `${club}'s team sheet`;
 export const SUBSTITUTES_TITLE = "Substitutes";
-export const MOVED_TITLE = "Since left both clubs";
+export const MOVED_TITLE = "No longer at either club";
 /** Before the sheets are out: spec/10's words for when the live tick starts reading them
  *  (LINEUPS_OUT_BEFORE_KICKOFF_MS, convex/shared/time.ts). */
 export const noMenWords = "No team sheets yet.";
@@ -143,7 +143,7 @@ export const cameOnWords = (minute: string | null) => (minute === null ? "On" : 
 /** A man who went off ("Off 62'"; the approved picture `1440-pitch.png`). */
 export const wentOffWords = (minute: string) => `Off ${minute}`;
 /** Read out for a substitute who never came on, greyed on screen. */
-export const unusedLabel = "unused substitute";
+export const unusedLabel = "unused sub";
 
 export const COMMENTARY_TITLE = "Commentary";
 export { noCommentaryWords as noLinesWords } from "../shared/match/words";
@@ -173,7 +173,7 @@ export type MatchTab = (typeof MATCH_TABS)[number];
 export const matchTabWords: Record<MatchTab, string> = { overview: "Overview", playerStats: "Player stats", highlights: "Highlights" };
 export const matchTabsLabel = "The match's tabs";
 /** The Highlights tab, greyed until it is built (S10.11). */
-export const highlightsNotHeldLabel = "The match's YouTube highlights: not held yet";
+export const highlightsNotHeldLabel = notHeldLabel("YouTube highlights");
 export const playerStatsLabel = (club: string) => `${club}'s player stats`;
 /** Player stats' columns, as the approved picture heads them: a short head, and what it stands for. */
 export const matchStatColumns = {
@@ -207,7 +207,7 @@ export const statPointsWords = (points: number | null) => (points === null || po
 export const LINEUP_VIEWS = ["list", "pitch"] as const;
 export type LineupView = (typeof LINEUP_VIEWS)[number];
 export const lineupViewWords: Record<LineupView, string> = { list: "List", pitch: "Pitch" };
-export const lineupViewLabel = "Show the lineups as team sheets or on a pitch";
+export const lineupViewLabel = "Show the line-ups as team sheets or on a pitch";
 /** The pitch's head, each side's name and its formation ("Chelsea, 4-2-3-1"); the name alone while
  *  no sheet drawing it is held. */
 export const sideFormationWords = (club: string, formation: string | null) => (formation === null ? club : `${club}, ${formation}`);
@@ -217,14 +217,16 @@ export const manPanelLabel = (name: string) => `${name}'s points in this match`;
 export const manPanelColumns = { stat: { short: "This match", long: "What he did in this match" }, count: { short: "No.", long: "How many" }, points: { short: "Pts", long: "The points it earned him" } } as const;
 export const manPanelWords = { total: "Total", hisCard: "His card" } as const;
 export const SHOTS_TITLE = "Shots";
-/** The Shots panel, greyed until Sportmonks' xG add-on is bought (#1196; the picture's README). */
-export const shotsNotHeldLabel = "The shot map and each shot's xG: not held yet";
+/** The Shots panel, greyed until its shot counts are built (spec/10: counts, no xG; #2560). */
+export const shotsNotHeldLabel = notHeldLabel("Shot counts");
+/** What the Shots panel's placeholder writes inside it: "Shot counts —". */
+export const shotsNotHeldShown = notHeldShown("Shot counts");
 
 // A club's page (#1936; spec/18, Club pages).
 
 export { placeWords } from "../shared/words";
 export const loadingClubWords = "Loading the club…";
-export const noClubWords = "No club with this code is held.";
+export const noClubWords = "Club not found.";
 /** The club page's tabs on its title plate, the Squad tab first (spec/18). */
 export const CLUB_TABS = ["squad", "fixtures"] as const;
 export type ClubTab = (typeof CLUB_TABS)[number];
@@ -235,14 +237,14 @@ export const NEXT_MATCH_TITLE = "Next match";
 /** The club's ground, its capacity and its manager in the header, from Sportmonks (`S18.7`, #1938). */
 export const CLUB_DETAIL_HEADS = { stadium: "Stadium", capacity: "Capacity", manager: "Manager" } as const;
 export type ClubDetail = keyof typeof CLUB_DETAIL_HEADS;
-/** A detail the feed hasn't sent, on its greyed placeholder: "Stadium: not held yet". */
-export const detailNotHeldLabel = (detail: ClubDetail) => `${CLUB_DETAIL_HEADS[detail]}: not held yet`;
+/** A detail the feed hasn't sent, on its greyed placeholder: "Stadium: not yet available". */
+export const detailNotHeldLabel = (detail: ClubDetail) => notHeldLabel(CLUB_DETAIL_HEADS[detail]);
 /** A ground's capacity: "60,704". */
 export { thousandsWords as capacityWords } from "../shared/words";
 export const kickoffHead = "Kick-off";
 /** Where a club has no match left to play this season. */
-export const noNextMatchWords = "No match to come.";
-export const noClubFixturesWords = "No matches are held for this club.";
+export const noNextMatchWords = "No matches left.";
+export const noClubFixturesWords = "No matches for this club.";
 /** Where a club no longer in the table would show its place. */
 export { noFigureWords as notInTableWords } from "../shared/words";
 /** Where a match is played, after the opponent's name: "(H)" or "(A)". */
@@ -262,9 +264,9 @@ export { statusNotSettledLabel } from "../shared/match/words";
 /** The club's top three scorers, under its table place and form: "Saka 42". */
 export const topScorersHead = "Top scorers";
 export const loadingSquadWords = "Loading the squad…";
-export const noSquadWords = "No players are held at this club.";
+export const noSquadWords = "No players at this club.";
 /** In the Team column, a player on the league's waivers. */
-export const waiversWords = "Waivers";
+export const waiversWords = "Released";
 /** Why his season points are "—", as Scouting says it. */
 export { noSeasonPointsWords } from "../shared/words";
 /** Why a gameweek's cell is "—". */
@@ -278,7 +280,7 @@ export function squadColumns(gameweeks: readonly number[], pointsSeason: number 
   return {
     positions: { short: "Pos", long: "Positions" },
     player: { short: "Player", long: "Player" },
-    owner: { short: "Team", long: "The team that owns him in this league, Free agent or Waivers" },
+    owner: { short: "Team", long: "The team that owns him in this league, Free agent or Released" },
     points: pointsSeason === null ? { short: "Pts", long: "Season points in this league" } : lastSeasonPointsColumn(pointsSeason),
     ...Object.fromEntries(gameweeks.map((gameweek) => [`gw${gameweek}`, { short: gameweekShort(gameweek), long: `Points in ${gameweekWords(gameweek)}` }])),
     starts: { short: "St", long: pointsSeason === null ? "Starts this season" : `Starts in ${seasonShortWords(pointsSeason)}` },

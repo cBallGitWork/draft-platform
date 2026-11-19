@@ -34,6 +34,7 @@ import {
   selectClaimLabel,
   WAIVER_ORDER_TITLE,
   skippedIfWords,
+  teamGroupWords,
   withdrawWords,
 } from "../../../../src/myTeam/claims/words";
 import type { TeamSquad } from "../../../../src/myTeam/seam";
@@ -74,10 +75,10 @@ describe("the pending claims", () => {
     open();
 
     expect(await claimRows()).toEqual([
-      `${runGroupWords(made(WED))} 2 claims`,
+      `${runGroupWords(made(WED))} 2 bids`,
       "⋮⋮1WSemenyo ARS20WCalvert-Lewin ARS",
       `⋮⋮2WEze ARS20WCalvert-Lewin ARS${failsIfWords(1)}`,
-      `${runGroupWords(made(THU))} 1 claim`,
+      `${runGroupWords(made(THU))} 1 bid`,
       "⋮⋮1WKudus ARS20WMbeumo ARS",
     ]);
   });
@@ -85,7 +86,7 @@ describe("the pending claims", () => {
   it("heads the claimed player In and the drop Out, as the claim panel does (#1031)", async () => {
     open();
     const heads = within(await screen.findByRole("table", { name: claimsTableLabel })).getAllByRole("columnheader");
-    expect(heads.map((head) => head.textContent)).toEqual(["", "Rank", "Pos", "In", "Pts", "Out"]);
+    expect(heads.map((head) => head.textContent)).toEqual(["", "Priority", "Pos", "In", "Pts", "Out"]);
   });
 
   it("opens a claim's panel, which changes its drop, keeping its rank, moves it within its run and withdraws it", async () => {
@@ -153,13 +154,13 @@ describe("the pending claims", () => {
     const app = open({ claims });
 
     expect(await claimRows()).toEqual([
-      `${runGroupWords(mayBeSkipped(WED, 12))} 2 claims`,
+      `${runGroupWords(mayBeSkipped(WED, 12))} 2 bids`,
       "⋮⋮1WSemenyo ARS20WMbeumo ARS",
       `⋮⋮2WKudus ARS20WMbeumo ARS${failsIfWords(1)}`,
-      `${runGroupWords(made(THU + 7 * DAY_MS))} 1 claim`,
+      `${runGroupWords(made(THU + 7 * DAY_MS))} 1 bid`,
       `⋮⋮1WEze ARS20${freePlaceWords}`,
     ]);
-    expect(runGroupWords(mayBeSkipped(WED, 12))).toBe("Run after GW12's last match");
+    expect(runGroupWords(mayBeSkipped(WED, 12))).toBe("Settles after GW12's last match");
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Kudus", ARSENAL.shortName) }));
     const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
     expect(within(panel).getByText(runGroupWords(mayBeSkipped(THU, 12)))).toBeTruthy();
@@ -190,9 +191,9 @@ const runs = async (waivers: WaiversView, claims: PendingClaim[] = []) => {
 describe("the runs (#1031)", () => {
   it("count the manager's claims in each", async () => {
     expect(await runs({ ...NO_WAIVERS, runs: [made(WED), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 12, at: THU } }, CLAIMS)).toEqual([
-      `${runWords(WED)}2 claims, next`,
-      `${runWords(THU)}1 claim, skipped if GW12 is still on`,
-      `${freeAgentsWords}From Wed 18:00 to the GW12 deadline`,
+      `${runWords(WED)}2 bids, next`,
+      `${runWords(THU)}1 bid, skipped if GW12 is still on`,
+      `${freeAgentsWords}From Wed 6pm to the GW12 deadline`,
     ]);
   });
 });
@@ -225,7 +226,7 @@ describe("before the league's draft is over (S08.1)", () => {
   it("once it is, marks the first run Next and says when free agency opens", async () => {
     expect(await runs({ ...NO_WAIVERS, runs: [made(WED)], windowShuts: { gameweek: 12, at: THU } })).toEqual([
       `${runWords(WED)}${nextRunWords}`,
-      `${freeAgentsWords}From Wed 18:00 to the GW12 deadline`,
+      `${freeAgentsWords}From Wed 6pm to the GW12 deadline`,
     ]);
   });
 });
@@ -235,7 +236,7 @@ describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
     expect(await runs({ ...NO_WAIVERS, runs: [mayBeSkipped(WED, 12), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
       `${runWords(THU)}${skippedIfWords(12)}`,
-      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
+      `${freeAgentsWords}From when bids settle after GW12's last match to the GW13 deadline`,
     ]);
     expect(skippedIfWords(12)).toBe("Skipped if GW12 is still on");
   });
@@ -250,7 +251,7 @@ describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
   it("in the lock, names the gameweek under way", async () => {
     expect(await runs({ ...NO_WAIVERS, locked: true, resetsAfter: 12, runs: [mayBeSkipped(WED, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
-      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
+      `${freeAgentsWords}From when bids settle after GW12's last match to the GW13 deadline`,
     ]);
   });
 });
@@ -289,8 +290,8 @@ describe("for the commissioner", () => {
     await userEvent.click(await screen.findByRole("radio", { name: claimsViewWords.everyTeam }));
     const rows = await claimRows(everyTeamTableLabel);
 
-    expect(rows[0]).toBe("Team 2 1st in the waiver order, 1 claim");
-    expect(rows[2]).toBe("Team 1 2nd in the waiver order, 3 claims");
+    expect(rows[0]).toBe(`Team 2 ${teamGroupWords(1, 1)}`);
+    expect(rows[2]).toBe(`Team 1 ${teamGroupWords(2, 3)}`);
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
   });
 });

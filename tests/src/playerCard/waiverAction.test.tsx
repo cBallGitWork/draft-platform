@@ -84,7 +84,7 @@ describe("a player on waivers", () => {
 
   it("whose first run may fall in a gameweek's lock says it comes after that gameweek's last match (#1467)", async () => {
     openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: { at: FIRST_RUN.at, skippedIf: 12 }, squad: [] }));
-    expect(await screen.findByText("On waivers: first run after GW12's last match")).toBeTruthy();
+    expect(await screen.findByText("Released. Bids settle after GW12's last match")).toBeTruthy();
   });
 });
 

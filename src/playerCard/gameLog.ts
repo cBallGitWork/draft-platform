@@ -8,7 +8,7 @@ import type { PlayedMatch, PlayerCard } from "./seam";
 type Fixture = PlayerCard["postponed"][number];
 
 /** How many of his latest priced matches the card's Last 5 shows. */
-export const LAST_MATCHES_SHOWN = 5;
+const LAST_MATCHES_SHOWN = 5;
 
 /** A row of the game log: a match he was in, or one of his club's postponed with no new date. */
 export type LogRow = (Fixture & { kind: "postponed" }) | (PlayedMatch & { kind: "played"; match: PlayedMatch });

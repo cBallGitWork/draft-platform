@@ -7,7 +7,7 @@ import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { roleIn } from "../../../../../convex/lineup/roles";
 import { NO_DATA } from "../../../../../convex/stars/starsShape";
-import { nextFixtureShort } from "../../../../../src/myTeam/squad/words";
+import { difficultyNotRatedWords, nextFixtureShort } from "../../../../../src/myTeam/squad/words";
 import { pitchChipOf } from "../../../../../src/myTeam/tactics/pitch/pitchChip";
 import { starsLabel } from "../../../../../src/ui/StarRating";
 import { ARSENAL, CHELSEA } from "../../../../support/convex/footballRows.harness";
@@ -48,7 +48,7 @@ describe("a starter's chip", () => {
 });
 
 describe("the chip on the pitch", () => {
-  it("draws the short name in his area's colour, his stars, and each opponent this gameweek outlined, difficulty not rated yet", async () => {
+  it("draws the short name in his area's colour, his stars, and each opponent this gameweek outlined, difficulty still to come", async () => {
     const role = roleIn(STARTERS[1], undefined);
     const squad = SQUAD.map((player) => (player === SALIBA ? { ...player, stars: [{ area: "defence" as const, role: role.key, stars: 4 }] } : player));
     await openedPitch({ tactics: openTactics({ ...SAVED, squad }), squad: squadOf([{ ...SAKA, code: SALIBA.playerCode, nextFixtures: DOUBLE }]) });
@@ -59,7 +59,7 @@ describe("the chip on the pitch", () => {
     const opponents = [nextFixtureShort(CHELSEA.shortName, true), nextFixtureShort(ARSENAL.shortName, false)].map((short) => block.getByText(short));
     for (const opponent of opponents) {
       expect(opponent.className).toContain("border-muted");
-      expect(opponent.getAttribute("title")).toMatch(/difficulty not rated yet$/);
+      expect(opponent.getAttribute("title")).toMatch(new RegExp(`${difficultyNotRatedWords}$`));
     }
     expect(block.queryByText(nextFixtureShort(CHELSEA.shortName, false))).toBeNull();
   });

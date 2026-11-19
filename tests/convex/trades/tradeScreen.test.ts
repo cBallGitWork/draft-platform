@@ -141,7 +141,7 @@ describe("the Trades screen", () => {
     const [offer] = (await viewOf(BOB)).offers;
     expect(offer.closes).toEqual({ gameweek: NEXT - 1, at: null });
     const bodies = (await w.lettersTo(BOB)).map(({ body }) => body);
-    expect(bodies).toContainEqual(expect.stringMatching(new RegExp(`unanswered, it closes after GW${NEXT - 1}'s last match\\.$`)));
+    expect(bodies).toContainEqual(expect.stringMatching(new RegExp(`If nobody answers, it closes after gameweek ${NEXT - 1}'s last match\\.$`)));
   });
 
   test("an offer made before the trade deadline's gameweek still closes at the next deadline", async () => {

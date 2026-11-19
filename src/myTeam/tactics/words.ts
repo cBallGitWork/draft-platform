@@ -3,8 +3,8 @@
 import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import type { Side } from "../../../convex/lineup/instructions";
-import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
-import { failedWords, listSeparator, menuWords } from "../../shared/words";
+import { AREA_IN_WORDS, AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
+import { failedWords, listSeparator, menuWords, notHeldLabel } from "../../shared/words";
 import { timeOfDayWords } from "../../shared/when/words";
 import { gameweekShort } from "../header/words";
 import { benchShort, nextMatchesShort } from "../words";
@@ -14,7 +14,7 @@ export const TACTICS_TITLE = menuWords.tactics;
 export { BENCH_TITLE } from "../../shared/words";
 
 export const tacticsLoadingWords = "Loading your line-up…";
-export const seasonOverWords = "Every gameweek this league plays has begun, so there's no line-up left to set this season.";
+export { seasonOverWords } from "../words";
 
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
@@ -37,15 +37,15 @@ export const playerOnPitchLabel = (shown: string, positions: readonly string[], 
 export const onPitchWords = (positions: readonly string[], area: Area, lane: Lane) => `${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 /** A lit player on the pitch: what his block shows, then the swap (WCAG 2.5.3; S12.14). */
 export const swapOnPitchLabel = (shown: string, name: string, other: string) => `${shown}, ${swapLabel(name, other)}`;
-export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
+export const emptySlotLabel = (area: Area, lane: Lane) => `Empty position: ${cellWords(area, lane)}`;
 
-/** The desk's switch for the roles' runs on the pitch (spec/05 Runs). */
-export const runsWords = "Runs";
+/** The desk's switch for the roles' runs on the pitch (spec/05 Runs), shown as "movement" (Glossary, run). */
+export const runsWords = "Show movement";
 
 /** For screen readers, what is in hand: nobody, or the player picked up. */
-export const pickHintWords = "Pick a player, then Move.";
+export const pickHintWords = "Choose a player to move or swap.";
 export const movingHintWords = (name: string, positions: readonly string[]) =>
-  `Moving ${name} (${positionsWords(positions)}). Escape puts him back.`;
+  `${name} (${positionsWords(positions)}) chosen. Pick a lit spot or the player to swap him with. Escape puts him back.`;
 
 /** The toolbar over the pitch and the table (the approved Tactics picture). */
 export const toolbarLabel = "Formation, presets and moves";
@@ -56,15 +56,15 @@ export const allFormationsWords = "All formations";
  *  6 Nov 2026, on #990: "Attacking: Play out from the back", "Defending: Keep it tight early"). */
 export const SIDE_WORDS: Record<Side, string> = { attacking: "Attacking", defensive: "Defending" };
 export const instructionLabel = (side: Side) => `${SIDE_WORDS[side]} instruction`;
-/** The right column's box (the picture's "4-2-3-1 unlocks"): what the formation offers on each
+/** The right column's box ("Instructions for 4-2-3-1"; the picture said "4-2-3-1 unlocks"): what the formation offers on each
  *  side, the pick marked. */
-export const instructionsTitle = (formation: string | null) => (formation === null ? "Team instructions" : `${formation} unlocks`);
+export const instructionsTitle = (formation: string | null) => (formation === null ? "Team instructions" : `Instructions for ${formation}`);
 export const pickedWords = "Picked";
 export const presetsWords = "Presets";
 /** The toolbar's button and the formation window's tile that both save a preset. */
 export const savePresetWords = "Save preset…";
 /** Fills the formation with the best eleven by stars (spec/05, Moving players; #849). */
-export const quickPickWords = "Quick Pick";
+export const quickPickWords = "Best XI";
 
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
 export const undoWords = "Undo";
@@ -78,21 +78,21 @@ export const planSaveFailedWords = failedWords("the preset wasn't saved");
 export const planDeleteFailedWords = failedWords("the preset wasn't deleted");
 /** A plan loaded with roles the league no longer offers in their slot (Craig, 6 Nov 2026, #992). */
 export const rolesLostWords = (name: string, lost: number) =>
-  `${name}: ${lost === 1 ? "1 role is" : `${lost} roles are`} no longer allowed, so ${lost === 1 ? "that slot takes its player's" : "those slots take each player's"} best-star role.`;
+  `${name}: ${lost === 1 ? "1 role is" : `${lost} roles are`} no longer allowed. ${lost === 1 ? "That player now plays his" : "Those players now play their"} best role by stars.`;
 /** Why a drop was refused, said in the line under the toolbar (spec/05, The pitch; Craig, 4 Nov
  *  2026): presets only, so the formation changes only by picking one. `nameOf` names a squad player. */
 export function refusalWords(refusal: MoveRefusal, nameOf: (playerCode: number) => string): string {
   switch (refusal.kind) {
     case "emptyCell":
-      return "Nobody moves into an empty cell: pick a formation instead.";
+      return "You can't move a player into an empty space. Pick a formation instead.";
     case "offThePitch":
-      return "A starter leaves the pitch only by swapping with a bench player.";
+      return "To take a player out of your XI, swap him with a bench player.";
     case "goal":
       return "Only a keeper plays in goal, and a keeper plays only in goal.";
     case "doesNotPlay":
-      return `${nameOf(refusal.playerCode)} doesn't play ${cellWords(refusal.cell.area, refusal.cell.lane).toLowerCase()}.`;
+      return `${nameOf(refusal.playerCode)} doesn't play ${LANE_WORDS[refusal.cell.lane]} ${AREA_IN_WORDS[refusal.cell.area]}.`;
     case "areaLimits":
-      return "That breaks the league's area limits.";
+      return "That breaks the league's limits for defence, midfield or attack.";
   }
 }
 
@@ -108,11 +108,11 @@ export const swapInTableLabel = (name: string, other: string) => `${other}, ${sw
  *  Selection table's and the role card's column head. */
 export const ROLE_FIT_SUBJECT = "Role fit";
 export const selectionColumns = {
-  position: { short: "Pos", long: "The slot's position; on the bench, his place and his main position" },
+  position: { short: "Pos", long: "His place in your formation, or bench place and main position" },
   player: { short: "Player", long: "Player" },
   next: { short: "Next", long: "Next fixture" },
   roleFit: { short: ROLE_FIT_SUBJECT, long: "His stars for the role" },
-  role: { short: "Role", long: "The role he plays in his slot" },
+  role: { short: "Role", long: "The role he plays in your formation" },
 } as const;
 /** Over the bench's Role column: the role each has the most stars for at his main position. */
 export const BEST_ROLE_HEAD = "Best role";
@@ -129,15 +129,15 @@ export const emptyBenchWords = "Nobody on the bench.";
 export const startingWhereWords = (club: string | null, slot: string) => (club === null ? slot : `${club}, ${slot}`);
 export const benchWhereWords = (club: string | null, index: number) => startingWhereWords(club, benchPlaceWords(index));
 export const closeSelectedLabel = (name: string) => `Close ${name}'s panel`;
-export const rolesHead = (slot: string) => `Role, ${slot} slot`;
+export const rolesHead = (slot: string) => `Role, ${slot} position`;
 export const pointsPerActionHead = "Points per action";
 export const nowWords = "now";
-export const pointsPerActionPlaceholder = (role: string) => `${role}: what it scores more and less for shows here once roles' scoring is on screen`;
+export const pointsPerActionPlaceholder = (role: string) => `What ${role} scores more and less for shows here once role scoring is live`;
 export const teamTacticLinePlaceholder = "What the team instructions score for him shows here once they are scored";
 export const playsHead = "Plays";
 export const nextThreeHead = nextMatchesShort;
 export const lastFiveHead = "Last 5 in role";
-export const lastFivePlaceholder = "His points in the role in one of his last five gameweeks: not held yet";
+export const lastFivePlaceholder = notHeldLabel("His points in the role in one of his last 5 gameweeks");
 /** His points, in the selected player's panel and on the role card. */
 export const pointsHead = "Points";
 /** Marks the formation or the role in use now (the formation window, the role card). */
@@ -156,14 +156,14 @@ export const playerCardLabel = (name: string) => `${name}'s player card`;
 
 /** The mark after a player's name while one of his positions is at stake (#23; Craig, 6 Nov 2026),
  *  read on hover and by screen readers. */
-export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;
+export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `${position} at risk: his last ${startsElsewhere} starts were elsewhere`;
 export const outOfPositionMarkLabel = (position: string) => `Out of position: no longer plays ${position}`;
 export const LINEUP_CHECK_TITLE = "Line-up check";
 /** A line of the lineup check for each starter out of position (#23; Craig, 6 Nov 2026). */
 export const outOfPositionLineWords = (position: string) => `: out of position at ${position}`;
 /** A line for each starter with FPL news, the note word for word (Craig, 13 Nov 2026, on #1976). */
 export const newsLineWords = (news: string) => `: ${news}`;
-export const nothingToCheckWords = "No starter is out of position or has news.";
+export const nothingToCheckWords = "No one in your XI is out of position or has news.";
 export const opponentTitle = (gameweek: number) => `${gameweekShort(gameweek)} opponent`;
 
 /** Who joined the squad since the lineup was saved. */

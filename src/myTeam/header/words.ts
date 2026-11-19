@@ -20,7 +20,7 @@ export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} de
 export const meterListLabel = "Your team at a glance";
 
 /** On the hover of the no-deadline dash: why there is none. */
-export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
+export const noDeadlineWords = (gameweek: number) => `No deadline for ${gameweekWords(gameweek)} yet. None of its matches has a kick-off time.`;
 
 /** The last game's result, as a line says it. */
 const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", lost: "Lost" };
@@ -35,12 +35,12 @@ export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullabl
   return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(mode, score.team, score.opponent)]} ${line}`;
 };
 
-/** The band's Auto team reading and its panel (spec/09, The auto team; docs/design/approved/auto-team/). */
-export { autoTeamWords as autoTeamHead, autoTeamWhatWords } from "../../shared/words";
+/** The band's Away mode reading and its panel (spec/09, The auto team; docs/design/approved/auto-team/). */
+export { awayModeWords as autoTeamHead, autoTeamWhatWords, awayModeHoverWords } from "../../shared/words";
 export const autoTeamStateWords = ({ on, endsAfter }: { on: boolean; endsAfter: number | null }) =>
   !on ? "Off" : endsAfter === null ? "On" : `On, to ${gameweekShort(endsAfter)}`;
 export const untilEndOfWords = "Until the end of";
-export const endGameweekLabel = "The gameweek it ends after";
+export const endGameweekLabel = "Ends after gameweek";
 export const untilSwitchedOffWords = "Until I switch it off";
 export const switchOnWords = "Switch on";
 export const switchOffWords = "Switch off";

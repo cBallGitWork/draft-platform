@@ -63,7 +63,7 @@ test("a team's override sets its gameweek total: the head-to-head, the table and
   const name = await teamNameOf(league);
   const letter = await lastLetter(league);
   expect(letter.subject).toBe(`${name}'s total in gameweek ${GAMEWEEK} was overridden`);
-  expect(letter.body).toBe(`${COMMISSIONER} overrode ${name}'s total in gameweek ${GAMEWEEK}: ${HULL_POINTS} to ${SET}. Why: ${REASON}`);
+  expect(letter.body).toBe(`${COMMISSIONER} overrode ${name}'s total in gameweek ${GAMEWEEK}, from ${HULL_POINTS} to ${SET}. Why: ${REASON}`);
 });
 
 test("a team's override stands over a player override in its gameweek (S14.4)", async () => {
@@ -119,7 +119,7 @@ test("removing a team's override puts its scored total back everywhere, and the 
   const name = await teamNameOf(league);
   const letter = await lastLetter(league);
   expect(letter.subject).toBe(`${name}'s override in gameweek ${GAMEWEEK} was removed`);
-  expect(letter.body).toBe(`The admin removed the override of ${name}'s total in gameweek ${GAMEWEEK}: ${SET + 1} to ${HULL_POINTS}, as scored.`);
+  expect(letter.body).toBe(`The admin removed the override on ${name}'s total in gameweek ${GAMEWEEK}. It goes from ${SET + 1} back to ${HULL_POINTS}, as scored.`); // one-home-ok: pins the exact words a manager reads
 });
 
 test("a team's override is refused with a reason when it can't be sound, and nothing changes", async () => {

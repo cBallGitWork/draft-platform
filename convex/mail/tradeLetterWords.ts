@@ -1,5 +1,6 @@
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { andListWords } from "../shared/moments";
+import { shutWords } from "../trades/tradeShutWords";
 import type { TellMoment } from "./letterMoments";
 import type { Words } from "./letterShape";
 
@@ -29,19 +30,19 @@ function sides({ fromTeamName, toTeamName, gives, gets }: TradeWords): string {
   return `${fromTeamName} give ${nobody(gives)}; ${toTeamName} give ${nobody(gets)}.`;
 }
 
-const noteWords = ({ note }: TradeWords) => (note === null ? "" : ` The note: "${note}"`);
+const noteWords = ({ note }: TradeWords) => (note === null ? "" : ` Note: "${note}"`);
 
 /** To both managers when an offer is made, or a counter that closes the one before it.
  *  `lastMatchOf` is the trade deadline's gameweek when the offer is made in it, so it closes once
  *  that gameweek's last match is over, not at the next deadline (S08.9, #1492); null otherwise. */
 export function offerLetter(trade: TradeWords, who: string, countered: boolean, lastMatchOf: number | null): Words {
   const made = countered
-    ? `${who} countered ${trade.toTeamName}'s offer with this one for ${trade.fromTeamName}, which closes the old offer: ${sides(trade)}`
-    : `${who} offered ${trade.toTeamName} a trade for ${trade.fromTeamName}: ${sides(trade)}`;
-  const closes = lastMatchOf === null ? "at the next deadline" : `after GW${lastMatchOf}'s last match`;
+    ? `${who} countered ${trade.toTeamName}'s offer for ${trade.fromTeamName}, which closes the old one. ${sides(trade)}`
+    : `${who} offered ${trade.toTeamName} a trade for ${trade.fromTeamName}. ${sides(trade)}`;
+  const closes = lastMatchOf === null ? "at the next deadline" : `after gameweek ${lastMatchOf}'s last match`;
   return {
     subject: `${trade.fromTeamName} offered ${trade.toTeamName} a trade`,
-    body: `${made}${noteWords(trade)} ${trade.toTeamName} can accept, reject or counter it; unanswered, it closes ${closes}.`,
+    body: `${made}${noteWords(trade)} ${trade.toTeamName} can accept, reject or counter. If nobody answers, it closes ${closes}.`,
   };
 }
 
@@ -66,15 +67,15 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
       case "tradeDeadline":
         return "The league's trade deadline has passed.";
       case "unusedGameweek":
-        return "The league is sitting out this gameweek, and trades are locked through it.";
+        return shutWords.unusedGameweek;
       case "autoTeam":
-        return `${closed.teamName} went on the auto team, which trades with nobody.`;
+        return `${closed.teamName} is now in Away mode, which doesn't trade.`;
       case "playerLeft":
         return `${closed.playerName} left ${closed.teamName}'s squad.`;
       case "leftPremierLeague":
         return `${closed.playerName} has left the Premier League.`;
       case "draftStarted":
-        return "The draft started, and picks are traded only before it.";
+        return "The draft started, and picks can't be traded once it has.";
       case "pickTraded":
         return `Another trade took ${closed.pickName}.`;
     }
@@ -103,26 +104,27 @@ export function acceptedLetter(trade: TradeWords, review: ReviewWords, endsAt: n
   const until = tell(endsAt);
   const who =
     review.kind === "veto"
-      ? `${review.by} can block it until ${until}`
-      : `the other managers can vote against it until ${until}, and it is blocked only if most of them do`;
+      ? `${review.by} can stop it until ${until}.`
+      : `The other managers can vote against it until ${until}. It's stopped only if most of them do.`;
   return {
     subject: `${trade.toTeamName} accepted ${trade.fromTeamName}'s trade`,
-    body: `${sides(trade)} It is in review: ${who}. If it isn't blocked, the players move then.`,
+    body: `${sides(trade)} It's in review. ${who} If nobody stops it, the players move then.`,
   };
 }
 
 /** To whoever reviews an accepted trade: the one who may block it, or each manager who may vote
- *  against it (spec/08: "with Block in it", "with Against in it"). */
+ *  against it (spec/08: "with Block in it", "with Against in it"; the button is now "Vote to stop
+ *  this trade", Glossary, trade groups). */
 export function reviewLetter(trade: TradeWords, review: ReviewWords, endsAt: number, tell: TellMoment): Words {
   const until = tell(endsAt);
   return review.kind === "veto"
     ? {
-        subject: `Block the trade between ${trade.fromTeamName} and ${trade.toTeamName}?`,
-        body: `${trade.toTeamName} accepted ${trade.fromTeamName}'s trade: ${sides(trade)} You review it: Block it by ${until}, or it goes through.`,
+        subject: `Stop the trade between ${trade.fromTeamName} and ${trade.toTeamName}?`,
+        body: `${trade.toTeamName} accepted ${trade.fromTeamName}'s trade. ${sides(trade)} Press Vote to stop this trade by ${until}, or it goes through.`,
       }
     : {
         subject: `Vote on the trade between ${trade.fromTeamName} and ${trade.toTeamName}`,
-        body: `${trade.toTeamName} accepted ${trade.fromTeamName}'s trade: ${sides(trade)} Vote Against it by ${until} if you think it shouldn't go through. It is blocked only if most of the managers still playing vote against it.`,
+        body: `${trade.toTeamName} accepted ${trade.fromTeamName}'s trade. ${sides(trade)} Vote Against by ${until} if you think it shouldn't go through. It's stopped only if most of the managers still playing vote against it.`,
       };
 }
 
@@ -138,9 +140,9 @@ export function tradeMadeLetter(trade: TradeWords, overLimits: readonly string[]
 
 /** To the whole league when a trade is blocked in review. */
 export function tradeBlockedLetter(trade: TradeWords, review: ReviewWords): Words {
-  const by = review.kind === "veto" ? `${review.by} blocked it` : "Most of the managers voted against it";
+  const by = review.kind === "veto" ? `${review.by} stopped it` : "Most of the managers voted against it";
   return {
-    subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} was blocked`,
+    subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} was stopped`,
     body: `${by}, so nobody moves. The trade was: ${sides(trade)}`,
   };
 }

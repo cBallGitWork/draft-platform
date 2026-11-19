@@ -30,12 +30,12 @@ export { playersCount } from "../shared/words";
 /** Each team's auto team (spec/09; the approved auto-team picture): its manager, or none, and the
  *  switch, Off or On. A team with no manager is on until handed on; a manager's own switch says so,
  *  and until when. */
-export { autoTeamWords as autoTeamLabel } from "../shared/words";
+export { awayModeWords as autoTeamLabel } from "../shared/words";
 export const AUTO_TEAM_STATES = ["off", "on"] as const;
 export const autoTeamStateWords: Record<(typeof AUTO_TEAM_STATES)[number], string> = { off: "Off", on: "On" };
 export { noManagerWords } from "../shared/words";
-export const untilHandedOnWords = "Until the team is handed on";
-export const managersSwitchWords = (endsAfter: number | null) => (endsAfter === null ? "Its manager's" : `Its manager's, until ${gameweekShort(endsAfter)}`);
+export const untilHandedOnWords = "Until a new manager takes over";
+export const managersSwitchWords = (endsAfter: number | null) => (endsAfter === null ? "Set by its manager" : `Set by its manager until ${gameweekShort(endsAfter)}`);
 
 /** Each squad limit the league's rules set that this squad breaks: they warn, never block (spec/15). */
 export { warningWords } from "../shared/words";

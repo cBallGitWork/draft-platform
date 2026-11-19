@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
-import { autoTeamLetters, autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
+import { autoTeamLetters, autoTeamRefusals, autoTeamSwitchedWords } from "../../../convex/lineup/autoTeamWords";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
@@ -121,9 +121,10 @@ describe("switched on by a person", () => {
     await switches(COMMISSIONER, false);
     const name = await teamNameOf();
     const subjects = await subjectsTo(BOB);
-    expect(subjects).toContain(`${name} is on the auto team`);
-    expect(subjects).toContain(`${name} is off the auto team`);
-    const on = (await lettersTo(t, BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
+    const subjectOf = (on: boolean) => autoTeamSwitchedWords({ kind: "autoTeamSwitched", teamId: annsTeam, teamName: name, on, endsAfter: null }, ANN).subject;
+    expect(subjects).toContain(subjectOf(true));
+    expect(subjects).toContain(subjectOf(false));
+    const on = (await lettersTo(t, BOB)).find((letter) => letter.subject === subjectOf(true))!;
     expect(on.body).toContain(`until after gameweek ${NEXT + 2}`);
   });
 

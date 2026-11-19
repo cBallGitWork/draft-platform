@@ -24,8 +24,8 @@ export const signInWords = {
  *  goes to every email, on the list or not, so nobody can tell which are on it. */
 export const replyWords = {
   checkYourEmail: `Check your email. If this address can sign in, a link is on its way. ${worksOnceWords}`,
-  tryLater: "Too many links have been asked for this email in the last hour. Try again later.",
-  paused: "Sign-in links are paused until tomorrow: today's emails have all been sent.",
+  tryLater: "This email has asked for too many links in the last hour. Try again later.",
+  paused: "Sign-in links are paused until tomorrow. We've sent today's limit of emails.",
   notSent: "The link couldn't be sent. Try again in a few minutes.",
 } as const;
 

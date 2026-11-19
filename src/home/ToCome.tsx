@@ -15,7 +15,7 @@ const HEIGHTS = { 3: "h-24", 4: "h-32" } as const;
 function PlaceholderLines({ label, lines }: { label: string; lines: keyof typeof HEIGHTS }) {
   return (
     <div className="px-3 py-2">
-      <Placeholder label={label} className={`w-full ${HEIGHTS[lines]}`} written />
+      <Placeholder label={label} className={`w-full ${HEIGHTS[lines]}`} written={label} />
     </div>
   );
 }

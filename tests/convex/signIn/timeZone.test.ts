@@ -28,10 +28,10 @@ const records = async (email: string, zone: string) => (await actingAs(t, email)
 
 describe("telling a moment", () => {
   test("in the reader's zone, named, and London's while theirs isn't known", () => {
-    expect(momentIn(AT, undefined)).toBe("Wednesday 21 October at 10:00 BST");
+    expect(momentIn(AT, undefined)).toBe("Wednesday 21 October at 10am BST");
     expect(momentIn(AT, LONDON_ZONE)).toBe(momentIn(AT, undefined));
-    expect(momentIn(AT, SYDNEY)).toMatch(/^Wednesday 21 October at 20:00 /);
-    expect(momentIn(AT, NEW_YORK)).toMatch(/^Wednesday 21 October at 05:00 /);
+    expect(momentIn(AT, SYDNEY)).toMatch(/^Wednesday 21 October at 8pm /);
+    expect(momentIn(AT, NEW_YORK)).toMatch(/^Wednesday 21 October at 5am /);
   });
 
   describe("on a screen, in the browser's own zone", () => {

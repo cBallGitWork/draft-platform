@@ -19,7 +19,7 @@ export { noLongerInLeagueWords as goneWords } from "../shared/words";
 /** The header's heads and readings, before the start. */
 export const draftOrderHead = "Draft order";
 /** How the order was set and when isn't held yet (#1098), so its reading is a placeholder. */
-export const draftOrderPlaceholder = "How the order was set: not held yet";
+export const draftOrderPlaceholder = "How the order was set: still to come";
 export const youPickHead = "You pick";
 export const clockHead = "Clock";
 export const startsHead = (at: string | null) => (at === null ? "Starts" : `Starts ${at}`);
@@ -71,7 +71,7 @@ export const inPicksWords = (picks: number) => (picks === 1 ? "in 1 pick" : `in 
 export const BOARD_TITLE = "Board";
 export const roundsShownWords = (first: number, last: number, rounds: number) => `Rounds ${first} to ${last} of ${rounds}`;
 export const theOrderRoundsWords = (first: number, last: number, rounds: number) => `The order, rounds ${first} to ${last} of ${rounds}`;
-export const wholeBoardWords = "Whole board";
+export const wholeBoardWords = "All rounds";
 export const roundHead = { short: "Rd", long: "Round" };
 /** Which way a round runs, for screen readers: the snake turns each round. */
 export const roundWayLabel = (leftToRight: boolean) => (leftToRight ? "runs left to right" : "runs right to left");
@@ -105,7 +105,7 @@ export const addWholeShortlistWords = "Add my whole shortlist";
 /** What "Add my whole shortlist" did, as the queue's limit left it (Craig, 4 Nov 2026, on #1137). */
 export function shortlistAddedWords(added: number, leftOut: number): string {
   const put = `${playersCount(added)} added to your queue.`;
-  return leftOut === 0 ? put : `${put} ${leftOut} left out: a queue holds at most ${DRAFT_LIST_MOST}.`;
+  return leftOut === 0 ? put : `${put} ${leftOut} left out. A queue holds ${DRAFT_LIST_MOST} at most.`;
 }
 export const DO_NOT_DRAFT_TITLE = "Do not draft";
 /** In the selected player's panel, beside "Do not draft" (the approved draft room picture), as
@@ -119,7 +119,7 @@ export const doNotDraftListLabel = "Your do-not-draft list";
 export const takeOffLabel = (name: string, list: DraftList) =>
   list === "queue" ? `Take ${name} off your queue` : `Take ${name} off your do-not-draft list`;
 /** On a queued row's handle, for screen readers: it drags, or moves a place with the arrow keys. */
-export const moveLabel = (name: string, place: number) => `Move ${name}, ${placeWords(place)} in your queue: drag, or press the up or down arrow`;
+export const moveLabel = (name: string, place: number) => `Move ${name}, ${placeWords(place)} in your queue. Drag, or use the up and down arrows`;
 /** A queued row's handle, decoration, as moveLabel says it. */
 export const dragGlyph = "⠿";
 /** A row's cross and a link onwards ("Player card ▸"), decoration, as each carries its label. */
@@ -132,12 +132,12 @@ export const autoPickAside = (on: boolean) => (on ? "on auto-pick" : "you pick")
 export const timeoutsHead = "Timeouts";
 /** After "Timeouts 1 of 2": what the limit does, or that the league has none. */
 export const timeoutsWords = (limit: number | null) =>
-  limit === null ? "Your league never puts you on auto-pick." : `At ${limit} you go on auto-pick, from your queue first, then the site's ranking.`;
+  limit === null ? "Your league never puts you on auto-pick." : `At ${limit} you go on auto-pick. It picks from your queue first, then the site's ranking.`;
 /** While on it: his last pick, if the draft made it (Craig, 5 Nov 2026, on #1100). */
 export const onAutoPickWords = (lastAutoSlot: string | null) =>
   lastAutoSlot === null
-    ? "On auto-pick: your picks are made for you at once, from your queue first, then the site's ranking."
-    : `On auto-pick: your last pick, ${lastAutoSlot}, was made for you`;
+    ? "You're on auto-pick. Your picks are made at once, from your queue first, then the site's ranking."
+    : `You're on auto-pick. It made your last pick, ${lastAutoSlot}`;
 export const turnOnAutoPickWords = "Turn auto-pick on";
 export const takeControlBackWords = "Take control back";
 
@@ -150,7 +150,7 @@ export const notLegalWords = {
   clubFull: "Club full",
   areasShort: "Squad needs other positions",
   /** Picking him would leave no legal squad from the players still undrafted (#1088). */
-  noFinish: "Leaves no legal squad",
+  noFinish: "Can't complete your squad",
 } as const;
 export const selectLabel = (name: string) => `Show ${name}`;
 export const closePanelLabel = "Close";
@@ -200,7 +200,7 @@ export { playerCardWords } from "../shared/words";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
 export const undoFailedWords = "The pick couldn't be undone. Try again.";
 
-export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
+export const noRoundsWords = "The league has no squad size limit yet, so the draft has no rounds.";
 
 /** The commissioner's panel (spec/04, The commissioner; #1101), which only whoever runs the league
  *  sees. */
@@ -218,9 +218,9 @@ export const stopPickingForWords = (team: string) => `Stop picking for ${team}`;
 export const pickForWords = (team: string) => `Pick for ${team}`;
 /** Why the team on the clock can't take the selected player: "Rice for Saka Potatoes: Club full". */
 export const pickForWhyNotWords = (player: string, team: string, why: string) => `${player} for ${team}: ${why}`;
-export const unmanagedWords = (team: string) => `${team} has no manager, so it is on auto-pick unless you pick for it`;
-export const youPickForWords = (team: string) => `You pick for ${team}: its clock runs, and if it runs out the draft picks for it`;
+export const unmanagedWords = (team: string) => `${team} has no manager. It's on auto-pick unless you pick for it`;
+export const youPickForWords = (team: string) => `You pick for ${team}. If its clock runs out, the draft picks for it`;
 export const lastPickWords = (team: string, player: string, slot: string) => `Last pick: ${team} took ${player}, ${slot}`;
 export const pickTimeLabel = "Pick time";
 export const whilePausedWords = "change it while paused";
-export const badPickTimeWords = "Type the pick time in seconds, minutes or hours: 90s, 2m or 8h.";
+export const badPickTimeWords = "Type a time like 90s, 2m or 8h.";

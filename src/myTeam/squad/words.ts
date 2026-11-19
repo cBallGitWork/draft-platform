@@ -3,9 +3,9 @@
 
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
-import { failedWords, menuWords, statColumns, statNames } from "../../shared/words";
+import { failedWords, menuWords, notHeldLabel, ROLE_POINTS_WORDS, statColumns, statNames } from "../../shared/words";
 import { gameweekShort, gameweekWords } from "../../shared/when/words";
-import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
+import { benchShort, nextMatchesLong, nextMatchesShort, seasonOverWords } from "../words";
 
 export { figureOrNone, figureWords, signedWords, noFigureWords, playerCardWords } from "../../shared/words";
 export { gameweekShort, gameweekWords, whenWords } from "../../shared/when/words";
@@ -32,11 +32,11 @@ export const otherSquadEmptyWords = "Their squad is empty.";
 export const squadViews = ["stats", "schedule", "rules"] as const;
 export type SquadView = (typeof squadViews)[number];
 export const squadViewWords: Record<SquadView, string> = { stats: "Stats", schedule: "Schedule", rules: "Rules" };
-export const squadViewLabel = "The table's view";
-/** "20 of 20, the league's maximum"; with no maximum, how many he holds. */
+export const squadViewLabel = "View";
+/** "20 of 20, full"; with no maximum, how many he holds. */
 export function squadCountWords(players: number, maximum: number | null): string {
   if (maximum === null) return `${players} players`;
-  return players === maximum ? `${players} of ${maximum}, the league's maximum` : `${players} of ${maximum}`;
+  return players === maximum ? `${players} of ${maximum}, full` : `${players} of ${maximum}`;
 }
 
 /** The Schedule view (#1006): his club's matches in each of the next six gameweeks. */
@@ -45,15 +45,15 @@ export const scheduleTableLabel = (teamName: string) => `${teamName}'s schedule`
 export const scheduleGameweekWords = (gameweek: number) => ({ short: gameweekShort(gameweek), long: gameweekWords(gameweek) });
 /** A blank week's cell: his club has no match in it. */
 export const blankWeekWords = "No match this gameweek";
-export const noScheduleWords = "No gameweek left to set: the season is over.";
+export const noScheduleWords = "No matches left. The season is over.";
 
 /** The Rules view (#1006): one row per limit, each naming the players it counts. */
-export const rulesTableLabel = (teamName: string) => `${teamName}'s squad against the league's limits`;
+export const rulesTableLabel = (teamName: string) => `${teamName}'s squad limits`;
 export const rulesColumns = {
-  limit: { short: "Limit", long: "The league's limit" },
-  held: { short: "Held", long: "How many of your squad it counts" },
-  allowed: { short: "Allowed", long: "What the league allows" },
-  status: { short: "Out", long: "How far outside the limit" },
+  limit: { short: "Rule", long: "The league's rule" },
+  held: { short: "You have", long: "How many you have" },
+  allowed: { short: "League's limit", long: "What the league allows" },
+  status: { short: "Over or short", long: "How far over or short you are" },
   players: { short: "Players", long: "The players it counts" },
 } as const;
 export const squadSizeWords = "Squad size";
@@ -65,13 +65,13 @@ export const atMostWords = (maximum: number) => `at most ${maximum}`;
 export const overWords = (by: number) => `${by} over`;
 export const shortWords = (by: number) => `${by} short`;
 /** Players the football sync no longer holds: counted, with no name to show. */
-export const unnamedWords = (count: number) => `and ${count} not held`;
+export const unnamedWords = (count: number) => `and ${count} missing`;
 export const noLimitsWords = "The league sets no squad limits.";
 
 export { squadTableLabel } from "../../shared/words";
 export const squadColumns = {
   number: { short: "No", long: "Squad number" },
-  positions: { short: "Pos", long: "Positions, his main first" },
+  positions: { short: "Pos", long: "Positions, main first" },
   player: { short: "Player", long: "Player and club" },
   season: { short: "Pts", long: "Points this season" },
   last: { short: "Last", long: "Points last gameweek" },
@@ -88,12 +88,12 @@ export const squadColumns = {
 /** The Last column's hover, naming the gameweek. */
 export const lastGameweekLong = (gameweek: number) => `Points in gameweek ${gameweek}`;
 /** A row's button, which opens his season panel. */
-export const openPanelLabel = (name: string) => `${name}: his season`;
+export const openPanelLabel = (name: string) => `${name}'s season`;
 /** A bench player's row says so to screen readers, as his muted name says it on screen. */
 export const benchWords = "on the bench";
 
 /** A stat cell while no season's stats are held. */
-export const noStatsWords = "No stats held yet.";
+export const noStatsWords = "No stats yet.";
 
 /** His season panel (the README's interaction notes). */
 export const closePanelLabel = (name: string) => `Close ${name}'s season`;
@@ -104,7 +104,7 @@ export const panelRows = {
   points: "Points",
   form: "Form",
   started: "Started",
-  rolePoints: "Role points",
+  rolePoints: ROLE_POINTS_WORDS,
   plays: "Plays",
   bestRole: "Best role",
   next: nextMatchesShort,
@@ -113,9 +113,9 @@ export const panelRows = {
 export const seasonWords = "Season";
 export const lastWords = "Last";
 export const formLabel = (gameweeks: number) => `Points in the league's last ${gameweeks} gameweeks, oldest first`;
-/** The panel's placeholders: each says what will show there. */
-export const bestRoleNotRatedLabel = "Best role: not rated yet";
-export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
+/** The panel's placeholders: each names what will show there. */
+export const bestRoleNotRatedLabel = notHeldLabel("Best role");
+export const roleLastGameweekNotSettledLabel = notHeldLabel("Role last gameweek");
 /** The panel's link to Tactics, with him selected there (#1008). */
 export const setRoleWords = "Set his role";
 /** Where he stands in the gameweek being set, under its gameweekShort: "Starting, W right"; "Bench, S3". */
@@ -132,7 +132,7 @@ export const elevenAsideWords = "season pts";
 export const elevenPitchLabel = "Your eleven on the pitch, attack at the top, with season points";
 export const elevenPlayerLabel = (name: string, points: string) => `${name}, ${points} points this season`;
 export const elevenBenchLabel = "The bench, in order";
-export const noLineupWords = "No line-up to set: every gameweek has begun.";
+export const noLineupWords = seasonOverWords;
 export const setLineupWords = "Set line-up";
 
 /** The Mail widget: the newest letters, each opened in Mail. */

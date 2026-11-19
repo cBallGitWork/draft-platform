@@ -27,6 +27,7 @@ import {
   starterNeedsYouWords,
   noMatchesWords,
   noMovesWords,
+  newsKindWords,
   noSquadNewsWords,
   openMatchupLink,
   premierLeagueTitle,
@@ -122,8 +123,8 @@ describe("News", () => {
     });
     const news = await panel(NEWS_PANEL_TITLE);
     const rows = within(news).getAllByRole("listitem");
-    expect(rows.map((row) => row.firstChild?.firstChild?.textContent)).toEqual(["Released", "Moved", "Assigned"]);
-    expect(rows.map((row) => row.lastChild?.textContent)).toEqual(["Rice was released by Bob's", "Palmer moved from Ann's to Bob's", "Saka joined Ann's"]);
+    expect(rows.map((row) => row.firstChild?.firstChild?.textContent)).toEqual([newsKindWords.playerReleased, newsKindWords.playerMoved, newsKindWords.playerAssigned]);
+    expect(rows.map((row) => row.lastChild?.textContent)).toEqual(["Bob's let Rice go", "Palmer moved from Ann's to Bob's", "Saka joined Ann's"]);
 
     await userEvent.click(within(news).getByRole("link", { name: moreOnNewsLink }));
     expect(app.path()).toBe(HOME_NEWS_PATH);

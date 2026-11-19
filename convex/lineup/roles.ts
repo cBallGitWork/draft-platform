@@ -91,7 +91,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("holdingWingBack", "Holding wing-back", "HWB", "Holds his flank and defends it, getting forward only when it's safe.", ["Tackles won", "Interceptions", "Recoveries"], ["Dribbled past"]),
     role("completeWingBack", "Complete wing-back", "CWB", "Covers the whole flank: carries it up to their box to cross, then gets back past where he started.", ["Accurate crosses", "Dribbles won", "Tackles won", "Interceptions"], ["Possession lost"]),
     role("invertedWingBack", "Inverted wing-back", "IWB", "Comes inside into central midfield when his side has the ball and keeps it moving.", ["Accurate passes", "Key passes"], ["Fouls"]),
-    role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Runs up the flank, then cuts in on a diagonal to arrive in the box to shoot and score.", ["Shots", "Shots on target", "Goals"], ["Big chances missed"]),
+    role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Goes up the flank, then cuts in on a diagonal to arrive in the box to shoot and score.", ["Shots", "Shots on target", "Goals"], ["Big chances missed"]),
   ],
   CDM: [
     role("metronome", "Metronome", "MET", "Sits in front of the defence and keeps the ball moving, short and simple.", ["Accurate passes"], ["Misplaced passes"]),
@@ -103,7 +103,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("destroyer", "Destroyer", "DES", "Gets stuck in, tackling and winning duels to break up their play.", ["Tackles won", "Ground duels won"], ["Fouls"]),
   ],
   WM: [
-    role("wideMidfielder", "Wide workhorse", "WW", "Runs up and down his flank all game, from their third back into his own, helping at both ends.", ["Recoveries", "Tackles", "Accurate crosses"], ["Fouls"]),
+    role("wideMidfielder", "Wide workhorse", "WW", "Gets up and down his flank all game, from their third back into his own, helping at both ends.", ["Recoveries", "Tackles", "Accurate crosses"], ["Fouls"]),
     role("defensiveWinger", "Defensive winger", "DW", "Tracks back level with his full-back to help him before he thinks of attacking.", ["Tackles", "Interceptions", "Blocks"], ["Dribbled past"]),
     role("wideMidfieldPlaymaker", "Wide playmaker", "WMP", "Drifts inside from the flank into the space between the lines to pick the pass.", ["Accurate long balls", "Key passes"], ["Failed long balls"]),
     role("crosser", "Crosser", "CR", "Gets the ball wide and goes down the line to put it into the box early.", ["Accurate crosses", "Crosses"], ["Failed crosses"]),
@@ -116,7 +116,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
   ],
   W: [
     role("winger", "Touchline winger", "TW", "Goes down the line to the byline, then in along it to cross.", ["Accurate crosses", "Dribbles won"], ["Dispossessed"]),
-    role("dribbler", "Dribbler", "DRB", "Runs at his full-back and takes him on, again and again, heading for the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
+    role("dribbler", "Dribbler", "DRB", "Goes at his full-back and takes him on, again and again, heading for the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
     role("insideForward", "Inside forward", "IF", "Cuts in from the flank on the diagonal into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Big chances missed"]),
     role("widePlaymaker", "Wide playmaker", "WP", "Drifts inside from the flank into the pocket between their midfield and defence to create.", ["Key passes", "Through balls", "Big chances created"], ["Possession lost"]),
     role(PRESSING_WINGER, "Pressing winger", "PW", "Curves in on their centre-back to press him, cutting off the pass out to their full-back.", ["Tackles won", "Recoveries"], ["Fouls"]),
@@ -124,14 +124,14 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
   ],
   CAM: [
     shortened(role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Key passes", "Big chances created", "Through balls"], ["Shots off target"]), "No. 10"),
-    role(SUPPORT_STRIKER_ROLE, "Shadow striker", "SSA", "Runs past the striker into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Offsides"]),
-    role("carrier", "Carrier", "CAR", "Picks it up and runs straight at them, through the middle to the edge of the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
+    role(SUPPORT_STRIKER_ROLE, "Shadow striker", "SSA", "Gets past the striker into the box to shoot.", ["Shots", "Shots on target", "Goals"], ["Offsides"]),
+    role("carrier", "Carrier", "CAR", "Picks it up and goes straight at them, through the middle to the edge of the box.", ["Dribbles won", "Fouls drawn"], ["Dispossessed"]),
     role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker, onto their holding midfielder and then their centre-back.", ["Tackles won", "Interceptions", "Recoveries"], ["Fouls"]),
   ],
   ST: [
     role("poacher", "Poacher", "PCH", "Lives in the box and attacks the near post, waiting for the chance to finish.", ["Goals", "Shots on target"], ["Big chances missed"]),
     role("targetMan", "Target man", "TM", "Wins it in the air and holds it up for others.", ["Aerials won"], ["Aerials lost"]),
-    role("inBehindStriker", "In-behind striker", "IBS", "Runs across and in behind their back line, then carries it at goal.", ["Dribbles won", "Fouls drawn"], ["Offsides"]),
+    role("inBehindStriker", "In-behind striker", "IBS", "Goes across and in behind their back line, then carries it at goal.", ["Dribbles won", "Fouls drawn"], ["Offsides"]),
     role("pressingForward", "Pressing forward", "PF", "Harries their back line, pressing from one centre-back across to the other.", ["Tackles won", "Interceptions", "Recoveries"], ["Fouls"]),
     role(FALSE_NINE, "False 9", "F9", "Drops deep from up front into the number 10's space to make the chances.", ["Key passes", "Through balls", "Dribbles won", "Accurate passes"], ["Dispossessed"]),
   ],

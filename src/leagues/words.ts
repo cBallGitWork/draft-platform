@@ -10,7 +10,7 @@ import { failedWords } from "../shared/words";
 /** "Your leagues" (spec/12), which says so when there are none (spec/02). */
 export const LEAGUES_TITLE = "Your leagues";
 /** When there are more leagues than "Your leagues" lists, so some are missing from it. */
-export const leaguesCutWords = `More leagues exist than this list can show (it stops at ${LEAGUES_SHOWN}), so some are missing from it.`;
+export const leaguesCutWords = `Showing ${LEAGUES_SHOWN} of your leagues. The rest aren't listed.`;
 /** The admin's "Create a league". */
 export const NEW_LEAGUE_TITLE = "Create a league";
 
@@ -70,7 +70,7 @@ export const unsentLinkWords: Record<NoLinkReply, string> = {
 export const unsentLink = (email: string, reason: string) =>
   `No sign-in link went to ${email}: ${reason}. They can ask for one on the sign-in page.`;
 
-export const maxTeamsHint = `${FEWEST_TEAMS} to ${MOST_TEAMS}. The commissioner can change it later, never below the teams already there.`;
+export const maxTeamsHint = `${FEWEST_TEAMS} to ${MOST_TEAMS}. The commissioner can change it later, but never below the teams already in.`;
 export const leagueNameHint = `Up to ${LEAGUE_NAME_MAX} characters.`;
 /** Under Create the league, true for a commissioner new to the site or not (Craig, 11 Nov 2026, #1498). */
 export const createLeagueHint = "New to the site? We email a link.";
@@ -89,13 +89,13 @@ export const leaveFailedWords = failedWords("you're still in the league, running
 export const deleteLeagueWords = "Delete league";
 export { confirmDeleteWords } from "../shared/controls/words";
 export const confirmDelete = (leagueName: string) =>
-  `Delete ${leagueName}? At once it's frozen and hidden from everyone but its commissioner and the admin, and everyone else in it is emailed. ` +
-  `You can undo it for ${DELETION_UNDO_HOURS} hours; then it's gone for good, with its teams, Mail and history.`;
+  `Delete ${leagueName}? It's frozen at once and hidden from everyone but its commissioner and the admin, and everyone else in it gets an email. ` +
+  `You can undo this for ${DELETION_UNDO_HOURS} hours. After that it's gone for good, with its teams, Mail and history.`;
 
 /** After the league's name, on its strip under Your leagues: when it goes, in the viewer's own zone
  *  (convex/shared/moments.ts, #442). */
 export const beingDeleted = (deletesAt: number) =>
-  `is being deleted, and is frozen and hidden from everyone but its commissioner and the admin. It goes for good on ${screenMoment(deletesAt)}.`;
+  `is being deleted. It's frozen, and only its commissioner and the admin can see it. It goes for good on ${screenMoment(deletesAt)}.`;
 export const undoWords = "Undo";
 
 /** When deleting a league, or undoing it, failed before the server could say why. */

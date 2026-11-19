@@ -23,6 +23,6 @@ test.each(["removed", "leaves"])("a manager %s mid-season: his offers, sent and 
 
   expect((await w.offers()).map(({ _id }) => _id)).toEqual([othersOffer]);
   for (const email of [BOB, CAT]) {
-    expect(await w.lettersTo(email)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_1} went on the auto team`)) }));
+    expect(await w.lettersTo(email)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(new RegExp(`^${TEAM_1} is now in Away mode`)) }));
   }
 });

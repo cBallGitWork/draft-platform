@@ -236,7 +236,7 @@ describe("closing pick offers", () => {
 
     expect(await offers()).toEqual([]);
     for (const email of [ANN, BOB, CAT]) {
-      expect((await lettersTo(t, email)).map(({ body }) => body)).toContainEqual(expect.stringContaining("The draft started, and picks are traded only before it."));
+      expect((await lettersTo(t, email)).map(({ body }) => body)).toContainEqual(expect.stringContaining("The draft started, and picks can't be traded once it has.")); // one-home-ok: pins the exact words a manager reads
     }
     // The review's end finds nothing to make, and every pick stays its own team's.
     vi.setSystemTime(Date.now() + REVIEW_MS);
