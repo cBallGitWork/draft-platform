@@ -91,8 +91,8 @@ function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gam
 
 /** The rules in force while `begun` is the latest gameweek the league has begun, or with none begun
  *  (null), those its first gameweek starts on; a change waiting for a later gameweek isn't among
- *  them. */
-function rulesSince(history: readonly RulesRow[], leagueId: Id<"leagues">, begun: number | null): LeagueRules {
+ *  them. What the waiver run reads at its own moment (../waivers/waiverRun.ts). */
+export function rulesSince(history: readonly RulesRow[], leagueId: Id<"leagues">, begun: number | null): LeagueRules {
   const first = (history[0] ?? newestRow(history, leagueId)).fromGameweek;
   return rulesInForce(history, leagueId, Math.max(begun ?? first, first));
 }
