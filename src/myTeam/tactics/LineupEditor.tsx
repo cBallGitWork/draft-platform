@@ -40,6 +40,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
   const teamSquad = seam.useTeamSquad(league.leagueId);
   const season = useMemo(() => (teamSquad === undefined ? undefined : new Map(teamSquad.players.map((row) => [row.code, row]))), [teamSquad]);
   const table = seam.useLeagueTable(league.leagueId);
+  const heldDescriptions = seam.useFormationDescriptions();
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels): at
   // first the one the address names, unless he isn't in the squad.
@@ -207,6 +208,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
           onDeletePlan={plans.remove}
           presets={tactics.presets}
           classicFormations={tactics.classicFormations}
+          heldDescriptions={heldDescriptions}
           inUse={inUse}
           draft={draft}
           rules={rules}

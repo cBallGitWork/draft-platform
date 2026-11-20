@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
-import { classicDescriptionOf, type ClassicFormation } from "../../../../convex/lineup/classicFormations";
-import { presetDescriptionOf, presetNameOf } from "../../../../convex/lineup/presets";
+import type { ClassicFormation } from "../../../../convex/lineup/classicFormations";
+import { presetNameOf } from "../../../../convex/lineup/presets";
+import { describedWith, type HeldDescription } from "../../../../convex/guide/formationEntries";
 import { classicFormationInUse, onClassicFormation } from "../classicFormationLineup";
 import type { EditedLineup, MoveRules, PresetShape as Shape, RatingsOf } from "../lineupEdits";
 import { backGroups } from "./formationGroups";
@@ -58,6 +59,7 @@ export function FormationWindow({
   onClose,
   plans: plansRead,
   planInUse,
+  heldDescriptions,
   saving = false,
   onLoadPlan,
   onSavePlan,
@@ -78,6 +80,9 @@ export function FormationWindow({
    *  loaded, if the pitch still stands in its formation. */
   plans: readonly Plan[] | undefined;
   planInUse: string | null;
+  /** The admin's edits to the formation descriptions (S05.61, S23.7), undefined while they load:
+   *  until then each shows Claude's. */
+  heldDescriptions: readonly HeldDescription[] | undefined;
   /** Opened by the toolbar's Save preset…: on Your presets, its form open. */
   saving?: boolean;
   onLoadPlan(name: string): void;
@@ -102,6 +107,7 @@ export function FormationWindow({
   /** The preset a classic formation stands in, as its tag says (Craig, 6 Nov 2026: "Yes, one of
    *  ours"). */
   const tagOf = (each: ClassicFormation) => presetNameOf(each.cells, presets) ?? "";
+  const describe = describedWith(heldDescriptions ?? []);
   // While the plans load, Your presets says so rather than offering Save preset…, which would replace
   // a plan by the same name without asking.
   const plans = plansRead ?? [];
@@ -162,7 +168,7 @@ export function FormationWindow({
                   shape={each}
                   tag={tagOf(each)}
                   subtitle={each.subtitle}
-                  description={classicDescriptionOf(each)}
+                  description={describe.classic(each)}
                   checked={each.name === picked}
                   inUse={each.name === draft.classicFormation}
                   onPick={() => setPicked(each.name)}
@@ -176,13 +182,13 @@ export function FormationWindow({
           ) : (
             <Group head={backGroupWords(group)} picking>
               {shapes.map((each) => (
-                <FormationTile key={each.name} shape={each} description={presetDescriptionOf(each.name)} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
+                <FormationTile key={each.name} shape={each} description={describe.preset(each.name)} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
               ))}
             </Group>
           )}
         </div>
         <div className="flex min-w-0 flex-col">
-          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} description={presetDescriptionOf(shape.name)} />}
+          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} description={describe.preset(shape.name)} />}
           {classicFormation !== undefined && (
             <FormationPreview
               shape={classicFormation}
@@ -191,7 +197,7 @@ export function FormationWindow({
               ratingsOf={ratingsOf}
               after={onClassicFormation(draft, classicFormation, rules, ratingsOf)}
               subtitle={classicFormationTitleWords(classicFormation.subtitle, tagOf(classicFormation))}
-              description={classicDescriptionOf(classicFormation)}
+              description={describe.classic(classicFormation)}
               applies={classicFormationAppliesWords(tagOf(classicFormation))}
             />
           )}

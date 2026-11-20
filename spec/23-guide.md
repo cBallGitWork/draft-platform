@@ -42,3 +42,7 @@ Feature 23 of [SPEC.md](../SPEC.md). Only Craig's answers: `/grill guide`, four 
   entries first: "Only once it's empty" (Craig, 19 Nov 2026, on #2745). `S23.14`
 - An edit shows to managers at once, with no drafts or Publish: "At once" (Craig, 19 Nov 2026, on
   #2745). `S23.15`
+- The formation and classic-side entries follow the formations list: the admin edits their text
+  and moves them within Tactics, but can't remove them or add new ones, and the Guide adds one by
+  itself when a formation is added: "Follow the formations list, edit only" (Craig, 19 Nov 2026, on
+  #2745). `S23.16`

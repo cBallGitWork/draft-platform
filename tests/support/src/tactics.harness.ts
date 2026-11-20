@@ -9,6 +9,7 @@ import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdj
 import { FIRST_RUNS } from "../../../convex/scoring/draftedRoleRuns";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { BasedOn } from "../../../convex/lineup/lineupRows";
+import type { HeldDescription } from "../../../convex/guide/formationEntries";
 import type { EditedLineup } from "../../../src/myTeam/tactics/lineupEdits";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 import { serverStore } from "./serverStore";
@@ -79,6 +80,7 @@ export function fakeTactics(
   const held = serverStore(tactics);
   // The saved plans: a save the fake doesn't refuse (`planAnswer`) adds one or replaces it by name.
   const heldPlans = serverStore(plans);
+  const heldDescriptions = serverStore<readonly HeldDescription[]>([]);
   const planChanges = {
     save: vi.fn<PlanChanges["save"]>(async (_leagueId, name, slots) => {
       if (planAnswer !== null) return planAnswer;
@@ -113,6 +115,9 @@ export function fakeTactics(
     }),
     usePlans: vi.fn<TacticsSeam["usePlans"]>(() => heldPlans.use((saved) => (loading || plansLoading ? undefined : saved))),
     usePlanChanges: vi.fn<TacticsSeam["usePlanChanges"]>(() => planChanges),
+    useFormationDescriptions: vi.fn<TacticsSeam["useFormationDescriptions"]>(() => heldDescriptions.use((held) => (loading ? undefined : held))),
+    /** The admin's edits to the formation descriptions the server holds from now on. */
+    descriptionsHeld: heldDescriptions.set,
     lineupChanges: { save: lineupSaves },
     /** What each save was made from, in order. */
     savesBasedOn,
