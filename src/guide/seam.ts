@@ -10,7 +10,7 @@ import type { Change } from "../shared/refusal";
 export type { GuideSection };
 export type GuideEntry = GuideSection["entries"][number];
 /** A formation's or classic side's entry, by its list and name (S23.16). */
-export type GuideFormation = { kind: FormationKind; name: string };
+type GuideFormation = { kind: FormationKind; name: string };
 
 export type GuideSeam = {
   /** The whole Guide, sections and their entries in order, live (a hook): undefined while it loads. */
