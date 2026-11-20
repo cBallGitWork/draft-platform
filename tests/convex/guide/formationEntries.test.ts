@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import { describedWith, LISTED_FORMATIONS } from "../../../convex/guide/formationEntries";
 import { guideRefusals } from "../../../convex/guide/guide";
 import { FIRST_CLASSIC_FORMATIONS, classicDescriptionOf } from "../../../convex/lineup/classicFormations";
@@ -26,13 +26,14 @@ const FOUR_FOUR_TWO = { kind: "preset" as const, name: "4-4-2" };
 /** Tactics' own entry, held before the formation entries. */
 const OWN = "Prov.";
 
-/** Basics, then Tactics holding its own entry and the formation entries. */
+/** Basics, then Tactics, added by the deployment's one-off, holding its own entry and the formation
+ *  entries. */
 async function aGuide() {
-  await t.run(async (ctx) => {
-    await ctx.db.insert("guideSections", { title: "Basics", order: 0 });
-    const tactics = await ctx.db.insert("guideSections", { title: "Tactics", order: 1, holdsFormations: true });
-    await ctx.db.insert("guideEntries", { sectionId: tactics, title: OWN, text: "Not final yet.", order: 0 });
-  });
+  const admin = await asAdmin(t);
+  await admin.mutation(api.guide.guide.addSection, { title: "Basics" });
+  expect(await t.mutation(internal.migrations.guideTactics.addTactics, {})).toBe("added");
+  const [, tactics] = await admin.query(api.guide.guide.list, {});
+  await admin.mutation(api.guide.guide.addEntry, { sectionId: tactics.sectionId, title: OWN, text: "Not final yet." });
 }
 
 /** Tactics as Ann, a manager, reads it. */
@@ -46,6 +47,16 @@ describe("formation entries follow the formations list", () => {
     expect(entries.map((entry) => entry.title)).toEqual([OWN, ...FIRST_PRESETS.map(({ name }) => name), ...FIRST_CLASSIC_FORMATIONS.map(({ name }) => name)]);
     expect(entries.find((entry) => entry.title === "4-4-2")!.text).toBe(presetDescriptionOf("4-4-2"));
     expect(entries.find((entry) => entry.title === KEEGANS.name)!.text).toBe(classicDescriptionOf(KEEGANS));
+  });
+
+  test("S23.7: a Tactics the admin already added becomes the one listing the formation entries, and running the one-off again does nothing", async () => {
+    const admin = await asAdmin(t);
+    await admin.mutation(api.guide.guide.addSection, { title: "Tactics" });
+    expect(await t.mutation(internal.migrations.guideTactics.addTactics, {})).toBe("flagged");
+    expect(await t.mutation(internal.migrations.guideTactics.addTactics, {})).toBe("held already");
+    const sections = await admin.query(api.guide.guide.list, {});
+    expect(sections).toHaveLength(1);
+    expect(sections[0].entries).toHaveLength(LISTED_FORMATIONS.length);
   });
 
   test("S23.7 S05.61: the admin's edit shows in the Guide and in the formation window's description, at once", async () => {

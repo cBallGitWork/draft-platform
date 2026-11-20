@@ -40,7 +40,7 @@ const guideEntry = v.union(
 const guideSection = v.object({ sectionId: v.id("guideSections"), title: v.string(), entries: v.array(guideEntry) });
 
 /** The Guide's sections, in order. */
-function sectionsOf(ctx: QueryCtx) {
+export function sectionsOf(ctx: QueryCtx) {
   return takeAllOrThrow(ctx.db.query("guideSections").withIndex("by_order"), GUIDE_SECTIONS_MOST, guideRefusals.sectionsFull);
 }
 
