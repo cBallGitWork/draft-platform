@@ -14,6 +14,7 @@ import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { fakeAdmin } from "./admin.harness";
 import { A_LEAGUE_ID } from "./convexReact.harness";
 import { fakeFeedback } from "./feedback.harness";
+import { fakeGuide } from "./guide.harness";
 import type { AuthActions, Session } from "../../../src/signIn/seam";
 import type { TopBarState } from "../../../src/frame/topBar/topBarState";
 import { fakeGameweeks } from "./gameweeks.harness";
@@ -163,6 +164,7 @@ const FAKES = {
   premierLeague: fakePremierLeague,
   admin: fakeAdmin,
   feedback: fakeFeedback,
+  guide: fakeGuide,
   patches: fakePatches,
   draft: fakeDraft,
   trades: fakeTrades,

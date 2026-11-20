@@ -1,14 +1,15 @@
 import { PageSection, Problem } from "../ui/Panel";
 import { SectionTab } from "../ui/SectionTabs";
 import { BackToLeagues } from "../leagues/LeagueLinks";
-import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
-import { ADMIN_TITLE, adminTabsLabel, availabilityTabWords, feedbackTabWords, feedsTabWords, positionsTabWords } from "./words";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_GUIDE_PATH, ADMIN_PATH } from "./paths";
+import { ADMIN_TITLE, adminTabsLabel, availabilityTabWords, feedbackTabWords, feedsTabWords, guideTabWords, positionsTabWords } from "./words";
 
 const TABS = [
   { path: ADMIN_PATH, label: positionsTabWords },
   { path: ADMIN_FEEDS_PATH, label: feedsTabWords },
   { path: ADMIN_FEEDBACK_PATH, label: feedbackTabWords },
   { path: ADMIN_AVAILABILITY_PATH, label: availabilityTabWords },
+  { path: ADMIN_GUIDE_PATH, label: guideTabWords },
 ];
 
 /** The dashboard's title plate over each of its tabs: the tabs, the way back, and why the last

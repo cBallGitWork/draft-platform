@@ -6,6 +6,8 @@ export const ADMIN_FEEDS_PATH = `${ADMIN_PATH}/feeds`;
 export const ADMIN_FEEDBACK_PATH = `${ADMIN_PATH}/feedback`;
 /** The dashboard's Availability tab (#1209, spec/06 Availability): setting a player's by hand. */
 export const ADMIN_AVAILABILITY_PATH = `${ADMIN_PATH}/availability`;
+/** The dashboard's Guide tab (spec/23 S23.13): editing the Guide's sections and entries. */
+export const ADMIN_GUIDE_PATH = `${ADMIN_PATH}/guide`;
 
 /** Where the dashboard sends the admin to read up on a player: a web search on one site each. */
 const WEB_SEARCH_URL = "https://www.google.com/search";

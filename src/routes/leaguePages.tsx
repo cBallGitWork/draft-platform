@@ -6,7 +6,8 @@ import { AdminPage } from "../admin/AdminPage";
 import { AvailabilityTab } from "../admin/AvailabilityTab";
 import { FeedbackTab } from "../admin/FeedbackTab";
 import { FeedsPage } from "../admin/FeedsPage";
-import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../admin/paths";
+import { GuideTab } from "../admin/GuideTab";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_GUIDE_PATH, ADMIN_PATH } from "../admin/paths";
 import { FeedbackPage } from "../feedback/FeedbackPage";
 import { FEEDBACK_PATH } from "../feedback/paths";
 import { MAIL_PATH, SCOUTING_PATH } from "../frame/menu";
@@ -195,7 +196,7 @@ const scoringRoute = createRoute({
 });
 
 /** The seams of the admin's dashboard tabs. */
-type AdminSeams = Pick<ShellContext, "admin" | "feedback">;
+type AdminSeams = Pick<ShellContext, "admin" | "feedback" | "guide">;
 
 /** A tab of the admin's dashboard at `path`, his alone: `Page` is given its seam, selected from the
  *  context so the tab re-renders only when that seam changes. */
@@ -216,6 +217,7 @@ const adminRoute = adminPage(ADMIN_PATH, "admin", AdminPage); // The admin's das
 const adminFeedsRoute = adminPage(ADMIN_FEEDS_PATH, "admin", FeedsPage); // Its feeds tab (#35)
 const adminFeedbackRoute = adminPage(ADMIN_FEEDBACK_PATH, "feedback", FeedbackTab); // Its Feedback tab (#357)
 const adminAvailabilityRoute = adminPage(ADMIN_AVAILABILITY_PATH, "admin", AvailabilityTab); // Its Availability tab (#1209)
+const adminGuideRoute = adminPage(ADMIN_GUIDE_PATH, "guide", GuideTab); // Its Guide tab (spec/23 S23.13)
 
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
@@ -238,4 +240,4 @@ const joinRoute = createRoute({
   },
 });
 
-export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, otherTeamRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, adminAvailabilityRoute, feedbackRoute, patchNotesRoute];
+export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, otherTeamRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, adminAvailabilityRoute, adminGuideRoute, feedbackRoute, patchNotesRoute];

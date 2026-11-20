@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { previewAdmin } from "../admin/preview";
 import { previewDraft } from "../draft/preview";
 import { previewFeedback } from "../feedback/preview";
+import { previewGuide } from "../guide/preview";
 import { previewGameweeks } from "../gameweeks/preview";
 import { previewHome } from "../home/preview";
 import { previewJoining } from "../joining/preview";
@@ -53,6 +54,7 @@ export function previewApp(): ReactNode | null {
         premierLeague={previewPremierLeague}
         admin={previewAdmin}
         feedback={previewFeedback}
+        guide={previewGuide}
         patches={previewPatches}
         draft={previewDraft}
         trades={previewTrades}

@@ -251,3 +251,31 @@ export const moreAsksWords = "More are waiting than these: the rest show as you 
 /** One row of his log: a move, or a clear, which sends the match back where the window rule puts it. */
 export const moveLogWords = ({ from, to }: { from: number | null; to: number | null }) =>
   to === null ? `Move cleared, out of ${gameweekWords(from)}` : `From ${gameweekWords(from)} to ${gameweekWords(to)}`;
+
+/** The Guide tab (spec/23 S23.13): its sections and entries down the left, the picked one's panel. */
+export const guideTabWords = "Guide";
+export const guideTitle = "The Guide";
+export const guideLoadingWords = "Loading the Guide…";
+export const noSectionsWords = "No sections yet.";
+export const guideWords = {
+  up: "Up",
+  down: "Down",
+  /** Starts with the button's own words, as a screen reader's name must (WCAG 2.5.3; S12.14). */
+  upLabel: (title: string) => `Up: move ${title} up`,
+  downLabel: (title: string) => `Down: move ${title} down`,
+  remove: "Remove",
+  removeSectionLabel: (title: string) => `Remove the ${title} section`,
+  /** S23.14: a section goes only once it is empty. */
+  notEmpty: "Remove or move its entries first",
+  newEntry: "New entry",
+  newEntryLabel: (section: string) => `New entry in ${section}`,
+  titleLabel: "Title",
+  textLabel: "Text",
+  save: "Save",
+  add: "Add",
+  newSectionLabel: "New section",
+  addSection: "Add section",
+  confirm: (title: string) => `Remove ${title} from the Guide? It can't be undone.`,
+  yes: "Remove it",
+  no: confirmDeleteWords.no,
+};

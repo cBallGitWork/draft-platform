@@ -7,6 +7,7 @@ import { useLiveAdmin } from "../admin/liveAdmin";
 import { liveDraft } from "../draft/liveDraft";
 import { liveTrades } from "../trades/liveTrades";
 import { useLiveFeedback } from "../feedback/liveFeedback";
+import { useLiveGuide } from "../guide/liveGuide";
 import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { NewVersionBar, NewVersionWatch } from "../frame/NewVersionBar";
@@ -147,6 +148,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const scoring = useLiveScoring();
   const leagueSettings = useLiveLeagueSettings();
   const feedback = useLiveFeedback();
+  const guide = useLiveGuide();
   const patches = useLivePatches();
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
   const clubColours = useQuery(api.football.clubKits.all, isAuthenticated ? {} : "skip");
@@ -193,7 +195,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   return (
     <ClubColoursProvider held={clubColours}>
       {lineupDueWatch}
-      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} draft={liveDraft} trades={liveTrades} />
+      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} guide={guide} patches={patches} draft={liveDraft} trades={liveTrades} />
     </ClubColoursProvider>
   );
 }

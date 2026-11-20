@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
@@ -38,6 +38,9 @@ const guideEntry = v.union(
   v.object({ formation, title: v.string(), text: v.string() }),
 );
 const guideSection = v.object({ sectionId: v.id("guideSections"), title: v.string(), entries: v.array(guideEntry) });
+/** One section as `list` gives it: an entry the admin added carries its `entryId`, a formation's its
+ *  `formation`. */
+export type GuideSection = Infer<typeof guideSection>;
 
 /** The Guide's sections, in order. */
 export function sectionsOf(ctx: QueryCtx) {

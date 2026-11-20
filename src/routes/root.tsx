@@ -7,6 +7,7 @@ import type { AuthActions, Session } from "../signIn/seam";
 import { AppFrame } from "../frame/AppFrame";
 import { ErrorScreen } from "../frame/ErrorScreen";
 import type { FeedbackSeam } from "../feedback/seam";
+import type { GuideSeam } from "../guide/seam";
 import { LeagueSwitcher } from "../frame/topBar/LeagueSwitcher";
 import { SignOut } from "../frame/topBar/SignOut";
 import type { TopBarState } from "../frame/topBar/topBarState";
@@ -39,7 +40,7 @@ import type { TradesSeam } from "../trades/seam";
 // sign-in, and the two frames the app's pages hang from, leaguePages.tsx's and frame.tsx's.
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League, draft, trades). Each new one needs a
+// settings, admin, leagues, feedback, guide, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League, draft, trades). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -62,6 +63,7 @@ export type ShellContext = {
   premierLeague: PremierLeagueSeam;
   admin: AdminSeam;
   feedback: FeedbackSeam;
+  guide: GuideSeam;
   patches: PatchesSeam;
   draft: DraftSeam;
   trades: TradesSeam;
