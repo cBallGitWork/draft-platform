@@ -1,0 +1,18 @@
+{
+  "why": "What Claude must never do in any studio project, because it can't be taken back: read a secrets file, deploy the live site from a session, force-push. Every entry must be in the project's .claude/settings.json permissions.deny (scripts/studio-kit.mjs checks it). A project may deny more.",
+  "deny": [
+    "Read(./.env)",
+    "Read(./.env.local)",
+    "Bash(git push --force*)",
+    "Bash(git push -f*)",
+    "Bash(git push * --force*)",
+    "Bash(git push * -f*)",
+    "Bash(vercel --prod*)",
+    "Bash(vercel * --prod*)",
+    "Bash(vercel promote*)",
+    "Bash(vercel rollback*)",
+    "Bash(npx vercel --prod*)",
+    "Bash(npx vercel * --prod*)",
+    "Bash(npx vercel promote*)"
+  ]
+}

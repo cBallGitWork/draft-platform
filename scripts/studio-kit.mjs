@@ -11,6 +11,9 @@ import { isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const PIN_PATH = ".studio/kit.json";
+// Forge's one deny list (a kit file) and where each project must hold it (forge#85)
+export const DENY_PATH = ".studio/deny.json";
+export const SETTINGS_PATH = ".claude/settings.json";
 const RECOPY = "change it in Forge (cBallGitWork/forge) and copy the kit in again with its bin/copy-kit.mjs";
 
 /** A file's hash with CRLF read as LF, so Windows and Mac checkouts hash alike. */
@@ -44,17 +47,33 @@ export function readPin(root) {
 export function kitProblems(root) {
   const { pin, problem } = readPin(root);
   if (problem) return [problem];
-  return Object.entries(pin.files).flatMap(([path, hash]) => {
+  const copies = Object.entries(pin.files).flatMap(([path, hash]) => {
     const file = join(root, path);
     if (!existsSync(file)) return [`${path} is missing: restore it with git checkout -- ${path}, or ${RECOPY}`];
     return hashOf(file, pin.hash) === hash ? [] : [`${path} was changed here: undo it with git checkout -- ${path}, or ${RECOPY}`];
   });
+  return copies.length || !(DENY_PATH in pin.files) ? copies : denyProblems(root);
+}
+
+/** The kit's deny entries missing from the project's settings: one line each. */
+export function denyProblems(root) {
+  const { deny } = JSON.parse(readFileSync(join(root, DENY_PATH), "utf8"));
+  const settingsFile = join(root, SETTINGS_PATH);
+  if (!existsSync(settingsFile)) return [`${SETTINGS_PATH} is missing: it must deny everything ${DENY_PATH} lists`];
+  let settings;
+  try {
+    settings = JSON.parse(readFileSync(settingsFile, "utf8"));
+  } catch (error) {
+    return [`${SETTINGS_PATH} is not valid JSON (${error.message})`];
+  }
+  const held = new Set(settings?.permissions?.deny ?? []);
+  return deny.filter((rule) => !held.has(rule)).map((rule) => `${SETTINGS_PATH} doesn't deny ${rule}: add it to permissions.deny (${DENY_PATH})`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const problems = kitProblems(process.cwd());
   if (problems.length) {
-    console.error("studio kit: these copies no longer match the pinned kit:");
+    console.error("studio kit: these copies no longer match the pinned kit, or the settings miss its deny list:");
     for (const problem of problems) console.error(`  ${problem}`);
     process.exit(1);
   }

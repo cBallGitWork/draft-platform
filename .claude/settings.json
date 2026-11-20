@@ -12,7 +12,13 @@
       "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__create_deployment",
       "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__request_promote",
       "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__request_rollback",
-      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__assign_alias"
+      "mcp__84f42f52-2732-4528-ab6f-b9eb615d85ea__assign_alias",
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)"
     ]
   },
   "hooks": {
@@ -134,16 +140,5 @@
         ]
       }
     ]
-  },
-  "extraKnownMarketplaces": {
-    "forge": {
-      "source": {
-        "source": "github",
-        "repo": "cBallGitWork/forge"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "forge@forge": true
   }
 }

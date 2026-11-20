@@ -1,15 +1,24 @@
 ---
 name: grill
-description: Interview Craig about the product, or one feature of it, before any code exists. Maps the decisions, asks the open ones in numbered rounds with a recommended answer each, settles the words, and writes only his answers into SPEC.md. Craig starts it.
-argument-hint: "[the product, or one feature in a sentence]"
+description: Interview Craig about the product, a feature, a plan or a problem before any code exists. Maps the decisions, asks the open ones in numbered rounds with a recommended answer each, settles the words, and writes only his answers into the project's spec. Craig starts it.
+argument-hint: "[the product, a feature or a plan, in a sentence]"
 disable-model-invocation: true
 ---
 
 # Grill before building
 
-A one-sentence ask leaves gaps, and an agent fills every gap with a silent guess. This skill
-turns those guesses into questions Craig answers before the first line is written.
-Adapted from epl-draft's `/grill`, itself from Matt Pocock's `grill-me` (skills v1.3, Oct 2026).
+A one-sentence ask leaves gaps, and an agent fills every gap with a silent guess. This skill turns
+those guesses into questions Craig answers before the first line is written. Adapted from Matt
+Pocock's `grill-me` (skills v1.3, Oct 2026; MIT, see `.claude/skills/THIRD_PARTY_LICENSES.md`).
+
+**First, read the project's facts:** `.studio/skills.md` in the repo, section *Grill* (where the
+spec, the glossary, the decisions log and the wants list live, and how its issues are labelled),
+then `CLAUDE.md`. Where this skill says "the spec" or "the glossary", it means the files named
+there. A project with no `.studio/skills.md` gets the defaults in brackets, and says so once.
+
+**Contents:** 1. Map the decisions · 2. Facts are yours, decisions are Craig's · 3. One numbered
+round at a time · 4. One word for one thing · 5. Done is an empty frontier and a yes · 6. Then the
+tickets
 
 ## 1. Map the decisions
 
@@ -20,11 +29,18 @@ decisions those imply. A decision belongs here when two reasonable builds would 
 
 ## 2. Facts are yours, decisions are Craig's
 
-Never ask Craig a fact you can look up: FPL's rules, what epl-draft's `packages/core` already
-does, what CLAUDE.md or SPEC.md already settles. Quote a settled answer; do not re-ask it.
+Never ask Craig a fact you can look up: how the real-world game or league works, what `CLAUDE.md`,
+the spec or the decisions log already settles. Quote a settled answer; don't re-ask it. Research
+notes the project keeps rest on search snippets: check a fact there before a recommendation leans
+on it.
 
-What other fantasy apps do is background, never the product. Don't put a feature on the tree
-because Sleeper or Fantrax has it; ask whether Craig wants it, and only if his answers lead there.
+Where the project names a model to follow (its *Grill* facts say which), say first how the model
+does it, then what this project changes, and recommend the model's way unless the project breaks
+it. What other products do is background, never the product: don't put a decision on the tree
+because another product has it.
+
+A want on the project's wants list is raw material: it isn't the product until Craig answers it
+here. Never offer a rule only the code holds as a recommendation; flag it as a rule nobody chose.
 
 ## 3. One numbered round at a time
 
@@ -36,64 +52,50 @@ Round 2 — 4 open
 2. ...
 ```
 
-Every question carries your recommendation, so most answers are "yes, yes, no, 3: the other
-one". When you have no grounds to recommend, say so rather than invent one. Past about thirty
-questions on one feature, it is two features; say so.
+Every question carries your recommendation, so most answers are "yes, yes, no, 3: the other one".
+With no grounds to recommend, say so rather than invent one. Past about thirty questions on one
+feature, it is two features; say so.
 
-Phrase each question so that "yes" means taking the recommendation; a question whose
-recommendation is "not now" is asked as "later?", never "this?". Any on-screen text in a
-recommendation is checked against `docs/design/plate.md`'s *Never* list first.
+Phrase each question so "yes" means taking the recommendation; a question whose recommendation is
+"not now" is asked as "later?", never "this?". Plain words, with a real example where one helps.
+At most five questions in one AskUserQuestion.
 
 Some questions don't settle by talking, usually what a screen looks like. Offer two or three
 throwaway mock-ups that look nothing alike, and let Craig pick.
 
 ## 4. One word for one thing
 
-When Craig uses two words for what might be one thing, or one word for two, stop and ask:
-"is a *swap* the same as a *transfer*?" Record the answer in SPEC.md's glossary: the term,
-one line of meaning, and the words to avoid.
+When Craig uses two words for what might be one thing, or one word for two, stop and ask: "is a
+*game* the same as a *match*?" Record the answer in the glossary: the term, one line of meaning,
+and the words to avoid.
 
 ## 5. Done is an empty frontier and a yes
 
 Write no code while the frontier has a question on it. When it is empty, ask once: "same page?"
-On yes, write or update the spec. `SPEC.md` at the repo root is the index:
+Before asking, list every no Craig gave in this grill and the out-of-scope line each becomes, then
+every "later" and its later line.
 
-- **What it is**, in Craig's words, a paragraph.
-- **Features**, a numbered table, each with a status (`not built` to start), the one place a
-  test will check it, and a link to its file. The status lives only in this table.
-- **Second release** and **Later**: what Craig wants after the first release, each its own
-  section, as he places it.
-- **Out of scope**: everything Craig said no to, so it isn't re-asked.
-- **Glossary**.
+On yes, write or update the spec where the project's facts say [`SPEC.md` at the repo root]:
+what it is in Craig's words, the features with their status, later, out of scope, the glossary.
+Only Craig's answers go in; a recommendation he didn't take stays out. A real-world fact an answer
+rests on (ten teams, best of three) is written as data with the date it was checked, never as the
+rule itself. The spec change goes in on its own branch and pull request, like any change; in the
+same pull request, delete what this grill settled from the wants list.
 
-Each feature's detail is its own file, `spec/NN-name.md`, so a session building one feature reads
-the index and that file, not the whole spec. A feature `/grill` writes or rewrites its file and
-its table row. In the same PR, delete the lines this grill settled from `docs/to-grill.md`.
-
-Only Craig's answers go in. A recommendation he didn't take stays out. SPEC.md goes in on its
-own branch and PR, like any change.
-
-Before "same page?", list every no Craig gave in this grill, and the Out of scope line each one
-becomes, then every "later" and its Later line. When `pr-reviewer` checks the spec, give it the
-grill's questions with his answers, or it can't tell his words from yours.
+When the reviewer checks the spec, give it the grill's questions with his answers, or it can't
+tell his words from yours.
 
 ## 6. Then the tickets
 
-A feature grilled for building ends in GitHub issues, after epl-draft's grill and Pocock's
-skills v1.3 (Craig, 16 Oct 2026):
+A feature grilled for building ends in GitHub issues, the build queue:
 
 - **Title** says what is missing or wrong, not what to add.
-- **The stories**, numbered: *as a manager who …, I …*, one per settled decision, each pointing
-  at its line in `spec/NN-*.md`.
+- **The stories**, numbered, one per settled decision, each pointing at its line in the spec.
 - **The seam**: where the tests will poke the feature. Aim for one.
 - **Done**: the check that proves it, which a session can rerun.
-- **Blocked by**: name the data the ticket reads, the screen it sits on and the menu that reaches
-  it, then the issue that builds each. Those issues are its blockers.
-- **Reuses**: the existing reads, parts and test fixtures the ticket builds on, and the folder
-  its code goes in (`ARCHITECTURE.md` "Where code lives").
+- **Blocked by**: the data it reads, the screen it sits on, the issue that builds each.
+- **Reuses**: the existing code and test fixtures it builds on, and the folder its code goes in.
+- **Label**: as the project's *Grill* facts say (a pipeline lane, or none).
 
-A feature bigger than one fresh session (~150k tokens) is cut into several issues, each a thin
-slice through every layer that works on its own, with the blocking order named. So is one past
-the pull request size in `docs/PHILOSOPHY.md`'s header (about 400 changed lines of non-test
-code); its pull requests merge in that order. The spec file
-stays: it is the product's record; the issue closes by merge.
+A feature bigger than one fresh session, or past the project's pull-request size, is cut into
+several issues, each a thin slice that works on its own, with the blocking order named.
