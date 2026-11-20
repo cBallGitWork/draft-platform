@@ -1,3 +1,4 @@
+import { v, type Infer } from "convex/values";
 import { classicDescriptionOf, FIRST_CLASSIC_FORMATIONS, type ClassicFormation } from "../lineup/classicFormations";
 import { FIRST_PRESETS, presetDescriptionOf } from "../lineup/presets";
 
@@ -7,7 +8,9 @@ import { FIRST_PRESETS, presetDescriptionOf } from "../lineup/presets";
 // Claude's, until the admin edits it, his edit held by name and read by both (S23.12). No server
 // imports, so the formation window reads it too.
 
-export type FormationKind = "preset" | "classic";
+/** A formation entry's list: the presets or the classic sides. */
+export const formationKind = v.union(v.literal("preset"), v.literal("classic"));
+export type FormationKind = Infer<typeof formationKind>;
 
 /** The admin's edit to one formation entry's text. */
 export type HeldDescription = { kind: FormationKind; name: string; text: string };

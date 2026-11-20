@@ -124,6 +124,7 @@ import type * as gameweeks_saveGameweek from "../gameweeks/saveGameweek.js";
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
 import type * as gameweeks_seasonGameweeks from "../gameweeks/seasonGameweeks.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
+import type * as guide_formationEntries from "../guide/formationEntries.js";
 import type * as guide_guide from "../guide/guide.js";
 import type * as guide_guideLimits from "../guide/guideLimits.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
@@ -578,6 +579,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
   "gameweeks/seasonGameweeks": typeof gameweeks_seasonGameweeks;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
+  "guide/formationEntries": typeof guide_formationEntries;
   "guide/guide": typeof guide_guide;
   "guide/guideLimits": typeof guide_guideLimits;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;

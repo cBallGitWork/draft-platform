@@ -1,8 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
-
-/** A formation entry's list: the presets or the classic sides. */
-export const formationKind = v.union(v.literal("preset"), v.literal("classic"));
+import { formationKind } from "../guide/formationEntries";
 
 // The Guide (spec/23): its sections down the left and each section's entries, held as data so the
 // admin edits them on his dashboard without a build (S23.13), and an edit shows at once (S23.15).

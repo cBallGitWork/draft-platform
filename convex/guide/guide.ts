@@ -5,8 +5,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { adminOf, callerEmail, refuse } from "../shared/leagueAccess";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { typedName, typedText } from "../shared/typedText";
-import { formationKind } from "../schema/guide";
-import { LISTED_FORMATIONS, type FormationKind } from "./formationEntries";
+import { formationKind, LISTED_FORMATIONS, type FormationKind } from "./formationEntries";
 import { GUIDE_ENTRIES_MOST, GUIDE_FORMATIONS_MOST, GUIDE_SECTIONS_MOST, GUIDE_TEXT_MAX, GUIDE_TITLE_MAX } from "./guideLimits";
 
 // The Guide (spec/23): sections down the left, each with its entries in order. Every signed-in
