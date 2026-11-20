@@ -112,7 +112,16 @@ describe("adding and removing", () => {
     await userEvent.click(await screen.findByRole("button", { name: guideWords.removeSectionLabel("Waivers") }));
     expect(app.guide.removeSection).toHaveBeenCalledWith(WAIVERS);
     expect(screen.queryByRole("button", { name: guideWords.removeSectionLabel("Basics") })).toBeNull();
-    expect(screen.getAllByText(guideWords.notEmpty)).toHaveLength(2);
+    expect(screen.getAllByText(guideWords.notEmpty)).toHaveLength(1);
+    expect(guideWords.notEmpty).not.toMatch(/\bmove\b/i);
+  });
+
+  it("S23.16 a section holding formation entries, which can't be removed, offers no Remove and no way to empty it", async () => {
+    openGuide();
+    const tactics = await screen.findByRole("list", { name: "Tactics" });
+    const row = tactics.closest("li") as HTMLElement;
+    expect(within(row).queryByRole("button", { name: guideWords.removeSectionLabel("Tactics") })).toBeNull();
+    expect(within(row).queryByText(guideWords.notEmpty)).toBeNull();
   });
 });
 

@@ -265,8 +265,8 @@ export const guideWords = {
   downLabel: (title: string) => `Down: move ${title} down`,
   remove: "Remove",
   removeSectionLabel: (title: string) => `Remove the ${title} section`,
-  /** S23.14: a section goes only once it is empty. */
-  notEmpty: "Remove or move its entries first",
+  /** S23.14: a section goes only once it is empty; the tab moves an entry only within its section. */
+  notEmpty: "Remove its entries first",
   newEntry: "New entry",
   newEntryLabel: (section: string) => `New entry in ${section}`,
   titleLabel: "Title",

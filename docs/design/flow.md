@@ -42,13 +42,14 @@ flowchart TD
     FEEDS["Feeds, a tab of the admin dashboard<br/>/admin/feeds<br/>admin"]
     AFB["Feedback, a tab of the admin dashboard<br/>/admin/feedback<br/>admin"]
     AAV["Availability, a tab of the admin dashboard<br/>/admin/availability<br/>admin"]
+    AGD["Guide, a tab of the admin dashboard<br/>/admin/guide<br/>admin"]
     FB["Feedback<br/>/feedback<br/>manager, commissioner, admin"]
     PN["Patch notes<br/>/patch-notes<br/>manager, commissioner, admin"]
     CARD["Player card<br/>/leagues/$leagueId/players/$playerCode<br/>manager, commissioner"]
     OTEAM["Another team's squad, read-only<br/>/leagues/$leagueId/teams/$teamId<br/>manager, commissioner"]
   end
   LP -.->|"signed out (an invite link keeps ?join)"| SIGNIN
-  NEW & ADMIN & FEEDS & AFB & AAV -.->|"not the admin"| LEAGUES
+  NEW & ADMIN & FEEDS & AFB & AAV & AGD -.->|"not the admin"| LEAGUES
   GW & SQ & SET & INV -.->|"doesn't run it, or it's being deleted"| LEAGUES
   SC & CARD & OTEAM -.->|"not in it, or it's being deleted"| LEAGUES
   LEAGUES -- "Create a league" --> NEW
@@ -59,6 +60,8 @@ flowchart TD
   AFB -- "Positions / Feeds" --> ADMIN & FEEDS
   ADMIN & FEEDS & AFB -- "Availability (tab)" --> AAV
   AAV -- "Positions / Feeds / Feedback" --> ADMIN & FEEDS & AFB
+  ADMIN & FEEDS & AFB & AAV -- "Guide (tab)" --> AGD
+  AGD -- "Positions / Feeds / Feedback / Availability" --> ADMIN & FEEDS & AFB & AAV
   LEAGUES -- "Gameweeks" --> GW
   LEAGUES -- "Invites and join requests" --> INV
   LEAGUES -- "Squads" --> SQ
@@ -66,7 +69,7 @@ flowchart TD
   SC -- "Patch notes" --> PN
   LEAGUES -- "League settings" --> SET
   NEW -- "Create the league / Back to your leagues" --> LEAGUES
-  GW & SQ & SC & SET & ADMIN & FEEDS & AFB & AAV & INV -- "Back to your leagues" --> LEAGUES
+  GW & SQ & SC & SET & ADMIN & FEEDS & AFB & AAV & AGD & INV -- "Back to your leagues" --> LEAGUES
   JOIN -- "Your leagues" --> LEAGUES
   INV -- "the invite link, sent outside the app" --> JOIN
 
@@ -159,6 +162,7 @@ and File columns means no route yet. Whether a screen is spec'd or to grill, and
 | Feeds, a tab of the admin dashboard | `/admin/feeds` | src/admin/FeedsPage.tsx | spec/15 The admin | built |
 | Feedback, a tab of the admin dashboard | `/admin/feedback` | src/admin/FeedbackTab.tsx | spec/15 The admin | built |
 | Availability, a tab of the admin dashboard | `/admin/availability` | src/admin/AvailabilityTab.tsx | spec/06, spec/09 | built |
+| Guide, a tab of the admin dashboard | `/admin/guide` | src/admin/GuideTab.tsx | spec/23 Writing it | built |
 | Feedback | `/feedback` | src/feedback/FeedbackPage.tsx | spec/12 The frame, spec/15 The admin | built |
 | Patch notes | `/patch-notes` | src/patches/PatchNotesPage.tsx | spec/14 Changes and corrections | built |
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |

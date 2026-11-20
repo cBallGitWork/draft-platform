@@ -128,7 +128,8 @@ function Section({
               {guideWords.remove}
             </button>
           ) : (
-            <span className="text-soft">{guideWords.notEmpty}</span>
+            // A formation entry is never removed (S23.16), so its section never empties: no hint.
+            formations.length === 0 && <span className="text-soft">{guideWords.notEmpty}</span>
           )}
           <MoveButtons title={title} place={place} last={last} change={change} move={(to) => seam.moveSection(sectionId, to)} />
         </span>
