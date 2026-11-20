@@ -2,7 +2,7 @@
 // window"; #1159): each group's heading and its sample mark, the tiles' parts, the preview's lines
 // in the picture's order, and the Save preset… tile on Your presets.
 
-import { screen, within } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import {
@@ -75,6 +75,17 @@ describe("the formation window", () => {
     await userEvent.click(window.getByRole("radio", { name: classic.name }));
     expect(within(window.getByRole("radio", { name: classic.name })).getByText(classic.description)).toBeTruthy();
     expect(window.getAllByText(classic.description)).toHaveLength(2);
+  });
+
+  it("S23.7 S05.61: shows the admin's held edit to a description, on the tile and the preview, at once", async () => {
+    const app = await openedPitch(IN_A_442);
+    await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
+    const window = within(screen.getByRole("region", { name: WINDOW_TITLE }));
+    act(() => app.myTeam.descriptionsHeld([{ kind: "preset", name: "4-4-2", text: "Two banks of four, Craig's words." }]));
+    expect(window.getAllByText("Two banks of four, Craig's words.")).toHaveLength(2);
+    expect(window.queryByText(presetDescriptionOf("4-4-2")!)).toBeNull();
+    // An unedited one keeps Claude's.
+    expect(window.getByText(presetDescriptionOf("4-3-3")!)).toBeTruthy();
   });
 
   it("lists the preview's lines in the picture's order, Gains and Loses as placeholders", async () => {

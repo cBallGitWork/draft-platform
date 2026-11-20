@@ -220,4 +220,5 @@ export const previewTactics: TacticsSeam = {
   usePlans: () => useSyncExternalStore(subscribe, () => plans),
   usePlanChanges: () => planChanges,
   useTacticsOpened: () => {},
+  useFormationDescriptions: () => [],
 };

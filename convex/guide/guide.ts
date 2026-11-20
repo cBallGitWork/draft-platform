@@ -5,11 +5,15 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { adminOf, callerEmail, refuse } from "../shared/leagueAccess";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { typedName, typedText } from "../shared/typedText";
-import { GUIDE_ENTRIES_MOST, GUIDE_SECTIONS_MOST, GUIDE_TEXT_MAX, GUIDE_TITLE_MAX } from "./guideLimits";
+import { formationKind, LISTED_FORMATIONS, type FormationKind } from "./formationEntries";
+import { GUIDE_ENTRIES_MOST, GUIDE_FORMATIONS_MOST, GUIDE_SECTIONS_MOST, GUIDE_TEXT_MAX, GUIDE_TITLE_MAX } from "./guideLimits";
 
 // The Guide (spec/23): sections down the left, each with its entries in order. Every signed-in
 // manager reads it (S23.4); the admin alone changes it, an entry's text and adding, removing and
 // reordering entries and sections (S23.13), and a change shows at once, with no drafts (S23.15).
+// Tactics also lists an entry per formation and classic side (S23.7; formationEntries.ts), which
+// follow the formations list: the admin edits their text and moves them within Tactics, but can't
+// remove them or add one (S23.16).
 
 /** Why a change to the Guide was refused, as the admin is told it. */
 export const guideRefusals = {
@@ -22,13 +26,21 @@ export const guideRefusals = {
   /** S23.14: a section goes only once it is empty. */
   notEmpty: "Move or remove this section's entries first.",
   noPlace: "That place isn't in the list.",
+  /** S23.16: a formation entry comes and goes with the formations list, never added by hand. */
+  noFormation: "That formation isn't in the formations list.",
+  formationsFull: `The Guide holds up to ${GUIDE_FORMATIONS_MOST} formation entries.`,
 } as const;
 
-const guideEntry = v.object({ entryId: v.id("guideEntries"), title: v.string(), text: v.string() });
+const formation = v.object({ kind: formationKind, name: v.string() });
+const guideEntry = v.union(
+  v.object({ entryId: v.id("guideEntries"), title: v.string(), text: v.string() }),
+  // A formation's or classic side's entry, keyed by its name, which is its title.
+  v.object({ formation, title: v.string(), text: v.string() }),
+);
 const guideSection = v.object({ sectionId: v.id("guideSections"), title: v.string(), entries: v.array(guideEntry) });
 
 /** The Guide's sections, in order. */
-function sectionsOf(ctx: QueryCtx) {
+export function sectionsOf(ctx: QueryCtx) {
   return takeAllOrThrow(ctx.db.query("guideSections").withIndex("by_order"), GUIDE_SECTIONS_MOST, guideRefusals.sectionsFull);
 }
 
@@ -41,7 +53,25 @@ function entriesOf(ctx: QueryCtx, sectionId: Id<"guideSections">) {
   );
 }
 
-/** The whole Guide, sections and their entries in order, for anyone signed in (S23.4). */
+/** The admin's held edits to the formation entries. */
+function formationEditsOf(ctx: QueryCtx) {
+  return takeAllOrThrow(ctx.db.query("guideFormationEntries"), GUIDE_FORMATIONS_MOST, guideRefusals.formationsFull);
+}
+
+/** Every listed formation's entry in its place among Tactics' formation entries: those the admin
+ *  moved in his order, then the rest in the list's, each with its held text (S23.7, S05.61). */
+async function formationEntriesOf(ctx: QueryCtx) {
+  const edits = await formationEditsOf(ctx);
+  const editOf = (kind: FormationKind, name: string) => edits.find((row) => row.kind === kind && row.name === name);
+  const placeOf = ({ kind, name }: { kind: FormationKind; name: string }) => editOf(kind, name)?.order ?? Infinity;
+  // Array.sort is stable, so the formations at the foot keep the list's order.
+  return [...LISTED_FORMATIONS]
+    .sort((a, b) => placeOf(a) - placeOf(b))
+    .map(({ kind, name, text }) => ({ formation: { kind, name }, title: name, text: editOf(kind, name)?.text ?? text }));
+}
+
+/** The whole Guide, sections and their entries in order, for anyone signed in (S23.4). Tactics
+ *  lists its own entries, then the formation entries (S23.7). */
 export const list = query({
   args: {},
   returns: v.array(guideSection),
@@ -51,9 +81,23 @@ export const list = query({
       (await sectionsOf(ctx)).map(async (section) => ({
         sectionId: section._id,
         title: section.title,
-        entries: (await entriesOf(ctx, section._id)).map((entry) => ({ entryId: entry._id, title: entry.title, text: entry.text })),
+        entries: [
+          ...(await entriesOf(ctx, section._id)).map((entry) => ({ entryId: entry._id, title: entry.title, text: entry.text })),
+          ...(section.holdsFormations ? await formationEntriesOf(ctx) : []),
+        ],
       })),
     );
+  },
+});
+
+/** The admin's edits to the formation descriptions, which the formation window shows in place of
+ *  Claude's (S05.61; formationEntries.ts `describedWith`), for anyone signed in. */
+export const formationDescriptions = query({
+  args: {},
+  returns: v.array(v.object({ kind: formationKind, name: v.string(), text: v.string() })),
+  handler: async (ctx) => {
+    await callerEmail(ctx);
+    return (await formationEditsOf(ctx)).flatMap(({ kind, name, text }) => (text === undefined ? [] : [{ kind, name, text }]));
   },
 });
 
@@ -113,8 +157,9 @@ export const removeSection = mutation({
   args: { sectionId: v.id("guideSections") },
   returns: v.null(),
   handler: async (ctx, { sectionId }) => {
-    await adminsSection(ctx, sectionId);
-    if ((await entriesOf(ctx, sectionId)).length > 0) refuse(guideRefusals.notEmpty);
+    const section = await adminsSection(ctx, sectionId);
+    // Tactics always holds the formation entries (S23.7).
+    if (section.holdsFormations || (await entriesOf(ctx, sectionId)).length > 0) refuse(guideRefusals.notEmpty);
     await ctx.db.delete("guideSections", sectionId);
     await renumber(ctx, await sectionsOf(ctx));
     return null;
@@ -188,6 +233,48 @@ export const moveEntry = mutation({
     await renumber(ctx, placed(others, entry, place));
     // The section it left closes up.
     if (entry.sectionId !== sectionId) await renumber(ctx, await entriesOf(ctx, entry.sectionId));
+    return null;
+  },
+});
+
+/** Refused unless the caller is the admin and the formation is listed: no formation entry is added
+ *  by hand (S23.16). */
+async function adminsFormation(ctx: MutationCtx, kind: FormationKind, name: string) {
+  await adminOf(ctx);
+  if (!LISTED_FORMATIONS.some((each) => each.kind === kind && each.name === name)) refuse(guideRefusals.noFormation);
+}
+
+/** Holds `change` on the formation's row, over it or in a new one. */
+async function holdFormation(ctx: MutationCtx, kind: FormationKind, name: string, change: { text?: string; order?: number }) {
+  const row = await ctx.db
+    .query("guideFormationEntries")
+    .withIndex("by_kind_and_name", (q) => q.eq("kind", kind).eq("name", name))
+    .unique();
+  if (row === null) await ctx.db.insert("guideFormationEntries", { kind, name, ...change });
+  else await ctx.db.patch("guideFormationEntries", row._id, change);
+}
+
+/** The admin rewrites a formation entry's text: the one description the Guide and the formation
+ *  window show, at once (S23.7, S05.61, S23.15). Its title stays the formation's name. */
+export const editFormationEntry = mutation({
+  args: { formation, text: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { formation: { kind, name }, text }) => {
+    await adminsFormation(ctx, kind, name);
+    await holdFormation(ctx, kind, name, { text: typedText(text, GUIDE_TEXT_MAX, guideRefusals.text) });
+    return null;
+  },
+});
+
+/** The admin moves a formation entry to `place` among Tactics' formation entries, 0 first: never
+ *  out of Tactics (S23.16). */
+export const moveFormationEntry = mutation({
+  args: { formation, place: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { formation: { kind, name }, place }) => {
+    await adminsFormation(ctx, kind, name);
+    const others = (await formationEntriesOf(ctx)).map((entry) => entry.formation).filter((each) => !(each.kind === kind && each.name === name));
+    for (const [order, each] of placed(others, { kind, name }, place).entries()) await holdFormation(ctx, each.kind, each.name, { order });
     return null;
   },
 });

@@ -9,3 +9,5 @@ export const GUIDE_TEXT_MAX = 5000;
 export const GUIDE_SECTIONS_MOST = 30;
 /** The most entries one section holds. */
 export const GUIDE_ENTRIES_MOST = 50;
+/** The most formation entries' edits held: room past every preset and classic side the site lists. */
+export const GUIDE_FORMATIONS_MOST = 100;

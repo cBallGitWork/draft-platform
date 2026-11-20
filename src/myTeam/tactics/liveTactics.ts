@@ -30,6 +30,7 @@ export const liveTactics: TacticsSeam = {
     );
   },
   usePlans: (leagueId) => useQuery(api.lineup.savedPlans.mine, { leagueId }),
+  useFormationDescriptions: () => useQuery(api.guide.guide.formationDescriptions, {}),
   // By the hour too (#2008): the card's roles and last season's prices turn when a scoring version
   // takes effect, so the hour's cards are picked from at the minute, the last held at the hour's turn.
   useRoleCard: function useRoleCard(leagueId, playerCode, cell, formation, now) {

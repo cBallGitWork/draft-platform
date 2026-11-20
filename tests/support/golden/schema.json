@@ -7583,6 +7583,13 @@
               "type": "number"
             },
             "optional": false
+          },
+          "holdsFormations": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
+            },
+            "optional": true
           }
         }
       }
@@ -7630,6 +7637,62 @@
               "type": "number"
             },
             "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "guideFormationEntries",
+      "indexes": [
+        {
+          "indexDescriptor": "by_kind_and_name",
+          "fields": [
+            "kind",
+            "name"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "kind": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "preset"
+                },
+                {
+                  "type": "literal",
+                  "value": "classic"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "text": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "order": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }

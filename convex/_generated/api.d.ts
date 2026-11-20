@@ -124,6 +124,7 @@ import type * as gameweeks_saveGameweek from "../gameweeks/saveGameweek.js";
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
 import type * as gameweeks_seasonGameweeks from "../gameweeks/seasonGameweeks.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
+import type * as guide_formationEntries from "../guide/formationEntries.js";
 import type * as guide_guide from "../guide/guide.js";
 import type * as guide_guideLimits from "../guide/guideLimits.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
@@ -219,6 +220,7 @@ import type * as migrations_deadlineDefaultBackfill from "../migrations/deadline
 import type * as migrations_everyTieBreak from "../migrations/everyTieBreak.js";
 import type * as migrations_firstInstructionsVersion from "../migrations/firstInstructionsVersion.js";
 import type * as migrations_firstRolesVersion from "../migrations/firstRolesVersion.js";
+import type * as migrations_guideTactics from "../migrations/guideTactics.js";
 import type * as outbound_claude from "../outbound/claude.js";
 import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
 import type * as outbound_email from "../outbound/email.js";
@@ -578,6 +580,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
   "gameweeks/seasonGameweeks": typeof gameweeks_seasonGameweeks;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
+  "guide/formationEntries": typeof guide_formationEntries;
   "guide/guide": typeof guide_guide;
   "guide/guideLimits": typeof guide_guideLimits;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
@@ -673,6 +676,7 @@ declare const fullApi: ApiFromModules<{
   "migrations/everyTieBreak": typeof migrations_everyTieBreak;
   "migrations/firstInstructionsVersion": typeof migrations_firstInstructionsVersion;
   "migrations/firstRolesVersion": typeof migrations_firstRolesVersion;
+  "migrations/guideTactics": typeof migrations_guideTactics;
   "outbound/claude": typeof outbound_claude;
   "outbound/deploymentSettings": typeof outbound_deploymentSettings;
   "outbound/email": typeof outbound_email;

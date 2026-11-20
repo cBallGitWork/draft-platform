@@ -3,6 +3,7 @@
 // their own.
 
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { HeldDescription } from "../../../convex/guide/formationEntries";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { BasedOn } from "../../../convex/lineup/lineupRows";
 import type { Cell } from "../../../convex/lineup/pitch";
@@ -44,6 +45,9 @@ export type TacticsSeam = {
   /** A starter's role card for his slot `cell` in `formation` (the eleven's cells), at `now`, live
    *  (a hook; #848): undefined while it loads. */
   useRoleCard(leagueId: Id<"leagues">, playerCode: number, cell: Cell, formation: Formation, now: number): RoleCard | undefined;
+  /** The admin's edits to the formation descriptions, live (a hook; spec/23 S23.7, spec/05 S05.61):
+   *  undefined while they load, when the window shows Claude's. */
+  useFormationDescriptions(): readonly HeldDescription[] | undefined;
   /** Tells the server the manager opened the tab, once a visit, when it first shows a `gameweek`
    *  (null until then), so Continue stops leading him here for it (spec/12; a hook). A gameweek
    *  that changes while the tab stays open tells nothing. */
