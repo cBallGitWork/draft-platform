@@ -73,7 +73,11 @@ for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" 
   "1a 2b" "1 a
 2 a
 3 a" "1. a" "3 a" "1) b, 2) c" \
-  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more" "Post it" "post them"; do
+  "get as many features done as you can" "go through issues and fix where we can" "fix what you can" "do more" "Post it" "post them" \
+  "and go, file the issues" "skills - your call
+repo ok
+
+and go, file the issues" "post the issue"; do
   said "$go"
   check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
   check allow guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
