@@ -109,7 +109,7 @@ link) with a short list:
 - where they disagreed, and every Craig's call, each a question with the options and a
   recommendation, in plain words.
 
-Pictures are drawn and approved only in a session Craig is watching (`CLAUDE.md`, Working). He
+Pictures are drawn and approved only in a session Craig is watching (`.claude/rules/ui.md`, Approved pictures). He
 comments on the canvas until he says it's right; each round goes back through steps 4 and 5.
 
 ## 7. Save the approved picture

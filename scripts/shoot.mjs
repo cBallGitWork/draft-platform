@@ -2,7 +2,7 @@
 // into the checkout's .shots/ (printing each shot's absolute path), and says what a picture can't:
 // whether the page scrolls sideways, and at 390 which taps are under the tap size
 // (scripts/tap-targets.mjs, the smoke run's check too). The ui-verifier agent's camera. Desk only
-// by default: the phone waits until Craig asks (CLAUDE.md, Decided). Each page opens on the smoke
+// by default: the phone waits until Craig asks (.claude/rules/ui.md). Each page opens on the smoke
 // run's fixed clock and time zone (scripts/fixedClock.mjs), so a shot shows the day a smoke run sees.
 //
 // Usage: node scripts/shoot.mjs <route> [name] [--phone]
