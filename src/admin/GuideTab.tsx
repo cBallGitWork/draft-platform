@@ -78,14 +78,18 @@ function shownOf(guide: readonly GuideSection[], picked: Picked | null): Shown |
   return all.find(({ entry }) => picked !== null && "key" in picked && keyOf(entry) === picked.key) ?? all[0] ?? null;
 }
 
+/** Up and Down: the secondary action, desk-sized, greyed where a row can't move that way, as League
+ *  settings' (src/leagueSettings/FixturesPanel.tsx). */
+const MOVE_ACTION = "secondary-action lg:min-h-0 lg:py-1 disabled:border-muted disabled:text-muted";
+
 /** Up and Down for one row, moving it to the place above or below in its own list. */
 function MoveButtons({ title, place, last, change, move }: { title: string; place: number; last: number; change: Changing; move: (place: number) => Change }) {
   return (
     <span className="flex gap-1">
-      <button type="button" aria-label={guideWords.upLabel(title)} disabled={change.busy || place === 0} onClick={() => void change.run(() => move(place - 1))} className="secondary-action">
+      <button type="button" aria-label={guideWords.upLabel(title)} disabled={change.busy || place === 0} onClick={() => void change.run(() => move(place - 1))} className={MOVE_ACTION}>
         {guideWords.up}
       </button>
-      <button type="button" aria-label={guideWords.downLabel(title)} disabled={change.busy || place === last} onClick={() => void change.run(() => move(place + 1))} className="secondary-action">
+      <button type="button" aria-label={guideWords.downLabel(title)} disabled={change.busy || place === last} onClick={() => void change.run(() => move(place + 1))} className={MOVE_ACTION}>
         {guideWords.down}
       </button>
     </span>
