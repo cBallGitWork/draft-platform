@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { cardActionAt } from "../../convex/waivers/runsAhead";
 import { answerOf, refusalOf } from "../shared/refusal";
 import { useFirstRuns, useWaiverClock } from "../shared/useFirstRuns";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
@@ -15,7 +16,10 @@ import { overrideFailedWords, removeOverrideFailedWords, waiverFailedWords } fro
 export const livePlayerCard: PlayerCardSeam = {
   ...liveShortlist,
   ...liveScouts,
-  usePlayerCard: (leagueId, playerCode, now) => useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }),
+  // Held while the next minute's card loads, so a form open on it survives the minute's turn.
+  usePlayerCard: function usePlayerCard(leagueId, playerCode, now) {
+    return useLastLoaded(useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }), `${leagueId}/${playerCode}`);
+  },
   // The action doesn't take the minute: the run that can first take him is worked out here at it
   // (useFirstRuns.ts, #2008), so it is read again only when it changes.
   useCardAction: function useCardAction(leagueId, playerCode) {

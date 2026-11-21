@@ -1,7 +1,7 @@
 // The joining seam's live wiring, with Convex's hooks faked by name: what a change resolves with when the
 // server makes it, refuses it, or can't be reached, and what asking for a link to join tells.
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
@@ -11,11 +11,13 @@ import { askFailedWords, replyWords } from "../../../src/signIn/words";
 import { useLiveJoining } from "../../../src/joining/liveJoining";
 import { changeFailedWords } from "../../../src/shared/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ send: vi.fn(), remove: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
+const convex = vi.hoisted(() => ({ endedInvite: vi.fn(), send: vi.fn(), remove: vi.fn(), make: vi.fn(), ask: vi.fn(), signInToJoin: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
+    queries: { "joining/endedInvite:mine": convex.endedInvite },
     mutations: {
       "joining/invites:send": convex.send,
       "joining/invites:resend": vi.fn(),
@@ -32,6 +34,19 @@ vi.mock("convex/react", async () =>
 );
 
 const joining = () => renderHook(useLiveJoining).result.current;
+
+test("the minute's turn keeps the ended invite up while the next answer loads, so its strip doesn't drop out", () => {
+  const minute = Date.parse("2026-11-14T12:00:00Z");
+  vi.useFakeTimers({ now: minute });
+  const ended = { leagueName: "Sunday League" };
+  convex.endedInvite.mockImplementation(({ now }: { now: number }) => (now === minute ? ended : undefined));
+  const { result } = renderHook(() => useLiveJoining().useEndedInvite());
+
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(convex.endedInvite).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
+  expect(result.current).toBe(ended);
+  vi.useRealTimers();
+});
 
 test("an invite joining/invites:send makes resolves with no problem, a new team asked for with no team", async () => {
   convex.send.mockResolvedValue(null);

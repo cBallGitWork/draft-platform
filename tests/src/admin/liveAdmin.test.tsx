@@ -100,6 +100,20 @@ test("S15.2: the feeds are judged at the minute's time from the two reads togeth
   ]);
 });
 
+test("the minute's turn keeps the feeds' report up while the next minute's owed loads, so the Feeds tab doesn't flash to Loading", () => {
+  const minute = Date.parse("2026-10-17T12:00:00Z");
+  vi.useFakeTimers({ now: minute });
+  convex.feeds.mockReturnValue({ feeds: [], corrections: [], moreCorrections: false });
+  const owed = { now: minute, owedSince: { matchStats: null, liveStats: null, teamSheets: null }, liveKickoffs: [], behind: [], moreBehind: false };
+  convex.owed.mockImplementation(({ now }: { now: number }) => (now === minute ? owed : undefined));
+  const { result } = renderHook(() => useLiveAdmin().useFeeds());
+  expect(result.current).toBeDefined();
+
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(convex.owed).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
+  expect(result.current).toBeDefined();
+});
+
 test("a change positions/playerPositions:setPosition makes resolves with no problem", async () => {
   convex.setPosition.mockResolvedValue(null);
   expect(await seam().setPosition(3, "SS")).toBeNull();

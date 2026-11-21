@@ -6,6 +6,7 @@ import { renderHook } from "@testing-library/react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
 import { livePlayerCard } from "../../../src/playerCard/livePlayerCard";
 import type { PointsOverride } from "../../../src/playerCard/seam";
@@ -47,6 +48,19 @@ test("the card is read from playerCard/playerCard:card with the league, the play
   convex.card.mockReturnValue(card);
   expect(renderHook(() => livePlayerCard.usePlayerCard(A_LEAGUE_ID, PLAYER_CODE, NOW)).result.current).toBe(card);
   expect(convex.card).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, now: NOW });
+});
+
+test("the next minute's card loading keeps the last one up, so an override being typed isn't closed by the minute's turn", () => {
+  const card = { code: PLAYER_CODE };
+  convex.card.mockImplementation(({ now }: { now: number }) => (now === NOW ? card : undefined));
+  const { result, rerender } = renderHook(({ now, code }) => livePlayerCard.usePlayerCard(A_LEAGUE_ID, code, now), {
+    initialProps: { now: NOW, code: PLAYER_CODE },
+  });
+  rerender({ now: NOW + MINUTE_MS, code: PLAYER_CODE });
+  expect(result.current).toBe(card);
+
+  rerender({ now: NOW + MINUTE_MS, code: PLAYER_CODE + 1 });
+  expect(result.current).toBeUndefined();
 });
 
 test("overriding asks table/pointsOverrides:override with the league spread into the change, and resolves with no problem", async () => {

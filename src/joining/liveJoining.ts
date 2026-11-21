@@ -7,6 +7,7 @@ import { askFailedWords, replyWords } from "../signIn/words";
 import type { JoiningSeam } from "./seam";
 import { changeFailedWords } from "../shared/words";
 import { useMinute } from "../shared/useMinute";
+import { useLastLoaded } from "../shared/useLastLoaded";
 
 // The joining seam filled in by Convex. A refusal comes back as the server's own words; any other
 // failure is logged and said plainly (src/shared/refusal.ts).
@@ -15,7 +16,8 @@ const change = (doing: string, attempt: () => Promise<unknown>) => refusalOf(att
 
 const useInvitesPage: JoiningSeam["useInvitesPage"] = (leagueId) => useQuery(api.joining.invitesPage.page, { leagueId });
 const useJoinPage: JoiningSeam["useJoinPage"] = (token) => useQuery(api.joining.joinRequests.joinPage, { token });
-const useEndedInvite: JoiningSeam["useEndedInvite"] = () => useQuery(api.joining.endedInvite.mine, { now: useMinute() });
+/** Held while the next minute's answer loads, so the strip doesn't drop out at the turn. */
+const useEndedInvite: JoiningSeam["useEndedInvite"] = () => useLastLoaded(useQuery(api.joining.endedInvite.mine, { now: useMinute() }));
 const useWaitingRequests: JoiningSeam["useWaitingRequests"] = () => useQuery(api.joining.joinRequests.waitingMine, {});
 
 export function useLiveJoining(): JoiningSeam {

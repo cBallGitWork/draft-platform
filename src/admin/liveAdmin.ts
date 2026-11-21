@@ -5,6 +5,7 @@ import { feedsReportAt } from "../../convex/admin/feedState";
 import { answerOf, refusalOf } from "../shared/refusal";
 import type { AdminSeam } from "./seam";
 import { useMinute } from "../shared/useMinute";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { changeFailedWords } from "../shared/words";
 
 const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPositions.queue, {});
@@ -13,7 +14,7 @@ const useQueue: AdminSeam["useQueue"] = () => useQuery(api.positions.playerPosit
  *  what each owes (#2500). */
 const useFeeds: AdminSeam["useFeeds"] = () => {
   const read = useQuery(api.admin.feeds.feeds, {});
-  const owed = useQuery(api.admin.feeds.owed, { now: useMinute() });
+  const owed = useLastLoaded(useQuery(api.admin.feeds.owed, { now: useMinute() }));
   return useMemo(() => (read === undefined || owed === undefined ? undefined : feedsReportAt(read, owed)), [read, owed]);
 };
 

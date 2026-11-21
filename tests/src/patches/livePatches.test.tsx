@@ -2,11 +2,12 @@
 // banner and the notes are read from, the banner at the screen's minute, and what dismissing asks
 // and resolves with when the server dismisses it, refuses it, or can't be reached.
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { useLivePatches } from "../../../src/patches/livePatches";
 import { dismissFailedWords } from "../../../src/patches/words";
 import { silenceConsoleError } from "../../support/console.setup";
@@ -28,6 +29,19 @@ test("the banner is read from scoring/patchNotes:banner at the start of the curr
   convex.banner.mockReturnValue(null);
   expect(renderHook(() => useLivePatches().useBanner()).result.current).toBeNull();
   expect(convex.banner).toHaveBeenLastCalledWith({ now: minute });
+});
+
+test("the minute's turn keeps the banner up while the next answer loads", () => {
+  const minute = Date.parse("2026-10-25T12:00:00Z");
+  vi.useFakeTimers({ now: minute });
+  const banner = { versionId: VERSION };
+  convex.banner.mockImplementation(({ now }: { now: number }) => (now === minute ? banner : undefined));
+  const { result } = renderHook(() => useLivePatches().useBanner());
+
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(convex.banner).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
+  expect(result.current).toBe(banner);
+  vi.useRealTimers();
 });
 
 test("the notes are read from scoring/patchNotes:notes", () => {

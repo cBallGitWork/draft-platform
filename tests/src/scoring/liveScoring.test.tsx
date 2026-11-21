@@ -2,11 +2,12 @@
 // function each part reads or calls, with the minute the screen is at, and what a save resolves
 // with when the server makes it, refuses it, or can't be reached.
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { ConvexError } from "convex/values";
 import { expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { useLiveScoring } from "../../../src/scoring/liveScoring";
 import { saveFailedWords } from "../../../src/scoring/words";
 import { silenceConsoleError } from "../../support/console.setup";
@@ -36,6 +37,19 @@ test("the site's scoring is read from scoring/siteScoring:view, at the start of 
 
   expect(renderHook(() => useLiveScoring().useScoring()).result.current).toBe(view);
   expect(convex.view).toHaveBeenLastCalledWith({ now: Date.parse("2026-10-22T09:30:00Z") });
+});
+
+test("the minute's turn keeps the last scoring up while the next loads, so edits not yet saved aren't lost to Loading", () => {
+  const minute = Date.parse("2026-10-22T09:30:00Z");
+  vi.useFakeTimers({ now: minute });
+  const view = { part: scoring, revision, changesFrom: 9, canEdit: true };
+  convex.view.mockImplementation(({ now }: { now: number }) => (now === minute ? view : undefined));
+  const { result } = renderHook(() => useLiveScoring().useScoring());
+
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(convex.view).toHaveBeenLastCalledWith({ now: minute + MINUTE_MS });
+  expect(result.current).toBe(view);
+  vi.useRealTimers();
 });
 
 test("saving calls scoring/siteScoring:fix with the version it was edited from, and resolves with the gameweek it applies from", async () => {
