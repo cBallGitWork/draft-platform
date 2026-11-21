@@ -10,10 +10,10 @@ import { MINUTE_MS, SECOND_MS } from "../convex/shared/time.ts";
 /** Resend's received emails: listed without bodies, then one fetched by id with its text. */
 export const RECEIVED_PATH = "/emails/receiving";
 /** How many of the newest received emails each look reads: the check's is among the last few. */
-export const RECENT_LIMIT = 20;
+const RECENT_LIMIT = 20;
 /** How long the check waits for the email, and how often it looks. */
-export const WAIT_MS = 2 * MINUTE_MS;
-export const POLL_MS = 5 * SECOND_MS;
+const WAIT_MS = 2 * MINUTE_MS;
+const POLL_MS = 5 * SECOND_MS;
 /** How long before the ask a received email may be dated and still be the ask's: the runner's
  *  clock and Resend's can differ by a few seconds. */
 export const CLOCK_SKEW_MS = 30 * SECOND_MS;

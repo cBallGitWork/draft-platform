@@ -20,12 +20,10 @@ import {
   byeWords,
   columns,
   fixturesListLabel,
-  gameweekWords,
   leagueAverageWords,
   loadingWords,
   noResultsWords,
   provisionalWords,
-  scoreWords,
   unscoredWords,
   TABLE_PAGE_TITLE,
   TABLE_TITLE,
@@ -39,8 +37,9 @@ import {
   tooFewTeamsWords,
   yourTeamWords,
 } from "../../../src/table/words";
+import { gameweekWords } from "../../../src/shared/when/words";
 import { autoTeamWhatWords, autoTeamWords, noFigureWords } from "../../../src/shared/words";
-import { formLabel, liveFormLabel } from "../../../src/shared/match/words";
+import { formLabel, liveFormLabel, scoreWords } from "../../../src/shared/match/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const fixtureLines = (gameweek: number) =>

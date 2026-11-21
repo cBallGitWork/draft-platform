@@ -14,9 +14,7 @@ import { CLUB_COLOURS, contrast, INKS } from "../../../convex/football/clubColou
 import { crestUrl } from "../../../src/ui/ClubName";
 import { matchPath } from "../../../src/premierLeague/paths";
 import {
-  commentaryDelayedWords,
   COMMENTARY_TITLE,
-  gameweekWords,
   kickoffDayWords,
   livePointsDelayedWords,
   loadingMatchWords,
@@ -30,7 +28,8 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
-import { fullTime, halfTime } from "../../../src/shared/match/words";
+import { gameweekWords } from "../../../src/shared/when/words";
+import { fullTime, halfTime, commentaryDelayedWords } from "../../../src/shared/match/words";
 import { FIXTURE, matchOf, openMatch } from "../../support/src/matchPage.harness";
 import { styledColour } from "../../support/src/styledColour";
 import { headToHead, playing, slot, teamSide } from "../../support/src/matchup.harness";

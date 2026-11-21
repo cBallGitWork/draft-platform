@@ -12,7 +12,8 @@ import { TABLE_PATH } from "../../../src/frame/menu";
 import { idOf, leagueTableOf } from "../../../src/table/drawnTable";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import type { TableData } from "../../support/src/table.harness";
-import { cancelWords, editingWords, FIXTURES_TITLE, fixturesListLabel, gameweekWords, leagueAverageWords, pickAnotherWords, pickSideLabel, saveSwapWords } from "../../../src/table/words";
+import { cancelWords, editingWords, FIXTURES_TITLE, fixturesListLabel, leagueAverageWords, pickAnotherWords, pickSideLabel, saveSwapWords } from "../../../src/table/words";
+import { gameweekWords } from "../../../src/shared/when/words";
 
 const FOUR = ["Ann's", "Bob's", "Cat's", "Dan's"];
 /** Gameweek 1 began two weeks ago, so gameweek 3 is the first not begun. */

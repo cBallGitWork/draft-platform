@@ -28,7 +28,6 @@ import {
   squadCountWords,
   squadTableLabel,
   squadViewWords,
-  statusNotSettledLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../../src/myTeam/squad/words";
 import { everyRoleOf } from "../../../../convex/lineup/roles";
@@ -38,6 +37,7 @@ import { league } from "../../../support/src/shell.harness";
 import { mailLetter } from "../../../support/src/mailScreen.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
 import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
+import { statusNotSettledLabel } from "../../../../src/myTeam/words";
 
 const WINGER = { area: "attackingMidfield", lane: "right" } as const;
 const players = [SAKA, PALMER, RAYA];

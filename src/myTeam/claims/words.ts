@@ -8,7 +8,7 @@ import { placeWords, pointsShort } from "../header/words";
 import { capitalised } from "../../../convex/shared/moments";
 import { afterLastMatchWords, gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/when/words";
 
-export { placeWords, pointsShort };
+export { pointsShort };
 
 export const PENDING_CLAIMS_TITLE = "Pending claims";
 export const CLAIMS_TITLE = "Claims";

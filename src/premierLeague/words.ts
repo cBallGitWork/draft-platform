@@ -8,7 +8,6 @@ import { awayWords, homeWords, versusWords } from "../shared/match/words";
 import { dateWords, gameweekColumn, gameweekShort, gameweekWords, seasonShortWords, timeOfDayWords } from "../shared/when/words";
 
 export { goalsWords, liveWords, scoreWords, versusWords } from "../shared/match/words";
-export { gameweekWords } from "../shared/when/words";
 /** Goals for less against, signed: "+4", "−3", "0", as the league table signs its difference. */
 export { signedWords as goalDifferenceWords } from "../shared/words";
 
@@ -79,8 +78,8 @@ export const tableLineWords: Record<TableLine, string> = {
 
 // The match page (#45; spec/10, The match page), which each fixture opens.
 
-export { figureOrNone, figureWords, freeAgentWords, noFigureWords } from "../shared/words";
-export { commentaryDelayedWords, livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/match/words";
+export { figureOrNone, figureWords, noFigureWords } from "../shared/words";
+export { livePointsDelayedWords, notCountingLabel, SCORE_LABEL } from "../shared/match/words";
 
 /** A fixture's link to its match page, read out for the score or "v" it wraps, which it names:
  *  "Arsenal 2–1 Chelsea: the match". */

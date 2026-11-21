@@ -12,31 +12,26 @@ import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../../src/frame/menu";
 import { sectionTabsLabel } from "../../../../src/frame/words";
 import { meterListLabel } from "../../../../src/myTeam/header/words";
 import {
-  awayWords,
-  difficultyNotRatedWords,
   goneWords,
-  homeWords,
   lastGameweekLong,
-  nextFixtureLong,
-  noFigureWords,
   noStatsWords,
   numberLabel,
   noSquadWords,
-  noTeamWords,
   openPanelLabel,
   squadColumns,
   squadLoadingWords,
   squadTableLabel,
   SQUAD_TITLE,
-  statusNotSettledLabel,
-  whenWords,
 } from "../../../../src/myTeam/squad/words";
-import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
+import { unheldNoticeWords, unheldPlayerWords, noFigureWords } from "../../../../src/shared/words";
 import { crestUrl } from "../../../../src/ui/ClubName";
 import { ARSENAL, UNHELD } from "../../../support/convex/footballRows.harness";
 import { columnHeadIn, expectColumnHeads } from "../../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
 import { cells, KICKOFF, openSquad, PALMER, RAYA, rows, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
+import { difficultyNotRatedWords, nextFixtureLong, noTeamWords, statusNotSettledLabel } from "../../../../src/myTeam/words";
+import { whenWords } from "../../../../src/shared/when/words";
+import { awayWords, homeWords } from "../../../../src/shared/match/words";
 
 /** The long words of a match cell: the match, then that its difficulty isn't rated yet. */
 const matchLong = (opponent: string, home: boolean) => `${nextFixtureLong(opponent, home, whenWords(KICKOFF))}, ${difficultyNotRatedWords}`;

@@ -5,9 +5,10 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
-import type { CommissionerChanges, CommissionerView, DraftBoard, DraftChanges, DraftListChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "../../../src/draft/seam";
+import type { CommissionerChanges, DraftBoard, DraftChanges, DraftListChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "../../../src/draft/seam";
 import { ARSENAL } from "../convex/footballRows.harness";
 import { fakeScouting } from "./scouting.harness";
+import type { CommissionerView } from "../../../convex/draft/draftCommissioner";
 
 /** Three teams in the draft order, Team 2 the reader's. */
 export const draftOrder = ["Team 1", "Team 2", "Team 3"].map((name, index) => ({ teamId: `team-${index + 1}` as Id<"teams">, name }));

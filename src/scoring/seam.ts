@@ -40,7 +40,7 @@ export type ScoringView = RulesView<Scoring, SiteRevision> & {
 };
 
 /** A patch announced: its name and the first gameweek it reaches. */
-export type Announced = { name: string; fromGameweek: number };
+type Announced = { name: string; fromGameweek: number };
 
 export type ScoringSeam = {
   /** Live (a hook): undefined while it loads. */

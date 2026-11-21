@@ -7,18 +7,11 @@ import { failedWords, menuWords, statColumns, statNames } from "../../shared/wor
 import { gameweekShort, gameweekWords } from "../../shared/when/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
-export { figureOrNone, figureWords, signedWords, noFigureWords, playerCardWords } from "../../shared/words";
-export { gameweekShort, gameweekWords, whenWords } from "../../shared/when/words";
+export { figureOrNone, figureWords, signedWords, playerCardWords } from "../../shared/words";
+export { gameweekShort, gameweekWords } from "../../shared/when/words";
 export { leftLeagueWords as goneWords } from "../../shared/words";
 export {
-  awayWords,
   benchShort,
-  difficultyNotRatedWords,
-  homeWords,
-  nextFixtureLong,
-  nextFixtureShort,
-  noTeamWords,
-  statusNotSettledLabel,
 } from "../words";
 
 export const SQUAD_TITLE = menuWords.squad;

@@ -18,8 +18,6 @@ import {
   autoTeamReadsWords,
   FEED_CHOICE,
   feedSaysWords,
-  findLabel,
-  foundListLabel,
   noneSetByHandWords,
   pickPlayerLabel,
   setByHandTitle,
@@ -27,6 +25,7 @@ import {
 import type { AdminData } from "../../support/src/admin.harness";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { admin, commissioner, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
+import { findLabel, foundListLabel } from "../../../src/shared/words";
 
 const SAKA: AvailabilityRow = { code: 5, name: "Saka", clubShortName: "ARS", positions: ["W"], feed: "doubtful", set: "available" };
 const WATKINS: AvailabilityRow = { code: 8, name: "Watkins", clubShortName: "AVL", positions: ["ST"], feed: "out", set: "doubtful" };

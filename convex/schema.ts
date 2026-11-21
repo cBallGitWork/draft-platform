@@ -36,7 +36,7 @@ export { availability, clubRecord, clubRow, clubColoursRecord, shirtPattern, pla
 export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, matchStatsSyncFields } from "./schema/matchStats";
 export { position, line, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan, formationPlace, liveTickFeed } from "./schema/live";
-export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
+export { leagueDeletion, pinnedLetter } from "./schema/leagues";
 export type { LeagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
 export { namedPlayer, tradedSide } from "./schema/squads";

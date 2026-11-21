@@ -17,7 +17,7 @@ import type { TeamFixtures } from "../../../src/myTeam/seam";
 import { countdownWords, pointsShort } from "../../../src/myTeam/header/words";
 import { standingOf } from "../../../src/myTeam/header/teamStanding";
 import { competitionsLabel } from "../../../src/table/words";
-import { formLabel, resultWords } from "../../../src/shared/match/words";
+import { formLabel, resultWords, scoreWords } from "../../../src/shared/match/words";
 import { dateWords } from "../../../src/shared/when/words";
 import {
   byeWords,
@@ -37,7 +37,6 @@ import {
   provisionalWords,
   resultsTableLabel,
   RESULTS_TITLE,
-  scoreWords,
   SEASON_TITLE,
   tableMoreWords,
   theirFormWords,

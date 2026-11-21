@@ -9,13 +9,14 @@ import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import { MINUTES_STAT } from "../../../convex/stats/matchRecords";
 import type { Stats } from "../../../convex/stats/statTotals";
 import { mostFirst, raceOrder } from "../../../convex/scouting/raceOrder";
-import type { PlayersList, RacingTeam, ScoutingSeam, StatRace, YourPlayer } from "../../../src/scouting/seam";
+import type { PlayersList, RacingTeam, ScoutingSeam, StatRace } from "../../../src/scouting/seam";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import { previewGameMode } from "../../../src/shared/preview";
 import type { CardAction } from "../../../src/playerCard/seam";
 import { fakePlayerCard } from "./playerCard.harness";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
+import type { YourPlayer } from "../../../convex/scouting/yourPlayer";
 
 /** What the fake server holds: its clubs, the site set's own stats, players and their season totals
  *  by code, which the comparison and the per-90 figures read too, or nothing yet while the list or

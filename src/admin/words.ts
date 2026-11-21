@@ -16,7 +16,7 @@ import { confirmDeleteWords } from "../shared/controls/words";
 import { versusWords } from "../shared/match/words";
 import { whenWords } from "../shared/when/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
-export { findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../shared/words";
+export { searchingWords } from "../shared/words";
 
 export const ADMIN_TITLE = "Admin dashboard";
 export const loadingWords = "Loading the queue…";

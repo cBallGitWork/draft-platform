@@ -54,7 +54,7 @@ export const SEASONS = {
 };
 
 /** Where ai-carling keeps each person's ids, FPL's code among them. */
-export const PERSONS_DIR = "data/identity/persons/root";
+const PERSONS_DIR = "data/identity/persons/root";
 /** ai-carling's own Python, which has pyarrow. */
 export const PYTHON = ".venv/bin/python";
 

@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { HOME_PATH, MATCHUP_PATH, MY_TEAM_PATH, SCOUTING_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { leagueTableOf } from "../../../src/table/drawnTable";
-import { gameweekWords } from "../../../src/table/words";
+import { gameweekWords } from "../../../src/shared/when/words";
 import { nextGameweekLabel } from "../../../src/shared/controls/words";
 import { league, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 

@@ -3,7 +3,8 @@
 
 import { vi } from "vitest";
 import type { WaitingRequest } from "../../../convex/joining/joinRequests";
-import type { EndedInvite, InvitesPageData, JoinPageData, JoiningSeam } from "../../../src/joining/seam";
+import type { InvitesPageData, JoinPageData, JoiningSeam } from "../../../src/joining/seam";
+import type { EndedInvite } from "../../../convex/joining/endedInvite";
 
 /** What the pages read; one left out is still loading. */
 export type JoiningData = {

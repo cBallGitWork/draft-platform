@@ -56,7 +56,6 @@ export const benchLabel = (teamName: string) => `${teamName}'s bench`;
 /** On a tile's shirt where his match's state goes: a starter who didn't play and was replaced. */
 export const offWords = "Off";
 /** A side nobody runs, its lineup the auto team's (#1207): the shared chip's words. */
-export { autoTeamWords } from "../shared/words";
 /** A side's formation once its manager has edited it off every preset (Craig, 1 Nov 2026, #878:
  *  "only preset formations", a changed one "Custom"). */
 export const customFormationWords = "Custom";

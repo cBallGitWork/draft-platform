@@ -9,7 +9,7 @@ import { versusWords } from "../shared/match/words";
 import { gameweekColumn, gameweekShort } from "../shared/when/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureOrNone, figureWords, noFigureWords, noTeamWords, placeWords, tradedPickWords, withTeamWords } from "../shared/words";
+export { figureOrNone, figureWords, noFigureWords, noTeamWords, placeWords, tradedPickWords } from "../shared/words";
 export { shortThenLongName } from "../shared/controls/words";
 export { liveWords, versusWords } from "../shared/match/words";
 export { dateWords, whenWords } from "../shared/when/words";
@@ -26,7 +26,7 @@ export const awardLong = (month: string) => `Manager of the Month, ${monthWords(
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 
-export { awayWords, difficultyNotRatedWords, homeWords, nextFixtureShort, statusNotSettledLabel } from "../shared/match/words";
+export { difficultyNotRatedWords, nextFixtureShort, statusNotSettledLabel } from "../shared/match/words";
 /** A match's hover: "Chelsea, at home, Sat 5 Sep, 15:00". */
 export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string) => `${opponent}, ${home ? "at home" : "away"}, ${kickoff}`;
 export const noNextFixtureWords = "No match with a kickoff time yet.";
@@ -65,7 +65,7 @@ export const SEASON_TITLE = "Season";
 export const tableMoreWords = "Table";
 export const byeWords = "Bye";
 export { leagueAverageWords, unscoredWords } from "../shared/words";
-export { provisionalWords, scoreWords } from "../shared/match/words";
+export { provisionalWords } from "../shared/match/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = `No fixtures yet: they're drawn once the league has ${fewestTeamsWords} and a gameweek to play.`;
 

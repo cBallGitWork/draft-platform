@@ -7,8 +7,7 @@ import { failedWords, fewestTeamsWords, pointsAgainstWords, pointsForWords, sign
 import { gameweekShort, gameweekWords } from "../shared/when/words";
 
 export { figureWords } from "../shared/words";
-export { liveWords, scoreWords } from "../shared/match/words";
-export { gameweekWords } from "../shared/when/words";
+export { liveWords } from "../shared/match/words";
 /** The table's title, said while every team has played nothing, a gameweek begun that couldn't be
  *  scored (#287), the reader's own team for screen readers, and the league average:
  *  src/shared/words.ts, as other screens say them too. */

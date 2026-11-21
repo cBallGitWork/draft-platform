@@ -12,9 +12,9 @@ export type { Matchup };
 export type MatchupAsked = { teamId?: Id<"teams">; gameweek?: number; game?: number };
 
 /** A team's gameweek, whose total an override sets or removes (spec/14 S14.3; #903). */
-export type OverriddenTeam = { gameweek: number; teamId: Id<"teams"> };
+type OverriddenTeam = { gameweek: number; teamId: Id<"teams"> };
 /** A team's total in a gameweek, set by whoever runs the league, and why. */
-export type TeamOverride = OverriddenTeam & { points: number; reason: string };
+type TeamOverride = OverriddenTeam & { points: number; reason: string };
 
 export type MatchupSeam = {
   /** The matchup at the minute `now`, live (a hook): undefined while it loads. */

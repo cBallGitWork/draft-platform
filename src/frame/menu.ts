@@ -26,7 +26,7 @@ export const TRADES_PATH = "/trades";
 export const TRADES_NEW_PATH = `${TRADES_PATH}/new`;
 export const PREMIER_LEAGUE_PATH = "/premier-league";
 
-export const sections: readonly Section[] = [
+const sections: readonly Section[] = [
   {
     label: menuWords.home,
     path: HOME_PATH,

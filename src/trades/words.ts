@@ -28,7 +28,7 @@ export const OFFERS_TITLE = "Offers";
 export const openCountWords = (count: number) => `${count} open`;
 export const offersTableLabel = "Your trade offers";
 /** An offer's sides and facts, as the tables' heads and the selected offer's panel say them. */
-export const withWords = "With";
+const withWords = "With";
 export const youGetWords = "You get";
 export const youGiveWords = "You give";
 export const waitingOnWords = "Waiting on";

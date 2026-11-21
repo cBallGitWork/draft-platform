@@ -11,14 +11,13 @@ import { clubPath } from "../../../src/premierLeague/paths";
 import type { ClubPageData, ClubSquad, SquadPlayer } from "../../../src/premierLeague/seam";
 import {
   clubTabWords,
-  freeAgentWords,
   noSeasonPointsWords,
   noSquadWords,
   statusNotSettledLabel,
   topScorersHead,
   waiversWords,
 } from "../../../src/premierLeague/words";
-import { POSITION_NAMES } from "../../../src/shared/words";
+import { POSITION_NAMES, freeAgentWords } from "../../../src/shared/words";
 import { ARSENAL, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 

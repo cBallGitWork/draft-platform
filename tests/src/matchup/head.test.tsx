@@ -6,7 +6,8 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { autoTeamWords, customFormationWords, livePointsDelayedWords, SCORE_LABEL, standingWords } from "../../../src/matchup/words";
+import { customFormationWords, livePointsDelayedWords, SCORE_LABEL, standingWords } from "../../../src/matchup/words";
+import { autoTeamWords } from "../../../src/shared/words";
 import { headToHead, playing, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 

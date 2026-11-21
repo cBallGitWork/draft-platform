@@ -12,7 +12,7 @@ export type OnTheClock = { pick: number; clock: PickClock; pickSeconds: number }
 
 /** How long the pick on the clock has left at `now`: its full time while its clock waits to start,
  *  the 10 seconds after the pick before it, and frozen where the commissioner paused it. */
-export function leftAt({ startsAt, endsAt, pausedAt }: PickClock, now: number): number {
+function leftAt({ startsAt, endsAt, pausedAt }: PickClock, now: number): number {
   return endsAt - Math.max(pausedAt ?? now, startsAt);
 }
 

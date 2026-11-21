@@ -13,7 +13,7 @@ import type { PlayerCardSeam } from "../playerCard/seam";
 import type { ScoutsSeam } from "./scouts/seam";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 
-export type { Comparison, Per90Panel, Period, PlayersFilters, PlayersList, PlayersSort, StatRace, YourPlayer };
+export type { Comparison, Period, PlayersFilters, PlayersList, PlayersSort, StatRace };
 export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { HeldByFilter, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";

@@ -21,12 +21,9 @@ import {
   confirmLabel,
   changesTitle,
   findHint,
-  findLabel,
-  findTitle,
   flagAfterLabel,
   flaggedTitle,
   flaggedWords,
-  foundListLabel,
   labelWords,
   loadingWords,
   newSigningsTitle,
@@ -49,7 +46,7 @@ import {
   noAreaWords,
   unplacedAreaLabel,
 } from "../../../src/admin/words";
-import { AREA_WORDS } from "../../../src/shared/words";
+import { AREA_WORDS, findLabel, findTitle, foundListLabel } from "../../../src/shared/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
 const ARSENAL = { code: 3, name: "Arsenal", colours: { primary: "#E50107", secondary: "#FFFFFF", pattern: "plain" as const } };

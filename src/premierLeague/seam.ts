@@ -14,7 +14,7 @@ import type { Change } from "../shared/refusal";
 export type { ClubSquad, MatchMan, MatchMarks, MatchPageData, SquadGroup, SquadPlayer };
 
 /** How many gameweeks the season has, and each one's first kickoff (football/plGameweeks:firstKickoffs). */
-export type PlGameweeks = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>;
+type PlGameweeks = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>;
 /** A gameweek's first kickoff. */
 export type FirstKickoff = PlGameweeks["firstKickoffs"][number];
 /** A match of one gameweek, its clubs and its newest score (football/matchScores:ofGameweek). */

@@ -11,7 +11,7 @@ import type { GreyedPlayer, RoomFigure, RoomFigures } from "../../convex/draft/d
 import type { ScoutingSeam } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 
-export type { BoardPick, CommissionerView, DraftBoard, GreyedPlayer, RoomFigure, RoomFigures };
+export type { BoardPick, DraftBoard, GreyedPlayer, RoomFigure, RoomFigures };
 
 /** The league's draft: waiting, live or over (draft/draftStart:ofLeague). */
 export type DraftState = FunctionReturnType<typeof api.draft.draftStart.ofLeague>;

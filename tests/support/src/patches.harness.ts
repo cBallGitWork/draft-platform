@@ -1,7 +1,8 @@
 // The patches' tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
-import type { PatchesSeam, VersionNotes, WaitingPatch } from "../../../src/patches/seam";
+import type { PatchesSeam, VersionNotes } from "../../../src/patches/seam";
+import type { WaitingPatch } from "../../../convex/scoring/patchNotes";
 
 /** What the fake server holds: the patch whose banner shows, and the notes; `loading` keeps the
  *  notes on their way. No banner and no notes unless a test says. */

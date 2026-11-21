@@ -20,7 +20,7 @@ export type Picking = { picked: number | null; pick(playerCode: number): void };
 
 /** All a tile says, read out: "Delap, ST Poacher, 5, Finished FT", then whether his points count
  *  and what the auto-subs did with him. */
-export function tileLabel({ name, place, role, points, counts, overridden, status, autoSub }: TileMan): string {
+function tileLabel({ name, place, role, points, counts, overridden, status, autoSub }: TileMan): string {
   const figure = points === null ? noFigureWords : figureWords(points);
   const head = place !== null && role !== null ? pitchPlayerLabel(name, place.label, role.name, figure) : `${name}, ${figure}`;
   const atHalfTime = status.kind === "playing" && status.state === "halfTime";

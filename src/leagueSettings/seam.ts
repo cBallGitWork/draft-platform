@@ -60,7 +60,7 @@ export type LeagueSettingsSeam = {
 export type TeamInOrder = { teamId: Id<"teams">; name: string; commissionerPicks: boolean | null };
 
 /** The draft order, first pick first, and whether the draft has started, which fixes it. */
-export type TeamOrder = { teams: TeamInOrder[]; started: boolean };
+type TeamOrder = { teams: TeamInOrder[]; started: boolean };
 
 /** The draft's start date (null: none, so it waits for the commissioner to press start), and
  *  whether it has started, which ends the date's use (convex/draft/draftStart.ts); its rounds (null:

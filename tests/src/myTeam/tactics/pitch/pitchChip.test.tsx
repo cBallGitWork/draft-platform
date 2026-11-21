@@ -7,13 +7,13 @@ import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { roleIn } from "../../../../../convex/lineup/roles";
 import { NO_DATA } from "../../../../../convex/stars/starsShape";
-import { nextFixtureShort } from "../../../../../src/myTeam/squad/words";
 import { pitchChipOf } from "../../../../../src/myTeam/tactics/pitch/pitchChip";
 import { starsLabel } from "../../../../../src/ui/StarRating";
 import { ARSENAL, CHELSEA } from "../../../../support/convex/footballRows.harness";
 import { SAKA, squadOf } from "../../../../support/src/squadTab.harness";
 import { openTactics, TACTICS_GAMEWEEK } from "../../../../support/src/tactics.harness";
 import { blockOf, openedPitch, SALIBA, SALIBAS_CELL, SAVED, SQUAD, STARTERS } from "../../../../support/src/tacticsScreen.harness";
+import { nextFixtureShort } from "../../../../../src/myTeam/words";
 
 const match = (gameweek: number, day: number, opponent: typeof ARSENAL, home: boolean) => ({ gameweek, kickoff: day * 86_400_000, opponent, home });
 const DOUBLE = [match(TACTICS_GAMEWEEK, 1, CHELSEA, true), match(TACTICS_GAMEWEEK, 4, ARSENAL, false), match(TACTICS_GAMEWEEK + 1, 8, CHELSEA, false)];

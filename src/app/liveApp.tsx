@@ -41,7 +41,7 @@ import { NO_CONVEX_URL } from "../shared/words";
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
 
 /** What the log says, before the error, when the browser's time zone couldn't be kept (#442). */
-export const ZONE_FAILED_LOG = "Keeping this browser's time zone failed:";
+const ZONE_FAILED_LOG = "Keeping this browser's time zone failed:";
 /** What the log says, before the error, when a sign-in link's code couldn't be checked. */
 export const LINK_CHECK_FAILED_LOG = "Checking a sign-in link failed:";
 

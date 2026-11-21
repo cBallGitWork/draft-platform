@@ -16,7 +16,7 @@ import type { Stars } from "../../../../convex/stars/starsShape";
 import type { SquadRow } from "../../../../convex/squads/teamSquad";
 import type { SquadMember } from "../lineupEdits";
 
-export type Opponent = SquadRow["nextFixtures"][number];
+type Opponent = SquadRow["nextFixtures"][number];
 
 export interface PitchChip {
   /** The position his slot stands for, whose area colours the chip. */

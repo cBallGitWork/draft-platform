@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import {
   cameOnWords,
-  freeAgentWords,
   markLabels,
   matchColumns,
   MOVED_TITLE,
@@ -30,6 +29,7 @@ import { expectColumnHeads, expectUnseenHead } from "../../support/src/columnHea
 import { man, matchOf, MEN, openMatch } from "../../support/src/matchPage.harness";
 import { ARSENAL, CHELSEA } from "../../support/src/premierLeague.harness";
 import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "../../support/src/teams.harness";
+import { freeAgentWords } from "../../../src/shared/words";
 
 /** The rows of a club's team sheet, each as its cells' text. */
 function sheetRows(club: string) {

@@ -12,22 +12,17 @@ import type { SquadsData } from "../../support/src/squads.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { descriptionOf } from "../../support/src/describedBy";
-import { unheldNoticeWords, unheldPlayerWords } from "../../../src/shared/words";
+import { unheldNoticeWords, unheldPlayerWords, findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../../../src/shared/words";
 import {
   assignLabel,
   findHint,
-  findLabel,
-  findTitle,
-  foundListLabel,
   goneWords,
   loadingWords,
   moveLabel,
-  noneFoundWords,
   noOtherTeamWords,
   noTeamsWords,
   noTeamToPutOnWords,
   releaseLabel,
-  searchingWords,
   SQUADS_TITLE,
   teamChoiceLabel,
 } from "../../../src/squads/words";

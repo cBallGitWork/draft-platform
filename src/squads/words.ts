@@ -4,7 +4,7 @@
 import { failedWords } from "../shared/words";
 import { gameweekShort } from "../shared/when/words";
 
-export { findLabel, findTitle, foundListLabel, freeAgentWords, noneFoundWords, searchingWords } from "../shared/words";
+export { freeAgentWords } from "../shared/words";
 
 export const SQUADS_TITLE = "Squads";
 export const findHint = "Every change is in the league's Mail.";

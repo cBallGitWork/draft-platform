@@ -160,7 +160,7 @@ export async function schemaJson(schemaPath = SCHEMA_PATH) {
  * Runs `npx convex <args>`. Captured output is echoed, so the build log shows everything, except
  * its standard output when `quiet` (a recorded shape, kilobytes of compressed text).
  */
-export function convexCli(args, { capture = false, quiet = false } = {}) {
+function convexCli(args, { capture = false, quiet = false } = {}) {
   const result = spawnSync("npx", ["convex", ...args], {
     encoding: "utf8",
     stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",

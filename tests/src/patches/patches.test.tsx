@@ -11,7 +11,7 @@ import { TABLE_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
-import type { VersionNotes, WaitingPatch } from "../../../src/patches/seam";
+import type { VersionNotes } from "../../../src/patches/seam";
 import {
   bannerWords,
   dismissWords,
@@ -27,6 +27,7 @@ import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { league, manager, newcomer, openApp, visitor } from "../../support/src/shell.harness";
+import type { WaitingPatch } from "../../../convex/scoring/patchNotes";
 
 const TAKES_EFFECT = Date.parse("2026-11-01T12:00:00Z");
 const WAITING: WaitingPatch = { versionId: "version-2" as Id<"siteScoring">, name: "26_27.2", takesEffectAt: TAKES_EFFECT };

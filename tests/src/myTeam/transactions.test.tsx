@@ -22,7 +22,6 @@ import {
   transactionsLoadingWords,
   transactionsTableLabel,
   TRANSACTIONS_TITLE,
-  withTeamWords,
 } from "../../../src/myTeam/words";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { claimsLoadingWords, waiverOrderLoadingWords } from "../../../src/myTeam/claims/words";
@@ -30,6 +29,7 @@ import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { cells } from "../../support/src/squadTab.harness";
+import { withTeamWords } from "../../../src/shared/words";
 
 type Transaction = TeamTransactions["transactions"][number];
 

@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { VersionNotes, WaitingPatch } from "../../convex/scoring/patchNotes";
 import type { Change } from "../shared/refusal";
 
-export type { VersionNotes, WaitingPatch };
+export type { VersionNotes };
 
 export type PatchesSeam = {
   /** The patch whose banner shows now, live (a hook): null for none, undefined while it loads. */

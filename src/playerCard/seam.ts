@@ -51,4 +51,4 @@ export type PlayerCardSeam = ShortlistSeam & ScoutsSeam & {
 export type Released = { firstRun: RunAhead | null };
 
 /** The match a player's override is removed from. */
-export type OverriddenMatch = Pick<PointsOverride, "fixtureCode" | "playerCode">;
+type OverriddenMatch = Pick<PointsOverride, "fixtureCode" | "playerCode">;

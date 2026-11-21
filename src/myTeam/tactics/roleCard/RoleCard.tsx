@@ -64,7 +64,7 @@ export function RoleCardWindow({ seam, leagueId, now, formation, ...shown }: Sho
 }
 
 /** `card` is undefined while it loads. */
-export function RoleCard({ player, starter, runs, card, onPlay, onClose }: Shown & { card: RoleCardData | undefined }) {
+function RoleCard({ player, starter, runs, card, onPlay, onClose }: Shown & { card: RoleCardData | undefined }) {
   const titleId = useId();
   // Opened under the toolbar, it scrolls into view whole, as the formation window does.
   const section = useRef<HTMLElement>(null);
