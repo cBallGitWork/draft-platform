@@ -8,7 +8,7 @@ import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { afterRunLogged } from "../../admin/feedStatuses";
 import { clubRow, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { isPlaying, wins } from "../matchScores";
-import { keyOf, sameFields } from "../footballSync";
+import { keyOf, sameFields } from "../heldRows";
 import { PREMIER_LEAGUE, readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
 
 // Sportmonks' six-hourly read stored (#1391): each competition that is on (#1414), its clubs,

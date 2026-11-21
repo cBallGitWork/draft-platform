@@ -5,7 +5,7 @@ import {
   type PaginationResult,
   type WithoutSystemFields,
 } from "convex/server";
-import { v, type Infer, type Value } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, type ActionCtx, type MutationCtx } from "../_generated/server";
@@ -18,6 +18,7 @@ import { clubRow, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord
 import { BATCH_SIZE, inBatches, latestRuns } from "../shared/syncRuns";
 import { afterRunLogged } from "../admin/feedStatuses";
 import { writeScores } from "./matchScores";
+import { keyOf, sameFields, type Keyed } from "./heldRows";
 import { seedColours } from "./clubKits";
 import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
@@ -46,11 +47,6 @@ type Upserted = Infer<typeof upserted>;
 
 const footballTable = v.union(v.literal("clubs"), v.literal("players"), v.literal("fixtures"), v.literal("gameweeks"));
 type FootballTable = Infer<typeof footballTable>;
-/** A record or a held row, by the key it is matched on: a gameweek's season is absent only on a
- *  row from before #66. */
-type Keyed = { code: number } | { season?: number; number: number };
-/** A gameweek's key's step a season: past any gameweek number. */
-const SEASON_KEY_STEP = 100;
 /** A table's share of a sync that read none of it. */
 const NO_WRITES: TableWrites = { received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
 const markedPage = v.object({ marked: v.number(), cursor: v.string(), isDone: v.boolean() });
@@ -227,14 +223,6 @@ function unmarkedPage(
   }
 }
 
-/** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's season
- *  and number, 202605 for 2026/27's gameweek 5, so last season's is never taken for this one's
- *  (#66). A row from before #66, with no season, keys on its number alone. */
-export function keyOf(row: Keyed): number {
-  if ("code" in row) return row.code;
-  return row.season === undefined ? row.number : row.season * SEASON_KEY_STEP + row.number;
-}
-
 /** Every row the feed sent, upserted in batches of `BATCH_SIZE`; then every held row it did not
  *  send is marked as dropped at `ranAt`. */
 async function syncTable<Row extends Keyed>(
@@ -295,10 +283,4 @@ async function upsertEach<Table extends FootballTable>(
     }),
   );
   return upserted;
-}
-
-/** Every field the feed sent equals the held one. The records are flat, so `===` compares them;
- *  `droppedAt` is the platform's, never sent, so it is not compared. */
-export function sameFields(row: Record<string, Value>, held: Record<string, Value>): boolean {
-  return Object.keys(row).every((field) => row[field] === held[field]);
 }

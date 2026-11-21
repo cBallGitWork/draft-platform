@@ -69,6 +69,7 @@ import type * as football_football from "../football/football.js";
 import type * as football_footballSync from "../football/footballSync.js";
 import type * as football_fpl_fpl from "../football/fpl/fpl.js";
 import type * as football_fpl_fplLive from "../football/fpl/fplLive.js";
+import type * as football_heldRows from "../football/heldRows.js";
 import type * as football_matchCommentary from "../football/matchCommentary.js";
 import type * as football_matchScores from "../football/matchScores.js";
 import type * as football_matchTeamSheets from "../football/matchTeamSheets.js";
@@ -525,6 +526,7 @@ declare const fullApi: ApiFromModules<{
   "football/footballSync": typeof football_footballSync;
   "football/fpl/fpl": typeof football_fpl_fpl;
   "football/fpl/fplLive": typeof football_fpl_fplLive;
+  "football/heldRows": typeof football_heldRows;
   "football/matchCommentary": typeof football_matchCommentary;
   "football/matchScores": typeof football_matchScores;
   "football/matchTeamSheets": typeof football_matchTeamSheets;
