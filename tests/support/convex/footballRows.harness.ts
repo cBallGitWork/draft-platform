@@ -24,6 +24,7 @@ export const insertSeasonGameweeks = async (ctx: MutationCtx, count = PL_GAMEWEE
 export const ARSENAL: Club = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA: Club = { code: 8, name: "Chelsea", shortName: "CHE" };
 export const COVENTRY: Club = { code: 9, name: "Coventry", shortName: "COV" };
+export const SPURS: Club = { code: 6, name: "Spurs", shortName: "TOT" };
 
 /** A player as a test holds him: his players row, and the positions set for him. */
 export type HeldPlayer = WithoutSystemFields<Doc<"players">> & { positions: Position[] };

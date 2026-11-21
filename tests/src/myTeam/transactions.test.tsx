@@ -29,6 +29,7 @@ import { claimsLoadingWords, waiverOrderLoadingWords } from "../../../src/myTeam
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
+import { cells } from "../../support/src/squadTab.harness";
 
 type Transaction = TeamTransactions["transactions"][number];
 
@@ -37,7 +38,6 @@ const rows = () =>
   within(screen.getByRole("table", { name: transactionsTableLabel("Team 1") }))
     .getAllByRole<HTMLTableRowElement>("row")
     .slice(1);
-const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell.textContent);
 
 const AT = Date.parse("2026-10-20T18:00:00Z");
 const SAKA = 1001;

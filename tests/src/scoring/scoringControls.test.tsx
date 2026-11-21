@@ -5,13 +5,13 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { discardWords, saveWords } from "../../../src/rules/words";
+import { discardWords } from "../../../src/rules/words";
 import { byAreaWords, columnWords, everyoneWords, shapeLabel, shapeWords, wholePointsWords } from "../../../src/scoring/words";
 import { box, categories, choose, openScoring, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
+import { saveButton } from "../../support/src/leagueSettingsScreen.harness";
 
 const tickBox = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
 const pointsKey = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
-const saveButton = () => screen.getByRole("button", { name: saveWords }) as HTMLButtonElement;
 
 describe("a tick box", () => {
   it("toggles from a click on its row, and back from a click on its words", async () => {

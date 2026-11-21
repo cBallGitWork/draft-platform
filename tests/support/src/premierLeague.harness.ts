@@ -6,9 +6,8 @@ import type { ClubPageData, ClubSquad, FirstKickoff, GameweekMatch, MatchPageDat
 import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
 import { serverStore } from "./serverStore";
 
-export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
+export { ARSENAL, CHELSEA, SPURS } from "../convex/footballRows.harness";
 export const FOREST = { code: 17, name: "Nottingham Forest", shortName: "NFO" };
-export const SPURS = { code: 6, name: "Spurs", shortName: "TOT" };
 
 type Score = NonNullable<GameweekMatch["score"]>;
 

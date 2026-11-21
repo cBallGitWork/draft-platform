@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { MATCH_RECORDS_MOST } from "../../../convex/stats/matchRecordReads";
-import { freshConvex, ROWS_TO_THE_CAP, type TestConvex } from "../../support/convex/test.harness";
+import { freshConvex, ROWS_TO_THE_CAP, type TestConvex, MADE_UP_CODES } from "../../support/convex/test.harness";
 
 // #1725: the stat writes read a match's records through matchRecordsOf, as the scorer and the
 // screens do, so a match holding more than MATCH_RECORDS_MOST throws at the write, the live write
@@ -9,7 +9,6 @@ import { freshConvex, ROWS_TO_THE_CAP, type TestConvex } from "../../support/con
 
 const FIXTURE = 700_002;
 /** Where this file's made-up player codes start. */
-const MADE_UP_CODES = 900_000;
 /** One man's record as a feed sends it, a man the match doesn't hold yet. */
 const SENT = { playerCode: MADE_UP_CODES + MATCH_RECORDS_MOST + 1, fixtureCode: FIXTURE, started: true, played: true, arrived: { fpl: true, pl: true }, stats: { minutes: 90 } };
 const tooMany = (why: string) => `Match ${FIXTURE} holds more than ${MATCH_RECORDS_MOST} records, so ${why} would be cut short`;

@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import { codesByOpta } from "../../../convex/football/feedIds";
-import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { mergeStats } from "../../../convex/stats/matchRecords";
 import { plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../support/recorded/gw6.payloads";
@@ -10,13 +9,13 @@ import type { MatchStats } from "../../../convex/scoring/values";
 import { centreOf, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { validateScoringSet, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
+import { fplLines } from "../../support/convex/teamPoints.harness";
 
 // The site's own stats (#112, spec/14 Own stats): catalogue stats added up with weights, scored
 // like any category, whole actions only under whole points only; and the placeholder catalogue.
 
 const gw6 = recordedGw6();
 const plLines = plStatLines(recordedPlFixture(MATCH.hullEverton.pl), hullEvertonReads(gw6), codesByOpta(gw6.fpl.bootstrap.elements)).lines;
-const fplLines = fplStatLines(gw6.fpl.live, gw6.fpl.bootstrap.elements, gw6.fpl.fixtures);
 /** Hull's right back: one tackle won and one clearance, by the Premier League's count. */
 const coyle: MatchStats = {
   ...fplLines.find((line) => line.playerCode === FULL_STATS.coyle.code)!.stats,

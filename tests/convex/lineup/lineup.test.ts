@@ -3,17 +3,13 @@ import { lineupProblems, namedCodes, withUnmovedSetAside, type Lineup, type Line
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
+import { KEEPER, LEFT_BACK, LEFT_MIDFIELDER, OTHER_STRIKER, STRIKER } from "../../support/convex/autoSubs.harness";
 
 // 4-4-2, starters 1 to 11 back to front and left to right: 1 the keeper, 2–5 the back four, 6–9
 // the midfield four, 10 and 11 the strikers. Each plays his area's usual position.
 const { lineup: fourFourTwo, positions } = filledLineup(presetNamed("4-4-2"));
-const KEEPER = 1;
-const LEFT_BACK = 2;
 const RIGHT_BACK = 5;
-const LEFT_MIDFIELDER = 6;
 const RIGHT_MIDFIELDER = 9;
-const STRIKER = 10;
-const OTHER_STRIKER = 11;
 
 /** The 4-4-2 with one starter moved to another cell. */
 function moved(playerCode: number, area: string, lane: string): Lineup {

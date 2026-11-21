@@ -5,6 +5,7 @@ import type { ScoreRead } from "../../../convex/football/scoreReads";
 import type { scoreFeed } from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { SPURS } from "../../support/convex/footballRows.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun, syncWith } from "../../support/convex/footballSync.harness";
 import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
@@ -18,7 +19,6 @@ import { FPL_RECORDED_LIVE, IPSWICH_FOREST } from "../../support/recorded/scores
 const FINISHED = FIXTURE_CODE.arsenalVCoventry;
 const LIVE = FPL_RECORDED_LIVE;
 const UPCOMING = IPSWICH_FOREST;
-const SPURS = { code: 6, name: "Spurs", shortName: "TOT" };
 const COVENTRY = { code: CLUB_CODE.coventry, name: "Coventry City", shortName: "COV" };
 
 const MANAGER = "manager@example.com";

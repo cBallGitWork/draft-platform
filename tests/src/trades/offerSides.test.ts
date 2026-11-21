@@ -4,9 +4,8 @@
 import { describe, expect, it } from "vitest";
 import { closesOf } from "../../../src/trades/offerSides";
 import { whenWords } from "../../../src/trades/words";
-import { screenOffer } from "../../support/src/trades.harness";
+import { screenOffer, DEADLINE } from "../../support/src/trades.harness";
 
-const DEADLINE = Date.parse("2026-11-14T11:00:00Z");
 const REVIEW_ENDS = Date.parse("2026-11-12T09:30:00Z");
 
 describe("when an offer closes", () => {

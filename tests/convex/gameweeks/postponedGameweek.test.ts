@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN } from "../../support/convex/leagues.harness";
-import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, sent, NEXT } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -17,7 +17,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 const POSTPONED = 7;
 const UNDER_WAY = 8;
 /** holdGameweeks' next gameweek: every one before it has begun. */
-const NEXT = 9;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

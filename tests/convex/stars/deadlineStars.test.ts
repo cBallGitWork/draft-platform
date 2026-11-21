@@ -6,13 +6,12 @@ import { UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, type TestConvex, ANN, freshLeague } from "../../support/convex/leagues.harness";
-import { FOUR_FOUR_TWO, holdSquad, passNextDeadline } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, passNextDeadline, NEXT } from "../../support/convex/lineupSquad.harness";
 import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Stars kept at the deadline (#11, deadlineStars.ts; spec/05 Auto-subs, Craig, 1 Nov 2026): each
 // team's bench as it stood when the lineup locked, with the stars that pick an auto-sub's role.
 
-const NEXT = 9;
 const [FIRST_ON] = FOUR_FOUR_TWO.bench;
 const RATED = { area: "midfield" as const, role: "attackingEight", stars: 4 as Stars };
 const UNSURE_RATING = { area: "midfield" as const, role: "boxToBox", stars: UNSURE as Stars };

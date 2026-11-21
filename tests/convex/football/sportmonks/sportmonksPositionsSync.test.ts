@@ -11,8 +11,8 @@ import { DAY_MS } from "../../../../convex/shared/time";
 import { CRON_TRIGGER, PING_URL_ENV } from "../../../../convex/heartbeats/heartbeat";
 import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
 import { LINEUPS, sportmonksLineupsMatch } from "../../../support/recorded/sportmonksLineups.payloads";
+import { TOKEN } from "../../../support/convex/sportmonks.harness";
 
-const TOKEN = "test-token";
 const LAST_SEASON = { id: 25000, name: "2025/2026" };
 const THIS_SEASON = { id: 25598, name: "2026/2027" };
 const NOW = Date.parse("2026-11-10T06:00:00Z");

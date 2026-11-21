@@ -37,24 +37,9 @@ const STILL_DUPLICATED: Record<string, string[]> = {};
 /** The tests restating a harness's export when this test was added, as "test name -> harness".
  *  Each goes when its test imports the export: never add to it. */
 const STILL_RESTATED: string[] = [
-  "tests/convex/football/matchScores.test.ts SPURS -> tests/support/src/premierLeague.harness.ts",
-  "tests/convex/football/sportmonks/sportmonksPositionsSync.test.ts TOKEN -> tests/support/convex/sportmonks.harness.ts",
-  "tests/convex/gameweeks/postponedGameweek.test.ts NEXT -> tests/support/convex/lineupSquad.harness.ts",
-  "tests/convex/lineup/lineup.test.ts KEEPER -> tests/support/convex/autoSubs.harness.ts",
-  "tests/convex/lineup/lineup.test.ts LEFT_BACK -> tests/support/convex/autoSubs.harness.ts",
-  "tests/convex/lineup/lineup.test.ts LEFT_MIDFIELDER -> tests/support/convex/autoSubs.harness.ts",
-  "tests/convex/lineup/lineup.test.ts OTHER_STRIKER -> tests/support/convex/autoSubs.harness.ts",
-  "tests/convex/lineup/lineup.test.ts STRIKER -> tests/support/convex/autoSubs.harness.ts",
-  "tests/convex/scoring/ownStats.test.ts fplLines -> tests/support/convex/teamPoints.harness.ts",
-  "tests/convex/scouting/scoutingPlayers.test.ts KICKOFF -> tests/support/convex/matchStats.harness.ts",
-  "tests/convex/stars/deadlineStars.test.ts NEXT -> tests/support/convex/lineupSquad.harness.ts",
-  "tests/convex/stats/matchRecordsCap.test.ts MADE_UP_CODES -> tests/support/convex/test.harness.ts",
   "tests/convex/table/playedFixtures.test.ts recordPassed -> tests/support/convex/deadlineRecorder.harness.ts",
   "tests/convex/table/playedFixtures.test.ts setUsedIn -> tests/support/convex/deadlineRecorder.harness.ts",
   "tests/src/matchup/teamOverride.test.tsx GAMEWEEK -> tests/support/convex/matchStats.harness.ts",
-  "tests/src/myTeam/transactions.test.tsx cells -> tests/support/src/squadTab.harness.ts",
-  "tests/src/scoring/scoringControls.test.tsx saveButton -> tests/support/src/leagueSettingsScreen.harness.ts",
-  "tests/src/trades/offerSides.test.ts DEADLINE -> tests/support/src/trades.harness.ts",
 ];
 
 /** What differs from the lists: each new or grown copy with every file and line, and each list

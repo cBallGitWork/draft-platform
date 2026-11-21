@@ -12,6 +12,7 @@ import { moveSeasonTotals } from "../../../convex/stats/seasonStats";
 import { seasonStartYear } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, GONE, PALMER, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { KICKOFF } from "../../support/convex/matchStats.harness";
 
 // Each player's Scouting row (#1559, scoutingPlayers.ts): his name, club, what his positions are
 // worked out from and his newest season's totals, copied onto one row by every write to the rows
@@ -20,7 +21,6 @@ import { freshConvex, type TestConvex } from "../../support/convex/test.harness"
 
 const { positions: _, ...SAKA_ROW } = SAKA;
 const { positions: __, ...PALMER_ROW } = PALMER;
-const KICKOFF = Date.parse("2026-10-11T13:00:00Z");
 const NEXT_SEASON_KICKOFF = Date.parse("2027-09-11T14:00:00Z");
 
 async function withClubs(): Promise<TestConvex> {
