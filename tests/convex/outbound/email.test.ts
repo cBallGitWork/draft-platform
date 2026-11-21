@@ -7,7 +7,8 @@ import { PRODUCT_NAME } from "../../../convex/shared/product";
 const LIVE_SENDER = "signin@example.co.uk";
 const WORDS = { subject: "Your link", text: "Open it" };
 
-/** Sends one email to a faked Resend and gives back who it said the email was from. */
+/** Sends one email to a faked Resend, with a timeout so a Resend that never answers fails the
+ *  send, and gives back who it said the email was from. */
 async function sentFrom(): Promise<string> {
   vi.stubEnv("AUTH_RESEND_KEY", "re_test_key");
   const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => Response.json({ id: "email-id" }));
@@ -15,6 +16,7 @@ async function sentFrom(): Promise<string> {
   await sendEmail("someone@example.com", WORDS);
   const [url, init] = fetchMock.mock.calls[0];
   expect(url).toBe(RESEND_EMAILS_URL);
+  expect(init.signal).toBeInstanceOf(AbortSignal);
   return JSON.parse(String(init.body)).from;
 }
 

@@ -2,7 +2,7 @@
 // service that takes the request and never answers fails the call promptly, and the caller logs
 // it, instead of holding the action until Convex's own limit stops it.
 
-/** A Healthchecks ping, the lead's wake-up to GitHub. */
+/** A Healthchecks ping, the lead's wake-up to GitHub, an email handed to Resend. */
 export const OUTBOUND_TIMEOUT_MS = 10_000;
 
 /** Claude writing a scout's report or a recap: a few hundred tokens, well inside a minute. */
