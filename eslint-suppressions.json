@@ -1,0 +1,32 @@
+{
+  "src/leagueSettings/SettingsPage.tsx": {
+    "react-hooks/refs": {
+      "count": 2
+    }
+  },
+  "src/myTeam/tactics/LineupEditor.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/myTeam/tactics/useLineupEdits.ts": {
+    "react-hooks/refs": {
+      "count": 1
+    }
+  },
+  "src/premierLeague/PremierLeaguePage.tsx": {
+    "react-hooks/purity": {
+      "count": 1
+    }
+  },
+  "src/scoring/ScoringPage.tsx": {
+    "react-hooks/refs": {
+      "count": 4
+    }
+  },
+  "src/shared/useLastLoaded.ts": {
+    "react-hooks/refs": {
+      "count": 6
+    }
+  }
+}

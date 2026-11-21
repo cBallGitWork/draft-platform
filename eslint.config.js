@@ -1,4 +1,4 @@
-// The lint step (#154): React's two hook rules, so a hand-written dependency list is checked, and
+// The lint step (#154): React's hook rules, so a hand-written dependency list is checked, and
 // a few bans that keep a value with one owner from being typed again (design values in
 // src/styles.css, those #1810 names, a team's starting name in Convex tests, and a named helper
 // written out by hand, #1806), and a ban on local-time Date methods in convex/ (#2129); no style rule sets. Why ESLint: ARCHITECTURE.md, Libraries ("Lint").
@@ -10,6 +10,14 @@ const REACT_FILES = ["src/**/*.{ts,tsx}", "tests/src/**/*.{ts,tsx}", "tests/supp
 const SRC_FILES = ["src/**/*.{ts,tsx}"];
 const CONVEX_FILES = ["convex/**/*.ts"];
 const CONVEX_TEST_FILES = ["tests/convex/**/*.ts", "tests/support/convex/**/*.ts"];
+
+// Every rule of eslint-plugin-react-hooks' recommended preset, each an error: the two hook rules,
+// and the React Compiler's checks, which hold without the compiler (refs read in render, a component
+// made inside another, state set in render or straight from an effect, props mutated, impure calls
+// in render). The places that broke one when they came on (21 Nov 2026) are held in
+// eslint-suppressions.json, which only shrinks: ESLint fails a suppression nothing matches, and
+// `npx eslint . --prune-suppressions` drops one once its place is fixed.
+const REACT_HOOKS_RULES = Object.fromEntries(Object.keys(reactHooks.configs.flat.recommended.rules).map((rule) => [rule, "error"]));
 
 /** A ban on a string: as a plain literal or as a piece of a template literal. */
 const stringBan = (pattern, message) => [
@@ -162,10 +170,7 @@ export default [
     languageOptions: { parser: tsParser },
     linterOptions: { reportUnusedDisableDirectives: "error" },
     plugins: { "react-hooks": reactHooks },
-    rules: {
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "error",
-    },
+    rules: REACT_HOOKS_RULES,
   },
   { files: SRC_FILES, rules: bans(ARBITRARY_VALUE_BAN, VERSION_ANCHOR_BAN, LOCALE_BAN, helperBans(true)) },
   { files: ["src/patches/paths.ts"], rules: bans(ARBITRARY_VALUE_BAN, LOCALE_BAN, helperBans(true)) },
