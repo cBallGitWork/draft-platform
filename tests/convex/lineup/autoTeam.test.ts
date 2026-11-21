@@ -89,7 +89,7 @@ describe("switched on by a person", () => {
     expect(await switchOf()).toEqual({ by: ANN });
   });
 
-  test("it stays on: a starter out at the next deadline is swapped too", async () => { // one-home-ok: the test's name, not a letter's words
+  test("it stays on: a starter out at the next deadline is swapped too", async () => {
     await switches(COMMISSIONER, true);
     await passDeadline();
     await setAvailability(DOUBTFUL_MIDFIELDER, "out");

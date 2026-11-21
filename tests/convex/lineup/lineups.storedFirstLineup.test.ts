@@ -86,7 +86,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await keeperIn()).toEqual({ ...keeper, role: "sweeperKeeper" });
   });
 
-  test("a starter released from it is replaced by the first on the bench who plays his slot", async () => { // one-home-ok: the test's name, not a screen's words
+  test("a starter released from it is replaced by the first on the bench who plays his slot", async () => {
     const by = await buildAnnsSquad();
     const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;
     // A second keeper joins: the bench is the only place for him while the first plays.
@@ -140,7 +140,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect((await lineupRows()).filter((row) => row.teamId === bobsTeam)).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }]);
   });
 
-  test("a pick benched for having no positions stays on the bench once he has some and the squad changes again (#836)", async () => { // one-home-ok: the test's name, not a screen's words
+  test("a pick benched for having no positions stays on the bench once he has some and the squad changes again (#836)", async () => {
     const setBobsPositions = (set: "CM"[]) =>
       t.run(async (ctx) => {
         const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", BOBS)).unique();
@@ -159,7 +159,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     );
   });
 
-  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored (#1040)", async () => { // one-home-ok: the test's name, not a screen's words
+  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored (#1040)", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("lineups").collect()) if (row.teamId === annsTeam) await ctx.db.delete("lineups", row._id);
     });

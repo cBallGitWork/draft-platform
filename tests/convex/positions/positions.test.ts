@@ -144,11 +144,11 @@ describe("when positions change (spec/06)", () => {
     );
   }
 
-  test("spec/06's starting point: flagged after 3 starts in a row elsewhere, removed after 6", () => { // one-home-ok: the test's name, not a screen's words
+  test("spec/06's starting point: flagged after 3 starts in a row elsewhere, removed after 6", () => {
     expect(FIRST_THRESHOLDS).toEqual({ flagAfter: 3, removeAfter: 6 });
   });
 
-  test("a position from starts is flagged after 3 starts in a row elsewhere, not 2", () => { // one-home-ok: the test's name, not a screen's words
+  test("a position from starts is flagged after 3 starts in a row elsewhere, not 2", () => {
     expect(flags(inputs({ starts: movedToFullBack(2), admin: bothApproved }))).toEqual({ CB: "starts" });
     expect(flags(inputs({ starts: movedToFullBack(3), admin: bothApproved }))).toEqual({ CB: "starts!3", FB: "starts" });
     expect(flags(inputs({ starts: movedToFullBack(5), admin: bothApproved }))).toEqual({ CB: "starts!5", FB: "starts" });
@@ -210,7 +210,7 @@ describe("when positions change (spec/06)", () => {
     expect(positionsOf(given).removed).toEqual([]);
   });
 
-  test("with every position from his starts removed, he plays on his label", () => { // one-home-ok: the test's name, not a screen's words
+  test("with every position from his starts removed, he plays on his label", () => {
     const scattered = played(...times(CENTRE_BACK, 5), ...times(RIGHT_BACK, 2), ...times(HOLDING, 2), ...times(LEFT_WINGER, 2));
     const given = inputs({ starts: scattered, plLabel: "Left Full Back", admin: bothApproved });
     expect(flags(given)).toEqual({ FB: "label" });

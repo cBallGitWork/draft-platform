@@ -149,7 +149,7 @@ describe("four teams", () => {
   });
 });
 
-describe("three teams, the odd one out playing the league's average", () => { // one-home-ok: the suite's name, not a letter's words
+describe("three teams, the odd one out playing the league's average", () => {
   beforeEach(() => leagueOf([ANN, BOB, CAT]));
 
   test("the average swaps like a team", async () => {

@@ -124,7 +124,7 @@ test("a site set holding a rule on a stat that doesn't exist leaves the gameweek
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`can't score gameweek ${GAMEWEEK}`));
 });
 
-test("a gameweek left unscored sends each fixture with its teams and no points, the league's average's side too", async () => { // one-home-ok: the test's name, not a letter's words
+test("a gameweek left unscored sends each fixture with its teams and no points, the league's average's side too", async () => {
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   await holdTypoRule(league);
@@ -143,7 +143,7 @@ test("a gameweek left unscored sends each fixture with its teams and no points, 
   });
 });
 
-test("the team left over plays the league's average, every team's score counted once in it", async () => { // one-home-ok: the test's name, not a letter's words
+test("the team left over plays the league's average, every team's score counted once in it", async () => {
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   await lockMatch(league);

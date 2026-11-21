@@ -36,7 +36,7 @@ async function annsTablePoints(league: ScoresLeague) {
   return table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points!.team;
 }
 
-test("a starter the football data has lost scores 0, the first on the bench who can play his slot takes it, and the matchup and table agree", async () => { // one-home-ok: the test's name, not a screen's words
+test("a starter the football data has lost scores 0, the first on the bench who can play his slot takes it, and the matchup and table agree", async () => {
   const league = await scoresLeague();
   const belloumisName = await nameOf(league, BELLOUMI);
   await losePlayer(league, HULL_SCORER);

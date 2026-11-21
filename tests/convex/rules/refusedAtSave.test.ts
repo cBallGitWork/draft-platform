@@ -30,7 +30,7 @@ const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
 const createLeague = async (name: string, maxTeams = TEST_LEAGUE_TEAMS) =>
   (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
 
-describe("games a gameweek, no more than the league's teams can play", () => { // one-home-ok: the test's name, not a screen's words
+describe("games a gameweek, no more than the league's teams can play", () => {
   const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, not 5: one against each of the other 3."; // one-home-ok: pins leagueRulesCheck.ts's refusal as the commissioner reads it
 
   test("more than the league's teams have opponents for is refused, naming the most", async () => {
@@ -70,7 +70,7 @@ describe("games a gameweek, no more than the league's teams can play", () => { /
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
   });
 
-  test("a league too small for the admin's default games a gameweek is refused, naming the defaults", async () => { // one-home-ok: the test's name, not a screen's words
+  test("a league too small for the admin's default games a gameweek is refused, naming the defaults", async () => {
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: rulesWith({ gamesPerGameweek: 2 }) });
 
     await expectRefused(createLeague("Two", 2), rulesRefusals.defaultGamesTooMany(2, 2));

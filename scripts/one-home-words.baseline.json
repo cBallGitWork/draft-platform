@@ -39,7 +39,6 @@
     "Not tested"
   ],
   "src/playerCard/words.ts": [
-    "Minutes played",
     "Role fit",
     "This season"
   ],
@@ -48,17 +47,12 @@
     "Yellow cards"
   ],
   "src/scoring/words.ts": [
-    "Keep it",
     "Patch notes"
   ],
   "src/scouting/words.ts": [
-    "On waivers",
     "Pick up",
     "Role fit",
     "Shots on target"
-  ],
-  "src/table/preview.ts": [
-    "the fixtures didn't change"
   ],
   "src/trades/words.ts": [
     "Keep it",
@@ -75,8 +69,5 @@
   ],
   "tests/convex/trades/tradeOffers.test.ts": [
     "names a team that no longer exists"
-  ],
-  "tests/smoke/smoke.spec.ts": [
-    "No one (a bye)"
   ]
 }

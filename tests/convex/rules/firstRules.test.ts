@@ -31,7 +31,7 @@ const fplDefensivePoints = (position: number, count: number) => {
 
 const AREA_OF_POSITION: Record<number, Area> = { 1: "goalkeeper", 2: "defence", 3: "midfield", 4: "attack" };
 
-test("the first scoring set gives FPL's points less bonus and less its defensive contribution to all 40 recorded men", () => { // one-home-ok: the test's name, not a screen's words
+test("the first scoring set gives FPL's points less bonus and less its defensive contribution to all 40 recorded men", () => {
   const { fpl } = recordedGw6();
   const lines = fplStatLines(fpl.live, fpl.bootstrap.elements, fpl.fixtures);
   expect(fplPoints.filter((element) => element.stats.minutes > 0).length).toBeGreaterThan(20);
@@ -61,7 +61,7 @@ const RARE: [string, Area, Record<string, number>, number][] = [
   ["an own goal", "defence", { own_goals: 1 }, -2],
 ];
 
-test.each(RARE)("the first scoring set scores %s in %s as FPL does", (_name, area, stat, points) => { // one-home-ok: the test's name, not a screen's words
+test.each(RARE)("the first scoring set scores %s in %s as FPL does", (_name, area, stat, points) => {
   expect(scoreMatch({ minutes: 90, ...stat }, FIRST_SCORING, centreOf(area)).total).toBe(2 + points);
 });
 
@@ -74,11 +74,11 @@ const NO_DEFENSIVE_CONTRIBUTION: [Area, number][] = [
   ["goalkeeper", 10],
 ];
 
-test.each(NO_DEFENSIVE_CONTRIBUTION)("the first scoring set gives nothing for defensive contributions in %s (%i of them)", (area, count) => { // one-home-ok: the test's name, not a screen's words
+test.each(NO_DEFENSIVE_CONTRIBUTION)("the first scoring set gives nothing for defensive contributions in %s (%i of them)", (area, count) => {
   expect(scoreMatch({ minutes: 90, defensive_contribution: count }, FIRST_SCORING, centreOf(area)).total).toBe(2);
 });
 
-test("the team left over plays the league's average, one game a gameweek, in the first rules", () => { // one-home-ok: the test's name, not a screen's words
+test("the team left over plays the league's average, one game a gameweek, in the first rules", () => {
   // The league's average is no rule (S03.4): the draw always plays it (roundRobin.test.ts).
   expect(drawRulesOf(FIRST_RULES)).toEqual({ gamesPerGameweek: 1 });
   expect(drawRulesOf({ ...FIRST_RULES, gamesPerGameweek: 2 })).toEqual({ gamesPerGameweek: 2 });

@@ -134,13 +134,13 @@ describe("a commissioner's change", () => {
     },
   );
 
-  test("S03.4: the odd team out is no rule, so a save naming a bye is refused", async () => { // one-home-ok: the test's name, not a screen's words
+  test("S03.4: the odd team out is no rule, so a save naming a bye is refused", async () => {
     const leagueId = await adminCreatesLeague(t);
     const withBye = { ...FIRST_RULES, oddTeamOut: "bye" } as unknown as LeagueRules;
     await expect(change(leagueId, withBye)).rejects.toThrow(/oddTeamOut/);
   });
 
-  test("games a gameweek are changed like any other rule, and refused, with the reason, below 1", async () => { // one-home-ok: the test's name, not a screen's words
+  test("games a gameweek are changed like any other rule, and refused, with the reason, below 1", async () => {
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId, rulesWith({ gamesPerGameweek: 2 }));
     expect((await latestRules(t, leagueId))?.rules.gamesPerGameweek).toBe(2);

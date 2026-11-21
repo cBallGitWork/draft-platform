@@ -42,7 +42,7 @@ describe("who may read it", () => {
 });
 
 describe("the games", () => {
-  test("are in gameweek order, one a gameweek, against the others and the league's average in turn", async () => { // one-home-ok: the test's name, not a letter's words
+  test("are in gameweek order, one a gameweek, against the others and the league's average in turn", async () => {
     await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const { games, format } = (await read())!;
@@ -71,7 +71,7 @@ describe("the games", () => {
     for (const { gameweek, deadline } of games) expect(deadline).toBe(deadlines.get(gameweek));
   });
 
-  test("with byes, the team sits one out instead of meeting the league's average", async () => { // one-home-ok: the test's name, not a letter's words
+  test("with byes, the team sits one out instead of meeting the league's average", async () => {
     await holdGameweeks(t, { next: 1 });
     // A gameweek played with a bye before S03.4 keeps it: Ann's team sat gameweek 1 out.
     const [anns, bobs, cats] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
@@ -80,7 +80,7 @@ describe("the games", () => {
     expect(first).toMatchObject({ gameweek: 1, against: { kind: "bye" } });
   });
 
-  test("with two games a gameweek, there are two in each", async () => { // one-home-ok: the test's name, not a letter's words
+  test("with two games a gameweek, there are two in each", async () => {
     await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });
@@ -89,7 +89,7 @@ describe("the games", () => {
     expect(new Set(games.map(({ gameweek }) => gameweek)).size).toBe(PL_GAMEWEEKS);
   });
 
-  test("with two games a gameweek, each game's number opens its own matchup, the table's fixtures numbering them alike (#913)", async () => { // one-home-ok: the test's name, not a letter's words
+  test("with two games a gameweek, each game's number opens its own matchup, the table's fixtures numbering them alike (#913)", async () => {
     await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });

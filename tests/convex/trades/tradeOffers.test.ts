@@ -188,7 +188,7 @@ describe("answering an offer", () => {
     await expectRefused(w.withdraw(ANN, accepted.offerId), offerRefusals.closed);
   });
 
-  test("one nobody answers closes at the next deadline, and can't be accepted after it", async () => { // one-home-ok: the test's name, not a letter's words
+  test("one nobody answers closes at the next deadline, and can't be accepted after it", async () => {
     const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await w.closeDue();
     expect(await w.offers()).toHaveLength(1);

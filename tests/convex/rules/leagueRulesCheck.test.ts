@@ -49,7 +49,7 @@ test("a club maximum of 1 with a squad maximum of 20, one from each club, is sou
   expect(() => check(oneEach)).not.toThrow();
 });
 
-test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => { // one-home-ok: the test's name, not a screen's words
+test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
   expect(() => check(rulesWith({ gamesPerGameweek }))).not.toThrow();
 });
 
@@ -247,7 +247,7 @@ test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => 
   expect(() => check(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
 });
 
-describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => { // one-home-ok: the test's name, not a screen's words
+describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
   // One against each other team, and with an odd number, one more for the team left over.
   const LEFT_OVER = ", and one left over, against the league's average"; // one-home-ok: checkGamesFor's own test pins its refusal, whose words are leagueRulesCheck.ts's
   test.each([

@@ -89,7 +89,7 @@ test("a team added since the gameweek was stored is worked out alone, on 0 with 
   expect(toStore).toEqual({ teamIds: [catsTeam], fixtureCodes: [HULL_EVERTON], replace: false });
 });
 
-test("the league's average counts a team with no lineup as its 0, provisional while any team's points are", async () => { // one-home-ok: the test's name, not a letter's words
+test("the league's average counts a team with no lineup as its 0, provisional while any team's points are", async () => {
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   const teams = [league.annsTeam, league.bobsTeam, league.catsTeam!];

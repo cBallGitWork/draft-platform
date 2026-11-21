@@ -84,7 +84,7 @@ describe("changing them", () => {
     expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
-  test.each([0, 1.5])("refuses %s games a gameweek with the reason, and saves nothing", async (games) => { // one-home-ok: the test's name, not a screen's words
+  test.each([0, 1.5])("refuses %s games a gameweek with the reason, and saves nothing", async (games) => {
     await expectRefused(
       change({ ...FIRST, gamesPerGameweek: games }),
       `The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not ${games}.`,
@@ -92,7 +92,7 @@ describe("changing them", () => {
     expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
-  test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => { // one-home-ok: the test's name, not a screen's words
+  test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => {
     await expectRefused(
       change({ ...FIRST, gamesPerGameweek: 10 }),
       "With 4 teams, a team can play at most 3 games a gameweek, not 10: one against each of the other 3.", // one-home-ok: pins leagueRulesCheck.ts's refusal as the commissioner reads it
@@ -112,7 +112,7 @@ describe("changing them", () => {
     expect(table?.gameweeks[0].fixtures.length).toBe(3 * FIXTURES_A_ROUND);
   });
 
-  test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => { // one-home-ok: the test's name, not a screen's words
+  test("more games a gameweek reach the table from the gameweek the change applies from, never the one before it (#266)", async () => {
     // Made before the season, so the gameweeks begun have fixtures: a league made mid-season has
     // none in those (#282).
     const now = Date.now();

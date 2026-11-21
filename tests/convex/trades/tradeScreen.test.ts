@@ -71,7 +71,7 @@ describe("the Trades screen", () => {
     expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), PALMER));
   });
 
-  test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => { // one-home-ok: the test's name, not a letter's words
+  test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {
     const { offerId } = await w.offer(
       ANN,
       w.bobsTeam,
@@ -134,7 +134,7 @@ describe("the Trades screen", () => {
     expect(await heldOf(SAKA)).toBe("vote");
   });
 
-  test("an offer made in the trade deadline's gameweek closes after its last match, not at the next deadline, on the screen and in the letter (#1492, S08.9)", async () => { // one-home-ok: the test's name, not a letter's words
+  test("an offer made in the trade deadline's gameweek closes after its last match, not at the next deadline, on the screen and in the letter (#1492, S08.9)", async () => {
     await w.matchIs(NEXT - 1, "live");
     await w.tradesAre({ review: "veto", deadline: NEXT - 1 });
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
@@ -144,7 +144,7 @@ describe("the Trades screen", () => {
     expect(bodies).toContainEqual(expect.stringMatching(new RegExp(`unanswered, it closes after GW${NEXT - 1}'s last match\\.$`)));
   });
 
-  test("an offer made before the trade deadline's gameweek still closes at the next deadline", async () => { // one-home-ok: the test's name, not a letter's words
+  test("an offer made before the trade deadline's gameweek still closes at the next deadline", async () => {
     await w.tradesAre({ review: "veto", deadline: NEXT });
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     const [offer] = (await viewOf(BOB)).offers;

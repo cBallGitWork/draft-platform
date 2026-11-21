@@ -120,7 +120,7 @@ test("rounds sharing a number across stages, as after the Scottish split, are on
   expect(split.fixtures).toEqual(whole.fixtures);
 });
 
-test("a season with no matches yet is between seasons", () => { // one-home-ok: the test's name, not a screen's words
+test("a season with no matches yet is between seasons", () => {
   const payloads = sportmonksSeason();
   payloads.schedule = [];
   expect(mapSportmonks(payloads)).toMatchObject({ fixtures: [], gameweeks: [], betweenSeasons: true });

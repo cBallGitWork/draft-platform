@@ -83,7 +83,7 @@ describe("the thresholds", () => {
 });
 
 describe("the queue's position changes", () => {
-  test("lists each position flagged, with its starts in a row elsewhere, and each removed, by name", async () => { // one-home-ok: the test's name, not a screen's words
+  test("lists each position flagged, with its starts in a row elsewhere, and each removed, by name", async () => {
     const t = freshConvex();
     await holdPlayer(t, BURN, movedToFullBack(7));
     await holdPlayer(t, BARNES, movedToFullBack(4));

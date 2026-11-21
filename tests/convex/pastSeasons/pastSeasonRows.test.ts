@@ -206,7 +206,7 @@ test("2024/25's managers in FPL's list are no players, so they get no position",
   expect(fplPositionsByCode([{ code: 1, element_type: 5 }, { code: 2, element_type: 2 }])).toEqual(new Map([[2, 2]]));
 });
 
-test("a man only on the bench who isn't in the season's FPL list is left out, and the rest is kept", () => { // one-home-ok: the test's name, not a screen's words
+test("a man only on the bench who isn't in the season's FPL list is left out, and the rest is kept", () => {
   const benchOnly = SAMPLE_LOG.filter((row) => row.competition === "premier_league" && !playedIn(row)).map((row) => ({ ...row, person_root_id: "keeper-one" }));
   expect(benchOnly.length).toBeGreaterThan(0);
   const withoutKeeper = new Map([...positions].filter(([code]) => code !== 100001));
