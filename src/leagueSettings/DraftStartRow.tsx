@@ -28,10 +28,13 @@ const startOf = (value: string): number | null => (value === NO_DATE ? null : ne
 export function useDraftStartEdit(leagueId: Id<"leagues">, seam: LeagueSettingsSeam) {
   const view = seam.useDraftStart(leagueId);
   const [typed, setTyped] = useState<string | null>(null);
+  // A date box part-way through being typed reports "" as an empty one does: that is no choice
+  // yet, never a cleared date, so it keeps the live one until a whole date is typed.
+  const [halfTyped, setHalfTyped] = useState(false);
   const [saved, setSaved] = useState(false);
   const saving = useChange();
   const startsAt = view?.startsAt ?? null;
-  const chosen = typed === null ? startsAt : startOf(typed);
+  const chosen = typed === null || halfTyped ? startsAt : startOf(typed);
   return {
     view,
     value: typed ?? boxValueOf(startsAt),
@@ -40,12 +43,15 @@ export function useDraftStartEdit(leagueId: Id<"leagues">, seam: LeagueSettingsS
     problem: saving.problem,
     /** A date was just saved, and nothing typed or dropped since. */
     saved,
-    type(value: string) {
+    /** `halfTyped`: the box holds a date not yet whole (its `validity.badInput`). */
+    type(value: string, halfTyped = false) {
       setTyped(value);
+      setHalfTyped(halfTyped);
       setSaved(false);
     },
     drop() {
       setTyped(null);
+      setHalfTyped(false);
       setSaved(false);
       saving.clear();
     },
@@ -84,7 +90,7 @@ function DraftStart({ start, view }: { start: DraftStartEdit; view: NonNullable<
               className="text-box"
               disabled={start.busy}
               value={start.value}
-              onChange={(event) => start.type(event.target.value)}
+              onChange={(event) => start.type(event.target.value, event.target.validity.badInput)}
             />
             {start.value !== NO_DATE && (
               <button type="button" disabled={start.busy} onClick={() => start.type(NO_DATE)} className="secondary-action">

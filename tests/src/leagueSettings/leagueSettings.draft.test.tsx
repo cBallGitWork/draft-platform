@@ -182,6 +182,18 @@ describe("the draft's start date (#1476)", () => {
     expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, null);
   });
 
+  it("a date part-way through being typed, which the box reports as empty, keeps the date set rather than clearing it", async () => {
+    const app = await openedOn("draft", setFor(SATURDAY));
+    const box = dateBox();
+    Object.defineProperty(box, "validity", { value: { badInput: true } });
+    fireEvent.change(box, { target: { value: "" } });
+    await userEvent.click(radio(undraftedWords.freeAgents));
+    await save();
+
+    expect(app.leagueSettings.save).toHaveBeenCalled();
+    expect(app.leagueSettings.setDraftStart).not.toHaveBeenCalled();
+  });
+
   it("saves a date and the settings together", async () => {
     const app = await openedOn("draft");
     typeDate(SUNDAY);
