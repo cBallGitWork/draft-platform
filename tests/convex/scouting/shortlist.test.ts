@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWords";
 import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
+import { adminByline } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, PALMER, SAKA, UNHELD, insertClubs, insertDroppedPlayer, insertPlayerRows } from "../../support/convex/footballRows.harness";
@@ -159,7 +160,7 @@ describe("a shortlisted player released", () => {
   test("names the admin as the admin", async () => {
     await (await as(ANN)).add(SAKA.code);
     await release(ADMIN);
-    const adminSubject = shortlistedReleasedLetter("Saka", teamNumbered(3), "The admin");
+    const adminSubject = shortlistedReleasedLetter("Saka", teamNumbered(3), adminByline);
     expect((await (await as(ANN)).letters()).find((letter) => letter.subject === adminSubject.subject)).toMatchObject(adminSubject);
   });
 

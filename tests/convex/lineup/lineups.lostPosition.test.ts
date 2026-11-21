@@ -44,9 +44,9 @@ const SWAPPED: Lineup = {
     return other === undefined ? starter : { ...starter, area: other.area, lane: other.lane };
   }),
 };
-const outOfPosition = (lineup: Lineup) => {
+const outOfPosition = (lineup: Lineup, positions = [BENCH_POSITION]) => {
   const { area, lane } = lineup.starters.find(({ playerCode }) => playerCode === STRIKER)!;
-  return problemWords({ kind: "outsideHisAreas", playerCode: STRIKER, area: area as Area, lane: lane as Lane, positions: [BENCH_POSITION] }, nameOf);
+  return problemWords({ kind: "outsideHisAreas", playerCode: STRIKER, area: area as Area, lane: lane as Lane, positions }, nameOf);
 };
 /** Runs the jobs due now, the auto team's among them. */
 const runDue = async () => {
@@ -75,7 +75,7 @@ describe("a starter who lost a position, left where he stands", () => {
       const row = (await ctx.db.query("playerPositions").collect()).find(({ code }) => code === STRIKER)!;
       await ctx.db.delete("playerPositions", row._id);
     });
-    await expectRefused(save(SWAPPED), `${nameOf(STRIKER)} has no positions, so he can't stand in the right-centre cell in Attack.`);
+    await expectRefused(save(SWAPPED), outOfPosition(SWAPPED, []));
   });
 
   test("must be moved once the deadline has passed, and the lineup saves once he is", async () => {

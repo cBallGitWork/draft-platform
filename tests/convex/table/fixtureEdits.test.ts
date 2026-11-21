@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
-import { leagueAverageWords } from "../../../convex/mail/letterWords";
+import { eventLetter, leagueAverageWords } from "../../../convex/mail/letterWords";
+import { tellIn } from "../../../convex/mail/letterMoments";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
@@ -63,8 +64,11 @@ const firstTwo = ([one, other]: readonly Game[]): [Picked, Picked] => [
   { moves: other.opponent, against: other.team },
 ];
 
-const lettersAbout = (gameweek: number) =>
-  t.run(async (ctx) => (await ctx.db.query("letters").collect()).filter((letter) => letter.subject === `Gameweek ${gameweek}'s fixtures were changed`));
+/** The letters saying `gameweek`'s fixtures were changed. */
+const lettersAbout = (gameweek: number) => {
+  const { subject } = eventLetter({ kind: "fixturesSwapped", gameweek, swapped: [], games: [] }, COMMISSIONER, tellIn(undefined));
+  return t.run(async (ctx) => (await ctx.db.query("letters").collect()).filter((letter) => letter.subject === subject));
+};
 
 describe("four teams", () => {
   beforeEach(() => leagueOf([ANN, BOB, CAT, DAN]));
@@ -145,7 +149,7 @@ describe("four teams", () => {
   });
 });
 
-describe("three teams, the odd one out playing the league's average", () => {
+describe("three teams, the odd one out playing the league's average", () => { // one-home-ok: the suite's name, not a letter's words
   beforeEach(() => leagueOf([ANN, BOB, CAT]));
 
   test("the average swaps like a team", async () => {

@@ -36,7 +36,7 @@ describe("a shortlisted player dropped", () => {
 
     const letter = dropped(true, ANN);
     expect(letter).toEqual({
-      subject: `${nameOf(ANNS_FIRST_DROP)}, on your shortlist, was dropped`,
+      subject: `${nameOf(ANNS_FIRST_DROP)}, on your shortlist, was dropped`, // one-home-ok: pins the whole letter a manager reads
       body: `${ANN} dropped ${nameOf(ANNS_FIRST_DROP)} from ${TEAM_1}. He is on waivers for at least 24 hours, and on your shortlist.`, // one-home-ok: pins the whole letter a manager reads
     });
     expect(await shortlistLettersTo(BOB)).toEqual([letter]);
@@ -50,7 +50,7 @@ describe("a shortlisted player dropped", () => {
     await drop(BOB, SAKA);
 
     const letter = dropped(false, BOB, SAKA, teamNumbered(2));
-    expect(letter.body).toBe(`${BOB} dropped ${nameOf(SAKA)} from ${TEAM_2}. He is a free agent again, not on waivers, and on your shortlist.`);
+    expect(letter.body).toBe(`${BOB} dropped ${nameOf(SAKA)} from ${TEAM_2}. He is a free agent again, not on waivers, and on your shortlist.`); // one-home-ok: pins the churn rule's words, as the test's name asks
     expect(await shortlistLettersTo(CAT)).toEqual([letter]);
   });
 
@@ -95,8 +95,8 @@ describe("shortlisted players clearing waivers", () => {
 
     expect(await shortlistLettersTo(BOB)).toEqual([
       {
-        subject: `${nameOf(SAKA)}, on your shortlist, cleared waivers`,
-        body: `Nobody claimed ${nameOf(SAKA)} at the waiver run. He is a free agent, first come first served, and on your shortlist.`,
+        subject: `${nameOf(SAKA)}, on your shortlist, cleared waivers`, // one-home-ok: pins the one-player wording the test's name is about
+        body: `Nobody claimed ${nameOf(SAKA)} at the waiver run. He is a free agent, first come first served, and on your shortlist.`, // one-home-ok: pins the one-player wording the test's name is about
       },
     ]);
   });

@@ -14,7 +14,7 @@ test.each([
   ["English Premier League Season 2026/2027", 2026],
   ["2025/26", 2025],
   ["1992/93", 1992],
-  ["Premier League", null],
+  ["Premier League", null], // one-home-ok: a season label as Sportmonks writes one, fixture data
 ])("the label %s says its season starts in %s", (label, year) => {
   expect(labelStartYear(label)).toBe(year);
 });

@@ -106,7 +106,7 @@ test("each Sportmonks competition that is on is its own row, judged by its own r
   const t = freshConvex();
   await t.run(async (ctx) => {
     await ctx.db.insert("sportmonksCompetitions", { name: "Scottish Premiership", competition: 501, on: true });
-    await ctx.db.insert("sportmonksCompetitions", { name: "Premier League", competition: 8, on: true });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Premier League", competition: 8, on: true }); // one-home-ok: Sportmonks' own name for the competition, fixture data
     await ctx.db.insert("sportmonksCompetitions", { name: "Serie A", competition: 384, on: false });
   });
   await recordRun(t, "sportmonks", T0);
@@ -115,7 +115,7 @@ test("each Sportmonks competition that is on is its own row, judged by its own r
   const rows = (await feedsAt(t, T0)).feeds.filter(({ feed }) => feed === "sportmonks");
   expect(rows.map(({ competition, state }) => ({ competition, state }))).toEqual([
     { competition: "Scottish Premiership", state: "fine" },
-    { competition: "Premier League", state: "failing" },
+    { competition: "Premier League", state: "failing" }, // one-home-ok: Sportmonks' own name for the competition, read back from the row above
   ]);
 });
 

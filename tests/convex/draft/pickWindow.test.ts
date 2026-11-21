@@ -191,7 +191,7 @@ describe("the last pick", () => {
     expect(await read()).toMatchObject({ status: "live", picksMade: 3, onTheClock: { pick: 4, teamId: teams[0] } });
     await pick(ANN, A4);
     await pass(PICK_GAP_MS);
-    await expect(commissionerUndo()).rejects.toThrow("The draft is over.");
+    await expect(commissionerUndo()).rejects.toThrow(pickRefusals.over);
   });
 
   test("reads as ending in its 10 seconds, offering its manager's undo to his team", async () => {

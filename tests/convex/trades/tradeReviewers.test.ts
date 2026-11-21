@@ -7,7 +7,7 @@ import { actingAs, addManager, ADMIN, COMMISSIONER, CO_COMMISSIONER, ANN, BOB, C
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { tradesOf } from "../../support/convex/screenReads.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, reviewSubject, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade in review under a commissioner veto follows the role, not the person (#1472; Craig,
@@ -17,7 +17,7 @@ import { noDraft } from "../../support/convex/waivers.harness";
 // always Block it too (spec/15, The admin; S08.28).
 
 const NEW_COMMISSIONER = "newcommissioner@example.com";
-const BLOCK_IT = `Block the trade between ${TEAM_1} and ${TEAM_2}?`;
+const BLOCK_IT = reviewSubject("veto", TEAM_1, TEAM_2);
 const TRADED = `${TEAM_1} and ${TEAM_2} traded`;
 
 let w: TradeLeague;
@@ -88,7 +88,7 @@ describe("a trade the commissioner is in, reviewed by the co-commissioner,", () 
     const endsAt = Date.now() + REVIEW_MS;
     await nameCoCommissioner(null, ANN);
 
-    expect(await w.subjectsTo(CAT)).toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
+    expect(await w.subjectsTo(CAT)).toContain(reviewSubject("vote", TEAM_1, TEAM_2));
     expect(await w.toReview(CAT)).toEqual([expect.objectContaining({ offerId, yours: "against", reviewEndsAt: endsAt })]);
     expect((await offersTab(BOB))[0]).toMatchObject({ reviewer: "vote" });
   });

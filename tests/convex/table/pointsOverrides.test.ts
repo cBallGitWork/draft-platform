@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
 import { adminByline, matchWords } from "../../../convex/mail/letterWords";
+import { overrideLetterWords } from "../../../convex/mail/overrideLetterWords";
 import schema from "../../../convex/schema";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -55,7 +56,7 @@ const storedPoints = ({ t }: ScoresLeague) => t.run(async (ctx) => (await ctx.db
 /** Ann's matchup as she sees it: her total, the opponent's, and her scorer's points. */
 async function annsMatchup(league: ScoresLeague) {
   const { team, opponent } = await annsScoredGame(league);
-  if (team.kind !== "team") throw new Error("Ann's side is the league's average");
+  if (team.kind !== "team") throw new Error("Ann's side is the league's average"); // one-home-ok: the test's own guard message, not a letter's words
   return { team: team.points, opponent: opponent.points, scorer: team.lineup!.starters.find((slot) => slot.playerCode === HULL_SCORER)!.points };
 }
 const lettersOf = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("letters").collect());
@@ -213,11 +214,12 @@ test("removing an override puts his scored points back everywhere, and the leagu
 
   const name = await nameOf(league, HULL_SCORER);
   const last = (await lettersOf(league)).at(-1)!;
-  expect(last.subject).toBe(`${name}'s override in ${MATCH_NAME} was removed`);
-  expect(last.body).toBe(
-    `${adminByline} removed the override of ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}: ${OVERRIDDEN} to ${SCORERS_POINTS}, as scored.\n\n` +
-      `${annsTeamName} now have ${HULL_POINTS} in gameweek ${GAMEWEEK}, not ${ANNS_AFTER}.`,
+  const teams = [{ teamName: annsTeamName, from: ANNS_AFTER, to: HULL_POINTS }];
+  const removed = overrideLetterWords(
+    { kind: "pointsOverrideRemoved", playerCode: HULL_SCORER, playerName: name, fixtureCode: HULL_EVERTON, matchName: MATCH_NAME, gameweek: GAMEWEEK, from: OVERRIDDEN, to: SCORERS_POINTS, teams },
+    adminByline,
   );
+  expect({ subject: last.subject, body: last.body }).toEqual(removed);
 });
 
 test("removing an override is refused where none is held, or by a manager who doesn't run the league", async () => {

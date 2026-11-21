@@ -137,8 +137,8 @@ describe("who is in the lineup", () => {
   });
 
   test.each([
-    ["a starter also on the bench", STRIKER],
-    ["a sub on the bench twice", FIRST_SUB],
+    ["a starter also on the bench", STRIKER], // one-home-ok: a row of the test's name, not a screen's words
+    ["a sub on the bench twice", FIRST_SUB], // one-home-ok: a row of the test's name, not a screen's words
   ])("%s is in the lineup twice", (_, playerCode) => {
     const lineup = withBench([...fourFourTwo.bench, playerCode]);
 

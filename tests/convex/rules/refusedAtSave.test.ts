@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { rulesRefusals } from "../../../convex/rules/leagueRules";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
@@ -29,8 +30,8 @@ const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
 const createLeague = async (name: string, maxTeams = TEST_LEAGUE_TEAMS) =>
   (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
 
-describe("games a gameweek, no more than the league's teams can play", () => {
-  const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, not 5: one against each of the other 3.";
+describe("games a gameweek, no more than the league's teams can play", () => { // one-home-ok: the test's name, not a screen's words
+  const FIVE_WITH_FOUR = "With 4 teams, a team can play at most 3 games a gameweek, not 5: one against each of the other 3."; // one-home-ok: pins leagueRulesCheck.ts's refusal as the commissioner reads it
 
   test("more than the league's teams have opponents for is refused, naming the most", async () => {
     const leagueId = await adminCreatesLeague(t, 4);
@@ -43,7 +44,7 @@ describe("games a gameweek, no more than the league's teams can play", () => {
     const leagueId = await adminCreatesLeague(t, 5);
     await expectRefused(
       change(leagueId, rulesWith({ gamesPerGameweek: 6 })),
-      "With 5 teams, a team can play at most 5 games a gameweek, not 6: one against each of the other 4, and one left over, against the league's average.",
+      "With 5 teams, a team can play at most 5 games a gameweek, not 6: one against each of the other 4, and one left over, against the league's average.", // one-home-ok: pins leagueRulesCheck.ts's refusal as the commissioner reads it
     );
   });
 
@@ -69,13 +70,10 @@ describe("games a gameweek, no more than the league's teams can play", () => {
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
   });
 
-  test("a league too small for the admin's default games a gameweek is refused, naming the defaults", async () => {
+  test("a league too small for the admin's default games a gameweek is refused, naming the defaults", async () => { // one-home-ok: the test's name, not a screen's words
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: rulesWith({ gamesPerGameweek: 2 }) });
 
-    await expectRefused(
-      createLeague("Two", 2),
-      "The admin's default rules play 2 games a gameweek, but with 2 teams a team can play at most 1 game: one against the other team.",
-    );
+    await expectRefused(createLeague("Two", 2), rulesRefusals.defaultGamesTooMany(2, 2));
     await createLeague("Three", 3);
   });
 });

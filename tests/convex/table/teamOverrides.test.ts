@@ -1,6 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { adminByline } from "../../../convex/mail/letterWords";
+import { overrideLetterWords } from "../../../convex/mail/overrideLetterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { TEAM_OVERRIDE_POINTS_MOST } from "../../../convex/table/overrideLimits";
 import { overrideRefusals } from "../../../convex/table/pointsOverrides";
@@ -62,8 +64,8 @@ test("a team's override sets its gameweek total: the head-to-head, the table and
 
   const name = await teamNameOf(league);
   const letter = await lastLetter(league);
-  expect(letter.subject).toBe(`${name}'s total in gameweek ${GAMEWEEK} was overridden`);
-  expect(letter.body).toBe(`${COMMISSIONER} overrode ${name}'s total in gameweek ${GAMEWEEK}: ${HULL_POINTS} to ${SET}. Why: ${REASON}`);
+  const overridden = { kind: "teamPointsOverridden", teamId: league.annsTeam, teamName: name, gameweek: GAMEWEEK, from: HULL_POINTS, to: SET, reason: REASON } as const;
+  expect({ subject: letter.subject, body: letter.body }).toEqual(overrideLetterWords(overridden, COMMISSIONER));
 });
 
 test("a team's override stands over a player override in its gameweek (S14.4)", async () => {
@@ -118,8 +120,8 @@ test("removing a team's override puts its scored total back everywhere, and the 
   expect(await everywhere(league)).toEqual({ table: [HULL_POINTS, EVERTON_POINTS], annWon: 0, stored: [HULL_POINTS, EVERTON_POINTS], matchup: [HULL_POINTS, EVERTON_POINTS] });
   const name = await teamNameOf(league);
   const letter = await lastLetter(league);
-  expect(letter.subject).toBe(`${name}'s override in gameweek ${GAMEWEEK} was removed`);
-  expect(letter.body).toBe(`The admin removed the override of ${name}'s total in gameweek ${GAMEWEEK}: ${SET + 1} to ${HULL_POINTS}, as scored.`);
+  const removed = { kind: "teamPointsOverridden", teamId: league.annsTeam, teamName: name, gameweek: GAMEWEEK, from: SET + 1, to: HULL_POINTS, reason: null } as const;
+  expect({ subject: letter.subject, body: letter.body }).toEqual(overrideLetterWords(removed, adminByline));
 });
 
 test("a team's override is refused with a reason when it can't be sound, and nothing changes", async () => {

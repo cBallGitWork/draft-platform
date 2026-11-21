@@ -55,7 +55,7 @@ test("once the match locks, each team's points are stored, and the table reads t
   expect(await storeLeague(league)).toEqual([]);
 });
 
-test("a team that held no lineup in a gameweek begun before #637 still scores 0 there, its squad on the bench, stored unmarked (#1040)", async () => {
+test("a team that held no lineup in a gameweek begun before #637 still scores 0 there, its squad on the bench, stored unmarked (#1040)", async () => { // one-home-ok: the test's name, not a screen's words
   const league = await scoresLeague();
   // Bob's squad was made before teams held a first lineup: no row is in force.
   await league.t.run(async (ctx) => {

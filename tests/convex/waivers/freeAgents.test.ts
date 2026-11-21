@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
+import { tellIn } from "../../../convex/mail/letterMoments";
+import { eventLetter } from "../../../convex/mail/letterWords";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { dropRefusals } from "../../../convex/waivers/waivers";
@@ -50,10 +52,8 @@ describe("in the window", () => {
 
     expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: teamNumbered(2) });
     expect((await eventsIn(w.t, w.leagueId)).at(-1)).toMatchObject({ kind: "playerPickedUp", playerCode: SAKA, teamId: w.bobsTeam, dropped: null, by: BOB });
-    expect(await w.lettersTo(CAT)).toContainEqual({
-      subject: `${TEAM_2} picked up ${nameOf(SAKA)}`,
-      body: `${BOB} picked up ${nameOf(SAKA)} for ${TEAM_2} as a free agent.`,
-    });
+    const pickedUp = { kind: "playerPickedUp", playerCode: SAKA, playerName: nameOf(SAKA), teamId: w.bobsTeam, teamName: TEAM_2, dropped: null } as const;
+    expect(await w.lettersTo(CAT)).toContainEqual(eventLetter(pickedUp, BOB, tellIn(undefined)));
     const { transactions } = await (await actingAs(w.t, BOB)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
     expect(transactions).toContainEqual(expect.objectContaining({ kind: "pickedUp", playerCode: SAKA }));
   });
@@ -76,10 +76,9 @@ describe("in the window", () => {
       { kind: "playerDropped", playerCode: ANNS_FIRST_DROP, teamId: w.annsTeam, toWaivers: true },
       { kind: "playerPickedUp", playerCode: SAKA, dropped: { playerCode: ANNS_FIRST_DROP, toWaivers: true } },
     ]);
-    expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `${TEAM_1} picked up ${nameOf(SAKA)}`,
-      body: `${ANN} picked up ${nameOf(SAKA)} for ${TEAM_1} as a free agent. ${nameOf(ANNS_FIRST_DROP)} went for him, onto waivers for at least 24 hours.`,
-    });
+    const dropped = { playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP), toWaivers: true };
+    const pickedUp = { kind: "playerPickedUp", playerCode: SAKA, playerName: nameOf(SAKA), teamId: w.annsTeam, teamName: TEAM_1, dropped } as const;
+    expect(await w.lettersTo(BOB)).toContainEqual(eventLetter(pickedUp, ANN, tellIn(undefined)));
   });
 
   test("a pickup that would break the squad's limits is refused", async () => {

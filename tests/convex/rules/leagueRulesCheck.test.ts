@@ -49,12 +49,12 @@ test("a club maximum of 1 with a squad maximum of 20, one from each club, is sou
   expect(() => check(oneEach)).not.toThrow();
 });
 
-test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
+test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => { // one-home-ok: the test's name, not a screen's words
   expect(() => check(rulesWith({ gamesPerGameweek }))).not.toThrow();
 });
 
 describe.each<[string, Partial<LeagueRules>, string]>([
-  ["no games a gameweek", { gamesPerGameweek: 0 }, "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 0."],
+  ["no games a gameweek", { gamesPerGameweek: 0 }, "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 0."], // one-home-ok: the test's name, not a screen's words
   ["half a game a gameweek", { gamesPerGameweek: 1.5 }, "The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not 1.5."],
   [
     "a squad whose minimum is above its maximum",
@@ -247,14 +247,14 @@ test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => 
   expect(() => check(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
 });
 
-describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
+describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => { // one-home-ok: the test's name, not a screen's words
   // One against each other team, and with an odd number, one more for the team left over.
-  const LEFT_OVER = ", and one left over, against the league's average";
+  const LEFT_OVER = ", and one left over, against the league's average"; // one-home-ok: checkGamesFor's own test pins its refusal, whose words are leagueRulesCheck.ts's
   test.each([
     [2, "at most 1 game a gameweek, not 2: one against the other team."],
-    [4, "at most 3 games a gameweek, not 4: one against each of the other 3."],
-    [5, `at most 5 games a gameweek, not 6: one against each of the other 4${LEFT_OVER}.`],
-    [20, "at most 19 games a gameweek, not 20: one against each of the other 19."],
+    [4, "at most 3 games a gameweek, not 4: one against each of the other 3."], // one-home-ok: checkGamesFor's own test pins its refusal, whose words are leagueRulesCheck.ts's
+    [5, `at most 5 games a gameweek, not 6: one against each of the other 4${LEFT_OVER}.`], // one-home-ok: checkGamesFor's own test pins its refusal, whose words are leagueRulesCheck.ts's
+    [20, "at most 19 games a gameweek, not 20: one against each of the other 19."], // one-home-ok: checkGamesFor's own test pins its refusal, whose words are leagueRulesCheck.ts's
   ])("with %i teams, a team can play %s", (maxTeams, reason) => {
     const most = maxTeams % 2 === 0 ? maxTeams - 1 : maxTeams;
     expect(() => check(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();

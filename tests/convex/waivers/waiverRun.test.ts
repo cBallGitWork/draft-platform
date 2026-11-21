@@ -62,7 +62,7 @@ describe("a run", () => {
     expect(await w.squadCodes(w.bobsTeam)).not.toContain(SAKA);
     const gone = claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "playerGone" });
     expect(await w.lettersTo(BOB)).toContainEqual(gone);
-    expect(gone.body).toContain(`${nameOf(SAKA)} has left the Premier League, so he couldn't join your squad.`);
+    expect(gone.body).toContain(`${nameOf(SAKA)} has left the Premier League, so he couldn't join your squad.`); // one-home-ok: pins the words of the letter above, saying why, as the test's name asks
   });
 });
 
@@ -83,8 +83,8 @@ describe("the letters", () => {
     const dropGone = claimFailedLetter({ playerName: nameOf(PALMER), dropName: nameOf(ANNS_FIRST_DROP), why: "dropGone" });
     expect(await w.lettersTo(ANN)).toEqual(expect.arrayContaining([ahead, dropGone]));
     expect(await w.lettersTo(CAT)).not.toContainEqual(ahead);
-    expect(ahead.body).toBe(`Another team was ahead of you in the waiver order for ${nameOf(SAKA)}. Your claim is gone; nobody joined or left your squad for it.`);
-    expect(dropGone.body).toContain(`${nameOf(ANNS_FIRST_DROP)} was no longer in your squad to drop.`);
+    expect(ahead.body).toBe(`Another team was ahead of you in the waiver order for ${nameOf(SAKA)}. Your claim is gone; nobody joined or left your squad for it.`); // one-home-ok: pins the words of the letter above, saying why, as the test's name asks
+    expect(dropGone.body).toContain(`${nameOf(ANNS_FIRST_DROP)} was no longer in your squad to drop.`); // one-home-ok: pins the words of the letter above, saying why, as the test's name asks
   });
 
   const assignSaka = async (teamId: Id<"teams">) =>

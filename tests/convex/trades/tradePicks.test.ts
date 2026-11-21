@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pickRefusals } from "../../../convex/draft/draftPicks";
+import { offerClosedLetter, pickWords } from "../../../convex/mail/tradeLetterWords";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { pickTradeRefusals } from "../../../convex/trades/tradePicks";
@@ -235,9 +236,13 @@ describe("closing pick offers", () => {
     await start();
 
     expect(await offers()).toEqual([]);
-    for (const email of [ANN, BOB, CAT]) {
-      expect((await lettersTo(t, email)).map(({ body }) => body)).toContainEqual(expect.stringContaining("The draft started, and picks are traded only before it."));
-    }
+    const [annsTeam, bobsTeam, catsTeam] = [await teamName(ann), await teamName(bob), await teamName(cat)];
+    const closed = (fromTeamName: string, toTeamName: string, round: number) =>
+      offerClosedLetter({ fromTeamName, toTeamName, gives: [pickWords(round, fromTeamName)], gets: [pickWords(round, toTeamName)], note: null }, { why: "draftStarted" });
+    const [inReviewClosed, openClosed] = [closed(annsTeam, bobsTeam, 1), closed(catsTeam, annsTeam, 2)];
+    expect(await lettersTo(t, ANN)).toEqual(expect.arrayContaining([inReviewClosed, openClosed]));
+    expect(await lettersTo(t, BOB)).toContainEqual(inReviewClosed);
+    expect(await lettersTo(t, CAT)).toContainEqual(openClosed);
     // The review's end finds nothing to make, and every pick stays its own team's.
     vi.setSystemTime(Date.now() + REVIEW_MS);
     await t.mutation(internal.trades.tradeReview.finish, { offerId: inReview.offerId });

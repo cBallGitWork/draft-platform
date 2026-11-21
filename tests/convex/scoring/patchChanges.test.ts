@@ -94,7 +94,7 @@ describe("the set", () => {
     const changed = { ...TACKLES_PLUS, parts: [{ stat: "tackles", weight: 1 }, { stat: "shot_off_target", weight: -1 }] };
 
     expect(scoringChanges(set([]), set([], { ownStats: [TACKLES_PLUS] }))).toEqual([
-      "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions",
+      "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions", // one-home-ok: scoringChanges' own test pins its line; the patches preview only shows an example of it
     ]);
     expect(scoringChanges(set([], { ownStats: [TACKLES_PLUS] }), set([], { ownStats: [changed] }))).toEqual([
       "Own stat Tackles plus (TP) is now Tackles plus (TP) = Tackles − Shot off target",

@@ -15,7 +15,7 @@ test("every catalogue stat is mapped to a column or marked not tested, so a new 
   expect([...decided].sort()).toEqual([...CATALOGUE_STATS].sort());
 });
 
-test("every stat the first scoring set prices is copied, so none of today's rules is untested", () => {
+test("every stat the first scoring set prices is copied, so none of today's rules is untested", () => { // one-home-ok: the test's name, not a screen's words
   const priced = new Set(FIRST_SCORING.rules.map((rule) => rule.stat));
   expect([...priced].filter((stat) => !(stat in PAST_STAT_COLUMNS))).toEqual([]);
 });

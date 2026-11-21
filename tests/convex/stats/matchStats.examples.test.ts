@@ -88,7 +88,7 @@ test.each(feeds.map((row) => [row["stat"]!, row["counts from"]!]))(
     // FPL sends 1 and the Premier League 2, so the value kept says whose count it is.
     const merged = mergeStats({ [names.fpl]: 1 }, { [names.pl]: 2 });
     if (countsFrom === "FPL") expect(merged).toEqual({ [names.fpl]: 1 });
-    else if (countsFrom === "Premier League") expect(merged).toEqual({ [names.pl]: 2 });
+    else if (countsFrom === "Premier League") expect(merged).toEqual({ [names.pl]: 2 }); // one-home-ok: the feed's name as the examples table writes it
     else throw new Error(`${FEEDS}'s "${countsFrom}" is neither FPL nor Premier League`);
   },
 );

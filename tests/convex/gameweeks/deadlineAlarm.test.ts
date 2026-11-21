@@ -37,6 +37,6 @@ test("at the deadline, with no sync since, the gameweek has begun: the table cou
   vi.setSystemTime(DEADLINE + MINUTE_MS);
   await (await actingAs(league.t, COMMISSIONER)).mutation(api.squads.squads.release, { leagueId: league.leagueId, playerCode: HULL_SCORER });
   const { team } = await annsScoredGame(league, GAMEWEEK);
-  if (team.kind !== "team") throw new Error("Ann's side is the league's average");
+  if (team.kind !== "team") throw new Error("Ann's side is the league's average"); // one-home-ok: the test's own guard message, not a letter's words
   expect(team.lineup?.starters.map((slot) => slot.playerCode)).toEqual(HULL_STARTERS.map((starter) => starter.playerCode));
 });

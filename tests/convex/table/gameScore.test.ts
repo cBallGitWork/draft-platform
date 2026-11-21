@@ -28,7 +28,7 @@ describe("against a team", () => {
   });
 });
 
-describe("against the league's average", () => {
+describe("against the league's average", () => { // one-home-ok: the suite's name, not a letter's words
   test("is every team's average, in tenths", () => {
     expect(gameScore(TEAMS, scored(), 3, "Cat", LEAGUE_AVERAGE)).toEqual({ team: 20, opponent: 30.2, provisional: false });
   });

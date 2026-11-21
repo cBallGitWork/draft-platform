@@ -4,6 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
+import { tellIn } from "../../../convex/mail/letterMoments";
+import { versionLetter } from "../../../convex/mail/scoringLetterWords";
 import { momentIn } from "../../../convex/shared/moments";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -84,8 +86,10 @@ describe("the letter", () => {
     await fixAs(ADMIN, EDITED);
     const [letter] = await lettersTo(BOB);
 
+    // A fix's letter before its list of changes, which the line after checks.
+    const [asFix] = versionLetter({ name: "26_27.1", kind: "fix", takesEffectAt: Date.now(), fromGameweek: 9, changes: [] }, tellIn(undefined)).body.split("\n\n");
     expect(letter.subject).toBe("Scoring fix 26_27.1");
-    expect(letter.body).toContain("fixed a mistake in the scoring every league plays on: version 26_27.1, in force from gameweek 9.");
+    expect(letter.body).toContain(asFix);
     expect(letter.body).toContain("- Assists: 3 → 4");
   });
 

@@ -6,6 +6,8 @@
 import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { tellIn } from "../../../convex/mail/letterMoments";
+import { reviewLetter } from "../../../convex/mail/tradeLetterWords";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
@@ -19,6 +21,11 @@ export { ANNS_FIRST_DROP, PALMER, RICE, SAKA };
 
 /** `teamId`'s pick in `round`, as a pick trade names it. */
 export const pickOf = (teamId: Id<"teams">, round: number) => ({ round, teamId });
+
+/** The subject of the letter asking whoever reviews the trade between the two teams to block it
+ *  (`veto`) or to vote on it (`vote`), as reviewLetter writes it. */
+export const reviewSubject = (kind: "veto" | "vote", fromTeamName: string, toTeamName: string) =>
+  reviewLetter({ fromTeamName, toTeamName, gives: [], gets: [], note: null }, kind === "veto" ? { kind, by: COMMISSIONER } : { kind }, 0, tellIn(undefined)).subject;
 
 /** The pick trade tests' steps (#1096, #1457) in the league `current` gives, read at each call, as
  *  each test makes its own in `beforeEach`. */

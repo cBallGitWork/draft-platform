@@ -65,7 +65,7 @@ const goldenLine = ({ gameweek, fixtures, byes }: GameweekFixtures<string>) =>
 test("a league whose rules never change is drawn as the golden file pins, over a season with gaps", async () => {
   const lines = GOLDEN_TEAM_COUNTS.flatMap((count) =>
     GOLDEN_GAMES.flatMap((games) => [
-      `# ${count} teams, ${games} a gameweek, odd team out ${LEAGUE_AVERAGE}`,
+      `# ${count} teams, ${games} a gameweek, odd team out ${LEAGUE_AVERAGE}`, // one-home-ok: the golden file's own header line, not a letter's words
       ...drawn(teamsOf(count), WITH_GAPS, { gamesPerGameweek: games, seed: GOLDEN_SEED }).map(goldenLine),
     ]),
   );

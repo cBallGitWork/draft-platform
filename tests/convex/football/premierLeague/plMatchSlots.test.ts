@@ -14,7 +14,7 @@ const codeByOptaRule = new Map(everyMan.map((man) => [man.altIds!.opta, Number(m
 const codeByPlId = new Map(everyMan.map((man) => [man.id, codeByOptaRule.get(man.altIds!.opta)!]));
 const everySlot = pl.fixtures.flatMap((each) => matchSlots(each, codeByOptaRule).slots);
 
-test("every man named for Hull v Everton has a slot: 22 starters and 18 on the bench", () => {
+test("every man named for Hull v Everton has a slot: 22 starters and 18 on the bench", () => { // one-home-ok: the test's name, not a screen's words
   const { slots, unmatched } = matchSlots(hullEverton, codeByOpta);
 
   expect(unmatched).toEqual([]);

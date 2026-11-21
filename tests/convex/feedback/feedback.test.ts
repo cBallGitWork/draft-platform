@@ -69,10 +69,10 @@ describe("sending", () => {
   });
 
   test("a commissioner, and someone in no league, can send too: the link is on every signed-in frame", async () => {
-    await send(COMMISSIONER, "From the commissioner.");
+    await send(COMMISSIONER, "From the commissioner."); // one-home-ok: any message will do; it only happens to match the home screen's title
     await send(BOB, "From someone in no league.");
     expect(await stored()).toEqual([
-      [COMMISSIONER, "From the commissioner."],
+      [COMMISSIONER, "From the commissioner."], // one-home-ok: the message sent above, read back
       [BOB, "From someone in no league."],
     ]);
   });

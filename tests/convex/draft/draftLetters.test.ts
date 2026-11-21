@@ -5,9 +5,8 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { UP_NEXT_EMAIL_OVER_MS } from "../../../convex/draft/draftLetters";
 import { draftOf } from "../../../convex/draft/draftRow";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
-import { momentIn } from "../../../convex/shared/moments";
-import { letterAsRead } from "../../../convex/mail/letterMoments";
-import { UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/draftLetterWords";
+import { letterAsRead, tellIn } from "../../../convex/mail/letterMoments";
+import { draftNotStartedLetter, draftOverLetter, draftPausedLetter, scoringStartMovedLetter, UP_NEXT_SUBJECT as UP_NEXT, upNextLetter } from "../../../convex/mail/draftLetterWords";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -38,6 +37,8 @@ const letters = () =>
 const lettersSince = async (before: number) => (await letters()).slice(before);
 /** The up-next emails sent, leaving out the harness's sign-in links. */
 const upNextEmails = () => sent.filter(({ subject }) => subject === UP_NEXT);
+/** The up-next letter's words to `teamName` for round 1's pick `number`, its clock ending at `endsAt`, null while paused. */
+const upNextBody = (teamName: string, number: number, endsAt: number | null) => upNextLetter({ round: 1, pick: number, teamName, endsAt }, tellIn(undefined)).body;
 
 beforeEach(async () => {
   ({ t, leagueId, teams, sent } = await freshLeague({ managers: [ANN, BOB], maxTeams: 5 }));
@@ -58,8 +59,8 @@ describe("you're up next", () => {
       {
         to: ANN,
         // Written out here, as in the draft-over letter below, so the subject's wording stays pinned.
-        subject: "You're up next in the draft",
-        body: `${TEAM_1} is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
+        subject: "You're up next in the draft", // one-home-ok: pinned on purpose, as the comment above says
+        body: upNextBody(TEAM_1, 1, now + FIRST_PICK_MS),
         read: false,
       },
     ]);
@@ -79,7 +80,7 @@ describe("you're up next", () => {
       {
         to: BOB,
         subject: UP_NEXT,
-        body: `${TEAM_2} is on the clock: round 1, pick 2. Make your pick by ${momentIn(at + PICK_GAP_MS + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
+        body: upNextBody(TEAM_2, 2, at + PICK_GAP_MS + FIRST_PICK_MS),
         read: false,
       },
     ]);
@@ -145,7 +146,7 @@ describe("the email", () => {
       {
         to: ANN,
         subject: UP_NEXT,
-        text: `${TEAM_1} is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + pickSeconds * SECOND_MS, undefined)}, or the draft picks for you.`,
+        text: upNextBody(TEAM_1, 1, now + pickSeconds * SECOND_MS),
       },
     ]);
   });
@@ -189,7 +190,7 @@ describe("the draft over", () => {
     await pick(ANN, A4);
     await pass(PICK_GAP_MS);
 
-    const over ={ subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted.", read: false };
+    const over = { subject: "The draft is over", body: draftOverLetter(4).body, read: false }; // one-home-ok: the subject is pinned on purpose (see the up-next letter above)
     expect(await lettersSince(before)).toEqual([COMMISSIONER, ANN, BOB].map((to) => ({ to, ...over })));
   });
 
@@ -207,11 +208,8 @@ describe("the draft over", () => {
     await pass(PICK_GAP_MS);
 
     expect((await lettersSince(before)).filter(({ to }) => to === COMMISSIONER).map(({ subject, body }) => ({ subject, body }))).toEqual([
-      { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted." },
-      {
-        subject: "Scoring starts in gameweek 2",
-        body: "The draft ended after gameweek 1's deadline, so scoring starts in gameweek 2, not 1. Squads and line-ups count from gameweek 2's deadline.",
-      },
+      draftOverLetter(4),
+      scoringStartMovedLetter({ from: 1, to: 2 }),
     ]);
   });
 });
@@ -222,7 +220,7 @@ describe("a pause", () => {
     const before = (await letters()).length;
     await pause();
 
-    const paused = { subject: "The draft is paused", body: `${COMMISSIONER} paused the draft. No pick is made until it resumes.` };
+    const paused = draftPausedLetter(COMMISSIONER);
     expect(await lettersSince(before)).toEqual([
       { to: COMMISSIONER, ...paused, read: true },
       { to: ANN, ...paused, read: false },
@@ -237,7 +235,7 @@ describe("a pause", () => {
 
 // Craig, 11 Nov 2026, on #1461: told at once, with no deadline, as his clock starts on resume.
 describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461, S04.14)", () => {
-  const PAUSED_ANN = `${TEAM_1} is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.`;
+  const PAUSED_ANN = upNextBody(TEAM_1, 1, null);
   const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
   const pickFor = async (teamId: Id<"teams">, playerCode: number) =>
     (await as(COMMISSIONER)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId, playerCode });
@@ -269,7 +267,7 @@ describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461
     await pickFor(teams[0], A1);
 
     expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([
-      { to: BOB, subject: UP_NEXT, body: `${TEAM_2} is up next: round 1, pick 2. The draft is paused; your clock starts when it resumes.`, read: false },
+      { to: BOB, subject: UP_NEXT, body: upNextBody(TEAM_2, 2, null), read: false },
     ]);
   });
 });
@@ -285,12 +283,7 @@ describe("a start date the draft can't start on", () => {
 
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(`draft didn't start at its date, and waits for its commissioner: ${draftStartRefusals.noSquadSize}`));
     expect(await lettersSince(before)).toEqual([
-      {
-        to: COMMISSIONER,
-        subject: "The draft didn't start",
-        body: `The draft was set to start on ${momentIn(startsAt, undefined)}, but couldn't. ${draftStartRefusals.noSquadSize} It waits for you to press start or set a new date.`,
-        read: false,
-      },
+      { to: COMMISSIONER, ...draftNotStartedLetter(startsAt, draftStartRefusals.noSquadSize, tellIn(undefined)), read: false },
     ]);
   });
 });

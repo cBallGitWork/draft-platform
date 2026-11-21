@@ -24,7 +24,7 @@ const GAMES = [1, 2, 3, 4];
 const SEEDS = ["league-a", "league-b", "k57abc123"];
 const options = (change: Partial<DrawOptions> = {}): DrawOptions => ({ gamesPerGameweek: 1, seed: SEED, ...change });
 
-describe("as even as can be, the odd team out playing the league's average", () => {
+describe("as even as can be, the odd team out playing the league's average", () => { // one-home-ok: the suite's name, not a letter's words
   const cases = TEAM_COUNTS.flatMap((count) => GAMES.flatMap((games) => SEEDS.map((seed) => [count, games, seed] as const)));
 
   test.each(cases)("%i teams, %i a gameweek, seed %s, over a season with gaps", (count, games, seed) => {
@@ -67,8 +67,8 @@ test.each(TEAM_COUNTS)("%i teams: one round robin, a game a gameweek, has every 
   expect(schedule.flatMap(leftOverIn).toSorted()).toEqual(count % 2 === 0 ? [] : teams.toSorted());
 });
 
-describe("games a gameweek", () => {
-  test("with an odd number of teams, nobody plays the league's average twice in a gameweek", () => {
+describe("games a gameweek", () => { // one-home-ok: the suite's name, not a letter's words
+  test("with an odd number of teams, nobody plays the league's average twice in a gameweek", () => { // one-home-ok: the test's name, not a letter's words
     // Each round leaves one team over, a different one each round, and a gameweek never has a
     // round twice: so a team plays the league's average once a gameweek at most.
     for (const count of [3, 5, 7, 9, 19]) {
@@ -147,7 +147,7 @@ test("an unplayed gameweek has no fixtures, and the rounds it would have had mov
   expect(withBreak.find((each) => each.gameweek === 20)?.fixtures).toEqual(straight[16].fixtures);
 });
 
-test("S03.4, S09.4: the team left over plays the league's average, never a bye", () => {
+test("S03.4, S09.4: the team left over plays the league's average, never a bye", () => { // one-home-ok: the test's name, not a letter's words
   const [week] = drawn(teamsOf(3), [1], options());
   expect(week.byes).toEqual([]);
   expect(week.fixtures).toHaveLength(2);

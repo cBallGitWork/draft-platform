@@ -35,7 +35,7 @@ describe("the draw a seed deals is pinned", () => {
     ]);
   });
 
-  test("5 teams, the odd team out against the league's average, seed k57abc123", () => {
+  test("5 teams, the odd team out against the league's average, seed k57abc123", () => { // one-home-ok: the test's name, not a letter's words
     expect(drawn(teamsOf(5), EIGHT_GAMEWEEKS, { gamesPerGameweek: 1, seed: "k57abc123" }).map(lineOf)).toEqual([
       "1: 1 v average, 2 v 5, 3 v 4",
       "2: 1 v 2, 3 v average, 4 v 5",
@@ -48,7 +48,7 @@ describe("the draw a seed deals is pinned", () => {
     ]);
   });
 
-  test("6 teams, two games a gameweek, seed league-a: gameweek 3 straddles two round robins", () => {
+  test("6 teams, two games a gameweek, seed league-a: gameweek 3 straddles two round robins", () => { // one-home-ok: the test's name, not a letter's words
     expect(drawn(teamsOf(6), EIGHT_GAMEWEEKS.slice(0, 6), { gamesPerGameweek: 2, seed: "league-a" }).map(lineOf)).toEqual([
       "1: 1 v 2, 3 v 6, 4 v 5, 1 v 6, 2 v 5, 3 v 4",
       "2: 1 v 4, 5 v 3, 6 v 2, 1 v 5, 6 v 4, 2 v 3",
