@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { playerCardPath } from "../../playerCard/paths";
 import { ScoutAction } from "../../playerCard/ScoutAction";
-import { useMinute } from "../../shared/useMinute";
+import { useNowEachMinute } from "../../shared/useMinute";
 import { playerCardWords } from "../../shared/words";
 import { CloseButton, Loading, Panel, PANEL_BODY } from "../../ui/Panel";
 import type { MyScouts, ScoutsSeam } from "./seam";
@@ -37,8 +37,8 @@ const ROW = "flex min-h-tap items-center gap-3 border-t border-panel-rule px-3";
  *  for someone who runs no team. */
 export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">; seam: ScoutsSeam; read: (report: TeamReport) => void }) {
   const mine = seam.useMyScouts(leagueId);
-  // Read each minute, so a scout's time left counts down (#1567).
-  const now = useMinute();
+  // Redrawn each minute, so a scout's time left counts down (#1567), from the moment itself.
+  const now = useNowEachMinute();
   if (mine === null) return null;
   if (mine === undefined) {
     return (

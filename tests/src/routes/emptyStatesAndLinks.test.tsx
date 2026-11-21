@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { screenMoment } from "../../../convex/shared/moments";
-import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { BOARD_TITLE, clockHead, emptyQueueWords, inWords, loadingWords as draftLoadingWords, QUEUE_TITLE, startsHead, stateWords, youPickHead } from "../../../src/draft/words";
 import { DRAFT_PATH, MAIL_PATH, MY_TEAM_PATH, MY_TEAM_TRANSACTIONS_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import { ERROR_PAGE_TITLE, signOutWords } from "../../../src/frame/words";
@@ -112,9 +112,8 @@ describe("empty states", () => {
     expect(within(await panel(BOARD_TITLE)).getAllByRole("columnheader").map((head) => head.textContent)).toEqual(["Rd", "Team 1", "Team 2, you", "Team 3"]);
     expect(fact(youPickHead)).toBe("2nd, then 5th");
     expect(fact(clockHead)).toBeTruthy();
-    // The countdown runs from the minute's start (useMinute), so the test reads from it too (#2374).
-    const minuteOf = (at: number) => at - (at % MINUTE_MS);
-    expect([inWords(startsAt - minuteOf(before)), inWords(startsAt - minuteOf(Date.now()))]).toContain(fact(startsHead(screenMoment(startsAt))));
+    // The countdown runs from the moment it was drawn (useNowEachMinute), somewhere between before and now (#2374).
+    expect([inWords(startsAt - before), inWords(startsAt - Date.now())]).toContain(fact(startsHead(screenMoment(startsAt))));
     expect(within(await panel(new RegExp(`^${QUEUE_TITLE}`))).getByText(emptyQueueWords)).toBeTruthy();
   });
 

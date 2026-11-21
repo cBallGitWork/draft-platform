@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { screenMoment } from "../../convex/shared/moments";
 import { SECOND_MS } from "../../convex/shared/time";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { useMinute } from "../shared/useMinute";
+import { useNowEachMinute } from "../shared/useMinute";
 import { Loading, PAGE_STACK, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
@@ -48,9 +48,10 @@ type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 
 export function DraftPage({ league, seam }: { league: LeagueSummary; seam: DraftSeam }) {
-  // The minute is for the waiting countdown only: the room's reads take none, so the page doesn't
-  // blank to Loading as it turns (#1531).
-  const now = useMinute();
+  // The moment, redrawn each minute, is for the waiting countdown only: the room's reads take none,
+  // so the page doesn't blank to Loading as it turns (#1531). Judged from the moment, not the
+  // minute's start, or the countdown reads up to 59s long.
+  const now = useNowEachMinute();
   const draft = seam.useDraft(league.leagueId);
   const board = seam.useBoard(league.leagueId);
   if (draft === undefined || board === undefined) {

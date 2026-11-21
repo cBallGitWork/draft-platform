@@ -6,7 +6,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { HOUR_MS, DAY_MS, MINUTE_MS } from "../../../../convex/shared/time";
+import { HOUR_MS, DAY_MS, MINUTE_MS, SECOND_MS } from "../../../../convex/shared/time";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
 import type { MyScouts } from "../../../../src/scouting/scouts/seam";
@@ -67,6 +67,13 @@ describe("the Scouts panel", () => {
     expect(row.textContent).toContain("report in 35m");
     await act(() => vi.advanceTimersByTimeAsync(MINUTE_MS));
     expect(row.textContent).toContain("report in 34m");
+  });
+
+  it("counts a scout's time left from the moment, not the minute's start, so opened mid-minute it isn't a minute long", async () => {
+    vi.setSystemTime(now + 40 * SECOND_MS);
+    openScouting({ mine: { ...MINE, out: [{ ...MINE.out[0], dueAt: now + 35 * MINUTE_MS + 10 * SECOND_MS }] } });
+    const [row] = within(await scoutsPanel()).getAllByRole("listitem");
+    expect(row.textContent).toContain("report in 35m");
   });
 
   it("says a scout with nothing to do is free", async () => {
