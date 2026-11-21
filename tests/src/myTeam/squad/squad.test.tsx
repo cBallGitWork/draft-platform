@@ -12,6 +12,7 @@ import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../../src/frame/menu";
 import { sectionTabsLabel } from "../../../../src/frame/words";
 import { meterListLabel } from "../../../../src/myTeam/header/words";
 import {
+  benchWords,
   goneWords,
   lastGameweekLong,
   noStatsWords,
@@ -117,7 +118,7 @@ describe("the rows", () => {
     const palmer = screen.getByRole("button", { name: openPanelLabel("Palmer") });
     expect(saka.className).toContain("text-fact");
     expect(palmer.className).toContain("text-muted");
-    expect(palmer.textContent).toContain("on the bench");
+    expect(palmer.textContent).toContain(benchWords);
     expect(rows()).toHaveLength(2);
   });
 

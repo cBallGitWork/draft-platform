@@ -28,6 +28,6 @@ it("names a bench place the same on the Squad and Tactics tabs, the first sub S1
 });
 
 it("calls the league average the same on the table, My team, league home and the matchup", () => {
-  expect(tableLeagueAverage).toBe("League average");
+  expect(tableLeagueAverage).toBe("League average"); // one-home-ok: pins the one wording every screen shares
   for (const words of [myTeamLeagueAverage, homeLeagueAverage, matchupLeagueAverage]) expect(words).toBe(tableLeagueAverage);
 });

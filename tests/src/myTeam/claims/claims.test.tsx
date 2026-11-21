@@ -34,6 +34,8 @@ import {
   selectClaimLabel,
   WAIVER_ORDER_TITLE,
   skippedIfWords,
+  teamGroupWords,
+  windowWords,
   withdrawWords,
 } from "../../../../src/myTeam/claims/words";
 import type { TeamSquad } from "../../../../src/myTeam/seam";
@@ -231,11 +233,14 @@ describe("before the league's draft is over (S08.1)", () => {
 });
 
 describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
+  /** Free agency's line while it waits on GW12's last match: from the first run after it to the GW13 deadline. */
+  const AFTER_GW12 = `${freeAgentsWords}${windowWords({ drafted: true, open: false, locked: false, firstRun: null, waitsOn: 12, gameweek: 13 })}`;
+
   it("marks each run that may fall in its lock, none Next, and free agency from after its last match to the deadline after", async () => {
     expect(await runs({ ...NO_WAIVERS, runs: [mayBeSkipped(WED, 12), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
       `${runWords(THU)}${skippedIfWords(12)}`,
-      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
+      AFTER_GW12,
     ]);
     expect(skippedIfWords(12)).toBe("Skipped if GW12 is still on");
   });
@@ -250,7 +255,7 @@ describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
   it("in the lock, names the gameweek under way", async () => {
     expect(await runs({ ...NO_WAIVERS, locked: true, resetsAfter: 12, runs: [mayBeSkipped(WED, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
-      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
+      AFTER_GW12,
     ]);
   });
 });
@@ -289,8 +294,8 @@ describe("for the commissioner", () => {
     await userEvent.click(await screen.findByRole("radio", { name: claimsViewWords.everyTeam }));
     const rows = await claimRows(everyTeamTableLabel);
 
-    expect(rows[0]).toBe("Team 2 1st in the waiver order, 1 claim");
-    expect(rows[2]).toBe("Team 1 2nd in the waiver order, 3 claims");
+    expect(rows[0]).toBe(`Team 2 ${teamGroupWords(1, 1)}`);
+    expect(rows[2]).toBe(`Team 1 ${teamGroupWords(2, 3)}`);
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
   });
 });

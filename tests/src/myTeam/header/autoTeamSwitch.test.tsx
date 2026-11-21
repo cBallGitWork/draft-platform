@@ -18,6 +18,7 @@ import {
   untilSwitchedOffWords,
 } from "../../../../src/myTeam/header/words";
 import { seasonGameweeks } from "../../../../convex/gameweeks/usedGameweeks";
+import { autoTeamRefusals } from "../../../../convex/lineup/autoTeamWords";
 import { PL_GAMEWEEKS } from "../../../support/convex/footballRows.harness";
 import { MY_TEAM_ID } from "../../../support/src/myTeam.harness";
 import { league } from "../../../support/src/shell.harness";
@@ -69,7 +70,7 @@ describe("My team's Auto team", () => {
   });
 
   it("keeps the panel open with the server's words when it refuses, and Cancel changes nothing", async () => {
-    const refusal = "There is no gameweek left to come for the auto team to end after.";
+    const refusal = autoTeamRefusals.noGameweekToEnd;
     const app = openTacticsTab({ tactics: SAVED, autoTeamAnswer: refusal });
     const panel = await openPanel(autoTeamStateWords({ on: false, endsAfter: null }));
     await userEvent.click(panel.getByRole("button", { name: switchOnWords }));

@@ -7,6 +7,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { pickRefusals } from "../../../convex/draft/draftPicks";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import type { DraftState } from "../../../src/draft/seam";
 import {
@@ -213,10 +214,10 @@ describe("while it runs", () => {
     });
 
     it("says why the pick is refused", async () => {
-      openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE], refusal: "The draft is over." });
+      openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE], refusal: pickRefusals.over });
       await select("Rice");
       await userEvent.click(await pickFor());
-      expect((await within(await commissionerPanel()).findByRole("alert")).textContent).toBe("The draft is over.");
+      expect((await within(await commissionerPanel()).findByRole("alert")).textContent).toBe(pickRefusals.over);
     });
 
     it("isn't offered before the start", async () => {

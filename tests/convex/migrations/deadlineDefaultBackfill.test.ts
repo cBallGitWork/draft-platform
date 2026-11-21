@@ -42,7 +42,7 @@ async function alphaLeague(): Promise<Id<"leagues">> {
   return leagueId;
 }
 
-test("a new league's deadline is 15 minutes before the gameweek's first kickoff", async () => { // one-home-ok: the test's name, not the settings screen's unit words
+test("a new league's deadline is 15 minutes before the gameweek's first kickoff", async () => {
   const leagueId = await adminCreatesLeague(t);
 
   expect(await minutesOf(leagueId, NEXT)).toBe(15);

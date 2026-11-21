@@ -23,6 +23,7 @@ import {
   findHint,
   flagAfterLabel,
   flaggedTitle,
+  flaggedNote,
   flaggedWords,
   labelWords,
   loadingWords,
@@ -34,13 +35,16 @@ import {
   proposalsWords,
   removeAfterLabel,
   removeLabel,
+  removeWords,
   removedTitle,
   removedWords,
   saveThresholdsWords,
   searchingWords,
   setLabel,
   setWords,
+  sourceWords,
   switchModeWords,
+  unconfirmedNote,
   waitingHint,
   waitingTitle,
   noAreaWords,
@@ -114,7 +118,7 @@ describe("the queue", () => {
 
   it("the starts-waiting hint names the server's starts at a place, in words", () => {
     expect(STARTS_FOR_A_POSITION).toBe(3);
-    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them.");
+    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them."); // one-home-ok: pins the hint, the server's 3 in words
   });
 
   it("says so when nothing waits", async () => {
@@ -215,8 +219,8 @@ describe("correcting a player", () => {
     openDashboard();
     const positions = within(await findWoltemade()).getByRole("list", { name: positionsListLabel(WOLTEMADE.name) });
     expect(within(positions).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
-      "ST from his starts, flagged: 4 starts in a row elsewhereRemove",
-      "CAM from his label, unconfirmedRemove",
+      `ST ${sourceWords.starts}${flaggedNote(4)}${removeWords}`,
+      `CAM ${sourceWords.label}${unconfirmedNote}${removeWords}`,
     ]);
   });
 

@@ -5,6 +5,8 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { FIRST_INSTRUCTIONS } from "../../../../convex/lineup/instructions";
+import { switchedWords } from "../../../../convex/lineup/instructionsWords";
 import { instructionLabel, instructionsTitle } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { OPEN_PICKED } from "../../../support/src/tactics.harness";
@@ -12,6 +14,9 @@ import { openedPitch, pickFormation, SAVED } from "../../../support/src/tacticsS
 
 const picker = (side: "attacking" | "defensive") => screen.getByRole("combobox", { name: instructionLabel(side) }) as HTMLSelectElement;
 const offered = (side: "attacking" | "defensive") => within(picker(side)).getAllByRole("option").map((option) => option.textContent);
+const instruction = (key: string) => FIRST_INSTRUCTIONS.find((each) => each.key === key)!;
+/** The line under the toolbar once a new formation switched Boot it to the big man to Play out from the back. */
+const BOOT_IT_SWITCHED = switchedWords([{ side: "attacking", from: instruction("bootItToTheBigMan"), to: instruction("playOutFromTheBack") }])!;
 
 describe("team instructions", () => {
   it("offers on each side only what the shape allows, on the picks held", async () => {
@@ -38,7 +43,7 @@ describe("team instructions", () => {
     const app = await openedPitch();
     await userEvent.selectOptions(picker("attacking"), "Boot it to the big man");
     await pickFormation("4-4-2");
-    expect(await screen.findByText("Boot it to the big man needs one up top and no wingers: switched to Play out from the back")).toBeTruthy();
+    expect(await screen.findByText(BOOT_IT_SWITCHED)).toBeTruthy();
     expect(picker("attacking").value).toBe("playOutFromTheBack");
     expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual({ attacking: "playOutFromTheBack", defensive: OPEN_PICKED.defensive });
   });
@@ -48,7 +53,7 @@ describe("team instructions", () => {
     await userEvent.selectOptions(picker("attacking"), "Boot it to the big man");
     // Not among the Formation keys: picked in the window. Its front three has wingers.
     await pickFormation("3-4-3");
-    expect(await screen.findByText("Boot it to the big man needs one up top and no wingers: switched to Play out from the back")).toBeTruthy();
+    expect(await screen.findByText(BOOT_IT_SWITCHED)).toBeTruthy();
   });
 
   it("keeps a pick the new formation allows, with no line", async () => {

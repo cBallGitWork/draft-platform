@@ -71,6 +71,24 @@ test("strings are read as TypeScript reads them: comments skipped, escapes undon
   ]);
 });
 
+test("a test's or a suite's title is marked, in any of test, it and describe's forms, and a title holding a phrase is no hit", () => {
+  const source = [
+    'describe("Add to queue", () => {});',
+    'test.each([["Add to queue"]])("%s: Add to queue", () => {});',
+    'it.skip(`Add to queue ${n}`, () => {});',
+    'expect(label).toBe("Add to queue");',
+  ].join("\n");
+  expect(literalsOf(source).map(({ value, title }) => [value, title === true])).toEqual([
+    ["Add to queue", true],
+    ["Add to queue", false],
+    ["%s: Add to queue", true],
+    ["Add to queue ", true],
+    ["", true],
+    ["Add to queue", false],
+  ]);
+  expect(oneHomeHits([SHORTLIST], [["tests/src/a.test.tsx", source]]).map(({ line }) => line)).toEqual([2, 4]);
+});
+
 test("the matcher finds a phrase only as whole words, preferring the longest", () => {
   const matcher = phraseMatcher(["Add to queue", "Add to queue first", "a (b) c?"]);
   expect("Then Add to queue first.".match(matcher)?.[0]).toBe("Add to queue first");

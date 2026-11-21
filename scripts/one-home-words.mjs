@@ -5,7 +5,8 @@
 //       `src/**/preview.ts`, `convex/**/*Words.ts`), unless one of the two imports the other;
 //       a template's fragment counts only at LONG_WORDS+ words, and preview.ts gives only those;
 //   (b) a test's literal equals a phrase, or holds one of CONTAINED_WORDS+ words. A line calling a
-//       words function the test imports (`expect(xWords(..)).toBe(..)`) is skipped.
+//       words function the test imports (`expect(xWords(..)).toBe(..)`) is skipped, and so is a
+//       test's or a suite's title, which scripts/tests-kept.mjs reads as written.
 // `// one-home-ok: <why>` on a line lets its literal through. The hits main held when this landed
 // sit in one-home-words.baseline.json, so only new ones fail; the weekly drift pass shrinks it.
 // Run from the repo: `node scripts/one-home-words.mjs` (`--write-baseline` rewrites the baseline);
@@ -34,20 +35,34 @@ export const isTestFile = (path) => path.startsWith(TESTS_ROOT) && TEST_FILE.tes
 
 const wordCount = (text) => text.split(/\s+/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
 
+/** The calls whose first argument is a test's or a suite's title. */
+const TITLED_CALLS = new Set(["test", "it", "describe"]);
+
+/** The name a call starts from: `test` for `test(..)`, `test.skip(..)` and `test.each(rows)(..)`. */
+function calledName(expression) {
+  while (ts.isPropertyAccessExpression(expression) || ts.isCallExpression(expression)) expression = expression.expression;
+  return ts.isIdentifier(expression) ? expression.text : null;
+}
+
+/** A test's or a suite's title: the first argument of `test`, `it` or `describe`, in any form. */
+const isTitle = (node) => ts.isCallExpression(node.parent) && node.parent.arguments[0] === node && TITLED_CALLS.has(calledName(node.parent.expression));
+
 /**
- * Every string a source holds, with the line it starts on: `{ value, line, fragment }`. A template
- * with no `${}` is a plain string; one with them gives each piece between them as a fragment.
+ * Every string a source holds, with the line it starts on: `{ value, line, fragment }`, and
+ * `title: true` on a test's or a suite's title. A template with no `${}` is a plain string; one
+ * with them gives each piece between them as a fragment.
  */
 export function literalsOf(source, path = "x.ts") {
   const kind = path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-  const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, false, kind);
+  const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, kind);
   const found = [];
-  const add = (node, fragment) => found.push({ value: node.text, line: file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1, fragment });
+  const add = (node, fragment, title) =>
+    found.push({ value: node.text, line: file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1, fragment, ...(title ? { title } : {}) });
   const visit = (node) => {
-    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) add(node, false);
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) add(node, false, isTitle(node));
     else if (ts.isTemplateExpression(node)) {
-      add(node.head, true);
-      for (const span of node.templateSpans) add(span.literal, true);
+      add(node.head, true, isTitle(node));
+      for (const span of node.templateSpans) add(span.literal, true, isTitle(node));
     }
     ts.forEachChild(node, visit);
   };
@@ -147,9 +162,10 @@ export function oneHomeHits(homes, tests) {
   for (const [file, source] of tests) {
     const lines = source.split("\n");
     const wordsCalls = wordsCallsOf(file, source, homePaths);
-    for (const { value, line } of literalsOf(source, file)) {
+    for (const { value, line, title } of literalsOf(source, file)) {
       const text = lines[line - 1] ?? "";
-      if (ALLOW.test(text) || wordsCalls?.test(text)) continue;
+      // A title names the test, and tests-kept.mjs reads it as written, so it stays a literal.
+      if (title || ALLOW.test(text) || wordsCalls?.test(text)) continue;
       const phrase = phrases.has(value.trim()) ? value.trim() : value.match(matcher)?.[0];
       if (phrase !== undefined) hits.push({ file, line, phrase, home: filesOf(phrase)[0] });
     }

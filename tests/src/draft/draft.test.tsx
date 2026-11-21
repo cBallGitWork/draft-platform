@@ -15,10 +15,12 @@ import {
   BOARD_TITLE,
   clockAPickHead,
   DRAFT_TITLE,
+  inPicksWords,
   loadingWords,
   nextHead,
   noStartWords,
   onTheClockHead,
+  roundPickWords,
   roundsShownWords,
   stateWords,
   theOrderRoundsWords,
@@ -139,7 +141,7 @@ describe("while it runs", () => {
     openDraft({ draft: liveDraft({ picksMade: 0, paused: true }), board: emptyBoard });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(stateWords.paused);
     expect(fact(clockAPickHead(90))).toBe("0:48");
-    expect(fact(yourNextHead(false))).toBe("Round 1, pick 2 in 1 pick");
+    expect(fact(yourNextHead(false))).toBe(`${roundPickWords(1, 2)} ${inPicksWords(1)}`);
   });
 
   it("S04.22 says the draft resumed after a break while the pick is back on its full clock after the site was down, and not otherwise", async () => {

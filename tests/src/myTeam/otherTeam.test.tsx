@@ -11,6 +11,7 @@ import type { OtherSquad } from "../../../src/myTeam/seam";
 import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadTableLabel } from "../../../src/myTeam/squad/words";
 import { awardLong, awardsHead, awardWords } from "../../../src/myTeam/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
+import { freeAgentWords } from "../../../src/shared/words";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
@@ -41,7 +42,7 @@ describe("from the card", () => {
   it("a free agent's says so, and opens nothing", async () => {
     openApp(playerCardPath(league.leagueId, RICE.code), manager, { playerCard: HELD });
     const head = within(await screen.findByRole("region", { name: RICE.fullName }));
-    expect(head.getByText("Free agent").closest("a")).toBeNull();
+    expect(head.getByText(freeAgentWords).closest("a")).toBeNull();
   });
 });
 

@@ -95,7 +95,7 @@ it("says only that something went wrong, offers Retry, and pads its buttons insi
   silenceConsoleError();
   await openTableThrowing(new Error(serverWords));
 
-  expect(screen.getByRole("alert").textContent).toBe("Something went wrong");
+  expect(screen.getByRole("alert").textContent).toBe(readFailedWords);
   const retry = screen.getByRole("button", { name: "Retry" });
   const buttonRow = retry.parentElement!;
   expect(buttonRow.classList.contains("p-3")).toBe(true);
@@ -177,11 +177,11 @@ const screensThatRead: [string, string, Session, Failing][] = [
   ["an invite link", `${JOIN_PATH}/the-token`, manager, joiningFails],
   ["Gameweeks", gameweeksPath(leagueId), runner, { fail: (app, error) => app.gameweeks.useLeagueGameweeks.mockImplementation(failing(error)) }],
   ["Squads", squadsPath(leagueId), runner, { fail: (app, error) => app.squads.useSquads.mockImplementation(failing(error)) }],
-  ["Squads' Find a player", squadsPath(leagueId), runner, { fail: (app, error) => app.squads.useFoundPlayers.mockImplementation((_leagueId, text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }],
-  ["Player scoring", scoringPath(leagueId), runner, { fail: (app, error) => app.scoring.useScoring.mockImplementation(failing(error)) }],
-  ["League settings", settingsPath(leagueId), runner, { fail: (app, error) => app.leagueSettings.useSettings.mockImplementation(failing(error)) }],
+  ["Squads' Find a player", squadsPath(leagueId), runner, { fail: (app, error) => app.squads.useFoundPlayers.mockImplementation((_leagueId, text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }], // one-home-ok: the case's name, in the test's name
+  ["Player scoring", scoringPath(leagueId), runner, { fail: (app, error) => app.scoring.useScoring.mockImplementation(failing(error)) }], // one-home-ok: the case's name, in the test's name
+  ["League settings", settingsPath(leagueId), runner, { fail: (app, error) => app.leagueSettings.useSettings.mockImplementation(failing(error)) }], // one-home-ok: the case's name, in the test's name
   ["the admin's dashboard", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useQueue.mockImplementation(failing(error)) }],
-  ["the admin's Find a player", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useFoundPlayers.mockImplementation((text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }],
+  ["the admin's Find a player", ADMIN_PATH, admin, { fail: (app, error) => app.admin.useFoundPlayers.mockImplementation((text) => (text.trim() ? failing(error)() : [])), ask: searchForAPlayer }], // one-home-ok: the case's name, in the test's name
   ["the admin's feeds", ADMIN_FEEDS_PATH, admin, { fail: (app, error) => app.admin.useFeeds.mockImplementation(failing(error)) }],
   ["the admin's Feedback", ADMIN_FEEDBACK_PATH, admin, { fail: (app, error) => app.feedback.useFeedbackList.mockImplementation(failing(error)) }],
   ["the admin's Availability", ADMIN_AVAILABILITY_PATH, admin, { fail: (app, error) => app.admin.useSetByHand.mockImplementation(failing(error)) }],

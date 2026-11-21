@@ -116,7 +116,7 @@ describe("the list", () => {
       "Minutes in 25/26",
       "Goals in 25/26",
       "Assists in 25/26",
-      "Shots on target in 25/26",
+      "Shots on target in 25/26", // one-home-ok: pins seasonColumns' hover, the season named
     ]);
     for (const head of [heads.minutes, heads.goals, heads.assists, heads.shotsOnTarget]) expect(columnHeadIn(table(), head)).toBeTruthy();
   });

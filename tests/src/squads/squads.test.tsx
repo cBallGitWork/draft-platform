@@ -5,6 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { AREA_WORDS } from "../../../convex/lineup/pitchWords";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { adminSeeing, coCommissioned, commissioner, expectNotOffered, expectSentToLeagues, league, managerIn, openApp, withNoPart } from "../../support/src/shell.harness";
 import { squadsPath } from "../../../src/squads/paths";
@@ -12,7 +13,7 @@ import type { SquadsData } from "../../support/src/squads.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { descriptionOf } from "../../support/src/describedBy";
-import { unheldNoticeWords, unheldPlayerWords, findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../../../src/shared/words";
+import { unheldNoticeWords, unheldPlayerWords, warningWords, findLabel, findTitle, foundListLabel, noneFoundWords, searchingWords } from "../../../src/shared/words";
 import {
   assignLabel,
   findHint,
@@ -29,8 +30,10 @@ import {
 
 const PAGE = squadsPath(league.leagueId);
 const saka = { code: 1001, name: "Saka", clubShortName: "ARS", gone: false };
+/** Team 2's one warning: no players, short of the league's minimum of 11. */
+const UNDER_LEAST = { kind: "underMinimum", players: 0, minimum: 11 } as const;
 const TWO_TEAMS: SquadsData = {
-  squads: [squadWithWarnings("team-1", "Team 1", [saka]), squadWithWarnings("team-2", "Team 2", [], [{ kind: "underMinimum", players: 0, minimum: 11 }])],
+  squads: [squadWithWarnings("team-1", "Team 1", [saka]), squadWithWarnings("team-2", "Team 2", [], [UNDER_LEAST])],
   found: [
     { code: 1001, name: "Saka", fullName: "Bukayo Saka", teamName: "Team 1" },
     { code: 2002, name: "Isak", fullName: "Alexander Isak", teamName: null },
@@ -68,14 +71,17 @@ describe("each team's squad", () => {
     expect(within(team1).getByText("2 players")).toBeTruthy();
     expect(within(team1).getByText(goneWords)).toBeTruthy();
     const team2 = screen.getByRole("region", { name: "Team 2" });
-    expect(within(team2).getByRole("status").textContent).toBe("0 players, under the league's least of 11.");
+    expect(within(team2).getByRole("status").textContent).toBe(warningWords(UNDER_LEAST));
   });
 
   it("warns of an area short of the league's minimum, naming the area (#317)", async () => {
-    openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka], [{ kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 }])] });
+    const short = { kind: "underAreaMinimum", area: "defensiveMidfield", players: 1, minimum: 2 } as const;
+    openSquads({ squads: [squadWithWarnings("team-1", "Team 1", [saka], [short])] });
 
     const team1 = await screen.findByRole("region", { name: "Team 1" });
-    expect(within(team1).getByRole("status").textContent).toBe("Defensive midfield: 1 short of the league's least of 2.");
+    const warning = within(team1).getByRole("status").textContent;
+    expect(warning).toBe(warningWords(short));
+    expect(warning).toContain(AREA_WORDS.defensiveMidfield);
   });
 
   it("keeps a row whose player the football sync doesn't hold, saying his code, under a notice, and every other squad (#323)", async () => {

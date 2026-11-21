@@ -57,7 +57,7 @@ describe("the Selection table", () => {
     await openedPitch({ tactics: SAVED, squad: TEAM_SQUAD });
     const table = screen.getByRole("table", { name: selectionTableLabel });
     const heads = within(table).getAllByRole("columnheader").map((head) => head.textContent);
-    expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", "Role fit", "Next"]);
+    expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", ROLE_FIT_SUBJECT, "Next"]);
     const [chip, role, player, stars, next] = Array.from(rowOf(RAYA).cells);
     expect(chip.textContent).toBe("GK");
     expect(within(role).getByRole("button").textContent).toContain(roleIn(STARTERS[0], undefined).name);

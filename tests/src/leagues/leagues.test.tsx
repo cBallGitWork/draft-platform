@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOME_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
-import { joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
+import { endedInviteWords, joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, miniBeta, newcomer, openApp, visitor, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
@@ -46,11 +46,11 @@ describe("someone signed in, in no league", () => {
   // "Your invite to <league> expired / was cancelled / couldn't be used: <reason>. Ask the
   // commissioner for a new one." (Craig, 22 Oct 2026), the reason its own sentence.
   it.each([
-    [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."],
-    [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."],
+    [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."], // one-home-ok: pins Craig's wording (22 Oct 2026)
+    [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."], // one-home-ok: pins Craig's wording (22 Oct 2026)
     [
       { leagueName: "Mini beta", ended: "couldNotJoin", reason: "The league is full: it has all 4 of its teams." },
-      "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
+      "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.", // one-home-ok: pins Craig's wording (22 Oct 2026)
     ],
     // Still live, but a fault at sign-in kept them out (Craig, 12 Nov 2026, on #1437).
     [{ leagueName: "Mini beta", ended: "joinFailed", reason: null }, joinFailedWords],
@@ -62,7 +62,7 @@ describe("someone signed in, in no league", () => {
 
   it("whose invite couldn't be used, with no reason kept, never sees 'null'", async () => {
     openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite: { leagueName: "Mini beta", ended: "couldNotJoin", reason: null } } });
-    const line = await screen.findByText("Your invite to Mini beta couldn't be used. Ask the commissioner for a new one.");
+    const line = await screen.findByText(endedInviteWords({ leagueName: "Mini beta", ended: "couldNotJoin", reason: null }));
     expect(line.textContent).not.toContain("null");
   });
 
@@ -167,7 +167,7 @@ describe("the admin, with no part in a league", () => {
 
   it.each([
     ["Gameweeks", gameweeksPath],
-    ["Player scoring", scoringPath],
+    ["Player scoring", scoringPath], // one-home-ok: the case's name, in the test's name
   ])("opening %s of a league past the list's cut lands on his leagues, which says some are missing (#297)", async (_, pathOf) => {
     const app = openApp(pathOf("league-past-the-cut"), { ...adminSeeing(withNoPart(league)), leaguesCut: true });
     await yourLeaguesHeading();

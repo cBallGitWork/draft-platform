@@ -11,7 +11,7 @@ describe("the two rules screens' shared words", () => {
 
   it("say an empty box has no number the same way", () => {
     expect(blankBoxWords("Assists")).toBe("A box in Assists has no number. Fill it in, then save.");
-    expect(blankGamesWords).toBe("Games a gameweek has no number. Fill it in, then save.");
-    expect(blankTimeoutsWords).toBe("Timeouts before auto-pick has no number. Fill it in, or turn auto-pick after timeouts off, then save.");
+    expect(blankGamesWords).toBe("Games a gameweek has no number. Fill it in, then save."); // one-home-ok: pins the wording the two rules screens share (Craig, 1 Nov 2026)
+    expect(blankTimeoutsWords).toBe("Timeouts before auto-pick has no number. Fill it in, or turn auto-pick after timeouts off, then save."); // one-home-ok: pins the wording the two rules screens share (Craig, 1 Nov 2026)
   });
 });

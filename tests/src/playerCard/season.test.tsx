@@ -147,7 +147,7 @@ describe("this season", () => {
 
   it("a match that cost him points shows the true minus in its total, breakdown and role line, never a hyphen (#564)", async () => {
     const role = { name: "Inside forward", points: -1, sides: [{ points: -1, lines: [{ stat: "big_chance_missed", name: "Big chance missed", actions: 1 }] }] };
-    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3, perAction(3, -1))];
+    const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3, perAction(3, -1))]; // one-home-ok: a scoring category's name, as the server sends it
     const booked = { ...AT_W, points: [{ position: "W" as const, total: -2, categories }], role };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [booked] }] });
     const { season } = await seasonOf();

@@ -4,10 +4,11 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { NO_DATA, UNSURE } from "../../../convex/stars/starsShape";
+import { ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
 import { noFigureWords } from "../../../src/shared/words";
 import { noDataLabel, StarRating, starsLabel, unsureGlyph, unsureLabel } from "../../../src/ui/StarRating";
 
-const SUBJECT = "Role fit";
+const SUBJECT = ROLE_FIT_SUBJECT;
 
 describe("a star rating", () => {
   it("is drawn, not typed, filled to its half star and named by it", () => {
