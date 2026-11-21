@@ -81,7 +81,7 @@ describe("the Scouts panel", () => {
     expect(within(earlier).getAllByRole("listitem").map((row) => row.textContent)).toEqual([expect.stringContaining(earlierReportWords("Saka", SAKA_REPORT.writtenAt))]);
   });
 
-  it("Read › opens the report, dated, with Scout him again and his card; ✕ closes it", async () => {
+  it("Read › opens the report, dated, with Scout him again and his card; ✕ closes it", async () => { // one-home-ok: the test's name
     const app = openScouting({ mine: MINE });
     await userEvent.click(within(await scoutsPanel()).getByRole("button", { name: readNamedLabel("Wood", WOOD_REPORT.writtenAt) }));
     const report = screen.getByRole("region", { name: reportTitle("Wood") });

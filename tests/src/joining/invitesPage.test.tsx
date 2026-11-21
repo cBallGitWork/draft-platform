@@ -179,7 +179,7 @@ describe("the invite link", () => {
 });
 
 describe("join requests", () => {
-  it("are approved to the team chosen, a vacated one included, or refused", async () => {
+  it("are approved to the team chosen, a vacated one included, or refused", async () => { // one-home-ok: the test's name
     const app = openPage();
     await userEvent.selectOptions(await screen.findByRole("combobox", { name: requestsWords.teamLabel("eve@example.com") }), "Saka Potatoes");
     await userEvent.click(screen.getByRole("button", { name: requestsWords.approveLabel("eve@example.com") }));

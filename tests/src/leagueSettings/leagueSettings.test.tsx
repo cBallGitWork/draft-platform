@@ -167,7 +167,7 @@ describe("editing them", () => {
     expect(saveButton().compareDocumentPosition(screen.getByRole("alert")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("refuses games a gameweek left without a number itself, beside the box, and asks the server nothing (#645)", async () => {
+  it("refuses games a gameweek left without a number itself, beside the box, and asks the server nothing (#645)", async () => { // one-home-ok: the test's name
     const app = await openedSettings();
     await setGames("");
     await save();

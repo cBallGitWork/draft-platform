@@ -261,7 +261,7 @@ describe("a pick offer (#1096)", () => {
   });
 });
 
-describe("from a player card's Offer a trade (#1027)", () => {
+describe("from a player card's Offer a trade (#1027)", () => { // one-home-ok: the test's name
   const fromCard = (team: string, player: number, trades: TradesData = {}) =>
     openNewOffer(trades, `${TRADES_NEW_PATH}?team=${team}&player=${player}`);
   /** Team 3's one player, whose card the offer comes from. */

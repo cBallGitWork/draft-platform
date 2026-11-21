@@ -101,7 +101,7 @@ describe("the role card (#848)", () => {
     expect(within(roleCard(HAVERTZ.name)).getByText(/^Poacher:/)).toBeTruthy();
   });
 
-  it("says when he has no matches yet", async () => {
+  it("says when he has no matches yet", async () => { // one-home-ok: the test's name
     await openedPitch();
     await userEvent.click(roleButton(SALIBA.name));
     expect(within(roleCard(SALIBA.name)).getByText(noMatchesWords)).toBeTruthy();

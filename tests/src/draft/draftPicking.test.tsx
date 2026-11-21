@@ -7,6 +7,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { draftListRefusals } from "../../../convex/draft/draftLists";
 import type { RoomFigure } from "../../../convex/draft/draftPlayers";
 import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import { POSITIONS } from "../../../convex/positions/positionTables";
@@ -106,8 +107,8 @@ describe("the players list", () => {
     expect(rows.map((row) => row.textContent)).toEqual([expect.stringContaining("Palmer"), expect.stringContaining("Rice"), expect.stringContaining("Saka")]);
     expect(rows[1].textContent).toContain(notLegalWords.clubFull);
     expect(rows[2].textContent).not.toContain(notLegalWords.clubFull);
-    expect(within(rows[1]).getByTitle("Defensive midfielder").className).toContain("opacity-");
-    expect(within(rows[2]).getByTitle("Winger").className).not.toContain("opacity-");
+    expect(within(rows[1]).getByTitle(POSITION_NAMES.CDM).className).toContain("opacity-");
+    expect(within(rows[2]).getByTitle(POSITION_NAMES.W).className).not.toContain("opacity-");
   });
 
   it("heads its columns Pos, Player, Rank, last season's points by its season, MP, G, A and CS", async () => {
@@ -122,7 +123,7 @@ describe("the players list", () => {
     expect(lastSeasonPointsColumn(2025).short).toBe("Pts 25/26");
   });
 
-  it("opens on the site's ranking, best first, and a head sorts by its column", async () => {
+  it("opens on the site's ranking, best first, and a head sorts by its column", async () => { // one-home-ok: the test's name
     openDraft({ draft: draftAt(true), figures: FIGURES });
     expect(await rowNames()).toEqual([PALMER.name, SAKA.name, RICE.name]);
     await userEvent.click(within(head(columns.name)).getByRole("button", { name: sortByLabel(columnHeadName(columns.name)) }));
@@ -201,7 +202,7 @@ describe("the selected player's panel", () => {
   });
 });
 
-describe("the panel's Add to queue and Do not draft (#1474)", () => {
+describe("the panel's Add to queue and Do not draft (#1474)", () => { // one-home-ok: the test's name
   const listButton = (words: string) => screen.queryByRole("button", { name: words });
 
   it("puts him on the reader's queue, or his do-not-draft list, out of turn too", async () => {
@@ -221,10 +222,10 @@ describe("the panel's Add to queue and Do not draft (#1474)", () => {
   });
 
   it("says why the server refused", async () => {
-    openDraft({ draft: draftAt(true), refusal: "A do-not-draft list holds at most 50 players. Take one off first." });
+    openDraft({ draft: draftAt(true), refusal: draftListRefusals.full("doNotDraft") });
     await open(SAKA.name);
     await userEvent.click(listButton(DO_NOT_DRAFT_TITLE)!);
-    expect((await screen.findByRole("alert")).textContent).toBe("A do-not-draft list holds at most 50 players. Take one off first.");
+    expect((await screen.findByRole("alert")).textContent).toBe(draftListRefusals.full("doNotDraft"));
   });
 
   it("shows neither to a reader who runs no team, nor once the draft is over", async () => {

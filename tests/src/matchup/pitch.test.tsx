@@ -83,7 +83,7 @@ describe("each side's pitch", () => {
     ]);
   });
 
-  it("puts each replaced starter on the bench once, in his sub's place, when two share a name (#1778)", async () => {
+  it("puts each replaced starter on the bench once, in his sub's place, when two share a name (#1778)", async () => { // one-home-ok: the test's name
     // Two men called Martinez, neither playing: Rice on for the striker, then Singh for the wide man.
     const [wideCode, strikerCode] = [1, 2];
     const wide = { ...off, playerCode: wideCode, name: "Martinez", autoSub: subbed("off", "Singh") };

@@ -174,7 +174,7 @@ describe("his season panel", () => {
     expect(app.path()).toBe(playerCardPath(league.leagueId, SAKA.code));
   });
 
-  it("opens Tactics with him selected from Set his role (#1008)", async () => {
+  it("opens Tactics with him selected from Set his role (#1008)", async () => { // one-home-ok: the test's name
     const app = openSquad({ squad: squadOf(players), tactics: lineup });
     await screen.findByRole("table");
     await openPanel("Saka");
@@ -184,7 +184,7 @@ describe("his season panel", () => {
     expect(await screen.findByRole("button", { name: closeTacticsPanelLabel("Saka") })).toBeTruthy();
   });
 
-  it("moves Mail and news under the table while it is open", async () => {
+  it("moves Mail and news under the table while it is open", async () => { // one-home-ok: the test's name
     openSquad({ squad: squadOf([SAKA]), mail });
     await screen.findByRole("table");
     const mailPanel = () => screen.getByRole("region", { name: MAIL_WIDGET_TITLE });
@@ -197,7 +197,7 @@ describe("his season panel", () => {
   });
 });
 
-describe("Your eleven", () => {
+describe("Your eleven", () => { // one-home-ok: the test's name
   it("shows the lineup being set on the pitch and the bench in order, each with his season points", async () => {
     openSquad({ squad: squadOf(players), tactics: lineup });
     const pitch = await screen.findByRole("list", { name: elevenPitchLabel });
@@ -244,7 +244,7 @@ describe("Your eleven", () => {
   });
 });
 
-describe("Mail and news", () => {
+describe("Mail and news", () => { // one-home-ok: the test's name
   it("lists the newest letters, unread ones marked, with Mail's unread count", async () => {
     openSquad({ squad: squadOf([SAKA]), mail });
     const widget = await screen.findByRole("region", { name: MAIL_WIDGET_TITLE });

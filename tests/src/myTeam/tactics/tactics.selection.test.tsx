@@ -57,7 +57,7 @@ describe("the Selection table", () => {
     await openedPitch({ tactics: SAVED, squad: TEAM_SQUAD });
     const table = screen.getByRole("table", { name: selectionTableLabel });
     const heads = within(table).getAllByRole("columnheader").map((head) => head.textContent);
-    expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", "Role fit", "Next"]);
+    expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", ROLE_FIT_SUBJECT, "Next"]);
     const [chip, role, player, stars, next] = Array.from(rowOf(RAYA).cells);
     expect(chip.textContent).toBe("GK");
     expect(within(role).getByRole("button").textContent).toContain(roleIn(STARTERS[0], undefined).name);
@@ -119,7 +119,7 @@ describe("the bench's best role", () => {
 });
 
 describe("where a player stands, for his panel", () => {
-  it("is his slot, his place on the bench, or nowhere", () => {
+  it("is his slot, his place on the bench, or nowhere", () => { // one-home-ok: the test's name
     const draft = { starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] };
     expect(placeOf(draft, RAYA.playerCode)).toEqual({ starter: STARTERS[0], formation: STARTERS });
     expect(placeOf(draft, WHITE.playerCode)).toEqual({ benchIndex: 1, benchLast: 1 });

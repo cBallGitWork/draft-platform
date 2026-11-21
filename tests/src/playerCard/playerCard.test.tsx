@@ -48,7 +48,7 @@ import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { clubPath } from "../../../src/premierLeague/paths";
-import { freeAgentWords, menuWords } from "../../../src/shared/words";
+import { freeAgentWords, menuWords, POSITION_NAMES } from "../../../src/shared/words";
 import { difficultyNotRatedWords } from "../../../src/shared/match/words";
 import { gameweekShort } from "../../../src/shared/when/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
@@ -125,8 +125,8 @@ describe("the card", () => {
 
     const club = head.getByRole("link", { name: ARSENAL.name }); // His club's page; the mark before it isn't a link (S18.6).
     expect([club.getAttribute("href"), club.querySelector("img"), club.parentElement!.querySelector("img")!.getAttribute("src")]).toEqual([clubPath(ARSENAL.code), null, crestUrl(ARSENAL.code)]);
-    expect(head.getByTitle("Winger").textContent).toBe("W");
-    expect(head.getByTitle("Attacking midfielder").textContent).toBe("CAM");
+    expect(head.getByTitle(POSITION_NAMES.W).textContent).toBe("W");
+    expect(head.getByTitle(POSITION_NAMES.CAM).textContent).toBe("CAM");
     expect(head.getByText("Saka Potatoes")).toBeTruthy();
     const news = within(screen.getByRole("region", { name: NEWS_TITLE }));
     expect(news.getByText(SAKA.news!)).toBeTruthy();
@@ -206,7 +206,7 @@ describe("the card", () => {
 });
 
 describe("the card's head (#1027)", () => {
-  it("another team's player's Offer a trade opens New offer with his owner chosen and him asked for (Craig, 9 Nov 2026)", async () => {
+  it("another team's player's Offer a trade opens New offer with his owner chosen and him asked for (Craig, 9 Nov 2026)", async () => { // one-home-ok: the test's name
     const app = openCard();
     await userEvent.click((await headOf()).getByRole("link", { name: offerTradeWords }));
     expect(app.path()).toBe(TRADES_NEW_PATH);

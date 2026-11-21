@@ -37,14 +37,15 @@ describe("a logged-out visitor", () => {
   it("sees an Invite only panel beside Sign in, naming the product and how to get an invite", async () => {
     openApp("/", visitor);
     const panel = await screen.findByRole("region", { name: signInWords.inviteOnly });
-    expect(within(panel).getByText(`${PRODUCT_NAME} is invite only while it is in beta. A league's commissioner brings you in.`)).toBeTruthy();
+    expect(within(panel).getByText(signInWords.inviteOnlyWhy)).toBeTruthy();
+    expect(signInWords.inviteOnlyWhy).toContain(PRODUCT_NAME);
     expect(within(panel).getByText(signInWords.noInvite)).toBeTruthy();
   });
 
   it("the email box's hint says when the link stops working", async () => {
     openApp(SIGN_IN_PATH, visitor);
     expect(descriptionOf(await screen.findByRole("textbox", { name: signInWords.emailLabel }))).toBe(
-      "We email you a link that signs you in. It works once, within an hour.",
+      "We email you a link that signs you in. It works once, within an hour.", // one-home-ok: pins the hint's hour, the link's lifetime in words
     );
   });
 
@@ -166,7 +167,7 @@ describe("a signed-in manager", () => {
     expect(screen.getByRole("link", { name: continueLabel(threeUnreadReason) }).getAttribute("href")).toBe(MAIL_PATH);
   });
 
-  it("with nothing to do, sees 'Nothing needs you' and no Continue, and Mail with no count", async () => {
+  it("with nothing to do, sees 'Nothing needs you' and no Continue, and Mail with no count", async () => { // one-home-ok: the test's name
     openApp(MY_TEAM_PATH, manager);
     expect(await screen.findByText(nothingNeedsYouWords)).toBeTruthy();
     expect(screen.queryByRole("link", { name: new RegExp(`^${continueWords}`) })).toBeNull();

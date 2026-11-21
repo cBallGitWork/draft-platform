@@ -13,6 +13,7 @@ import { sectionTabsLabel } from "../../../../src/frame/words";
 import { meterListLabel } from "../../../../src/myTeam/header/words";
 import {
   awayWords,
+  benchWords,
   difficultyNotRatedWords,
   goneWords,
   homeWords,
@@ -114,7 +115,7 @@ describe("the rows", () => {
     expect(rows().map((row) => row.cells[2].querySelector("button")!.firstChild!.textContent)).toEqual(["Raya", "Palmer", "Saka", "Benched", "Unnumbered"]);
   });
 
-  it("mute the bench's names, and say on the bench to screen readers, with no group rows", async () => {
+  it("mute the bench's names, and say on the bench to screen readers, with no group rows", async () => { // one-home-ok: the test's name
     const players = [SAKA, PALMER];
     openSquad({ squad: squadOf(players), tactics: tacticsWith(players, [[SAKA, { area: "attackingMidfield", lane: "right" }]]) });
     await screen.findByRole("table");
@@ -122,7 +123,7 @@ describe("the rows", () => {
     const palmer = screen.getByRole("button", { name: openPanelLabel("Palmer") });
     expect(saka.className).toContain("text-fact");
     expect(palmer.className).toContain("text-muted");
-    expect(palmer.textContent).toContain("on the bench");
+    expect(palmer.textContent).toContain(benchWords);
     expect(rows()).toHaveLength(2);
   });
 

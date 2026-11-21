@@ -18,6 +18,7 @@ import {
   noTeamWords,
   noTransactionsWords,
   transactionColumns,
+  transactionKindWords,
   transactionsCutWords,
   transactionsLoadingWords,
   transactionsTableLabel,
@@ -89,7 +90,7 @@ describe("the transactions", () => {
       [dateWords(AT), "Assigned", "", "Saka", "commish@example.com, to Team 3"],
       [dateWords(AT), "Assigned", "Saka", "", "commish@example.com"],
       [dateWords(AT), "Claim", "Saka", "Rice", "You"],
-      [dateWords(AT), "Free agent", "Saka", "", "commish@example.com"],
+      [dateWords(AT), transactionKindWords.freeAgents, "Saka", "", "commish@example.com"],
       [dateWords(AT), "Drop", "", "Saka", "commish@example.com"],
     ]);
   });

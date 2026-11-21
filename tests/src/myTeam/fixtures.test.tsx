@@ -147,7 +147,7 @@ describe("the games", () => {
     expect(resultRows().map((row) => cells(row)[0])).toEqual(["31", "30"]);
   });
 
-  it("with two games a gameweek, shows each", async () => {
+  it("with two games a gameweek, shows each", async () => { // one-home-ok: the test's name
     openFixtures({ fixtures: teamFixturesOf(TEAMS, "Team 1", { gamesPerGameweek: 2, gameweeks: [1] }) });
     await screen.findByRole("table", { name: fixturesTableLabel("Team 1") });
     expect(toPlayRows().map((row) => cells(row)[0])).toEqual(["1", "1"]);
@@ -228,7 +228,7 @@ describe("the results", () => {
 
   it.each([
     ["a scored game", game(4, { kind: "team", teamName: "Team 2" }, null, scored), resultsTableLabel("Team 1"), matchupLinkLabel(scoreWords(61.5, 48), "Team 1", "Team 2", 4)],
-    ["a live game against the league's average", game(4, { kind: "leagueAverage" }, null, live), resultsTableLabel("Team 1"), matchupLinkLabel(`${scoreWords(22, 30)} ${liveWords}`, "Team 1", null, 4)],
+    ["a live game against the league's average", game(4, { kind: "leagueAverage" }, null, live), resultsTableLabel("Team 1"), matchupLinkLabel(`${scoreWords(22, 30)} ${liveWords}`, "Team 1", null, 4)], // one-home-ok: the case's name, in the test's name
     ["a game not yet played", game(4, { kind: "team", teamName: "Team 2" }), nextGameTitle(4, "Team 2"), matchupMoreWords],
   ])("opens the matchup from %s, for the team and gameweek", async (_, played, where, link) => {
     const app = openFixtures({ fixtures: fixturesOf([played]) });

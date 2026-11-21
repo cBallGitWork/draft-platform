@@ -124,7 +124,7 @@ describe("selecting a player", () => {
     expect(panelOf("W")).toBeTruthy();
   });
 
-  it("Compare with your player stays as the minute turns and his answer reloads (#1777)", async () => {
+  it("Compare with your player stays as the minute turns and his answer reloads (#1777)", async () => { // one-home-ok: the test's name
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const app = await openOnAll({ ...HELD, yours: { player: { position: "CM", code: SAKA.code, name: "Saka" }, squadFull: false } });
     await userEvent.click(rowOf("Rice"));

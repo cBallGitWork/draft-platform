@@ -17,7 +17,7 @@ const deleter = deleterOf(beingDeleted(commissioned, { deletesAt: DELETES_AT }))
 const deleteButton = () => screen.queryByRole("button", { name: deleteLeagueWords });
 const deleteButtonShown = () => screen.findByRole("button", { name: deleteLeagueWords });
 
-describe("Delete league", () => {
+describe("Delete league", () => { // one-home-ok: the test's name
   it.each([
     ["the commissioner", managerIn(commissioned)],
     ["the admin", adminSeeing({ ...league, roles: [] })],

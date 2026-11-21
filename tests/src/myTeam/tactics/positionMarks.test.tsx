@@ -36,7 +36,7 @@ describe("his marks", () => {
     expect(positionMarksOf(lostSaliba, null)).toEqual([]);
   });
 
-  it("are none for one the football sync doesn't hold, who has no positions to judge", () => {
+  it("are none for one the football sync doesn't hold, who has no positions to judge", () => { // one-home-ok: the test's name
     expect(positionMarksOf({ ...lostSaliba, unheld: true }, LEFT_CENTRE_BACK)).toEqual([]);
   });
 });

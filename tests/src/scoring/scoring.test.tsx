@@ -187,7 +187,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     await retype(columnWords.points, everyoneWords, "");
     await save();
     await screen.findByRole("alert");
-    await choose("Yellow cards");
+    await choose("Yellow cards"); // one-home-ok: a scoring category's name, as the server sends it
 
     expect(screen.getByRole("alert").textContent).toBe(blankBoxWords("Assists"));
     expect(refusalBeside(box(columnWords.points, everyoneWords))).toBeNull();
@@ -197,7 +197,7 @@ describe("#30 Done: an edit saves, from the next gameweek", () => {
     openScoring();
     await choose("Assists");
     await retype(columnWords.points, everyoneWords, "");
-    await choose("Yellow cards");
+    await choose("Yellow cards"); // one-home-ok: a scoring category's name, as the server sends it
     await retype(columnWords.points, everyoneWords, "");
     await save();
 

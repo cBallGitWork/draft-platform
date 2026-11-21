@@ -8,7 +8,7 @@ it.each([
   [DAY_MS + 17 * HOUR_MS + 5 * MINUTE_MS, "in 1d 17h"],
   [5 * HOUR_MS + 12 * MINUTE_MS, "in 5h 12m"],
   [12 * MINUTE_MS + 30 * SECOND_MS, "in 12m"],
-  [30 * SECOND_MS, "in under a minute"],
+  [30 * SECOND_MS, "in under a minute"], // one-home-ok: pins countdownWords' own answer
 ])("counts %d ms down as %s", (left, words) => {
   expect(countdownWords(left)).toBe(words);
 });

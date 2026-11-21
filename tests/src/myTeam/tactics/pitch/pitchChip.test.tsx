@@ -48,7 +48,7 @@ describe("a starter's chip", () => {
 });
 
 describe("the chip on the pitch", () => {
-  it("draws the short name in his area's colour, his stars, and each opponent this gameweek outlined, difficulty not rated yet", async () => {
+  it("draws the short name in his area's colour, his stars, and each opponent this gameweek outlined, difficulty not rated yet", async () => { // one-home-ok: the test's name
     const role = roleIn(STARTERS[1], undefined);
     const squad = SQUAD.map((player) => (player === SALIBA ? { ...player, stars: [{ area: "defence" as const, role: role.key, stars: 4 }] } : player));
     await openedPitch({ tactics: openTactics({ ...SAVED, squad }), squad: squadOf([{ ...SAKA, code: SALIBA.playerCode, nextFixtures: DOUBLE }]) });

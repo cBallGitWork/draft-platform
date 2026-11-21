@@ -55,7 +55,7 @@ describe("reaching it", () => {
 });
 
 describe("this gameweek's head-to-heads", () => {
-  it("lists each, with the league's average and a bye", async () => {
+  it("lists each, with the league's average and a bye", async () => { // one-home-ok: the test's name
     withHome({ thisGameweek: { gameweek: 9, fixtures: [homeFixture("Ann's", "Bob's"), homeFixture("Cat's", null)], byes: ["Dan's"] } });
     const gameweek = within(await panel(THIS_GAMEWEEK_TITLE)).getByRole("list", { name: headToHeadsLabel("GW9") });
     expect(within(gameweek).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Ann'svBob's", "Cat'svLeague average", "Dan's: bye"]);

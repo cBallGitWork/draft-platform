@@ -38,7 +38,7 @@ const pages = ({ before }: { before: LeagueNews["older"] }): LeagueNews =>
   before === null ? { ...quietNews, moves: [claim, moved], older: { at: moved.at, filed: moved.filed } } : { ...quietNews, moves: [older] };
 
 describe("reaching it", () => {
-  it("opens from Home's News tab, and from Overview's More, on News", async () => {
+  it("opens from Home's News tab, and from Overview's More, on News", async () => { // one-home-ok: the test's name
     const app = openApp(HOME_PATH, manager, { home: { news: pages } });
     await userEvent.click(await screen.findByRole("link", { name: moreOnNewsLink }));
     expect(await screen.findByRole("heading", { level: 1, name: NEWS_TITLE })).toBeTruthy();

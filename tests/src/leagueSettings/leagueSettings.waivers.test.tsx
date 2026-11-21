@@ -167,7 +167,7 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
   ];
   const claimsPanel = () => screen.getByRole("region", { name: CLAIMS_TITLE });
 
-  it("lists them team by team in the waiver order, with no handle to drag, and the teams with none", async () => {
+  it("lists them team by team in the waiver order, with no handle to drag, and the teams with none", async () => { // one-home-ok: the test's name
     await openedOn("waivers", { waivers, claims });
     const rows = within(
       within(claimsPanel()).getByRole("table", { name: everyTeamTableLabel }),

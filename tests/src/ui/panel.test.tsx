@@ -22,8 +22,8 @@ it("names a page's section by its title, with the aside on the plate and the cal
 });
 
 it("labels a page's section by its own heading's id, with no aside or children", () => {
-  render(<PageSection title="Your leagues" />);
-  const heading = screen.getByRole("heading", { level: 1, name: "Your leagues" });
+  render(<PageSection title="Your leagues" />); // one-home-ok: any title; PageSection owns none
+  const heading = screen.getByRole("heading", { level: 1, name: "Your leagues" }); // one-home-ok: any title; PageSection owns none
   expect(screen.getByRole("region").getAttribute("aria-labelledby")).toBe(heading.id);
 });
 

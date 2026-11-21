@@ -25,6 +25,7 @@ import {
   findTitle,
   flagAfterLabel,
   flaggedTitle,
+  flaggedNote,
   flaggedWords,
   foundListLabel,
   labelWords,
@@ -37,13 +38,16 @@ import {
   proposalsWords,
   removeAfterLabel,
   removeLabel,
+  removeWords,
   removedTitle,
   removedWords,
   saveThresholdsWords,
   searchingWords,
   setLabel,
   setWords,
+  sourceWords,
   switchModeWords,
+  unconfirmedNote,
   waitingHint,
   waitingTitle,
   noAreaWords,
@@ -117,7 +121,7 @@ describe("the queue", () => {
 
   it("the starts-waiting hint names the server's starts at a place, in words", () => {
     expect(STARTS_FOR_A_POSITION).toBe(3);
-    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them.");
+    expect(waitingHint).toBe("Positions his starts give him, three at a place, which count once you approve them."); // one-home-ok: pins the hint, the server's 3 in words
   });
 
   it("says so when nothing waits", async () => {
@@ -129,7 +133,7 @@ describe("the queue", () => {
 });
 
 describe("position changes", () => {
-  it("shows each position flagged, as needing him, with its starts in a row elsewhere, and each removed, muted", async () => {
+  it("shows each position flagged, as needing him, with its starts in a row elsewhere, and each removed, muted", async () => { // one-home-ok: the test's name
     openDashboard();
     const changes = await screen.findByRole("region", { name: changesTitle });
     expect(within(changes).getByText(/flagged after 3 starts in a row elsewhere, and removed after 6/)).toBeTruthy();
@@ -218,8 +222,8 @@ describe("correcting a player", () => {
     openDashboard();
     const positions = within(await findWoltemade()).getByRole("list", { name: positionsListLabel(WOLTEMADE.name) });
     expect(within(positions).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
-      "ST from his starts, flagged: 4 starts in a row elsewhereRemove",
-      "CAM from his label, unconfirmedRemove",
+      `ST ${sourceWords.starts}${flaggedNote(4)}${removeWords}`,
+      `CAM ${sourceWords.label}${unconfirmedNote}${removeWords}`,
     ]);
   });
 

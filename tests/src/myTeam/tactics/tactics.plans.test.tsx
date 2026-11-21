@@ -6,6 +6,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { switchedWords } from "../../../../convex/lineup/instructionsWords";
 import { planRefusals } from "../../../../convex/lineup/lineupWords";
 import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import { FIRST_RULES } from "../../../../convex/rules/firstRules";
@@ -126,7 +127,8 @@ describe("loading a plan", () => {
     const instructions = IN_A_442.tactics.instructions.map((each) => (each.key === "pressHigh" ? { ...each, needs: "fiveAtTheBack" as const } : each));
     const app = await openedPitch({ tactics: openTactics({ ...IN_A_442.tactics, instructions }), plans: [{ ...PRESS, instructions: WIDE_PRESS }] });
     await userEvent.click(within(screen.getByRole("radiogroup", { name: presetsWords })).getByRole("radio", { name: "Press" }));
-    expect(await screen.findByText("Press high needs 5 at the back: switched to Keep it tight early")).toBeTruthy();
+    const instruction = (key: string) => instructions.find((each) => each.key === key)!;
+    expect(await screen.findByText(switchedWords([{ side: "defensive", from: instruction("pressHigh"), to: instruction("keepItTightEarly") }])!)).toBeTruthy();
     expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual({ attacking: "getItWide", defensive: "keepItTightEarly" });
   });
 

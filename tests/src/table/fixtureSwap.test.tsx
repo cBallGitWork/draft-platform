@@ -61,7 +61,7 @@ describe("the commissioner's fixture swap", () => {
     expect(app.table.fixtureSwap.swap).not.toHaveBeenCalled();
   });
 
-  it("swaps the league's average like a team, and shows the server's refusal", async () => {
+  it("swaps the league's average like a team, and shows the server's refusal", async () => { // one-home-ok: the test's name
     const drawn = leagueTableOf(FOUR.slice(0, 3), { deadlineOf });
     const refusal = "That swap would have a side play itself.";
     const app = openAs(commissioner, { leagueTable: drawn, swapAnswer: refusal });

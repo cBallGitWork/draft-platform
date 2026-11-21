@@ -54,14 +54,14 @@ describe("each line says why", () => {
   it("landing exactly on a limit says he reached it, though it cost him nothing (#863)", async () => {
     const atMost: Why = { ...perAction(2, 1), cut: { by: "atMax", limit: 2 } };
     const atLeast: Why = { ...perAction(2, -2), cut: { by: "atMin", limit: -4 } };
-    const lines = await linesOf(cardWith([category("won_tackle", "Tackles won", 2, atMost), category("own_goals", "Own goals", -4, atLeast)]));
+    const lines = await linesOf(cardWith([category("won_tackle", "Tackles won", 2, atMost), category("own_goals", "Own goals", -4, atLeast)])); // one-home-ok: a scoring category's name, as the server sends it
     expect(lines).toContain("Tackles won 2 at 1 each, reaching its limit of at most 2 2");
     expect(lines).toContain("Own goals 2 at −2 each, reaching its limit of at least −4 −4");
   });
 
   it("a minutes rule that took his points away shows its line at 0, though it earned nothing", async () => {
     const short: Why = { ...inDefence(perAction(1, 4)), cut: { by: "minutes", atLeast: 60 } };
-    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 1 at 4 each for Defence, but none under 60 minutes 0");
+    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 1 at 4 each for Defence, but none under 60 minutes 0"); // one-home-ok: a scoring category's name, as the server sends it
   });
 
   it("a rule priced by position names the position", async () => {
@@ -76,7 +76,8 @@ describe("the version it was scored under", () => {
     expect(scoredUnderWords("26_27.3")).toBe("Scored under version 26_27.3");
   });
 
-  it("names the first scoring set before any version", async () => {
-    expect((await linesOf(cardWith([category("goals_scored", "Goals scored", 5)], null))).at(-1)).toBe("Scored under the first scoring set");
+  it("names the first scoring set before any version", async () => { // one-home-ok: the test's name
+    expect((await linesOf(cardWith([category("goals_scored", "Goals scored", 5)], null))).at(-1)).toBe(scoredUnderWords(null));
+    expect(scoredUnderWords(null)).toBe("Scored under the first scoring set");
   });
 });

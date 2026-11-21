@@ -101,7 +101,7 @@ describe("the vidiprinter", () => {
     expect(marked()).toEqual([]);
   });
 
-  it("against the league's average, has its one team's column", async () => {
+  it("against the league's average, has its one team's column", async () => { // one-home-ok: the test's name
     const average = headToHead({
       kind: "scored",
       team: teamSide("Team 1", [COYLE], []),

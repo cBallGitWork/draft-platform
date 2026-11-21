@@ -73,7 +73,7 @@ describe("the stars a lit player shows (spec/05, Moving players; Craig, 7 Nov 20
     expect(landing?.stars).toBe(NO_DATA);
   });
 
-  it("two on the bench: nobody lands", () => {
+  it("two on the bench: nobody lands", () => { // one-home-ok: the test's name
     expect(landingOf(DRAFT, 3, BENCH_BACK, NO_STARS)).toBeNull();
   });
 });
@@ -127,7 +127,7 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
     }
   });
 
-  it("each lights the other two, and a centre-back on the bench lights all three", () => {
+  it("each lights the other two, and a centre-back on the bench lights all three", () => { // one-home-ok: the test's name
     expect(reachOf(FIVE, 22, RULES).players).toEqual(expect.arrayContaining([23, 24]));
     expect(reachOf(FIVE, 26, RULES).players).toEqual(expect.arrayContaining([22, 23, 24]));
     expect(dropOutcome(FIVE, 26, { cell: cellOf(MIDDLE_CB) }, RULES)).toEqual({ swapWith: 23 });

@@ -72,7 +72,7 @@ describe("on Scouting", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
   });
 
-  it("Add to queue puts him in the draft queue, asking for this league, and says so", async () => {
+  it("Add to queue puts him in the draft queue, asking for this league, and says so", async () => { // one-home-ok: the test's name
     const app = openScouting({ players: [RICE, SAKA] });
     const panel = await shortlistPanel();
     await userEvent.click(within(panel).getByRole("button", { name: addToQueueNamedLabel("Rice") }));
@@ -80,27 +80,27 @@ describe("on Scouting", () => {
     expect(within(panel).getByRole("status").textContent).toBe(queuedWords("Rice"));
   });
 
-  it("Add to queue says the server's refusal: he's already taken, say", async () => {
+  it("Add to queue says the server's refusal: he's already taken, say", async () => { // one-home-ok: the test's name
     const taken = draftListRefusals.taken("Saka", "Saka Potatoes");
     openScouting({ players: [SAKA], refusal: taken });
     await userEvent.click(within(await shortlistPanel()).getByRole("button", { name: addToQueueNamedLabel("Saka") }));
     expect((await screen.findByRole("alert")).textContent).toBe(taken);
   });
 
-  it("S04.32 shows Add to queue while the draft is to come or live, asking for this league", async () => {
+  it("S04.32 shows Add to queue while the draft is to come or live, asking for this league", async () => { // one-home-ok: the test's name
     const app = openScouting({ players: [SAKA] });
     expect(within(await shortlistPanel()).getByRole("button", { name: addToQueueNamedLabel("Saka") })).toBeTruthy();
     expect(app.scouting.useDraftNotOver.mock.lastCall).toEqual([league.leagueId]);
   });
 
-  it("S04.32 hides Add to queue once the draft is over, keeping Take off", async () => {
+  it("S04.32 hides Add to queue once the draft is over, keeping Take off", async () => { // one-home-ok: the test's name
     openApp(SCOUTING_PATH, manager, { scouting: { shortlist: { players: [SAKA] }, draftOver: true } });
     const panel = await shortlistPanel();
     expect(within(panel).queryByRole("button", { name: addToQueueNamedLabel("Saka") })).toBeNull();
     expect(within(panel).getByRole("button", { name: removeNamedLabel("Saka") })).toBeTruthy();
   });
 
-  it("S04.32 shows no Add to queue while the draft's state loads", async () => {
+  it("S04.32 shows no Add to queue while the draft's state loads", async () => { // one-home-ok: the test's name
     openApp(SCOUTING_PATH, manager, { scouting: { shortlist: { players: [SAKA] }, draftOver: null } });
     expect(within(await shortlistPanel()).queryByRole("button", { name: addToQueueNamedLabel("Saka") })).toBeNull();
   });

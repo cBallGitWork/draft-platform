@@ -107,7 +107,7 @@ describe("reaching it", () => {
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Cat's" as Id<"teams">, gameweek: 4 });
   });
 
-  it("with two games a gameweek, each game's link opens its own matchup (#913)", async () => {
+  it("with two games a gameweek, each game's link opens its own matchup (#913)", async () => { // one-home-ok: the test's name
     const twoGames = { gameweek: 4, fixtures: [homeFixture("Cat's", "Ann's"), homeFixture("Cat's", "Bob's", null, 2)], byes: [] };
     const app = openApp(HOME_PATH, manager, { home: { leagueHome: { ...quietHome, thisGameweek: twoGames } } });
     await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel(versusWords, "Cat's", "Bob's", 4) }));
@@ -212,7 +212,7 @@ describe("the gameweek stepper", () => {
 });
 
 describe("each side", () => {
-  it("the league's average says what it is", async () => {
+  it("the league's average says what it is", async () => { // one-home-ok: the test's name
     openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [], []), opponent: { kind: "leagueAverage", points: 21.3, provisional: false } }) });
     expect(await screen.findByText(averageWords)).toBeTruthy();
     expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toMatch(new RegExp(`Team 1.*${scoreWords(0, 21.3)}.*${leagueAverageWords}`));

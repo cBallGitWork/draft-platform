@@ -12,9 +12,10 @@ import {
   TRADES_PATH,
 } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
-import { noFigureWords } from "../../../src/shared/words";
+import { noFigureWords, warningWords } from "../../../src/shared/words";
 import {
   acceptWords,
+  afterItWords,
   closesAfterLastMatchWords,
   counterWords,
   groupWords,
@@ -25,6 +26,7 @@ import {
   rejectWords,
   rejectYesWords,
   reviewerWords,
+  reviewRuleWords,
   shutWords,
   TRADES_TITLE,
   tradesLoadingWords,
@@ -137,7 +139,7 @@ describe("an offer to you", () => {
     expect(text).toContain("Saka");
     expect(text).toContain("“Fancy it?”");
     expect(text).toContain("2 of 20 after it");
-    expect(text).toContain("Commissioner veto: 24 hours once you accept");
+    expect(text).toContain(reviewRuleWords("commissioner", true));
     expect(text).toContain(
       `At the GW10 deadline, ${whenWords(Date.parse("2026-11-14T11:00:00Z"))}`,
     );
@@ -169,14 +171,14 @@ describe("an offer to you", () => {
   it("is accepted, and a refusal says why", async () => {
     const app = openOffers({
       ...withOffers(screenOffer()),
-      refusal: "The league's trade deadline has passed.",
+      refusal: shutWords.tradeDeadline,
     });
     await userEvent.click(
       await screen.findByRole("button", { name: acceptWords }),
     );
     expect(app.trades.accept).toHaveBeenCalledWith(league.leagueId, "offer-1");
     expect((await screen.findByRole("alert")).textContent).toBe(
-      "The league's trade deadline has passed.",
+      shutWords.tradeDeadline,
     );
   });
 
@@ -215,15 +217,16 @@ describe("an offer to you", () => {
   });
 
   it("warns of a limit it would push your squad past", async () => {
+    const overMost = { kind: "overMaximum", players: 21, maximum: 20 } as const;
     openOffers(
       withOffers(
         screenOffer({
-          warnings: [{ kind: "overMaximum", players: 21, maximum: 20 }],
+          warnings: [overMost],
         }),
       ),
     );
     expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
-      "After it: 21 players, over the league's most of 20.",
+      afterItWords(warningWords(overMost)),
     );
     expect(screen.getByRole("button", { name: acceptWords })).toBeTruthy();
   });

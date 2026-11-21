@@ -65,7 +65,7 @@ describe("comparing two players", () => {
     expect(app.scouting.useComparison.mock.lastCall![1]).toBeNull();
   });
 
-  it("Compare with another… asks for a second row, and pressed again stops asking", async () => {
+  it("Compare with another… asks for a second row, and pressed again stops asking", async () => { // one-home-ok: the test's name
     const app = await openToCompare();
     await userEvent.click(rowOf("Saka"));
     const button = screen.getByRole("button", { name: compareWithAnotherWords });
@@ -154,7 +154,7 @@ describe("compare with your player (Craig, 9 Nov 2026, on #1028, answers 1 and 4
     expect(screen.getByRole("region", { name: COMPARE_YOURS_TITLE })).toBeTruthy();
   });
 
-  it("with no player of yours at his position, only Compare with another… shows", async () => {
+  it("with no player of yours at his position, only Compare with another… shows", async () => { // one-home-ok: the test's name
     await open({ yours: { player: null, squadFull: false } });
     await userEvent.click(rowOf("Rice"));
     expect(screen.queryByRole("button", { name: /Compare with your/ })).toBeNull();

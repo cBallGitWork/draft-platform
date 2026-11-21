@@ -5,12 +5,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { contrast } from "../../../convex/football/clubColours";
+import { confirmDeleteWords } from "../../../src/shared/controls/words";
 import stylesCss from "../../../src/styles.css?raw";
 import controlsCss from "../../../src/ui/controls.css?raw";
 import { Confirm } from "../../../src/ui/Confirm";
 
-const YES = "Delete it";
-const NO = "Keep it";
+const { yes: YES, no: NO } = confirmDeleteWords;
 
 /** WCAG 2.1 AA: words 4.5:1, a control's edge 3:1. */
 const TEXT_CONTRAST = 4.5;

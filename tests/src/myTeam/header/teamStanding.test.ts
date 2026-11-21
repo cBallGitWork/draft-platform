@@ -39,7 +39,7 @@ describe("a team's games", () => {
     expect(gamesIn(table, "Ana", 8)).toEqual([]);
   });
 
-  it("against the league's average, in a league with an odd team out", () => {
+  it("against the league's average, in a league with an odd team out", () => { // one-home-ok: the test's name
     const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores });
     const average = gamesOfTeam(table, "Cal").find(({ against }) => against.kind === "leagueAverage");
     // The average of 60, 50 and 40.

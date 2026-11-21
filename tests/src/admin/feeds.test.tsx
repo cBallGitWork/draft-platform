@@ -141,7 +141,7 @@ describe("the feeds", () => {
       ...QUIET,
       feeds: [
         { feed: "sportmonks", competition: "Scottish Premiership", state: "fine", lastRunAt: NOW - HOUR_MS, lastSuccessAt: NOW - HOUR_MS, lastError: null },
-        { feed: "sportmonks", competition: "Premier League", state: "failing", lastRunAt: lastError.at, lastSuccessAt: null, lastError },
+        { feed: "sportmonks", competition: "Premier League", state: "failing", lastRunAt: lastError.at, lastSuccessAt: null, lastError }, // one-home-ok: the feed's competition, as the server names it
       ],
     });
 

@@ -36,7 +36,7 @@ const openMatchupAs =(session: Session, data: MatchupData = { matchup: matchupOf
 const score = () => within(screen.getByRole("region", { name: SCORE_LABEL }));
 const overrideButton = (teamName: string) => score().getByRole("button", { name: overrideTotalLabel(teamName) });
 
-describe("Override total", () => {
+describe("Override total", () => { // one-home-ok: the test's name
   it("isn't offered to a manager who doesn't run the league", async () => {
     openMatchupAs(manager);
     await screen.findByRole("region", { name: SCORE_LABEL });
@@ -54,7 +54,7 @@ describe("Override total", () => {
     overrideButton("Team 2");
   });
 
-  it("isn't offered for the league's average", async () => {
+  it("isn't offered for the league's average", async () => { // one-home-ok: the test's name
     openMatchupAs(managerIn(commissioned), { matchup: matchupOf(TEAM_1, { kind: LEAGUE_AVERAGE, points: 50, provisional: false }) });
     await screen.findByRole("button", { name: overrideTotalLabel("Team 1") });
     expect(score().getAllByRole("button")).toHaveLength(1);
@@ -103,7 +103,7 @@ describe("Override total", () => {
   });
 });
 
-describe("Remove override", () => {
+describe("Remove override", () => { // one-home-ok: the test's name
   const overridden = matchupOf({ ...TEAM_1, overridden: true });
 
   it("takes Override total's place under an overridden team, and removes that team's override, then says so", async () => {

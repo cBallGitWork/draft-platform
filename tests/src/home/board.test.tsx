@@ -112,7 +112,7 @@ describe("News", () => {
     expect(app.path()).toBe(MAIL_PATH);
   });
 
-  it("lists the latest moves, newest first, each with its kind, and More, on News opens the News tab", async () => {
+  it("lists the latest moves, newest first, each with its kind, and More, on News opens the News tab", async () => { // one-home-ok: the test's name
     const app = withHome({
       squadMoves: [
         { at: Date.now(), kind: "playerReleased", playerName: "Rice", teamName: "Bob's", fromTeamName: null },
@@ -166,7 +166,7 @@ describe("News", () => {
   });
 });
 
-describe("Your matchup", () => {
+describe("Your matchup", () => { // one-home-ok: the test's name
   const yourMatchup = () => panel(/^Your matchup/);
   const table = [homeRow(1, "Ann's", { points: 9, form: ["won", "won", "won"] }), homeRow(2, "Bob's", { points: 6, form: ["won", "won", "lost"], mine: true })];
 
@@ -200,7 +200,7 @@ describe("Your matchup", () => {
 });
 
 describe("the right-hand column", () => {
-  it("holds the Premier League, the recap to come, its outline's words written in it, and Your squad news in their places, each folding on its ▾", async () => {
+  it("holds the Premier League, the recap to come, its outline's words written in it, and Your squad news in their places, each folding on its ▾", async () => { // one-home-ok: the test's name
     openHome();
     const premierLeague = await panel(premierLeagueTitle(1));
     expect(within(premierLeague).getByText(noMatchesWords)).toBeTruthy();
@@ -247,7 +247,7 @@ describe("the right-hand column", () => {
     expect(app.path()).toBe(matchPath(502));
   });
 
-  it("lists Your squad news, FPL's note word for word, each name opening his card; and says when there is none (#1976)", async () => {
+  it("lists Your squad news, FPL's note word for word, each name opening his card; and says when there is none (#1976)", async () => { // one-home-ok: the test's name
     withHome({ yours: { ...quietYours, squadNews: [{ playerCode: 10, name: "Saka", news: "Knock - 75% chance of playing", chanceOfPlaying: 75 }] } });
     const news = await panel(SQUAD_NEWS_TITLE);
     expect(within(news).getByRole("listitem").textContent).toBe("SakaKnock - 75% chance of playing");
@@ -271,12 +271,12 @@ describe("the right-hand column", () => {
     expect(within(await panel(recapTitle(1))).queryByText(recapToComeWords(1))).toBeNull();
   });
 
-  it("has Run the league for whoever runs it", async () => {
+  it("has Run the league for whoever runs it", async () => { // one-home-ok: the test's name
     openApp(HOME_PATH, commissioner);
     expect(await panel(RUN_LEAGUE_TITLE)).toBeTruthy();
   });
 
-  it("has no Run the league for a manager", async () => {
+  it("has no Run the league for a manager", async () => { // one-home-ok: the test's name
     openHome();
     await panel(TABLE_TITLE);
     expect(screen.queryByRole("region", { name: RUN_LEAGUE_TITLE })).toBeNull();

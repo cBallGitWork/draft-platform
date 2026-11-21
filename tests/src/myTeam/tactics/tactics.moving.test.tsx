@@ -132,7 +132,7 @@ describe("moving a player", () => {
     expect(allSwaps().some((label) => label?.includes(RAYA.name) || label?.includes(ARRIZABALAGA.name))).toBe(false);
   });
 
-  it("swaps a bench player for a starter by a tap on the lit starter: the starter takes his place on the bench", async () => {
+  it("swaps a bench player for a starter by a tap on the lit starter: the starter takes his place on the bench", async () => { // one-home-ok: the test's name
     const app = await openedPitch();
     await pickUp(ARRIZABALAGA);
     await userEvent.click(within(pitch()).getByRole("button", { name: swapNamed(ARRIZABALAGA.name, RAYA.name) }));

@@ -25,7 +25,7 @@ const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
 const NO_STARS: RatingsOf = () => [];
 
 describe("a move", () => {
-  it("to a place on the bench puts a bench player there, up or down", () => {
+  it("to a place on the bench puts a bench player there, up or down", () => { // one-home-ok: the test's name
     expect(benchedAt(DRAFT, 3, 1)).toEqual({ starters: [KEEPER, BACK], bench: [4, 3] }); // down one
     expect(benchedAt(DRAFT, 4, 0)).toEqual({ starters: [KEEPER, BACK], bench: [4, 3] }); // up one
   });
@@ -147,7 +147,7 @@ describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
 describe("a preset picked fills its empty slots from the bench (Craig, 1 Nov 2026; #1025)", () => {
   const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
 
-  it("takes bench players who play an empty slot, in bench order, and leaves the rest on the bench", () => {
+  it("takes bench players who play an empty slot, in bench order, and leaves the rest on the bench", () => { // one-home-ok: the test's name
     const draft = { starters: [KEEPER], bench: [3, 5, 2, 7] };
     const shape = [KEEPER, cell("defence", "left"), cell("attack", "centre")];
     expect(reshaped(draft, shape, PLAYS, NO_STARS)).toEqual({

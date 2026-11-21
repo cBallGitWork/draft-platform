@@ -26,7 +26,7 @@ const OLDER = Date.parse("2026-10-12T10:00:00Z");
 const withScouts = (scouts: ScoutsData) => ({ ...HELD, scouts });
 const reportPanel = () => screen.getByRole("region", { name: SCOUT_REPORT_TITLE });
 
-describe("Send a scout", () => {
+describe("Send a scout", () => { // one-home-ok: the test's name
   it("sends one to him, saying how many of the team's scouts are free", async () => {
     const app = openCard(RICE, withScouts({ mine: { ...NO_SCOUTS_OUT, out: [{ playerCode: SAKA.code, name: SAKA.name, sentAt: 0, dueAt: DUE }] } }));
     expect(await screen.findByText(freeScoutsWords(2, 3))).toBeTruthy();

@@ -4,6 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { AREA_WORDS } from "../../../../convex/lineup/pitchWords";
 import type { SquadLimit } from "../../../../convex/squads/squadRulesView";
 import {
   blankWeekWords,
@@ -11,6 +12,7 @@ import {
   openPanelLabel,
   rulesTableLabel,
   scheduleTableLabel,
+  squadSizeWords,
   squadViewWords,
   squadTableLabel,
 } from "../../../../src/myTeam/squad/words";
@@ -72,9 +74,9 @@ describe("the Rules view", () => {
   it("holds one row per limit, naming the players each counts, and flags a row the squad is outside with how far out", async () => {
     await showView({ ...squadOf([SAKA, PALMER, RAYA], 9, [], 2), limits }, "rules");
     expect(bodyRows(rulesTableLabel("Team 1")).map(cells)).toEqual([
-      ["Squad size", "3", "2 to 2", "1 over", "Saka, Palmer, Raya"],
-      ["Goalkeeper", "1", "at least 2", "1 short", "Raya"],
-      ["Attacking midfield", "2", "at least 1", "", "Saka, Palmer"],
+      [squadSizeWords, "3", "2 to 2", "1 over", "Saka, Palmer, Raya"],
+      [AREA_WORDS.goalkeeper, "1", "at least 2", "1 short", "Raya"],
+      [AREA_WORDS.attackingMidfield, "2", "at least 1", "", "Saka, Palmer"],
       [`From ${ARSENAL.name}`, "2", "at most 3", "", "Saka, Raya"],
     ]);
   });
@@ -86,7 +88,7 @@ describe("the Rules view", () => {
     ];
     await showView({ ...squadOf([SAKA, RAYA], 9, [99]), limits: over }, "rules");
     expect(bodyRows(rulesTableLabel("Team 1")).map(cells)).toEqual([
-      ["Squad size", "2", "3 to 5", "1 short", "Saka, and 1 not held"],
+      [squadSizeWords, "2", "3 to 5", "1 short", "Saka, and 1 not held"],
       [`From ${ARSENAL.name}`, "2", "at most 1", "1 over", "Saka, Raya"],
     ]);
   });

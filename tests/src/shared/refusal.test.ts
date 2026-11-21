@@ -6,7 +6,7 @@ import { expect, test } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { answerOf, refusalOf } from "../../../src/shared/refusal";
 
-const FAILED = "Something went wrong.";
+const FAILED = "Something went wrong."; // one-home-ok: any words; refusalOf is handed them
 
 test("a change made resolves with no problem, and an answer with the answer", async () => {
   expect(await refusalOf(async () => "made", "Making it", FAILED)).toBeNull();

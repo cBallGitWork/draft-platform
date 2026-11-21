@@ -96,7 +96,7 @@ describe("the Tactics tab's GW opponent widget", () => {
     expect(within(widget).getAllByText(formHead)).toHaveLength(2);
   });
 
-  it("shows the odd team out playing the league's average, as a link to its matchup", async () => {
+  it("shows the odd team out playing the league's average, as a link to its matchup", async () => { // one-home-ok: the test's name
     const table = leagueTableOf(TEAMS.slice(0, 3));
     const gameweek = sittingOutIn(table);
     openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });
@@ -104,7 +104,7 @@ describe("the Tactics tab's GW opponent widget", () => {
     expect(within(widget).getByRole("link").textContent).toContain(leagueAverageWords);
   });
 
-  it("shows the odd team out on a bye, with no matchup", async () => {
+  it("shows the odd team out on a bye, with no matchup", async () => { // one-home-ok: the test's name
     const table = withByes(leagueTableOf(TEAMS.slice(0, 3)));
     const gameweek = sittingOutIn(table);
     openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });

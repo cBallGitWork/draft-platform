@@ -75,7 +75,7 @@ describe("creating a league", () => {
     expect((screen.getByRole("button", { name: newLeagueLabels.create }) as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("LG-046 S13.4: Create the league double-clicked asks for one league, not two", async () => {
+  it("LG-046 S13.4: Create the league double-clicked asks for one league, not two", async () => { // one-home-ok: the test's name
     const app = openApp(NEW_LEAGUE_PATH, admin);
     app.leagues.createLeague.mockReturnValue(new Promise(() => {}));
     await fillIn();
@@ -84,7 +84,7 @@ describe("creating a league", () => {
     expect(app.leagues.createLeague).toHaveBeenCalledTimes(1);
   });
 
-  it("says the name's limit, and under Create the league that a link is emailed, with no line under the email (#1498)", async () => {
+  it("says the name's limit, and under Create the league that a link is emailed, with no line under the email (#1498)", async () => { // one-home-ok: the test's name
     openApp(NEW_LEAGUE_PATH, admin);
     const nameBox = await screen.findByRole("textbox", { name: newLeagueLabels.name });
 

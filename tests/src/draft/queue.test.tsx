@@ -121,7 +121,7 @@ describe("the queue", () => {
     expect(app.path()).toBe(SCOUTING_PATH);
   });
 
-  it("Add my whole shortlist adds it, and says how many went in and how many were left out", async () => {
+  it("Add my whole shortlist adds it, and says how many went in and how many were left out", async () => { // one-home-ok: the test's name
     const app = openDraft({ shortlistAdded: { added: 12, leftOut: 3 } });
     const panel = await queuePanel();
     await userEvent.click(within(panel).getByRole("button", { name: addWholeShortlistWords }));
@@ -154,7 +154,7 @@ describe("the do-not-draft list", () => {
 });
 
 describe("auto-pick", () => {
-  it("off it: his timeouts against the league's limit, and Turn auto-pick on", async () => {
+  it("off it: his timeouts against the league's limit, and Turn auto-pick on", async () => { // one-home-ok: the test's name
     const app = openDraft({ board: { ...emptyBoard, yourAutoPick: { on: false, timeouts: 1, limit: 2 } } });
     const panel = await autoPickPanel();
     expect(panel.textContent).toContain(`Timeouts 1 of 2. ${timeoutsWords(2)}`);
@@ -167,7 +167,7 @@ describe("auto-pick", () => {
     expect((await autoPickPanel()).textContent).toContain(`Timeouts 0. ${timeoutsWords(null)}`);
   });
 
-  it("on it, after auto-pick took his last pick: says which, and Take control back takes it back", async () => {
+  it("on it, after auto-pick took his last pick: says which, and Take control back takes it back", async () => { // one-home-ok: the test's name
     const picks = [
       { pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: 10, name: "Saka", clubShortName: "ARS", position: "W" as const } },
       { pick: 2, teamId: YOUR_TEAM, auto: true, player: { code: 11, name: "Salah", clubShortName: "LIV", position: "W" as const } },

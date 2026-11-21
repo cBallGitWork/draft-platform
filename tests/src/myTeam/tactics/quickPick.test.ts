@@ -37,7 +37,7 @@ const lineupOf = (starting: readonly [PickedFrom, Cell][], bench: readonly Picke
 /** Who stands in each cell, by its key. */
 const standing = (lineup: EditedLineup) => Object.fromEntries(lineup.starters.map(({ playerCode, area, lane }) => [cellKey({ area, lane }), playerCode]));
 
-describe("Quick Pick", () => {
+describe("Quick Pick", () => { // one-home-ok: the test's name
   it("fills each slot with the highest-starred player who can stand there, the shape's cells kept", () => {
     const starter = player(2, ["CB"], { CB: 3 });
     const better = player(3, ["CB"], { CB: 4.5 });

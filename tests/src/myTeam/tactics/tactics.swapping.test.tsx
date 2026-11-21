@@ -121,7 +121,7 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
     expect(blockOf(other, from)).toBeTruthy();
   });
 
-  it("a centre-back on the bench swaps into the middle by a tap, and back out by a drag", async () => {
+  it("a centre-back on the bench swaps into the middle by a tap, and back out by a drag", async () => { // one-home-ok: the test's name
     await openedPitch({ tactics: FIVE });
     await pickUp(MOSQUERA);
     expect(allSwaps()).toEqual(expect.arrayContaining([SALIBA, GABRIEL, KIWIOR].map((each) => swapLabel(MOSQUERA.name, each.name))));

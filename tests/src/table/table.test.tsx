@@ -179,7 +179,7 @@ describe("the fixtures", () => {
   /** Gameweek 1 began two weeks ago, so gameweek 3 is the first not begun. */
   const deadlineOf = (gameweek: number) => Date.now() + (gameweek - 3) * WEEK_MS + HOUR_MS;
 
-  it("open on the first gameweek not yet begun, the team left over against the league's average", async () => {
+  it("open on the first gameweek not yet begun, the team left over against the league's average", async () => { // one-home-ok: the test's name
     const drawn = leagueTableOf(FIVE, { deadlineOf });
     openTable({ leagueTable: drawn });
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(3) })).toBeTruthy();
@@ -188,7 +188,7 @@ describe("the fixtures", () => {
     expect(fixtureLines(3)).toEqual(fixtures.map(({ team, opponent }) => `${team}v${opponent ?? leagueAverageWords}`));
   });
 
-  it("show each scored fixture's score, the league's average's too", async () => {
+  it("show each scored fixture's score, the league's average's too", async () => { // one-home-ok: the test's name
     const scores = new Map([[1, new Map([["Ann's", 20], ["Bob's", 0], ["Cat's", 41.5], ["Dan's", 33], ["Eve's", 18]])]]);
     const drawn = leagueTableOf(FIVE, { scores, deadlineOf: () => Date.now() - HOUR_MS, gameweeks: [1] });
     openTable({ leagueTable: drawn });
@@ -233,7 +233,7 @@ describe("the fixtures", () => {
     expect(fixtureLines(1)).toHaveLength(2);
   });
 
-  it("with two games a gameweek, list both rounds' fixtures and every team with a bye", async () => {
+  it("with two games a gameweek, list both rounds' fixtures and every team with a bye", async () => { // one-home-ok: the test's name
     const drawn = withByes(leagueTableOf(FIVE, { gamesPerGameweek: 2 }));
     openTable({ leagueTable: drawn });
     const [first] = drawn.gameweeks;

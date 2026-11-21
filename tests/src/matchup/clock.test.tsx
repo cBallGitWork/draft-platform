@@ -43,7 +43,7 @@ describe("his match's clock", () => {
     expect(screen.getByText(halfTime.short)).toBeTruthy();
   });
 
-  it("shows the day alone before he plays, his kickoff's time read out, and no badge for his match on the bench", async () => {
+  it("shows the day alone before he plays, his kickoff's time read out, and no badge for his match on the bench", async () => { // one-home-ok: the test's name
     const kickoff = Date.UTC(2026, 10, 15, 16, 30);
     const yetToPlay = { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff } as const;
     await openLineup([slot("Coyle", { status: yetToPlay })], [slot("Pandur", { area: "goalkeeper", counts: false, status: yetToPlay })]);

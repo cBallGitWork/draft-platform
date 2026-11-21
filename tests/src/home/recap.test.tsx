@@ -30,7 +30,7 @@ const openRecap = (gameweek: number, home: HomeData = {}) => openApp(`${RECAP_PA
 const changed = { ...gameweekOneRecap, changedTeamId: "team-2" as Id<"teams"> };
 
 describe("on League home", () => {
-  it("shows its opening lines above Your squad news, and Read the recap opens it whole", async () => {
+  it("shows its opening lines above Your squad news, and Read the recap opens it whole", async () => { // one-home-ok: the test's name
     const app = openHome({ leagueHome: { ...quietHome, recap: gameweekOneRecap }, recaps: [gameweekOneRecap] });
     const recap = await panel(TITLE);
     expect(within(recap).getByText(/Team 1 beat Team 2/)).toBeTruthy();
@@ -43,7 +43,7 @@ describe("on League home", () => {
     expect(app.home.useRecap).toHaveBeenLastCalledWith(league.leagueId, gameweekOneRecap.gameweek);
   });
 
-  it("with none to show, its panel holds outlines, with no Read the recap", async () => {
+  it("with none to show, its panel holds outlines, with no Read the recap", async () => { // one-home-ok: the test's name
     openHome({ leagueHome: quietHome });
     const recap = await panel(TITLE);
     expect(within(recap).getByText(recapToComeWords(gameweekOneRecap.gameweek))).toBeTruthy();
@@ -60,7 +60,7 @@ describe("on League home", () => {
   });
 });
 
-describe("Read the recap's page", () => {
+describe("Read the recap's page", () => { // one-home-ok: the test's name
   it("shows the recap whole, and leads back to League home", async () => {
     const app = openRecap(1, { recaps: [gameweekOneRecap] });
     expect(await screen.findByText(/Saka scored 15\./)).toBeTruthy();

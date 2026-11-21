@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOME_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
-import { joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
+import { endedInviteWords, joinFailedWords, joiningALeagueWords, yourJoinRequestWords } from "../../../src/joining/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, miniBeta, newcomer, openApp, visitor, withNoPart, yourLeaguesHeading } from "../../support/src/shell.harness";
@@ -46,11 +46,11 @@ describe("someone signed in, in no league", () => {
   // "Your invite to <league> expired / was cancelled / couldn't be used: <reason>. Ask the
   // commissioner for a new one." (Craig, 22 Oct 2026), the reason its own sentence.
   it.each([
-    [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."],
-    [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."],
+    [{ leagueName: "Mini beta", ended: "expired", reason: null }, "Your invite to Mini beta expired. Ask the commissioner for a new one."], // one-home-ok: pins Craig's wording (22 Oct 2026)
+    [{ leagueName: "Mini beta", ended: "cancelled", reason: null }, "Your invite to Mini beta was cancelled. Ask the commissioner for a new one."], // one-home-ok: pins Craig's wording (22 Oct 2026)
     [
       { leagueName: "Mini beta", ended: "couldNotJoin", reason: "The league is full: it has all 4 of its teams." },
-      "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.",
+      "Your invite to Mini beta couldn't be used. The league is full: it has all 4 of its teams. Ask the commissioner for a new one.", // one-home-ok: pins Craig's wording (22 Oct 2026)
     ],
     // Still live, but a fault at sign-in kept them out (Craig, 12 Nov 2026, on #1437).
     [{ leagueName: "Mini beta", ended: "joinFailed", reason: null }, joinFailedWords],
@@ -62,7 +62,7 @@ describe("someone signed in, in no league", () => {
 
   it("whose invite couldn't be used, with no reason kept, never sees 'null'", async () => {
     openApp(LEAGUES_PATH, newcomer, { joining: { endedInvite: { leagueName: "Mini beta", ended: "couldNotJoin", reason: null } } });
-    const line = await screen.findByText("Your invite to Mini beta couldn't be used. Ask the commissioner for a new one.");
+    const line = await screen.findByText(endedInviteWords({ leagueName: "Mini beta", ended: "couldNotJoin", reason: null }));
     expect(line.textContent).not.toContain("null");
   });
 
@@ -85,7 +85,7 @@ describe("someone signed in, in no league", () => {
     expect(within(panel).getByText(yourJoinRequestWords.waiting)).toBeTruthy();
   });
 
-  it("sees a Main menu of only their leagues and Mail, no section tabs, no Create a league, and can sign out", async () => {
+  it("sees a Main menu of only their leagues and Mail, no section tabs, no Create a league, and can sign out", async () => { // one-home-ok: the test's name
     const app = openApp(LEAGUES_PATH, newcomer);
     await yourLeaguesHeading();
     const main = screen.getByRole("navigation", { name: mainMenuLabel });
@@ -100,7 +100,7 @@ describe("someone signed in, in no league", () => {
     expect(app.path()).toBe(SIGN_IN_PATH);
   });
 
-  it("opening Create a league, not being the admin, is sent back to their leagues", async () => {
+  it("opening Create a league, not being the admin, is sent back to their leagues", async () => { // one-home-ok: the test's name
     const app = openApp(NEW_LEAGUE_PATH, newcomer);
     expect(await yourLeaguesHeading()).toBeTruthy();
     expect(app.path()).toBe(LEAGUES_PATH);
@@ -108,7 +108,7 @@ describe("someone signed in, in no league", () => {
 });
 
 describe("the admin, with no part in a league", () => {
-  it("is offered Create a league, which opens its form", async () => {
+  it("is offered Create a league, which opens its form", async () => { // one-home-ok: the test's name
     const app = openApp("/", admin);
     await userEvent.click(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE }));
     expect(await screen.findByRole("heading", { level: 1, name: NEW_LEAGUE_TITLE })).toBeTruthy();
@@ -117,7 +117,7 @@ describe("the admin, with no part in a league", () => {
   });
 
   // Craig, 15 Nov 2026, on #2358: Create a league replaces the not-in-a-league words.
-  it("S02.4: in no league, sees Create a league instead of the page saying he's in none", async () => {
+  it("S02.4: in no league, sees Create a league instead of the page saying he's in none", async () => { // one-home-ok: the test's name
     openApp(LEAGUES_PATH, admin);
     expect(await screen.findByRole("link", { name: NEW_LEAGUE_TITLE })).toBeTruthy();
     expect(screen.queryByText(notInALeagueWords(admin.email))).toBeNull();
@@ -167,7 +167,7 @@ describe("the admin, with no part in a league", () => {
 
   it.each([
     ["Gameweeks", gameweeksPath],
-    ["Player scoring", scoringPath],
+    ["Player scoring", scoringPath], // one-home-ok: the case's name, in the test's name
   ])("opening %s of a league past the list's cut lands on his leagues, which says some are missing (#297)", async (_, pathOf) => {
     const app = openApp(pathOf("league-past-the-cut"), { ...adminSeeing(withNoPart(league)), leaguesCut: true });
     await yourLeaguesHeading();
