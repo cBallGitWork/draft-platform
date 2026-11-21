@@ -46,7 +46,7 @@ test("a game not yet played has no score", async () => {
   expect(unplayed.every((game) => game.score === null)).toBe(true);
 });
 
-test("a game against the league's average scores the average, provisional while any team's points are", async () => {
+test("a game against the league's average scores the average, provisional while any team's points are", async () => { // one-home-ok: the test's name, not a letter's words
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   // Cat's team saved no lineup, so it scores 0 and counts in the average as 0.

@@ -25,7 +25,7 @@ useDeadlineRecorderDeployment();
 // Between two football syncs, six hours apart, a deadline passes: each recording sets an alarm for
 // the soonest deadline to come, so the gameweek is recorded as begun when it passes, not at the
 // next sync.
-describe("the alarm at the next deadline", () => {
+describe("the alarm at the next deadline", () => { // one-home-ok: the suite's name, not a letter's words
   /** The alarms pending, each at its time. */
   const pendingAlarms = async () =>
     (await pendingJobs(t, internal.gameweeks.deadlineRecorder.recordDueDeadlines)).map((job) => job.scheduledTime);

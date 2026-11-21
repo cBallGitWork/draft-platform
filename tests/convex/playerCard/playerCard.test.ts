@@ -146,9 +146,9 @@ test("the game log's columns are the site's categories but minutes, each saying 
     ["goals_scored", "GSC", "Goals scored", [true, true]],
     ["assists", "AS", "Assists", [true, true]],
     ["saves", "S", "Saves", [false, false]],
-    ["goals_conceded", "GC", "Goals conceded", [false, false]],
+    ["goals_conceded", "GC", "Goals conceded", [false, false]], // one-home-ok: the stat catalogue's own name (statCatalogueList.ts), as the card reads it
     ["defensive_contribution", "DC", "Defensive contribution", [true, true]],
-    ["yellow_cards", "YC", "Yellow cards", [true, true]],
+    ["yellow_cards", "YC", "Yellow cards", [true, true]], // one-home-ok: the stat catalogue's own name (statCatalogueList.ts), as the card reads it
   ]);
   // A second striker, priced at no slot, has one column of his own: whether it scores anywhere.
   expect((await cardAs(ANN, SUPPORT.code))!.categories.find(({ stat }) => stat === "saves")!.scoresAt).toEqual([true]);
@@ -227,7 +227,7 @@ test("a match his team started him in shows his base points, and his role's line
   expect(priced.role).toEqual({ name: "Inside forward", points: 2, sides: [{ points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1 }] }] });
 });
 
-test("a match his team named him on the bench for shows his base points, with no role line", async () => {
+test("a match his team named him on the bench for shows his base points, with no role line", async () => { // one-home-ok: the test's name, not a screen's words
   const priced = await annFieldsSaka("benched");
 
   expect(priced.points).toMatchObject([{ position: "W", total: 11 }]);

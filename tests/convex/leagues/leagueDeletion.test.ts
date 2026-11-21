@@ -7,7 +7,9 @@ import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { aRowInEveryTable, deletes, leagueWithPeople, moreEventsThanOneRun, rowsKeyedTo, undoes } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/convex/leagueMutations.harness";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, accountOf, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
-import schema from "../../../convex/schema";
+import schema, { type LeagueEvent } from "../../../convex/schema";
+import { eventLetter } from "../../../convex/mail/letterWords";
+import { tellIn } from "../../../convex/mail/letterMoments";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { elapse, expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 
@@ -159,8 +161,9 @@ describe("while it can be undone", () => {
           .filter((letter) => letter.subject === subject)
           .map(({ to, readAt }) => ({ to, read: readAt !== undefined })),
       );
-    const STARTED = `${LEAGUE_NAME} is being deleted`;
-    const UNDONE = `${LEAGUE_NAME} is no longer being deleted`;
+    const subjectOf = (event: LeagueEvent) => eventLetter(event, COMMISSIONER, tellIn(undefined)).subject;
+    const STARTED = subjectOf({ kind: "deletionStarted", name: LEAGUE_NAME, deletesAt: Date.now() });
+    const UNDONE = subjectOf({ kind: "deletionUndone", name: LEAGUE_NAME });
 
     test("the commissioner deleting it tells only themselves, filed read", async () => {
       await deletes(t, COMMISSIONER, leagueId);

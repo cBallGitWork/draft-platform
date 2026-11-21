@@ -154,7 +154,7 @@ const ONE_CELL_A_POSITION = ALL_CELLS.filter((cell, index) => ALL_CELLS.findInde
 // #797's Done: over a recorded match, every category's why reproduces its points.
 describe.each([
   ["the example set", EXAMPLE_SET],
-  ["the first scoring set", FIRST],
+  ["the first scoring set", FIRST], // one-home-ok: a row of the suite's name, not a screen's words
 ])("every recorded line of Hull v Everton, from both feeds, at every slot position, under %s", (_name, set) => {
   const lines = [...fplLines, ...plLines];
 

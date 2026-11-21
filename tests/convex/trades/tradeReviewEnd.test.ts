@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
+import { tradeFailedLetter } from "../../../convex/mail/tradeLetterWords";
 import { squadFullRefusal } from "../../../convex/trades/tradeSquads";
 import { actingAs, eventsIn, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
@@ -40,10 +41,7 @@ describe("a review's end (#1325)", () => {
 
     expect((await w.offers()).map(({ _id }) => _id)).not.toContain(second.offerId);
     expect(await squadOf(w.catsTeam)).toContain(RICE);
-    const letter = {
-      subject: `The trade between ${TEAM_3} and ${TEAM_1} didn't go through`,
-      body: `${TEAM_1} would hold more than ${MOST_IN_SQUAD} players, so nobody moves. The trade was: ${TEAM_3} give ${nameOf(RICE)}; ${TEAM_1} give nobody.`,
-    };
+    const letter = tradeFailedLetter({ fromTeamName: TEAM_3, toTeamName: TEAM_1, gives: [nameOf(RICE)], gets: [], note: null }, { why: "squadFull", teamName: TEAM_1 });
     expect(await w.lettersTo(CAT)).toContainEqual(letter);
     expect(await w.lettersTo(ANN)).toContainEqual(letter);
     await (await actingAs(w.t, CAT)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: RICE });
@@ -69,10 +67,7 @@ describe("a review's end (#1325)", () => {
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
     expect(await squadOf(w.annsTeam)).toContain(ANNS_FIRST_DROP);
     expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerMoved")).toEqual([]);
-    const letter = {
-      subject: `The trade between ${TEAM_1} and ${TEAM_2} didn't go through`,
-      body: `It couldn't be made, so nobody moves. The trade was: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)}.`,
-    };
+    const letter = tradeFailedLetter({ fromTeamName: TEAM_1, toTeamName: TEAM_2, gives: [nameOf(ANNS_FIRST_DROP)], gets: [nameOf(SAKA)], note: null }, { why: "error" });
     expect(await w.lettersTo(ANN)).toContainEqual(letter);
     expect(await w.lettersTo(BOB)).toContainEqual(letter);
   });

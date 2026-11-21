@@ -207,7 +207,7 @@ const ONE_PER_3 = { every: 3, points: 1 };
 const scoringWithOwn = (change: Partial<{ name: string; shortCode: string }>): StoredScoringSet => ({
   rules: [{ shape: "perAction", stat: "league:tackles", values: { all: 1 } }],
   wholePointsOnly: false,
-  ownStats: [{ stat: "league:tackles", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 1 }], ...change }],
+  ownStats: [{ stat: "league:tackles", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 1 }], ...change }], // one-home-ok: an own stat's name, which a commissioner chooses: fixture data
 });
 
 // Moved here from the league rules' check when the scoring became the site's (#354).

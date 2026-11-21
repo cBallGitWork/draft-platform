@@ -196,7 +196,7 @@ test("a side on the lineup it got after the draft shows it and scores from it (#
   expect(lineupOf(bob).bench.find(({ playerCode }) => playerCode === EVERTON_BENCH_CENTRE_BACK)).toMatchObject({ counts: false });
 });
 
-test("the team left over meets the league's average, every team counted once in it", async () => {
+test("the team left over meets the league's average, every team counted once in it", async () => { // one-home-ok: the test's name, not a screen's words
   const league = await scoresLeague({ catToo: true });
   await fullTimeRecords(league);
   await lockMatch(league);

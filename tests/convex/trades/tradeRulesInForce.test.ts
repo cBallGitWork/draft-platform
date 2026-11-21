@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { expectRefused } from "../../support/convex/test.harness";
-import { PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { PALMER, RICE, reviewSubject, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 import { ANN, CAT, TEAM_1, TEAM_2 } from "../../support/convex/leagues.harness";
 
@@ -32,7 +32,7 @@ test("a waiting change to a vote sends no trade accepted now to one", async () =
   await w.annTradesForSaka();
 
   expect(await annsSquad()).toContain(SAKA);
-  expect(await w.subjectsTo(CAT)).not.toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
+  expect(await w.subjectsTo(CAT)).not.toContain(reviewSubject("vote", TEAM_1, TEAM_2));
 });
 
 test("the change takes effect once its gameweek begins", async () => {

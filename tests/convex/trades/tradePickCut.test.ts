@@ -5,6 +5,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { lettersTo, type TestConvex, ANN, BOB, CAT, freshLeague } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
+import { pickTradeUndoneLetter, pickWords } from "../../../convex/mail/tradeLetterWords";
 
 // A pick trade with a pick in a round a squad-size cut removed (#1457): when the draft starts, the
 // trade is undone, both picks back with the teams that held them before, and both managers are
@@ -61,12 +62,9 @@ describe("a squad-size cut below a traded pick's round", () => {
     await makePick(CAT, 103);
     expect(await onTheClock()).toBeNull();
     const [annsTeam, bobsTeam] = [await teamName(ann), await teamName(bob)];
-    for (const email of [ANN, BOB]) {
-      expect(await lettersTo(t, email)).toContainEqual({
-        subject: `The trade between ${annsTeam} and ${bobsTeam} is undone`,
-        body: `The draft has 1 rounds, so the ${bobsTeam} round 2 pick isn't in it. Both picks go back to the teams that held them before the trade. The trade was: ${annsTeam} give the ${annsTeam} round 1 pick; ${bobsTeam} give the ${bobsTeam} round 2 pick.`,
-      });
-    }
+    const trade = { fromTeamName: annsTeam, toTeamName: bobsTeam, gives: [pickWords(1, annsTeam)], gets: [pickWords(2, bobsTeam)], note: null };
+    const undone = pickTradeUndoneLetter(trade, pickWords(2, bobsTeam), { why: "roundCut" }, 1);
+    for (const email of [ANN, BOB]) expect(await lettersTo(t, email)).toContainEqual(undone);
     expect(await undoneSubjects(CAT)).toEqual([]);
   });
 
@@ -79,10 +77,9 @@ describe("a squad-size cut below a traded pick's round", () => {
 
     expect(await tradedPicks()).toEqual([]);
     expect(await onTheClock()).toEqual({ pick: 1, teamId: ann });
-    const annsTeam = await teamName(ann);
-    expect((await lettersTo(t, BOB)).map(({ body }) => body)).toContainEqual(
-      expect.stringContaining(`An earlier trade was undone, so the ${annsTeam} round 1 pick went back to the team that held it before.`),
-    );
+    const [annsTeam, bobsTeam, catsTeam] = [await teamName(ann), await teamName(bob), await teamName(cat)];
+    const trade = { fromTeamName: catsTeam, toTeamName: bobsTeam, gives: [pickWords(1, annsTeam)], gets: [pickWords(1, bobsTeam)], note: null };
+    expect(await lettersTo(t, BOB)).toContainEqual(pickTradeUndoneLetter(trade, pickWords(1, annsTeam), { why: "pickBack" }, 1));
     expect(await undoneSubjects(CAT)).toHaveLength(2);
   });
 

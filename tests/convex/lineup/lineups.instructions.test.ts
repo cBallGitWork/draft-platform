@@ -1,7 +1,8 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { InstructionPair } from "../../../convex/lineup/instructions";
+import { FIRST_INSTRUCTIONS, type InstructionPair } from "../../../convex/lineup/instructions";
+import { pairRefusalWords } from "../../../convex/lineup/instructionsWords";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { tacticsOf } from "../../support/convex/screenReads.harness";
@@ -48,7 +49,8 @@ test("a pair the formation offers is saved and read back", async () => {
 
 test("one the formation blocks is refused, saying what it needs", async () => {
   const manager = await ann();
-  await expectRefused(manager.save(FOUR_FOUR_TWO, { attacking: "playOutFromTheBack", defensive: "parkTheBus" }), "Park the bus needs 5 at the back, which this line-up's formation doesn't have.");
+  const needsFiveAtTheBack = pairRefusalWords({ side: "defensive", key: "parkTheBus", blockedBy: "fiveAtTheBack" }, FIRST_INSTRUCTIONS);
+  await expectRefused(manager.save(FOUR_FOUR_TWO, { attacking: "playOutFromTheBack", defensive: "parkTheBus" }), needsFiveAtTheBack);
 });
 
 test("one the league doesn't hold, or on the wrong side, is refused", async () => {

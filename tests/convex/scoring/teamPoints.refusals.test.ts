@@ -22,7 +22,7 @@ describe("bad input throws rather than score", () => {
 
   test.each([
     ["a sub off who isn't a starter", sub({ off: BELLOUMI }), `player ${BELLOUMI} is subbed off but isn't a starter`],
-    ["a sub on who isn't on the bench", sub({ on: TZOLAKIS }), `player ${TZOLAKIS} comes on but isn't on the bench`],
+    ["a sub on who isn't on the bench", sub({ on: TZOLAKIS }), `player ${TZOLAKIS} comes on but isn't on the bench`], // one-home-ok: a row of the test's name, and teamPoints.ts's own error
     [
       "a starter subbed off twice",
       [...sub({}), ...sub({ on: PHILLIPS, cell: RIGHT_BACK })],

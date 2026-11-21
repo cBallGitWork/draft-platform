@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { offerLetter } from "../../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "../../../convex/trades/tradeLimits";
 import { OFFERS_READ_MOST } from "../../../convex/trades/tradeClose";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
@@ -45,11 +46,10 @@ describe("an offer", () => {
       ]);
     }
     expect(await w.mine(CAT)).toEqual([]);
-    expect(await w.lettersTo(BOB)).toContainEqual({
-      subject: `${TEAM_1} offered ${TEAM_2} a trade`,
-      body: `${ANN} offered ${TEAM_2} a trade for ${TEAM_1}: ${TEAM_1} give ${nameOf(ANNS_FIRST_DROP)}; ${TEAM_2} give ${nameOf(SAKA)} and ${nameOf(PALMER)}. The note: "Fancy a swap?" ${TEAM_2} can accept, reject or counter it; unanswered, it closes at the next deadline.`,
-    });
-    expect(await w.subjectsTo(ANN)).toContain(`${TEAM_1} offered ${TEAM_2} a trade`);
+    const trade = { fromTeamName: TEAM_1, toTeamName: TEAM_2, gives: [nameOf(ANNS_FIRST_DROP)], gets: [nameOf(SAKA), nameOf(PALMER)], note: "Fancy a swap?" };
+    const offered = offerLetter(trade, ANN, false, null);
+    expect(await w.lettersTo(BOB)).toContainEqual(offered);
+    expect(await w.subjectsTo(ANN)).toContain(offered.subject);
   });
 
   test("can give or get nobody on one side", async () => {
@@ -188,7 +188,7 @@ describe("answering an offer", () => {
     await expectRefused(w.withdraw(ANN, accepted.offerId), offerRefusals.closed);
   });
 
-  test("one nobody answers closes at the next deadline, and can't be accepted after it", async () => {
+  test("one nobody answers closes at the next deadline, and can't be accepted after it", async () => { // one-home-ok: the test's name, not a letter's words
     const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await w.closeDue();
     expect(await w.offers()).toHaveLength(1);

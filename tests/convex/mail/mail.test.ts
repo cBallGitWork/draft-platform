@@ -3,7 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3, freshLeague } from "../../support/convex/leagues.harness";
-import { adminByline } from "../../../convex/mail/letterWords";
+import { adminByline, eventLetter } from "../../../convex/mail/letterWords";
+import { tellIn } from "../../../convex/mail/letterMoments";
+import type { LeagueEvent } from "../../../convex/schema";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX, UNREAD_COUNTED } from "../../../convex/mail/mailLimits";
 import { MINUTE_MS } from "../../../convex/shared/time";
@@ -32,14 +34,18 @@ async function mailOf(email: string) {
 
 /** Every letter filed, as [to, subject]. */
 const everyLetter = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map((row) => [row.to, row.subject]));
+/** The subject of the letter `event` files. */
+const subjectOf = (event: LeagueEvent) => eventLetter(event, COMMISSIONER, tellIn(undefined)).subject;
+/** The subject of the letter saying `email` joined as the manager of `teamName`. */
+const joined = (email: string, teamName: string) => subjectOf({ kind: "joinRequestApproved", email, teamId: "team" as Id<"teams">, teamName });
 
 describe("letters about the league's events", () => {
   test("each goes to everyone in the league as it is after the event, and to nobody else", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
 
-    expect(await (await mailOf(ANN)).subjects()).toEqual([`${BOB} joined as manager of ${TEAM_2}`, `${ANN} joined as manager of ${TEAM_1}`]);
+    expect(await (await mailOf(ANN)).subjects()).toEqual([joined(BOB, TEAM_2), joined(ANN, TEAM_1)]);
     // Bob joined after Ann, so her letter was never his.
-    expect(await (await mailOf(BOB)).subjects()).toEqual([`${BOB} joined as manager of ${TEAM_2}`]);
+    expect(await (await mailOf(BOB)).subjects()).toEqual([joined(BOB, TEAM_2)]);
     expect(await (await mailOf(CAT)).letters()).toEqual([]);
     expect(await (await mailOf(ADMIN)).letters()).toEqual([]);
   });
@@ -48,13 +54,14 @@ describe("letters about the league's events", () => {
     await addManagers(t, leagueId, [ANN]);
     await (await actingAs(t, COMMISSIONER)).mutation(api.joining.inviteLink.make, { leagueId });
 
-    expect((await (await mailOf(ANN)).subjects())[0]).toBe("The league has a new invite link");
-    expect((await (await mailOf(COMMISSIONER)).subjects())[0]).toBe("The league has a new invite link");
+    const newLink = subjectOf({ kind: "inviteLinkMade", replacedOne: false });
+    expect((await (await mailOf(ANN)).subjects())[0]).toBe(newLink);
+    expect((await (await mailOf(COMMISSIONER)).subjects())[0]).toBe(newLink);
   });
 
   test("someone with two parts in the league gets one copy", async () => {
     await addManagers(t, leagueId, [COMMISSIONER, ANN]);
-    const copies = (await everyLetter()).filter(([to, subject]) => to === COMMISSIONER && subject === `${ANN} joined as manager of ${TEAM_2}`);
+    const copies = (await everyLetter()).filter(([to, subject]) => to === COMMISSIONER && subject === joined(ANN, TEAM_2));
     expect(copies).toHaveLength(1);
   });
 
@@ -77,8 +84,8 @@ describe("letters about the league's events", () => {
     const ann = await actingAs(t, ANN);
     const subjectsIn = async (league: Id<"leagues">) => (await ann.query(api.mail.mail.letters, { leagueId: league })).map((letter) => letter.subject);
 
-    expect(await subjectsIn(leagueId)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
-    expect(await subjectsIn(otherLeague)).toEqual(["Patch 1.4", `${ANN} joined as manager of ${TEAM_1}`]);
+    expect(await subjectsIn(leagueId)).toEqual(["Patch 1.4", joined(ANN, TEAM_1)]);
+    expect(await subjectsIn(otherLeague)).toEqual(["Patch 1.4", joined(ANN, TEAM_1)]);
     expect((await ann.query(api.mail.mail.letters, { leagueId })).map((letter) => letter.leagueName)).toEqual([PRODUCT_NAME, LEAGUE_NAME]);
     expect(await (await mailOf(ANN)).letters()).toHaveLength(3);
   });
@@ -107,8 +114,8 @@ describe("letters about the league's events", () => {
 
     const ann = await (await mailOf(ANN)).subjects();
     expect(ann[0]).toBe(`${ANN} was removed from ${TEAM_1}`);
-    expect(ann).not.toContain(`${CAT} joined as manager of ${TEAM_3}`);
-    expect(await (await mailOf(BOB)).subjects()).toContain(`${CAT} joined as manager of ${TEAM_3}`);
+    expect(ann).not.toContain(joined(CAT, TEAM_3));
+    expect(await (await mailOf(BOB)).subjects()).toContain(joined(CAT, TEAM_3));
     expect(await (await mailOf(BOB)).subjects()).toContain(`${ANN} was removed from ${TEAM_1}`);
   });
 
@@ -140,7 +147,7 @@ describe("letters about the league's events", () => {
     expect(kinds).toEqual([
       ["Old", null],
       [`${ANN} left ${TEAM_1}`, "league"],
-      [`${BOB} joined as manager of ${TEAM_2}`, "commissioner"],
+      [joined(BOB, TEAM_2), "commissioner"],
     ]);
   });
 });

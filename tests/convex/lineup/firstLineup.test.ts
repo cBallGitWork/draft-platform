@@ -30,7 +30,7 @@ const standing = (codes: number[], cells: readonly { area: string; lane: string 
   codes.map((playerCode, index) => ({ playerCode, ...cells[index] }));
 
 describe("each pick goes onto the 4-4-2 as it is made", () => {
-  test("a full squad fills the 4-4-2 in the order it was picked, the rest on the bench in that order", () => {
+  test("a full squad fills the 4-4-2 in the order it was picked, the rest on the bench in that order", () => { // one-home-ok: the test's name, not a screen's words
     const { order, positions } = picked(
       [1, ["ST"]], [2, ["GK"]], [3, ["CB"]], [4, ["FB"]], [5, ["CM"]], [6, ["CB"]], [7, ["WM"]], [8, ["ST"]],
       [9, ["GK"]], [10, ["CB"]], [11, ["CM"]], [12, ["CM"]], [13, ["FB"]], [14, ["ST"]], [15, ["CM"]],
@@ -54,7 +54,7 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     });
   });
 
-  test("a fifth striker goes on the bench, behind the others benched before him", () => {
+  test("a fifth striker goes on the bench, behind the others benched before him", () => { // one-home-ok: the test's name, not a screen's words
     const { order, positions } = picked([1, ["ST"]], [2, ["ST"]], [3, ["ST"]], [4, ["CM"]], [5, ["ST"]], [6, ["ST"]]);
     expect(firstLineup(order, positions, RULES)).toEqual({
       starters: [...standing([4], FLAT_FOUR), ...standing([1, 2], STRIKE_PAIR)],
@@ -67,7 +67,7 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     expect(firstLineup(order, positions, RULES)).toEqual({ starters: standing([1, 2], BACK_FOUR), bench: [] });
   });
 
-  test("a player with no positions yet, or none known, sits on the bench", () => {
+  test("a player with no positions yet, or none known, sits on the bench", () => { // one-home-ok: the test's name, not a screen's words
     expect(firstLineup([1, 2], new Map([[1, []]]), RULES)).toEqual({ starters: [], bench: [1, 2] });
   });
 
@@ -119,7 +119,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
     [1, ["GK"]], [2, ["CB"]], [3, ["CB"]], [4, ["CB"]], [5, ["CDM"]], [6, ["CDM"]], [7, ["CM"]], [8, ["CM"]], [9, ["CM"]], [10, ["ST"]], [11, ["ST"]], [12, ["ST"]],
   );
 
-  test("the first preset in the league's order the squad fills, the rest on the bench in pick order", () => {
+  test("the first preset in the league's order the squad fills, the rest on the bench in pick order", () => { // one-home-ok: the test's name, not a screen's words
     const { order, positions } = BACK_THREE_SQUAD;
     const threeFiveTwo = presetNamed("3-5-2").cells;
     expect(firstLineup(order, positions, RULES)).toEqual({
@@ -144,7 +144,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
 });
 
 describe("a pick benched for having no positions stays there once he has some", () => {
-  test("he is kept on the bench, and the 4-4-2 slot he could fill stays for a later pick", () => {
+  test("he is kept on the bench, and the 4-4-2 slot he could fill stays for a later pick", () => { // one-home-ok: the test's name, not a screen's words
     const before = picked([1, ["GK"]], [2, []], [3, ["CB"]]);
     const held = firstLineup(before.order, before.positions, RULES);
     expect(held.bench).toEqual([2]);
@@ -175,7 +175,7 @@ describe("a pick benched for having no positions stays there once he has some", 
     expect(keptOnBenchOf(firstLineup(order, positions, RULES), order, positions)).toEqual(new Set());
   });
 
-  test("a player kept on the bench fills no preset either", () => {
+  test("a player kept on the bench fills no preset either", () => { // one-home-ok: the test's name, not a screen's words
     const { order, positions } = picked(
       [1, ["GK"]], [2, ["CB"]], [3, ["CB"]], [4, ["CB"]], [5, ["CDM"]], [6, ["CDM"]], [7, ["CM"]], [8, ["CM"]], [9, ["CM"]], [10, ["ST"]], [11, ["ST"]],
     );

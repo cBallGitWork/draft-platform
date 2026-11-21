@@ -45,7 +45,7 @@ describe("#112 Done: tackles + 0.5 × clearances", () => {
 test("a negative weight takes away: shots − shots on target is shots off target", () => {
   const offTarget: OwnStat = {
     stat: "league:off_target",
-    name: "Off target",
+    name: "Off target", // one-home-ok: an own stat's name, which a commissioner chooses: fixture data
     shortCode: "OFF",
     parts: [
       { stat: "total_scoring_att", weight: 1 },
@@ -89,7 +89,7 @@ test("an own stat named as a catalogue stat now is, saved before, still scores: 
 });
 
 test("a feed stat named as an own stat is, once in the record, never takes its place (#136)", () => {
-  const tacklesWon: OwnStat = { stat: "league:tackles_won", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 2 }] };
+  const tacklesWon: OwnStat = { stat: "league:tackles_won", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 2 }] }; // one-home-ok: an own stat's name, which a commissioner chooses: fixture data
   const set = { ...setWith([tacklesWon]), rules: [{ shape: "perAction" as const, stat: tacklesWon.stat, values: { all: 1 } }] };
   expect(scoreMatch({ ...coyle, tackles_won: 5 }, set, centreOf("defence")).total).toBe(2);
 });

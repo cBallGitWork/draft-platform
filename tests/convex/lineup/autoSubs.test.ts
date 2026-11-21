@@ -56,7 +56,7 @@ describe("a starter who didn't play is replaced", () => {
 });
 
 describe("who comes on", () => {
-  test("the first on the bench who can play the slot's area takes the slot", () => {
+  test("the first on the bench who can play the slot's area takes the slot", () => { // one-home-ok: the test's name, not a screen's words
     const { lineup, positions } = withBench(["CB"], ["CM"], ["SS"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
 
@@ -99,7 +99,7 @@ describe("who comes on", () => {
   });
 });
 
-describe("when no one on the bench can play the slot", () => {
+describe("when no one on the bench can play the slot", () => { // one-home-ok: the suite's name, not a screen's words
   test("the first who keeps the area limits legal comes on in his own area, and the formation changes", () => {
     const { lineup, positions } = withBench(["CB"], ["CM"]);
     const backFourOnly = openLimits({ defence: { minimum: 3, maximum: 4 } });
@@ -175,7 +175,7 @@ describe("when no one on the bench can play the slot", () => {
 });
 
 describe("a keeper", () => {
-  test("is replaced only by a keeper, even with outfield players first on the bench", () => {
+  test("is replaced only by a keeper, even with outfield players first on the bench", () => { // one-home-ok: the test's name, not a screen's words
     const { lineup, positions } = withBench(["CB"], ["GK"]);
     const result = subbed(lineup, positions, plays(lineup, [KEEPER]));
 
@@ -193,7 +193,7 @@ describe("a keeper", () => {
     expect(result).toEqual(untouched(lineup, [STRIKER]));
   });
 
-  test("with no keeper on the bench, the keeper's slot scores nothing", () => {
+  test("with no keeper on the bench, the keeper's slot scores nothing", () => { // one-home-ok: the test's name, not a screen's words
     const { lineup, positions } = withBench(["CB"], ["ST"]);
     const result = subbed(lineup, positions, plays(lineup, [KEEPER]));
 

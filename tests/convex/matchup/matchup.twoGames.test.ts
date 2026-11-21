@@ -36,7 +36,7 @@ const scoredIn = async (league: ScoresLeague, game?: number) => {
   return read;
 };
 
-test("with two games a gameweek the first drawn shows unless another is named, every game listed for the switch", async () => {
+test("with two games a gameweek the first drawn shows unless another is named, every game listed for the switch", async () => { // one-home-ok: the test's name, not a screen's words
   const league = await twoGamesLeague();
   const first = await scoredIn(league);
   expect(first.gameNumber).toBe(1);

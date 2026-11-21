@@ -59,12 +59,12 @@ describe("a head-to-head table", () => {
     for (const row of table) expect(row).toEqual({ team: row.team, played: 0, won: 0, drawn: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, difference: 0, points: 0 });
   });
 
-  test("a gameweek not yet scored counts for nothing", () => {
+  test("a gameweek not yet scored counts for nothing", () => { // one-home-ok: the test's name, not a letter's words
     const table = headToHeadTable(PLAYED, [ANN, BOB], [week(1, [[ANN, BOB]]), week(2, [[ANN, BOB]])], scores({ 1: { Ann: 3, Bob: 1 } }), []);
     expect(rowOf(table, ANN)).toMatchObject({ played: 1, won: 1, pointsFor: 3 });
   });
 
-  test("the team left over plays the league's average, every team's score counted, kept in tenths", () => {
+  test("the team left over plays the league's average, every team's score counted, kept in tenths", () => { // one-home-ok: the test's name, not a letter's words
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }];
     const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 } }), []);
 
@@ -73,7 +73,7 @@ describe("a head-to-head table", () => {
     expect(rowOf(table, ANN)).toMatchObject({ drawn: 1, pointsAgainst: 10 });
   });
 
-  test("a score equal to the league's average is a draw", () => {
+  test("a score equal to the league's average is a draw", () => { // one-home-ok: the test's name, not a letter's words
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }];
     const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 0.1, Bob: 0.3, Cat: 0.2 } }), []);
     expect(rowOf(table, CAT)).toMatchObject({ drawn: 1, points: 1, pointsAgainst: 0.2 });
@@ -84,7 +84,7 @@ describe("a head-to-head table", () => {
     expect(rowOf(table, CAT)).toMatchObject({ played: 0, points: 0, pointsFor: 0 });
   });
 
-  test("with two games a gameweek, a team's one score counts in both, and the average counts each team's score once", () => {
+  test("with two games a gameweek, a team's one score counts in both, and the average counts each team's score once", () => { // one-home-ok: the test's name, not a letter's words
     // Cat plays Ann and the average: the average is (10 + 20 + 30) / 3, not weighted by games.
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: ANN }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [BOB] }];
     const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 20, Cat: 30 } }), []);
@@ -216,7 +216,7 @@ describe("each team's form", () => {
     expect(form.get(BOB)).toEqual(["lost", "won", "lost", "won", "drawn"]);
   });
 
-  test("counts a matchup against the league's average, and nothing for a bye", () => {
+  test("counts a matchup against the league's average, and nothing for a bye", () => { // one-home-ok: the test's name, not a letter's words
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }, week(2, [[ANN, BOB]], [CAT])];
     const form = formOf(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 }, 2: { Ann: 1, Bob: 2, Cat: 99 } }));
     expect([form.get(ANN), form.get(BOB), form.get(CAT)]).toEqual([["drawn", "lost"], ["drawn", "won"], ["won"]]);

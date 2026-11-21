@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { tradeMadeLetter } from "../../../convex/mail/tradeLetterWords";
 import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
@@ -11,7 +12,7 @@ import { draftStarted } from "../../support/convex/draft.harness";
 import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS, ANN, BOB, CAT, TEAM_1, TEAM_2, TEAM_3, TEAM_4 } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, reviewSubject, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no
@@ -63,7 +64,7 @@ describe("with no review", () => {
     const { offerId } = await w.offer(CAT, w.annsTeam, [RICE], []);
     await w.accept(ANN, offerId);
 
-    expect(await w.lettersTo(BOB)).toContainEqual({ subject: `${TEAM_3} and ${TEAM_1} traded`, body: `${nameOf(RICE)} to ${TEAM_1}; nobody to ${TEAM_3}. ${TEAM_3} is now outside the league's squad limits.` });
+    expect(await w.lettersTo(BOB)).toContainEqual(tradeMadeLetter({ fromTeamName: TEAM_3, toTeamName: TEAM_1, gives: [nameOf(RICE)], gets: [], note: null }, [TEAM_3]));
   });
 
   test("closes every other open offer holding one of its players, with a letter to both of its managers", async () => {
@@ -85,8 +86,8 @@ describe("under a commissioner veto, a new league's", () => {
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
     expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
-    expect(await w.subjectsTo(COMMISSIONER)).toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
-    expect(await w.subjectsTo(CAT)).not.toContain(`Block the trade between ${TEAM_1} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(COMMISSIONER)).toContain(reviewSubject("veto", TEAM_1, TEAM_2));
+    expect(await w.subjectsTo(CAT)).not.toContain(reviewSubject("veto", TEAM_1, TEAM_2));
     expect(await w.subjectsTo(ANN)).toContain(`${TEAM_2} accepted ${TEAM_1}'s trade`);
     expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toHaveLength(1);
 
@@ -117,7 +118,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain(`Block the trade between ${TEAM_4} and ${TEAM_2}?`);
+    expect(await w.subjectsTo(CO_COMMISSIONER)).toContain(reviewSubject("veto", TEAM_4, TEAM_2));
     await expectRefused(w.block(COMMISSIONER, offerId), reviewRefusals.notYourBlock);
     await w.block(CO_COMMISSIONER, offerId);
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
@@ -129,7 +130,7 @@ describe("under a commissioner veto, a new league's", () => {
     await w.accept(BOB, offerId);
 
     expect((await w.mine(BOB))[0].reviewer).toBe("vote");
-    expect(await w.subjectsTo(ANN)).toContain(`Vote on the trade between ${TEAM_4} and ${TEAM_2}`);
+    expect(await w.subjectsTo(ANN)).toContain(reviewSubject("vote", TEAM_4, TEAM_2));
   });
 });
 
@@ -141,8 +142,8 @@ describe("under a league vote", () => {
 
   test("each other manager gets a letter to vote Against, and the two in it don't", async () => {
     await annTradesForSaka();
-    for (const email of [CAT, DAN]) expect(await w.subjectsTo(email)).toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
-    for (const email of [ANN, BOB, COMMISSIONER]) expect(await w.subjectsTo(email)).not.toContain(`Vote on the trade between ${TEAM_1} and ${TEAM_2}`);
+    for (const email of [CAT, DAN]) expect(await w.subjectsTo(email)).toContain(reviewSubject("vote", TEAM_1, TEAM_2));
+    for (const email of [ANN, BOB, COMMISSIONER]) expect(await w.subjectsTo(email)).not.toContain(reviewSubject("vote", TEAM_1, TEAM_2));
   });
 
   test("it goes through unless most vote against: one of two isn't most", async () => {

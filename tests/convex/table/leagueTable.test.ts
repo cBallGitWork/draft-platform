@@ -46,7 +46,7 @@ describe("who may read it", () => {
 const holdSeasonToCome = () => holdGameweeks(t, { next: 1 });
 
 describe("the fixtures", () => {
-  test("three teams: every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => {
+  test("three teams: every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => { // one-home-ok: the test's name, not a letter's words
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const league = await read();
@@ -67,7 +67,7 @@ describe("the fixtures", () => {
     expect([first.fixtures[0].team, first.fixtures[0].opponent, first.byes[0]].toSorted()).toEqual([teamNumbered(1), teamNumbered(2), teamNumbered(3)]);
   });
 
-  test("with two games a gameweek, each team plays two every gameweek", async () => {
+  test("with two games a gameweek, each team plays two every gameweek", async () => { // one-home-ok: the test's name, not a letter's words
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });

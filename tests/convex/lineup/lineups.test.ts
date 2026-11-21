@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
-import { lineupRefusals } from "../../../convex/lineup/lineupWords";
+import { lineupRefusals, problemWords } from "../../../convex/lineup/lineupWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
@@ -240,7 +240,7 @@ describe("a lineup refused, with the reason", () => {
       (await as(ANN)).save(lineup),
       `${nameOf(keeper.playerCode)} plays GK, so he can't stand in the left cell in Attack. ` +
         `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} share the left-centre cell in Defence: one player a cell. ` +
-        "The league starts at least 1 in Goalkeeper; this line-up starts 0 there.",
+        problemWords({ kind: "belowMinimum", area: "goalkeeper", starterCount: 0, minimum: 1 }, nameOf),
     );
     expect(await lineupRows()).toEqual(before);
   });
@@ -251,6 +251,6 @@ describe("a lineup refused, with the reason", () => {
       rules.areaLimits.attack = { minimum: 3, maximum: 5 };
       await ctx.db.insert("leagueRules", { leagueId, fromGameweek: NEXT, rules });
     });
-    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league starts at least 3 in Attack; this line-up starts 2 there.");
+    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), problemWords({ kind: "belowMinimum", area: "attack", starterCount: 2, minimum: 3 }, nameOf));
   });
 });
