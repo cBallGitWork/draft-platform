@@ -14,26 +14,24 @@ import { BYE, gameNumberAt, gameScore, gamesOf } from "./teamGames";
 // server import, so the preview and the screen tests (src/table/drawnTable.ts) draw exactly what
 // the server sends.
 
-type TeamId = Id<"teams">;
-
 /** Each team's points in each gameweek scored, in gameweek order (gameweekScores.ts). */
-export type Results = ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>;
+export type Results = ReadonlyMap<number, ReadonlyMap<Id<"teams">, TeamGameweekTotal>>;
 
 /** A gameweek begun that couldn't be scored, and why. */
 type Unscored = LeagueTable["unscored"];
 
 /** The points alone of each team in each gameweek scored, as the table counts them. */
-export const pointsOf = (results: Results): GameweekScores<TeamId> =>
+export const pointsOf = (results: Results): GameweekScores<Id<"teams">> =>
   new Map([...results].map(([gameweek, teamScores]) => [gameweek, new Map([...teamScores].map(([teamId, { points }]) => [teamId, points]))]));
 
 /** The league's table in its format: from the head-to-head schedule, or by points for. */
 export function tableOf(
   format: LeagueRules["format"],
-  teamIds: readonly TeamId[],
-  schedule: readonly GameweekFixtures<TeamId>[],
-  scores: GameweekScores<TeamId>,
+  teamIds: readonly Id<"teams">[],
+  schedule: readonly GameweekFixtures<Id<"teams">>[],
+  scores: GameweekScores<Id<"teams">>,
   tieBreaks: readonly TieBreak[],
-): TableRow<TeamId>[] {
+): TableRow<Id<"teams">>[] {
   const mode = gameModeOf({ format });
   return mode.hasMatchups ? headToHeadTable(mode, teamIds, schedule, scores, tieBreaks) : totalPointsTable(mode, teamIds, scores);
 }
@@ -53,14 +51,14 @@ export function leagueTableFrom({
 }: {
   format: LeagueRules["format"];
   season: LeagueTable["season"];
-  schedule: readonly GameweekFixtures<TeamId>[];
+  schedule: readonly GameweekFixtures<Id<"teams">>[];
   results: Results;
   unscored: Unscored;
-  table: readonly TableRow<TeamId>[];
+  table: readonly TableRow<Id<"teams">>[];
   deadlineOf: DeadlineOf;
-  named: (teamId: TeamId) => string;
+  named: (teamId: Id<"teams">) => string;
   /** The teams on the auto team now, which the table marks (spec/09). */
-  autoTeams: ReadonlySet<TeamId>;
+  autoTeams: ReadonlySet<Id<"teams">>;
 }): LeagueTable {
   return {
     format,
@@ -86,7 +84,7 @@ export function leagueTableFrom({
 /** The gameweek's fixtures, each with both sides' points once the gameweek is scored and whether
  *  either may still move (teamGames.ts's gameScore, the rule's one home): the table's and league
  *  home's. */
-export function scoredFixtures(drawn: GameweekFixtures<TeamId>, results: Results, named: (teamId: TeamId) => string): ScoredFixture[] {
+export function scoredFixtures(drawn: GameweekFixtures<Id<"teams">>, results: Results, named: (teamId: Id<"teams">) => string): ScoredFixture[] {
   const scored = results.get(drawn.gameweek);
   return drawn.fixtures.map((each, index) => {
     const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
@@ -104,13 +102,13 @@ export function teamFixturesFrom({
   deadlineOf,
   named,
 }: {
-  team: { id: TeamId; name: string };
+  team: { id: Id<"teams">; name: string };
   format: LeagueRules["format"];
-  schedule: readonly GameweekFixtures<TeamId>[];
+  schedule: readonly GameweekFixtures<Id<"teams">>[];
   results: Results;
   unscored: Unscored;
   deadlineOf: DeadlineOf;
-  named: (teamId: TeamId) => string;
+  named: (teamId: Id<"teams">) => string;
 }): TeamFixtures {
   const games = gamesOf(schedule, team.id);
   // Each game is one of the schedule's, so its gameweek is there.

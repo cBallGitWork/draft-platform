@@ -17,8 +17,6 @@ import { shownLine, vidiprinter, type PricedLine, type VidiprinterLine, type Vid
 // the matchup's, for its two lineups (matchup.ts), and league home's matchday Vidiprinter, for every
 // lineup's men whose points count, in the matchday's matches (home/leagueHome.ts; spec/12).
 
-type TeamId = Id<"teams">;
-
 export interface CommentaryReads {
   /** His row, or null for one the football sync doesn't hold. */
   player(playerCode: PlayerCode): Promise<Doc<"players"> | null>;
@@ -57,7 +55,7 @@ export interface TeamsLine extends VidiprinterLine {
 export async function readCommentary(
   ctx: QueryCtx,
   inGameweek: GameweekTeams,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   reads: CommentaryReads,
   of: CommentaryOf,
 ): Promise<{ lines: TeamsLine[]; delayedFrom: number | null }> {
@@ -75,7 +73,7 @@ type MatchLine = TeamsLine & { fixtureCode: number };
 export async function commentaryByMatch(
   ctx: QueryCtx,
   inGameweek: GameweekTeams,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   reads: CommentaryReads,
   { countingOnly, fixtureCodes }: CommentaryOf,
 ): Promise<{ lines: MatchLine[]; delays: { fixtureCode: number; delayedFrom: number | null }[] }> {

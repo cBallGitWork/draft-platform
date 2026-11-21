@@ -30,8 +30,6 @@ import { leagueReads, pointsInMatch, type LeagueReads } from "../gameweekScorer/
 // in: "we can always admin update later" (#810, S14.5). A team's override of its gameweek total
 // (teamOverrides.ts) stands over all of these.
 
-type TeamId = Id<"teams">;
-
 /** Why an override was refused, as the commissioner is told it. */
 export const overrideRefusals = {
   noMatch: "There's no such match this season.",
@@ -160,7 +158,7 @@ async function rescored(ctx: MutationCtx, match: OverriddenMatch, change: () => 
   return { before, after };
 }
 
-type WorkedOut = { totals: Map<TeamId, number>; playerPoints: number | null };
+type WorkedOut = { totals: Map<Id<"teams">, number>; playerPoints: number | null };
 
 /** Each team whose total moved, by name, from what to what. */
 function movedTeams(teams: readonly Doc<"teams">[], before: WorkedOut, after: WorkedOut) {
@@ -175,7 +173,7 @@ function movedTeams(teams: readonly Doc<"teams">[], before: WorkedOut, after: Wo
 async function workedOut(ctx: MutationCtx, { reads, gameweek, teams, playerCode, fixtureCode }: OverriddenMatch): Promise<WorkedOut> {
   const teamIds = teams.map((team) => team._id);
   const { slotsOf, pointsOf } = await workedOutGameweek(ctx, reads, gameweek, teamIds);
-  const totals = new Map<TeamId, number>();
+  const totals = new Map<Id<"teams">, number>();
   let playerPoints: number | null = null;
   for (const teamId of teamIds) {
     const scored = await slotsOf(teamId);

@@ -36,8 +36,6 @@ import {
 // A gameweek that can't be scored (a site set holding a rule no longer sound, say: #287) is left
 // out and named with the reason, logged, rather than blanking or breaking the league's table.
 
-type TeamId = Id<"teams">;
-
 /** A team's points in a gameweek. */
 export interface TeamGameweekTotal {
   points: number;
@@ -51,13 +49,13 @@ interface Unscored {
   reason: string;
 }
 
-export type TeamScores = Map<TeamId, TeamGameweekTotal>;
+export type TeamScores = Map<Id<"teams">, TeamGameweekTotal>;
 
 /** Teams' final points worked out here, not read from finalScores: for it to store. */
 interface FinalUnstored {
   gameweek: number;
   /** The teams worked out: every team, or only those added since the rest were stored. */
-  teamIds: TeamId[];
+  teamIds: Id<"teams">[];
   /** The gameweek's matches they were scored from, stored with them. */
   fixtureCodes: number[];
   /** Whether the gameweek's stored rows go first: its matches have changed since, or it had none. */
@@ -104,7 +102,7 @@ export const SCREEN_READ = { fromLiveScores: true as boolean };
 
 /** The league's live row (table/liveScores.ts) for the gameweek while it stands for the `teamIds`
  *  (`standsFor`); null otherwise, when the reader works the gameweek out itself. */
-export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, teamIds: readonly TeamId[]): Promise<Doc<"liveScores"> | null> {
+export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, teamIds: readonly Id<"teams">[]): Promise<Doc<"liveScores"> | null> {
   const row = await ctx.db
     .query("liveScores")
     .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek))
@@ -114,7 +112,7 @@ export async function liveScoresIn(ctx: QueryCtx, leagueId: Id<"leagues">, gamew
 
 /** Whether a live row still stands: scored for the same teams, from the same matches the gameweek
  *  holds. A team added or a match moved in or out since sets it aside until the next tick. */
-async function standsFor(ctx: QueryCtx, row: Doc<"liveScores">, teamIds: readonly TeamId[]): Promise<boolean> {
+async function standsFor(ctx: QueryCtx, row: Doc<"liveScores">, teamIds: readonly Id<"teams">[]): Promise<boolean> {
   if (!sameCodes(row.teamIds, teamIds)) return false;
   return sameCodes(row.fixtureCodes, (await heldFixtures(ctx, row.gameweek)).map((fixture) => fixture.code));
 }
@@ -131,7 +129,7 @@ export async function leagueScores(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   { fromLiveScores = false }: Partial<typeof SCREEN_READ> = {},
 ): Promise<LeagueScores> {
   const gameweeks = await begunGameweeks(ctx, league);
@@ -170,7 +168,7 @@ export interface ScoredGameweek {
 }
 
 /** Scores one gameweek of the league for the `teamIds`. */
-type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
+type GameweekScorer = (gameweek: number, teamIds: readonly Id<"teams">[]) => Promise<ScoredGameweek>;
 
 /** The league's scorer: what any gameweek's scoring reads (the site's sets, the players, the
  *  stored final scores) is read once, however many gameweeks it scores. A gameweek's stored
@@ -183,7 +181,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
     const fixtures = await heldFixtures(ctx, gameweek);
     const fixtureCodes = datedCodes(fixtures);
     const held = stored.get(gameweek);
-    const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<TeamId, TeamGameweekTotal>();
+    const storedScores = held !== undefined && sameCodes(held.fixtureCodes, fixtureCodes) ? held.scores : new Map<Id<"teams">, TeamGameweekTotal>();
     const unstored = teamIds.filter((teamId) => !storedScores.has(teamId));
     const worked = unstored.length === 0 ? null : await gameweekScores(ctx, reads, gameweek, fixtures, unstored);
     const scores = new Map(teamIds.map((teamId) => [teamId, storedScores.get(teamId) ?? worked!.scores.get(teamId)!]));
@@ -203,12 +201,12 @@ export interface GameweekTeams {
   /** The site's scoring set in force in the gameweek, checked. */
   set: StoredScoringSet;
   /** The team's gameweek slot by slot, worked out once. */
-  slotsOf: (teamId: TeamId) => Promise<TeamInGameweek>;
+  slotsOf: (teamId: Id<"teams">) => Promise<TeamInGameweek>;
   /** The team's points: its saved total where one stands, else worked out from its slots. */
-  pointsOf: (teamId: TeamId) => Promise<TeamGameweekTotal>;
+  pointsOf: (teamId: Id<"teams">) => Promise<TeamGameweekTotal>;
   /** Whether the league has overridden the team's total in the gameweek (#903), which its points
    *  then are. */
-  overridden: (teamId: TeamId) => boolean;
+  overridden: (teamId: Id<"teams">) => boolean;
 }
 
 /** The gameweek for the `teamIds` as the table has it: a team's saved total once final, else worked
@@ -218,7 +216,7 @@ export async function tableGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
   const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
@@ -232,7 +230,7 @@ export async function workedOutGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   lineups?: GameweekInputs["lineups"],
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
@@ -246,7 +244,7 @@ export async function squadGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
-  teamId: TeamId,
+  teamId: Id<"teams">,
   rowsOf: (code: number) => Promise<PlayerRows>,
   movesSinceOf?: MovesSinceOf,
 ): Promise<GameweekTeams> {
@@ -258,7 +256,7 @@ export async function squadGameweek(
  *  total where one stands (#903: it stands over its slots, their player overrides and any later
  *  correction, and is never provisional), else its `stored` total, else worked out. */
 function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScores): GameweekTeams {
-  const slotsOf = readOnce((teamId: TeamId) => teamInGameweek(reads, inputs, teamId));
+  const slotsOf = readOnce((teamId: Id<"teams">) => teamInGameweek(reads, inputs, teamId));
   return {
     set: inputs.set,
     slotsOf,
@@ -281,11 +279,11 @@ async function gameweekScores(
   reads: LeagueReads,
   gameweek: number,
   fixtures: readonly Doc<"fixtures">[],
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
 ): Promise<{ scores: TeamScores; final: boolean }> {
   const inputs = await gameweekInputs(ctx, reads, gameweek, fixtures, teamIds);
   const { pointsOf } = teamsFrom(reads, inputs, new Map());
-  const scores = new Map<TeamId, TeamGameweekTotal>();
+  const scores = new Map<Id<"teams">, TeamGameweekTotal>();
   for (const teamId of teamIds) scores.set(teamId, await pointsOf(teamId));
   const { matches } = inputs;
   const dated = matches.filter((match) => !isPostponed(match));

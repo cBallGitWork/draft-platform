@@ -31,21 +31,9 @@ const ALLOWED: Record<string, string> = {
 };
 
 /** The copies in convex/ when this test was added (12 Nov 2026), each one's name to its files. Each
- *  goes when its copies move to one home: never add to it. */
-const STILL_DUPLICATED: Record<string, string[]> = {
-  'type TeamId = Id<"teams">': [
-    "convex/gameweekScorer/gameweekScores.ts",
-    "convex/gameweekScorer/storedScores.ts",
-    "convex/gameweekScorer/teamGameweek.ts",
-    "convex/home/recaps.ts",
-    "convex/matchup/matchup.ts",
-    "convex/matchup/readCommentary.ts",
-    "convex/stats/teamSeasonStats.ts",
-    "convex/table/fixtureEdits.ts",
-    "convex/table/pointsOverrides.ts",
-    "convex/table/sentTables.ts",
-  ],
-};
+ *  goes when its copies move to one home: never add to it. The last, `type TeamId`, went on 21 Nov
+ *  2026, written `Id<"teams">` where it is used. */
+const STILL_DUPLICATED: Record<string, string[]> = {};
 /** The tests restating a harness's export when this test was added, as "test name -> harness".
  *  Each goes when its test imports the export: never add to it. */
 const STILL_RESTATED: string[] = [
@@ -129,10 +117,11 @@ test("a third copy of an alias and a harness's export restated in a test both fa
   ]);
 });
 
-test("a fourth file holding a copy still to move fails, so the list can't grow", () => {
-  const convex = { ...CONVEX, "../../convex/table/another.ts": 'type TeamId = Id<"teams">;' };
+test("a copy moved to one home that is written out again in three files fails, so it can't come back", () => {
+  const again = 'type TeamId = Id<"teams">;';
+  const convex = { ...CONVEX, "../../convex/a/one.ts": again, "../../convex/b/two.ts": again, "../../convex/c/three.ts": again };
   expect(problems(convex)).toEqual([
-    expect.stringMatching(/^type TeamId = Id<"teams"> is written in 11 files: .*convex\/table\/another\.ts:1.*; give it one home$/),
+    'type TeamId = Id<"teams"> is written in 3 files: convex/a/one.ts:1, convex/b/two.ts:1, convex/c/three.ts:1; give it one home',
   ]);
 });
 

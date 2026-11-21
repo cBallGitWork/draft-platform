@@ -30,8 +30,6 @@ import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLett
 // matchday mode begins, and Read the recap opens it whole. It is written once and never rewritten:
 // a score that changes after puts a line under it, linking to that matchup (Craig, 6 Nov 2026).
 
-type TeamId = Id<"teams">;
-
 /** Starts the league's recap of the gameweek, newly stored final, unless it has one already: it is
  *  written once. */
 export async function startRecap(ctx: MutationCtx, leagueId: Id<"leagues">, gameweek: number): Promise<void> {
@@ -164,7 +162,7 @@ export const shownRecap = v.object({
 });
 
 /** The first team whose points now differ from those the recap was written from, or null. */
-async function changedTeam(recap: Doc<"recaps">, pointsOf: (teamId: TeamId) => Promise<TeamGameweekTotal | undefined>): Promise<TeamId | null> {
+async function changedTeam(recap: Doc<"recaps">, pointsOf: (teamId: Id<"teams">) => Promise<TeamGameweekTotal | undefined>): Promise<Id<"teams"> | null> {
   for (const { teamId, points } of recap.teamPoints) {
     const now = await pointsOf(teamId);
     if (now !== undefined && now.points !== points) return teamId;
@@ -172,7 +170,7 @@ async function changedTeam(recap: Doc<"recaps">, pointsOf: (teamId: TeamId) => P
   return null;
 }
 
-function shown(recap: Doc<"recaps">, changedTeamId: TeamId | null) {
+function shown(recap: Doc<"recaps">, changedTeamId: Id<"teams"> | null) {
   return { gameweek: recap.gameweek, text: recap.text!, writtenAt: recap.writtenAt!, changedTeamId };
 }
 
@@ -193,7 +191,7 @@ async function latestWritten(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
 export async function homeRecap(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
-  results: ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>,
+  results: ReadonlyMap<number, ReadonlyMap<Id<"teams">, TeamGameweekTotal>>,
 ): Promise<Infer<typeof heldRecap> | null> {
   const latest = await latestWritten(ctx, leagueId);
   if (latest === null) return null;

@@ -42,8 +42,7 @@ import { lineupPointsDelayed } from "../stats/livePrints";
 // is on My team. The commentary is every line of the matches either lineup's men play in, each
 // priced for them (vidiprinter.ts, #44).
 
-type TeamId = Id<"teams">;
-type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
+type Opponent = Exclude<Against<Id<"teams">>, { kind: typeof BYE }>;
 
 /** One team's head-to-head in a gameweek.
  *  The team is the caller's own unless one is named; the gameweek is the one asked, or the screen's
@@ -100,8 +99,8 @@ async function gameOf(
   season: SeasonRules,
   team: Doc<"teams">,
   teams: readonly Doc<"teams">[],
-  drawn: GameweekFixtures<TeamId> | undefined,
-  against: Against<TeamId> | undefined,
+  drawn: GameweekFixtures<Id<"teams">> | undefined,
+  against: Against<Id<"teams">> | undefined,
 ): Promise<HeldGame> {
   // A game is one of the gameweek's fixtures or byes, so there is one only where it is drawn.
   if (against === undefined || drawn === undefined) return { kind: "none" };
@@ -134,17 +133,17 @@ async function gameOf(
 }
 
 /** A team `gameweek`'s fixtures name; one not in the league is a bug, so it throws. */
-const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
+const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: Id<"teams">) => {
   const named = teams.find((each) => each._id === teamId);
   if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
   return named;
 };
 
 /** A team's name, for a team `gameweek`'s fixtures name. */
-const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => fixtureTeamIn(teams, gameweek)(teamId).name;
+const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: Id<"teams">) => fixtureTeamIn(teams, gameweek)(teamId).name;
 
 /** Who a game is against: another team, by name, or the league's average. */
-const opponentOf = (against: Opponent, nameOf: (teamId: TeamId) => string) =>
+const opponentOf = (against: Opponent, nameOf: (teamId: Id<"teams">) => string) =>
   against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
 
 /** Each side of the matchup, from the table's scorer: each slot worked out, and each total the
@@ -165,7 +164,7 @@ class SideScorer {
     private readonly leagueId: Id<"leagues">,
     private readonly inGameweek: GameweekTeams,
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
-    private readonly averaged: readonly TeamId[],
+    private readonly averaged: readonly Id<"teams">[],
     private readonly gameweek: number,
     private readonly teams: readonly Doc<"teams">[],
     /** Every team's points from the live row, for the average; null to work them out. */
@@ -208,7 +207,7 @@ class SideScorer {
 
   /** The commentary of every match the sides' men play in, priced for them. One that can't be read
    *  is logged and says why, while the scores still show. Held: its delay a moment (commentaryAt.ts). */
-  async commentary(teamIds: readonly TeamId[], failure: string): Promise<HeldTeamsCommentary> {
+  async commentary(teamIds: readonly Id<"teams">[], failure: string): Promise<HeldTeamsCommentary> {
     try {
       const read = await readCommentary(this.ctx, this.inGameweek, teamIds, this.reads, { countingOnly: false });
       return { kind: "read", ...read };
@@ -217,19 +216,19 @@ class SideScorer {
     }
   }
 
-  private async starter(slotPoints: SlotPoints, scored: TeamInGameweek, teamId: TeamId): Promise<MatchupStarter> {
+  private async starter(slotPoints: SlotPoints, scored: TeamInGameweek, teamId: Id<"teams">): Promise<MatchupStarter> {
     return { ...(await this.slot(slotPoints, scored, teamId)), role: pricedRole(slotPoints), place: placeOf(slotPoints) };
   }
 
   /** A bench player has a role and a place only once he has come on: until then he plays none,
    *  though the scorer prices his greyed points at his bench cell's first. */
-  private async benchSlot(slotPoints: SlotPoints, scored: TeamInGameweek, teamId: TeamId): Promise<MatchupBenchSlot> {
+  private async benchSlot(slotPoints: SlotPoints, scored: TeamInGameweek, teamId: Id<"teams">): Promise<MatchupBenchSlot> {
     const cameOn = scored.autoSubs.substitutions.some((each) => each.on === slotPoints.playerCode);
     return { ...(await this.slot(slotPoints, scored, teamId)), role: cameOn ? pricedRole(slotPoints) : null, place: cameOn ? placeOf(slotPoints) : null };
   }
 
   /** `teamId` is the side's, whose squad number he wears while it still holds him. */
-  private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf, instructions }: TeamInGameweek, teamId: TeamId): Promise<MatchupSlot> {
+  private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf, instructions }: TeamInGameweek, teamId: Id<"teams">): Promise<MatchupSlot> {
     const { playerCode, cell, points, counts, provisional } = slotPoints;
     const wentOff = autoSubs.substitutions.find((each) => each.off === playerCode);
     const cameOn = autoSubs.substitutions.find((each) => each.on === playerCode);

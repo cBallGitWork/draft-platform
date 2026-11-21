@@ -29,8 +29,6 @@ import { keptAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } 
 // slot for the matchup (#34), an override (#32), the match page (#45) and a player's card and the
 // Squad tab (#577), so none of them disagree.
 
-type TeamId = Id<"teams">;
-
 /** What every gameweek's scoring reads, read once for the league. */
 export interface LeagueReads {
   leagueId: Id<"leagues">;
@@ -62,12 +60,12 @@ export interface GameweekInputs {
   set: StoredScoringSet;
   rules: ReturnType<SeasonRules["inGameweek"]>;
   matches: HeldMatch[];
-  lineups: ReadonlyMap<TeamId, HeldLineup>;
+  lineups: ReadonlyMap<Id<"teams">, HeldLineup>;
   /** What each team's row kept at the deadline: its bench players' stars, which pick an auto-sub's
    *  role, and each man its lineup named, with his club and positions then. */
-  kept: ReadonlyMap<TeamId, KeptAtDeadline>;
+  kept: ReadonlyMap<Id<"teams">, KeptAtDeadline>;
   /** The league's overrides of teams' totals in the gameweek (#903): each its team's total. */
-  teamOverrides: ReadonlyMap<TeamId, Doc<"teamOverrides">>;
+  teamOverrides: ReadonlyMap<Id<"teams">, Doc<"teamOverrides">>;
 }
 
 /** The gameweek's inputs. A set holding a rule no longer sound throws (#287). A caller that has
@@ -78,7 +76,7 @@ export async function gameweekInputs(
   reads: LeagueReads,
   gameweek: number,
   fixtures: readonly Doc<"fixtures">[],
-  teamIds: readonly TeamId[],
+  teamIds: readonly Id<"teams">[],
   lineups?: GameweekInputs["lineups"],
 ): Promise<GameweekInputs> {
   return {
@@ -120,7 +118,7 @@ export interface TeamInGameweek {
 }
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
-export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs, teamId: TeamId): Promise<TeamInGameweek> {
+export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs, teamId: Id<"teams">): Promise<TeamInGameweek> {
   const { set, rules, matches, lineups } = inputs;
   const held = lineups.get(teamId);
   if (held === undefined) throw new Error(`team ${teamId} isn't one of the teams this gameweek's lineups were read for`);

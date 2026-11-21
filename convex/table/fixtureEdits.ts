@@ -17,9 +17,8 @@ import { LEAGUE_AVERAGE, namedFixture, type Fixture } from "./roundRobin";
 // edit is a row playedFixtures.ts reads over the draw, so it moves that gameweek alone, and every
 // other is as drawn. The whole league is told in one letter (spec/15: nothing changes quietly).
 
-type TeamId = Id<"teams">;
-type Side = TeamId | typeof LEAGUE_AVERAGE;
-type Game = Fixture<TeamId>;
+type Side = Id<"teams"> | typeof LEAGUE_AVERAGE;
+type Game = Fixture<Id<"teams">>;
 
 /** Why an edit was refused, as the commissioner is told it. */
 export const fixtureEditRefusals = {
@@ -47,7 +46,7 @@ const gameOf = (games: readonly Game[], { moves, against }: PickedSide, skip = -
  *  holds it; null when it would have a side play itself. */
 function gameBetween(one: Side, other: Side): Game | null {
   if (one === other) return null;
-  if (one === LEAGUE_AVERAGE) return { team: other as TeamId, opponent: one };
+  if (one === LEAGUE_AVERAGE) return { team: other as Id<"teams">, opponent: one };
   return { team: one, opponent: other };
 }
 
@@ -100,7 +99,7 @@ export const swap = mutation({
     else await ctx.db.replace("fixtureEdits", held._id, row);
 
     const names = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
-    const named = (team: TeamId) => names.get(team)!;
+    const named = (team: Id<"teams">) => names.get(team)!;
     const nameOf = (side: Side) => (side === LEAGUE_AVERAGE ? null : named(side));
     await recordEvent(ctx, leagueId, by, {
       kind: "fixturesSwapped",

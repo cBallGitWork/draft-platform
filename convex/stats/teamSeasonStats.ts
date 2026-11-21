@@ -24,8 +24,6 @@ import { countedTeamStats } from "./teamCountedStats";
 // `rebuild` sets a league's totals afresh, after anything that changes who counted in a stored
 // gameweek: an admin's correction to a player's positions (auto-subs read them), say.
 
-type TeamId = Id<"teams">;
-
 /** Asks every league to store its newly final gameweeks' stats, each in its own transaction. Run
  *  once after deploying the tables, to add up the gameweeks already final:
  *  `npx convex run stats/teamSeasonStats:storeEveryLeague`. */
@@ -113,7 +111,7 @@ async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<numb
 }
 
 /** The league's stored shares in the gameweek, by team. */
-async function sharesIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<Map<TeamId, Doc<"teamGameweekStats">>> {
+async function sharesIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<Map<Id<"teams">, Doc<"teamGameweekStats">>> {
   const rows = await takeAllOrThrow(
     ctx.db.query("teamGameweekStats").withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek)),
     MOST_TEAMS,
@@ -141,7 +139,7 @@ async function takeAway(ctx: MutationCtx, shares: readonly Doc<"teamGameweekStat
 }
 
 /** The team's totals with `change` added: a row is made with its first stat to count. */
-async function moveTotals(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: TeamId, change: Stats): Promise<void> {
+async function moveTotals(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, change: Stats): Promise<void> {
   const row = await ctx.db
     .query("teamSeasonStats")
     .withIndex("by_leagueId_and_teamId", (q) => q.eq("leagueId", leagueId).eq("teamId", teamId))

@@ -11,8 +11,6 @@ import type { TeamGameweekTotal, TeamScores } from "./gameweekScores";
 // reads them: a gameweek's stand while it holds the matches they were stored from. Plain helpers:
 // no Convex function lives here.
 
-type TeamId = Id<"teams">;
-
 /** The most final rows a league holds: one for each team in each gameweek of the longest season. */
 export const FINAL_SCORES_MOST = GAMEWEEKS_MOST * MOST_TEAMS;
 
@@ -37,7 +35,7 @@ export async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">):
 /** One gameweek's stored rows, which are never none: scores for none when they disagree on its matches. */
 function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGameweek {
   const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
-  const scores = new Map<TeamId, TeamGameweekTotal>(
+  const scores = new Map<Id<"teams">, TeamGameweekTotal>(
     agree ? [first, ...rest].map(({ teamId, points }) => [teamId, { points, provisional: false }]) : [],
   );
   return { fixtureCodes: first.fixtureCodes, scores };
