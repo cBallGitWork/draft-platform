@@ -5,6 +5,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
+import { latestOf } from "../gameweeks/deadline";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { scheduleOf } from "./playedFixtures";
 import { leagueScores, SCREEN_READ } from "../gameweekScorer/gameweekScores";
@@ -115,7 +116,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   // The tie-breaks in force in the latest gameweek begun: a change of them, saved from the next
   // gameweek, shows once that gameweek begins, so a table already played doesn't change (S03.9).
   const begun = [...results.keys(), ...unscored.map(({ gameweek }) => gameweek)];
-  const { tieBreaks } = season.sinceBegun(begun.length === 0 ? null : Math.max(...begun));
+  const { tieBreaks } = season.sinceBegun(latestOf(begun));
   const table = tableOf(rules.format, teamIds, schedule, scores, tieBreaks);
   const autoTeams = new Set(teams.filter(onAutoTeam).map((team) => team._id));
   return { rules, teamIds, schedule, results, unscored, scores, tieBreaks, table, named, autoTeams };

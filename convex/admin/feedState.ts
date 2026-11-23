@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { FEED_SCHEDULES, lateAfterMs, type Feed, type FeedSchedule } from "../shared/feedSchedule";
+import { earliestOf } from "../gameweeks/deadline";
 import type { FeedsOwed, FeedsRead, FeedsReport } from "./feeds";
 
 // How the feeds page (spec/15) judges one feed from its runs: a feed that stops silently is the
@@ -66,9 +67,6 @@ export function judgeFeed(
   return lastRun === null ? "notRunningYet" : "fine";
 }
 
-/** The first of some times; null for none. */
-export const earliest = (times: number[]) => (times.length === 0 ? null : Math.min(...times));
-
 /** The page at `owed.now`, each feed's status judged against it (#2500): what the screen shows,
  *  put together in the browser from the clock-free read and the minute's. */
 export function feedsReportAt({ feeds, ...read }: FeedsRead, { owedSince, liveKickoffs, ...owed }: FeedsOwed): FeedsReport {
@@ -76,7 +74,7 @@ export function feedsReportAt({ feeds, ...read }: FeedsRead, { owedSince, liveKi
     if (feed === "matchStats" || feed === "liveStats" || feed === "teamSheets") return owedSince[feed];
     // The live tick's side reads run on it, so they owe one as it does.
     if (feed === "teamStats" || feed === "thresholdSteps") return owedSince.liveStats;
-    if (feed === "sportmonksLive") return earliest(liveKickoffs.filter((match) => match.competition === competitionId).map((match) => match.kickoff));
+    if (feed === "sportmonksLive") return earliestOf(liveKickoffs.filter((match) => match.competition === competitionId).map((match) => match.kickoff));
     return ALWAYS_OWED;
   };
   return {

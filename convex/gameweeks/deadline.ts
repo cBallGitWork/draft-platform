@@ -77,6 +77,9 @@ export const begunBy = (deadlines: LeagueDeadlines, now: number) =>
 /** The highest of `values`, or null with none. Pure. */
 export const latestOf = (values: readonly number[]) => (values.length === 0 ? null : Math.max(...values));
 
+/** The lowest of `values`, or null with none. Pure. */
+export const earliestOf = (values: readonly number[]) => (values.length === 0 ? null : Math.min(...values));
+
 /** The latest gameweek the league has begun by `now`, or null before its first deadline. Pure. */
 export function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
   return latestOf(begunBy(deadlines, now));
