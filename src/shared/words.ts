@@ -56,12 +56,14 @@ export const notSetWords = "Not set";
 export const playerCardWords = "Player card";
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
-/** The season stats' column heads the draft list and My team's squad table both show. */
+/** The stats' column heads the draft list, My team's squad table and the match page share. */
 export const statColumns = {
   appearances: { short: "MP", long: "Matches played" },
   goals: { short: "G", long: "Goals" },
   assists: { short: "A", long: "Assists" },
   cleanSheets: { short: "CS", long: "Clean sheets" },
+  yellowCards: { short: "YC", long: "Yellow cards" },
+  redCards: { short: "RC", long: "Red cards" },
 } as const;
 /** Stats' names Scouting, My team's squad and the match page's Player stats share. */
 export const statNames = { minutes: "Minutes played", keyPasses: "Key passes", goalsConceded: "Goals conceded" } as const;

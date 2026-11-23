@@ -81,8 +81,8 @@ export const squadColumns = {
   assists: statColumns.assists,
   cleanSheets: statColumns.cleanSheets,
   saves: { short: "Sv", long: "Saves, keepers only" },
-  yellowCards: { short: "YC", long: "Yellow cards" },
-  redCards: { short: "RC", long: "Red cards" },
+  yellowCards: statColumns.yellowCards,
+  redCards: statColumns.redCards,
   next: { short: nextMatchesShort, long: nextMatchesLong },
 } as const;
 /** The Last column's hover, naming the gameweek. */

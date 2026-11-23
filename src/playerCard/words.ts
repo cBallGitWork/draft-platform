@@ -4,7 +4,7 @@ import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring
 import type { WaiverOrderType } from "../../convex/rules/leagueRulesShape";
 import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, signedWords, thousandsWords, underSiteScoringWords } from "../shared/words";
+import { AREA_WORDS, figureWords, signedWords, statNames, thousandsWords, underSiteScoringWords } from "../shared/words";
 import { versusWords } from "../shared/match/words";
 import { afterLastMatchWords, gameweekColumn, gameweekShort, gameweekWords, whenWords } from "../shared/when/words";
 
@@ -69,7 +69,7 @@ export const columns = {
   gameweek: gameweekColumn,
   opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
   score: { short: "Score", long: "The match's score, home side first" },
-  minutes: { short: "Min", long: "Minutes played" },
+  minutes: { short: "Min", long: statNames.minutes },
   points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
 export { notArrivedWords } from "../shared/match/words";

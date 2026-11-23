@@ -15,7 +15,8 @@
 
 import { spawnSync } from "node:child_process";
 import { FPL_FIXTURES_URL } from "../convex/football/football.ts";
-import { LONDON_ZONE, LOCALE } from "../convex/shared/moments.ts";
+import { londonDay, londonHour } from "../convex/shared/moments.ts";
+import { HOUR_MS, MINUTE_MS } from "../convex/shared/time.ts";
 import { STAGING_BRANCH } from "./release.mjs";
 import { ranDirectly } from "./thisScript.mjs";
 
@@ -40,16 +41,11 @@ const NIGHTLY_WORKFLOW = "verify.yml";
 const NIGHTLY_MAX_AGE_HOURS = 30; // GitHub starts the 03:30 run hours late (11:53 UTC on 16 Nov 2026)
 /** How many of main's newest deployments are searched for staging's build; only merges that ship build one. */
 const DEPLOYMENTS_SEARCHED = 30;
-const HOUR_MS = 3_600_000;
-
-const MINUTE_MS = 60_000;
-const londonHour = new Intl.DateTimeFormat(LOCALE, { timeZone: LONDON_ZONE, hour: "numeric", hourCycle: "h23" });
-const londonDay = new Intl.DateTimeFormat(LOCALE, { timeZone: LONDON_ZONE, dateStyle: "short" });
 
 /** The London hour of `now`. */
-export const hourInLondon = (now) => Number(londonHour.format(now));
+export const hourInLondon = (now) => londonHour(now);
 /** Whether two moments fall on the same London day. */
-export const sameLondonDay = (a, b) => londonDay.format(a) === londonDay.format(b);
+export const sameLondonDay = (a, b) => londonDay(a) === londonDay(b);
 
 /** A match on, or one kicking off within the gap, from FPL's fixtures; null when none is. */
 export function matchOn(fixtures, now) {

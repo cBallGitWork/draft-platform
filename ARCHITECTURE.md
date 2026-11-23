@@ -457,8 +457,9 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (the rule balance lab, #843), `e2e` (test-only functions, every one internal and refused unless
   the deployment carries `E2E_FUNCTIONS_ON`, which a release refuses on live; S20.17, #2519),
   `feedback`, `football` (the feeds and what they fill), `gameweeks`
-  (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
-  lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
+  (deadlines, a league's gameweeks, the scoring start), `guide` (the Guide's sections and entries,
+  its formation entries following the formations list, spec/23), `heartbeats` (Healthchecks pings and the
+  lead's wake-up), `home` (League home: the glance, matchday, news, recaps and the Calendar), `joining`, `leagues`,
   `lineup` (a team's lineup: its pitch, roles, instructions, saved plans and auto-subs), `mail`,
   `match` (one Premier League match's page), `matchup`, `migrations` (the one-offs run by hand on
   each deployment, `npx convex run migrations/<file>:<name>`, each deleted once every deployment
@@ -470,8 +471,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   and locks), `scoring` (the site's scoring set, its versions and patches, and a team's points),
   `scouting` (the players list, compare, shortlist, scouts and the stat race), `shared` (helpers
   every feature uses), `signIn`, `squads` (a team's squad: its limits, numbers and transactions),
-  `stats` (match records and their totals), `table` (the table, its fixtures, final scores and
-  points overrides), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
+  `stats` (match records and their totals), `table` (the table, its fixtures, final scores,
+  points overrides and awards), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
   (`src/`): `admin` (the admin's dashboard), `draft` (the draft room), `feedback`, `gameweeks` (the
   commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`,
   `leagueSettings` (League settings), `mail`, `matchup`, `myTeam` (squad, tactics and waiver claims

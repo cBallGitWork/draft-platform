@@ -39,29 +39,18 @@
     "Not tested"
   ],
   "src/playerCard/words.ts": [
-    "Minutes played",
     "Role fit",
     "This season"
   ],
-  "src/premierLeague/words.ts": [
-    "Red cards",
-    "Yellow cards"
-  ],
   "src/scoring/words.ts": [
-    "Keep it",
     "Patch notes"
   ],
   "src/scouting/words.ts": [
-    "On waivers",
     "Pick up",
     "Role fit",
     "Shots on target"
   ],
-  "src/table/preview.ts": [
-    "the fixtures didn't change"
-  ],
   "src/trades/words.ts": [
-    "Keep it",
     "This season",
     "Your squad"
   ],
@@ -182,7 +171,6 @@
   ],
   "tests/convex/playerCard/playerCard.test.ts": [
     "Goals conceded",
-    "Knock - 75% chance of playing",
     "Yellow cards",
     "on the bench"
   ],
@@ -243,10 +231,6 @@
   ],
   "tests/convex/scouting/shortlist.test.ts": [
     "The admin"
-  ],
-  "tests/convex/squads/teamSquad.test.ts": [
-    "Knock - 75% chance of playing",
-    "on the bench"
   ],
   "tests/convex/stats/matchStats.examples.test.ts": [
     "Premier League"
@@ -337,7 +321,6 @@
     ", on your shortlist, cleared waivers",
     ", on your shortlist, was dropped",
     "He is a free agent again, not on waivers",
-    "He is on waivers for",
     "at the waiver run."
   ],
   "tests/convex/waivers/waiverRun.test.ts": [
@@ -345,12 +328,6 @@
     "Your claim is gone; nobody joined or left your squad for it.",
     "has left the Premier League, so he couldn't join your squad.",
     "was no longer in your squad to drop."
-  ],
-  "tests/convex/waivers/waivers.test.ts": [
-    "He is on waivers for"
-  ],
-  "tests/smoke/smoke.spec.ts": [
-    "No one (a bye)"
   ],
   "tests/src/admin/admin.test.tsx": [
     "Positions his starts give him,",
@@ -411,9 +388,6 @@
   "tests/src/leagueSettings/leagueSettings.waivers.test.tsx": [
     "in the waiver order,"
   ],
-  "tests/src/leagueSettings/settingsControls.test.tsx": [
-    "odd team out"
-  ],
   "tests/src/leagues/leagueDeletion.test.tsx": [
     "Delete league"
   ],
@@ -464,7 +438,6 @@
     "Free agent"
   ],
   "tests/src/myTeam/squad/squad.test.tsx": [
-    "Knock - 75% chance of playing",
     "on the bench"
   ],
   "tests/src/myTeam/squad/squadViews.test.tsx": [
@@ -472,7 +445,6 @@
     "Squad size"
   ],
   "tests/src/myTeam/squad/squadWidgets.test.tsx": [
-    "Knock - 75% chance of playing",
     "Mail and news",
     "Set his role",
     "Your eleven"
@@ -482,9 +454,6 @@
   ],
   "tests/src/myTeam/tactics/lineupMoves.test.ts": [
     "on the bench"
-  ],
-  "tests/src/myTeam/tactics/liveTactics.test.tsx": [
-    "players; this one starts"
   ],
   "tests/src/myTeam/tactics/pitch/pitchChip.test.tsx": [
     "difficulty not rated yet"
@@ -508,18 +477,12 @@
   "tests/src/myTeam/tactics/tactics.plans.test.tsx": [
     "5 at the back"
   ],
-  "tests/src/myTeam/tactics/tactics.presets.test.tsx": [
-    "players; this one starts"
-  ],
   "tests/src/myTeam/tactics/tactics.selection.test.tsx": [
     "Role fit",
     "on the bench"
   ],
   "tests/src/myTeam/tactics/tactics.swapping.test.tsx": [
     "on the bench"
-  ],
-  "tests/src/myTeam/tactics/tacticsSaving.test.tsx": [
-    "players; this one starts"
   ],
   "tests/src/myTeam/tactics/words.test.ts": [
     "in under a minute"
@@ -542,12 +505,6 @@
   "tests/src/playerCard/season.test.tsx": [
     "Yellow cards",
     "this season"
-  ],
-  "tests/src/playerCard/waiverAction.test.tsx": [
-    "On waivers: first run"
-  ],
-  "tests/src/premierLeague/matchPage.test.tsx": [
-    "Premier League"
   ],
   "tests/src/premierLeague/premierLeague.test.tsx": [
     "Date to be confirmed"
