@@ -73,7 +73,7 @@ export const dropLabel = "Out";
 export const dropNobodyWords = "Nobody";
 export const moveUpWords = "Move up";
 export const moveDownWords = "Move down";
-export const withdrawWords = "Withdraw";
+export { withdrawWords } from "../../shared/controls/words";
 export const playerCardWords = "Player card ›";
 export const dragHandleLabel = (playerName: string) => `Drag the claim for ${playerName} to reorder it`;
 export const dragGlyph = "⋮⋮";

@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
+import { NO_MAIL } from "./myTeam.harness";
 import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 type Row = LeagueHome["table"][number];
@@ -90,7 +91,7 @@ export const quietNews: LeagueNews = {
  *  letters, none unless `mail` says. */
 export type HomeData = { leagueHome?: LeagueHome; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews; mail?: LatestMail | null };
 
-export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0, needsYou: [] } }: HomeData = {}) {
+export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = NO_MAIL }: HomeData = {}) {
   return {
     useLatestMail: vi.fn<HomeSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),

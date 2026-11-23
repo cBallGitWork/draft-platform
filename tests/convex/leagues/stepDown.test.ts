@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { steppedDownBody } from "../../../convex/mail/letterWords";
+import { commissionerSubject, steppedDownBody } from "../../../convex/mail/letterWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   ADMIN,
@@ -11,13 +11,12 @@ import {
   MANAGERS,
   addManager,
   addManagers,
-  adminCreatesLeague,
   eventsIn,
+  freshLeague,
   leagueRow,
   lettersTo,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 
 // A commissioner stepping down, and to whom the role passes (spec/01 S01.5; #2659).
@@ -25,16 +24,14 @@ import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t);
+  ({ t, leagueId } = await freshLeague());
 });
 
 const stepDown = async (email = COMMISSIONER) => (await actingAs(t, email)).mutation(api.leagues.leagues.stepDown, { leagueId });
 const nameCoCommissioner = async () =>
   (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 const commissionerNow = async () => (await leagueRow(t, leagueId))?.commissionerEmail;
-const letter = (email: string) => ({ subject: `${email} is the commissioner`, body: steppedDownBody(COMMISSIONER, email) });
+const letter = (email: string) => ({ subject: commissionerSubject(email), body: steppedDownBody(COMMISSIONER, email) });
 
 describe("the commissioner stepping down", () => {
   test("S01.5 the co-commissioner takes the role on, leaving no co-commissioner, and the league gets the letter", async () => {

@@ -20,7 +20,8 @@ const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
 /** The letter's words when commissioner `replaced` steps down and `email` takes the role on (S01.5). */
 export const steppedDownBody = (replaced: string, email: string) =>
   `${replaced} stepped down as the league's commissioner, and ${email} takes the role on.`;
-const commissionerSubject = (email: string) => `${email} is the commissioner`;
+/** The subject of the letter naming `email` the league's commissioner, however the role came. */
+export const commissionerSubject = (email: string) => `${email} is the commissioner`;
 const joinedSubject = ({ email, teamName }: { email: string; teamName: string }) => `${email} joined as manager of ${teamName}`;
 
 /** The letter reporting `event`, done by `who`, telling any time with `tell`, in the reader's zone. */

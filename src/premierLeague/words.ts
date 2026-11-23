@@ -157,8 +157,8 @@ export const teamStatRows = {
   shotsOnTarget: "Shots on target",
   possession: "Possession",
   corners: "Corners",
-  yellowCards: "Yellow cards",
-  redCards: "Red cards",
+  yellowCards: statColumns.yellowCards.long,
+  redCards: statColumns.redCards.long,
 } as const;
 /** The stats' own column, between the two clubs': its head is read out, not drawn. Each club's
  *  column is headed by its three letters, named by its full name. */
@@ -192,8 +192,8 @@ export const matchStatColumns = {
   cleanSheets: statColumns.cleanSheets,
   goalsConceded: { short: "GC", long: statNames.goalsConceded },
   saves: { short: "Sv", long: "Saves" },
-  yellowCards: { short: "YC", long: teamStatRows.yellowCards },
-  redCards: { short: "RC", long: teamStatRows.redCards },
+  yellowCards: statColumns.yellowCards,
+  redCards: statColumns.redCards,
   points: matchColumns.points,
 } as const;
 /** The Stats | Points switch at the right of the tabs row (S10.8): Points swaps each stat's count
