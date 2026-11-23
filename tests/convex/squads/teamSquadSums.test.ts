@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { checkCatalogueStat } from "../../../convex/scoring/statCatalogue";
 import { FORM_GAMEWEEKS } from "../../../convex/squads/squadLimits";
-import { SQUAD_STATS, gameweekPoints, squadEleven, squadForm } from "../../../convex/squads/teamSquad";
+import { gameweekPoints, squadEleven, squadForm } from "../../../convex/squads/squadPoints";
+import { SQUAD_STATS } from "../../../convex/squads/teamSquad";
 
 // My team's Squad tab's sums (#364), apart from the query's reads (teamSquad.test.ts): a
 // gameweek's points added up from his priced matches, his form, and the stats a row holds. His
