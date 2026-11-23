@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { query, type QueryCtx } from "../_generated/server";
 import { statCorrectionWindowMs } from "./platformSettings";
-import { earliest, type FeedState } from "./feedState";
+import type { FeedState } from "./feedState";
+import { earliestOf } from "../gameweeks/deadline";
 import { feedStatusOf } from "./feedStatuses";
 import { takeShown } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
@@ -150,15 +151,15 @@ export const owed = query({
  *  of this season's matches not yet locked, as a run with none due writes no row (#2002); none of
  *  those otherwise. Every other feed always owes one (feedState.ts's `owedSinceOf`). */
 async function owedSinceAt(ctx: QueryCtx, now: number): Promise<FeedsOwed["owedSince"]> {
-  const liveStats = earliest((await liveMatches(ctx, now)).map((match) => match.kickoff));
-  const teamSheets = earliest((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
+  const liveStats = earliestOf((await liveMatches(ctx, now)).map((match) => match.kickoff));
+  const teamSheets = earliestOf((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
   const firstUnlocked = (state: "provisional" | "complete") =>
     ctx.db
       .query("matchStatsStatus")
       .withIndex("by_state_and_fullTimeAt", (q) => q.eq("state", state).gte("fullTimeAt", seasonStartAt(now)))
       .first();
   const unlocked = [await firstUnlocked("provisional"), await firstUnlocked("complete")];
-  return { matchStats: earliest(unlocked.flatMap((status) => (status === null ? [] : [status.fullTimeAt]))), liveStats, teamSheets };
+  return { matchStats: earliestOf(unlocked.flatMap((status) => (status === null ? [] : [status.fullTimeAt]))), liveStats, teamSheets };
 }
 
 async function matchName(ctx: QueryCtx, fixtureCode: number): Promise<Infer<typeof matchNamed>> {

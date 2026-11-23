@@ -1,4 +1,4 @@
-// scripts/record-match.mjs and scripts/with-deadline.mjs load this under plain node: import only types, or other files by explicit `.ts` path.
+// scripts/record-match.mjs, scripts/with-deadline.mjs and scripts/promote.mjs load this under plain node: import only types, or other files by explicit `.ts` path.
 // Units of time in milliseconds, the unit Date.now() and Convex's scheduler count in, and the
 // season's calendar. They are the calendar's and the Premier League's, not any league rule's, so
 // they are constants with one home.

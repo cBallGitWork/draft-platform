@@ -45,6 +45,9 @@ export type MyTeamData = TacticsData & {
 /** A league's waivers with nobody's claims open to doubt: drafted, out of the lock, no runs. */
 export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, windowShuts: null, resetsAfter: null, delayed: false };
 
+/** Mail with no letters, none unread and nothing needing the manager (My team's and Home's). */
+export const NO_MAIL: LatestMail = { letters: [], unread: 0, needsYou: [] };
+
 export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: MY_TEAM_NAME, format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
@@ -52,7 +55,7 @@ export function fakeMyTeam({
   otherSquad = { teamName: THEIR_TEAM_NAME, players: [], awards: [] },
   awards = [],
   numberAnswer = null,
-  mail = { letters: [], unread: 0, needsYou: [] },
+  mail = NO_MAIL,
   leagueTable = undefined,
   claims = [],
   waivers = NO_WAIVERS,

@@ -12,6 +12,7 @@ import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommenta
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 import { MINUTE_MS } from "../shared/time";
+import { earliestOf } from "../gameweeks/deadline";
 import { heldChunks, linesOf, writeChunks } from "./commentaryChunks";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by
@@ -165,8 +166,7 @@ export function delayedFrom(held: StoredCommentary, score: Doc<"matchScores"> | 
 
 /** The earliest of `delayedFrom`'s moments: commentary over several matches is delayed once any is. */
 export function earliestDelay(moments: readonly (number | null)[]): number | null {
-  const given = moments.filter((moment) => moment !== null);
-  return given.length === 0 ? null : Math.min(...given);
+  return earliestOf(moments.filter((moment) => moment !== null));
 }
 
 /** `delayedFrom`'s "always". */

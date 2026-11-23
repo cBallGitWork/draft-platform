@@ -42,10 +42,6 @@
     "Role fit",
     "This season"
   ],
-  "src/premierLeague/words.ts": [
-    "Red cards",
-    "Yellow cards"
-  ],
   "src/scoring/words.ts": [
     "Patch notes"
   ],
@@ -55,7 +51,6 @@
     "Shots on target"
   ],
   "src/trades/words.ts": [
-    "Keep it",
     "This season",
     "Your squad"
   ],

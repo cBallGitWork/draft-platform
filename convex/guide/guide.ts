@@ -5,7 +5,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { adminOf, callerEmail, refuse } from "../shared/leagueAccess";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { typedName, typedText } from "../shared/typedText";
-import { formationKind, LISTED_FORMATIONS, type FormationKind } from "./formationEntries";
+import { formationKind, heldDescription, LISTED_FORMATIONS, type FormationKind } from "./formationEntries";
 import { GUIDE_ENTRIES_MOST, GUIDE_FORMATIONS_MOST, GUIDE_SECTIONS_MOST, GUIDE_TEXT_MAX, GUIDE_TITLE_MAX } from "./guideLimits";
 
 // The Guide (spec/23): sections down the left, each with its entries in order. Every signed-in
@@ -94,7 +94,7 @@ export const list = query({
  *  Claude's (S05.61; formationEntries.ts `describedWith`), for anyone signed in. */
 export const formationDescriptions = query({
   args: {},
-  returns: v.array(v.object({ kind: formationKind, name: v.string(), text: v.string() })),
+  returns: v.array(heldDescription),
   handler: async (ctx) => {
     await callerEmail(ctx);
     return (await formationEditsOf(ctx)).flatMap(({ kind, name, text }) => (text === undefined ? [] : [{ kind, name, text }]));

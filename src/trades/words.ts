@@ -151,7 +151,7 @@ export const closesAtWords = (gameweek: number, when: string) =>
 export const acceptWords = "Accept";
 export const counterWords = "Counter";
 export const rejectWords = "Reject";
-export const withdrawWords = "Withdraw";
+export { withdrawWords } from "../shared/controls/words";
 export const rejectQuestion = (teamName: string) =>
   `Reject ${teamName}'s offer?`;
 export const rejectYesWords = "Reject it";

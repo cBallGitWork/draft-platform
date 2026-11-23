@@ -142,7 +142,7 @@ export const versionColumns = {
 export const comingWords = "Coming";
 export const noVersionsYetWords = "No versions yet: every league plays the first scoring set.";
 export const notesLinkWords = "Notes";
-export const withdrawWords = "Withdraw";
+export { withdrawWords } from "../shared/controls/words";
 export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to the draft, its banner goes, and every manager gets a letter saying so.`;
 export const withdrawYesWords = "Withdraw it";
 export const withdrawNoWords = "Keep it";

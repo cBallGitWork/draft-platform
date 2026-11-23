@@ -12,11 +12,12 @@ import { FIRST_PRESETS, presetDescriptionOf } from "../lineup/presets";
 export const formationKind = v.union(v.literal("preset"), v.literal("classic"));
 export type FormationKind = Infer<typeof formationKind>;
 
-/** The admin's edit to one formation entry's text. */
-export type HeldDescription = { kind: FormationKind; name: string; text: string };
+/** One formation entry's text: the admin's edit, or Claude's. */
+export const heldDescription = v.object({ kind: formationKind, name: v.string(), text: v.string() });
+export type HeldDescription = Infer<typeof heldDescription>;
 
 /** Every formation entry the site lists, presets then classic sides, each with Claude's text. */
-export const LISTED_FORMATIONS: readonly { kind: FormationKind; name: string; text: string }[] = [
+export const LISTED_FORMATIONS: readonly HeldDescription[] = [
   ...FIRST_PRESETS.flatMap(({ name }) => {
     const text = presetDescriptionOf(name);
     return text === undefined ? [] : [{ kind: "preset" as const, name, text }];
