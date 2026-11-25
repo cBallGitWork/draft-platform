@@ -12,6 +12,8 @@ import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
 import { PITCH_ASPECT } from "../../src/ui/pitch/pitchMarkings";
 import { RUN_MARK } from "../../src/ui/pitch/runs";
+import { ROLE_CHIP_MARK } from "../../src/myTeam/tactics/pitch/Pitch";
+import { ROLES_TITLE } from "../../src/myTeam/tactics/roleCard/words";
 import { allFormationsWords, pitchLabel, runsWords } from "../../src/myTeam/tactics/words";
 import { applyWords, backGroupPattern, cancelWords, WINDOW_TITLE } from "../../src/myTeam/tactics/formationWindow/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
@@ -21,6 +23,7 @@ import { NO_CONVEX_URL } from "../../src/shared/words";
 import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { DESK, PHONE } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
+import { expectPageSound } from "../support/smoke/pageChecks";
 import { previewUrl } from "../support/smoke/previewUrl";
 
 /** The page's and the panel's padding either side of the phone's pitch, at most. */
@@ -176,6 +179,14 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           const shown = await runs.evaluateAll((all, mark) => all.filter((run) => getComputedStyle(run).display !== "none").map((run) => run.getAttribute(mark)), RUN_MARK);
           expect(shown, "only the tapped player's").toEqual([tapped]);
         }
+      });
+
+      // Its six-column Roles table scrolls in its panel, never the page (#2791).
+      test("S05.45: a starter's role card, opened from his role on the pitch, keeps the page inside the window", async ({ page }) => {
+        await page.goto(previewUrl(MY_TEAM_PATH, "manager"));
+        await page.getByRole("group", { name: pitchLabel }).locator(`[${ROLE_CHIP_MARK}]`).first().click();
+        await expect(page.getByText(ROLES_TITLE, { exact: true })).toBeVisible();
+        await expectPageSound(page);
       });
     });
   }
