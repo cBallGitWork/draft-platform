@@ -150,46 +150,49 @@ function RolesTable({
           </span>
         )}
       </div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-head text-left font-semibold text-ground">
-            <th scope="col" className="px-2">{ROLE_COLUMNS.role}</th>
-            <th scope="col" className="px-2">{ROLE_COLUMNS.fit}</th>
-            <th scope="col" className="px-2">{ROLE_COLUMNS.rewards}</th>
-            <th scope="col" className="px-2">{ROLE_COLUMNS.punishes}</th>
-            <th scope="col" className="px-2 text-right">{ROLE_COLUMNS.fromRole}</th>
-            <th scope="col" className="px-2 text-right">{ROLE_COLUMNS.total}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {card.roles.map((role) => {
-            const sums = played === 0 ? null : sumsOf(card.matches, role.key);
-            return (
-              <tr
-                key={role.key}
-                aria-current={role.key === inUse || undefined}
-                data-previewed={role.key === previewed || undefined}
-                className="border-t border-panel-rule aria-current:shadow-current-edge data-previewed:bg-ground"
-              >
-                <th scope="row" className="px-2 py-2 text-left">
-                  <button type="button" aria-pressed={role.key === previewed} onClick={() => onPreview(role.key)} className="min-h-tap text-left text-lead font-bold lg:min-h-0">
-                    {role.name}
-                  </button>
-                  {role.key === inUse && <span className="ml-2 bg-fact px-1 text-ground">{inUseWords}</span>}
-                  {role.notTested && <span className="ml-2 text-muted">{notTestedWords}</span>}
-                </th>
-                <td className="px-2">
-                  <Stars player={player} starter={starter} role={role} />
-                </td>
-                <td className="px-2">{rewardsWords(role.rewards)}</td>
-                <td className="px-2">{rewardsWords(role.punishes)}</td>
-                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedWords(sums.points)}</td>
-                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : figureWords(sums.total)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* Six columns outgrow a phone: the table scrolls in its panel, never the page (#2791). */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-head text-left font-semibold text-ground">
+              <th scope="col" className="px-2">{ROLE_COLUMNS.role}</th>
+              <th scope="col" className="px-2">{ROLE_COLUMNS.fit}</th>
+              <th scope="col" className="px-2">{ROLE_COLUMNS.rewards}</th>
+              <th scope="col" className="px-2">{ROLE_COLUMNS.punishes}</th>
+              <th scope="col" className="px-2 text-right">{ROLE_COLUMNS.fromRole}</th>
+              <th scope="col" className="px-2 text-right">{ROLE_COLUMNS.total}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {card.roles.map((role) => {
+              const sums = played === 0 ? null : sumsOf(card.matches, role.key);
+              return (
+                <tr
+                  key={role.key}
+                  aria-current={role.key === inUse || undefined}
+                  data-previewed={role.key === previewed || undefined}
+                  className="border-t border-panel-rule aria-current:shadow-current-edge data-previewed:bg-ground"
+                >
+                  <th scope="row" className="px-2 py-2 text-left">
+                    <button type="button" aria-pressed={role.key === previewed} onClick={() => onPreview(role.key)} className="min-h-tap text-left text-lead font-bold lg:min-h-0">
+                      {role.name}
+                    </button>
+                    {role.key === inUse && <span className="ml-2 bg-fact px-1 text-ground">{inUseWords}</span>}
+                    {role.notTested && <span className="ml-2 text-muted">{notTestedWords}</span>}
+                  </th>
+                  <td className="px-2">
+                    <Stars player={player} starter={starter} role={role} />
+                  </td>
+                  <td className="px-2">{rewardsWords(role.rewards)}</td>
+                  <td className="px-2">{rewardsWords(role.punishes)}</td>
+                  <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedWords(sums.points)}</td>
+                  <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : figureWords(sums.total)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
       <p className="flex gap-6 border-t border-panel-rule px-3 py-2">
         <span className="text-muted">{pointsHead}</span>
         <span>{roleLimitWords}</span>
