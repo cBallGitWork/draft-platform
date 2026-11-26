@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import { leagueOpens } from "../leagues/leagueOpens";
-import { heldPositionsOf } from "../lineup/lineups";
+import { heldPositionsOf } from "../lineup/lineupPlayers";
 import { changedRolesLetter } from "../lineup/lineupWords";
 import { roleIn } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";

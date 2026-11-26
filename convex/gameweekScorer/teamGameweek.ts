@@ -10,7 +10,7 @@ import { backLineOf, presetNameOf } from "../lineup/presets";
 import { instructionsOf } from "../rules/firstRules";
 import { gameModeOf, playedSet } from "../rules/gameMode";
 import type { TeamScoring } from "../scoring/scoring";
-import { positionsNow } from "../positions/playerPositions";
+import { playerPositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
@@ -21,7 +21,8 @@ import { checkedOnce } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
-import { keptAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } from "../stars/deadlineStars";
+import { keptAtDeadline, linesAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } from "../stars/deadlineStars";
+import { lineupModeOf } from "../lineup/lineupPlayers";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
@@ -51,7 +52,7 @@ export async function leagueReads(
     leagueId: league._id,
     season,
     setIn: setIn ?? (await siteScoringByGameweek(ctx)),
-    player: playerReader(ctx, await positionsNow(ctx, league._id)),
+    player: playerReader(ctx, await playerPositionsNow(ctx, league._id)),
   };
 }
 
@@ -151,7 +152,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
     plays.set(code, gameweekPlay(hisMatches.map((match) => forPlay(match, code))));
   }
-  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => kept?.stars.get(code) ?? []);
+  const mode = lineupModeOf(rules, await linesAtDeadline(rules, kept, reads.player, [...codes, ...held.vacated.map(({ playerCode }) => playerCode)]));
+  const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => kept?.stars.get(code) ?? [], mode);
   const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
   const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
   const scoring = teamScoring(held, inputs, formation);

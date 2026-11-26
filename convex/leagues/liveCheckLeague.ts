@@ -8,7 +8,9 @@ import { draftIsOver, draftOf } from "../draft/draftRow";
 import { afterChoosing } from "../draft/draftTimeouts";
 import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { standingProblems } from "../lineup/autoSubs";
-import { heldPositionsOf, lineupInGameweek } from "../lineup/lineups";
+import { lineupInGameweek } from "../lineup/lineups";
+import { heldPositionsOf, lineupModeIn } from "../lineup/lineupPlayers";
+import { namedCodes } from "../lineup/lineup";
 import { recordEvent } from "../mail/letters";
 import { giveDefaultRules } from "../rules/leagueRules";
 import { everyLeague } from "../shared/cappedRead";
@@ -105,7 +107,9 @@ export const state = internalQuery({
       if (next.kind === "open") {
         const held = await lineupInGameweek(ctx, league._id, team._id, next.gameweek);
         const positions = await heldPositionsOf(ctx, league._id, squad);
-        lineupStands = held.starters.length > 0 &&standingProblems(held, positions, next.season.inGameweek(next.gameweek)).length === 0;
+        const rules = next.season.inGameweek(next.gameweek);
+        const mode = await lineupModeIn(ctx, league._id, rules, namedCodes(held));
+        lineupStands = held.starters.length > 0 && standingProblems(held, positions, rules, mode).length === 0;
       }
       teams.push({ name: team.name, managerEmail: team.managerEmail ?? null, players: squad.length, onAutoTeam: team.autoTeam !== undefined, lineupStands });
     }
