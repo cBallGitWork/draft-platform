@@ -64,6 +64,7 @@ export function changesTo(
     "leagues/teams:addManager": () => admin.mutation(api.leagues.teams.addManager, { leagueId, email: NEWCOMER }),
     "leagues/teams:removeManager": () => admin.mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam._id }),
     "leagues/teams:rename": () => ann.mutation(api.leagues.teams.rename, { teamId: annsTeam._id, name: "Saka Potatoes" }),
+    "leagues/teams:setColours": () => ann.mutation(api.leagues.teams.setColours, { teamId: annsTeam._id, colours: ["red"] }),
     "leagues/teams:leave": () => ann.mutation(api.leagues.teams.leave, { leagueId }),
     "leagues/commissionerAsks:ask": () => ann.mutation(api.leagues.commissionerAsks.ask, { leagueId }),
     "leagues/commissionerAsks:approve": () => admin.mutation(api.leagues.commissionerAsks.approve, { askId }),

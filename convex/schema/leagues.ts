@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v, type Infer } from "convex/values";
+import { teamColours } from "../leagues/teamColours";
 import { signInReply } from "../signIn/signInReplies";
 import { joiningEvents } from "./joining";
 import { managerOfTeam, replaced } from "./people";
@@ -92,6 +93,9 @@ const teamFields = {
    *  switched it on, and the gameweek it ends after, if its manager named one. Absent while off. A
    *  team with no manager is on it whatever this holds, and handing it on clears this. */
   autoTeam: v.optional(v.object({ by: v.string(), endsAfter: v.optional(v.number()) })),
+  /** Its colours from the palette, first to third (spec/12 S12.26, S12.32; ../leagues/teamColours.ts).
+   *  A new team starts on two at random (S12.33); absent only on a team made before them. */
+  colours: v.optional(teamColours),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */

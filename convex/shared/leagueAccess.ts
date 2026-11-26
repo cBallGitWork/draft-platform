@@ -3,7 +3,7 @@ import { ConvexError, v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
-import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
+import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_COLOURS_MOST, TEAM_NAME_MAX } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { playerByCode } from "./players";
 
@@ -35,6 +35,7 @@ export const refusals = {
   teamNameTooLong: `A team's name is up to ${TEAM_NAME_MAX} characters.`,
   leagueNameTooLong: `A league's name is up to ${LEAGUE_NAME_MAX} characters.`,
   teamNameTaken: (name: string) => `A team in this league is already called "${name}".`,
+  colourCount: `Pick one to ${TEAM_COLOURS_MOST} colours.`,
   maxOutOfRange: `A league holds ${FEWEST_TEAMS} to ${MOST_TEAMS} teams.`,
   belowTeams: (teams: number) => `The league already has ${teams} teams: the maximum can't go below that.`,
   full: (maxTeams: number) => `The league is full: it has all ${maxTeams} of its teams.`,

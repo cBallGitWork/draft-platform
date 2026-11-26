@@ -7,6 +7,8 @@ export const MOST_TEAMS = 20;
 export const TEAM_NAME_MAX = 30;
 /** How long a league's name may be: the same as a team's (Craig, 22 Oct 2026). */
 export const LEAGUE_NAME_MAX = TEAM_NAME_MAX;
+/** The most colours a team holds (spec/12 S12.32): the first required, two more optional. */
+export const TEAM_COLOURS_MOST = 3;
 /** How long a deleted league can be undone before it is gone for good (spec/13, Deleting). */
 export const DELETION_UNDO_HOURS = 24;
 /** A Premier League squad, the most a league's squad maximum may be (spec/03, Squad make-up: "a
