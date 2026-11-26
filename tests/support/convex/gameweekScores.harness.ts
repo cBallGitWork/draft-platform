@@ -108,9 +108,10 @@ export interface ScoresLeague {
  *  first lineup his squad's assignments stored (lineups.ts, #637), picked in the order each squad
  *  is listed here, starters then bench. With `catToo`, a third team, Cat's, with no squad and so
  *  nobody in its lineup, plays the league's average. Held to Convex's own limits with
- *  `atConvexLimits` (freshConvex). */
-export async function scoresLeague({ bobSaves = true, catToo = false, atConvexLimits = false } = {}): Promise<ScoresLeague> {
-  const { t, leagueId, teams: [annsTeam, bobsTeam, catsTeam] } = await freshLeague({ managers: catToo ? [ANN, BOB, CAT] : [ANN, BOB], atConvexLimits });
+ *  `atConvexLimits` (freshConvex). A `classic` league (spec/22) holds no lines yet: footballRows'
+ *  `setLines` gives them. */
+export async function scoresLeague({ bobSaves = true, catToo = false, atConvexLimits = false, classic = false } = {}): Promise<ScoresLeague> {
+  const { t, leagueId, teams: [annsTeam, bobsTeam, catsTeam] } = await freshLeague({ managers: catToo ? [ANN, BOB, CAT] : [ANN, BOB], atConvexLimits, classic });
   const elements = new Map(recordedGw6().fpl.bootstrap.elements.map((element) => [element.code, element]));
   await t.run(async (ctx) => {
     await insertSeasonGameweeks(ctx);
