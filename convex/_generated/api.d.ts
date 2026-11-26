@@ -159,6 +159,7 @@ import type * as leagues_leagueOpens from "../leagues/leagueOpens.js";
 import type * as leagues_leagues from "../leagues/leagues.js";
 import type * as leagues_liveCheckLeague from "../leagues/liveCheckLeague.js";
 import type * as leagues_myLeagues from "../leagues/myLeagues.js";
+import type * as leagues_teamColours from "../leagues/teamColours.js";
 import type * as leagues_teams from "../leagues/teams.js";
 import type * as lineup_autoSubs from "../lineup/autoSubs.js";
 import type * as lineup_autoTeam from "../lineup/autoTeam.js";
@@ -617,6 +618,7 @@ declare const fullApi: ApiFromModules<{
   "leagues/leagues": typeof leagues_leagues;
   "leagues/liveCheckLeague": typeof leagues_liveCheckLeague;
   "leagues/myLeagues": typeof leagues_myLeagues;
+  "leagues/teamColours": typeof leagues_teamColours;
   "leagues/teams": typeof leagues_teams;
   "lineup/autoSubs": typeof lineup_autoSubs;
   "lineup/autoTeam": typeof lineup_autoTeam;
