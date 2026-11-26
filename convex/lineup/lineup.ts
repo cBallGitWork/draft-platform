@@ -11,6 +11,9 @@ import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn,
 import { LINE_NAMES, type Line } from "../shared/lineNames";
 import type { Position } from "../positions/positionTables";
 import type { PlayerCode } from "../shared/players";
+import { gameModeOf } from "../rules/gameMode";
+import { lineLimitsOf } from "../rules/firstRules";
+import type { LeagueRules } from "../rules/leagueRulesShape";
 
 /** A football side's eleven: the product's rule, not a league's. */
 export const STARTER_COUNT = 11;
@@ -57,6 +60,14 @@ export interface ClassicLineup {
 
 /** Every league but a classic one. */
 export const NOT_CLASSIC: LineupMode = { classic: false };
+
+/** The mode a league with these rules judges lineups in, each player's line as `lines` gives it:
+ *  one with none is left out, so the check names him (`lineUnknown`). */
+export function lineupModeOf(rules: Pick<LeagueRules, "format" | "classic" | "lineLimits">, lines: ReadonlyMap<PlayerCode, Line | null>): LineupMode {
+  if (!gameModeOf(rules).classic) return NOT_CLASSIC;
+  const known = [...lines].flatMap(([code, line]) => (line === null ? [] : [[code, line] as const]));
+  return { classic: true, lines: new Map(known), lineLimits: lineLimitsOf(rules) };
+}
 
 /** Each starter's positions. An unconfirmed position is passed like any other: it counts
  *  (spec/06). The bench's aren't read: where a sub may come on is the auto-subs' question. */

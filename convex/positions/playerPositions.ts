@@ -13,6 +13,7 @@ import { keepScoutingPlayer } from "../scouting/scoutingPlayers";
 import type { Area } from "../lineup/pitch";
 import { areaShape } from "../lineup/pitchShape";
 import { minimumAreas } from "../squads/areaMinimums";
+import { lineFrom, type LineNow } from "./lines";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
@@ -236,8 +237,9 @@ export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): P
  *  minimums he can fill (#317), which the admin's area gives an unplaced player (spec/06 `S06.1`).
  *  How positions count is read once, here, and each player's row once per lookup, for both (#1532):
  *  a draft pick asks after the same players several times over, near Convex's read limit. A caller
- *  that writes a player's positions takes a new lookup to read them again. */
-export async function playerPositionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<{ positionsOf: PositionsNow; minimumAreasOf: MinimumAreasNow }> {
+ *  that writes a player's positions takes a new lookup to read them again. His line in a classic
+ *  league (spec/22, Lines) is read from the same row. */
+export async function playerPositionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<{ positionsOf: PositionsNow; minimumAreasOf: MinimumAreasNow; lineOf: LineNow }> {
   const how = await howPositionsCount(ctx, positionsFor);
   const rows = new Map<number, Promise<RowFields>>();
   const rowOf = (code: number): Promise<RowFields> => {
@@ -250,7 +252,8 @@ export async function playerPositionsNow(ctx: QueryCtx, positionsFor: PositionsF
   const positionsOf: PositionsNow = async (code) => positionListFrom(await rowOf(code), how);
   const minimumAreasOf: MinimumAreasNow = async (code, positionsThen) =>
     minimumAreas(positionsThen?.length ? positionsThen : await positionsOf(code), (await rowOf(code)).unplacedArea ?? null);
-  return { positionsOf, minimumAreasOf };
+  const lineOf: LineNow = async (code) => lineFrom(await rowOf(code), how).line;
+  return { positionsOf, minimumAreasOf, lineOf };
 }
 
 /** Everything `positionsOf` works out for him now, flags and removals with his positions. */

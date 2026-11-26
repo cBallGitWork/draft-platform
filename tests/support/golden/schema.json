@@ -27798,6 +27798,34 @@
                       }
                     },
                     "optional": false
+                  },
+                  "line": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "GK"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "DEF"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "AM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "FWD"
+                        }
+                      ]
+                    },
+                    "optional": true
                   }
                 }
               }

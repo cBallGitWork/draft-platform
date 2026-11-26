@@ -1,7 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { roleStarsShape } from "../stars/starsShape";
-import { position } from "./positions";
+import { line, position } from "./positions";
 
 export const starsTables = {
   /** Stars (#11, spec/05 Roles): one row a player with a counted match and positions, refreshed as
@@ -19,12 +19,15 @@ export const starsTables = {
    *  ratings with stars, since "?" and "—" pick nothing. With them, each man the lineup named, his
    *  club (null for one the football sync didn't hold) and positions then (#1540), which scoring a
    *  begun gameweek reads, so a later change of either never re-works its auto-subs. A row kept
-   *  before #1540 has none. */
+   *  before #1540 has none. In a classic league each man's line then too (spec/22), none while
+   *  he had none or in a row kept before #2637. */
   deadlineStars: defineTable({
     leagueId: v.id("leagues"),
     gameweek: v.number(),
     teamId: v.id("teams"),
     bench: v.array(v.object({ playerCode: v.number(), stars: v.array(roleStarsShape) })),
-    players: v.optional(v.array(v.object({ playerCode: v.number(), clubCode: v.union(v.number(), v.null()), positions: v.array(position) }))),
+    players: v.optional(
+      v.array(v.object({ playerCode: v.number(), clubCode: v.union(v.number(), v.null()), positions: v.array(position), line: v.optional(line) })),
+    ),
   }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
 };

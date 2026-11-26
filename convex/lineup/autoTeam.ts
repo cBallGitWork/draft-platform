@@ -15,8 +15,10 @@ import { closeOffersOfTeam } from "../trades/tradeClose";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
-import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
-import { heldPositionsOf, lineupsInGameweek, storeAutoTeamLineup, type HeldLineup } from "./lineups";
+import { namedCodes, type LineupMode, type Placement, type PlayerPositions } from "./lineup";
+import { lineupsInGameweek, storeAutoTeamLineup, type HeldLineup } from "./lineups";
+import { heldPositionsOf, lineupModeIn } from "./lineupPlayers";
+import type { LeagueRules } from "../rules/leagueRulesShape";
 import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { heldCell } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
@@ -46,25 +48,26 @@ function autoTeamLineup(
   isOut: (playerCode: number) => boolean,
   rules: FirstLineupRules,
   ratingsOf: (playerCode: number) => readonly RoleStars[],
+  mode: LineupMode,
 ): FirstLineup {
   const squad = namedCodes(held);
   const plays = new Map<number, GameweekPlay>(squad.map((playerCode) => [playerCode, isOut(playerCode) ? "didNotPlay" : "played"]));
-  const subbed = autoSubs(held, positions, plays, rules, held.vacated, ratingsOf).lineup;
+  const subbed = autoSubs(held, positions, plays, rules, held.vacated, ratingsOf, mode).lineup;
   // A slot no bench player can fill is left empty, as auto-subs leave it, and the rest of the
   // lineup stays (spec/05, Auto-subs; Craig, 12 Nov 2026, on #1437: "Leave the slot empty").
-  if (savedStood(held, positions, rules) || standingProblems(subbed, positions, rules).length === 0) {
+  if (savedStood(held, positions, rules, mode) || standingProblems(subbed, positions, rules, mode).length === 0) {
     return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
   }
   const outs = new Set(squad.filter(isOut));
-  return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, positions, held.starters);
+  return withDroppedRoles(firstLineup(squad, positions, rules, outs, mode), ratingsOf, positions, held.starters);
 }
 
 /** Whether the lineup as saved could stand, each who left the squad back in the slot he left, as
  *  auto-subs weigh it: then only a gap no bench player fits keeps it from standing now. */
-function savedStood(held: Pick<HeldLineup, "starters" | "bench" | "vacated">, positions: PlayerPositions, rules: FirstLineupRules): boolean {
+function savedStood(held: Pick<HeldLineup, "starters" | "bench" | "vacated">, positions: PlayerPositions, rules: FirstLineupRules, mode: LineupMode): boolean {
   const asSaved = { starters: [...held.starters, ...held.vacated], bench: held.bench };
   const weighed: PlayerPositions = new Map([...positions, ...held.vacated.map(({ playerCode }) => [playerCode, []] as const)]);
-  return standingProblems(asSaved, weighed, rules).length === 0;
+  return standingProblems(asSaved, weighed, rules, mode).length === 0;
 }
 
 /** A starter auto-subs placed: every cell they hand back is on the pitch (lineupProblems refused
@@ -121,7 +124,7 @@ async function runTeam(
   league: Doc<"leagues">,
   team: Doc<"teams">,
   held: HeldLineup,
-  rules: FirstLineupRules,
+  rules: LeagueRules,
   mode: Pick<GameMode, "showsStars">,
   gameweek: number,
 ) {
@@ -132,14 +135,16 @@ async function runTeam(
   const noManager = team.managerEmail === undefined;
   const squad = namedCodes(held);
   const positions = await heldPositionsOf(ctx, league._id, squad);
-  const illegal = standingProblems(held, positions, rules).length > 0;
+  // Who left the squad stands in his slot again for auto-subs, so his line is read too.
+  const lineupMode = await lineupModeIn(ctx, league._id, rules, [...squad, ...held.vacated.map(({ playerCode }) => playerCode)]);
+  const illegal = standingProblems(held, positions, rules, lineupMode).length > 0;
 
   let lineup: FirstLineup | null = null;
   if (byPerson || noManager || illegal) {
     const outs = new Set<number>();
     for (const playerCode of squad) if ((await availabilityOf(ctx, playerCode)).availability === "out") outs.add(playerCode);
     const starsOf = await starsLookupIn(ctx, squad, mode);
-    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf);
+    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf, lineupMode);
     if (!sameLineup(set, held)) lineup = set;
   }
 

@@ -7,6 +7,8 @@ import type { WithoutSystemFields } from "convex/server";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Position } from "../../../convex/positions/positionTables";
+import { lineOfPosition } from "../../../convex/positions/lines";
+import type { Line } from "../../../convex/shared/lineNames";
 
 export type Club = WithoutSystemFields<Doc<"clubs">>;
 
@@ -43,6 +45,14 @@ export const insertClubs = async (ctx: MutationCtx, clubs: readonly Club[]) => {
  *  row is written already or not needed. */
 export const insertSetPositions = (ctx: MutationCtx, code: number, positions: Position[]) =>
   ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: positions, removed: [] });
+
+/** In a classic league (spec/22), each held player's line as the admin sets it (`S22.7`): the line
+ *  of the first position he was set at, or the one `lines` gives him. */
+export const setLines = async (ctx: MutationCtx, lines: ReadonlyMap<number, Line> = new Map()) => {
+  for (const row of await ctx.db.query("playerPositions").collect()) {
+    await ctx.db.patch("playerPositions", row._id, { line: lines.get(row.code) ?? lineOfPosition(row.set[0]) });
+  }
+};
 
 /** Each player's row only, with no positions set, for a test whose reads never ask them. */
 export const insertPlayerRows = async (ctx: MutationCtx, players: readonly HeldPlayer[]) => {
