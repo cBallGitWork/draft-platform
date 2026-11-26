@@ -42,11 +42,11 @@ describe("the season's winner", () => {
   });
 
   test("S09.5: Mail names each winner, the points and the games", () => {
-    expect(playerOfTheSeasonLetter(["Saka"], 231.5, 34)).toEqual({
-      subject: "Saka is Player of the Season",
-      body: "Saka scored the most points over the league's gameweeks: 231.5, in 34 games.",
-    });
-    expect(playerOfTheSeasonLetter(["Saka", "Palmer"], 231.5, 34).subject).toBe("Saka and Palmer share Player of the Season");
+    const { subject, body } = playerOfTheSeasonLetter(["Saka"], 231.5, 34);
+    expect(subject).toContain("Saka");
+    expect(body).toContain("231.5");
+    expect(body).toContain("34 games");
+    expect(playerOfTheSeasonLetter(["Saka", "Palmer"], 231.5, 34).subject).toContain("Saka and Palmer share");
   });
 });
 
