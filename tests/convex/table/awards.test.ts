@@ -94,7 +94,7 @@ describe("the months to award", () => {
     const { subject, body } = managerOfTheMonthLetter("Ann's XI", "2026-10", 145.5, false);
     expect(subject).toContain("Ann's XI");
     expect(subject).toContain("October 2026");
-    expect(body).toContain("scored the most points");
+    expect(body).not.toContain("table points");
     expect(body).toContain("145.5");
   });
 
