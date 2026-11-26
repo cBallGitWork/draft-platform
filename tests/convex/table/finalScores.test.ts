@@ -27,6 +27,7 @@ import {
 import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 import { seasonGameweekCount } from "../../../convex/gameweeks/seasonGameweeks";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { MATCHUP_POINTS } from "../../../convex/table/standings";
 
 // Storing a gameweek's scores once final (#418): every match in it locked, each team's points are
 // stored and read from then on, so the table never scores the whole season on each read. A gameweek
@@ -254,7 +255,7 @@ test("a gameweek that can't be scored is stored for nobody, logged, and named on
   expect((await readTable(league))!.unscored).toEqual([{ gameweek: GAMEWEEK, reason: expect.stringContaining(`"${TYPO_STAT}"`) }]);
 });
 
-test("S09.5: once a month's last gameweek is stored final, its Manager of the Month is stored and Mailed once (#2677)", async () => {
+test("S09.5, S09.11: once a month's last gameweek is stored final, its Manager of the Month is stored and Mailed once (#2677)", async () => {
   const league = await scoresLeague();
   // Gameweek 6 the league's last, so its month is over once it is final.
   const count = await league.t.run((ctx) => seasonGameweekCount(ctx));
@@ -266,11 +267,11 @@ test("S09.5: once a month's last gameweek is stored final, its Manager of the Mo
     (await league.t.run((ctx) => ctx.db.query("letters").collect())).filter((letter) => letter.subject.includes("Manager of the Month"));
 
   await storeLeague(league);
-  // Everton's 32 beat Hull's 24.
-  expect(await awards()).toEqual([expect.objectContaining({ teamId: league.bobsTeam, points: EVERTON_POINTS })]);
+  // Everton's 32 beat Hull's 24: head-to-head, Bob's award is a win's table points (S09.11).
+  expect(await awards()).toEqual([expect.objectContaining({ teamId: league.bobsTeam, points: MATCHUP_POINTS.win })]);
   const told = await awardLetters();
   expect(told.length).toBeGreaterThan(0);
-  expect(told.every((letter) => letter.body.includes(`${EVERTON_POINTS}`))).toBe(true);
+  expect(told.every((letter) => letter.body.includes(`table points`) && letter.body.includes(`: ${MATCHUP_POINTS.win}.`))).toBe(true);
 
   // Stored again, it is awarded and Mailed no more.
   await league.t.mutation(internal.table.finalScores.rescore, { leagueId: league.leagueId, gameweek: GAMEWEEK });
