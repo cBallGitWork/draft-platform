@@ -23,31 +23,34 @@ const scores = (byGameweek: Record<number, Record<string, number>>): GameweekSco
 const SCHEDULE = [week(1, [[ANN, BOB], [CAT, DAN]]), week(2, [[ANN, CAT], [BOB, DAN]]), week(3, [[ANN, DAN], [BOB, CAT]])];
 
 describe("the month's winner", () => {
-  test("S09.5: the team with the most points over the month's gameweeks wins, whatever the table", () => {
-    // Bob wins both games, but Cat scores the most points.
+  test("S09.11: head-to-head, the most table points over the month's games wins; total points, the most scored", () => {
+    // Bob wins both games, but Cat scores the most points: table points give it to Bob (6),
+    // points scored to Cat.
     const scored = scores({ 1: { [ANN]: 40, [BOB]: 50, [CAT]: 70, [DAN]: 80 }, 2: { [ANN]: 10, [BOB]: 60, [CAT]: 75.5, [DAN]: 20 } });
-    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, [], [1, 2])).toEqual({ team: CAT, points: 145.5 });
+    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, [], [1, 2])).toEqual({ team: BOB, points: 6 });
     expect(managerOfTheMonth("totalPoints", TEAMS, [], scored, [], [1, 2])).toEqual({ team: CAT, points: 145.5 });
   });
 
   test("S09.5: only the gameweeks of the month count", () => {
+    // Ann beats Bob in gameweek 1, before the month; in gameweek 2 Bob wins and Ann draws.
     const scored = scores({ 1: { [ANN]: 90, [BOB]: 10, [CAT]: 10, [DAN]: 10 }, 2: { [ANN]: 10, [BOB]: 30, [CAT]: 10, [DAN]: 10 } });
-    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, [], [2])).toEqual({ team: BOB, points: 30 });
+    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, [], [2])).toEqual({ team: BOB, points: 3 });
+    expect(managerOfTheMonth("totalPoints", TEAMS, [], scored, [], [2])).toEqual({ team: BOB, points: 30 });
   });
 
   test("S09.6, S09.9: teams level are split by the league's tie-breaks in its order, over the month's games alone", () => {
-    // Ann and Bob both score 100 over gameweeks 2 and 3, the month; in gameweek 1, before it, Ann
-    // beat Bob.
+    // Ann and Bob both win both games of gameweeks 2 and 3, the month, scoring 100 each; in
+    // gameweek 1, before it, Ann beat Bob.
     const scored = scores({
       1: { [ANN]: 90, [BOB]: 10, [CAT]: 0, [DAN]: 0 },
-      2: { [ANN]: 40, [BOB]: 50, [CAT]: 45, [DAN]: 40 },
-      3: { [ANN]: 60, [BOB]: 50, [CAT]: 45, [DAN]: 55 },
+      2: { [ANN]: 40, [BOB]: 50, [CAT]: 30, [DAN]: 20 },
+      3: { [ANN]: 60, [BOB]: 50, [CAT]: 45, [DAN]: 50 },
     });
-    // Points against over the month: Ann 45 + 55 = 100, Bob 40 + 45 = 85; the fewest wins.
-    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, ["pointsAgainst"], [2, 3])).toEqual({ team: BOB, points: 100 });
+    // Points against over the month: Ann 30 + 50 = 80, Bob 20 + 45 = 65; the fewest wins.
+    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, ["pointsAgainst"], [2, 3])).toEqual({ team: BOB, points: 6 });
     // They didn't meet in the month, so head-to-head leaves them level and points against splits
     // them; gameweek 1's win, outside the month, would have given it to Ann.
-    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, ["headToHead", "pointsAgainst"], [2, 3])).toEqual({ team: BOB, points: 100 });
+    expect(managerOfTheMonth("headToHead", TEAMS, SCHEDULE, scored, ["headToHead", "pointsAgainst"], [2, 3])).toEqual({ team: BOB, points: 6 });
   });
 
   test("S09.7: a month with no gameweek scored has no winner", () => {
@@ -88,9 +91,16 @@ describe("the months to award", () => {
   });
 
   test("S09.5: Mail names the team, the month and its points", () => {
-    const { subject, body } = managerOfTheMonthLetter("Ann's XI", "2026-10", 145.5);
+    const { subject, body } = managerOfTheMonthLetter("Ann's XI", "2026-10", 145.5, false);
     expect(subject).toContain("Ann's XI");
     expect(subject).toContain("October 2026");
+    expect(body).not.toContain("table points");
     expect(body).toContain("145.5");
+  });
+
+  test("S09.11: head-to-head, Mail says the points are table points", () => {
+    const { body } = managerOfTheMonthLetter("Ann's XI", "2026-10", 9, true);
+    expect(body).toContain("table points");
+    expect(body).toContain(": 9.");
   });
 });

@@ -50,6 +50,10 @@ From the awards grill (Craig, 18 Nov 2026).
 - Manager of the Month goes to the team with the most points over the gameweeks that start in
   that month; Player of the Season to the player with the most points over the season. Mail
   announces each ("Most points"). `S09.5`
+- In a head-to-head league, Manager of the Month's most points are table points (3 for a win, 1
+  for a draw) over that month's games; a total-points league uses points scored (Craig, 19 Nov
+  2026, on #2712: "Table points in head-to-head (Bob wins); a total-points league still uses
+  points scored"). `S09.11`
 - Teams level for Manager of the Month are split by the league's table tie-breaks, in its order
   ("Tie-break"). `S09.6`
 - Those tie-breaks count only that month's gameweeks (Craig, 18 Nov 2026: "That month's

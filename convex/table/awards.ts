@@ -19,7 +19,8 @@ import { pointsOf, type Results } from "./sentTables";
 import { headToHeadTable, totalPointsTable, type GameweekScores, type TieBreak } from "./standings";
 
 // Manager of the Month (spec/09, Awards; #2677): the team with the most points over the gameweeks
-// that start in a month (S09.5), a gameweek's start its league deadline (deadline.ts) and its month
+// that start in a month (S09.5), table points head-to-head and points scored in total points
+// (S09.11), a gameweek's start its league deadline (deadline.ts) and its month
 // the one that falls in on UK time (S09.10). Teams level are split by the league's table tie-breaks,
 // in its order, counting only that month's gameweeks (S09.6, S09.9). A month in which no gameweek
 // starts has no award and sends nothing (S09.7). It is awarded once its gameweeks are all final and
@@ -66,10 +67,11 @@ export function monthsToAward(
     .map(([month, inMonth]) => ({ month, gameweeks: inMonth }));
 }
 
-/** The month's Manager of the Month and their points for over `gameweeks`, the month's: the most
- *  points (the fewest, where the lower score wins), level teams split by `tieBreaks` over the
- *  month's games alone, any still level after the last in the league's order. Null with no
- *  gameweek of the month scored, or no team. Pure. */
+/** The month's Manager of the Month and their points over `gameweeks`, the month's: the top of the
+ *  month's table, its table points from the month's matchups head-to-head and points scored in total
+ *  points (S09.11; the fewest scored, where the lower score wins), level teams split by `tieBreaks`
+ *  over the month's games alone, any still level after the last in the league's order. Null with
+ *  no gameweek of the month scored, or no team. Pure. */
 export function managerOfTheMonth<Team>(
   format: LeagueRules["format"],
   teams: readonly Team[],
@@ -83,9 +85,9 @@ export function managerOfTheMonth<Team>(
   const mode = gameModeOf({ format });
   const monthSchedule = schedule.filter((drawn) => gameweeks.includes(drawn.gameweek));
   const [top] = mode.hasMatchups
-    ? headToHeadTable(mode, teams, monthSchedule, monthScores, tieBreaks, (row) => (mode.higherWins ? row.pointsFor : -row.pointsFor))
+    ? headToHeadTable(mode, teams, monthSchedule, monthScores, tieBreaks)
     : totalPointsTable(mode, teams, monthScores);
-  return { team: top.team, points: top.pointsFor };
+  return { team: top.team, points: top.points };
 }
 
 /** Awards each month made ready by the gameweeks just stored final (finalScores.ts), from
@@ -109,14 +111,15 @@ export async function awardMonths(
     if ((await awardOf(ctx, league._id, month)) !== null) continue;
     const teams = await teamsOf(ctx, league._id);
     const rules = season.latest;
-    const schedule = gameModeOf(rules).hasMatchups ? await scheduleOf(ctx, league, season) : [];
+    const { hasMatchups } = gameModeOf(rules);
+    const schedule = hasMatchups ? await scheduleOf(ctx, league, season) : [];
     const { tieBreaks } = season.sinceBegun(inMonth.at(-1)!);
     const teamIds = teams.map((team) => team._id);
     const winner = managerOfTheMonth(rules.format, teamIds, schedule, pointsOf(results), tieBreaks, inMonth);
     if (winner === null) continue;
     await ctx.db.insert("awards", { leagueId: league._id, month, teamId: winner.team, points: winner.points, awardedAt: Date.now() });
     const teamName = teams.find((team) => team._id === winner.team)!.name;
-    await fileLetter(ctx, league, "league", await wholeLeague(ctx, league), managerOfTheMonthLetter(teamName, month, winner.points));
+    await fileLetter(ctx, league, "league", await wholeLeague(ctx, league), managerOfTheMonthLetter(teamName, month, winner.points, hasMatchups));
   }
 }
 
