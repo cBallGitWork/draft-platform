@@ -26,7 +26,7 @@ test("S22.11 the bench keeper comes on for the keeper who didn't play, on the li
   expect(slotOf(game.team, PHILLIPS)).toMatchObject({ autoSub: { kind: "off" } });
 });
 
-test("S22.12 with nothing kept at the deadline he is read on his line now, DEF: no one on the bench keeps GK's one, so the keeper's slot stays empty", async () => {
+test("S22.12 with nothing kept at the deadline he is read on his line now, DEF: no bench player keeps GK's one, so the keeper's slot stays empty", async () => {
   const league = await scoresLeague({ classic: true });
   await benchKeeperMovedToDefence(league);
   await fullTimeRecords(league);

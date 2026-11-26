@@ -23,7 +23,7 @@ beforeEach(async () => {
   await t.run((ctx) => setLines(ctx));
 });
 
-const save = async (lineup: Lineup) => (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: sent(lineup) });
+const annSaves = async (lineup: Lineup) => (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: sent(lineup) });
 
 const inArea = (area: string) => FOUR_FOUR_TWO.starters.filter((starter) => starter.area === area);
 const [defender] = inArea("defence");
@@ -39,12 +39,12 @@ test("S22.8 any eleven whose lines sit inside the limits stand: a defender and a
       return starter;
     }),
   };
-  expect(await save(swapped)).toBe(NEXT);
+  expect(await annSaves(swapped)).toBe(NEXT);
   expect(await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, NEXT))).toEqual(saved(swapped, NEXT));
 });
 
 test("S22.9 a lineup starting more of a line than its limit is refused: two midfielders moved to FWD make four up front, past the first limit of three", async () => {
   await t.run((ctx) => setLines(ctx, new Map([[oneMidfielder.playerCode, "FWD"], [otherMidfielder.playerCode, "FWD"]])));
   const reason = problemWords({ kind: "lineAboveMaximum", line: "FWD", starterCount: 4, maximum: 3 }, nameOf);
-  await expectRefused(save(FOUR_FOUR_TWO), reason);
+  await expectRefused(annSaves(FOUR_FOUR_TWO), reason);
 });

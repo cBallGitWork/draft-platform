@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { PlayerCode } from "../shared/players";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
-import { namedCodes } from "../lineup/lineup";
+import { lineupModeOf, namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
 import { keptOrSwitched, type Instruction } from "../lineup/instructions";
@@ -22,7 +22,6 @@ import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from ".
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
 import { keptAtDeadline, linesAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } from "../stars/deadlineStars";
-import { lineupModeOf } from "../lineup/lineupPlayers";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
 // who played, then scoreTeam under the site's scoring set in force that gameweek. The league's
