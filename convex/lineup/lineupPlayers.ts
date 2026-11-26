@@ -6,10 +6,10 @@ import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { PlayerCode } from "../shared/players";
 import { lineupModeOf, NOT_CLASSIC, type LineupMode, type PlayerPositions } from "./lineup";
 
-// What checking a lineup reads of its players, for every caller that checks one: saving it, the
-// first lineup, the auto team, the live check and scoring's auto-subs. Their positions, and the
-// game mode it is judged in (lineup.ts `LineupMode`): a classic league's (spec/22, The lineup)
-// carries each player's line and the league's line limits.
+// What checking a lineup reads of its players now: saving it, the first lineup, the auto team and
+// the live check. Their positions, and the game mode it is judged in (lineup.ts `LineupMode`): a
+// classic league's (spec/22, The lineup) carries each player's line and the league's line limits.
+// Scoring reads them as the deadline kept them instead (stars/deadlineStars.ts).
 
 /** Each player's positions now in the league (spec/06), for picking a first lineup. */
 export async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {

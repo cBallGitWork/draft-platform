@@ -152,7 +152,7 @@ export function playerReader(ctx: QueryCtx, now: { positionsOf: PositionsNow; li
 
 /** A man as a team's row kept him at the deadline: his line only in a classic league, and only
  *  while he had one (none in a row kept before #2637). */
-export type KeptPlayer = Omit<LineupPlayer, "line"> & { line?: Line };
+type KeptPlayer =Omit<LineupPlayer, "line"> & { line?: Line };
 
 /** In a classic league (spec/22), each of `codes`' line as the team's row kept it at the deadline,
  *  so a line changed since never re-works the gameweek's auto-subs (`S22.6`); as he is now only
