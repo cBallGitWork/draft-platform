@@ -36,6 +36,13 @@ type SetIn = (gameweek: number) => StoredScoringSet;
 export const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
   basePoints(statsIfWhole(record), set, [position])[0].total;
 
+/** His base points in one match where his card opens (cardOpensAt) with `positions`, as his season
+ *  points count it, or null with no position. */
+export function cardMatchPoints(record: Doc<"playerMatchStats">, set: StoredScoringSet, positions: readonly Position[]): number | null {
+  const position = cardOpensAt(positions);
+  return position === null ? null : matchPointsAt(record, set, position);
+}
+
 /** Sets these players' rows for the season of the matches held (heldFixturesSeason) afresh from their
  *  records, each match read once: a row while any of his records there is whole, none before. Only
  *  that season's row is read, so a match that left the feed or moved comes off at the next refresh,

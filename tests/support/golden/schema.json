@@ -26658,6 +26658,13 @@
           ]
         },
         {
+          "indexDescriptor": "by_leagueId_and_season",
+          "fields": [
+            "leagueId",
+            "season"
+          ]
+        },
+        {
           "indexDescriptor": "by_teamId_and_month",
           "fields": [
             "teamId",
@@ -26671,41 +26678,88 @@
       "vectorIndexes": [],
       "stagedVectorIndexes": [],
       "documentType": {
-        "type": "object",
-        "value": {
-          "leagueId": {
-            "fieldType": {
-              "type": "id",
-              "tableName": "leagues"
-            },
-            "optional": false
+        "type": "union",
+        "value": [
+          {
+            "type": "object",
+            "value": {
+              "leagueId": {
+                "fieldType": {
+                  "type": "id",
+                  "tableName": "leagues"
+                },
+                "optional": false
+              },
+              "month": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "teamId": {
+                "fieldType": {
+                  "type": "id",
+                  "tableName": "teams"
+                },
+                "optional": false
+              },
+              "points": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "awardedAt": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            }
           },
-          "month": {
-            "fieldType": {
-              "type": "string"
-            },
-            "optional": false
-          },
-          "teamId": {
-            "fieldType": {
-              "type": "id",
-              "tableName": "teams"
-            },
-            "optional": false
-          },
-          "points": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
-          },
-          "awardedAt": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
+          {
+            "type": "object",
+            "value": {
+              "leagueId": {
+                "fieldType": {
+                  "type": "id",
+                  "tableName": "leagues"
+                },
+                "optional": false
+              },
+              "season": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "playerCode": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "points": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "games": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              },
+              "awardedAt": {
+                "fieldType": {
+                  "type": "number"
+                },
+                "optional": false
+              }
+            }
           }
-        }
+        ]
       }
     },
     {

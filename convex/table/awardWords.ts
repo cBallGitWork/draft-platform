@@ -22,3 +22,15 @@ export function managerOfTheMonthLetter(teamName: string, month: string, points:
     body: `${teamName} scored the most points over the gameweeks that started in ${named}: ${points}.`,
   };
 }
+
+const NAMES_LIST = new Intl.ListFormat(LOCALE, { type: "conjunction" });
+
+/** Mail's letter telling the whole league its Player of the Season ("Most points", S09.5): each
+ *  player who shares it named, with the points and games they won it on. */
+export function playerOfTheSeasonLetter(names: readonly string[], points: number, games: number): Words {
+  const named = NAMES_LIST.format(names);
+  return {
+    subject: names.length === 1 ? `${named} is Player of the Season` : `${named} share Player of the Season`,
+    body: `${named} scored the most points over the league's gameweeks: ${points}, in ${games} games.`,
+  };
+}

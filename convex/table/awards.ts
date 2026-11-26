@@ -13,6 +13,7 @@ import { LOCALE, LONDON_ZONE } from "../shared/moments";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { managerOfTheMonthLetter } from "./awardWords";
+import { startPlayerOfTheSeason } from "./playerOfTheSeason";
 import { scheduleOf } from "./playedFixtures";
 import type { GameweekFixtures } from "./roundRobin";
 import { pointsOf, type Results } from "./sentTables";
@@ -25,6 +26,7 @@ import { headToHeadTable, totalPointsTable, type GameweekScores, type TieBreak }
 // starts has no award and sends nothing (S09.7). It is awarded once its gameweeks are all final and
 // the month is over: the league's next gameweek starts in a later month, or it has none. Stored in
 // `awards`, so it is awarded and Mailed once, and a score changed after never awards it again.
+// Player of the Season is playerOfTheSeason.ts's, started here once the league's season is final.
 
 const LONDON_MONTH = new Intl.DateTimeFormat(LOCALE, { timeZone: LONDON_ZONE, year: "numeric", month: "2-digit" });
 
@@ -88,10 +90,11 @@ export function managerOfTheMonth<Team>(
   return { team: top.team, points: top.pointsFor };
 }
 
-/** Awards each month made ready by the gameweeks just stored final (finalScores.ts), from
- *  `results`, every gameweek of the league's season scored, begun or not, and Mails the whole league. A month
- *  awarded already is left as it is. */
-export async function awardMonths(
+/** Gives the awards the gameweeks just stored final make ready (finalScores.ts), from `results`,
+ *  every gameweek of the league's season scored, begun or not: each month's, and once every one of
+ *  the league's gameweeks is final, the season's Player of the Season. An award given already is
+ *  left as it is. */
+export async function giveAwards(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
@@ -100,11 +103,25 @@ export async function awardMonths(
 ): Promise<void> {
   if (stored.length === 0) return;
   const gameweeks = scoredGameweeksOf(league, await seasonGameweekCount(ctx));
-  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
   const isFinal = (gameweek: number) => {
     const scored = results.get(gameweek);
     return scored !== undefined && [...scored.values()].every((total) => !total.provisional);
   };
+  await awardMonths(ctx, league, season, results, gameweeks, isFinal, stored);
+  if (gameweeks.length > 0 && gameweeks.every(isFinal)) await startPlayerOfTheSeason(ctx, league._id, gameweeks);
+}
+
+/** Awards each month made ready by the gameweeks just `stored` final, and Mails the whole league. */
+async function awardMonths(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  season: SeasonRules,
+  results: Results,
+  gameweeks: readonly number[],
+  isFinal: (gameweek: number) => boolean,
+  stored: readonly number[],
+): Promise<void> {
+  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
   for (const { month, gameweeks: inMonth } of monthsToAward(gameweeks, deadlineIn, isFinal, stored)) {
     if ((await awardOf(ctx, league._id, month)) !== null) continue;
     const teams = await teamsOf(ctx, league._id);
@@ -137,7 +154,7 @@ export async function awardsOfTeam(ctx: QueryCtx, teamId: Id<"teams">): Promise<
     TEAM_AWARDS_MOST,
     `A team holds more than ${TEAM_AWARDS_MOST} awards, so its page would leave some out`,
   );
-  return awards.map((award) => award.month);
+  return awards.flatMap((award) => ("month" in award ? [award.month] : []));
 }
 
 /** The awards the caller's own team has won, for My team's header band (S09.8). */
