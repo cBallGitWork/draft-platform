@@ -213,6 +213,17 @@ From the look grill (Craig, 18 Nov 2026).
 - A matchup's header splits into both teams' colours. When the two are too close to tell apart,
   the second team listed shows its second colour, as with a kit clash ("Away uses its second
   colour"). `S12.27`
+- A team holds one, two or three colours from a palette of 16 (red, maroon, claret, orange, yellow,
+  green, dark green, teal, sky blue, royal blue, navy, purple, pink, grey, black, white): three
+  slots, the first required and the other two optional, and the same colour may fill two ("no full
+  red is a real choice"). The header takes the first; the stripe shows the second and third side by
+  side, like a kit's trim, and with one colour the stripe is the header's. Its manager or the admin
+  sets them, on a Team settings panel on his Team page (Craig, 19 and 26 Nov 2026, on #2684). `S12.32`
+- A new team starts on two different colours from the 16 at random, and no two teams in a league
+  start on the same first colour while the palette has one free ("randomise but force them to
+  choose a colour"). Until its manager saves his colours, a Needs you letter, "Pick your team's
+  colours", opens his Team settings panel; saving the random ones counts as choosing, and nothing
+  else is blocked (Craig, 19 and 26 Nov 2026, on #2684). `S12.33`
 
 ### Colour that means something
 
