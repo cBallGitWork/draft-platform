@@ -424,6 +424,7 @@ import type * as table_liveRescore from "../table/liveRescore.js";
 import type * as table_liveScores from "../table/liveScores.js";
 import type * as table_overrideLimits from "../table/overrideLimits.js";
 import type * as table_playedFixtures from "../table/playedFixtures.js";
+import type * as table_playerOfTheSeason from "../table/playerOfTheSeason.js";
 import type * as table_pointsOverrides from "../table/pointsOverrides.js";
 import type * as table_roundRobin from "../table/roundRobin.js";
 import type * as table_sentTables from "../table/sentTables.js";
@@ -884,6 +885,7 @@ declare const fullApi: ApiFromModules<{
   "table/liveScores": typeof table_liveScores;
   "table/overrideLimits": typeof table_overrideLimits;
   "table/playedFixtures": typeof table_playedFixtures;
+  "table/playerOfTheSeason": typeof table_playerOfTheSeason;
   "table/pointsOverrides": typeof table_pointsOverrides;
   "table/roundRobin": typeof table_roundRobin;
   "table/sentTables": typeof table_sentTables;

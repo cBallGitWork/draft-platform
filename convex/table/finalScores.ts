@@ -7,7 +7,7 @@ import { scheduleEveryLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { startRecap } from "../home/recaps";
-import { awardMonths } from "./awards";
+import { giveAwards } from "./awards";
 import { rescoreLive } from "./liveRescore";
 
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
@@ -91,8 +91,9 @@ async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<num
     .order("desc")
     .first();
   if (newest !== null && stored.includes(newest.gameweek)) await startRecap(ctx, league._id, newest.gameweek);
-  // A month whose last gameweek is now final gets its Manager of the Month, once (awards.ts).
-  await awardMonths(ctx, league, season, scores, stored);
+  // A month whose last gameweek is now final gets its Manager of the Month, and a season all final
+  // its Player of the Season, each once (awards.ts).
+  await giveAwards(ctx, league, season, scores, stored);
   return stored;
 }
 
