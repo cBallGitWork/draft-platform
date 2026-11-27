@@ -1,0 +1,13 @@
+{
+  "pack": "qa/regression-pack.csv",
+  "areas": {
+    "LG": "Leagues, sign-in, rules, set-up",
+    "DR": "The draft and email",
+    "TC": "Tactics, positions",
+    "SC": "Scoring, live, Premier League",
+    "BG": "Waivers, trades, admin, Mail, scouting",
+    "UI": "Every screen and route"
+  },
+  "specIds": "S\\d{2}\\.\\d+",
+  "spec": ["SPEC.md", "spec"]
+}
