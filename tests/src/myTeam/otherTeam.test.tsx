@@ -15,9 +15,12 @@ import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { HELD, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
+import { drawn, teamPaintShown } from "../../support/src/teamPaint";
+import { INKS } from "../../../convex/football/clubColours";
 
 const POTATOES: OtherSquad = {
   teamName: "Saka Potatoes",
+  colours: [],
   players: [
     { code: 2001, name: "Palmer", fullName: "Cole Palmer", positions: ["CAM", "W"], club: CHELSEA, gone: false, seasonPoints: 41.5 },
     { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", positions: ["W"], club: ARSENAL, gone: true, seasonPoints: null },
@@ -72,7 +75,7 @@ describe("the page", () => {
   });
 
   it("says so when the squad is empty", async () => {
-    openTeam({ otherSquad: { teamName: "Team 2", players: [], awards: [] } });
+    openTeam({ otherSquad: { teamName: "Team 2", colours: [], players: [], awards: [] } });
     expect(await screen.findByText(otherSquadEmptyWords)).toBeTruthy();
   });
 
@@ -91,6 +94,24 @@ describe("the page", () => {
     openTeam();
     await table();
     expect(screen.queryByText(awardsHead)).toBeNull();
+  });
+
+  it("S12.25 S12.32 its header takes its dark first colour, inked light, over a stripe of its second and third", async () => {
+    openTeam({ otherSquad: { ...POTATOES, colours: ["navy", "white", "red"] } });
+    await table();
+    expect(teamPaintShown()).toEqual({ header: drawn("navy"), plated: false, ink: INKS.light, stripe: [drawn("white"), drawn("red")] });
+  });
+
+  it("S12.25 S12.32 a light single colour inks its header dark and fills its stripe", async () => {
+    openTeam({ otherSquad: { ...POTATOES, colours: ["yellow"] } });
+    await table();
+    expect(teamPaintShown()).toEqual({ header: drawn("yellow"), plated: false, ink: INKS.dark, stripe: [drawn("yellow")] });
+  });
+
+  it("S12.25 a team holding no colours keeps the plate's, with no stripe", async () => {
+    openTeam();
+    await table();
+    expect(teamPaintShown()).toMatchObject({ plated: true, stripe: null });
   });
 
   it("someone not in the league is sent to their leagues", async () => {

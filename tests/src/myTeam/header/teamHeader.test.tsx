@@ -12,7 +12,10 @@ import { gamesIn } from "../../../../src/myTeam/header/teamStanding";
 import { MATCHUP_PATH } from "../../../../src/frame/menu";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
 import { withByes } from "../../../support/src/table.harness";
-import { league } from "../../../support/src/shell.harness";
+import { league, managerIn } from "../../../support/src/shell.harness";
+import { drawn, teamPaintShown } from "../../../support/src/teamPaint";
+import { INKS } from "../../../../convex/football/clubColours";
+import type { LeagueSummary } from "../../../../convex/leagues/myLeagues";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import { SAVED, openTacticsTab } from "../../../support/src/tacticsScreen.harness";
 
@@ -68,6 +71,25 @@ describe("My team's header band", () => {
     await screen.findByRole("heading", { level: 1, name: ME });
     expect(meter(tableHead)).toBeTruthy();
     expect(screen.queryByText(awardsHead)).toBeNull();
+  });
+
+  /** The band, for a manager whose team holds `colours`. */
+  const openInColours = async (colours: LeagueSummary["teamColours"]) => {
+    openTacticsTab({ tactics: SAVED, leagueTable: TABLE }, managerIn({ ...league, teamColours: colours }));
+    await screen.findByRole("heading", { level: 1, name: ME });
+    return teamPaintShown();
+  };
+
+  it("S12.25 S12.32 takes the team's dark first colour, inked light, over a stripe of its second and third", async () => {
+    expect(await openInColours(["claret", "skyBlue", "white"])).toEqual({ header: drawn("claret"), plated: false, ink: INKS.light, stripe: [drawn("skyBlue"), drawn("white")] });
+  });
+
+  it("S12.25 S12.32 a light first colour inks it dark; with one colour the stripe is the header's", async () => {
+    expect(await openInColours(["white"])).toEqual({ header: drawn("white"), plated: false, ink: INKS.dark, stripe: [drawn("white")] });
+  });
+
+  it("S12.25 keeps the plate's colour, with no stripe, while the team holds none", async () => {
+    expect(await openInColours([])).toMatchObject({ plated: true, stripe: null });
   });
 });
 

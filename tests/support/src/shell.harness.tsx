@@ -57,6 +57,7 @@ export const league: LeagueSummary = {
   roles: ["manager"],
   powers: powersOf(["manager"], false),
   teamName: MY_TEAM_NAME,
+  teamColours: [],
   teams: 3,
   maxTeams: 4,
   unsentCommissionerLink: null,

@@ -5,6 +5,7 @@ import { isAdmin, leaguePowers, leaguePart, powersIn, partsIn, seesWhileDeleted,
 import { leagueDeletion } from "../schema";
 import { LEAGUES_SHOWN } from "./leagueLimits";
 import { takeShown } from "../shared/cappedRead";
+import { teamColours } from "./teamColours";
 import { hasOpenedALink } from "../signIn/signInLinks";
 import { noLinkReply } from "../signIn/signInReplies";
 
@@ -23,6 +24,8 @@ export const leagueSummary = v.object({
   powers: leaguePowers,
   /** The team the person runs here, or null. */
   teamName: v.union(v.string(), v.null()),
+  /** Its colours, first to third (spec/12 S12.32): none while it holds none or he runs no team. */
+  teamColours,
   teams: v.number(),
   maxTeams: v.number(),
   /** For the admin only: what asking for the commissioner's sign-in link answered, when that
@@ -81,6 +84,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
       roles: partsIn(league, email, team),
       powers: powersIn(league, email),
       teamName: team?.name ?? null,
+      teamColours: team?.colours ?? [],
       teams: teams.length,
       maxTeams: league.maxTeams,
       unsentCommissionerLink: admin ? await unsentLinkOf(ctx, league) : null,

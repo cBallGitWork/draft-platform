@@ -4,7 +4,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { TEAM_COLOURS_MOST } from "../../../convex/leagues/leagueLimits";
 import { startingColours, TEAM_COLOURS, type TeamColour } from "../../../convex/leagues/teamColours";
-import { ADMIN, ANN, BOB, COMMISSIONER, actingAs, addManagers, freshLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, ANN, BOB, COMMISSIONER, accountOf, actingAs, addManagers, freshLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A team's colours (spec/12, Team colours; #2684): the palette, the random start, and setting them.
@@ -63,6 +63,13 @@ describe("setting a team's colours", () => {
     await expectRefused(ann.mutation(api.leagues.teams.setColours, { teamId: annsTeam, colours: [] }), refusals.colourCount);
     const four: TeamColour[] = ["red", "white", "black", "navy"];
     await expectRefused(ann.mutation(api.leagues.teams.setColours, { teamId: annsTeam, colours: four }), refusals.colourCount);
+  });
+
+  test("S12.25: its page reads them, his own team's header and another manager's view of it alike", async () => {
+    const colours: TeamColour[] = ["navy", "white", "red"];
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.setColours, { teamId: annsTeam, colours });
+    expect((await accountOf(t, ANN)).leagues).toMatchObject([{ leagueId, teamColours: colours }]);
+    expect((await (await actingAs(t, BOB)).query(api.squads.otherSquad.ofTeam, { leagueId, teamId: annsTeam })).colours).toEqual(colours);
   });
 
   test("S12.32: a colour off the palette is refused", async () => {

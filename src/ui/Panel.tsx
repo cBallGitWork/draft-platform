@@ -1,10 +1,13 @@
 import { useId, type ReactNode } from "react";
+import type { Ink } from "../../convex/football/clubColours";
+import type { TeamPaint } from "../../convex/leagues/teamColours";
 import { closeGlyph } from "../shared/controls/words";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 
 /** The title plates of a page and of a panel: the panel's sits closer in. */
-const PAGE_PLATE = "bg-plate px-4 py-1 shadow-bevel-plate";
+const PAGE_PLATE_SHAPE = "px-4 py-1 shadow-bevel-plate";
+const PAGE_PLATE = `bg-plate ${PAGE_PLATE_SHAPE}`;
 const PANEL_PLATE = "bg-plate px-3 py-1 shadow-bevel-plate";
 
 /** The id of a page's heading, which its section is labelled by. */
@@ -13,24 +16,32 @@ const PAGE_TITLE_ID = "page-title";
 /** A page's section, labelled by its title plate; `aside`, such as Mail's unread count, sits at the
  *  plate's far end, and `className` is the caller's own (a single panel passes `bg-panel`).
  *  `plate={false}` keeps the title for screen readers only, on a page whose approved picture
- *  draws no title plate (the matchup's: its score band sits straight under the top bar). */
+ *  draws no title plate (the matchup's: its score band sits straight under the top bar). `paint`
+ *  puts a team's page in its colours (spec/12 S12.25): the plate in its first, over its stripe. */
 export function PageSection({
   title,
   aside,
   plate = true,
+  paint,
   className,
   children,
 }: {
   title: ReactNode;
   aside?: ReactNode;
   plate?: boolean;
+  paint?: TeamPaint;
   className?: string;
   children?: ReactNode;
 }) {
   return (
     <section aria-labelledby={PAGE_TITLE_ID} className={className}>
       {plate ? (
-        <PageTitle aside={aside}>{title}</PageTitle>
+        <>
+          <PageTitle aside={aside} paint={paint}>
+            {title}
+          </PageTitle>
+          {paint !== undefined && <TeamStripe colours={paint.stripe} />}
+        </>
       ) : (
         <h1 id={PAGE_TITLE_ID} className="sr-only">
           {title}
@@ -41,21 +52,37 @@ export function PageSection({
   );
 }
 
-/** A page's title plate (plate.md, Shape). */
-function PageTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
+/** The plate's text on a team's colour: whichever of the two inks reads on it. */
+const PAINT_INKS: Record<Ink, string> = { dark: "text-ground", light: "text-fact" };
+
+/** A page's title plate (plate.md, Shape), or a team's header in its first colour. */
+function PageTitle({ children, aside, paint }: { children: ReactNode; aside?: ReactNode; paint?: TeamPaint }) {
+  const plate = paint === undefined ? PAGE_PLATE : `${PAINT_INKS[paint.ink]} ${PAGE_PLATE_SHAPE}`;
+  const style = paint === undefined ? undefined : { backgroundColor: paint.header };
   if (aside === undefined) {
     return (
-      <h1 id={PAGE_TITLE_ID} className={`${PAGE_PLATE} text-title display-face`}>
+      <h1 id={PAGE_TITLE_ID} className={`${plate} text-title display-face`} style={style}>
         {children}
       </h1>
     );
   }
   return (
-    <div className={`flex flex-wrap items-baseline justify-between ${PAGE_PLATE}`}>
+    <div className={`flex flex-wrap items-baseline justify-between ${plate}`} style={style}>
       <h1 id={PAGE_TITLE_ID} className="text-title display-face">
         {children}
       </h1>
       {aside}
+    </div>
+  );
+}
+
+/** The stripe under a team's header: its second and third colours side by side, like a kit's trim. */
+function TeamStripe({ colours }: { colours: readonly string[] }) {
+  return (
+    <div aria-hidden="true" data-team-stripe className="flex h-2">
+      {colours.map((colour, index) => (
+        <span key={index} className="flex-1" style={{ backgroundColor: colour }} />
+      ))}
     </div>
   );
 }
