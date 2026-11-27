@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
+import { teamColours } from "../leagues/teamColours";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { memberOf, teamIn } from "../shared/leagueAccess";
@@ -26,8 +27,9 @@ const otherSquadRow = v.object({
   seasonPoints: v.union(v.number(), v.null()),
 });
 
-/** `awards`: the months it was Manager of the Month in, as "2026-10", oldest first (S09.8). */
-const otherSquad = v.object({ teamName: v.string(), players: v.array(otherSquadRow), awards: v.array(v.string()) });
+/** `colours`: its colours, first to third (spec/12 S12.32), none while it holds none; `awards`:
+ *  the months it was Manager of the Month in, as "2026-10", oldest first (S09.8). */
+const otherSquad = v.object({ teamName: v.string(), colours: teamColours, players: v.array(otherSquadRow), awards: v.array(v.string()) });
 export type OtherSquad = Infer<typeof otherSquad>;
 
 /** The team's squad, in the Squad tab's order: back to front by his first position, then by name.
@@ -57,6 +59,6 @@ export const ofTeam = query({
       }),
     );
     players.sort(bySquadOrder);
-    return { teamName: team.name, players, awards: await awardsOfTeam(ctx, team._id) };
+    return { teamName: team.name, colours: team.colours ?? [], players, awards: await awardsOfTeam(ctx, team._id) };
   },
 });

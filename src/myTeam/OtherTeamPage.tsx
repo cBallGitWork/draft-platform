@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { teamPaintOf } from "../../convex/leagues/teamColours";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubMark, ClubShort } from "../ui/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
@@ -30,6 +31,7 @@ export function OtherTeamPage({ league, teamId, seam }: { league: LeagueSummary;
     <div className={PAGE_STACK}>
       <PageSection
         title={squad.teamName}
+        paint={teamPaintOf(squad.colours)}
         aside={
           squad.awards.length > 0 && (
             <dl className="flex">

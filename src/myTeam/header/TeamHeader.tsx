@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import { teamPaintOf } from "../../../convex/leagues/teamColours";
 import { gameModeOf, type GameMode } from "../../../convex/rules/gameMode";
 import { BYE } from "../../../convex/table/teamGames";
 import { matchupLink } from "../../matchup/paths";
@@ -35,7 +36,7 @@ import {
 } from "./words";
 
 // My team's header band, one on every My team tab (the approved Tactics picture; FM's team meters
-// across the header): the team's name on the page's plate, then the next deadline and its
+// across the header): the team's name on its header in its colours (S12.25), then the next deadline and its
 // countdown, the opponent then, the last result, the form, the table place, its awards and the auto team's
 // switch (AutoTeamSwitch.tsx, the approved auto-team picture). Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
@@ -47,6 +48,7 @@ export function TeamPage({ league, teamName, seam, children }: { league: LeagueS
   return (
     <PageSection
       title={teamName}
+      paint={teamPaintOf(league.teamColours)}
       aside={
         <div role="group" aria-label={meterListLabel}>
           <TeamMeters league={league} teamName={teamName} seam={seam} />

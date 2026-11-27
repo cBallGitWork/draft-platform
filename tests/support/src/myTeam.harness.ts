@@ -52,7 +52,7 @@ export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: MY_TEAM_NAME, format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
   squad = { teamName: MY_TEAM_NAME, lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
-  otherSquad = { teamName: THEIR_TEAM_NAME, players: [], awards: [] },
+  otherSquad = { teamName: THEIR_TEAM_NAME, colours: [], players: [], awards: [] },
   awards = [],
   numberAnswer = null,
   mail = NO_MAIL,

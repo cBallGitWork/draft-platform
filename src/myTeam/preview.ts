@@ -153,6 +153,7 @@ export const previewMyTeam: MyTeamSeam = {
   // Any team's squad, read-only, is the preview manager's own players under the asked team's name.
   useOtherSquad: (_leagueId, teamId) => ({
     teamName: previewTeamNames.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
+    colours: ["yellow", "navy"],
     players: players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })),
     awards: [],
   }),

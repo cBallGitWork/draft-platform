@@ -105,6 +105,7 @@ export const proLeague: LeagueSummary = {
   roles: ["manager"],
   powers: managerPowers,
   teamName: previewTeamNames[0],
+  teamColours: ["claret", "skyBlue"],
   teams: previewTeamNames.length,
   maxTeams: previewAtLimits ? MOST_TEAMS : 12,
   unsentCommissionerLink: null,
@@ -117,13 +118,14 @@ export const miniBeta: LeagueSummary = {
   // Only the admin sees a league he has no part in.
   powers: adminPowers,
   teamName: null,
+  teamColours: [],
   teams: 0,
   maxTeams: 4,
   unsentCommissionerLink: { email: unreachedCommissioner, reply: "paused" },
 };
 
 /** Mini beta as its one manager sees it. */
-const managerInMiniBeta: LeagueSummary = { ...miniBeta, roles: ["manager"], powers: managerPowers, teamName: "Team 1", teams: 1, unsentCommissionerLink: null };
+const managerInMiniBeta: LeagueSummary = { ...miniBeta, roles: ["manager"], powers: managerPowers, teamName: "Team 1", teamColours: ["red", "white"], teams: 1, unsentCommissionerLink: null };
 
 /** The preview's manager, in two leagues: a Session (src/signIn/seam.ts), which src/app/preview.ts
  *  checks, as this folder imports no feature. */
