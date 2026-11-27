@@ -44,7 +44,11 @@ export function playersOfTheSeason(tallies: readonly SeasonTally[]): SeasonTally
  *  season has one already. */
 export async function startPlayerOfTheSeason(ctx: MutationCtx, leagueId: Id<"leagues">, gameweeks: number[]): Promise<void> {
   const season = await heldFixturesSeason(ctx);
-  if (season === null || (await seasonAwardOf(ctx, leagueId, season)) !== null) return;
+  if (season === null) {
+    console.log(`League ${leagueId} gets no Player of the Season: no season of fixtures is held`);
+    return;
+  }
+  if ((await seasonAwardOf(ctx, leagueId, season)) !== null) return;
   await ctx.scheduler.runAfter(0, internal.table.playerOfTheSeason.tallySeason, { leagueId, season, gameweeks, tallies: [] });
 }
 
@@ -95,7 +99,10 @@ export const tallySeason = internalMutation({
       return null;
     }
     const winners = playersOfTheSeason(counted);
-    if (winners.length === 0) return null;
+    if (winners.length === 0) {
+      console.log(`League ${leagueId} gets no Player of the Season for ${season}: no player played in its gameweeks`);
+      return null;
+    }
     const awardedAt = Date.now();
     for (const { playerCode, points, games } of winners) await ctx.db.insert("awards", { leagueId, season, playerCode, points, games, awardedAt });
     const names = await Promise.all(winners.map(async ({ playerCode }) => (await playerByCode(ctx, playerCode))?.name ?? lostPlayerName(playerCode)));

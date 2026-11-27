@@ -7,6 +7,7 @@ import { playersOfTheSeason } from "../../../convex/table/playerOfTheSeason";
 import { GAMEWEEK, nameOf, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
+import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 
 // Player of the Season (spec/09, Awards; #2678): the most points over the league's own gameweeks,
@@ -50,9 +51,10 @@ describe("the season's winner", () => {
   });
 });
 
-test("S09.5: once the league's last gameweek is final, its Player of the Season is stored and Mailed once", async () => {
+/** The scores league with gameweek 6 its only one, so its season ends once it is final, its match
+ *  at full time and locked, and a read of its Player of the Season rows. */
+async function lastGameweekLeague() {
   const league = await scoresLeague();
-  // Gameweek 6 the league's only one, so its season ends once it is final.
   const count = await league.t.run((ctx) => seasonGameweekCount(ctx));
   const unusedGameweeks = seasonGameweeks(count).filter((gameweek) => gameweek > GAMEWEEK);
   await league.t.run((ctx) => ctx.db.patch("leagues", league.leagueId, { unusedGameweeks, scoringStart: GAMEWEEK }));
@@ -60,6 +62,11 @@ test("S09.5: once the league's last gameweek is final, its Player of the Season 
   await lockMatch(league);
   fakeClaude();
   const awards = () => league.t.run(async (ctx) => (await ctx.db.query("awards").collect()).filter((award) => "playerCode" in award));
+  return { league, awards };
+}
+
+test("S09.5: once the league's last gameweek is final, its Player of the Season is stored and Mailed once", async () => {
+  const { league, awards } = await lastGameweekLeague();
   const awardLetters = async () =>
     (await league.t.run((ctx) => ctx.db.query("letters").collect())).filter((letter) => letter.subject.includes("Player of the Season"));
 
@@ -78,4 +85,25 @@ test("S09.5: once the league's last gameweek is final, its Player of the Season 
   await everyJobRuns(league.t);
   expect(await awards()).toHaveLength(1);
   expect(await awardLetters()).toHaveLength(told.length);
+});
+
+test("S09.5: a match's points override counts in the league's Player of the Season", async () => {
+  const { league, awards } = await lastGameweekLeague();
+  const [{ playerCode }] = mergedHullEverton().filter((record) => record.played !== false).slice(-1);
+  await league.t.run((ctx) =>
+    ctx.db.insert("pointsOverrides", {
+      leagueId: league.leagueId,
+      gameweek: GAMEWEEK,
+      fixtureCode: HULL_EVERTON,
+      playerCode,
+      points: 99,
+      reason: "The feed was wrong",
+      by: "commissioner@example.com",
+      at: Date.now(),
+    }),
+  );
+
+  await storeLeague(league);
+  await everyJobRuns(league.t);
+  expect(await awards()).toEqual([expect.objectContaining({ playerCode, points: 99, games: 1 })]);
 });

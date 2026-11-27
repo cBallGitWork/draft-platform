@@ -235,9 +235,11 @@ describe("after the day", () => {
   });
 
   test("every table keyed to a league is deleted with it", () => {
-    const keyed = Object.entries(schema.tables).flatMap(([table, { validator }]) =>
-      validator.kind === "object" && "leagueId" in validator.fields ? [table] : [],
-    );
+    // A table whose rows are a union of shapes (awards) is keyed when its shapes are.
+    type Shape = { kind: string; fields?: object; members?: readonly Shape[] };
+    const hasLeagueId = (validator: Shape): boolean =>
+      validator.kind === "object" ? "leagueId" in (validator.fields ?? {}) : (validator.members ?? []).some(hasLeagueId);
+    const keyed = Object.entries(schema.tables).flatMap(([table, { validator }]) => (hasLeagueId(validator) ? [table] : []));
     expect([...tablesKeyedToLeague].sort()).toEqual(keyed.sort());
   });
 });
