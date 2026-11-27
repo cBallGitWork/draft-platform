@@ -14,12 +14,14 @@ export function monthStart(month: string): number {
 /** A month kept as "2026-10", as a person reads it: "October 2026". */
 export const monthWords = (month: string) => MONTH_WORDS.format(monthStart(month));
 
-/** Mail's letter telling the whole league its Manager of the Month ("Most points", S09.5). */
-export function managerOfTheMonthLetter(teamName: string, month: string, points: number): Words {
+/** Mail's letter telling the whole league its Manager of the Month ("Most points", S09.5): table
+ *  points where the league plays matchups, points scored where it doesn't (S09.11). */
+export function managerOfTheMonthLetter(teamName: string, month: string, points: number, tablePoints: boolean): Words {
   const named = monthWords(month);
+  const won = tablePoints ? "took the most table points" : "scored the most points";
   return {
     subject: `${teamName} is Manager of the Month for ${named}`,
-    body: `${teamName} scored the most points over the gameweeks that started in ${named}: ${points}.`,
+    body: `${teamName} ${won} over the gameweeks that started in ${named}: ${points}.`,
   };
 }
 

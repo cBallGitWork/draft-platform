@@ -77,6 +77,7 @@ export async function freshLeague({
   morning,
   atConvexLimits = false,
   before,
+  classic,
 }: {
   managers?: readonly string[];
   maxTeams?: number;
@@ -85,11 +86,13 @@ export async function freshLeague({
   atConvexLimits?: boolean;
   /** What the deployment holds before the league is made, such as its gameweeks. */
   before?: (t: TestConvex) => Promise<unknown>;
+  /** A classic league (spec/22), as adminCreatesLeague makes it. */
+  classic?: boolean;
 } = {}) {
   const t = await signInDeployment(morning, atConvexLimits);
   const sent = fakeResend();
   await before?.(t);
-  const leagueId = await adminCreatesLeague(t, maxTeams, name);
+  const leagueId = await adminCreatesLeague(t, maxTeams, name, classic);
   const teams = await addManagers(t, leagueId, [...managers]);
   return { t, leagueId, teams, sent };
 }

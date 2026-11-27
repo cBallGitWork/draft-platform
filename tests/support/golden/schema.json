@@ -5154,6 +5154,81 @@
               }
             },
             "optional": true
+          },
+          "colours": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "union",
+                "value": [
+                  {
+                    "type": "literal",
+                    "value": "red"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "maroon"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "claret"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "orange"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "yellow"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "green"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "darkGreen"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "teal"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "skyBlue"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "royalBlue"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "navy"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "purple"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "pink"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "grey"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "black"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "white"
+                  }
+                ]
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -27777,6 +27852,34 @@
                       }
                     },
                     "optional": false
+                  },
+                  "line": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "GK"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "DEF"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "AM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "FWD"
+                        }
+                      ]
+                    },
+                    "optional": true
                   }
                 }
               }

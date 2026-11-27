@@ -158,6 +158,7 @@ export const gates: Record<string, Gate> = {
   "leagues/teams:leave": "manager",
   "leagues/teams:removeManager": "runner",
   "leagues/teams:rename": "teamsManager",
+  "leagues/teams:setColours": "teamsManager",
   "lineup/lineupDue:isDue": "managerOrNothing",
   "lineup/lineupDue:openedTactics": "manager",
   "lineup/autoTeam:ofMyTeam": "manager",

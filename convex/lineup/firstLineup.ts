@@ -3,7 +3,7 @@
 
 import { FIRST_PRESETS, type Preset } from "./presets";
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
-import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
+import { lineupProblems, NOT_CLASSIC, type LineupMode, type LineupRules, type PlayerPositions } from "./lineup";
 import { isRole, offersRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
@@ -42,12 +42,14 @@ export function firstLineup(
   positions: PlayerPositions,
   rules: FirstLineupRules | null,
   keptOnBench: ReadonlySet<number> = new Set(),
+  /** The league's game mode, a classic league's judging each preset filled on its lines. */
+  mode: LineupMode = NOT_CLASSIC,
 ): FirstLineup {
   const fourFourTwo = placedInPickOrder(FIRST_CELLS, pickOrder, positions, keptOnBench, () => true);
   if (fourFourTwo.starters.length === FIRST_CELLS.length || rules === null) return fourFourTwo;
   for (const { cells } of rules.presets) {
     const filled = filledInPickOrder(cells, pickOrder, positions, keptOnBench);
-    if (filled !== null && lineupProblems(filled, positions, rules).length === 0) return filled;
+    if (filled !== null && lineupProblems(filled, positions, rules, mode).length === 0) return filled;
   }
   return fourFourTwo;
 }

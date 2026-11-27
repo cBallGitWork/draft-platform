@@ -10,10 +10,10 @@ import { GAMEWEEKS_MOST } from "../gameweeks/usedGameweeks";
 import { inUnplayedGameweek } from "../gameweeks/gameweekEnd";
 import { squadAt, squadCodes, squadMovesSince, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { lostPlayerName, playerByCode } from "../shared/players";
-import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, stillKept, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
+import { heldPositionsOf, lineupModeIn } from "./lineupPlayers";
 import { gameModeOf } from "../rules/gameMode";
 import { starsLookupIn } from "../stars/playerStars";
 import { heldCell } from "./pitch";
@@ -114,12 +114,6 @@ export async function lineupsInGameweek(
   return lineups;
 }
 
-/** Each player's positions now in the league (spec/06), for picking a first lineup. */
-export async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
-  const positionsOfNow = await positionsNow(ctx, leagueId);
-  return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
-}
-
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
 export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number): Promise<HeldLineup> {
   return (await lineupsInGameweek(ctx, leagueId, [teamId], gameweek)).get(teamId)!;
@@ -174,7 +168,8 @@ async function checkedPositions(
   nameOf: NameOf,
 ): Promise<{ kept: number[]; positions: PlayerPositions }> {
   const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
-  const { problems, kept } = withUnmovedSetAside(lineupProblems(lineup, positions, rules), lineup.starters, existing, fromGameweek);
+  const mode = await lineupModeIn(ctx, leagueId, rules, namedCodes(lineup));
+  const { problems, kept } = withUnmovedSetAside(lineupProblems(lineup, positions, rules, mode), lineup.starters, existing, fromGameweek);
   if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
   return { kept, positions };
 }
@@ -255,8 +250,9 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const squad = await squadCodes(ctx, teamId);
   const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
-  const starsOf = await starsLookupIn(ctx, squad, gameModeOf(season.inGameweek(fromGameweek)));
-  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), starsOf, positions, row?.starters);
+  const rules = season.inGameweek(fromGameweek);
+  const starsOf = await starsLookupIn(ctx, squad, gameModeOf(rules));
+  const picked = withDroppedRoles(firstLineup(squad, positions, rules, keptOnBench, await lineupModeIn(ctx, leagueId, rules, squad)), starsOf, positions, row?.starters);
   // Replacing its own row, it picks only the players: the rest of that row is left as it was.
   await writeRowFor(ctx, leagueId, teamId, fromGameweek, row, (replacing) =>
     replacing === null

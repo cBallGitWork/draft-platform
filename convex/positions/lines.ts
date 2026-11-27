@@ -69,6 +69,14 @@ export function lineOf({ starts, adminLine, thresholds, judgedBefore }: LineInpu
   return { line, source: "starts", movedFrom, flagged };
 }
 
+/** A player's line now, by his code: null while he has none. */
+export type LineNow = (code: number) => Promise<Line | null>;
+
+/** His line from his positions row, as `how` judges his starts. */
+export function lineFrom(row: { starts: readonly Start[]; line?: Line }, how: Pick<PositionInputs, "thresholds" | "judgedBefore">): PlayerLine {
+  return lineOf({ starts: row.starts, adminLine: row.line ?? null, thresholds: how.thresholds, judgedBefore: how.judgedBefore });
+}
+
 /** The line most of `lines` (oldest first) are in, a tie going to the newest; null for none. */
 function mostStartedLine(lines: readonly Line[]): Line | null {
   const count = new Map<Line, number>();

@@ -7,7 +7,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { seasonRecords } from "../stats/seasonRecords";
-import { heldPositionsOf } from "./lineups";
+import { heldPositionsOf } from "./lineupPlayers";
 import { cellShape } from "./pitchShape";
 import { cardRolesOf, pricedMatch, ROLE_CARD_MATCHES, roleCardShape, type MatchToPrice } from "./roleCardShape";
 

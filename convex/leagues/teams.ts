@@ -22,7 +22,8 @@ import { withdrawClaimsOfTeam } from "../waivers/waiverClaims";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
-import { TEAM_NAME_MAX } from "./leagueLimits";
+import { TEAM_COLOURS_MOST, TEAM_NAME_MAX } from "./leagueLimits";
+import { startingColours, teamColours } from "./teamColours";
 import { cancelLiveInvites } from "../joining/liveInvites";
 import { draftHasStarted, draftOf } from "../draft/draftRow";
 import { rescheduleIfOnTheClock } from "../draft/draftClock";
@@ -111,7 +112,8 @@ export async function putOnTeam(
     await storeBegunFixtures(ctx, league, await seasonRules(ctx, league._id), await leagueDeadlines(ctx, league._id), Date.now());
     const number = teams.length + 1;
     teamName = startingName(teams, number);
-    teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email });
+    const colours = startingColours(teams, Math.random);
+    teamId = await ctx.db.insert("teams", { leagueId: league._id, number, name: teamName, managerEmail: email, colours });
   }
   await admitEmail(ctx, email);
   return { teamId, teamName };
@@ -181,16 +183,23 @@ async function pickAtOnceIfOnTheClock(ctx: MutationCtx, team: Doc<"teams">): Pro
   if (draft !== null) await rescheduleIfOnTheClock(ctx, draft, team);
 }
 
+/** The team `teamId` and who asks to change it, refused unless they are its manager or the admin
+ *  and its league can change: its name (rename) and colours (setColours) alike. */
+async function teamToChange(ctx: MutationCtx, teamId: Id<"teams">): Promise<{ by: string; team: Doc<"teams"> }> {
+  const by = await callerEmail(ctx);
+  const team = (await ctx.db.get("teams", teamId)) ?? refuse(refusals.noTeam);
+  if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
+  await getLeague(ctx, team.leagueId);
+  return { by, team };
+}
+
 /** spec/13, Teams: a team's manager (or the admin) renames it, unique in the league and up to
  *  TEAM_NAME_MAX characters. */
 export const rename = mutation({
   args: { teamId: v.id("teams"), name: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const by = await callerEmail(ctx);
-    const team = (await ctx.db.get("teams", args.teamId)) ?? refuse(refusals.noTeam);
-    if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
-    await getLeague(ctx, team.leagueId);
+    const { by, team } = await teamToChange(ctx, args.teamId);
     const name = typedName(args.name, TEAM_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.teamNameTooLong });
     if (name === team.name) return null;
     const teams = await teamsOf(ctx, team.leagueId);
@@ -199,6 +208,19 @@ export const rename = mutation({
     }
     await ctx.db.patch("teams", team._id, { name });
     await recordEvent(ctx, team.leagueId, by, { kind: "teamRenamed", teamId: team._id, from: team.name, to: name });
+    return null;
+  },
+});
+
+/** spec/12, Team colours: a team's manager (or the admin) sets its one to three colours from the
+ *  palette, first to third (S12.26, S12.32; Craig, 19 Nov 2026, on #2684: "Its manager or the admin"). */
+export const setColours = mutation({
+  args: { teamId: v.id("teams"), colours: teamColours },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { team } = await teamToChange(ctx, args.teamId);
+    if (args.colours.length === 0 || args.colours.length > TEAM_COLOURS_MOST) refuse(refusals.colourCount);
+    await ctx.db.patch("teams", team._id, { colours: args.colours });
     return null;
   },
 });

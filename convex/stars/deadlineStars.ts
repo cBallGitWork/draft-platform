@@ -5,10 +5,13 @@ import { internalMutation, type QueryCtx } from "../_generated/server";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
-import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { playerPositionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
+import type { LineNow } from "../positions/lines";
+import type { Line } from "../shared/lineNames";
 import { gameModeOf, type GameMode } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
+import type { LeagueRules } from "../rules/leagueRulesShape";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
@@ -55,11 +58,16 @@ export const storeLeague = internalMutation({
     try {
       rows = [];
       const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
-      const playerNow = playerReader(ctx, await positionsNow(ctx, leagueId));
+      const playerNow = playerReader(ctx, await playerPositionsNow(ctx, leagueId));
       const mode = gameModeOf((await seasonRules(ctx, leagueId)).inGameweek(gameweek));
       for (const [teamId, held] of await lineupsInGameweek(ctx, leagueId, teamIds, gameweek)) {
         const bench = keptBench(held.bench, mode.showsStars ? await starsOfPlayers(ctx, held.bench) : new Map(), mode);
-        const players = await Promise.all(namedCodes(held).map(async (playerCode) => ({ playerCode, ...(await playerNow(playerCode)) })));
+        const players = await Promise.all(
+          namedCodes(held).map(async (playerCode) => {
+            const { line, ...then } = await playerNow(playerCode);
+            return { playerCode, ...then, ...(mode.classic && line !== null && { line }) };
+          }),
+        );
         rows.push({ leagueId, gameweek, teamId, bench, players });
       }
     } catch (error: unknown) {
@@ -127,25 +135,45 @@ function keptRows(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, team
 }
 
 /** A man a lineup names, as scoring reads him: his club, null for one the football sync doesn't
- *  hold, and his positions. */
+ *  hold, his positions, and his line in a classic league (spec/22), null while he has none. */
 export interface LineupPlayer {
   clubCode: number | null;
   positions: Position[];
+  line: Line | null;
 }
 
-/** Each player's club and positions now, read once however often he is asked for. */
-export function playerReader(ctx: QueryCtx, positionsOfNow: PositionsNow): (code: number) => Promise<LineupPlayer> {
+/** Each player's club, positions and line now, read once however often he is asked for. */
+export function playerReader(ctx: QueryCtx, now: { positionsOf: PositionsNow; lineOf: LineNow }): (code: number) => Promise<LineupPlayer> {
   return readOnce(async (code: number): Promise<LineupPlayer> => {
     const held = await playerByCode(ctx, code);
-    return { clubCode: held?.clubCode ?? null, positions: await positionsOfNow(code) };
+    return { clubCode: held?.clubCode ?? null, positions: await now.positionsOf(code), line: await now.lineOf(code) };
   });
+}
+
+/** A man as a team's row kept him at the deadline: his line only in a classic league, and only
+ *  while he had one (none in a row kept before #2637). */
+type KeptPlayer =Omit<LineupPlayer, "line"> & { line?: Line };
+
+/** In a classic league (spec/22), each of `codes`' line as the team's row kept it at the deadline,
+ *  so a line changed since never re-works the gameweek's auto-subs (`S22.6`); as he is now only
+ *  where none was kept. None is read in any other league. */
+export async function linesAtDeadline(
+  rules: Pick<LeagueRules, "format" | "classic">,
+  kept: KeptAtDeadline | undefined,
+  now: (code: number) => Promise<LineupPlayer>,
+  codes: readonly number[],
+): Promise<Map<number, Line | null>> {
+  const lines = new Map<number, Line | null>();
+  if (!gameModeOf(rules).classic) return lines;
+  for (const code of codes) lines.set(code, kept?.players.get(code)?.line ?? (await now(code)).line);
+  return lines;
 }
 
 /** What a team's row keeps from the deadline: its bench players' stars, and each man its lineup
  *  named as he stood then (none in a row kept before #1540). */
 export interface KeptAtDeadline {
   stars: ReadonlyMap<number, RoleStars[]>;
-  players: ReadonlyMap<number, LineupPlayer>;
+  players: ReadonlyMap<number, KeptPlayer>;
 }
 
 /** What each team's row keeps from the league's deadline for `gameweek`, or only `teamId`'s when
@@ -162,7 +190,7 @@ export async function keptAtDeadline(
       row.teamId,
       {
         stars: new Map(row.bench.map(({ playerCode, stars }) => [playerCode, stars])),
-        players: new Map((row.players ?? []).map(({ playerCode, clubCode, positions }) => [playerCode, { clubCode, positions }])),
+        players: new Map((row.players ?? []).map(({ playerCode, ...then }) => [playerCode, then])),
       },
     ]),
   );
